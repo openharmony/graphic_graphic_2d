@@ -4946,7 +4946,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeTransparentDirtysForDisplay002, TestS
  * @tc.name: UpdateHwcNodeInfoForAppNode
  * @tc.desc: Test RSUniRenderVisitorTest.UpdateHwcNodeInfoForAppNode with not nullptr
  * @tc.type: FUNC
- * @tc.require: issuesIAE8IM
+ * @tc.require: issuesIAE6YM
  */
 HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode, TestSize.Level2)
 {
@@ -4960,9 +4960,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode, TestSize.Level2)
 
 /**
  * @tc.name: UpdateHwcNodeRectInSkippedSubTree
- * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeRectInSkippedSubTree with nullptr
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeRectInSkippedSubTree with not nullptr
  * @tc.type: FUNC
- * @tc.require: issuesIAE8IM
+ * @tc.require: issuesIAE6YM
  */
 HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree, TestSize.Level2)
 {
@@ -4970,7 +4970,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree, TestSize.Lev
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
     int id = 0;
-    RSRenderNode *node = new RSRenderNode(id);
+    auto node = std::make_shared<RSRenderNode>(id);
     rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(*node);
 }
 
@@ -4978,7 +4978,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree, TestSize.Lev
  * @tc.name: UpdateHwcNodeEnableByGlobalFilter
  * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeEnableByGlobalFilter with not nullptr
  * @tc.type: FUNC
- * @tc.require: issuesIAE8IM
+ * @tc.require: issuesIAE6YM
  */
 HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Level2)
 {
