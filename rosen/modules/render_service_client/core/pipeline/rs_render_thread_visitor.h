@@ -80,6 +80,8 @@ private:
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
     void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
     Drawing::Matrix CacRotationFromTransformType(GraphicTransformType transform, RectF& bounds);
+    GraphicTransformType GetFlipTransform(GraphicTransformType transform);
+    void FlipMatrix(GraphicTransformType transform, Drawing::Matrix& matrix, const RectF& bounds);
 
     bool UpdateAnimatePropertyCacheSurface(RSRenderNode& node);
     void ProcessShadowFirst(RSRenderNode& node);
