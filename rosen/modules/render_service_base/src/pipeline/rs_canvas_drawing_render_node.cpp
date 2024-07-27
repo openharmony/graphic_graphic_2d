@@ -393,6 +393,9 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pix
     std::shared_ptr<Drawing::Surface> surface;
     std::unique_ptr<RSPaintFilterCanvas> canvas;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (!canvas_) {
+        return false;
+    }
     auto gpuContext = canvas_->GetGPUContext();
     if (gpuContext == nullptr) {
         if (!WriteSkImageToPixelmap(image, info, pixelmap, rect)) {
@@ -420,6 +423,9 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pix
     canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
     drawCmdList->Playback(*canvas, rect);
     auto pixelmapImage = surface->GetImageSnapshot();
+    if (!pixelmapImage) {
+        return false;
+    }
     if (!WriteSkImageToPixelmap(pixelmapImage, info, pixelmap, rect)) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
         return false;

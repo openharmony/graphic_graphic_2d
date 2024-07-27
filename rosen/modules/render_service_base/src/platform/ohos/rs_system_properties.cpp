@@ -330,7 +330,7 @@ bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.surfacenames", "0");
     int changed = 0;
     const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
-    if (strcmp(targetSurfacesStr, "0") == 0) {
+    if (targetSurfacesStr == nullptr || strcmp(targetSurfacesStr, "0") == 0) {
         dfxTargetSurfaceNames_.clear();
         return false;
     }
@@ -995,6 +995,14 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
+}
+
+bool RSSystemProperties::GetLayerCursorEnable()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.layercursor.enable", "0");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return (ConvertToInt(num, 0) != 0) && IsPcType();
 }
 
 bool RSSystemProperties::GetHDRImageEnable()

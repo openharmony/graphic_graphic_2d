@@ -295,7 +295,11 @@ export class PathConstructor extends TestBase {
       return;
     }
 
-    this.displayTestResult(canvas, (path2.getBounds() == path.getBounds() && path2.getLength(true) == path.getLength(true)));
+    this.displayTestResult(canvas, (path2.getBounds().left == path.getBounds().left &&
+      path2.getBounds().top == path.getBounds().top &&
+      path2.getBounds().right == path.getBounds().right &&
+      path2.getBounds().bottom == path.getBounds().bottom &&
+      path2.getLength(true) == path.getLength(true)));
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
@@ -314,7 +318,11 @@ export class PathConstructor extends TestBase {
         return;
       }
     }
-    this.displayTestResult(canvas, (path2.getBounds() == path.getBounds() && path2.getLength(true) == path.getLength(true)));
+    this.displayTestResult(canvas, (path2.getBounds().left == path.getBounds().left &&
+      path2.getBounds().top == path.getBounds().top &&
+      path2.getBounds().right == path.getBounds().right &&
+      path2.getBounds().bottom == path.getBounds().bottom &&
+      path2.getLength(true) == path.getLength(true)));
   }
 
   private displayTestResult(canvas: drawing.Canvas, isPassed : Boolean) {

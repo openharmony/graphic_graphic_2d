@@ -70,6 +70,7 @@ public:
 
     EGLSurface CreateSurface(NativeWindow* window);
 
+    void CreateContext(int version);
 private:
     EglManager() : eglDisplay_(EGL_NO_DISPLAY), eglConfig_(nullptr), eglContext_(EGL_NO_CONTEXT),
         currentSurface_(nullptr) {}

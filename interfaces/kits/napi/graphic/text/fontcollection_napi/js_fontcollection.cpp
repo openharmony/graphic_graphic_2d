@@ -80,7 +80,7 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("getGlobalInstance", JsFontCollection::GetGlobalInstance),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
         DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
-        DECLARE_NAPI_FUNCTION("loadFontAsync", JsFontCollection::LoadFontAsync),
+        DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFontAsync),
     };
 
     napi_value constructor = nullptr;

@@ -120,6 +120,7 @@ RosenError HdiOutput::SetHdiOutputDevice(HdiDevice* device)
 
 void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
 {
+    std::unique_lock<std::mutex> lock(surfaceIdMutex_);
     for (auto &layerInfo : layerInfos) {
         if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr) {
             HLOGE("current layerInfo or layerInfo's cSurface is null");
@@ -371,9 +372,13 @@ int32_t HdiOutput::UpdateLayerCompType()
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
     int32_t ret = device_->GetScreenCompChange(screenId_, layersId, types);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS || layersId.size() != types.size()) {
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("GetScreenCompChange failed, ret is %{public}d", ret);
         return ret;
+    }
+    if (layersId.size() != types.size()) {
+        HLOGE("HdiOutput::UpdateLayerCompType layersId size is not types size");
+        return GRAPHIC_DISPLAY_FAILURE;
     }
 
     std::unique_lock<std::mutex> lock(layerMutex_);
@@ -855,13 +860,17 @@ static inline bool Cmp(const LayerDumpInfo &layer1, const LayerDumpInfo &layer2)
 
 void HdiOutput::ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const
 {
+    std::unique_lock<std::mutex> lock(surfaceIdMutex_);
     for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
         struct LayerDumpInfo layerInfo = {
             .nodeId = iter->second->GetLayerInfo()->GetNodeId(),
             .surfaceId = iter->first,
             .layer = iter->second,
         };
-        dumpLayerInfos.emplace_back(layerInfo);
+
+        if (iter->second != nullptr) {
+            dumpLayerInfos.emplace_back(layerInfo);
+        }
     }
 
     std::sort(dumpLayerInfos.begin(), dumpLayerInfos.end(), Cmp);

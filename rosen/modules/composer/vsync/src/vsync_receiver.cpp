@@ -155,16 +155,15 @@ void VSyncReceiver::ThreadCreateNotify()
 {
     int32_t pid = getprocpid();
     int32_t uid = getuid();
-    int64_t tid = static_cast<uint32_t>(getproctid());
-    VLOGI("vsync thread pid=%{public}d, tid=%{public}lld, uid=%{public}d.", pid, tid, uid);
+    int32_t tid = static_cast<int32_t>(getproctid());
+    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}d.", pid, tid, uid);
 
     std::unordered_map<std::string, std::string> mapPayload;
-    int64_t value = getproctid();
     mapPayload["pid"] = std::to_string(pid);
     mapPayload["uid"] = std::to_string(uid);
     mapPayload["tid"] = std::to_string(tid);
     OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
-        ResourceSchedule::ResType::RES_TYPE_REPORT_VSYNC_TID, value, mapPayload);
+        ResourceSchedule::ResType::RES_TYPE_REPORT_VSYNC_TID, tid, mapPayload);
 }
 
 VSyncReceiver::~VSyncReceiver()
@@ -293,6 +292,16 @@ VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch)
         return VSYNC_ERROR_API_FAILED;
     }
     return connection_->SetUiDvsyncSwitch(dvsyncSwitch);
+}
+
+VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount)
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
+    VLOGI("%{public}s bufferCount:%{public}d", __func__, bufferCount);
+    return connection_->SetUiDvsyncConfig(bufferCount);
 }
 } // namespace Rosen
 } // namespace OHOS

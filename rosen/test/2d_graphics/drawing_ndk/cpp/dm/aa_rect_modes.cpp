@@ -201,3 +201,10 @@ void AARectModes::OnTestFunction(OH_Drawing_Canvas *canvas)
     OH_Drawing_BrushDestroy(bgBrush);
     OH_Drawing_ShaderEffectDestroy(shaderEffect);
 }
+
+void AARectModes::OnTestStability(OH_Drawing_Canvas *canvas)
+{
+    for (size_t i = 0; i < testCount_; i++) {
+        OnTestFunction(canvas);
+    }
+}

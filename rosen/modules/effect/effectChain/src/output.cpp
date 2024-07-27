@@ -65,6 +65,10 @@ void Output::EncodeToFile(ProcessData& data)
         return;
     }
     imagePacker.StartPacking(dstImagePath_, option);
+    if (pixelMap_ == nullptr) {
+        LOGE("The pixelMap is null.");
+        return;
+    }
     imagePacker.AddImage(*pixelMap_);
     int64_t packedSize = 0;
     imagePacker.FinalizePacking(packedSize);

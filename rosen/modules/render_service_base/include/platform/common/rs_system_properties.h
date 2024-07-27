@@ -233,6 +233,7 @@ public:
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool GetHDRImageEnable();
+    static bool GetLayerCursorEnable();
     static bool IsForceClient();
     static bool GetUnmarshParallelFlag();
     static uint32_t GetUnMarshParallelSize();

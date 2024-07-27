@@ -404,6 +404,10 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: pixelmap is nullptr");
         return false;
     }
+    if (!canvas_ || !image_ || !surface_) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: canvas/image/surface is nullptr");
+        return false;
+    }
     std::shared_ptr<Drawing::Image> image;
     std::shared_ptr<Drawing::GPUContext> grContext;
     if (!GetCurrentContextAndImage(grContext, image, tid)) {
@@ -524,6 +528,21 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
     } else {
         if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
             backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
+            if (!backendTexture_.IsValid()) {
+                surface_ = nullptr;
+                recordingCanvas_ = nullptr;
+                image_ = nullptr;
+                canvas_ = nullptr;
+                backendTexture_ = {};
+                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                    vulkanCleanupHelper_ = nullptr;
+                }
+                RS_LOGE(
+                    "RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK size too big [%{public}d, %{public}d] failed",
+                    width, height);
+                return false;
+            }
         }
         auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
         bool isNewCreate = false;

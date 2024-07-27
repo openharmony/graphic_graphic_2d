@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSC_EXPORT RSFrameRateLinker : public std::enable_shared_from_this<RSFrameRateLinker> {
+class RSC_EXPORT RSFrameRateLinker {
 public:
     RSFrameRateLinker();
     ~RSFrameRateLinker();

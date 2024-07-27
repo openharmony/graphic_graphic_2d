@@ -430,7 +430,6 @@ public:
 
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
-    void ExecuteSurfaceCaptureCommand();
     bool GetCommandExecuted() const
     {
         return commandExecuted_;

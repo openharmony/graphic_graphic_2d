@@ -3125,22 +3125,6 @@ HWTEST_F(RSMainThreadTest, ProcessScreenHotPlugEvents, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckSurfaceVisChanged001
- * @tc.desc: Test CheckSurfaceVisChanged, systemAnimatedScenesList is empty
- * @tc.type: FUNC
- * @tc.require: issueI97LXT
- */
-HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->systemAnimatedScenesList_.clear();
-    mainThread->CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces);
-}
-
-/**
  * @tc.name: CheckSystemSceneStatus001
  * @tc.desc: Test CheckSystemSceneStatus, APPEAR_MISSION_CENTER
  * @tc.type: FUNC
@@ -3361,8 +3345,8 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
 }
 
 /**
- * @tc.name: UIExtensionNodesTraverseAndCallback001
- * @tc.desc: test UIExtensionNodesTraverseAndCallback, no need to callback
+ * @tc.name: CheckUIExtensionCallbackDataChanged001
+ * @tc.desc: test CheckUIExtensionCallbackDataChanged, no need to callback (2 frames of empty callback data)
  * @tc.type: FUNC
  * @tc.require: issueIABHAX
  */
@@ -3372,22 +3356,21 @@ HWTEST_F(RSMainThreadTest, UIExtensionNodesTraverseAndCallback001, TestSize.Leve
     ASSERT_NE(mainThread, nullptr);
     mainThread->lastFrameUIExtensionDataEmpty_ = true;
     mainThread->uiExtensionCallbackData_.clear();
-    mainThread->UIExtensionNodesTraverseAndCallback();
-    ASSERT_TRUE(mainThread->uiExtensionCallbackData_.empty());
+    ASSERT_FALSE(mainThread->CheckUIExtensionCallbackDataChanged());
 }
 
 /**
- * @tc.name: UIExtensionNodesTraverseAndCallback002
- * @tc.desc: test UIExtensionNodesTraverseAndCallback, empty callback list
+ * @tc.name: CheckUIExtensionCallbackDataChanged002
+ * @tc.desc: test CheckUIExtensionCallbackDataChanged, first frame of empty callbackdata, need to callback
  * @tc.type: FUNC
  * @tc.require: issueIABHAX
  */
-HWTEST_F(RSMainThreadTest, UIExtensionNodesTraverseAndCallback002, TestSize.Level2)
+HWTEST_F(RSMainThreadTest, CheckUIExtensionCallbackDataChanged002, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->lastFrameUIExtensionDataEmpty_ = false;
-    mainThread->UIExtensionNodesTraverseAndCallback();
-    ASSERT_TRUE(mainThread->uiExtensionCallbackData_.empty());
+    mainThread->uiExtensionCallbackData_.clear();
+    ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
 }
 } // namespace OHOS::Rosen

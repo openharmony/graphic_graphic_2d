@@ -3639,17 +3639,6 @@ bool RSRenderNode::HasMustRenewedInfo() const
     return mustRenewedInfo_;
 }
 
-void RSRenderNode::ExecuteSurfaceCaptureCommand()
-{
-    auto task = RSOffscreenRenderThread::Instance().GetCaptureTask(GetId());
-    if (task) {
-        RSOffscreenRenderThread::Instance().PostTask(task);
-        commandExecuted_ = false;
-    } else {
-        commandExecuted_ = true;
-    }
-}
-
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)
 {
     visitedCacheRoots_ = visitedNodes;

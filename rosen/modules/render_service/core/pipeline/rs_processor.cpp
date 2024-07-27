@@ -121,25 +121,22 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
 bool RSProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
     std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
+    if (renderEngine == nullptr) {
+        RS_LOGE("renderEngine is nullptr");
+        return false;
+    }
     auto& params = displayDrawable.GetRenderParams();
-    if (!params) {
+    if (params == nullptr) {
         RS_LOGE("RSProcessor::InitForRenderThread params is null!");
         return false;
     }
     auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
-
     offsetX_ = displayParams->GetDisplayOffsetX();
     offsetY_ = displayParams->GetDisplayOffsetY();
     mirroredId_ = mirroredId;
-
+    renderEngine_ = renderEngine;
     screenInfo_ = displayParams->GetScreenInfo();
     screenInfo_.rotation = displayParams->GetNodeRotation();
-
-    renderEngine_ = renderEngine;
-    if (renderEngine_ == nullptr) {
-        RS_LOGE("renderEngine is nullptr");
-        return false;
-    }
 
     // CalculateScreenTransformMatrix
     auto mirroredNodeDrawable = displayParams->GetMirrorSourceDrawable().lock();
@@ -165,24 +162,23 @@ bool RSProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& d
 bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
     std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
-    offsetX_ = offsetX;
-    offsetY_ = offsetY;
-    mirroredId_ = mirroredId;
+    if (renderEngine == nullptr) {
+        RS_LOGE("renderEngine is nullptr");
+        return false;
+    }
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
         RS_LOGE("RSPhysicalScreenProcessor::Init: ScreenManager is nullptr");
         return false;
     }
+    renderEngine_ = renderEngine;
+    offsetX_ = offsetX;
+    offsetY_ = offsetY;
+    mirroredId_ = mirroredId;
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
     screenInfo_.rotation = node.GetRotation();
     auto mirrorNode = node.GetMirrorSource().lock();
     CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : node);
-
-    renderEngine_ = renderEngine;
-    if (renderEngine_ == nullptr) {
-        RS_LOGE("renderEngine is nullptr");
-        return false;
-    }
 
     if (mirroredId_ != INVALID_SCREEN_ID) {
         mirroredScreenInfo_ = screenManager->QueryScreenInfo(mirroredId_);

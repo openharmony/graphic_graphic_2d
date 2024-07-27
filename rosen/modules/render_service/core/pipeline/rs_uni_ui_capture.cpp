@@ -46,7 +46,7 @@ const int FAKE_WIDTH = 10; // When the width and height of the node are not set,
 const int FAKE_HEIGHT = 10; // When the width and height of the node are not set, use the fake height
 
 RSUniUICapture::RSUniUICapture(NodeId nodeId, const RSSurfaceCaptureConfig& captureConfig)
-    : captureConfig_(captureConfig)
+    : nodeId_(nodeId), captureConfig_(captureConfig)
 {
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
 }

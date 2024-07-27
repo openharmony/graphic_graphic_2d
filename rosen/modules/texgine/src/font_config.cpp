@@ -34,7 +34,6 @@ namespace TextEngine {
 #define SUCCESSED 0
 #define FAILED 1
 
-const std::string DEFAULT_DIR = "/system/fonts/";
 const char* FONT_DEFAULT_CONFIG = "/system/etc/fontconfig.json";
 
 FontConfig::FontConfig(const char* fname)
@@ -111,7 +110,7 @@ int FontConfig::ParseFont(const cJSON* root)
     for (int i = 0; i < size;i++) {
         cJSON* item = cJSON_GetArrayItem(filters, i);
         if (item != nullptr && cJSON_IsString(item)) {
-            fontSet_.emplace_back(DEFAULT_DIR + std::string(item->valuestring));
+            fontSet_.emplace_back(rootPath_ + std::string(item->valuestring));
         }
     }
     return SUCCESSED;
@@ -124,6 +123,13 @@ int FontConfig::ParseConfig(const char* fname)
         return FAILED;
     }
 
+    std::string rootPath(fname);
+    size_t idx = rootPath.rfind('/');
+    if (idx == 0 || idx == std::string::npos) {
+        LOGSO_FUNC_LINE(ERROR) << "fname is illegal";
+        return FAILED;
+    }
+    rootPath_.assign(rootPath.substr(0, idx) + "/");
     cJSON* root = CheckConfigFile(fname);
     if (root == nullptr) {
         LOGSO_FUNC_LINE(ERROR) << "check config file failed";

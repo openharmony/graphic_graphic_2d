@@ -1151,6 +1151,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     LayerRotate(layer, node);
     LayerCrop(layer);
+    layer->SetNodeId(node.GetId());
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
     ScalingMode scalingMode = nodeParams->GetPreScalingMode();
     const auto& buffer = layer->GetBuffer();
@@ -1176,7 +1177,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
         return nullptr;
     }
-    RS_OPTIONAL_TRACE_NAME("RSUniRenderComposerAdapter::CreateLayer DisplayDrawable");
     auto surfaceHandler = displayDrawable.GetMutableRSSurfaceHandlerOnDraw();
     if (!surfaceHandler) {
         return nullptr;
@@ -1196,14 +1196,16 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
             !surfaceHandler->GetBuffer());
         return nullptr;
     }
-    RSBaseRenderUtil::IncAcquiredBufferCount();
     ComposeInfo info = BuildComposeInfo(displayDrawable);
-    RS_LOGD("RSUniRenderComposerAdapter::ProcessSurface displayNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable zorder:%d bufferFormat:%d", info.zOrder,
+        surfaceHandler->GetBuffer()->GetFormat());
+    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayDrawable id:%{public}" PRIu64 " dst [%{public}d %{public}d"
             " %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d] surfaceBuffer"
-            " [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d",
-        displayDrawable.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w,
-        info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
-        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
+            " [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d, bufferFormat:%d",
+        displayDrawable.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        info.srcRect.w, info.srcRect.h,
+        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
+        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType, surfaceHandler->GetBuffer()->GetFormat());
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetUniRenderFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
@@ -1235,7 +1237,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }
-    RSBaseRenderUtil::IncAcquiredBufferCount();
     ComposeInfo info = BuildComposeInfo(*displayDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayNode zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
@@ -1246,6 +1247,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
         info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType, surfaceHandler->GetBuffer()->GetFormat());
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetNodeId(node.GetId());
     layer->SetUniRenderFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     LayerRotate(layer, *displayDrawable);
@@ -1300,6 +1302,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& nod
     if (drawable) {
         LayerRotate(layer, *drawable);
     }
+    layer->SetNodeId(node.GetId());
     return layer;
 }
 

@@ -118,7 +118,7 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
     GraphicLayerInfo hdiLayerInfo = {
         .width = layerInfo->GetLayerSize().w,
         .height = layerInfo->GetLayerSize().h,
-        .type = GRAPHIC_LAYER_TYPE_GRAPHIC,
+        .type = layerInfo->GetType(),
         .pixFormat = GRAPHIC_PIXEL_FMT_RGBA_8888,
     };
 

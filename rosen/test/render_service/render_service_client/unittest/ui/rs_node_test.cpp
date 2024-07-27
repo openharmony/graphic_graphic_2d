@@ -4643,23 +4643,6 @@ HWTEST_F(RSNodeTest, RemoveChildByNodeId001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTakeSurfaceForUIFlagTest Test
- * @tc.desc: SetTakeSurfaceForUIFlag and AnimateWithCurrentOptions
- * @tc.type: FUNC
- * @tc.require:issueI9MWJR
- */
-HWTEST_F(RSNodeTest, SetTakeSurfaceForUIFlagTest, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->SetTakeSurfaceForUIFlag();
-    PropertyCallback propertyCallback;
-    std::function<void()> finishCallback = []() {};
-    RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, true);
-    propertyCallback = []() {};
-    ASSERT_EQ(RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, true).size(), 0);
-}
-
-/**
  * @tc.name: DrawOnNode Test
  * @tc.desc: DrawOnNode and SetFreeze
  * @tc.type: FUNC

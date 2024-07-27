@@ -393,4 +393,46 @@ void SurfaceImageListener::OnBufferAvailable()
         surfaceImage->listener_(surfaceImage->context_);
     }
 }
+
+SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp;
+    Rect damage;
+    SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("AcquireBuffer failed: %d", ret);
+        return ret;
+    }
+    currentSurfaceBuffer_ = buffer;
+    currentTimeStamp_ = timestamp;
+    currentCrop_ = damage;
+    currentTransformType_ = ConsumerSurface::GetTransform();
+    auto utils = SurfaceUtils::GetInstance();
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, currentSurfaceBuffer_,
+        currentTransformType_, currentCrop_);
+
+    *fenceFd = acquireFence->Dup();
+    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
+    nwBuffer->sfbuffer = buffer;
+    NativeObjectReference(nwBuffer);
+    *nativeWindowBuffer = nwBuffer;
+
+    return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
+    SurfaceError ret = ReleaseBuffer(nativeWindowBuffer->sfbuffer, fenceFd);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("ReleaseBuffer failed: %d", ret);
+        return ret;
+    }
+    NativeObjectUnreference(nativeWindowBuffer);
+    return SURFACE_ERROR_OK;
+}
 } // namespace OHOS

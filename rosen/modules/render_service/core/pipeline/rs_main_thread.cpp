@@ -237,7 +237,7 @@ public:
     AccessibilityObserver() = default;
     void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
-        RS_LOGD("AccessibilityObserver OnConfigChanged configId: %{public}d", id);
+        RS_LOGI("RSMainThread AccessibilityObserver OnConfigChanged configId: %{public}d", id);
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
             switch (value.daltonizationColorFilter) {
@@ -1340,6 +1340,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
         return;
     }
     CheckIfHardwareForcedDisabled();
+    if (!pendingUiCaptureTasks_.empty()) {
+        RS_OPTIONAL_TRACE_NAME("rs debug: uiCapture SetDoDirectComposition false");
+        doDirectComposition_ = false;
+    }
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
         [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
@@ -1884,6 +1888,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         if (RSSystemProperties::GetQuickPrepareEnabled()) {
             //planning:the QuickPrepare will be replaced by Prepare
             rootNode->QuickPrepare(uniVisitor);
+            SetUniVSyncRateByVisibleLevel(uniVisitor);
             uniVisitor->SurfaceOcclusionCallbackToWMS();
         } else {
             rootNode->Prepare(uniVisitor);
@@ -2060,9 +2065,9 @@ void RSMainThread::Render()
     }
     if (!isUniRender_) {
         CallbackDrawContextStatusToWMS();
-        CheckSystemSceneStatus();
         PerfForBlurIfNeeded();
     }
+    CheckSystemSceneStatus();
     UpdateLuminance();
 }
 
@@ -2377,9 +2382,12 @@ void RSMainThread::CalcOcclusion()
     SurfaceOcclusionCallback();
 }
 
-bool RSMainThread::CheckSurfaceVisChanged(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
+void RSMainThread::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
+    if (!vsyncControlEnabled_ || appVSyncDistributor_ == nullptr) {
+        return;
+    }
     if (!systemAnimatedScenesList_.empty()) {
         visMapForVsyncRate.clear();
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -2391,42 +2399,88 @@ bool RSMainThread::CheckSurfaceVisChanged(std::map<NodeId, RSVisibleLevel>& visM
         }
         isReduceVSyncBySystemAnimatedScenes_ = true;
     }
-    bool isVisibleChanged = visMapForVsyncRate.size() != visMapForVsyncRate.size();
-    if (!isVisibleChanged) {
-        auto iterCur = visMapForVsyncRate.begin();
-        auto iterLast = lastVisMapForVsyncRate_.begin();
-        for (; iterCur != visMapForVsyncRate.end(); iterCur++, iterLast++) {
-            if (iterCur->first != iterLast->first ||
-                iterCur->second != iterLast->second) {
-                isVisibleChanged = true;
-                break;
-            }
-        }
-    }
-
-    if (isVisibleChanged) {
-        lastVisMapForVsyncRate_ = visMapForVsyncRate;
-    }
-    return isVisibleChanged;
+    NotifyVSyncRates(visMapForVsyncRate);
 }
 
-void RSMainThread::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
-    std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
+void RSMainThread::SetUniVSyncRateByVisibleLevel(const std::shared_ptr<RSUniRenderVisitor>& uniRenderVisitor)
 {
-    if (!vsyncControlEnabled_ || !CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces) ||
-        appVSyncDistributor_ == nullptr) {
+    if (!vsyncControlEnabled_ || appVSyncDistributor_ == nullptr) {
         return;
     }
-    RS_TRACE_NAME_FMT("%s visMapForVsyncRateSize[%lu]", __func__, visMapForVsyncRate.size());
-    for (auto iter:visMapForVsyncRate) {
-        if (iter.second == RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE) {
-            appVSyncDistributor_->SetQosVSyncRate(iter.first, SIMI_VISIBLE_RATE);
-        } else if (iter.second == RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE) {
-            appVSyncDistributor_->SetQosVSyncRate(iter.first, SYSTEM_ANIMATED_SCENES_RATE, true);
-        } else if (iter.second == RSVisibleLevel::RS_INVISIBLE) {
-            appVSyncDistributor_->SetQosVSyncRate(iter.first, INVISBLE_WINDOW_RATE);
+    if (uniRenderVisitor == nullptr) {
+        RS_LOGE("RSMainThread::SetUniVSyncRateByVisibleLevel GetUniRenderVisitor fail");
+        return;
+    }
+    const std::vector<NodeId>& curSurfaceIds = uniRenderVisitor->GetAllMainAndLeashWindowNodesIds();
+    bool surfaceIdsChanged = lastSurfaceIds_ != curSurfaceIds;
+    bool vsyncRatesChanged = uniRenderVisitor->GetVSyncRatesChanged();
+    bool focusChanged = lastFocusNodeId_ != uniRenderVisitor->GetFocusedNodeId();
+    bool needRefresh = isReduceVSyncBySystemAnimatedScenes_ && systemAnimatedScenesList_.empty();
+    RS_LOGD("SetUniVSyncRate needRefresh=%{public}d, ratesC=%{public}d, surfaceIdsC=%{public}d, focusIdC=%{public}d,"
+        " sysAnimated=%{public}d", needRefresh, vsyncRatesChanged, surfaceIdsChanged, focusChanged,
+        !systemAnimatedScenesList_.empty());
+    RS_TRACE_NAME_FMT("SetUniVSyncRate needRefresh=%d, ratesC=%d, surfaceIdsC=%d, focusIdC=%d, sysAnimated=%d",
+        needRefresh, vsyncRatesChanged, surfaceIdsChanged, focusChanged, !systemAnimatedScenesList_.empty());
+    if (!(vsyncRatesChanged || surfaceIdsChanged || focusChanged || needRefresh)) {
+        return;
+    }
+    if (surfaceIdsChanged) {
+        lastSurfaceIds_ = curSurfaceIds;
+    }
+    if (focusChanged) {
+        lastFocusNodeId_ = uniRenderVisitor->GetFocusedNodeId();
+    }
+    if (needRefresh) {
+        isReduceVSyncBySystemAnimatedScenes_ = false;
+    }
+    if (!systemAnimatedScenesList_.empty()) {
+        isReduceVSyncBySystemAnimatedScenes_ = true;
+    }
+    NotifyVSyncRates(uniRenderVisitor->GetVisMapForVSyncRate());
+}
+
+void RSMainThread::NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates)
+{
+    RS_TRACE_NAME_FMT("NotifyVSyncRates vSyncRates.size=[%lu]", vSyncRates.size());
+    if (vSyncRates.empty()) {
+        return;
+    }
+    auto notifyVsyncFunc = [distributor = appVSyncDistributor_] (NodeId nodeId, RSVisibleLevel level) {
+        bool isSysAnimate = false;
+        int32_t rate = DEFAULT_RATE;
+        if (level == RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE) {
+            rate = SIMI_VISIBLE_RATE;
+        } else if (level == RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE) {
+            isSysAnimate = true;
+            rate = SYSTEM_ANIMATED_SCENES_RATE;
+        } else if (level == RSVisibleLevel::RS_INVISIBLE) {
+            rate = INVISBLE_WINDOW_RATE;
         } else {
-            appVSyncDistributor_->SetQosVSyncRate(iter.first, DEFAULT_RATE);
+            rate = DEFAULT_RATE;
+        }
+        distributor->SetQosVSyncRate(nodeId, rate, isSysAnimate);
+        RS_OPTIONAL_TRACE_NAME_FMT("NotifyVSyncRates nodeId=%" PRIu64 " rate=%d isSysAnimate=%d", nodeId, rate,
+            isSysAnimate);
+    };
+
+    bool isVisibleChanged = lastVisMapForVsyncRate_.size() != vSyncRates.size();
+    if (!isVisibleChanged) {
+        auto iterCur = vSyncRates.begin();
+        auto iterLast = lastVisMapForVsyncRate_.begin();
+        for (; iterCur != vSyncRates.end(); iterCur++, iterLast++) {
+            if (iterCur->first != iterLast->first || iterCur->second != iterLast->second) {
+                isVisibleChanged = true;
+                notifyVsyncFunc(iterCur->first, iterCur->second);
+            }
+        }
+        if (isVisibleChanged) {
+            lastVisMapForVsyncRate_ = vSyncRates;
+        }
+    } else {
+        lastVisMapForVsyncRate_.clear();
+        for (const auto &[nodeId, visLevel] : vSyncRates) {
+            notifyVsyncFunc(nodeId, visLevel);
+            lastVisMapForVsyncRate_.emplace(nodeId, visLevel);
         }
     }
 }
@@ -3621,13 +3675,6 @@ const uint32_t FOLD_DEVICE_SCREEN_NUMBER = 2; // alt device has two screens
 
 void RSMainThread::UpdateUIFirstSwitch()
 {
-#if defined(RS_ENABLE_VK)
-    RSUifirstManager::Instance().SetUseDmaBuffer(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        deviceType_ == DeviceType::PHONE && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN);
-#else
-    RSUifirstManager::Instance().SetUseDmaBuffer(false);
-#endif
-
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
@@ -3782,6 +3829,7 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
         RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus: curtain screen status not change");
         return;
     }
+    RSUifirstManager::Instance().SetUseDmaBuffer(!isCurtainScreenOn);
     isCurtainScreenOn_ = isCurtainScreenOn;
     isCurtainScreenUsingStatusChanged_ = true;
     SetDirtyFlag();
@@ -3869,10 +3917,11 @@ void RSMainThread::UIExtensionNodesTraverseAndCallback()
     std::lock_guard<std::mutex> lock(uiExtensionMutex_);
     RSUniRenderUtil::UIExtensionFindAndTraverseAncestor(context_->GetNodeMap(), uiExtensionCallbackData_);
     if (CheckUIExtensionCallbackDataChanged()) {
-        RS_TRACE_NAME("RSMainThread::UIExtensionNodesTraverseAndCallback.");
-        for (auto iter = uiExtensionListenners_.begin(); iter != uiExtensionListenners_.end(); ++iter) {
-            auto userId = iter->second.first;
-            auto callback = iter->second.second;
+        RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::UIExtensionNodesTraverseAndCallback data size: [%lu]",
+            uiExtensionCallbackData_.size());
+        for (const auto& item : uiExtensionListenners_) {
+            auto userId = item.second.first;
+            auto callback = item.second.second;
             if (callback) {
                 callback->OnUIExtension(std::make_shared<RSUIExtensionData>(uiExtensionCallbackData_), userId);
             }
@@ -3885,19 +3934,18 @@ void RSMainThread::UIExtensionNodesTraverseAndCallback()
 bool RSMainThread::CheckUIExtensionCallbackDataChanged() const
 {
     // empty for two consecutive frames, callback can be skipped.
-    if (uiExtensionCallbackData_.empty() && lastFrameUIExtensionDataEmpty_) {
-        RS_TRACE_NAME("RSMainThread::UIExtensionCallbackData is consecutively empty, skip callback.");
-        return false;
+    if (uiExtensionCallbackData_.empty()) {
+        return !lastFrameUIExtensionDataEmpty_;
     }
     // layout of host node was not changed, callback can be skipped.
     const auto& nodeMap = context_->GetNodeMap();
-    for (auto iter = uiExtensionCallbackData_.begin(); iter != uiExtensionCallbackData_.end(); ++iter) {
-        auto hostNode = nodeMap.GetRenderNode(iter->first);
+    for (const auto& data : uiExtensionCallbackData_) {
+        auto hostNode = nodeMap.GetRenderNode(data.first);
         if (hostNode != nullptr && !hostNode->LastFrameSubTreeSkipped()) {
             return true;
         }
     }
-    RS_TRACE_NAME("RSMainThread::CheckUIExtensionCallbackDataChanged, all host nodes were not changed.");
+    RS_OPTIONAL_TRACE_NAME("RSMainThread::CheckUIExtensionCallbackDataChanged, all host nodes were not changed.");
     return false;
 }
 

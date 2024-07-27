@@ -928,23 +928,6 @@ HWTEST_F(RSRenderNodeTest, StoreMustRenewedInfoTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ExecuteSurfaceCaptureCommandTest
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require: issueI9T3XY
- */
-HWTEST_F(RSRenderNodeTest, ExecuteSurfaceCaptureCommandTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(id, context);
-    node->ExecuteSurfaceCaptureCommand();
-    EXPECT_TRUE(node->commandExecuted_);
-    std::function<void()> func = []() { printf("ExecuteSurfaceCaptureCommandTest task callback\n"); };
-    RSOffscreenRenderThread::Instance().InSertCaptureTask(node->GetId(), func);
-    node->ExecuteSurfaceCaptureCommand();
-    EXPECT_FALSE(node->commandExecuted_);
-}
-
-/**
  * @tc.name: UpdateSubSurfaceCntTest
  * @tc.desc:
  * @tc.type: FUNC

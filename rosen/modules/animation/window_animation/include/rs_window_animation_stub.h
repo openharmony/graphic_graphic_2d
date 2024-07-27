@@ -51,6 +51,8 @@ private:
     int WindowAnimationTargetsUpdate(MessageParcel& data, MessageParcel& reply);
 
     int WallpaperUpdate(MessageParcel& data, MessageParcel& reply);
+
+    DISALLOW_COPY_AND_MOVE(RSWindowAnimationStub);
 };
 } // namespace Rosen
 } // namespace OHOS

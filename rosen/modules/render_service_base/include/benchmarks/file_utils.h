@@ -15,6 +15,7 @@
 
 #ifndef ROSEN_RENDER_SERVICE_BASE_BENCHMARKS_RS_FILE_UTIL_H
 #define ROSEN_RENDER_SERVICE_BASE_BENCHMARKS_RS_FILE_UTIL_H
+#ifdef ENABLE_RECORDING_DCL
 
 #include <string>
 #include "message_parcel.h"
@@ -35,4 +36,5 @@ RSB_EXPORT bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageP
 } // namespace Rosen
 } // namespace OHOS
 
+#endif // ENABLE_RECORDING_DCL
 #endif // RS_FILE_UTILs

@@ -98,6 +98,17 @@ export class CanvasDrawRect extends TestBase {
       canvas.detachBrush()
     }
   }
+
+  public async OnTestStability(canvas: drawing.Canvas) {
+    for (let i = 0; i < this.testCount_; i++) {
+      let rect: common2D.Rect = { left: 10, top: 10, right: 100, bottom: 100 };
+      let pen = new drawing.Pen();
+      this.ApplyPenStyle(pen, TestFunctionStyleType.DRAW_STYLE_TYPE_1)
+      canvas.attachPen(pen)
+      canvas.drawRect(rect)
+      canvas.detachPen()
+    }
+  }
 }
 
 export class CanvasDrawLine extends TestBase {
@@ -770,7 +781,7 @@ export class BrushSetImageFilter extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let brush = new drawing.Brush();
     let clr: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
-    let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+    let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.CLAMP, null);
     brush.setColor(clr);
     var problem: Boolean = false;
     for (let i = 0; i < this.testCount_; i++) {
@@ -789,7 +800,7 @@ export class BrushSetImageFilter extends TestBase {
     var problem: Boolean = false;
     try {
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.CLAMP, null);
         let brush = new drawing.Brush();
         let color: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 0 };
         brush.setColor(color);
@@ -800,7 +811,7 @@ export class BrushSetImageFilter extends TestBase {
         canvas.detachBrush();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.REPEAT, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, drawing.TileMode.REPEAT, null);
         let brush = new drawing.Brush();
         let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
         brush.setColor(color);
@@ -811,7 +822,7 @@ export class BrushSetImageFilter extends TestBase {
         canvas.detachBrush();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.MIRROR, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, drawing.TileMode.MIRROR, null);
         let cf = drawing.ColorFilter.createSRGBGammaToLinear();
         let brush = new drawing.Brush();
         let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 255 };
@@ -824,7 +835,7 @@ export class BrushSetImageFilter extends TestBase {
         canvas.detachBrush();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.DECAL, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.DECAL, null);
         let cf = drawing.ColorFilter.createSRGBGammaToLinear();
         let brush = new drawing.Brush();
         let color: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
@@ -916,7 +927,7 @@ export class PenSetImageFilter extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let pen = new drawing.Pen();
     let clr: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
-    let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+    let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.CLAMP, null);
     pen.setColor(clr);
     var problem: Boolean = false;
     for (let i = 0; i < this.testCount_; i++) {
@@ -935,7 +946,7 @@ export class PenSetImageFilter extends TestBase {
     var problem: Boolean = false;
     try {
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.CLAMP, null);
         let clr: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
         let cf = drawing.ColorFilter.createSRGBGammaToLinear();
         let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
@@ -949,7 +960,7 @@ export class PenSetImageFilter extends TestBase {
         canvas.detachPen();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.REPEAT, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, drawing.TileMode.REPEAT, null);
         let clr: common2D.Color = { alpha: 255, red: 0, green: 0, blue: 255 };
         let cf = drawing.ColorFilter.createSRGBGammaToLinear();
         let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
@@ -963,7 +974,7 @@ export class PenSetImageFilter extends TestBase {
         canvas.detachPen();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.MIRROR, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, drawing.TileMode.MIRROR, null);
         let clr: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
         let cf = drawing.ColorFilter.createSRGBGammaToLinear();
         let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
@@ -976,7 +987,7 @@ export class PenSetImageFilter extends TestBase {
         canvas.detachPen();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.DECAL, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.DECAL, null);
         let clr: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 255 };
         let cf = drawing.ColorFilter.createSRGBGammaToLinear();
         let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
@@ -1006,7 +1017,7 @@ export class CreateBlurImageFilter extends TestBase {
     var problem: Boolean = false;
     for (let i = 0; i < this.testCount_; i++) {
       try {
-        let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        let imgFilter = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.CLAMP, null);
         if (imgFilter == null) {
           console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
           problem = true;
@@ -1025,7 +1036,7 @@ export class CreateBlurImageFilter extends TestBase {
     var problem: Boolean = false
     try {
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.CLAMP, null);
         if (imgFilter1 == null) {
           console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
           problem = true;
@@ -1040,7 +1051,7 @@ export class CreateBlurImageFilter extends TestBase {
         canvas.detachBrush();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.REPEAT, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, drawing.TileMode.REPEAT, null);
         if (imgFilter1 == null) {
           console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
           problem = true;
@@ -1055,7 +1066,7 @@ export class CreateBlurImageFilter extends TestBase {
         canvas.detachBrush();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.MIRROR, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, drawing.TileMode.MIRROR, null);
         if (imgFilter1 == null) {
           console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
           problem = true;
@@ -1072,7 +1083,7 @@ export class CreateBlurImageFilter extends TestBase {
         canvas.detachBrush();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.DECAL, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.DECAL, null);
         if (imgFilter1 == null) {
           console.log("CreateBlurImageFilter failed: createBlurImageFilter is null");
           problem = true;
@@ -1104,7 +1115,7 @@ export class CreateColorImageFilter extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let colorFilter = drawing.ColorFilter.createSRGBGammaToLinear();
-    let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+    let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.CLAMP, null);
     var problem: Boolean = false;
     for (let i = 0; i < this.testCount_; i++) {
       try {
@@ -1127,7 +1138,7 @@ export class CreateColorImageFilter extends TestBase {
     var problem: Boolean = false;
     try {
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.CLAMP, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.CLAMP, null);
         let brush = new drawing.Brush();
         let color: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 0 };
         brush.setColor(color);
@@ -1154,7 +1165,7 @@ export class CreateColorImageFilter extends TestBase {
         canvas.detachPen();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.REPEAT, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, drawing.TileMode.REPEAT, null);
         let brush = new drawing.Brush();
         let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
         brush.setColor(color);
@@ -1181,7 +1192,7 @@ export class CreateColorImageFilter extends TestBase {
         canvas.detachPen();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, uiEffect.TileMode.MIRROR, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(10, 5, drawing.TileMode.MIRROR, null);
         let clr: common2D.Color = { alpha: 255, red: 255, green: 255, blue: 0 };
         let cf = drawing.ColorFilter.createSRGBGammaToLinear();
         let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);
@@ -1208,7 +1219,7 @@ export class CreateColorImageFilter extends TestBase {
         canvas.detachBrush();
       }
       {
-        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, uiEffect.TileMode.DECAL, null);
+        let imgFilter1 = drawing.ImageFilter.createBlurImageFilter(5, 10, drawing.TileMode.DECAL, null);
         let clr: common2D.Color = { alpha: 255, red: 255, green: 0, blue: 255 };
         let cf = drawing.ColorFilter.createSRGBGammaToLinear();
         let imgFilter2 = drawing.ImageFilter.createFromColorFilter(cf, imgFilter1);

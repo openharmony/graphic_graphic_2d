@@ -1736,11 +1736,8 @@ HWTEST_F(RSScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
     auto activeScreenId = screenManager->GetActiveScreenId();
-    ASSERT_EQ(INVALID_SCREEN_ID, activeScreenId);
     bool isFoldScreenFlag = false;
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
-#endif
     if (isFoldScreenFlag) {
         ASSERT_NE(INVALID_SCREEN_ID, activeScreenId);
     } else {

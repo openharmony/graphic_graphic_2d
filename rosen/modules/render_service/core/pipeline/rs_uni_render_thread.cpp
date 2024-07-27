@@ -145,8 +145,10 @@ void RSUniRenderThread::InitGrContext()
 
 void RSUniRenderThread::Inittcache()
 {
-    // enable cache
-    mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
+    if (system::GetBoolParameter("persist.sys.graphic.tcache.enable", true)) {
+        // enable cache
+        mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
+    }
 }
 
 void RSUniRenderThread::Start()
@@ -223,8 +225,7 @@ void RSUniRenderThread::PostImageReleaseTask(const std::function<void()>& task)
         PostRTTask(task);
         return;
     }
-    static bool isAln = system::GetParameter("const.build.product", "") == "ALN";
-    if (isAln && tid_ == gettid()) {
+    if (tid_ == gettid()) {
         task();
         return;
     }

@@ -31,6 +31,11 @@ void RSSurfaceOhosRaster::SetSurfaceBufferUsage(uint64_t usage)
     bufferUsage_ = usage;
 }
 
+void RSSurfaceOhosRaster::SetTimeOut(int32_t timeOut)
+{
+    timeOut_ = timeOut;
+}
+
 void RSSurfaceOhosRaster::SetSurfacePixelFormat(int32_t pixelFormat)
 {
     pixelFormat_ = pixelFormat;

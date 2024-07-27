@@ -176,6 +176,9 @@ bool RSSystemParameters::GetHideNotchStatus()
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.hideNotch.status", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    if (!enable) {
+        return false;
+    }
     return (strcmp(enable, "2") == 0);
 }
 

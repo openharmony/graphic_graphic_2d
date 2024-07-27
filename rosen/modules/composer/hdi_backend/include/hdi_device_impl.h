@@ -30,6 +30,7 @@ public:
     RosenError Init();
     /* set & get device screen info begin */
     int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) override;
+    int32_t RegRefreshCallback(RefreshCallback callback, void *data) override;
     int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) override;
     bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) override;
     int32_t RegScreenVBlankIdleCallback(OnVBlankIdleCallback callback, void *data) override;
@@ -112,7 +113,7 @@ private:
     HdiDeviceImpl& operator=(HdiDeviceImpl&& rhs) = delete;
 
     std::once_flag layerPerFrameParameterKeyCreateFlag_;
-    std::vector<std::string> layerPerFrameParameterKeys_ = {};
+    std::vector<std::string> layerPerFrameParameterKeys_{};
 };
 
 } // namespace Rosen

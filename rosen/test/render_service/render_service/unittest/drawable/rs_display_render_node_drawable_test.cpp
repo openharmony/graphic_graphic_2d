@@ -405,8 +405,22 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorScreenTest, TestSize.Level1)
     ASSERT_NE(renderNode_, nullptr);
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    
+    ASSERT_NE(mirroredNode_, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.renderThreadParams_) {
+        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    rtThread.renderThreadParams_->isVirtualDirtyEnabled_ = true;
+    CaptureParam param;
+    param.isSingleSurface_ = true;
+    rtThread.SetCaptureParam(param);
+
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    if (mirroredNode_->GetRenderDrawable() == nullptr) {
+        mirroredNode_->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
+    }
+    params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     displayDrawable_->DrawMirrorScreen(*params, processor);
 }
@@ -422,9 +436,18 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Le
     ASSERT_NE(renderNode_, nullptr);
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    
+    ASSERT_NE(mirroredNode_, nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.renderThreadParams_) {
+        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    if (mirroredNode_->GetRenderDrawable() == nullptr) {
+        mirroredNode_->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
+    }
+    params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Matrix matrix;

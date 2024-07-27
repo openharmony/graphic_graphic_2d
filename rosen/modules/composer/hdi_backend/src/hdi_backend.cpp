@@ -55,6 +55,49 @@ RosenError HdiBackend::RegScreenHotplug(OnScreenHotplugFunc func, void* data)
     return ROSEN_ERROR_OK;
 }
 
+RosenError HdiBackend::RegScreenRefresh(OnScreenRefreshFunc func, void* data)
+{
+    if (func == nullptr) {
+        HLOGE("OnScreenRefreshFunc is null");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    onScreenRefreshCb_ = func;
+    onRefreshCbData_ = data;
+
+    RosenError retCode = InitDevice();
+    if (retCode != ROSEN_ERROR_OK) {
+        return retCode;
+    }
+
+    int32_t ret = device_->RegRefreshCallback(HdiBackend::OnHdiBackendRefreshEvent, this);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("RegRefreshCallback failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_API_FAILED;
+    }
+
+    return ROSEN_ERROR_OK;
+}
+
+void HdiBackend::OnHdiBackendRefreshEvent(uint32_t deviceId, void *data)
+{
+    HdiBackend *hdiBackend = nullptr;
+    if (data != nullptr) {
+        hdiBackend = static_cast<HdiBackend *>(data);
+    } else {
+        hdiBackend = HdiBackend::GetInstance();
+    }
+
+    hdiBackend->OnScreenRefresh(deviceId);
+}
+
+void HdiBackend::OnScreenRefresh(uint32_t deviceId)
+{
+    if (onScreenRefreshCb_ != nullptr) {
+        onScreenRefreshCb_(deviceId, onRefreshCbData_);
+    }
+}
+
 RosenError HdiBackend::RegPrepareComplete(OnPrepareCompleteFunc func, void* data)
 {
     if (func == nullptr) {

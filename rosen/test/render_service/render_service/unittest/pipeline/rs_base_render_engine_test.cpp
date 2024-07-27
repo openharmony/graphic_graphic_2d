@@ -178,6 +178,27 @@ HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
     }
 }
 
+HWTEST(RSBaseRenderEngineUnitTest, DrawImageRect, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintCanvase(&canvas);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    BufferDrawParam params;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    Drawing::Rect srcRect(0.0f, 0.0f, 10, 20);
+    Drawing::Rect dstRect(0.0f, 0.0f, 10, 20);
+    Drawing::Brush paint;
+    params.srcRect = srcRect;
+    params.dstRect = dstRect;
+    params.paint = paint;
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+    renderEngine->DrawImageRect(paintCanvase, image, params, samplingOptions);
+    ASSERT_NE(image, nullptr);
+}
+
 /**
  * @tc.name: RegisterDeleteBufferListener001
  * @tc.desc: Test RegisterDeleteBufferListener

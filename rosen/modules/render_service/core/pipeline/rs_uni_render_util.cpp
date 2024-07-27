@@ -94,12 +94,12 @@ void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNo
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        if (surfaceParams == nullptr || !surfaceParams->IsAppWindow()) {
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (surfaceParams == nullptr || !surfaceParams->IsAppWindow() || !surfaceDirtyManager) {
             continue;
         }
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %" PRIu64"",
             surfaceParams->GetId());
-        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
         if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
             ROSEN_LOGW("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
         }
@@ -125,14 +125,15 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        if (!surfaceParams) {
-            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (!surfaceParams || !surfaceDirtyManager) {
+            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion %{public}s params or dirty manager is nullptr",
+                surfaceNodeDrawable->GetName().c_str());
             continue;
         }
         if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
             continue;
         }
-        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
         auto surfaceDirtyRect = surfaceDirtyManager->GetDirtyRegion();
         Occlusion::Rect dirtyRect { surfaceDirtyRect.left_, surfaceDirtyRect.top_, surfaceDirtyRect.GetRight(),
             surfaceDirtyRect.GetBottom() };
@@ -318,12 +319,15 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     }
     uint32_t srcWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
     uint32_t srcHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
+    if (srcHeight == 0 || srcWidth == 0) {
+        return;
+    }
     uint32_t newWidth;
     uint32_t newHeight;
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
-    if (boundsWidth == 0 || boundsHeight == 0) {
+    if (boundsWidth == 0 || boundsHeight == 0 || srcWidth == 0 || srcHeight == 0) {
         return;
     }
     if (srcWidth * boundsHeight > srcHeight * boundsWidth) {
@@ -822,7 +826,7 @@ bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode>
     }
     std::string surfaceName = node->GetName();
     bool needFilterSCB = node->GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
-    RS_LOGE("RSUniRenderUtil::IsNodeAssignSubThread %s", surfaceName.c_str());
+    RS_LOGI("RSUniRenderUtil::IsNodeAssignSubThread %s", surfaceName.c_str());
 
     if (needFilterSCB || node->IsSelfDrawingType()) {
         return false;
@@ -1783,11 +1787,11 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
         if (surfaceNode->IsUIExtension()) {
             currentUIExtensionIndex_++;
             // if host node is not recorded in callbackData, insert it.
-            if (callbackData.find(hostId) == callbackData.end()) {
-                callbackData[hostId] = std::vector<SecSurfaceInfo>();
+            auto [iter, inserted] = callbackData.insert(std::pair(hostId, std::vector<SecSurfaceInfo>{}));
+            if (iter != callbackData.end()) {
+                iter->second.push_back(GenerateSecSurfaceInfoFromNode(
+                    surfaceNode->GetId(), hostId, GenerateSecRectInfoFromNode(*surfaceNode, rect)));
             }
-            callbackData[hostId].push_back(GenerateSecSurfaceInfoFromNode(
-                surfaceNode->GetId(), hostId, GenerateSecRectInfoFromNode(*surfaceNode, rect)));
             if (surfaceNode->ChildrenHasUIExtension()) {
                 RS_LOGW("RSUniRenderUtil::TraverseAndCollectUIExtensionInfo UIExtension node [%{public}" PRIu64 "]"
                     " has children UIExtension, not surpported!", surfaceNode->GetId());
@@ -1796,8 +1800,10 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
         }
     }
     // if the node is traversed after a UIExtension, collect it and skip its children (except it has UIExtension child.)
-    if (currentUIExtensionIndex_ != -1) {
-        callbackData[hostId][currentUIExtensionIndex_].upperNodes.push_back(GenerateSecRectInfoFromNode(*node, rect));
+    auto iter = callbackData.find(hostId);
+    if (iter != callbackData.end() && currentUIExtensionIndex_ != -1 &&
+        currentUIExtensionIndex_ < static_cast<int>((iter->second).size())) {
+        (iter->second)[currentUIExtensionIndex_].upperNodes.push_back(GenerateSecRectInfoFromNode(*node, rect));
         if (!node->ChildrenHasUIExtension()) {
             return;
         }

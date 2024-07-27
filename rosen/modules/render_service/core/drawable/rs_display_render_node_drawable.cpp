@@ -344,8 +344,10 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
     auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
+    auto disPlayRenderParams = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
+    bool isMouseDirty = disPlayRenderParams->GetIsMouseDirty();
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
-        pendingDrawables.size() == 0) {
+        pendingDrawables.size() == 0 && !isMouseDirty) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }
@@ -390,10 +392,6 @@ void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& u
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    // if screen power off, skip on draw
-    if (SkipDisplayIfScreenOff()) {
-        return;
-    }
     // canvas will generate in every request frame
     (void)canvas;
 
@@ -403,6 +401,20 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     auto params = static_cast<RSDisplayRenderParams*>(renderParams_.get());
+
+    // [Attention] do not return before layer created set false, otherwise will result in buffer not released
+    auto& hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
+    for (const auto& drawable : hardwareDrawables) {
+        if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
+            continue;
+        }
+        drawable->GetRenderParams()->SetLayerCreated(false);
+    }
+
+    // if screen power off, skip on draw
+    if (SkipDisplayIfScreenOff()) {
+        return;
+    }
 
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
@@ -539,13 +551,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
-    auto& hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
-    for (const auto& drawable : hardwareDrawables) {
-        if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
-            continue;
-        }
-        drawable->GetRenderParams()->SetLayerCreated(false);
-    }
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
     if (!renderFrame) {
@@ -707,7 +712,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
         return;
     }
 
-    auto hardwareDrawables = params.GetHardwareEnabledDrawables();
+    auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
     if (mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
         specialLayerType_ != NO_SPECIAL_LAYER) {
         DrawMirror(params, virtualProcesser,
@@ -1147,7 +1152,7 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
 
-        DrawHardwareEnabledNodes(canvas);
+        DrawHardwareEnabledNodes(canvas, *params);
     }
 }
 

@@ -18,6 +18,7 @@ import {CaseFactory} from './casefactory';
 import drawing from "@ohos.graphics.drawing";
 import { NodeController, FrameNode, RenderNode, DrawContext, Size } from "@ohos.arkui.node"
 import {PrintCallback} from "./printcallback";
+import image from '@ohos.multimedia.image';
 
 const TAG = '[DrawingTest]';
 let printCallback: PrintCallback;
@@ -28,6 +29,7 @@ export class MyRenderNode extends RenderNode {
   caseNameStr: string  = 'drawrect';
   testCount: number = 0;
   clear:boolean = false;
+  pixelMap: image.PixelMap = null;
 
   async draw(context: DrawContext) {
     if (this.clear) {
@@ -40,9 +42,12 @@ export class MyRenderNode extends RenderNode {
     if (this.testType == 'function') {
       console.log(TAG, 'MyRenderNode draw function');
       this.TestFunctionGpuUpScreen(canvas);
-    } else {
+    } else if (this.testType == 'function') {
       console.log(TAG, 'MyRenderNode draw performance');
       this.TestPerformanceGpuUpScreen(canvas);
+    } else if (this.testType == 'stability') {
+      console.log(TAG, 'MyRenderNode draw stability');
+      this.TestStabilityUpScreen(canvas);
     }
   }
 
@@ -68,6 +73,10 @@ export class MyRenderNode extends RenderNode {
     test.SetTestCount(this.testCount);
     let time = test.TestPerformanceGpuUpScreen(canvas);
     printCallback('Count: ' + this.testCount.toString() + ', used: ' + time.toString() + 'ms');
+  }
+
+  TestStabilityUpScreen(canvas: drawing.Canvas) {
+    canvas.drawImage(this.pixelMap, 0, 0)
   }
 }
 
@@ -113,6 +122,16 @@ export class MyNodeController extends NodeController {
     this.myRenderNode.drawingType = 'gpu';
     this.myRenderNode.caseNameStr = caseName;
     this.myRenderNode.testCount = count;
+    this.myRenderNode.invalidate();
+  }
+
+  TestStability(caseName: string, pixelMap: image.PixelMap) {
+    console.info(TAG, "TestPerformanceGpuUpScreen");
+    this.myRenderNode.clear = false;
+    this.myRenderNode.testType = 'stability';
+    this.myRenderNode.drawingType = 'cpu';
+    this.myRenderNode.caseNameStr = caseName;
+    this.myRenderNode.pixelMap = pixelMap
     this.myRenderNode.invalidate();
   }
 

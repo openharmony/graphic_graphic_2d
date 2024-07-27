@@ -286,24 +286,6 @@ HWTEST_F(RSNodeCommandTest, SetOutOfParent001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTakeSurfaceForUIFlag001
- * @tc.desc: test results of SetTakeSurfaceForUIFlag
- * @tc.type: FUNC
- * @tc.require: issueI9P2KH
- */
-HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = 0;
-    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
-    EXPECT_EQ(0, nodeId);
-
-    nodeId = 1;
-    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
-    EXPECT_EQ(1, nodeId);
-}
-
-/**
  * @tc.name: RegisterGeometryTransitionPair001
  * @tc.desc: test results of RegisterGeometryTransitionPair
  * @tc.type: FUNC
