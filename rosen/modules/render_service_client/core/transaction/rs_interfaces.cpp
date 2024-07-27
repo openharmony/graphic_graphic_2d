@@ -699,6 +699,11 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
 }
 
+bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);
+}
+
 #ifdef RS_ENABLE_VK
 extern "C" RSC_EXPORT void Set2DRenderCtrl(bool enable)
 {

@@ -344,8 +344,10 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
     auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
+    auto disPlayRenderParams = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
+    bool isMouseDirty = disPlayRenderParams->GetIsMouseDirty();
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
-        pendingDrawables.size() == 0) {
+        pendingDrawables.size() == 0 && !isMouseDirty) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }

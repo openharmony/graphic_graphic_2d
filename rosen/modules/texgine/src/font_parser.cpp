@@ -91,6 +91,11 @@ void FontParser::GetStringFromNameId(FontParser::NameId nameId, unsigned int lan
             break;
         }
         case FontParser::NameId::FULL_NAME: {
+            if (!fontDescriptor.requestedFullname.empty() &&
+                fontDescriptor.fullName == fontDescriptor.requestedFullname) {
+                break;
+            }
+
             SetNameString(fontDescriptor, fontDescriptor.fullName, fontDescriptor.fullNameLid,
                 languageId, nameString);
             break;
@@ -418,6 +423,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
     FontParser::FontDescriptor fontDescriptor;
     fontDescriptor.requestedLid = languageId;
     fontDescriptor.path = path;
+    fontDescriptor.requestedFullname = fontName;
     auto fontStyle = typeface->GetFontStyle();
     fontDescriptor.weight = fontStyle.GetWeight();
     fontDescriptor.width = fontStyle.GetWidth();

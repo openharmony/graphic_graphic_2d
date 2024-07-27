@@ -374,38 +374,6 @@ HWTEST_F(RSUniRenderThreadTest, DefaultClearMemoryCache001, TestSize.Level1)
 }
 
 /**
- * @tc.name: PostClearMemoryTask001
- * @tc.desc: Test PostClearMemoryTask
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RSUniRenderThreadTest, PostClearMemoryTask001, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    instance.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
-    instance.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
-    instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
-    instance.exitedPidSet_.clear();
-    instance.exitedPidSet_.insert(0);
-    instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
-    EXPECT_TRUE(instance.exitedPidSet_.size());
-
-    instance.exitedPidSet_.clear();
-    instance.exitedPidSet_.insert(-1);
-    instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
-    EXPECT_TRUE(instance.exitedPidSet_.size());
-
-    instance.deviceType_ = DeviceType::PC;
-    instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
-    EXPECT_TRUE(instance.exitedPidSet_.size());
-
-    instance.uniRenderEngine_->renderContext_->drGPUContext_ = nullptr;
-    instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, false, false);
-    EXPECT_TRUE(instance.exitedPidSet_.size());
-}
-
-/**
  * @tc.name: ResetClearMemoryTask001
  * @tc.desc: Test ResetClearMemoryTask
  * @tc.type: FUNC
@@ -513,10 +481,6 @@ HWTEST_F(RSUniRenderThreadTest, WaitUntilDisplayNodeBufferReleased001, TestSize.
     auto displayNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(std::move(node));
     bool res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
     EXPECT_TRUE(res);
-
-    displayNodeDrawable->surfaceCreated_ = true;
-    res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
-    EXPECT_FALSE(res);
 
     displayNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
     displayNodeDrawable->surfaceHandler_->consumer_ = IConsumerSurface::Create();

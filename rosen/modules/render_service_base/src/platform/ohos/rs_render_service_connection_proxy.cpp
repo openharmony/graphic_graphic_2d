@@ -2510,7 +2510,7 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
         return hwcDisabledReasonInfos;
     }
     int32_t size = reply.ReadInt32();
-    size_t readableSize = reply.GetReadableBytes() / sizeof(NodeId);
+    size_t readableSize = reply.GetReadableBytes() / (sizeof(HwcDisabledReasonInfo) - HWC_DISABLED_REASON_INFO_OFFSET);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > hwcDisabledReasonInfos.max_size()) {
         RS_LOGE("RSRenderServiceConnectionProxy GetHwcDisabledReasonInfo Failed read vector, size:%{public}zu,"
@@ -2620,6 +2620,28 @@ int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
     } else {
         return RS_CONNECTION_ERROR;
     }
+}
+
+bool RSRenderServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    if (!data.WriteUint8(static_cast<uint8_t>(screenStatus))) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
 }
 
 } // namespace Rosen

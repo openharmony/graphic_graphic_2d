@@ -401,7 +401,7 @@ public:
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
-    bool IsSCBNode();
+    bool IsSCBNode() const;
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
@@ -584,6 +584,11 @@ public:
     uint8_t GetAbilityBgAlpha() const
     {
         return abilityBgAlpha_;
+    }
+
+    bool GetQosCal()
+    {
+        return qosPidCal_;
     }
 
     void setQosCal(bool qosPidCal)

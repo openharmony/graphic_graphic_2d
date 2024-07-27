@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#ifdef ENABLE_RECORDING_DCL
+
 #include "gtest/gtest.h"
 #include "benchmarks/file_utils.h"
 #include "message_parcel.h"
@@ -74,3 +76,4 @@ HWTEST_F(FileUtilsTest, CreateFileTest001, TestSize.Level1)
     EXPECT_FALSE(res);
 }
 }
+#endif // ENABLE_RECORDING_DCL

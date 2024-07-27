@@ -1196,7 +1196,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
             !surfaceHandler->GetBuffer());
         return nullptr;
     }
-    RSBaseRenderUtil::IncAcquiredBufferCount();
     ComposeInfo info = BuildComposeInfo(displayDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
@@ -1238,7 +1237,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }
-    RSBaseRenderUtil::IncAcquiredBufferCount();
     ComposeInfo info = BuildComposeInfo(*displayDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayNode zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());

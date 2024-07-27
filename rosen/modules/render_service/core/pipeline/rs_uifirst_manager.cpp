@@ -50,6 +50,16 @@ RSUifirstManager& RSUifirstManager::Instance()
     return instance;
 }
 
+RSUifirstManager::RSUifirstManager()
+{
+#if defined(RS_ENABLE_VK)
+    useDmaBuffer_ = RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
+        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN;
+#else
+    useDmaBuffer_ = false;
+#endif
+}
+
 std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
 {
     if (const auto cacheIt = subthreadProcessingNode_.find(id); cacheIt != subthreadProcessingNode_.end()) {
@@ -337,6 +347,9 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
 
 bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node)
 {
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+        return false;
+    }
     for (auto& child : *node->GetSortedChildren()) {
         if (std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
                 RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
@@ -523,8 +536,11 @@ void RSUifirstManager::ProcessSubDoneNode()
 
 void RSUifirstManager::ConvertPendingNodeToDrawable()
 {
-    if (!useDmaBuffer_) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
+        if (!useDmaBuffer_) {
+            return;
+        }
     }
     pendingPostDrawables_.clear();
     for (const auto& iter : pendingPostNodes_) {
@@ -1091,7 +1107,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
     std::string surfaceName = node.GetName();
     bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
-    if (needFilterSCB || node.IsSelfDrawingType()) {
+    if (!node.GetForceUIFirst() && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
     if ((node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
@@ -1219,8 +1235,11 @@ void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor)
 {
-    if (!useDmaBuffer_) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
+        if (!useDmaBuffer_) {
+            return;
+        }
     }
     for (auto& drawable : pendingPostDrawables_) {
         if (!drawable) {
@@ -1239,8 +1258,11 @@ void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processo
 
 void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder)
 {
-    if (!useDmaBuffer_) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
+        if (!useDmaBuffer_) {
+            return;
+        }
     }
     for (const auto& iter : pendingPostNodes_) {
         auto& node = iter.second;
@@ -1277,11 +1299,18 @@ void RSUifirstManager::AddCapturedNodes(NodeId id)
 
 void RSUifirstManager::SetUseDmaBuffer(bool val)
 {
-    useDmaBuffer_ = val;
+    std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
+#if defined(RS_ENABLE_VK)
+    useDmaBuffer_ = val && RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
+        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN;
+#else
+    useDmaBuffer_ = false;
+#endif
 }
 
-bool RSUifirstManager::GetUseDmaBuffer(const std::string& name) const
+bool RSUifirstManager::GetUseDmaBuffer(const std::string& name)
 {
+    std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
     return useDmaBuffer_ && name.find("ScreenShotWindow") != std::string::npos;
 }
 } // namespace Rosen

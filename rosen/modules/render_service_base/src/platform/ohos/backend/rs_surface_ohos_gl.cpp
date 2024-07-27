@@ -91,7 +91,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     NativeWindowHandleOpt(mWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);
     NativeWindowHandleOpt(mWindow, SET_COLOR_GAMUT, colorSpace_);
     NativeWindowHandleOpt(mWindow, SET_UI_TIMESTAMP, uiTimestamp);
-    NativeWindowHandleOpt(mWindow, SET_TIMEOUT, timeOut_);
 
     context->MakeCurrent(mEglSurface);
 

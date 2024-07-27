@@ -358,7 +358,7 @@ public:
     }
 
     // Use in MultiLayersPerf
-    int GetSurfaceCountForMultiLayersPerf() const
+    size_t GetSurfaceCountForMultiLayersPerf() const
     {
         return surfaceCountForMultiLayersPerf_;
     }
@@ -436,7 +436,7 @@ private:
     bool isParallelDisplayNode_ = false;
 
     // Use in MultiLayersPerf
-    int surfaceCountForMultiLayersPerf_ = 0;
+    size_t surfaceCountForMultiLayersPerf_ = 0;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
 

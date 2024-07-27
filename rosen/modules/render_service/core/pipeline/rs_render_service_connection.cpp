@@ -885,6 +885,9 @@ bool RSRenderServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpu
 MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
 {
     MemoryGraphic memoryGraphic;
+    if (!mainThread_) {
+        return memoryGraphic;
+    }
     if (GetUniRenderEnabled()) {
         RSMainThread* mainThread = mainThread_;
         mainThread_->ScheduleTask([mainThread, &pid, &memoryGraphic]() {
@@ -1694,11 +1697,9 @@ LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
     return layerComposeInfo;
 }
 
-HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
+std::vector<HwcDisabledReasonInfo> RSRenderServiceConnection::GetHwcDisabledReasonInfo()
 {
-    const auto& hwcDisabledReasonInfos = HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
-    HwcDisabledReasonCollection::GetInstance().ResetHwcDisabledReasonInfo();
-    return hwcDisabledReasonInfos;
+    return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
 }
 
 #ifdef TP_FEATURE_ENABLE
@@ -1750,6 +1751,13 @@ int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, 
     }
     mainThread_->RegisterUIExtensionCallback(remotePid_, userId, callback);
     return StatusCode::SUCCESS;
+}
+
+bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    RS_LOGD("RSRenderServiceConnection::SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",
+        id, screenStatus);
+    return screenManager_->SetVirtualScreenStatus(id, screenStatus);
 }
 } // namespace Rosen
 } // namespace OHOS

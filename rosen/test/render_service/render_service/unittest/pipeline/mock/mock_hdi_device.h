@@ -31,6 +31,7 @@ public:
 
     /* set & get device screen info begin */
     MOCK_METHOD2(RegHotPlugCallback, int32_t(HotPlugCallback, void*));
+    MOCK_METHOD2(RegRefreshCallback, int32_t(RefreshCallback, void*));
     MOCK_METHOD3(RegScreenVBlankCallback, int32_t(uint32_t, VBlankCallback, void*));
     MOCK_METHOD2(RegHwcDeadCallback, bool(OnHwcDeadCallback, void*));
     MOCK_METHOD2(RegScreenVBlankIdleCallback, int32_t(OnVBlankIdleCallback, void*));

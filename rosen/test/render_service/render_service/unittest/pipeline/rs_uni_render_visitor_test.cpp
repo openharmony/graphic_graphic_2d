@@ -4903,4 +4903,59 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentRegions002, 
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
     rsUniRenderVisitor->CheckMergeDisplayDirtyByTransparentRegions(*surfaceNode);
 }
+
+/**
+ * @tc.name: UpdateHwcNodeInfoForAppNode
+ * @tc.desc: Test RSUniRenderVisitorTest.UpdateHwcNodeInfoForAppNode with not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issuesIAE6YM
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeRectInSkippedSubTree
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeRectInSkippedSubTree with not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issuesIAE6YM
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    int id = 0;
+    auto node = std::make_shared<RSRenderNode>(id);
+    rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(*node);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalFilter
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHwcNodeEnableByGlobalFilter with not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issuesIAE6YM
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    NodeId id = 0;
+    std::weak_ptr<RSContext> context;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    NodeId displayNodeId = 3;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
+    rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
+    
+    rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node);
+}
 } // OHOS::Rosen

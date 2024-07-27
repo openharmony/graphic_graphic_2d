@@ -164,7 +164,7 @@ ohos_source_set("skia_paragraph") {
     include_dirs +=
         [ "//foundation/multimedia/image_framework/mock/native/include/log" ]
   }
-  defines = []
+  defines = [ "OHOS_SUPPORT" ]
 
   sources = [
     "//third_party/skia/modules/skparagraph/src/Decorations.cpp",
