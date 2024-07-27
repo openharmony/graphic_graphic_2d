@@ -1340,6 +1340,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS) : {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission SET_VIRTUAL_SCREEN_STATUS");
+                return ERR_INVALID_STATE;
+            }
             ScreenId id = data.ReadUint64();
             VirtualScreenStatus screenStatus = static_cast<VirtualScreenStatus>(data.ReadUint8());
             bool result = SetVirtualScreenStatus(id, screenStatus);
