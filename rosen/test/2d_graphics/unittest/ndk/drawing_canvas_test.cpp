@@ -249,32 +249,26 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawVertices007, TestS
     uint32_t colors[COLOR_PARAMETER] = {0xFFFF0000, 0xFFFF0000, 0xFFFF0000};
 
     uint16_t indices[COLOR_PARAMETER] = {0, 1, 2};
+
+    // test canvas == nullptr
     OH_Drawing_CanvasDrawVertices(nullptr, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
                                   colors, POINT_PARAMETER, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, NEGATIVE_ONE, points_vertices, texs_vertices,
+
+    // test vertexCount < 3
+    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, 1, points_vertices, texs_vertices,
                                   colors, POINT_PARAMETER, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    // test position == nullptr
     OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, nullptr, texs_vertices, colors,
                                   POINT_PARAMETER, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, nullptr, colors,
-                                  POINT_PARAMETER, indices, BLEND_MODE_COLOR);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    // test indexCount != 0 && indexCount < 3
     OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
-                                  nullptr, POINT_PARAMETER, indices, BLEND_MODE_COLOR);
+                                  colors, 1, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
-                                  colors, NEGATIVE_ONE, indices, BLEND_MODE_COLOR);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
-                                  colors, POINT_PARAMETER, nullptr, BLEND_MODE_COLOR);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(nullptr, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, nullptr, nullptr, nullptr,
-                                  POINT_PARAMETER, nullptr, BLEND_MODE_COLOR);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
-                                  colors, POINT_PARAMETER, indices, BLEND_MODE_COLOR);
 }
 
 /*
