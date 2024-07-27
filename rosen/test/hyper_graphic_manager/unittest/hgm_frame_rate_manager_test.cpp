@@ -135,7 +135,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
-            std::vector<std::pair<std::string, in32_t>> appBufferList;
+            std::vector<std::pair<std::string, int32_t>> appBufferList;
             appBufferList.push_back(std::make_pair(otherSurface, OLED_90_HZ));
             frameRateMgr.idleDetector_.UpdateAppBufferList(appBufferList);
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
@@ -185,7 +185,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS002, Function | SmallTest | Level1
         }
         STEP("2. handle touch up event") {
             std::vector<std::string> appBufferBlackList = { otherSurface };
-            frameRateMgr.idleDetector_.UpdateAppBufferBlackList(config.appBufferBlackList);
+            frameRateMgr.idleDetector_.UpdateAppBufferBlackList(appBufferBlackList);
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
