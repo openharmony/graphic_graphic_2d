@@ -979,7 +979,10 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         consumer->SetBufferHold(false);
         RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") consume hold buffer", surfaceHandler.GetNodeId());
     }
-    
+    if (surfaceBuffer->buffer == nullptr) {
+        RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") no buffer to consume", surfaceHandler.GetNodeId());
+        return false;
+    }
     if (isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
         !RSSystemParameters::GetControlBufferConsumeEnabled()) {
         RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control disable), "

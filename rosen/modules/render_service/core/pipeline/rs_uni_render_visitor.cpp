@@ -1904,21 +1904,24 @@ void RSUniRenderVisitor::UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode
     if (!node.IsLeashWindow()) {
         return;
     }
-    bool hasAppWindow = false;
-    bool childrenHasVisbleRegion = false;
+    bool isVisibleRegionEmpty = true;
     for (const auto& child : *node.GetSortedChildren()) {
         const auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         if (childSurfaceNode && childSurfaceNode->IsAppWindow()) {
-            hasAppWindow = true;
+            // leash window is visible when child app has visible region
             if (!childSurfaceNode->GetVisibleRegion().IsEmpty()) {
-                childrenHasVisbleRegion = true;
+                isVisibleRegionEmpty = false;
             }
+            RS_OPTIONAL_TRACE_NAME_FMT("%s's visible region is empty", childSurfaceNode->GetName().c_str());
+        } else {
+            // leash window is visible when child is not app window node
+            isVisibleRegionEmpty = false;
+        }
+        if (!isVisibleRegionEmpty) {
+            break;
         }
     }
-    // attention: don't set leash window's visible region empty while it doesn't have app window as child
-    if (hasAppWindow && !childrenHasVisbleRegion) {
-        node.SetLeashWindowVisibleRegionEmpty(true);
-    }
+    node.SetLeashWindowVisibleRegionEmpty(isVisibleRegionEmpty);
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
@@ -3673,7 +3676,7 @@ void RSUniRenderVisitor::DrawAllSurfaceOpaqueRegionForDFX(RSDisplayRenderNode& n
 {
     for (auto& it : node.GetCurAllSurfaces()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(it);
-        if (surfaceNode->IsMainWindowType()) {
+        if (surfaceNode && surfaceNode->IsMainWindowType()) {
             DrawSurfaceOpaqueRegionForDFX(*surfaceNode);
         }
     }

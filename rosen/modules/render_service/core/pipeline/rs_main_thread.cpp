@@ -2530,7 +2530,8 @@ void RSMainThread::SurfaceOcclusionCallback()
                 continue;
             }
             auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-            auto appWindowNode = nodeMap.GetRenderNode(appWindowNodeId)->ReinterpretCastTo<RSSurfaceRenderNode>();
+            auto appWindowNode =
+                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
             if (!surfaceNode || !appWindowNode) {
                 RS_LOGW("RSMainThread::SurfaceOcclusionCallback ReinterpretCastTo fail.");
                 continue;
