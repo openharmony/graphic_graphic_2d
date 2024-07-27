@@ -582,12 +582,15 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
+    // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
+    static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
     std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;
-    bool visibleChanged_ = false;
+    // vector of last frame mainwindow surface visible info
+    static inline VisibleData allLastVisVec_;
     bool vSyncRatesChanged_ = false;
     std::mutex occlusionMutex_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node

@@ -96,9 +96,6 @@ constexpr const char* RELIABLE_GESTURE_BACK_SURFACE_NAME = "SCBGestureBack";
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
 static uint32_t cacheReuseTimes = 0;
 static std::mutex cacheRenderNodeMapMutex;
-// vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
-static std::queue<NodeId> preMainAndLeashWindowNodesIds_;
-static VisibleData lastVisVec_;
 static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
     { DirtyRegionType::UPDATE_DIRTY_REGION, "UPDATE_DIRTY_REGION" },
     { DirtyRegionType::OVERLAY_RECT, "OVERLAY_RECT" },
@@ -1543,10 +1540,12 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
             }
         }
     }
-    if (visibleChanged_) {
+    if (allDstCurVisVec_ != allLastVisVec_) {
         RSMainThread::Instance()->SurfaceOcclusionChangeCallback(allDstCurVisVec_);
-        RS_LOGD("RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS %{public}s",
+        RS_LOGI("RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS %{public}s",
             VisibleDataToString(allDstCurVisVec_).c_str());
+        allLastVisVec_ = std::move(allDstCurVisVec_);
+        vSyncRatesChanged_ = true;
     }
 }
 
@@ -2337,24 +2336,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
 
 void RSUniRenderVisitor::UpdateSurfaceOcclusionInfo()
 {
-    // [planning] can be optimized by needRecalculateOcclusion
-    bool visibleChanged = dstCurVisVec_.size() != lastVisVec_.size();
-    if (!visibleChanged) {
-        for (uint32_t i = 0; i < dstCurVisVec_.size(); i++) {
-            if ((dstCurVisVec_[i].first != lastVisVec_[i].first) ||
-                (dstCurVisVec_[i].second != lastVisVec_[i].second)) {
-                visibleChanged = true;
-                break;
-            }
-        }
-    }
-    if (visibleChanged) {
-        visibleChanged_ = visibleChanged;
-    }
-    vSyncRatesChanged_ = vSyncRatesChanged_ || visibleChanged_;
     allDstCurVisVec_.insert(allDstCurVisVec_.end(), dstCurVisVec_.begin(), dstCurVisVec_.end());
-    lastVisVec_.clear();
-    std::swap(lastVisVec_, dstCurVisVec_);
+    dstCurVisVec_.clear();
 }
 
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparent(RSSurfaceRenderNode& surfaceNode) const
