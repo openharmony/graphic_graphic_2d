@@ -248,7 +248,7 @@ bool RSPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcessor> p
 
 void RSPointerRenderManager::CalculateColorRange(RectI& pRect)
 {
-    if (rangeSize_ != 0) {
+    if (rangeSize_ > 0) {
         int left = pRect.GetLeft() + (pRect.GetWidth() - rangeSize_) / CALCULATE_MIDDLE;
         int top = pRect.GetTop() + (pRect.GetHeight() - rangeSize_) / CALCULATE_MIDDLE;
         pRect.SetAll(left, top, rangeSize_, rangeSize_);

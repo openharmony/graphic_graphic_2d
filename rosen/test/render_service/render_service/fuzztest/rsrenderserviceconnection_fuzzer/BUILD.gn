@@ -53,6 +53,10 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "-Dprotected=public",
   ]
 
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
   sources = [ "rsrenderserviceconnection_fuzzer.cpp" ]
 
   external_deps = [

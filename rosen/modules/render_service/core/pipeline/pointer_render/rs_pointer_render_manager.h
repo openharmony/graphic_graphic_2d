@@ -99,8 +99,8 @@ private:
     int64_t lastColorPickerTime_ = 0;
     int64_t colorSamplingInterval_ = 50;
     int32_t rangeSize_ = 0;
-    float darkBuffer_ = 0.55f;
-    float brightBuffer_ = 0.35f;
+    float darkBuffer_ = 0.58f;
+    float brightBuffer_ = 0.40f;
 };
 }
 #endif // RS_POINTER_RENDER_MANAGER_H
