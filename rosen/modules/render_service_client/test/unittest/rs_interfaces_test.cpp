@@ -1708,5 +1708,31 @@ HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_002, Function | SmallTest
     auto res = rsInterfaces->RegisterUIExtensionCallback(userId, callback);
     EXPECT_EQ(res, SUCCESS);
 }
+
+/*
+ * @tc.name: SetVirtualScreenStatus
+ * @tc.desc: Test SetVirtualScreenStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIAF42F
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenStatus, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY), true);
+    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PAUSE), true);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -268,6 +268,8 @@ private:
 
     void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) override;
 
+    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
+
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;

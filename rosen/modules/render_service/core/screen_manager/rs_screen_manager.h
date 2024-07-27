@@ -218,6 +218,9 @@ public:
     virtual void ClearFrameBufferIfNeed() = 0;
 
     virtual int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) = 0;
+
+    virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
+    virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -417,6 +420,9 @@ public:
     void ClearFrameBufferIfNeed() override;
 
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) override;
+
+    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
+    VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
 
 private:
     RSScreenManager();

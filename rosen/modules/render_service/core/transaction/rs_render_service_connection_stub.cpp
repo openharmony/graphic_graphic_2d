@@ -223,7 +223,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK)
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS)
     };
     if (std::find(std::cbegin(descriptorCheckList), std::cend(descriptorCheckList), code) !=
         std::cend(descriptorCheckList)) {
@@ -1336,6 +1337,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             int32_t status = RegisterUIExtensionCallback(userId, callback);
             reply.WriteInt32(status);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS) : {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission SET_VIRTUAL_SCREEN_STATUS");
+                return ERR_INVALID_STATE;
+            }
+            ScreenId id = data.ReadUint64();
+            VirtualScreenStatus screenStatus = static_cast<VirtualScreenStatus>(data.ReadUint8());
+            bool result = SetVirtualScreenStatus(id, screenStatus);
+            reply.WriteBool(result);
             break;
         }
         default: {
