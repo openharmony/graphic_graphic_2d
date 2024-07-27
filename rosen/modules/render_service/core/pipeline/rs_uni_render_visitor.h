@@ -615,7 +615,7 @@ private:
 
     bool curDirty_ = false;
     bool curContentDirty_ = false;
-    // to record and pass container node dirty to leash node 
+    // to record and pass container node dirty to leash node.
     bool curContainerDirty_ = false;
     bool isPhone_ = false;
     bool isPc_ = false;
