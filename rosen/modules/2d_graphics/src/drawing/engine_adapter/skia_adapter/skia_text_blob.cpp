@@ -165,7 +165,10 @@ static void ConvertSkPaint(const Paint* drawingPaint, SkPaint &skPaint)
     skPaint.setStrokeWidth(drawingPaint->GetWidth());
     const std::shared_ptr<PathEffect> effct = drawingPaint->GetPathEffect();
     if (effct != nullptr) {
-        skPaint.setPathEffect(effct->GetImpl<SkiaPathEffect>()->GetPathEffect());
+        SkiaPathEffect *skiaEffct = effct->GetImpl<SkiaPathEffect>();
+        if (skiaEffct != nullptr) {
+            skPaint.setPathEffect(skiaEffct->GetPathEffect());
+        }
     }
 }
 
