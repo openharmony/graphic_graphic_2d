@@ -1340,6 +1340,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
         return;
     }
     CheckIfHardwareForcedDisabled();
+    if (!pendingUiCaptureTasks_.empty()) {
+        RS_OPTIONAL_TRACE_NAME("rs debug: uiCapture SetDoDirectComposition false");
+        doDirectComposition_ = false;
+    }
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
         [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
