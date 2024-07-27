@@ -229,8 +229,11 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (pair.second == nullptr) {
             return true;
         }
-        // update node flag to avoid animation fallback
-        pair.second->fallbackAnimationOnDestroy_ = false;
+        // Fix the loss of animation callbacks for the host when uiextension exits abnormally
+        if (pair.second->GetType() != RSRenderNodeType::SURFACE_NODE) {
+            // update node flag to avoid animation fallback
+            pair.second->fallbackAnimationOnDestroy_ = false;
+        }
         // remove node from tree
         pair.second->RemoveFromTree(false);
         return true;
