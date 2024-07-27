@@ -126,7 +126,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
         }
         STEP("2. handle touch up event") {
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
@@ -140,7 +139,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             appBufferList.push_back(std::make_pair(otherSurface, OLED_90_HZ));
             frameRateMgr.idleDetector_.UpdateAppBufferList(appBufferList);
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
@@ -155,7 +153,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             frameRateMgr.idleDetector_.ClearAppBufferList();
             frameRateMgr.idleDetector_.UpdateAppBufferList(appBufferList);
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
