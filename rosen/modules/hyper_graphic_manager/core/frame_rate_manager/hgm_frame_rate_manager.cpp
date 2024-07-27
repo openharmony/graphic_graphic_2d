@@ -201,18 +201,18 @@ void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, uint
 
 void HgmFrameRateManager::UpdateAppSupportedState()
 {
-    bool appNendHighRefresh = false;
+    bool appNeedHighRefresh = false;
     idleDetector_.ClearAppBufferList();
     idleDetector_.ClearAppBufferBlackList();
     PolicyConfigData::StrategyConfig config;
     if (multiAppStrategy_.GetFocusAppStrategyConfig(config) == EXEC_SUCCESS) {
         if (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
-            appNendHighRefresh = true;
+            appNeedHighRefresh = true;
         }
     }
     idleDetector_.UpdateAppBufferList(config.appBufferList);
     idleDetector_.UpdateAppBufferBlackList(config.appBufferBlackList);
-    idleDetector_.SetAppSupportedState(appNendHighRefresh);
+    idleDetector_.SetAppSupportedState(appNeedHighRefresh);
 }
 
 void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker,
