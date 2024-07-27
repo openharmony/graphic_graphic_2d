@@ -40,7 +40,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
         surfaceName.substr(0, MAX_BUFFER_LENGTH) : surfaceName;
     if (!std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE) &&
         !std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), validSurfaceName)) {
-            return;
+        return;
     }
 
     RS_TRACE_NAME_FMT("UpdateSurfaceTime:: Not Idle SurFace Name = [%s]  From Pid = [%d]",
