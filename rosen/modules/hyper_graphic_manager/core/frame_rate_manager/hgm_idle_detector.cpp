@@ -104,20 +104,20 @@ int32_t HgmIdleDetector::GetTouchUpExpectedFPS()
         }
     }
 
-    for (auto &[surFaceName, _] : frameTimeMap_) {
+    for (auto &[surfaceName, _] : frameTimeMap_) {
         auto iter = std::find_if(appBufferList_.begin(), appBufferList_.end(),
-            [&surFaceName = surFaceName](const std::pair<std::string, int32_t>& appBuffer) {
-            return appBuffer.first == surFaceName;
+            [&surfaceName = surfaceName](const std::pair<std::string, int32_t>& appBuffer) {
+            return appBuffer.first == surfaceName;
         });
         if (iter == appBufferList_.end()) {
             return FPS_MAX;
         }
     }
 
-    for (auto &[surFaceName, touchUpExpectFPS] : appBufferList_) {
-        if ((surFaceName == ACE_ANIMATOR_NAME && !aceAnimatorIdleState_) ||
-            frameTimeMap_.count(surFaceName)) {
-            return touchUpExpectFPS;
+    for (auto &[surfaceName, touchUpExpectedFPS] : appBufferList_) {
+        if ((surfaceName == ACE_ANIMATOR_NAME && !aceAnimatorIdleState_) ||
+            frameTimeMap_.count(surfaceName)) {
+            return touchUpExpectedFPS;
         }
     }
 
