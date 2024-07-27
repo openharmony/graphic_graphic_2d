@@ -107,6 +107,11 @@ bool RSSystemProperties::GetVirtualDirtyEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetExpandScreenDirtyEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};

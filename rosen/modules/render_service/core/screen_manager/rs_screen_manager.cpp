@@ -480,19 +480,25 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
                 cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
                 continue;
             }
-            auto screenIt = screens_.find(id);
-            auto screenBacklightIt = screenBacklight_.find(id);
-            auto screenPowerStatusIt = screenPowerStatus_.find(id);
-            if (screenIt != screens_.end() && screenIt->second != nullptr &&
-                screenBacklightIt != screenBacklight_.end() && (screenPowerStatusIt == screenPowerStatus_.end() ||
-                screenPowerStatusIt->second == ScreenPowerStatus::POWER_STATUS_ON)) {
-                screenIt->second->SetScreenBacklight(screenBacklightIt->second);
-                auto mainThread = RSMainThread::Instance();
-                mainThread->PostTask([mainThread]() {
-                    mainThread->SetDirtyFlag();
-                });
-                mainThread->ForceRefreshForUni();
-            }
+        }
+        auto screenIt = screens_.find(id);
+        if (screenIt == screens_.end() || screenIt->second == nullptr) {
+            continue;
+        }
+        auto screenCorrectionIt = screenCorrection_.find(id);
+        auto screenBacklightIt = screenBacklight_.find(id);
+        auto screenPowerStatusIt = screenPowerStatus_.find(id);
+        if (screenCorrectionIt != screenCorrection_.end()) {
+            screenIt->second->SetScreenCorrection(screenCorrectionIt->second);
+        }
+        if (screenBacklightIt != screenBacklight_.end() && (screenPowerStatusIt == screenPowerStatus_.end() ||
+            screenPowerStatusIt->second == ScreenPowerStatus::POWER_STATUS_ON)) {
+            screenIt->second->SetScreenBacklight(screenBacklightIt->second);
+            auto mainThread = RSMainThread::Instance();
+            mainThread->PostTask([mainThread]() {
+                mainThread->SetDirtyFlag();
+            });
+            mainThread->ForceRefreshForUni();
         }
     }
     isHwcDead_ = false;
@@ -662,6 +668,7 @@ void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput>
     }
     screenPowerStatus_.erase(id);
     screenBacklight_.erase(id);
+    screenCorrection_.erase(id);
     if (id == defaultScreenId_) {
         HandleDefaultScreenDisConnectedLocked();
     }
@@ -1597,6 +1604,7 @@ int32_t RSScreenManager::SetScreenCorrectionLocked(ScreenId id, ScreenRotation s
         return StatusCode::SCREEN_NOT_FOUND;
     }
     screensIt->second->SetScreenCorrection(screenRotation);
+    screenCorrection_[id] = screenRotation;
     return StatusCode::SUCCESS;
 }
 

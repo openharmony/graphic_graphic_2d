@@ -142,6 +142,7 @@ public:
     static bool GetAllSurfaceVisibleDebugEnabled();
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
+    static bool GetExpandScreenDirtyEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetDirectClientCompEnableStatus();

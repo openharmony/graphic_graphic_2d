@@ -189,6 +189,8 @@ void RSUniRenderVirtualProcessor::CanvasInit(RSDisplayRenderNode& node)
 
 void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
 {
+    // Save the initial canvas state
+    canvas_->Save();
     if (displayDrawable.IsFirstTimeToProcessor() || canvasRotation_) {
         if (displayDrawable.IsFirstTimeToProcessor()) {
             RS_LOGI("RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", " \

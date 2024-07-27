@@ -489,6 +489,7 @@ private:
     bool mipiCheckInFirstHotPlugEvent_ = false;
     bool isHwcDead_ = false;
     std::vector<ScreenId> connectedIds_;
+    std::unordered_map<ScreenId, ScreenRotation> screenCorrection_;
     std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
     std::unordered_set<uint64_t> castScreenBlackLists_ = {};
