@@ -1373,6 +1373,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     auto prevAlpha = curAlpha_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     CheckFilterCacheNeedForceClearOrSave(node);
+    node.CheckContainerDirtyStatusAndUpdateDirty(curContainerDirty_);
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix);
     parentSurfaceNodeMatrix_ = node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
@@ -1730,6 +1731,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     if (NeedPrepareChindrenInReverseOrder(node)) {
         std::for_each((*children).rbegin(), (*children).rend(), [this](const std::shared_ptr<RSRenderNode>& node) {
             curDirty_ = node->IsDirty();
+            curContainerDirty_ = curContainerDirty_ || node->IsDirty();
             node->QuickPrepare(shared_from_this());
         });
     } else {

@@ -1171,6 +1171,10 @@ public:
         return surfaceHandler_;
     }
 
+    void CheckContainerDirtyStatusAndUpdateDirty(bool containerDirty)
+    {
+        dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;

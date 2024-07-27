@@ -824,7 +824,7 @@ void RSRenderNode::SubTreeSkipPrepare(
     RSDirtyRegionManager& dirtyManager, bool isDirty, bool accumGeoDirty, const RectI& clipRect)
 {
     // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
-    if (accumGeoDirty && (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_)) {
+    if ((isDirty || accumGeoDirty) && (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_)) {
         auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
         if (geoPtr == nullptr) {
             return;
