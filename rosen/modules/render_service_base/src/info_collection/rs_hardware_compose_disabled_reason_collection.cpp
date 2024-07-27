@@ -14,6 +14,7 @@
  */
 
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -43,7 +44,7 @@ void HwcDisabledReasonCollection::UpdateHwcDisabledReasonForDFX(NodeId id,
 HwcDisabledReasonInfos HwcDisabledReasonCollection::GetHwcDisabledReasonInfo() const
 {
     std::lock_guard<std::mutex> lock(hwcDisabledReasonMtx_);
-    HwcDisabledReasonInfos hwcDisabledReasonInfos;
+    std::vector<HwcDisabledReasonInfo> hwcDisabledReasonInfos;
     for (const auto& hwcDisabledReasonInfo : hwcDisabledReasonInfoMap_) {
         hwcDisabledReasonInfos.emplace_back(hwcDisabledReasonInfo.second);
     }

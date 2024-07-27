@@ -67,6 +67,7 @@ template("render_service_client_source_set") {
       include_dirs += [
         "$graphic_2d_root/utils/color_manager/export",
         "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+        "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
       ]
     }
 
@@ -139,6 +140,7 @@ template("render_service_client_source_set") {
     if (is_cross_platform) {
       #ui
       sources -= [ "core/ui/rs_display_node.cpp" ]
+      defines += [ "CROSS_PLATFORM" ]
     }
 
     if (defined(graphic_2d_ext_configs.vendor_root)) {
@@ -148,7 +150,7 @@ template("render_service_client_source_set") {
 
     if (rosen_is_ohos) {
       sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
-    } else {
+    } else if (!is_arkui_x) {
       sources +=
           [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
     }
@@ -190,7 +192,7 @@ template("render_service_client_source_set") {
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
       deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-      if (ace_enable_gpu) {
+      if (ace_enable_gpu && !is_arkui_x) {
         defines += [ "ACE_ENABLE_GPU" ]
       }
       if (current_os == "mingw") {
