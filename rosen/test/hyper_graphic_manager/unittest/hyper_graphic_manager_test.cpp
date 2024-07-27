@@ -408,6 +408,37 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
 }
 
 /**
+ * @tc.name: HgmScreenTests2
+ * @tc.desc: Others functions in HgmScreen
+ * @tc.type: FUNC
+ * @tc.require: I7NJ2G
+ */
+HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level2) {
+    PART("HgmScreen") {
+        STEP("screen tests") {
+            sptr<HgmScreen> screen1 = new HgmScreen();
+            STEP_ASSERT_EQ(screen1->GetId(), 0);
+            STEP_ASSERT_EQ(screen1->GetActiveMode(), 0);
+            STEP_ASSERT_EQ(screen1->GetSupportedRates().size(), 0);
+            STEP_ASSERT_EQ(screen1->IsSupportRate(OLED_30_HZ), false);
+            STEP_ASSERT_EQ(screen1->GetActiveRefreshRateMode(), -1);
+            STEP_ASSERT_EQ(screen1->GetWidth(), 0);
+            STEP_ASSERT_EQ(screen1->GetHeight(), 0);
+            STEP_ASSERT_EQ(screen1->GetPhyWidth(), 0);
+            STEP_ASSERT_EQ(screen1->GetPhyHeight(), 0);
+            STEP_ASSERT_EQ(screen1->GetPpi(), 0);
+            STEP_ASSERT_EQ(screen1->GetXDpi(), 0);
+            STEP_ASSERT_EQ(screen1->GetYDpi(), 0);
+
+            delete screen1;
+            screen1 = nullptr;
+            STEP_ASSERT_EQ(screen1, nullptr);
+        }
+    }
+}
+
+
+/**
  * @tc.name: HgmCoreTests
  * @tc.desc: Others functions in HgmCore
  * @tc.type: FUNC
