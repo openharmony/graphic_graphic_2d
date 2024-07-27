@@ -349,14 +349,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     Drawing::GPUContext* gpuContext = renderEngine_->GetRenderContext()->GetDrGPUContext();
     RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
-    // will not use node in the future version
-    auto renderNode = renderNode_.lock();
-    if (renderNode == nullptr) {
-        return;
-    }
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
-    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
-    surfaceNode->UpdateFilterCacheStatusWithVisible(true);
 
     // Draw base pipeline start
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
