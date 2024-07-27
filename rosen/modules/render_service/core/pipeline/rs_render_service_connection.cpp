@@ -1697,11 +1697,9 @@ LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
     return layerComposeInfo;
 }
 
-HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
+std::vector<HwcDisabledReasonInfo> RSRenderServiceConnection::GetHwcDisabledReasonInfo()
 {
-    const auto& hwcDisabledReasonInfos = HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
-    HwcDisabledReasonCollection::GetInstance().ResetHwcDisabledReasonInfo();
-    return hwcDisabledReasonInfos;
+    return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
 }
 
 #ifdef TP_FEATURE_ENABLE
