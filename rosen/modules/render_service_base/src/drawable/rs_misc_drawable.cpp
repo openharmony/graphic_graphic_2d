@@ -211,7 +211,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
                 canvas->ConcatMatrix(mat);
             }
             drawCmdList->Playback(*canvas, rect);
-            if (ptr->needClearOp_) {
+            if (ptr->needClearOp_ && ptr->type_ == RSModifierType::CONTENT_STYLE) {
                 drawCmdList->ClearOp();
             }
         }

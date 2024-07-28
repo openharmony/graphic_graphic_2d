@@ -471,12 +471,13 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
     }
 }
 
-void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
+void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 {
-    dirtyTypes_.set(static_cast<int>(type), true);
+    ClearResource();
+    dirtyTypes_.set(static_cast<int>(modifierType), true);
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     for (auto& [type, list]: GetDrawCmdModifiers()) {
-        if (list.empty()) {
+        if (modifierType != type || list.empty()) {
             continue;
         }
         for (const auto& modifier : list) {
