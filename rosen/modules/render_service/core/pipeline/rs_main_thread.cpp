@@ -94,6 +94,7 @@
 #include "render/rs_typeface_cache.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "text/font_mgr.h"
 
 #ifdef RS_ENABLE_GL
 #include "GLES3/gl3.h"
@@ -347,6 +348,11 @@ void RSMainThread::DvsyncCheckRequestNextVsync()
 
 void RSMainThread::Init()
 {
+    std::thread preLoadSysTTFThread([]() {
+        Drawing::FontMgr::CreateDefaultFontMgr();
+    });
+    preLoadSysTTFThread.detach();
+    
     mainLoop_ = [&]() {
         RS_PROFILER_ON_FRAME_BEGIN();
         if (isUniRender_ && !renderThreadParams_) {
