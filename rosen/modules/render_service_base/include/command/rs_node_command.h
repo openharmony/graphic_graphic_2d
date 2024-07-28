@@ -70,12 +70,14 @@ enum RSNodeCommandType : uint16_t {
     SET_NODE_NAME,
     UPDATE_MODIFIER_MOTION_BLUR_PTR,
     UPDATE_MODIFIER_WATER_RIPPLE,
+    REMOVE_ALL_MODIFIERS,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
 public:
     static void AddModifier(RSContext& context, NodeId nodeId, const std::shared_ptr<RSRenderModifier>& modifier);
     static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);
+    static void RemoveAllModifiers(RSContext& context, NodeId nodeId);
 
     template<typename T>
     static void UpdateModifier(RSContext& context, NodeId nodeId, T value, PropertyId id, PropertyUpdateType type)
@@ -254,6 +256,8 @@ ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(RS_NODE, REGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
     ARG(RS_NODE, UNREGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
+ADD_COMMAND(RSRemoveAllModifiers,
+    ARG(RS_NODE, REMOVE_ALL_MODIFIERS, RSNodeCommandHelper::RemoveAllModifiers, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 

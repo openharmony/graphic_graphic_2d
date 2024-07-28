@@ -2061,14 +2061,17 @@ void RSNode::DoFlushModifier()
     if (modifiers_.empty()) {
         return;
     }
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    std::unique_ptr<RSCommand> removeAllModifiersCommand = std::make_unique<RSRemoveAllModifiers>(GetId());
+    transactionProxy->AddCommand(removeAllModifiersCommand, IsRenderServiceNode(), GetFollowType(), GetId());
     for (const auto& [_, modifier] : modifiers_) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-            ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::flush modifier, node id: %{public}" PRIu64 ", type: %{public}s",
-                GetId(), modifier->GetModifierTypeString().c_str());
-        }
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::flush modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+            GetId(), modifier->GetModifierTypeString().c_str());
     }
 }
 
