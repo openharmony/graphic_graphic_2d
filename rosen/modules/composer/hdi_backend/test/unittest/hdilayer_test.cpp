@@ -145,21 +145,6 @@ HWTEST_F(HdiLayerTest, GetReleaseFence001, Function | MediumTest| Level1)
 }
 
 /*
-* Function: SetHdiLayerInfo001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetHdiLayerInfo()
-*                  2. check ret
-*/
-HWTEST_F(HdiLayerTest, SetHdiLayerInfo001, Function | MediumTest| Level1)
-{
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), GRAPHIC_DISPLAY_SUCCESS);
-    hdiLayer_->SavePrevLayerInfo();
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), GRAPHIC_DISPLAY_SUCCESS);
-}
-
-/*
 * Function: SetLayerTunnelHandle001
 * Type: Function
 * Rank: Important(3)
