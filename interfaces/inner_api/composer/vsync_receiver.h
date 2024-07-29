@@ -26,6 +26,7 @@
 #include <mutex>
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -92,9 +93,16 @@ public:
         return timeStampShared_;
     }
 
+    void AddCallback(FrameCallback cb)
+    {
+        std::lock_guard<std::mutex> locker(mtx_);
+        frameCallbacks_.push_back(cb);
+    }
+
 private:
     void OnReadable(int32_t fileDescriptor) override;
     int64_t CalculateExpectedEndLocked(int64_t now);
+    void HandleVsyncCallbacks(int64_t data[], ssize_t dataCount);
     VSyncCallback vsyncCallbacks_;
     VSyncCallbackWithId vsyncCallbacksWithId_;
     void *userData_;
@@ -105,6 +113,7 @@ private:
     int64_t timeStamp_ = 0;
     thread_local static inline int64_t periodShared_ = 0;
     thread_local static inline int64_t timeStampShared_ = 0;
+    std::vector<FrameCallback> frameCallbacks_ = {};
 };
 
 #ifdef __OHOS__
@@ -141,6 +150,7 @@ public:
     virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount);
+    virtual VsyncError RequestNextVSyncWithMultiCallback(FrameCallback callback);
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;

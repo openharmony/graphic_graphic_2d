@@ -63,7 +63,6 @@ OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
  * @param window Indicates the pointer to a <b>NativeVsync</b> instance.
- * @return Returns int32_t, return value == 0, success, otherwise, failed.
  * @since 9
  * @version 1.0
  */
@@ -71,16 +70,36 @@ void OH_NativeVSync_Destroy(OH_NativeVSync* nativeVsync);
 
 /**
  * @brief Request next vsync with callback.
+ * If you call this Interface multi times in one frame, it will only call the last callback.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
  * @param nativeVsync Indicates the pointer to a NativeVsync.
  * @param callback Indicates the OH_NativeVSync_FrameCallback which will be called when next vsync coming.
  * @param data Indicates data whick will be used in callback.
- * @return Returns int32_t, return value == 0, success, otherwise, failed.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter nativeVsync is NULL or callback is NULL.
+ *     {@link NATIVE_ERROR_BINDER_ERROR} 50401000 - ipc send failed.
  * @since 9
  * @version 1.0
  */
 int OH_NativeVSync_RequestFrame(OH_NativeVSync* nativeVsync, OH_NativeVSync_FrameCallback callback, void* data);
+
+/**
+ * @brief Request next vsync with callback.
+ * If this function is called multiple times in one vsync period, all these callbacks and datas be callbacked.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
+ * @param nativeVsync Indicates the pointer to a NativeVsync.
+ * @param callback Indicates the OH_NativeVSync_FrameCallback which will be called when next vsync coming.
+ * @param data Indicates data whick will be used in callback.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter nativeVsync is NULL or callback is NULL.
+ *     {@link NATIVE_ERROR_BINDER_ERROR} 50401000 - ipc send failed.
+ * @since 12
+ * @version 1.0
+ */
+int OH_NativeVSync_RequestFrameWithMultiCallback(
+    OH_NativeVSync* nativeVsync, OH_NativeVSync_FrameCallback callback, void* data);
 
 /**
  * @brief Get vsync period.

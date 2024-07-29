@@ -41,7 +41,6 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     }
     // 3 is array size.
     int64_t data[3];
-    int64_t now = 0;
     ssize_t ret = 0;
     ssize_t dataCount = 0;
     do {
@@ -60,13 +59,22 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         }
     } while (ret != -1);
 
+    HandleVsyncCallbacks(data, dataCount);
+}
+
+void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCount)
+{
     VSyncCallback cb = nullptr;
     VSyncCallbackWithId cbWithId = nullptr;
+    void *userData = nullptr;
+    int64_t now = 0;
     int64_t expectedEnd = 0;
+    std::vector<FrameCallback> callbacks;
     {
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
         cbWithId = vsyncCallbacksWithId_;
+        userData = userData_;
         RNVFlag_ = false;
         now = data[0];
         period_ = data[1];
@@ -74,15 +82,24 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         timeStamp_ = data[0];
         timeStampShared_ = data[0];
         expectedEnd = CalculateExpectedEndLocked(now);
+        callbacks = frameCallbacks_;
+        frameCallbacks_.clear();
     }
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
     RS_TRACE_NAME_FMT("ReceiveVsync dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld",
         dataCount, now, expectedEnd, data[2]); // data[2] is vsyncId
-    if (dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
+    if (callbacks.empty() && dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
         // data[2] is frameCount
-        cbWithId != nullptr ? cbWithId(now, data[2], userData_) : cb(now, userData_);
+        cbWithId != nullptr ? cbWithId(now, data[2], userData) : cb(now, userData);
+    }
+    for (const auto& cb : callbacks) {
+        if (cb.callback_ != nullptr) {
+            cb.callback_(now, cb.userData_);
+        } else if (cb.callbackWithId_ != nullptr) {
+            cb.callbackWithId_(now, data[2], cb.userData_); // data[2] is vsyncId
+        }
     }
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
@@ -195,6 +212,22 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::st
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
     }
     return connection_->RequestNextVSync(fromWhom, lastVSyncTS);
+}
+
+VsyncError VSyncReceiver::RequestNextVSyncWithMultiCallback(FrameCallback callback)
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        VLOGE("%{public}s not init", __func__);
+        return VSYNC_ERROR_NOT_INIT;
+    }
+    listener_->AddCallback(callback);
+    listener_->SetRNVFlag(true);
+    ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
+    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
+        OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
+    }
+    return connection_->RequestNextVSync();
 }
 
 VsyncError VSyncReceiver::SetVSyncRate(FrameCallback callback, int32_t rate)
