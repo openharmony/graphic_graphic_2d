@@ -42,7 +42,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 10;
+constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 50;
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
