@@ -49,7 +49,7 @@ protected:
 
 private:
     RSRenderTransition() = default;
-    bool isTransitionIn_;
+    bool isTransitionIn_ { false };
 };
 } // namespace Rosen
 } // namespace OHOS

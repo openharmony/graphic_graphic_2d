@@ -33,7 +33,10 @@ RSAnimationTraceUtils::RSAnimationTraceUtils()
 std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
     const std::shared_ptr<RSRenderPropertyBase>& value, const RSRenderPropertyType type) const
 {
-    std::string str;
+    std::string str = "None";
+    if (value == nullptr) {
+        return str;
+    }
     auto propertyType = value->GetPropertyType() == RSRenderPropertyType::INVALID ? type : value->GetPropertyType();
     switch (propertyType) {
         case RSRenderPropertyType::PROPERTY_FLOAT: {
@@ -102,7 +105,7 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
             break;
         }
         default: {
-            return "None";
+            return str;
         }
     }
     return str;
