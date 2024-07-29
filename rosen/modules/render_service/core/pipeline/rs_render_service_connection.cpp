@@ -66,6 +66,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr int SLEEP_TIME_US = 1000;
 constexpr int TASK_DELAY_TIME_MS = 1000;
+const std::string REGISTER_NODE = "RegisterNode";
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSRenderServiceConnection::RSRenderServiceConnection(
@@ -330,7 +331,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     if (config.isSync) {
         mainThread_->PostSyncTask(registerNode);
     } else {
-        mainThread_->PostTask(registerNode);
+        mainThread_->PostTask(registerNode, REGISTER_NODE, 0, AppExecFwk::EventQueue::Priority::VIP);
     }
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(node);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
