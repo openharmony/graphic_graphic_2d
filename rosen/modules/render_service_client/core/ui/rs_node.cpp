@@ -480,9 +480,10 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
     UpdateModifierMotionPathOption();
 }
 
-void RSNode::SetMagnifierParams(const Vector2f& para)
+void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
 {
-    SetProperty<RSMagnifierParamsModifier, RSProperty<Vector2f>>(RSModifierType::MAGNIFIER_PARA, para);
+    SetProperty<RSMagnifierParamsModifier, RSProperty<std::shared_ptr<RSMagnifierParams>>>(
+        RSModifierType::MAGNIFIER_PARA, para);
 }
 
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const

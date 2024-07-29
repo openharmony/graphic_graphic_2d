@@ -292,7 +292,7 @@ public:
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
-    void SetMagnifierParams(const Vector2f& para);
+    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
     void SetDynamicDimDegree(const float dimDegree);

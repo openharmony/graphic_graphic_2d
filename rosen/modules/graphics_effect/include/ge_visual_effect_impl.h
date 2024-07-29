@@ -128,12 +128,24 @@ public:
         return hpsBlurParams_;
     }
 
+    void MakeMagnifierParams()
+    {
+        magnifierParams_ = std::make_shared<GEMagnifierShaderFilterParams>();
+    }
+ 
+    const std::shared_ptr<GEMagnifierShaderFilterParams>& GetMagnifierParams() const
+    {
+        return magnifierParams_;
+    }
+
 private:
     static std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> g_initialMap;
 
     void SetAIBarParams(const std::string& tag, float param);
     void SetGreyParams(const std::string& tag, float param);
     void SetLinearGradientBlurParams(const std::string& tag, float param);
+    void SetMagnifierParamsFloat(const std::string& tag, float param);
+    void SetMagnifierParamsUint32(const std::string& tag, uint32_t param);
     void SetWaterRippleParams(const std::string& tag, float param);
     void SetHpsBlurParams(const std::string& tag, float param);
 
@@ -143,6 +155,7 @@ private:
     std::shared_ptr<GEAIBarShaderFilterParams> aiBarParams_ = nullptr;
     std::shared_ptr<GEGreyShaderFilterParams> greyParams_ = nullptr;
     std::shared_ptr<GELinearGradientBlurShaderFilterParams> linearGradientBlurParams_ = nullptr;
+    std::shared_ptr<GEMagnifierShaderFilterParams> magnifierParams_ = nullptr;
     std::shared_ptr<GEWaterRippleFilterParams> waterRippleParams_ = nullptr;
     std::shared_ptr<HpsBlurFilterParams> hpsBlurParams_ = nullptr;
 };

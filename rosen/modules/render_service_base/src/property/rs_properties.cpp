@@ -1691,11 +1691,11 @@ void RSProperties::SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& par
     contentDirty_ = true;
 }
 
-void RSProperties::SetMagnifierParams(const std::optional<Vector2f>& para)
+void RSProperties::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
 {
     magnifierPara_ = para;
 
-    if (para.has_value()) {
+    if (para) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -1703,7 +1703,7 @@ void RSProperties::SetMagnifierParams(const std::optional<Vector2f>& para)
     contentDirty_ = true;
 }
 
-const std::optional<Vector2f>& RSProperties::GetMagnifierPara() const
+const std::shared_ptr<RSMagnifierParams>& RSProperties::GetMagnifierPara() const
 {
     return magnifierPara_;
 }
@@ -2914,7 +2914,7 @@ void RSProperties::GenerateLinearGradientBlurFilter()
 
 void RSProperties::GenerateMagnifierFilter()
 {
-    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara_->x_, magnifierPara_->y_);
+    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara_);
 
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(magnifierFilter);
     backgroundFilter_ = originalFilter;
@@ -2944,7 +2944,7 @@ void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
         GenerateAIBarFilter();
-    } else if (magnifierPara_.has_value()) {
+    } else if (magnifierPara_ && ROSEN_GNE(magnifierPara_->factor_, 0.f)) {
         GenerateMagnifierFilter();
     } else if (IsBackgroundMaterialFilterValid()) {
         GenerateBackgroundMaterialBlurFilter();
@@ -4129,8 +4129,7 @@ void RSProperties::UpdateFilter()
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
-                  magnifierPara_.has_value();
+                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid();
 }
 
 void RSProperties::UpdateForegroundFilter()

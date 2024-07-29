@@ -25,8 +25,8 @@ public:
     float factor_ = 0.f;
     float width_ = 0.f;
     float height_ = 0.f;
-    float borderWidth_ = 0.f;
     float cornerRadius_ = 0.f;
+    float borderWidth_ = 0.f;
     float offsetX_ = 0.f;
     float offsetY_ = 0.f;
 
