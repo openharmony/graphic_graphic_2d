@@ -363,10 +363,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             needOffscreen = false;
         }
     } else {
-        releaseCount_++;
-        if (releaseCount_ == MAX_RELEASE_FRAME) {
-            offscreenSurface_ = nullptr;
-            releaseCount_ = 0;
+        if (offscreenSurface_ != nullptr) {
+            releaseCount_++;
+            if (releaseCount_ == MAX_RELEASE_FRAME) {
+                std::shared_ptr<Drawing::Surface> hold = offscreenSurface_;
+                RSUniRenderThread::Instance().PostTask([hold] {});
+                offscreenSurface_ = nullptr;
+                releaseCount_ = 0;
+            }
         }
     }
 
