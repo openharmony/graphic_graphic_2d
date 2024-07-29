@@ -650,6 +650,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (uniParam->HasMirrorDisplay() && UNLIKELY(!params->IsRotationChanged()) &&
             curCanvas_->GetSurface() != nullptr && specialLayerType_ == NO_SPECIAL_LAYER) {
             cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
+        } else if (!uniParam->HasMirrorDisplay()) {
+            SetCacheImgForCapture(nullptr);
         }
     }
     RSMainThread::Instance()->SetDirtyFlag(false);
@@ -884,7 +886,6 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
     std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam)
 {
     auto cacheImage = mirrorDrawable.GetCacheImgForCapture();
-    mirrorDrawable.SetCacheImgForCapture(nullptr);
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false);
     mirrorDrawable.SetOriginScreenRotation(GetOriginScreenRotation());
@@ -899,12 +900,14 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
     }
     if (cacheImage) {
+        RS_TRACE_NAME("DrawMirrorCopy with cacheImage");
         curCanvas_ = virtualProcesser->GetCanvas();
         if (curCanvas_) {
             mirrorDrawable.DrawHardwareEnabledNodesMissedInCacheImage(*curCanvas_);
             RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
         }
     } else {
+        RS_TRACE_NAME("DrawMirrorCopy with displaySurface");
         virtualProcesser->ProcessDisplaySurfaceForRenderThread(mirrorDrawable);
         curCanvas_ = virtualProcesser->GetCanvas();
     }
@@ -964,11 +967,20 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
     std::vector<RectI> damageRegionRects =
         CalculateVirtualDirtyForWiredScreen(renderFrame, params, curCanvas_->GetTotalMatrix());
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
-    bool forceCPU = false;
-    auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(*mirroredDrawable->GetRSSurfaceHandlerOnDraw(), forceCPU);
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    drawParams.isMirror = true;
-    renderEngine->DrawDisplayNodeWithParams(*curCanvas_, *mirroredDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
+    auto cacheImage = mirroredDrawable->GetCacheImgForCapture();
+    if (cacheImage) {
+        RS_TRACE_NAME("DrawWiredMirrorCopy with cacheImage");
+        RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
+    } else {
+        RS_TRACE_NAME("DrawWiredMirrorCopy with displaySurface");
+        bool forceCPU = false;
+        auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(
+            *mirroredDrawable->GetRSSurfaceHandlerOnDraw(), forceCPU);
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        drawParams.isMirror = true;
+        renderEngine->DrawDisplayNodeWithParams(*curCanvas_,
+            *mirroredDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
+    }
     curCanvas_->Restore();
     rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
     renderFrame->Flush();
