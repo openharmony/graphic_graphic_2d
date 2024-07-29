@@ -218,7 +218,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
-    preBuffer = nullptr;
+    params.SetPreBuffer(nullptr);
     layer->SetZorder(layerInfo.zOrder);
     layer->SetType(layerInfo.layerType);
 
