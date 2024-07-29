@@ -193,7 +193,7 @@ public:
         return uiFirstFlag_;
     }
 
-    void SetBufferClearCacheSet(const std::set<int32_t> bufferCacheSet)
+    void SetBufferClearCacheSet(const std::set<int32_t>& bufferCacheSet)
     {
         if (bufferCacheSet.size() > 0) {
             bufferCacheSet_ = bufferCacheSet;

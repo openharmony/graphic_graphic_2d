@@ -398,7 +398,6 @@ void RSUniRenderThread::ReleaseSurface()
     while (tmpSurfaces_.size() > 0) {
         auto tmp = tmpSurfaces_.front();
         tmpSurfaces_.pop();
-        tmp = nullptr;
     }
 }
 

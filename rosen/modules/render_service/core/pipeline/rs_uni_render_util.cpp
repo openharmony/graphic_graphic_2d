@@ -322,8 +322,8 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     if (srcHeight == 0 || srcWidth == 0) {
         return;
     }
-    uint32_t newWidth;
-    uint32_t newHeight;
+    uint32_t newWidth = 0;
+    uint32_t newHeight = 0;
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
