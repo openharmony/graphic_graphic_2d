@@ -188,5 +188,11 @@ bool RSSystemParameters::GetUIFirstDmaBufferEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.ui.first.dma.enabled", "1")).c_str()) != 0;
     return enable;
 }
+
+bool RSSystemParameters::GetTcacheEnabled()
+{
+    static bool flag = system::GetBoolParameter("persist.sys.graphic.tcache.enable", true);
+    return flag;
+}
 } // namespace Rosen
 } // namespace OHOS
