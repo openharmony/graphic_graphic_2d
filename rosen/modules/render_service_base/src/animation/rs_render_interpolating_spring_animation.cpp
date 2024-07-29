@@ -152,7 +152,7 @@ float RSRenderInterpolatingSpringAnimation::CalculateTimeFraction(float targetFr
     if (secondTime <= 0) {
         return FRACTION_MIN;
     }
-    auto frameTimes = MAX_FRAME_TIME_FRACTION * secondTime;
+    int64_t frameTimes = MAX_FRAME_TIME_FRACTION * secondTime;
     float lastFraction = FRACTION_MIN;
     for (int time = 1; time <= frameTimes; time++) {
         float frameFraction = static_cast<float>(time) / frameTimes;
