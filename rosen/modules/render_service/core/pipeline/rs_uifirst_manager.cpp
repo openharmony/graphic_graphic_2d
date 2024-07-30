@@ -50,15 +50,14 @@ RSUifirstManager& RSUifirstManager::Instance()
     return instance;
 }
 
-RSUifirstManager::RSUifirstManager()
-{
+RSUifirstManager::RSUifirstManager() :
 #if defined(RS_ENABLE_VK)
-    useDmaBuffer_ = RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN;
+    useDmaBuffer_(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
+        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN)
 #else
-    useDmaBuffer_ = false;
+    useDmaBuffer_(false)
 #endif
-}
+{}
 
 std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
 {
