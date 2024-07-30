@@ -468,6 +468,10 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
             cacheImage = cacheImage->MakeRasterImage();
         }
     }
+    if (cacheImage == nullptr || cacheImage->GetWidth() == 0 || cacheImage->GetHeight() == 0) {
+        RS_LOGE("RSRenderNodeDrawable::DrawCachedImage invalid cacheimage");
+        return;
+    }
     float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
     float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
     if (IsComputeDrawAreaSucc()) {
