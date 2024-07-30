@@ -53,6 +53,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_uifirst_manager.h"
+#include "system/rs_system_parameters.h"
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
@@ -146,7 +147,7 @@ void RSUniRenderThread::InitGrContext()
 
 void RSUniRenderThread::Inittcache()
 {
-    if (system::GetBoolParameter("persist.sys.graphic.tcache.enable", true)) {
+    if (RSSystemParameters::GetTcacheEnabled()) {
         // enable cache
         mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
     }
