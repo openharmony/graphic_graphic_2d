@@ -225,10 +225,8 @@ ohos_shared_library("librender_service") {
 
   if (defined(rs_enable_recording_dcl) && rs_enable_recording_dcl &&
       defined(use_rosen_drawing) && use_rosen_drawing) {
-    deps += [
-      "$graphic_2d_root/rosen/samples/2d_graphics:drawing_engine_sample",
-      "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer",
-    ]
+    deps +=
+        [ "$graphic_2d_root/rosen/samples/2d_graphics:drawing_sample_replayer" ]
   }
 
   if (rosen_is_ohos) {

@@ -1229,7 +1229,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     }
     bool ret = CheckScreenPowerChange() || CheckColorFilterChange() ||
         CheckCurtainScreenUsingStatusChange() || IsFirstFrameOfPartialRender() ||
-        IsFirstOrLastFrameOfWatermark();
+        IsFirstOrLastFrameOfWatermark() || IsDisplayZoomIn();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -1271,6 +1271,15 @@ bool RSUniRenderVisitor::IsFirstOrLastFrameOfWatermark() const
     } else {
         return false;
     }
+}
+
+bool RSUniRenderVisitor::IsDisplayZoomIn() const
+{
+    if (!curDisplayNode_) {
+        return false;
+    }
+    auto scale = curDisplayNode_->GetRenderProperties().GetScale();
+    return scale.x_ > 1.f || scale.y_ > 1.f;
 }
 
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)

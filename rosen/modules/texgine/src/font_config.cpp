@@ -95,6 +95,7 @@ cJSON* FontConfig::CheckConfigFile(const char* fname) const
     }
     std::string pramsString;
     pramsString.assign(data, size);
+    free(data);
     return cJSON_Parse(pramsString.c_str());
 }
 

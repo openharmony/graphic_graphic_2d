@@ -644,7 +644,18 @@ RSDrawable::Ptr RSUseEffectDrawable::OnGenerate(const RSRenderNode& node)
     if (!node.GetRenderProperties().GetUseEffect()) {
         return nullptr;
     }
-    return std::make_shared<RSUseEffectDrawable>();
+    // Find effect render node
+    auto parentNode = node.GetParent().lock();
+    while (parentNode && !parentNode->IsInstanceOf<RSEffectRenderNode>()) {
+        parentNode = parentNode->GetParent().lock();
+    }
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr effectRenderNodeDrawable = nullptr;
+    if (parentNode) {
+        effectRenderNodeDrawable = parentNode->GetRenderDrawable();
+    } else {
+        ROSEN_LOGD("RSUseEffectDrawable::OnGenerate: find EffectRenderNode failed.");
+    }
+    return std::make_shared<RSUseEffectDrawable>(effectRenderNodeDrawable);
 }
 
 bool RSUseEffectDrawable::OnUpdate(const RSRenderNode& node)
@@ -659,7 +670,27 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSUseEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (!RSSystemProperties::GetEffectMergeEnabled()) {
+            return;
+        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        if (paintFilterCanvas == nullptr) {
+            return;
+        }
+        const auto& effectData = paintFilterCanvas->GetEffectData();
+        if (effectData == nullptr || effectData->cachedImage_ == nullptr) {
+            ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect effectData null, try to generate.");
+            auto drawable = ptr->effectRenderNodeDrawableWeakRef_.lock();
+            if (!drawable) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Generate effectData");
+            bool disableFilterCache = paintFilterCanvas->GetDisableFilterCache();
+            paintFilterCanvas->SetDisableFilterCache(true);
+            int8_t index = drawable->drawCmdIndex_.backgroundFilterIndex_;
+            drawable->DrawImpl(*paintFilterCanvas, *rect, index);
+            paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
+        }
         RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas);
     };
 }

@@ -131,6 +131,7 @@ void RSUniRenderThread::InitGrContext()
     uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     if (!uniRenderEngine_) {
         RS_LOGE("uniRenderEngine_ is nullptr");
+        return;
     }
     uniRenderEngine_->Init();
 #ifdef RS_ENABLE_VK
@@ -154,10 +155,11 @@ void RSUniRenderThread::Inittcache()
 void RSUniRenderThread::Start()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     if (!runner_) {
         RS_LOGE("RSUniRenderThread Start runner null");
+        return;
     }
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {

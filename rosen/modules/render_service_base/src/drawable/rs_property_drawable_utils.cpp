@@ -325,6 +325,10 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter null filter.");
         return;
     }
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter null canvas.");
+        return;
+    }
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
     auto clipIBounds = canvas->GetDeviceClipBounds();

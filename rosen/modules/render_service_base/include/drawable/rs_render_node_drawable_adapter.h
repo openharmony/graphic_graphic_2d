@@ -194,6 +194,7 @@ private:
     friend class OHOS::Rosen::RSDisplayRenderNode;
     friend class OHOS::Rosen::RSSurfaceRenderNode;
     friend class RSRenderNodeShadowDrawable;
+    friend class RSUseEffectDrawable;
 };
 
 } // namespace DrawableV2

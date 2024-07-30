@@ -765,6 +765,12 @@ bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
 {
     Drawing::Matrix::Buffer value;
     matrix.GetAll(value);
+    // ScaleX and ScaleY must have different sign
+    if (!(std::signbit(value[Drawing::Matrix::Index::SCALE_X]) ^
+        std::signbit(value[Drawing::Matrix::Index::SCALE_Y]))) {
+        return false;
+    }
+
     int rotateX = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::PERSP_1],
         value[Drawing::Matrix::Index::SCALE_Y]) * (180 / PI)));
     int rotateY = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::PERSP_0],
@@ -1386,14 +1392,9 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     const Gravity frameGravity = property.GetFrameGravity();
 
     CheckForceHardwareAndUpdateDstRect(node);
-    if (frameGravity == Gravity::TOP_LEFT) {
-        auto dstRect = node.GetDstRect();
-        auto srcRect = node.GetSrcRect();
-        node.SetDstRect({dstRect.left_, dstRect.top_, srcRect.width_, srcRect.height_});
-        return;
-    }
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
-    if (frameGravity == Gravity::RESIZE || (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
+    if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
+        (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
         return;
     }
  
@@ -1820,7 +1821,7 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     brush.SetAntiAlias(true);
     canvas.AttachBrush(brush);
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
     canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
     canvas.DetachBrush();
 }

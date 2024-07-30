@@ -194,25 +194,25 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t
     }
 }
 
-void HgmFrameRateManager::UpdateSurfaceTime(const std::string& name, uint64_t timestamp)
+void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,  pid_t pid)
 {
-    idleDetector_.UpdateSurfaceTime(name, timestamp);
+    idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid);
 }
 
-void HgmFrameRateManager::UpdateAppSupportStatus()
+void HgmFrameRateManager::UpdateAppSupportedState()
 {
-    bool flag = false;
+    bool appNeedHighRefresh = false;
     idleDetector_.ClearAppBufferList();
     idleDetector_.ClearAppBufferBlackList();
     PolicyConfigData::StrategyConfig config;
     if (multiAppStrategy_.GetFocusAppStrategyConfig(config) == EXEC_SUCCESS) {
         if (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
-            flag = true;
+            appNeedHighRefresh = true;
         }
     }
     idleDetector_.UpdateAppBufferList(config.appBufferList);
     idleDetector_.UpdateAppBufferBlackList(config.appBufferBlackList);
-    idleDetector_.SetAppSupportStatus(flag);
+    idleDetector_.SetAppSupportedState(appNeedHighRefresh);
 }
 
 void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker,
@@ -223,43 +223,57 @@ void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrame
     }
     if (linker->GetAceAnimatorExpectedFrameRate() >= 0) {
         needCheckAceAnimatorStatus = false;
-        RS_TRACE_NAME_FMT("SetAceAnimatorVote PID = [%d]  linkerId = [%" PRIu64 "]  SetAceAnimatorIdleStatus[false] "
+        RS_TRACE_NAME_FMT("SetAceAnimatorVote PID = [%d]  linkerId = [%" PRIu64 "]  SetAceAnimatorIdleState[false] "
             "AnimatorExpectedFrameRate = [%d]", ExtractPid(linker->GetId()), linker->GetId(),
             linker->GetAceAnimatorExpectedFrameRate());
-        idleDetector_.SetAceAnimatorIdleStatus(false);
+        idleDetector_.SetAceAnimatorIdleState(false);
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("SetAceAnimatorVote PID = [%d]  linkerId = [%" PRIu64 "] "
-        "SetAceAnimatorIdleStatus[true] AnimatorExpectedFrameRate = [%d]", ExtractPid(linker->GetId()),
+        "SetAceAnimatorIdleState[true] AnimatorExpectedFrameRate = [%d]", ExtractPid(linker->GetId()),
         linker->GetId(), linker->GetAceAnimatorExpectedFrameRate());
-    idleDetector_.SetAceAnimatorIdleStatus(true);
+    idleDetector_.SetAceAnimatorIdleState(true);
 }
 
 void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 {
-    if (!idleDetector_.GetAppSupportStatus()) {
+    if (!idleDetector_.GetAppSupportedState()) {
         return;
     }
-    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AceAnimatorIdleStatus = [%d]",
+    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AceAnimatorIdleState = [%d]",
         touchManager_.GetState(), idleDetector_.GetSurfaceIdleState(timestamp),
-        idleDetector_.GetAceAnimatorIdleStatus());
+        idleDetector_.GetAceAnimatorIdleState());
 
+    // Wait touch up FIRST_FRAME_TIME_OUT ms
     if (!startCheck_.load() || touchManager_.GetState() == TouchState::IDLE_STATE) {
+        needHighRefresh_ = false;
+        lastTouchUpExpectFps_ = 0;
         return;
     }
 
-    if (idleDetector_.GetSurfaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleStatus()) {
+    // Check if needed third frame need high refresh
+    if (!needHighRefresh_) {
+        needHighRefresh_ = true;
+        if (!idleDetector_.ThirdFrameNeedHighRefresh()) {
+            touchManager_.HandleThirdFrameIdle();
+            return;
+        }
+    }
+
+    //Third frame need high refresh vote
+    if (idleDetector_.GetSurfaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleState()) {
+        RS_TRACE_NAME_FMT("UpdateGuaranteedPlanVote:: Surface And Animator Idle, Vote Idle");
         touchManager_.HandleThirdFrameIdle();
     } else {
-        int32_t fps = idleDetector_.GetSurfaceUpExpectFps();
-        if (fps == lastUpExpectFps_) {
+        int32_t currTouchUpExpectedFPS = idleDetector_.GetTouchUpExpectedFPS();
+        if (currTouchUpExpectedFPS == lastTouchUpExpectFps_) {
             return;
         }
 
-        lastUpExpectFps_ = fps;
+        lastTouchUpExpectFps_ = currTouchUpExpectedFPS;
         HgmMultiAppStrategy::TouchInfo touchInfo = {
             .touchState = TouchState::UP_STATE,
-            .upExpectFps = fps,
+            .upExpectFps = currTouchUpExpectedFPS,
         };
         multiAppStrategy_.HandleTouchInfo(touchInfo);
     }
@@ -721,7 +735,7 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, uint32_t listSize, const
             sceneStack_.clear();
         }
         CheckPackageInConfigList(multiAppStrategy_.GetForegroundPidApp());
-        UpdateAppSupportStatus();
+        UpdateAppSupportedState();
     });
 }
 

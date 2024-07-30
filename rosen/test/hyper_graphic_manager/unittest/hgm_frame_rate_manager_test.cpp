@@ -19,6 +19,7 @@
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "hgm_config_callback_manager.h"
+#include "hgm_idle_detector.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,6 +32,14 @@ namespace {
     int32_t phyWidth = 685;
     int32_t phyHeight = 1218;
     ScreenSize screenSize = {width, height, phyWidth, phyHeight};
+    const std::string otherSurface = "Other_SF";
+    const std::string settingStrategyName = "99";
+    constexpr uint64_t  currTime = 200000000;
+    constexpr uint64_t  lastTime = 100000000;
+    constexpr pid_t appPid = 0;
+    constexpr uint32_t touchCount = 1;
+    constexpr uint32_t delay_60Ms = 60;
+    constexpr uint32_t delay_110Ms = 110;
 }
 class HgmFrameRateMgrTest : public testing::Test {
 public:
@@ -38,6 +47,7 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+    void InitHgmFrameRateManager(HgmFrameRateManager &frameRateMgr);
 };
 
 void HgmFrameRateMgrTest::SetUpTestCase() {}
@@ -79,6 +89,115 @@ HWTEST_F(HgmFrameRateMgrTest, MergeRangeByPriority, Function | SmallTest | Level
     HgmFrameRateManager::MergeRangeByPriority(voteRangeRes, voteRange4);
     ASSERT_EQ(voteRangeRes.first, OledRefreshRate::OLED_40_HZ);
     ASSERT_EQ(voteRangeRes.second, OledRefreshRate::OLED_120_HZ);
+}
+
+void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRateMgr)
+{
+    int64_t offset = 0;
+    auto vsyncGenerator = CreateVSyncGenerator();
+    sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
+    sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
+    frameRateMgr.Init(rsController, appController, vsyncGenerator);
+
+    auto strategyConfigs = frameRateMgr.multiAppStrategy_.GetStrategyConfigs();
+    auto screenSetting = frameRateMgr.multiAppStrategy_.GetScreenSetting();
+    strategyConfigs[settingStrategyName] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .down = OLED_144_HZ,
+        .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = true };
+    screenSetting.strategy = settingStrategyName;
+    frameRateMgr.multiAppStrategy_.SetStrategyConfigs(strategyConfigs);
+    frameRateMgr.multiAppStrategy_.SetScreenSetting(screenSetting);
+}
+
+/**
+ * @tc.name: HgmSetTouchUpFPS001
+ * @tc.desc: Verify the result of HgmSetTouchUpFPS001 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager frameRateMgr;
+    InitHgmFrameRateManager(frameRateMgr);
+    PolicyConfigData::StrategyConfig strategyConfig;
+    PART("CaseDescription") {
+        STEP("1. init") {
+            frameRateMgr.idleDetector_.SetAppSupportedState(true);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid);
+        }
+        STEP("2. handle touch up event") {
+            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
+            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+            frameRateMgr.UpdateGuaranteedPlanVote(currTime);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
+            HgmErrCode res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
+            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
+            ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
+
+            std::vector<std::pair<std::string, int32_t>> appBufferList;
+            appBufferList.push_back(std::make_pair(otherSurface, OLED_90_HZ));
+            frameRateMgr.idleDetector_.UpdateAppBufferList(appBufferList);
+            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
+            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+            frameRateMgr.UpdateGuaranteedPlanVote(currTime);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
+            res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
+            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(strategyConfig.min, OLED_90_HZ);
+            ASSERT_EQ(strategyConfig.max, OLED_90_HZ);
+
+            appBufferList.clear();
+            appBufferList.push_back(std::make_pair(otherSurface, OLED_120_HZ));
+            frameRateMgr.idleDetector_.ClearAppBufferList();
+            frameRateMgr.idleDetector_.UpdateAppBufferList(appBufferList);
+            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
+            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+            frameRateMgr.UpdateGuaranteedPlanVote(currTime);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
+            res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
+            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
+            ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
+        }
+    }
+    frameRateMgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    sleep(1); // wait for handler task finished
+}
+
+/**
+ * @tc.name: HgmSetTouchUpFPS002
+ * @tc.desc: Verify the result of HgmSetTouchUpFPS002 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS002, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager frameRateMgr;
+    InitHgmFrameRateManager(frameRateMgr);
+    PolicyConfigData::StrategyConfig strategyConfig;
+    PART("CaseDescription") {
+        STEP("1. init") {
+            frameRateMgr.idleDetector_.SetAppSupportedState(true);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid);
+        }
+        STEP("2. handle touch up event") {
+            std::vector<std::string> appBufferBlackList = { otherSurface };
+            frameRateMgr.idleDetector_.UpdateAppBufferBlackList(appBufferBlackList);
+            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
+            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+            frameRateMgr.UpdateGuaranteedPlanVote(currTime);
+            ASSERT_EQ(frameRateMgr.idleDetector_.ThirdFrameNeedHighRefresh(), false);
+            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
+            ASSERT_EQ(frameRateMgr.touchManager_.GetState(), TouchState::IDLE_STATE);
+        }
+    }
+    frameRateMgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
+    sleep(1); // wait for handler task finished
 }
 
 /**

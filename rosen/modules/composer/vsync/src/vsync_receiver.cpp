@@ -140,7 +140,7 @@ VsyncError VSyncReceiver::Init()
     listener_->SetName(name_);
 
     if (looper_ == nullptr) {
-        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(true);
+        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
         looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         runner->Run();
         looper_->PostTask([this] { this->ThreadCreateNotify(); });

@@ -321,6 +321,10 @@ bool RSDisplayRenderNode::IsRotationChanged() const
 void RSDisplayRenderNode::UpdateRotation()
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
     AddToPendingSyncList();
 
     auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
@@ -349,6 +353,10 @@ void RSDisplayRenderNode::ClearCurrentSurfacePos()
 void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
     displayParams->SetMainAndLeashSurfaceDirty(isDirty);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
@@ -358,6 +366,10 @@ void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
 void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
     displayParams->SetHDRPresent(hdrPresent);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();

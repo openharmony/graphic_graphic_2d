@@ -202,7 +202,8 @@ private:
         const OHOS::Media::Rect &srcRect);
     std::shared_ptr<Drawing::Image> CreateDrawingImage();
 
-    sptr<SurfaceBuffer> surfaceBuffer_;
+    sptr<Surface> surface_ = nullptr;
+    sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     OHNativeWindowBuffer *nativeWindowBuffer_ = nullptr;
 #if defined(RS_ENABLE_GL)
     GLuint texId_ = 0U;
@@ -226,6 +227,14 @@ PixelMapFromSurface::~PixelMapFromSurface() noexcept
 
 void PixelMapFromSurface::Clear() noexcept
 {
+    if (surfaceBuffer_ && surface_) {
+        if (surface_->ReleaseLastFlushedBuffer(surfaceBuffer_) != GSERROR_OK) {
+            RS_LOGE("PixelMapFromSurface clear, ReleaseLastFlushedBuffer fail");
+        }
+    }
+    surfaceBuffer_ = nullptr;
+    surface_ = nullptr;
+
 #if defined(RS_ENABLE_GL)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         if (eglImage_ != EGL_NO_IMAGE_KHR) {
@@ -244,8 +253,6 @@ void PixelMapFromSurface::Clear() noexcept
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
         nativeWindowBuffer_ = nullptr;
     }
-
-    surfaceBuffer_ = nullptr;
 }
 
 #if defined(RS_ENABLE_VK)
@@ -487,7 +494,7 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
         0, 0, 1, 0,
         0, 0, 0, 1
     };
-    int ret = surface->GetLastFlushedBuffer(surfaceBuffer, fence, matrix);
+    int ret = surface->AcquireLastFlushedBuffer(surfaceBuffer, fence, matrix, false);
     if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
         RS_LOGE("GetLastFlushedBuffer fail");
         return nullptr;
@@ -599,6 +606,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, con
             srcRect.left, srcRect.top, srcRect.width, srcRect.height);
         return nullptr;
     }
+    surface_ = surface;
 
     std::unique_ptr<PixelMap> pixelMap = nullptr;
 #if defined(RS_ENABLE_GL)
