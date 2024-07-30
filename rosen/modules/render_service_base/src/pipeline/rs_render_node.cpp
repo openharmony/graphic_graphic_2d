@@ -753,7 +753,7 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         return;
     }
     std::string splitStr = ", ";
-    std::string modifierDesc = ", DrawCmdModifiers:[";
+    std::string modifierDesc = ", DrawCmdModifiers2:[";
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
         std::string typeName = "UNKNOWN";
         auto iter = RS_MODIFIER_TYPE_TO_STRING.find(type);

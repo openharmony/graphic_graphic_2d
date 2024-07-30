@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <string>
 #include "draw/paint.h"
 
 namespace OHOS {
@@ -307,6 +308,25 @@ bool operator!=(const Paint& p1, const Paint& p2)
         p1.blenderEnabled_ != p2.blenderEnabled_ ||
         p1.blurDrawLooper_ != p2.blurDrawLooper_;
 }
+
+void Paint::Dump(std::string& out) {
+    out += "[";
+    out += "antiAlias:" + std::to_string(antiAlias_);
+    out += " color[";
+    color_.Dump(out);
+    out += "]";
+    out += " blendMode:" + std::to_string(static_cast<int>(blendMode_));
+    out += " style:" + std::to_string(static_cast<uint8_t>(style_));
+    out += " width:" + std::to_string(width_);
+    out += " miterLimit:" + std::to_string(miterLimit_);
+    out += " join:" + std::to_string(static_cast<int>(join_));
+    out += " cap:" + std::to_string(static_cast<int>(cap_));
+    out += " blenderEnabled:" + std::to_string(blenderEnabled_);
+    out += " hasFilter:" + std::to_string(hasFilter_);
+    out += " hdrImage:" + std::to_string(hdrImage_);
+    out += "]";
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

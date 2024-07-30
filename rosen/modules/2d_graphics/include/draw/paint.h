@@ -108,6 +108,8 @@ public:
     friend bool operator==(const Paint& p1, const Paint& p2);
     friend bool operator!=(const Paint& p1, const Paint& p2);
 
+    void Dump(std::string& out);
+
 private:
     bool antiAlias_ = false;
     Color color_ = Color::COLOR_BLACK;

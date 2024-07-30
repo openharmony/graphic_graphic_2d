@@ -344,6 +344,15 @@ DrawWithPaintOpItem::DrawWithPaintOpItem(const DrawCmdList& cmdList, const Paint
     GeneratePaintFromHandle(paintHandle, cmdList, paint_);
 }
 
+void DrawWithPaintOpItem::Dump(std::string& out)
+{
+    DrawOpItem::Dump(out);
+    out += "[";
+    out += "paint";
+    paint_.Dump(out);
+    out += " ";
+}
+
 /* DrawPointOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawPoint, DrawOpItem::POINT_OPITEM, DrawPointOpItem::Unmarshalling);
 
@@ -366,6 +375,14 @@ void DrawPointOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawPoint(point_);
+}
+
+void DrawPointOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "point";
+    point_.Dump(out);
+    out += "]";
 }
 
 /* DrawPointsOpItem */
@@ -421,6 +438,16 @@ void DrawLineOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawLine(startPt_, endPt_);
 }
 
+void DrawLineOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "startPt";
+    startPt_.Dump(out);
+    out += " endPt";
+    endPt_.Dump(out);
+    out += "]";
+}
+
 /* DrawRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawRect, DrawOpItem::RECT_OPITEM, DrawRectOpItem::Unmarshalling);
 
@@ -445,6 +472,14 @@ void DrawRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawRect(rect_);
 }
 
+void DrawRectOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "rect";
+    rect_.Dump(out);
+    out += "]";
+}
+
 /* DrawRoundRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawRoundRect, DrawOpItem::ROUND_RECT_OPITEM, DrawRoundRectOpItem::Unmarshalling);
 
@@ -467,6 +502,14 @@ void DrawRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawRoundRect(rrect_);
+}
+
+void DrawRoundRectOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "rrect";
+    rrect_.Dump(out);
+    out += "]";
 }
 
 /* DrawNestedRoundRectOpItem */
@@ -497,6 +540,16 @@ void DrawNestedRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawNestedRoundRect(outerRRect_, innerRRect_);
 }
 
+void DrawNestedRoundRectOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "outerRRect";
+    outerRRect_.Dump(out);
+    out += " innerRRect";
+    innerRRect_.Dump(out);
+    out += "]";
+}
+
 /* DrawArcOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawArc, DrawOpItem::ARC_OPITEM, DrawArcOpItem::Unmarshalling);
 
@@ -520,6 +573,16 @@ void DrawArcOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawArc(rect_, startAngle_, sweepAngle_);
+}
+
+void DrawArcOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "rect";
+    rect_.Dump(out);
+    out += " startAngle:" + std::to_string(startAngle_);
+    out += " sweepAngle:" + std::to_string(sweepAngle_);
+    out += "]";
 }
 
 /* DrawPieOpItem */
@@ -547,6 +610,16 @@ void DrawPieOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPie(rect_, startAngle_, sweepAngle_);
 }
 
+void DrawPieOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "rect";
+    rect_.Dump(out);
+    out += " startAngle:" + std::to_string(startAngle_);
+    out += " sweepAngle:" + std::to_string(sweepAngle_);
+    out += "]";
+}
+
 /* DrawOvalOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawOval, DrawOpItem::OVAL_OPITEM, DrawOvalOpItem::Unmarshalling);
 
@@ -569,6 +642,14 @@ void DrawOvalOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawOval(rect_);
+}
+
+void DrawOvalOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "rect";
+    rect_.Dump(out);
+    out += "]";
 }
 
 /* DrawCircleOpItem */
@@ -594,6 +675,15 @@ void DrawCircleOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawCircle(centerPt_, radius_);
+}
+
+void DrawCircleOpItem::Dump(std::string& out)
+{
+    DrawWithPaintOpItem::Dump(out);
+    out += "centerPt";
+    centerPt_.Dump(out);
+    out += " radius:" + std::to_string(radius_);
+    out += "]";
 }
 
 /* DrawPathOpItem */
