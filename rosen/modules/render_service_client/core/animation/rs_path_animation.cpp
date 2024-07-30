@@ -340,6 +340,9 @@ const std::shared_ptr<RSPath> RSPathAnimation::PreProcessPath(const std::string&
 void RSPathAnimation::InitNeedPath(const std::shared_ptr<RSPropertyBase>& startValue,
     const std::shared_ptr<RSPropertyBase>& endValue)
 {
+    if (startValue == nullptr || endValue == nullptr) {
+        return;
+    }
     auto startVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(startValue);
     auto endVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(endValue);
     if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR4F &&

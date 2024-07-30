@@ -70,9 +70,9 @@ private:
     float Fade(float t);
     float Lerp(float t, float a, float b);
     float Grad(int hash, float x, float y);
-    float noiseScale_;
-    float noiseFrequency_;
-    float noiseAmplitude_;
+    float noiseScale_ { 0.0 };
+    float noiseFrequency_ { 0.0 };
+    float noiseAmplitude_ { 0.0 };
 
 public:
     PerlinNoise2D(float noiseScale, float noiseFrequency, float noiseAmplitude);
