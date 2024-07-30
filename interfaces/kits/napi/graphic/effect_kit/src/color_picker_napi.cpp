@@ -37,7 +37,7 @@ namespace OHOS {
 namespace Rosen {
 static const std::string CLASS_NAME = "ColorPicker";
 thread_local napi_ref ColorPickerNapi::sConstructor_ = nullptr;
-std::shared_ptr<ColorPicker> ColorPickerNapi::sColorPicker_ = nullptr;
+thread_local std::shared_ptr<ColorPicker> ColorPickerNapi::sColorPicker_ = nullptr;
 
 // context
 struct ColorPickerAsyncContext {
