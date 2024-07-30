@@ -173,7 +173,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         return;
     }
 
-    if (end > drawCmdList_.size()) {
+    if (end > static_cast<int8_t>(drawCmdList_.size())) {
         ROSEN_LOGE("RSRenderNodeDrawableAdapter::DrawRangeImpl, end is invalid");
         return;
     }
