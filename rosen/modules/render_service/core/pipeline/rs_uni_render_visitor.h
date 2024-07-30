@@ -500,6 +500,7 @@ private:
 
     bool hasFingerprint_ = false;
     bool hasHdrpresent_ = false;
+    bool hasUniRenderHdrSurface_ = false;
     bool mirrorAutoRotate_ = false;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;

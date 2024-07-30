@@ -376,6 +376,15 @@ void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
     }
 }
 
+void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    displayParams->SetBrightnessRatio(brightnessRatio);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const
 {
     int32_t currentScbPid = GetCurrentScbPid();

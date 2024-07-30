@@ -292,6 +292,8 @@ public:
 
     void SetHDRPresent(bool hdrPresent);
 
+    void SetBrightnessRatio(float brightnessRatio);
+
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
         return dirtySurfaceNodeMap_;

@@ -766,7 +766,6 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
         hasHdrpresent_ = false;
     }
     RS_LOGD("SetHDRPresent: [%{public}d] prepare", hasHdrpresent_);
-    curDisplayNode_->SetHDRPresent(hasHdrpresent_);
     auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
     if (!stagingDisplayParams) {
         RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get StagingRenderParams failed.");
@@ -775,7 +774,17 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     ScreenId screenId = stagingDisplayParams->GetScreenId();
     RSLuminanceControl::Get().SetHdrStatus(screenId, hasHdrpresent_);
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
-    curDisplayNode_->SetHDRPresent(isHdrOn);
+    float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
+    if (!hasHdrpresent_ && !hasUniRenderHdrSurface_) {
+        isHdrOn = false;
+        node.SetBrightnessRatio(brightnessRatio);
+        RS_LOGD("no hdr content in uniRender, brightness ratio: %{public}f handled in composer", brightnessRatio);
+    } else {
+        // 1.0f means that dss composer don't brightness discount.
+        node.SetBrightnessRatio(1.0f);
+        RS_LOGD("hdr content in uniRender, brightness ratio: %{public}f handled in uniRender", brightnessRatio);
+    }
+    node.SetHDRPresent(isHdrOn);
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
         RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get screen type failed.");
@@ -2237,6 +2246,10 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             ? -1.f : globalZOrder_++);
         auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo_);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
+        // HDR in UniRender
+        if (hwcNodePtr->IsHardwareForcedDisabled() && RSMainThread::Instance()->CheckIsHdrSurface(*hwcNodePtr)) {
+            hasUniRenderHdrSurface_ = true;
+        }
     }
     curDisplayNode_->SetDisplayGlobalZOrder(globalZOrder_);
     if (pointWindow && pointSurfaceHandler) {
@@ -2284,6 +2297,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     // this is used to record mainAndLeash surface accumulatedDirtyRegion by Pre-order traversal
     Occlusion::Region accumulatedDirtyRegion;
     bool hasMainAndLeashSurfaceDirty = false;
+    hasUniRenderHdrSurface_ = false;
     std::vector<RectI> hwcRects;
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
         [this, &accumulatedDirtyRegion,

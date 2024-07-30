@@ -286,7 +286,7 @@ static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
 #endif
 }
 
-static bool CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
+bool RSMainThread::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
 {
     if (!surfaceNode.IsOnTheTree()) {
         return false;
