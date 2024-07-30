@@ -822,19 +822,17 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    uint32_t fontSize = 0;
-    if (argc == ARGC_ONE) {
-        fontSize = m_font->CountText(text.c_str(), text.length(), TextEncoding::UTF8);
-    } else if (argc == ARGC_TWO) {
-        GET_UINT32_PARAM(ARGC_ONE, fontSize);
-    }
-    if (fontSize == 0) {
-        ROSEN_LOGE("JsFont::OnTextToGlyphs fontSize is zero");
-        return nullptr;
+    uint32_t glyphCount = m_font->CountText(text.c_str(), text.length(), TextEncoding::UTF8);
+    uint32_t inputCount = 0;
+    if (argc == ARGC_TWO) {
+        GET_UINT32_PARAM(ARGC_ONE, inputCount);
+        if (glyphCount != inputCount) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        }
     }
 
-    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
-    m_font->TextToGlyphs(text.c_str(), text.length(), TextEncoding::UTF8, glyphPtr.get(), fontSize);
+    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(glyphCount);
+    m_font->TextToGlyphs(text.c_str(), text.length(), TextEncoding::UTF8, glyphPtr.get(), glyphCount);
 
     napi_value glyphJsArray;
     napi_status status = napi_create_array(env, &glyphJsArray);
@@ -842,7 +840,7 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
         ROSEN_LOGE("failed to napi_create_array");
         return nullptr;
     }
-    for (size_t i = 0; i < fontSize; i++) {
+    for (size_t i = 0; i < glyphCount; i++) {
         napi_value element = CreateJsValue(env, glyphPtr[i]);
         napi_set_element(env, glyphJsArray, i, element);
     }

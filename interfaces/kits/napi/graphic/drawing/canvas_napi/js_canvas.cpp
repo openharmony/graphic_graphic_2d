@@ -886,8 +886,9 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
 
     napi_value array = argv[ARGC_ZERO];
     uint32_t size = 0;
-    napi_get_array_length(env, array, &size);
-
+    if (napi_get_array_length(env, array, &size) != napi_ok || (size == 0)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array size.");
+    }
     Point* points = new(std::nothrow) Point[size];
     if (points == nullptr) {
         return nullptr;
