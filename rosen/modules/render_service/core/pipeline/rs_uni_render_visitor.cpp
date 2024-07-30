@@ -2238,7 +2238,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo_);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
         // HDR in UniRender
-        if (hwcNodePtr->IsHardwareForcedDisabled() && RSMainThread::Instance()->CheckIsHdrSurface(*hwcNodePtr)) {
+        if (hwcNodePtr->IsHardwareForcedDisabled() && RSMainThread::CheckIsHdrSurface(*hwcNodePtr)) {
             hasUniRenderHdrSurface_ = true;
         }
     }
