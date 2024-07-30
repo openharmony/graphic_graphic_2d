@@ -58,9 +58,4 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
         nodeDrawable_->drawCmdList_[i](&canvas, &rect);
     }
 }
-
-void RSRenderNodeShadowDrawable::OnDetach()
-{
-    nodeDrawable_->SetSkip(SkipType::NONE);
-}
 } // namespace OHOS::Rosen::DrawableV2
