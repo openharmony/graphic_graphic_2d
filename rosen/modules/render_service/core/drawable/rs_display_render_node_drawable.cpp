@@ -1523,15 +1523,16 @@ bool RSDisplayRenderNodeDrawable::SkipDisplayIfScreenOff() const
         return false;
     }
     // in certain cases such as wireless display, render skipping may be disabled.
-    if (screenManager->GetDisableRenderControlScreensCount() != 0) {
-        return false;
-    }
     ScreenId id = renderParams_->GetScreenId();
-    if (!screenManager->IsScreenPowerOff(id)) {
+    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
+    auto isScreenOff = screenManager->IsScreenPowerOff(id);
+    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable Screen_[%" PRIu64 "] disableRenderControl:[%d], PowerOff:[%d]",
+        id, disableRenderControlScreensCount, isScreenOff);
+    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
         return false;
     }
     if (screenManager->GetPowerOffNeedProcessOneFrame()) {
-        RS_LOGD("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff screen_%{public}" PRIu64
+        RS_LOGI("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff screen_%{public}" PRIu64
             " power off, one more frame.", id);
         screenManager->ResetPowerOffNeedProcessOneFrame();
         return false;

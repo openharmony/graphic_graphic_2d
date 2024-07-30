@@ -69,7 +69,7 @@ bool RSUIExtensionData::Marshalling(Parcel& parcel) const
 
 RSUIExtensionData* RSUIExtensionData::Unmarshalling(Parcel& parcel)
 {
-    auto uiExtensionData = new RSUIExtensionData();
+    auto uiExtensionData = new (std::nothrow) RSUIExtensionData();
     if (!uiExtensionData) {
         return nullptr;
     }

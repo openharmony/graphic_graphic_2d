@@ -91,11 +91,11 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
 
     ret = MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, parameter.staticMetadata);
     if (ret != GSERROR_OK) {
-        RS_LOGE("bhdr GetHDRStaticMetadata failed with %{public}u.", ret);
+        RS_LOGD("bhdr GetHDRStaticMetadata failed with %{public}u.", ret);
     }
     ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata);
     if (ret != GSERROR_OK) {
-        RS_LOGE("bhdr GetHDRDynamicMetadata failed with %{public}u.", ret);
+        RS_LOGD("bhdr GetHDRDynamicMetadata failed with %{public}u.", ret);
     }
 
     // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
