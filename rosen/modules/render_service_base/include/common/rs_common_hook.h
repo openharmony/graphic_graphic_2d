@@ -33,10 +33,10 @@ public:
     bool GetVideoSurfaceFlag() const;
 
     // use in updating hwcnode hardware state with background alpha
-    void SetHardwareDisabledByHwcnodeFlag(bool hardwareDisabledByHwcNodeSkippedFlag);
-    void SetHardwareDisabledByBackgroundAlphaFlag(bool hardwareDisabledByBackgroundAlphaSkippedFlag);
-    bool GetHardwareDisabledByHwcNodeFlag() const;
-    bool GetHardwareDisabledByBackgroundAlphaFlag() const;    
+    void SetHardwareEnabledByHwcnodeFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
+    void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
+    bool GetHardwareEnabledByHwcNodeFlag() const;
+    bool GetHardwareEnabledByBackgroundAlphaFlag() const;    
 
 private:
     std::function<void()> startNewAniamtionFunc_ = nullptr;
@@ -45,8 +45,8 @@ private:
     bool videoSurfaceFlag_ = false;
 
     // use in updating hwcnode hardware state with background alpha
-    bool hardwareDisabledByHwcNodeSkippedFlag_ = false;
-    bool hardwareDisabledByBackgroundAlphaSkippedFlag_ = false;
+    bool hardwareEnabledByHwcNodeSkippedFlag_ = false;
+    bool hardwareEnabledByBackgroundAlphaSkippedFlag_ = false;
 };
 } // namespace OHOS::Rosen
 #endif
