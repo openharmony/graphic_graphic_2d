@@ -748,28 +748,32 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode node(config);
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.canvas_ == nullptr);
 
-    Drawing::Canvas canvas;
+    // Use non-default constructor only to trigger creation of clip rectangle for canvas,
+    // because the test calls RSRenderThreadVisitor::ProcessSurfaceRenderNode method,
+    // which in turn tries to get clip boundaries via RSPaintFilterCanvas::GetLocalClipBounds. 
+    // This way the test won't exit the function under test early, and can do a deeper traversal of the code.
+    Drawing::Canvas canvas(10,10);
     rsRenderThreadVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.canvas_ != nullptr);
 
-    node.shouldPaint_ = false;
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(!node.shouldPaint_);
+    node->shouldPaint_ = false;
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
+    EXPECT_TRUE(!node->shouldPaint_);
 
-    node.shouldPaint_ = true;
+    node->shouldPaint_ = true;
     rsRenderThreadVisitor.childSurfaceNodeIds_.clear();
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
+    EXPECT_TRUE(!rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
 
-    node.isTextureExportNode_ = true;
+    node->isTextureExportNode_ = true;
     rsRenderThreadVisitor.childSurfaceNodeIds_.push_back(0);
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(!rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
 }
 
