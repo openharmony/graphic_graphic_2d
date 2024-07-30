@@ -44,13 +44,25 @@ const std::unordered_map<std::string, std::string>& RsCommonHook::GetVideoSurfac
     return sourceTuningConfig_;
 }
 
-void RsCommonHook::SetVideoSurfaceFlag(bool VideoSurfaceFlag)
+void RsCommonHook::SetVideoSurfaceFlag(bool videoSurfaceFlag)
 {
-    VideoSurfaceFlag_ = VideoSurfaceFlag;
+    VideoSurfaceFlag_ = videoSurfaceFlag;
 }
 
 bool RsCommonHook::GetVideoSurfaceFlag() const
 {
-    return VideoSurfaceFlag_;
+    return videoSurfaceFlag_;
 }
+
+// skip hwcnode hardware state updating
+bool RsCommonHook::IsHardwareDisabledByHwcNodeSkipped() const
+{
+    return hardwareDisabledByHwcNodeSkippedFlag_;
+}
+
+bool RsCommonHook::IsHardwareDisabledByBackgroundAlphaSkipped() const
+{
+    return hardwareDisabledByBackgroundAlphaSkippedFlag_;
+}
+
 } // namespace OHOS::Rosen

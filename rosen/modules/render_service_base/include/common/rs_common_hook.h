@@ -29,14 +29,20 @@ public:
     // source crop tuning
     void SetVideoSurfaceConfig(std::unordered_map<std::string, std::string> sourceTuningConfig);
     const std::unordered_map<std::string, std::string>& GetVideoSurfaceConfig() const;
-    void SetVideoSurfaceFlag(bool VideoSurfaceFlag);
+    void SetVideoSurfaceFlag(bool videoSurfaceFlag);
     bool GetVideoSurfaceFlag() const;
+
+    // use in updating hwcnode hardware state with background alpha
+    bool IsHardwareDisabledByHwcNodeSkipped() const;
+    bool IsHardwareDisabledByBackgroundAlphaSkipped() const;
+    bool hardwareDisabledByHwcNodeSkippedFlag_ = false;
+    bool hardwareDisabledByBackgroundAlphaSkippedFlag_ = false;
 
 private:
     std::function<void()> startNewAniamtionFunc_ = nullptr;
     // source crop tuning
     std::unordered_map<std::string, std::string> sourceTuningConfig_;
-    bool VideoSurfaceFlag_ = false;
+    bool videoSurfaceFlag_ = false;
 };
 } // namespace OHOS::Rosen
 #endif

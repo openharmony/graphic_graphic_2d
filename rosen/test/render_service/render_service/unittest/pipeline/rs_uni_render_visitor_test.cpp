@@ -5059,4 +5059,34 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheFullyCovered001, TestSize.Level
     surfaceNode1->visibleFilterChild_.emplace_back(node2->GetId());
     rsUniRenderVisitor->CheckFilterCacheFullyCovered(surfaceNode1);
 }
+
+/**
+ * @tc.name: UpdateHardwareStateByHwcNodeBackgroundAlpha
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHardwareStateByHwcNodeBackgroundAlpha
+ * @tc.type: FUNC
+ * @tc.require: IAFZT1
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByHwcNodeBackgroundAlpha, TestSize.Level1)
+{
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    std::weak_ptr<RSSurfaceRenderNode> hwcNode;
+    hwcNodes.push_back(hwcNode);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
+}
+
+/**
+ * @tc.name: UpdateHardwareStateByCoverage
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHardwareStateByCoverage
+ * @tc.type: FUNC
+ * @tc.require: IAFZT1
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByCoverage, TestSize.Level1)
+{
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    std::weak_ptr<RSSurfaceRenderNode> hwcNode;
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->UpdateHardwareStateByCoverage(hwcNode, hwcNodes);
+}
+
 } // OHOS::Rosen
