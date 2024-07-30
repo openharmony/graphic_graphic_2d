@@ -35,7 +35,7 @@ public:
     // use in updating hwcnode hardware state with background alpha
     void SetHardwareEnabledByHwcnodeFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
-    bool GetHardwareEnabledByHwcNodeFlag() const;
+    bool GetHardwareEnabledByHwcnodeFlag() const;
     bool GetHardwareEnabledByBackgroundAlphaFlag() const;    
 
 private:
