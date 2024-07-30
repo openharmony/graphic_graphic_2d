@@ -70,6 +70,7 @@ void RSUniRenderVisitorTest::SetUpTestCase()
 {
     matrixMock_ = Mock::MatrixMock::GetInstance();
     EXPECT_CALL(*matrixMock_, GetMinMaxScales(_)).WillOnce(testing::Return(false));
+    RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderVisitorTest::TearDownTestCase() {}
 void RSUniRenderVisitorTest::SetUp()
@@ -4957,5 +4958,105 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Lev
     rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
     
     rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalFilter(node);
+}
+
+/**
+ * @tc.name: CollectEffectInfo001
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with not parent node.
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+}
+
+/**
+ * @tc.name: CollectEffectInfo002
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, need filter
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+    node->GetMutableRenderProperties().needFilter_ = true;
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_TRUE(parent->ChildHasVisibleFilter());
+}
+
+/**
+ * @tc.name: CollectEffectInfo003
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, useEffect
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+    node->GetMutableRenderProperties().useEffect_ = true;
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_TRUE(parent->ChildHasVisibleEffect());
+}
+
+/**
+ * @tc.name: CheckFilterCacheFullyCovered001
+ * @tc.desc: Test RSUnitRenderVisitorTest.CheckFilterCacheFullyCovered with mutiple nodes.
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheFullyCovered001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode1, nullptr);
+
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    constexpr NodeId id0 = 0;
+    nodeMap.renderNodeMap_[id0] = nullptr;
+    constexpr NodeId id1 = 1;
+    auto node1 = std::make_shared<RSRenderNode>(id1);
+    nodeMap.renderNodeMap_[id1] = node1;
+    ASSERT_NE(node1, nullptr);
+    constexpr NodeId id2 = 2;
+    auto node2 = std::make_shared<RSRenderNode>(id2);
+    nodeMap.renderNodeMap_[id2] = node2;
+    ASSERT_NE(node2, nullptr);
+
+    ASSERT_NE(node2->renderContent_, nullptr);
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
+    node2->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+
+    surfaceNode1->visibleFilterChild_.emplace_back(node1->GetId());
+    surfaceNode1->visibleFilterChild_.emplace_back(node2->GetId());
+    rsUniRenderVisitor->CheckFilterCacheFullyCovered(surfaceNode1);
 }
 } // OHOS::Rosen
