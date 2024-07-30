@@ -17,7 +17,6 @@
 
 #include <memory>
 #include "memory/rs_tag_tracker.h"
-#include "SkColor.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
@@ -76,7 +75,6 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
     NativeWindowHandleOpt(mNativeWindow, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mNativeWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);
     NativeWindowHandleOpt(mNativeWindow, SET_COLOR_GAMUT, colorSpace_);
-    NativeWindowHandleOpt(mNativeWindow, SET_TIMEOUT, timeOut_);
 }
 
 
@@ -268,11 +266,6 @@ void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
         mSurfaceMap.clear();
         mSurfaceList.clear();
     }
-}
-
-void RSSurfaceOhosVulkan::SetTimeOut(int32_t timeOut)
-{
-    timeOut_ = timeOut;
 }
 
 void RSSurfaceOhosVulkan::SetSurfaceBufferUsage(uint64_t usage)

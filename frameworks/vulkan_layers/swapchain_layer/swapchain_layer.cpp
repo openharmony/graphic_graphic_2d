@@ -1338,10 +1338,10 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilities2KHR(
                                                               &pSurfaceCapabilities->surfaceCapabilities);
 
     VkSurfaceCapabilities2KHR* caps = pSurfaceCapabilities;
-    while(caps->pNext != nullptr) {
+    while (caps->pNext != nullptr) {
         caps = reinterpret_cast<VkSurfaceCapabilities2KHR*>(caps->pNext);
         if (caps->sType == VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR) {
-            reinterpret_cast<VkSharedPresentSurfaceCapabilitiesKHR*>(caps)->sharedPresentSupportedUsageFlags = 
+            reinterpret_cast<VkSharedPresentSurfaceCapabilitiesKHR*>(caps)->sharedPresentSupportedUsageFlags =
                 pSurfaceCapabilities->surfaceCapabilities.supportedUsageFlags;
         } else if (caps->sType == VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR) {
             reinterpret_cast<VkSurfaceProtectedCapabilitiesKHR*>(caps)->supportsProtected= VK_TRUE;
@@ -1408,9 +1408,8 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceFormats2KHR(
     uint32_t formatCount = *pSurfaceFormatCount;
 
     std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-    VkResult res = GetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, pSurfaceInfo->surface, pSurfaceFormatCount,
-        surfaceFormats.data());
-
+    VkResult res = GetPhysicalDeviceSurfaceFormatsKHR(
+        physicalDevice, pSurfaceInfo->surface, pSurfaceFormatCount, surfaceFormats.data());
     if (res == VK_SUCCESS || res == VK_INCOMPLETE) {
         for (uint32_t i = 0; i < formatCount; i++) {
             pSurfaceFormats[i].surfaceFormat = surfaceFormats[i];
