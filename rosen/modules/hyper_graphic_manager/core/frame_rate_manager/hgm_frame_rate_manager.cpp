@@ -754,8 +754,8 @@ void HgmFrameRateManager::CheckPackageInConfigList(std::unordered_map<pid_t,
                 rsCommonHook.SetVideoSurfaceFlag(true);
             // 2 means skip hardware disabled by hwc node and background alpha
             } else if (videoConfigFromHgm[pair.second.second] == "2") {
-                rsCommonHook.hardwareDisabledByHwcNodeSkippedFlag_ = true;
-                rsCommonHook.hardwareDisabledByBackgroundAlphaSkippedFlag_ = true;
+                rsCommonHook.SetHardwareEnabledByHwcnodeFlag(true);
+                rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
             }
         }
     }
