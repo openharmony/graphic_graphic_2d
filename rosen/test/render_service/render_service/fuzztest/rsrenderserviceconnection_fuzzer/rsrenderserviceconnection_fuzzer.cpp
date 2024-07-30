@@ -30,7 +30,9 @@
 #include "message_parcel.h"
 #include "securec.h"
 
-#include "ipc_callbacks/pointer_luminance_callback_stub.h"
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
+#endif
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "pipeline/rs_render_service.h"
 #include "pipeline/rs_render_service_connection.h"
@@ -529,7 +531,8 @@ bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
     float darkBuffer = GetData<float>();
     float brightBuffer = GetData<float>();
     int64_t interval = GetData<int64_t>();
-    rsConn->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    int32_t rangeSize = GetData<int32_t>();
+    rsConn->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     return true;
 }
 

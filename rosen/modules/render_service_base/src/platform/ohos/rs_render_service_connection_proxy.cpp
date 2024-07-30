@@ -554,7 +554,7 @@ void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnectionProxy::SetPointerColorInversionConfig(float darkBuffer,
-    float brightBuffer, int64_t interval)
+    float brightBuffer, int64_t interval, int32_t rangeSize)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -566,6 +566,7 @@ int32_t RSRenderServiceConnectionProxy::SetPointerColorInversionConfig(float dar
     data.WriteFloat(darkBuffer);
     data.WriteFloat(brightBuffer);
     data.WriteInt64(interval);
+    data.WriteInt32(rangeSize);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

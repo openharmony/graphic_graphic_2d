@@ -110,12 +110,13 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
+int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+    int64_t interval, int32_t rangeSize)
 {
     if (renderServiceClient_ == nullptr) {
         return StatusCode::RENDER_SERVICE_NULL;
     }
-    return renderServiceClient_->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    return renderServiceClient_->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
 }
  
 int32_t RSInterfaces::SetPointerColorInversionEnabled(bool enable)

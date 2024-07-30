@@ -17,7 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_IPOINTER_LUMINANCE_CHANGE_CALLBACK_INTERFACE_CODE_ACCESS_VERIFIER_H
  
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
-#include "ipc_callbacks/pointer_luminance_change_callback_ipc_interface_code.h"
+#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback_ipc_interface_code.h"
  
 namespace OHOS {
 namespace Rosen {

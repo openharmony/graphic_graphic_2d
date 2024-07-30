@@ -488,9 +488,10 @@ bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
-    float brightBuffer, int64_t interval)
+    float brightBuffer, int64_t interval, int32_t rangeSize)
 {
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
+        interval, rangeSize);
     return StatusCode::SUCCESS;
 }
  
