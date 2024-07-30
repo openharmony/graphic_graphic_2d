@@ -45,8 +45,8 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
         return false;
     }
     std::array<int, 2> dimension = canvas.CalcHpsBluredImageDimension(param); // There are 2 variables
-    if (dimension[0] <= 1e-6 || dimension[1] <= 1e-6 || dimension[0] >= MAX_SURFACE_SIZE
-        || dimension[1] >= MAX_SURFACE_SIZE) {
+    if (dimension[0] <= 0 || dimension[1] <= 0 || dimension[0] >= static_cast<int>(MAX_SURFACE_SIZE)
+        || dimension[1] >= static_cast<int>(MAX_SURFACE_SIZE)) {
         ROSEN_LOGD("HpsBlurFilter::ApplyHpsBlur CalcHpsBluredImageDimension error");
         return false;
     }
