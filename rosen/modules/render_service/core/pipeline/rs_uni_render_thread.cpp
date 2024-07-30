@@ -759,7 +759,7 @@ void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
         [this]() {
             RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames");
             GrDirectContext::asyncFreeVMAMemoryBetweenFrames([this]() -> bool {
-                return this->handler_->HasPerferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
             });
         },
         ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
