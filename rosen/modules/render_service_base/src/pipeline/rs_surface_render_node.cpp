@@ -2784,5 +2784,33 @@ const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtension
 {
     return secUIExtensionNodes_;
 }
+
+void RSSurfaceRenderNode::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    auto iter = watermarkHandles_.find(name);
+    if (iter == watermarkHandles_.end()) {
+        std::tie(iter, std::ignore) = watermarkHandles_.insert({name, {false, nullptr}});
+    }
+    (iter->second).second = watermark;
+}
+
+void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+{
+    auto iter = watermarkHandles_.find(name);
+    if (iter == watermarkHandles_.end()) {
+        return;
+    }
+    (iter->second).first = isEnabled;
+}
+
+std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> RSSurfaceRenderNode::GetWatermark() const
+{
+    return watermarkHandles_;
+}
+
+size_t RSSurfaceRenderNode::GetWatermarkSize() const
+{
+    return watermarkHandles_.size();
+}
 } // namespace Rosen
 } // namespace OHOS
