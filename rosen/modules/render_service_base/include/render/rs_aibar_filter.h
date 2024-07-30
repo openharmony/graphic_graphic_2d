@@ -49,7 +49,7 @@ public:
     static std::vector<float> GetAiInvertCoef();
 
 private:
-    static std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeBinarizationShader(float imageWidth, float imageHeight,
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeBinarizationShader(
         std::shared_ptr<Drawing::ShaderEffect> imageShader);
 
 private:
