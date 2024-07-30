@@ -67,7 +67,6 @@ constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
 constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES = "AsyncFreeVMAMemoryBetweenFrames";
-constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES_DELAY = "AsyncFreeVMAMemoryBetweenFramesDelay";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -762,19 +761,11 @@ void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
     PostTask(
         [this]() {
             RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames");
-            GrDirectContext::asyncFreeVMAMemoryBetweenFrames(false);
+            GrDirectContext::asyncFreeVMAMemoryBetweenFrames([this]() -> bool {
+                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+            });
         },
         ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
-
-    RemoveTask(ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES_DELAY);
-    PostTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames after delaytime");
-            GrDirectContext::asyncFreeVMAMemoryBetweenFrames(true);
-        },
-        ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES_DELAY,
-        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
-        AppExecFwk::EventQueue::Priority::LOW);
 }
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
