@@ -23,9 +23,9 @@ namespace OHOS {
 namespace Rosen {
 
 enum UIFWKType : int32_t {
-    UNKNOWN = 0;
-    SURFACE = 1;
-}
+    UNKNOWN = 0,
+    SURFACE = 1,
+};
 
 class HgmIdleDetector {
 public:

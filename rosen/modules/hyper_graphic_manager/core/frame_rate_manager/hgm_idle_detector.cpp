@@ -42,7 +42,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
     auto validSurfaceName = surfaceName.size() > MAX_VALID_BUFFER_LENGTH ?
         surfaceName.substr(0, MAX_VALID_BUFFER_LENGTH) : surfaceName;
 
-    bool needHighRefresh = fasle;
+    bool needHighRefresh = false;
     switch (uifwkType) {
         case UIFWKType::UNKNOWN:
             needHighRefresh = GetUnknownFrameworkState(validSurfaceName);
