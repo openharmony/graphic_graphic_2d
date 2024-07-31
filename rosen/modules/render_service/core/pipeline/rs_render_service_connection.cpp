@@ -1699,7 +1699,7 @@ LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
     return layerComposeInfo;
 }
 
-std::vector<HwcDisabledReasonInfo> RSRenderServiceConnection::GetHwcDisabledReasonInfo()
+HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
 {
     return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
 }
