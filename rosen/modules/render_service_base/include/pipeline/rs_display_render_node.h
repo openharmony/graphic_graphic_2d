@@ -27,6 +27,7 @@
 #endif
 
 #include "common/rs_macros.h"
+#include "common/rs_occlusion_region.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
@@ -189,10 +190,12 @@ public:
     void ClearCurrentSurfacePos();
     void UpdateSurfaceNodePos(NodeId id, RectI rect)
     {
-// add: #if defined(RS_ENABLE_PARALLEL_RENDER) && (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-// add:     std::unique_lock<std::mutex> lock(mtx_);
-// add: #endif
         currentFrameSurfacePos_[id] = rect;
+    }
+
+    void AddSurfaceNodePosByDescZOrder(NodeId id, RectI rect)
+    {
+        currentFrameSurfacesByDescZOrder_.emplace_back(id, rect);
     }
 
     RectI GetLastFrameSurfacePos(NodeId id)
@@ -392,6 +395,8 @@ public:
 
     ChildrenListSharedPtr GetSortedChildren() const override;
 
+    Occlusion::Region GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const;
+
 protected:
     void OnSync() override;
 private:
@@ -423,6 +428,8 @@ private:
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
+    std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
+    std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
 

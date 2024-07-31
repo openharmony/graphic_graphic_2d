@@ -927,16 +927,16 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode004, TestSize.Level
 }
 
 /*
- * @tc.name: IsFirstOrLastFrameOfWatermark
- * @tc.desc: Test RSUniRenderVisitorTest.IsFirstOrLastFrameOfWatermark test
+ * @tc.name: IsWatermarkFlagChanged
+ * @tc.desc: Test RSUniRenderVisitorTest.IsWatermarkFlagChanged test
  * @tc.type: FUNC
- * @tc.require: issuesI9V0N7
+ * @tc.require: issuesIA8LNR
  */
-HWTEST_F(RSUniRenderVisitorTest, IsFirstOrLastFrameOfWatermark, TestSize.Level1)
+HWTEST_F(RSUniRenderVisitorTest, IsWatermarkFlagChanged, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->IsFirstOrLastFrameOfWatermark();
+    rsUniRenderVisitor->IsWatermarkFlagChanged();
 }
 
 /**

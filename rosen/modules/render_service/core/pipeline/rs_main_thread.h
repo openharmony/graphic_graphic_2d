@@ -229,7 +229,7 @@ public:
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
 
-    bool IsFirstOrLastFrameOfWatermark() const
+    bool IsWatermarkFlagChanged() const
     {
         return lastWatermarkFlag_ != watermarkFlag_;
     }

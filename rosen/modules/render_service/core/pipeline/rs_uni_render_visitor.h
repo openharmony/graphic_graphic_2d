@@ -57,13 +57,6 @@ public:
     void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) override;
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void QuickPrepareChildren(RSRenderNode& node) override;
-    /* Prepare relevant calculation */
-    // considering occlusion info for app surface as well as widget
-    bool IsSubTreeOccluded(RSRenderNode& node) const;
-    // restore node's flag and filter dirty collection
-    void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
-    void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
-    void CalculateOcclusion(RSSurfaceRenderNode& node);
 
     void PrepareChildren(RSRenderNode& node) override;
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -210,6 +203,14 @@ public:
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
+    /* Prepare relevant calculation */
+    // considering occlusion info for app surface as well as widget
+    bool IsSubTreeOccluded(RSRenderNode& node) const;
+    // restore node's flag and filter dirty collection
+    void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
+    void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
+    void CalculateOcclusion(RSSurfaceRenderNode& node);
+
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
     void CheckFilterCacheFullyCovered(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
@@ -263,7 +264,7 @@ private:
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool IsFirstFrameOfPartialRender() const;
-    bool IsFirstOrLastFrameOfWatermark() const;
+    bool IsWatermarkFlagChanged() const;
     bool IsDisplayZoomIn() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
