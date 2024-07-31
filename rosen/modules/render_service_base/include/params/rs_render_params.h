@@ -273,7 +273,7 @@ public:
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
     virtual bool GetSecurityDisplay() const { return true; }
-    virtual void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) {};
+    virtual void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) {}
     virtual NodeId GetRootIdOfCaptureWindow() const { return INVALID_NODEID; }
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
