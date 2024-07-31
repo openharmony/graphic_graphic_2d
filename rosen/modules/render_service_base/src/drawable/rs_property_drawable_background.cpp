@@ -389,21 +389,7 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (nativeWindowBuffer_ == nullptr && cleanUpHelper_ == nullptr) {
-            return;
-        }
-        RSTaskDispatcher::GetInstance().PostTask(
-            tid_, [nativeWindowBuffer = nativeWindowBuffer_, cleanUpHelper = cleanUpHelper_]() {
-                if (nativeWindowBuffer != nullptr) {
-                    DestroyNativeWindowBuffer(nativeWindowBuffer);
-                }
-                if (cleanUpHelper != nullptr) {
-                    NativeBufferUtils::DeleteVkImage(cleanUpHelper);
-                }
-            });
-    }
+    ReleaseNativeWindowBuffer();
 #endif
 }
 
@@ -436,6 +422,27 @@ Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSBackgroundImageDrawable::ReleaseNativeWindowBuffer()
+{
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (nativeWindowBuffer_ == nullptr && cleanUpHelper_ == nullptr) {
+            return;
+        }
+        RSTaskDispatcher::GetInstance().PostTask(
+            tid_, [nativeWindowBuffer = nativeWindowBuffer_, cleanUpHelper = cleanUpHelper_]() {
+                if (nativeWindowBuffer != nullptr) {
+                    DestroyNativeWindowBuffer(nativeWindowBuffer);
+                }
+                if (cleanUpHelper != nullptr) {
+                    NativeBufferUtils::DeleteVkImage(cleanUpHelper);
+                }
+            });
+        nativeWindowBuffer_ = nullptr;
+        cleanUpHelper_ = nullptr;
+    }
+}
+
 std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
 {
@@ -447,13 +454,17 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return nullptr;
     }
-    if (nativeWindowBuffer_ == nullptr) {
+    std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
+    if (pixelMapId_ != pixelMap->GetUniqueId()) {
+        backendTexture_ = {};
+        ReleaseNativeWindowBuffer();
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
         nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
         if (!nativeWindowBuffer_) {
             RS_LOGE("MakeFromTextureForVK create native window buffer fail");
             return nullptr;
         }
+        pixelMapId_ = pixelMap->GetUniqueId();
     }
     bool isProtected = (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
     if (!backendTexture_.IsValid() || isProtected) {
