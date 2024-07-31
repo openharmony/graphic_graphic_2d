@@ -2497,11 +2497,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRootIdOfCaptureWindow, TestSize.Level2)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->SetRootIdOfCaptureWindow(childNode->GetId());
-    ASSERT_EQ(node->GetRootIdOfCaptureWindow(), childNode->GetId());
+    auto rootId = id + 1;
+    node->SetRootIdOfCaptureWindow(rootId);
+    ASSERT_EQ(node->GetRootIdOfCaptureWindow(), rootId);
     node->InitRenderParams();
-    node->SetRootIdOfCaptureWindow(childNode->GetId());
-    ASSERT_EQ(node->StagingRenderParams()->GetRootIdOfCaptureWindow(), childNode->GetId());
+    node->SetRootIdOfCaptureWindow(rootId);
+    ASSERT_EQ(node->GetStagingRenderParams()->GetRootIdOfCaptureWindow(), rootId);
 }
 } // namespace Rosen
 } // namespace OHOS
