@@ -953,7 +953,7 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
     ApplyModifiers();
     PrepareChildrenForApplyModifiers();
 
-    GetStagingRenderParams()->SetAlpha(GetRenderProperties().GetAlpha());
+    stagingRenderParams_->SetAlpha(GetRenderProperties().GetAlpha());
 
     UpdateRenderParams();
     AddToPendingSyncList();
