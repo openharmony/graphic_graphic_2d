@@ -80,7 +80,7 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
 
     virtual void Draw(Drawing::Canvas& canvas) = 0;
-
+    virtual void DumpDrawableTree(std::string& out) const {};
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
     static SharedPtr OnGenerateShadowDrawable(
@@ -196,6 +196,7 @@ private:
     friend class OHOS::Rosen::RSSurfaceRenderNode;
     friend class RSRenderNodeShadowDrawable;
     friend class RSUseEffectDrawable;
+    friend class RSRenderNodeDrawable;
 };
 
 } // namespace DrawableV2

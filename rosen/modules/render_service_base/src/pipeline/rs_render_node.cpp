@@ -4099,17 +4099,8 @@ void RSRenderNode::DumpDrawableTree(int32_t depth, std::string& out) const
     DumpSubClassNode(out);
 
     if (renderDrawable_) {
-        // [dfx] use drawable in main thread
         out += ", DrawableVec:[" + DumpDrawableVec() + "]";
-        if (renderDrawable_->skipType_ != DrawableV2::SkipType::NONE) {
-            out += ", SkipType:" + std::to_string(static_cast<int>(renderDrawable_->skipType_));
-            out += ", SkipIndex:" + std::to_string(renderDrawable_->GetSkipIndex());
-        }
-        out += "\n";
-        auto& params = renderDrawable_->GetRenderParams();
-        if (params) {
-            out += ", params" + params->ToString();
-        }
+        renderDrawable_->DumpDrawableTree(out);
     } else {
         out += ", drawable null";
     }

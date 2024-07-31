@@ -303,6 +303,23 @@ void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
     }
 }
 
+void RSRenderNodeDrawable::DumpDrawableTree(std::string& out) const
+{
+    std::function<void()> syncTask = [&out, this]() -> void {
+        if (skipType_ != DrawableV2::SkipType::NONE) {
+            out += ", SkipType:" + std::to_string(static_cast<int>(skipType_));
+            out += ", SkipIndex:" + std::to_string(GetSkipIndex());
+        }
+        out += "\n";
+        auto& params = GetRenderParams();
+        if (params) {
+            out += ", params" + params->ToString();
+        }
+        RS_LOGE("DumpDrawableTree string out = %{public}s", out.c_str());
+    };
+    RSUniRenderThread::Instance().PostSyncTask(syncTask);
+}
+
 void RSRenderNodeDrawable::SetCacheType(DrawableCacheType cacheType)
 {
     cacheType_ = cacheType;
