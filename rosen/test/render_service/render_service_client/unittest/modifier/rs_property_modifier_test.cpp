@@ -30,8 +30,12 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    const Vector2f INITIAL_VALUE_2F = Vector2f(0.f, 0.f);
-    const Vector4f INITIAL_VALUE_4F = Vector4f(0.f, 0.f, 0.f, 0.f);
+    const Vector2f INITIAL_VALUE_SIZE_2F = Vector2f(60.f, 30.f);
+    const Vector2f INITIAL_VALUE_POSITION_2F = Vector2f(50.f, 50.f);
+    const Vector2f INITIAL_VALUE_PIVOT_2F = Vector2f(70.f, 80.f);
+    const Vector2f INITIAL_VALUE_SCALE_2F = Vector2f(2.f, 2.f);
+    const Vector2f INITIAL_VALUE_SKEW_2F = Vector2f(30.f, 30.f);
+    const Vector4f INITIAL_VALUE_RECT_4F = Vector4f(10.f, 10.f, 10.f, 10.f);
 };
 
 void RSPropertyModifierTest::SetUpTestCase() {}
