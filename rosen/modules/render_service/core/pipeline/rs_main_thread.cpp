@@ -1730,7 +1730,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (!frameRateMgr_ || !rsVSyncDistributor_) {
         return;
     }
-    frameRateMgr_.ProcessNuknownIdleState(GetContext().GetActiveNodesInRootMap(), timestamp);
+    frameRateMgr_->ProcessNuknownIdleState(GetContext().GetActiveNodesInRootMap(), timestamp);
     DvsyncInfo info;
     info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
     info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();
@@ -2786,10 +2786,6 @@ void RSMainThread::Animate(uint64_t timestamp)
         node->animationManager_.SetRateDeciderEnable(isRateDeciderEnabled, frameRateGetFunc);
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
             node->Animate(timestamp, period, isDisplaySyncEnabled);
-        if (frameRateMgr_ != nullptr) {
-            frameRateMgr_->UpdateSurfaceTime(node->GetNodeName(), timestamp_,
-                ExtractPid(node->GetId()), UIFWKType::UNKNOWN);
-        }
         if (!hasRunningAnimation) {
             node->InActivateDisplaySync();
             RS_LOGD("RSMainThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
