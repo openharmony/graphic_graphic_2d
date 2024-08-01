@@ -226,6 +226,11 @@ Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float 
 std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
     RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
+    auto gpuContext = canvas.GetGPUContext();
+    if (!gpuContext) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage GetGPUContext nullptr");
+        return nullptr;
+    }
     if (isUIFirst) {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
@@ -250,7 +255,7 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
 #ifdef RS_ENABLE_GL
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
             OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
-            image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
+            image->BuildFromTexture(*gpuContext, cacheCompletedBackendTexture_.GetTextureInfo(),
                 origin, info, nullptr);
         }
 #endif
@@ -258,7 +263,7 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
 #ifdef RS_ENABLE_VK
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
             OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-            image->BuildFromTexture(*canvas.GetGPUContext(), cacheCompletedBackendTexture_.GetTextureInfo(),
+            image->BuildFromTexture(*gpuContext, cacheCompletedBackendTexture_.GetTextureInfo(),
                 origin, info, nullptr,
                 NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
         }
@@ -290,7 +295,7 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
     auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
-    bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
+    bool ret = cacheImage->BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(),
         origin, info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
     if (!ret) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage image BuildFromTexture failed");
