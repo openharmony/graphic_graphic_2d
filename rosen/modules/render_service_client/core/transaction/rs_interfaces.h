@@ -258,8 +258,6 @@ public:
 
     void EnableCacheForRotation();
 
-    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
-
     void DisableCacheForRotation();
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);

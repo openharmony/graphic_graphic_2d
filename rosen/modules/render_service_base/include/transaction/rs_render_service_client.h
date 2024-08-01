@@ -329,8 +329,6 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
-    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
-
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();

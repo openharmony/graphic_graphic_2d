@@ -67,9 +67,6 @@ public:
     }
 
     void SetParentPid(const int32_t parentPid);
-
-    bool IsRemoteCommandEmpty();
-
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();
