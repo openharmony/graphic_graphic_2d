@@ -471,9 +471,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto mirrorDrawable = params->GetMirrorSourceDrawable().lock();
-    if (!mirrorDrawable && GetCacheImgForCapture()) {
-        SetCacheImgForCapture(nullptr);
-    }
     auto mirrorParams = mirrorDrawable ? mirrorDrawable->GetRenderParams().get() : nullptr;
     if (mirrorParams || params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();

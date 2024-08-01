@@ -720,14 +720,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSAutoCanvasRestore arc(&canvas);
     surfaceParams.SetGlobalAlpha(1.0f);
     pid_t threadId = gettid();
-    bool useRenderParams = !RSUniRenderThread::GetCaptureParam().isSnapshot_;
-    // will not use node in future version
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode_.lock());
-    if (!nodeSp) {
-        return;
-    }
-    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
-    auto params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, false, threadId, useRenderParams);
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.screenBrightnessNits = GetDisplayNit();

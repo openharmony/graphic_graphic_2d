@@ -3564,6 +3564,57 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
     }
 }
 
+bool RSMainThread::IsHardwareEnabledNodesNeedSync()
+{
+    if (!doDirectComposition_) {
+        return false;
+    }
+
+    bool needSync = false;
+    for (const auto& node : hardwareEnabledNodes_) {
+        if (node == nullptr || node->IsHardwareForcedDisabled()) {
+            continue;
+        }
+        needSync = true;
+    }
+    RS_TRACE_NAME_FMT("%s %u", __func__, needSync);
+    RS_LOGD("%{public}s %{public}u", __func__, needSync);
+
+    return needSync;
+}
+
+bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id)
+{
+    auto nodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+        GetContext().GetNodeMap().GetRenderNode(id));
+    if (nodePtr == nullptr) {
+        return false;
+    }
+
+    bool needSync = false;
+    if (nodePtr->IsLeashWindow()) {
+        auto children = nodePtr->GetSortedChildren();
+        for (auto child : *children) {
+            auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            if (childSurfaceNode && childSurfaceNode->IsMainWindowType() &&
+                childSurfaceNode->GetVisibleRegion().IsEmpty()) {
+                childSurfaceNode->PrepareSelfNodeForApplyModifiers();
+                needSync = true;
+            }
+        }
+    } else if (nodePtr->IsMainWindowType() && nodePtr->GetVisibleRegion().IsEmpty()) {
+        auto curNode = nodePtr;
+        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr->GetParent().lock());
+        if (parentNode && parentNode->IsLeashWindow()) {
+            curNode = parentNode;
+        }
+        nodePtr->PrepareSelfNodeForApplyModifiers();
+        needSync = true;
+    }
+
+    return needSync;
+}
+
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
