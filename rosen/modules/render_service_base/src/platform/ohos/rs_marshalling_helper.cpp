@@ -392,6 +392,7 @@ bool RSMarshallingHelper::ReadColorSpaceFromParcel(Parcel& parcel, std::shared_p
         }
         if (isMal) {
             free(const_cast<void*>(dataPtr));
+            dataPtr = nullptr;
         }
     }
     return true;

@@ -34,7 +34,9 @@ namespace OHOS::Rosen {
 DrawingSampleReplayer::~DrawingSampleReplayer()
 {
     DestoryNativeWindow(nativeWindow_);
-    surfaceNode_->DetachToDisplay(DEFAULT_DISPLAY_ID);
+    if (surfaceNode_) {
+        surfaceNode_->DetachToDisplay(DEFAULT_DISPLAY_ID);
+    }
 }
 
 bool DrawingSampleReplayer::ReadCmds(const std::string path)
