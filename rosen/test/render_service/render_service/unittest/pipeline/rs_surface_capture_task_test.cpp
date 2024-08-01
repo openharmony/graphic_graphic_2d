@@ -36,6 +36,7 @@
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing::ext;
+using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS {
 namespace Rosen {
@@ -142,6 +143,7 @@ void RSSurfaceCaptureTaskTest::TearDown()
 
 void RSSurfaceCaptureTaskTest::SetUpTestCase()
 {
+    RSTestUtil::InitRenderNodeGC();
     rsInterfaces_ = &(RSInterfaces::GetInstance());
     if (rsInterfaces_ == nullptr) {
         HiLog::Error(LOG_LABEL, "%s: rsInterfaces_ == nullptr", __func__);
@@ -1024,10 +1026,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode004, Function | Small
     visitor_->hasSecurityOrSkipOrProtectedLayer_ = true;
     NodeId id = 1;
     RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(id, config);
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node.GetRenderDrawable());
+        static_cast<RSDisplayRenderNodeDrawable*>(RSDisplayRenderNodeDrawable::OnGenerate(node));
     ASSERT_NE(nullptr, displayDrawable);
     auto surfaceHandler = displayDrawable->GetMutableRSSurfaceHandlerOnDraw();
     surfaceHandler->SetConsumer(consumer);
@@ -1036,7 +1038,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode004, Function | Small
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
-    visitor_->ProcessDisplayRenderNode(node);
+    visitor_->ProcessDisplayRenderNode(*node);
     visitor_->hasSecurityOrSkipOrProtectedLayer_ = hasSecurityOrSkipOrProtectedLayer;
 }
 
