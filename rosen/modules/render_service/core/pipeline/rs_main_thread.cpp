@@ -1730,6 +1730,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (!frameRateMgr_ || !rsVSyncDistributor_) {
         return;
     }
+    frameRateMgr_.ProcessNuknownIdleState(GetContext().GetActiveNodesInRootMap(), timestamp);
     DvsyncInfo info;
     info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
     info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();

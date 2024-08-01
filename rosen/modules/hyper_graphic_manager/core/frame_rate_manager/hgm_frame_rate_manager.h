@@ -36,6 +36,7 @@
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -156,6 +157,8 @@ public:
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
         pid_t pid, UIFWKType uifwkType);
+    void ProcessNuknownIdleState(const std::unordered_map<NodeId,
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {

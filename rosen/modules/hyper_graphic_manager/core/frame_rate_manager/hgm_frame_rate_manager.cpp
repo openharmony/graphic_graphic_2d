@@ -200,6 +200,11 @@ void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, uint
     idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid, uifwkType);
 }
 
+void HgmFrameRateManager::ProcessNuknownIdleState(const std::unordered_map<NodeId,
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
+{
+    idleDetector_.ProcessNuknownIdleState(activeNodesInRoot, timestamp);
+}
 void HgmFrameRateManager::UpdateAppSupportedState()
 {
     bool appNeedHighRefresh = false;
