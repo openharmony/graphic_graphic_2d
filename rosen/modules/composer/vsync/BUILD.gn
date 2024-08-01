@@ -95,6 +95,7 @@ ohos_shared_library("libvsync") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
