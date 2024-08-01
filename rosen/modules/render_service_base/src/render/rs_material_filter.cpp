@@ -182,7 +182,10 @@ std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialFilter(flo
 {
     colorFilter_ = GetColorFilter(sat, brightness);
     auto blurType = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
-    return Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter_, radius, radius, blurType);
+    if (colorFilter_) {
+        return Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter_, radius, radius, blurType);
+    }
+    return Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, Drawing::TileMode::CLAMP, nullptr, blurType);
 }
 
 std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialStyle(

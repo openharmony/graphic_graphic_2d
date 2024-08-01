@@ -127,7 +127,7 @@ bool RSAIBarFilter::IsAiInvertCoefValid(const std::vector<float>& aiInvertCoef)
 
 
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSAIBarFilter::MakeBinarizationShader(
-    float imageWidth, float imageHeight, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+    std::shared_ptr<Drawing::ShaderEffect> imageShader)
 {
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
     // coefficient of saturation borrowed from

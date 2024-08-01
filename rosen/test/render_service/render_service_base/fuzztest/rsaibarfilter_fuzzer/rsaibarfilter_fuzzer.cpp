@@ -154,10 +154,8 @@ bool DoMakeBinarizationShader(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float imageWidth = GetData<float>();
-    float imageHeight = GetData<float>();
     auto imageShader = std::make_shared<ShaderEffect>();
-    RSAIBarFilter::MakeBinarizationShader(imageWidth, imageHeight, imageShader);
+    RSAIBarFilter::MakeBinarizationShader(imageShader);
     return true;
 }
 } // namespace Rosen

@@ -99,10 +99,8 @@ HWTEST_F(RSAIBarFilterTest, IsAiInvertCoefValidTest, TestSize.Level1)
 HWTEST_F(RSAIBarFilterTest, MakeBinarizationShaderTest, TestSize.Level1)
 {
     auto filter = std::make_shared<RSAIBarFilter>();
-    float imageWidth = 1.0f;
-    float imageHeight = 1.0f;
     auto imageShader = std::make_shared<Drawing::ShaderEffect>();
-    auto runtimeShaderBuilder = filter->MakeBinarizationShader(imageWidth, imageHeight, imageShader);
+    auto runtimeShaderBuilder = filter->MakeBinarizationShader(imageShader);
     EXPECT_NE(runtimeShaderBuilder, nullptr);
 }
 
