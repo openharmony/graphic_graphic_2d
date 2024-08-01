@@ -158,6 +158,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("blur", SetBlur),
         DECLARE_NAPI_FUNCTION("pixelStretch", SetPixelStretch),
         DECLARE_NAPI_FUNCTION("waterRipple", SetWaterRipple),
+        DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
     };
     NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
     return object;
@@ -293,6 +294,16 @@ float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
     }
     return tmp;
 }
+
+uint32_t FilterNapi::GetSpecialIntValue(napi_env env, napi_value argValue)
+{
+    uint32_t tmp = 0;
+    if (UIEffectNapiUtils::getType(env, argValue) == napi_number &&
+        UIEFFECT_IS_OK(napi_get_value_uint32(env, argValue, &tmp))) {
+            return tmp;
+    }
+    return tmp;
+}
  
 napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
 {
@@ -325,6 +336,43 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
     para->SetWaveCount(waveCount);
     para->SetRippleCenterX(rippleCenterX);
     para->SetRippleCenterY(rippleCenterY);
+   
+    Filter* filterObj = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
+    if (filterObj == nullptr) {
+        FILTER_LOG_E("filterNapi is nullptr");
+        return thisVar;
+    }
+    filterObj->AddPara(para);
+ 
+    return thisVar;
+}
+
+napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_2] = {0};
+    size_t argCount = NUM_2;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_fly_out_info"));
+ 
+    std::shared_ptr<FlyOutPara> para = std::make_shared<FlyOutPara>();
+ 
+    float degree = 0.0f;
+    uint32_t flyMode = 0;
+ 
+    if (argCount != NUM_2) {
+        FILTER_LOG_E("Args number less than 2");
+    }
+    
+    degree = GetSpecialValue(env, argValue[NUM_0]);
+    flyMode = GetSpecialIntValue(env, argValue[NUM_1]);
+ 
+    para->SetDegree(degree);
+    para->SetFlyMode(flyMode);
    
     Filter* filterObj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));

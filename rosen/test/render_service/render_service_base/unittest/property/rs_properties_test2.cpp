@@ -248,6 +248,16 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
+
+    properties.foregroundEffectRadius_ = -0.1f;
+    properties.flyOutDegree_ = 0.5;
+    properties.UpdateFilter();
+    EXPECT_TRUE(properties.foregroundFilter_);
+
+    properties.flyOutDegree_ = 0.5;
+    properties.shadow_->imageMask_ = true;
+    properties.UpdateFilter();
+    EXPECT_TRUE(properties.foregroundFilter_);
 }
 
 /**

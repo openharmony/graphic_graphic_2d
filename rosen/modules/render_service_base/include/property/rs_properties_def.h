@@ -154,6 +154,14 @@ struct RSWaterRipplePara {
     }
 };
 
+struct RSFlyOutPara {
+    uint32_t flyMode = 0;
+    bool operator==(const RSFlyOutPara& other) const
+    {
+        return (flyMode == other.flyMode);
+    }
+};
+
 class Decoration final {
 public:
     Decoration() {}

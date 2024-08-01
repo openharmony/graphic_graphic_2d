@@ -712,6 +712,9 @@ template<>
 RSC_EXPORT void RSProperty<RSWaterRipplePara>::UpdateToRender(
     const RSWaterRipplePara& value, PropertyUpdateType type) const;
 template<>
+RSC_EXPORT void RSProperty<RSFlyOutPara>::UpdateToRender(
+    const RSFlyOutPara& value, PropertyUpdateType type) const;
+template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
     const std::shared_ptr<RSLinearGradientBlurPara>& value, PropertyUpdateType type) const;
 template<>
