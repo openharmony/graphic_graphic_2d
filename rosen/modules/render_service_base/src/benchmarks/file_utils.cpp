@@ -63,7 +63,7 @@ bool CreateFile(const std::string& filePath)
 
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
 {
-    if (data == nullptr || size == 0 || !CreateFile(filePath)) {
+    if (size == 0 || !CreateFile(filePath)) {
         return false;
     }
     if (filePath.empty()) {
