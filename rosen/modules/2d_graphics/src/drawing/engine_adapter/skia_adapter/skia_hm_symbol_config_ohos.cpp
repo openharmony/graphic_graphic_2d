@@ -23,6 +23,7 @@ namespace Drawing {
 
 DrawingSymbolLayersGroups SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t glyphId)
 {
+#if !defined(CROSS_PLATFORM)
     SymbolLayersGroups groups = HmSymbolConfig_OHOS::GetInstance()->GetSymbolLayersGroups(glyphId);
 
     DrawingSymbolLayersGroups drawingGroups;
@@ -52,6 +53,10 @@ DrawingSymbolLayersGroups SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t
     drawingGroups.renderModeGroups = drawingRenderModeGroups;
 
     return drawingGroups;
+#else
+    DrawingSymbolLayersGroups drawingGroups;
+    return drawingGroups;
+#endif
 }
 
 DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting(AnimationSetting setting)
@@ -120,6 +125,7 @@ static std::vector<DrawingPiecewiseParameter> ConvertPiecewiseParametersVec(cons
     return out;
 }
 
+#if !defined(CROSS_PLATFORM)
 std::vector<std::vector<DrawingPiecewiseParameter>> SkiaHmSymbolConfigOhos::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
@@ -134,6 +140,7 @@ std::vector<std::vector<DrawingPiecewiseParameter>> SkiaHmSymbolConfigOhos::GetG
     }
     return parameters;
 }
+#endif
 
 } // namespace Drawing
 } // namespace Rosen
