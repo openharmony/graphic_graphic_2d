@@ -3757,8 +3757,9 @@ void RSMainThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface
 
 void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
 {
-    PostSyncTask([&cpuMemSize, &gpuMemSize, this]() {
-        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    RSUniRenderThread::Instance().PostSyncTask([&cpuMemSize, &gpuMemSize] {
+        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
+            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
         cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
     });
 }
