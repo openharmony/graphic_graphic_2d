@@ -324,6 +324,11 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         }
         tid_ = gettid();
     }
+
+    if (!canvas.GetGPUContext()) {
+        RS_LOGE("MakeFromTextureForVK gpu context is nullptr");
+        return false;
+    }
     image_ = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);

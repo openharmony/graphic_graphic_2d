@@ -102,7 +102,8 @@ public:
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    virtual int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) = 0;
+    virtual int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+        int64_t interval, int32_t rangeSize) = 0;
  
     virtual int32_t SetPointerColorInversionEnabled(bool enable) = 0;
  
@@ -265,8 +266,6 @@ public:
     virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) = 0;
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
-
-    virtual void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

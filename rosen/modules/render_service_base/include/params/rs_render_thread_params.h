@@ -93,6 +93,16 @@ public:
         return isUIFirstDebugEnable_;
     }
 
+    void SetUIFirstCurrentFrameCanSkipFirstWait(bool canSkip)
+    {
+        isUIFirstCurrentFrameCanSkipFirstWait_ = canSkip;
+    }
+
+    bool GetUIFirstCurrentFrameCanSkipFirstWait() const
+    {
+        return isUIFirstCurrentFrameCanSkipFirstWait_;
+    }
+
     void SetTimestamp(uint64_t timestamp)
     {
         timestamp_ = timestamp;
@@ -380,6 +390,7 @@ private:
     bool isOpDropped_ = false;
     bool isOcclusionEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
+    bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
     bool isExpandScreenDirtyEnabled_ = false;

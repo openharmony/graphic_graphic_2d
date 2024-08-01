@@ -130,6 +130,9 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
+    void SetBrightnessRatio (bool brightnessRatio);
+    float GetBrightnessRatio() const;
+
     void SetNewColorSpace(const GraphicColorGamut& newColorSpace);
     GraphicColorGamut GetNewColorSpace() const;
     void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
@@ -169,6 +172,7 @@ private:
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasHdrPresent_ = false;
+    bool brightnessRatio_ = 1.0f;
     bool isMouseDirty_ = false;
     float zOrder_ = 0.0f;
     friend class RSUniRenderVisitor;

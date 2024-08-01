@@ -82,12 +82,14 @@ bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
         WALOGE("RSWindowAnimationTarget::ReadFromParcel, read param failed");
         return false;
     }
+    bool isRSProxyNode;
+    if (!parcel.ReadBool(isRSProxyNode)) {
+        WALOGE("RSWindowAnimationTarget::ReadFromParcel, read param failed");
+        return false;
+    }
     // unmarshalling as RSProxyNode
-    if (parcel.ReadBool()) {
+    if (isRSProxyNode) {
         surfaceNode_ = RSSurfaceNode::UnmarshallingAsProxyNode(parcel);
-        if (surfaceNode_ == nullptr) {
-            return false;
-        }
     }
     if (!(parcel.ReadUint32(windowId_) &&
         parcel.ReadUint64(displayId_) &&

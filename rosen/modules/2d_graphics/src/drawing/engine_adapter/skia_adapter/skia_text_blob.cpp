@@ -163,11 +163,11 @@ static void ConvertSkPaint(const Paint* drawingPaint, SkPaint &skPaint)
     Color color = drawingPaint->GetColor();
     skPaint.setColor(Color::ColorQuadSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetGreen()));
     skPaint.setStrokeWidth(drawingPaint->GetWidth());
-    const std::shared_ptr<PathEffect> effct = drawingPaint->GetPathEffect();
-    if (effct != nullptr) {
-        SkiaPathEffect *skiaEffct = effct->GetImpl<SkiaPathEffect>();
-        if (skiaEffct != nullptr) {
-            skPaint.setPathEffect(skiaEffct->GetPathEffect());
+    const std::shared_ptr<PathEffect> effect = drawingPaint->GetPathEffect();
+    if (effect != nullptr) {
+        SkiaPathEffect *skiaEffect = effect->GetImpl<SkiaPathEffect>();
+        if (skiaEffect != nullptr) {
+            skPaint.setPathEffect(skiaEffect->GetPathEffect());
         }
     }
 }
@@ -198,7 +198,10 @@ Path SkiaTextBlob::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* b
 {
     SkTextBlob* skTextBlob = nullptr;
     if (blob) {
-        skTextBlob = blob->GetImpl<SkiaTextBlob>()->GetTextBlob().get();
+        auto skiaBlobImpl = blob->GetImpl<SkiaTextBlob>();
+        if (skiaBlobImpl != nullptr) {
+            skTextBlob = skiaBlobImpl->GetTextBlob().get();
+        }
     }
     SkPath skPath = GetPathforTextBlob(glyphId, skTextBlob);
     Path path;

@@ -176,6 +176,7 @@ void RSFilterDrawable::OnSync()
     renderFilterHashChanged_ = filterHashChanged_;
     renderForceClearCacheForLastFrame_ = forceClearCacheForLastFrame_;
     renderIsEffectNode_ = isEffectNode_;
+    renderIsSkipFrame_ = isSkipFrame_;
 
     ClearFilterCache();
 
@@ -192,6 +193,7 @@ void RSFilterDrawable::OnSync()
     isLargeArea_ = false;
     isFilterCacheValid_ = false;
     isEffectNode_ = false;
+    isSkipFrame_ = false;
     needSync_ = false;
 }
 
@@ -279,6 +281,8 @@ void RSFilterDrawable::ClearCacheIfNeeded()
     if (forceClearCacheForLastFrame_) {
         cacheUpdateInterval_ = 0;
     }
+
+    isSkipFrame_ = isLargeArea_ && canSkipFrame_;
 
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
@@ -384,7 +388,7 @@ void RSFilterDrawable::ClearFilterCache()
     } else {
         renderClearFilteredCacheAfterDrawing_ = false;     // hold blur image
     }
-    if (renderIsEffectNode_) { renderClearFilteredCacheAfterDrawing_ = renderFilterHashChanged_; }
+    if (renderIsEffectNode_ || renderIsSkipFrame_) { renderClearFilteredCacheAfterDrawing_ = renderFilterHashChanged_; }
     lastCacheType_ = isOccluded_ ? cacheManager_->GetCachedType() : (renderClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
     RS_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d,"

@@ -270,11 +270,6 @@ void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
     }
 }
 
-void RSSurfaceOhosVulkan::SetTimeOut(int32_t timeOut)
-{
-    timeOut_ = timeOut;
-}
-
 void RSSurfaceOhosVulkan::SetSurfaceBufferUsage(uint64_t usage)
 {
     bufferUsage_ = usage;

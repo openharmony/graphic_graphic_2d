@@ -13,7 +13,7 @@
  * limitations under the License.
  */
  
-#include "ipc_callbacks/pointer_luminance_change_callback_ipc_interface_code_access_verifier.h"
+#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback_ipc_interface_code_access_verifier.h"
  
 namespace OHOS {
 namespace Rosen {

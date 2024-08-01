@@ -63,7 +63,7 @@ private:
 
     // var for create ColorPicker
     static thread_local napi_ref sConstructor_;
-    static std::shared_ptr<ColorPicker> sColorPicker_;
+    static thread_local std::shared_ptr<ColorPicker> sColorPicker_;
 
     // native var
     std::shared_ptr<ColorPicker> nativeColorPicker_;

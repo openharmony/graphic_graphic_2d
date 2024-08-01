@@ -268,7 +268,7 @@ HWTEST_F(RSRenderPropertyTest, OnChange, TestSize.Level1)
 HWTEST_F(RSRenderPropertyTest, IsNearEqual, TestSize.Level1)
 {
     RSRenderAnimatableProperty<float> property;
-    Vector2f vector2f;
+    Vector2f vector2f(0, 0);
     RSRenderAnimatableProperty<Vector2f> propertyTwo(vector2f);
     Matrix3f matrix3f;
     RSRenderAnimatableProperty<Matrix3f> propertyMatrix3f(matrix3f);
@@ -290,14 +290,31 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual, TestSize.Level1)
     EXPECT_TRUE(propertyVector4Color.IsNearEqual(value, 1.f));
     EXPECT_TRUE(propertyRect.IsNearEqual(value, 1.f));
 
-    value = std::make_shared<RSRenderPropertyBase>();
-    EXPECT_TRUE(property.IsNearEqual(value, 1.f));
-    EXPECT_TRUE(propertyTwo.IsNearEqual(value, 1.f));
-    EXPECT_FALSE(propertyMatrix3f.IsNearEqual(value, 1.f));
-    EXPECT_TRUE(propertyColor.IsNearEqual(value, 1.f));
-    EXPECT_TRUE(propertyRSFilter.IsNearEqual(value, 1.f));
-    EXPECT_FALSE(propertyVector4Color.IsNearEqual(value, 1.f));
-    ASSERT_FALSE(propertyRect.IsNearEqual(value, 1.f));
+    std::shared_ptr<RSRenderProperty<float>> floatValue = std::make_shared<RSRenderProperty<float>>();
+    float float1 = 0.0;
+    floatValue->Set(float1);
+    std::shared_ptr<RSRenderProperty<Vector2f>> vector2fValue = std::make_shared<RSRenderProperty<Vector2f>>();
+    Vector2f vector2f1(0, 0);
+    vector2fValue->Set(vector2f1);
+    std::shared_ptr<RSRenderProperty<Matrix3f>> matrix3fValue = std::make_shared<RSRenderProperty<Matrix3f>>();
+    Matrix3f matrix3f1;
+    matrix3fValue->Set(matrix3f1);
+    std::shared_ptr<RSRenderProperty<Color>> colorValue = std::make_shared<RSRenderProperty<Color>>();
+    Color color1;
+    colorValue->Set(color1);
+    std::shared_ptr<RSRenderProperty<Vector4<Color>>> vector4Value
+    = std::make_shared<RSRenderProperty<Vector4<Color>>>();
+    Vector4<Color> vector41;
+    vector4Value->Set(vector41);
+    std::shared_ptr<RSRenderProperty<RRect>> rectValue = std::make_shared<RSRenderProperty<RRect>>();
+    RRect rect1;
+    rectValue->Set(rect1);
+    EXPECT_TRUE(property.IsNearEqual(floatValue, 1.f));
+    EXPECT_TRUE(propertyTwo.IsNearEqual(vector2fValue, 1.f));
+    EXPECT_TRUE(propertyMatrix3f.IsNearEqual(matrix3fValue, 1.f));
+    EXPECT_TRUE(propertyColor.IsNearEqual(colorValue, 1.f));
+    EXPECT_TRUE(propertyVector4Color.IsNearEqual(vector4Value, 1.f));
+    EXPECT_TRUE(propertyRect.IsNearEqual(rectValue, 1.f));
 }
 
 /**
@@ -380,30 +397,53 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual001, TestSize.Level1)
 HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
 {
     RSRenderAnimatableProperty<float> property1;
-    RSRenderAnimatableProperty<Vector2f> property2;
-    RSRenderAnimatableProperty<Quaternion> property3;
-    RSRenderAnimatableProperty<Vector4f> property4;
-    RSRenderAnimatableProperty<Matrix3f> property5;
-    RSRenderAnimatableProperty<Color> property6;
-    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property7;
-    RSRenderAnimatableProperty<Vector4<Color>> property8;
-    RSRenderAnimatableProperty<RRect> property9;
-    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property10;
-    const std::shared_ptr<RSRenderPropertyBase> value = std::make_shared<RSRenderPropertyBase>();
-    const int* filter = nullptr;
-    const PropertyId id = 0;
-    RSRenderProperty test(filter, id);
-    test.Set(nullptr);
-    float zeroThreshold = 0.0;
-    ASSERT_TRUE(property1.IsNearEqual(value, zeroThreshold));
-    ASSERT_FALSE(property2.IsNearEqual(value, zeroThreshold));
-    ASSERT_FALSE(property3.IsNearEqual(value, zeroThreshold));
-    ASSERT_FALSE(property4.IsNearEqual(value, zeroThreshold));
-    ASSERT_FALSE(property5.IsNearEqual(value, zeroThreshold));
-    ASSERT_TRUE(property6.IsNearEqual(value, zeroThreshold));
-    ASSERT_TRUE(property7.IsNearEqual(value, zeroThreshold));
-    ASSERT_FALSE(property8.IsNearEqual(value, zeroThreshold));
-    ASSERT_FALSE(property9.IsNearEqual(value, zeroThreshold));
-    ASSERT_TRUE(property10.IsEqual(value));
+    Vector2f vector2f;
+    RSRenderAnimatableProperty<Vector2f> property2(vector2f);
+    Quaternion quaternion;
+    RSRenderAnimatableProperty<Quaternion> property3(quaternion);
+    Vector4f vector4;
+    RSRenderAnimatableProperty<Vector4f> property4(vector4);
+    Matrix3f matrix3f;
+    RSRenderAnimatableProperty<Matrix3f> property5(matrix3f);
+    Color color;
+    RSRenderAnimatableProperty<Color> property6(color);
+    std::shared_ptr<RSFilter> pFilter = std::make_shared<RSFilter>();
+    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property7(pFilter);
+    Vector4<Color> vectorColor;
+    RSRenderAnimatableProperty<Vector4<Color>> property8(vectorColor);
+    RRect rect;
+    RSRenderAnimatableProperty<RRect> property9(rect);
+    float zeroThreshold = 0.0001;
+
+    std::shared_ptr<RSRenderProperty<float>> floatValue = std::make_shared<RSRenderProperty<float>>();
+    std::shared_ptr<RSRenderProperty<Vector2f>> vector2fValue = std::make_shared<RSRenderProperty<Vector2f>>();
+    vector2fValue->Set(vector2f);
+    std::shared_ptr<RSRenderProperty<Quaternion>> quaternionValue = std::make_shared<RSRenderProperty<Quaternion>>();
+    quaternionValue->Set(quaternion);
+    std::shared_ptr<RSRenderProperty<Vector4f>> vector4Value = std::make_shared<RSRenderProperty<Vector4f>>();
+    vector4Value->Set(vector4);
+    std::shared_ptr<RSRenderProperty<Matrix3f>> matrix3fValue = std::make_shared<RSRenderProperty<Matrix3f>>();
+    matrix3fValue->Set(matrix3f);
+    std::shared_ptr<RSRenderProperty<std::shared_ptr<RSFilter>>> pFilterValue
+    = std::make_shared<RSRenderProperty<std::shared_ptr<RSFilter>>>();
+    pFilterValue->Set(pFilter);
+    std::shared_ptr<RSRenderProperty<Color>> colorValue = std::make_shared<RSRenderProperty<Color>>();
+    colorValue->Set(color);
+    std::shared_ptr<RSRenderProperty<Vector4<Color>>> vector4ColorValue
+    = std::make_shared<RSRenderProperty<Vector4<Color>>>();
+    vector4ColorValue->Set(vectorColor);
+    std::shared_ptr<RSRenderProperty<RRect>> rectValue = std::make_shared<RSRenderProperty<RRect>>();
+    rectValue->Set(rect);
+
+    ASSERT_TRUE(property1.IsNearEqual(floatValue, zeroThreshold));
+    ASSERT_TRUE(property2.IsNearEqual(vector2fValue, zeroThreshold));
+    ASSERT_TRUE(property3.IsNearEqual(quaternionValue, zeroThreshold));
+    ASSERT_TRUE(property4.IsNearEqual(vector4Value, zeroThreshold));
+    ASSERT_TRUE(property5.IsNearEqual(matrix3fValue, zeroThreshold));
+    ASSERT_TRUE(property6.IsNearEqual(colorValue, zeroThreshold));
+    ASSERT_TRUE(property7.IsNearEqual(pFilterValue, zeroThreshold));
+    ASSERT_TRUE(property8.IsNearEqual(vector4ColorValue, zeroThreshold));
+    ASSERT_TRUE(property9.IsNearEqual(rectValue, zeroThreshold));
+    ASSERT_TRUE(property7.IsEqual(pFilterValue));
 }
 }

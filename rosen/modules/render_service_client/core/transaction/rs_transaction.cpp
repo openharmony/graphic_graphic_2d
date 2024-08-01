@@ -81,9 +81,6 @@ void RSTransaction::Commit()
         transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);
         transactionProxy->SetParentPid(parentPid_);
-        if (transactionProxy->IsRemoteCommandEmpty()) {
-            RSInterfaces::GetInstance().ChangeSyncCount(syncId_, parentPid_, GetRealPid());
-        }
         transactionProxy->CommitSyncTransaction();
         transactionProxy->CloseSyncTransaction();
     }

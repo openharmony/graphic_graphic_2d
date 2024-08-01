@@ -357,6 +357,31 @@ HWTEST_F(VSyncDistributorTest, SetHardwareTaskNum001, Function | MediumTest| Lev
     VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
     VSyncDistributorTest::vsyncDistributor->SetHardwareTaskNum(num);
 }
+
+/*
+* Function: GetUiCommandDelayTime001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetUiCommandDelayTime
+ */
+HWTEST_F(VSyncDistributorTest, GetUiCommandDelayTime001, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetUiCommandDelayTime(), 0);
+}
+
+/*
+* Function: SetUiDvsyncConfig001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncConfig
+ */
+HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfig001, Function | MediumTest| Level3)
+{
+    uint32_t bufferCount = 2;
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount), VSYNC_ERROR_OK);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

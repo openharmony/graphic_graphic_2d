@@ -856,8 +856,8 @@ napi_value JsPath::OnAddOval(napi_env env, napi_callback_info info)
     }
     drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
-    uint32_t start = 0;
-    GET_UINT32_PARAM(ARGC_ONE, start);
+    int32_t start = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, start);
     if (argc == ARGC_TWO) {
         JS_CALL_DRAWING_FUNC(m_path->AddOval(drawingRect, start,
             static_cast<PathDirection>(PathDirection::CW_DIRECTION)));

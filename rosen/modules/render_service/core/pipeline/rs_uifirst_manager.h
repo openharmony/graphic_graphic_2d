@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -181,6 +181,9 @@ private:
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
     void EventDisableLeashWindowCache(NodeId id, EventInfo& info);
     void ConvertPendingNodeToDrawable();
+    void CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node);
+    void ResetCurrentFrameDeletedCardNodes();
+
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
@@ -243,6 +246,8 @@ private:
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
     std::vector<NodeId> capturedNodes_;
+    std::vector<NodeId> currentFrameDeletedCardNodes_;
+    std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H

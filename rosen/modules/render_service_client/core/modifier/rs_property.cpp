@@ -260,6 +260,12 @@ void RSProperty<std::shared_ptr<MotionBlurParam>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyMotionBlurPara, value, type);
 }
 template<>
+void RSProperty<std::shared_ptr<RSMagnifierParams>>::UpdateToRender(
+    const std::shared_ptr<RSMagnifierParams>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyMagnifierPara, value, type);
+}
+template<>
 void RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::UpdateToRender(
     const std::vector<std::shared_ptr<EmitterUpdater>>& value, PropertyUpdateType type) const
 {

@@ -190,10 +190,10 @@ void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
         auto endValue = animationFraction_.GetCurrentIsReverseCycle() ? startValue_ : endValue_;
         auto velocity = CalculateVelocity(mappedTime);
         auto zeroValue = startValue_ - startValue_;
-        if (!interpolationValue->IsNearEqual(endValue, zeroThreshold_)) {
+        if (interpolationValue != nullptr && !interpolationValue->IsNearEqual(endValue, zeroThreshold_)) {
             return;
         }
-        if ((velocity * FRAME_TIME_INTERVAL)->IsNearEqual(zeroValue, zeroThreshold_)) {
+        if (velocity != nullptr && (velocity * FRAME_TIME_INTERVAL)->IsNearEqual(zeroValue, zeroThreshold_)) {
             CallLogicallyFinishCallback();
             needLogicallyFinishCallback_ = false;
         }

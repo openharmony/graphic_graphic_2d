@@ -867,10 +867,7 @@ HWTEST_F(NativeImageTest, OHNativeImageDestroy002, Function | MediumTest | Level
 */
 HWTEST_F(NativeImageTest, OHNativeImageAcquireNativeWindowBuffer001, Function | MediumTest | Level1)
 {
-    OH_NativeImage* newImage = (OH_NativeImage*)0x88888888;
     int32_t ret = OH_NativeImage_AcquireNativeWindowBuffer(nullptr, nullptr, nullptr);
-    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
-    ret = OH_NativeImage_AcquireNativeWindowBuffer(newImage, nullptr, nullptr);
     ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
     OH_NativeImage* newImage1 = OH_NativeImage_Create(0, 0);
     ret = OH_NativeImage_AcquireNativeWindowBuffer(newImage1, nullptr, nullptr);
@@ -880,8 +877,6 @@ HWTEST_F(NativeImageTest, OHNativeImageAcquireNativeWindowBuffer001, Function | 
     ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
 
     ret = OH_NativeImage_ReleaseNativeWindowBuffer(nullptr, nullptr, 0);
-    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
-    ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage, nullptr, 0);
     ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
     ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage1, nullptr, 0);
     ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);

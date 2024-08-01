@@ -149,10 +149,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_POINTER_LUMINANCE_CALLBACK),
+#endif
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE),
@@ -211,7 +213,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED),
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CHANGE_SYNCHRONIZE_COUNT),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),
@@ -432,7 +433,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             float darkBuffer = data.ReadFloat();
             float brightBuffer = data.ReadFloat();
             int64_t interval = data.ReadInt64();
-            int32_t status = SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+            int32_t rangeSize = data.ReadInt32();
+            int32_t status = SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
             reply.WriteInt32(status);
             break;
         }
@@ -1247,19 +1249,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetCacheEnabledForRotation(isEnabled);
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CHANGE_SYNCHRONIZE_COUNT): {
-            uint64_t syncId = 0;
-            uint32_t parentPid = 0;
-            uint32_t childPid = 0;
-            if (!(data.ReadUint64(syncId) &&
-                data.ReadInt32(parentPid) &&
-                data.ReadInt32(childPid))) {
-                ret = IPC_STUB_INVALID_DATA_ERR;
-                break;
-            }
-            ChangeSyncCount(syncId, parentPid, childPid);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {

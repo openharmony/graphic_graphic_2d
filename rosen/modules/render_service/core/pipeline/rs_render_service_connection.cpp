@@ -488,9 +488,10 @@ bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
-    float brightBuffer, int64_t interval)
+    float brightBuffer, int64_t interval, int32_t rangeSize)
 {
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
+        interval, rangeSize);
     return StatusCode::SUCCESS;
 }
  
@@ -1664,17 +1665,6 @@ void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, Se
 void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 {
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
-}
-
-void RSRenderServiceConnection::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
-{
-    if (!mainThread_) {
-        return;
-    }
-    auto task = [this, syncId, parentPid, childPid]() -> void {
-        mainThread_->ProcessEmptySyncTransactionCount(syncId, parentPid, childPid);
-    };
-    mainThread_->PostTask(task);
 }
 
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()

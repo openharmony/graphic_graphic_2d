@@ -111,6 +111,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    static bool CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -228,7 +229,7 @@ public:
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
 
-    bool IsFirstOrLastFrameOfWatermark() const
+    bool IsWatermarkFlagChanged() const
     {
         return lastWatermarkFlag_ != watermarkFlag_;
     }
@@ -334,8 +335,6 @@ public:
     {
         return needRequestNextVsyncAnimate_;
     }
-    
-    void ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     bool IsFirstFrameOfPartialRender() const
     {

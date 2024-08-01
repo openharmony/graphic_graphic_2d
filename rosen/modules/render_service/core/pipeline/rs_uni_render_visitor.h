@@ -57,13 +57,6 @@ public:
     void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) override;
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
     void QuickPrepareChildren(RSRenderNode& node) override;
-    /* Prepare relevant calculation */
-    // considering occlusion info for app surface as well as widget
-    bool IsSubTreeOccluded(RSRenderNode& node) const;
-    // restore node's flag and filter dirty collection
-    void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
-    void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
-    void CalculateOcclusion(RSSurfaceRenderNode& node);
 
     void PrepareChildren(RSRenderNode& node) override;
     void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -176,6 +169,12 @@ public:
         screenInfo_ = screenInfo;
     }
 
+    // Use in updating hwcnode hardware state with background alpha
+    void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
+
+    void UpdateHardwareStateByCoverage(std::weak_ptr<RSSurfaceRenderNode> hwcNode,
+        std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodeVector);
+
     void SurfaceOcclusionCallbackToWMS();
 
     std::unordered_set<NodeId> GetCurrentBlackList() const;
@@ -204,6 +203,14 @@ public:
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
+    /* Prepare relevant calculation */
+    // considering occlusion info for app surface as well as widget
+    bool IsSubTreeOccluded(RSRenderNode& node) const;
+    // restore node's flag and filter dirty collection
+    void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
+    void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
+    void CalculateOcclusion(RSSurfaceRenderNode& node);
+
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
     void CheckFilterCacheFullyCovered(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
@@ -257,7 +264,7 @@ private:
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool IsFirstFrameOfPartialRender() const;
-    bool IsFirstOrLastFrameOfWatermark() const;
+    bool IsWatermarkFlagChanged() const;
     bool IsDisplayZoomIn() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
@@ -272,6 +279,7 @@ private:
         std::shared_ptr<RSSurfaceRenderNode>& node, const RectI& filterRect, bool isReverseOrder = false);
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
     void UpdateSrcRect(RSSurfaceRenderNode& node,
         const Drawing::Matrix& absMatrix, const RectI& clipRect);
@@ -287,6 +295,8 @@ private:
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnable();
     void PrevalidateHwcNode();
+
+    void PrepareForCapsuleWindowNode(RSSurfaceRenderNode& node);
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
     void PrepareForUIFirstNode(RSSurfaceRenderNode& node);
 
@@ -500,6 +510,7 @@ private:
 
     bool hasFingerprint_ = false;
     bool hasHdrpresent_ = false;
+    bool hasUniRenderHdrSurface_ = false;
     bool mirrorAutoRotate_ = false;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
@@ -586,12 +597,15 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
+    // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
+    static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
     std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;
-    bool visibleChanged_ = false;
+    // vector of last frame mainwindow surface visible info
+    static inline VisibleData allLastVisVec_;
     bool vSyncRatesChanged_ = false;
     std::mutex occlusionMutex_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node

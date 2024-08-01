@@ -80,7 +80,8 @@ public:
     void RemoveVirtualScreen(ScreenId id) override;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) override;
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+        int64_t interval, int32_t rangeSize) override;
  
     int32_t SetPointerColorInversionEnabled(bool enable) override;
  
@@ -239,8 +240,6 @@ public:
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
-
-    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) override;
 
     void RunOnRemoteDiedCallback() override;
 

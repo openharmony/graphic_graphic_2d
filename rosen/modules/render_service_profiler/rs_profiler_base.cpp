@@ -336,25 +336,23 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
 
 void RSProfiler::FilterMockNode(RSContext& context)
 {
-    auto& map = context.GetMutableNodeMap();
+    std::unordered_set<pid_t> pidSet;
 
-    // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(map.renderNodeMap_, [](const auto& pair) -> bool {
-        if (!Utils::IsNodeIdPatched(pair.first)) {
-            return false;
+    auto& nodeMap = context.GetMutableNodeMap();
+    nodeMap.TraversalNodes([&pidSet](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr) {
+            return;
         }
-        // update node flag to avoid animation fallback
-        pair.second->fallbackAnimationOnDestroy_ = false;
-        // remove node from tree
-        pair.second->RemoveFromTree(false);
-        return true;
+        if (Utils::IsNodeIdPatched(node->GetId())) {
+            pidSet.insert(Utils::ExtractPid(node->GetId()));
+        }
     });
 
-    EraseIf(map.surfaceNodeMap_, [](const auto& pair) -> bool { return Utils::IsNodeIdPatched(pair.first); });
-    EraseIf(map.residentSurfaceNodeMap_, [](const auto& pair) -> bool { return Utils::IsNodeIdPatched(pair.first); });
-    EraseIf(map.displayNodeMap_, [](const auto& pair) -> bool { return Utils::IsNodeIdPatched(pair.first); });
+    for (auto pid : pidSet) {
+        nodeMap.FilterNodeByPid(pid);
+    }
 
-    if (auto fallbackNode = map.GetAnimationFallbackNode()) {
+    if (auto fallbackNode = nodeMap.GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
         FilterAnimationForPlayback(fallbackNode->GetAnimationManager());
     }
@@ -590,9 +588,9 @@ static void CreateRenderSurfaceNode(RSContext& context, NodeId id, bool isTextur
         .isSync = false };
 
     if (auto node = SurfaceNodeCommandHelper::CreateWithConfigInRS(config, context)) {
+        context.GetMutableNodeMap().RegisterRenderNode(node);
         node->SetAbilityBGAlpha(backgroundAlpha);
         node->SetGlobalAlpha(globalAlpha);
-        context.GetMutableNodeMap().RegisterRenderNode(node);
     }
 }
 

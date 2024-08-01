@@ -1704,10 +1704,13 @@ HWTEST_F(RSPropertiesTest, SetMotionBlurPara001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetMagnifierParams001, TestSize.Level1)
 {
     RSProperties properties;
-    std::optional<Vector2f> para({1.f, 1.f});
+    auto para = std::make_shared<RSMagnifierParams>();
     properties.SetMagnifierParams(para);
-    ASSERT_TRUE(properties.GetMagnifierPara().has_value());
-    EXPECT_EQ(properties.GetMagnifierPara().value(), para.value());
+    EXPECT_NE(properties.GetMagnifierPara(), nullptr);
+
+    para->factor_ = 1.f;
+    properties.SetMagnifierParams(para);
+    EXPECT_NE(para, nullptr);
 }
 
 /**
@@ -1719,8 +1722,9 @@ HWTEST_F(RSPropertiesTest, SetMagnifierParams001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetMagnifierParams002, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetMagnifierParams(std::nullopt);
-    EXPECT_EQ(properties.GetMagnifierPara(), std::nullopt);
+    std::shared_ptr<RSMagnifierParams> para;
+    properties.SetMagnifierParams(para);
+    EXPECT_EQ(properties.GetMagnifierPara(), nullptr);
 }
 
 /**

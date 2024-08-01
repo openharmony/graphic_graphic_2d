@@ -28,6 +28,7 @@ class RSTestUtil {
 public:
     static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNode();
     static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNodeWithBuffer();
+    static void InitRenderNodeGC();
 private:
     static inline BufferRequestConfig requestConfig = {
         .width = 0x100,

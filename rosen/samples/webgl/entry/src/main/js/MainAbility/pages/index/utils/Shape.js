@@ -148,7 +148,7 @@ export class Shape {
         }
         return null;
     }
-    initAttributeUniform(gl, attribute = [], uniform = []){
+    initAttributeUniform(gl, attribute = [], uniform = []) {
         if (attribute.length > 0) {
             attribute.forEach((item, index) => {
                 this.program[item] = gl.getAttribLocation(this.program, item);

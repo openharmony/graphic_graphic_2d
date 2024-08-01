@@ -170,7 +170,16 @@ bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rec
         LOGD("SkiaImage::BuildSubset failed, origin Image is invalid");
         return false;
     }
-    auto skiaImage = image->GetImpl<SkiaImage>()->GetImage();
+    auto imageImpl = image->GetImpl<SkiaImage>();
+    if (imageImpl == nullptr) {
+        LOGD("SkiaImage::BuildSubset failed, GetImpl failed");
+        return false;
+    }
+    auto skiaImage = imageImpl->GetImage();
+    if (skiaImage == nullptr) {
+        LOGD("SkiaImage::BuildSubset failed, GetImage failed");
+        return false;
+    }
     auto skiaRect = SkIRect::MakeLTRB(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     PostSkImgToTargetThread();
@@ -215,7 +224,8 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
-        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     } else {
         skColorSpace = SkColorSpace::MakeSRGB();
     }
@@ -274,7 +284,8 @@ bool SkiaImage::BuildFromSurface(GPUContext& gpuContext, Surface& surface, Textu
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
-        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : nullptr;
     }
     PostSkImgToTargetThread();
     skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), grBackendTexture,

@@ -194,7 +194,8 @@ void RSTransactionProxy::CommitSyncTransaction(uint64_t timestamp, const std::st
     std::unique_lock<std::mutex> cmdLock(mutex_);
     timestamp_ = std::max(timestamp, timestamp_);
     if (!implicitCommonTransactionDataStack_.empty()) {
-        if (renderThreadClient_ != nullptr && !implicitCommonTransactionDataStack_.top()->IsEmpty()) {
+        if (renderThreadClient_ != nullptr && (!implicitCommonTransactionDataStack_.top()->IsEmpty() ||
+            implicitCommonTransactionDataStack_.top()->IsNeedSync())) {
             implicitCommonTransactionDataStack_.top()->timestamp_ = timestamp;
             implicitCommonTransactionDataStack_.top()->abilityName_ = abilityName;
             implicitCommonTransactionDataStack_.top()->SetSyncId(syncId_);
@@ -204,7 +205,8 @@ void RSTransactionProxy::CommitSyncTransaction(uint64_t timestamp, const std::st
     }
 
     if (!implicitRemoteTransactionDataStack_.empty()) {
-        if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
+        if (renderServiceClient_ != nullptr && (!implicitRemoteTransactionDataStack_.top()->IsEmpty() ||
+            implicitRemoteTransactionDataStack_.top()->IsNeedSync())) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
             implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId_);
             renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
@@ -263,14 +265,6 @@ void RSTransactionProxy::SetParentPid(const int32_t parentPid)
     if (!implicitRemoteTransactionDataStack_.empty()) {
         implicitRemoteTransactionDataStack_.top()->SetParentPid(parentPid);
     }
-}
-
-bool RSTransactionProxy::IsRemoteCommandEmpty()
-{
-    if (!implicitRemoteTransactionDataStack_.empty()) {
-        return implicitRemoteTransactionDataStack_.top()->IsEmpty();
-    }
-    return true;
 }
 
 void RSTransactionProxy::AddCommonCommand(std::unique_ptr<RSCommand> &command)

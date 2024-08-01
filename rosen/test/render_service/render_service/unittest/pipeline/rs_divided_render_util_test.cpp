@@ -30,7 +30,10 @@ public:
     void TearDown() override;
 };
 
-void RSDividedRenderUtilTest::SetUpTestCase() {}
+void RSDividedRenderUtilTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSDividedRenderUtilTest::TearDownTestCase() {}
 void RSDividedRenderUtilTest::SetUp() {}
 void RSDividedRenderUtilTest::TearDown() {}
@@ -45,6 +48,7 @@ HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    node->InitRenderParams();
     Drawing::Matrix matrix  = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node, true);
@@ -66,7 +70,7 @@ HWTEST_F(RSDividedRenderUtilTest, CreateBufferDrawParam002, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
-
+    node->InitRenderParams();
     auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node, false, true);
     ASSERT_EQ(nullptr, param.buffer);
 

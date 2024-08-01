@@ -748,8 +748,6 @@ protected:
     Paint defaultPaint_;
 
 private:
-    void GetLooperPaint(const Paint& paint, Paint& looperPaint);
-
     std::shared_ptr<CoreCanvasImpl> impl_;
 #ifdef ACE_ENABLE_GPU
     std::shared_ptr<GPUContext> gpuContext_;

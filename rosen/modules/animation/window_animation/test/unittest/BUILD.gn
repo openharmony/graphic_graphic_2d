@@ -23,6 +23,7 @@ ohos_unittest("RSWindowAnimationTest") {
     "rs_window_animation_finished_callback_stub_test.cpp",
     "rs_window_animation_proxy_test.cpp",
     "rs_window_animation_stub_test.cpp",
+    "rs_window_animation_target_test.cpp",
   ]
 
   configs = [ ":rs_window_animation_test_config" ]
