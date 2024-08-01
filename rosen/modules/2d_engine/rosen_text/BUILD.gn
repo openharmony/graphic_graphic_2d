@@ -159,6 +159,10 @@ if (enable_text_gine) {
       "$rosen_root/modules/2d_engine/rosen_text/skia_txt/txt/src",
     ]
 
+    if (is_arkui_x) {
+      include_dirs += [ "//third_party/bounds_checking_function/include" ]
+    }
+
     defines += [
       "USE_GRAPHIC_TEXT_GINE",
       "WINDOWS_PLATFORM",
