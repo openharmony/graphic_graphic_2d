@@ -68,8 +68,6 @@ public:
 
     void SetParentPid(const int32_t parentPid);
 
-    bool IsRemoteCommandEmpty();
-
     uint32_t GetTransactionDataIndex();
 
 private:
