@@ -416,4 +416,48 @@ HWTEST_F(RSDisplayRenderNodeTest, GetSortedChildren, TestSize.Level1)
     displayNode->GetSortedChildren();
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: GetDisappearedSurfaceRegionBelowCurrent001
+ * @tc.desc: test results of GetDisappearedSurfaceRegionBelowCurrent
+ * @tc.type:FUNC
+ * @tc.require: issuesIA8LNR
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto region = displayNode->GetDisappearedSurfaceRegionBelowCurrent(INVALID_NODEID);
+    EXPECT_TRUE(region.IsEmpty());
+}
+
+/**
+ * @tc.name: GetDisappearedSurfaceRegionBelowCurrent002
+ * @tc.desc: test results of GetDisappearedSurfaceRegionBelowCurrent
+ * @tc.type:FUNC
+ * @tc.require: issuesIA8LNR
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+
+    constexpr NodeId bottomSurfaceNodeId = 1;
+    const RectI bottomSurfacePos(0, 0, 1, 1);
+    const std::pair<NodeId, RectI> bottomSurface{ bottomSurfaceNodeId, bottomSurfacePos };
+    constexpr NodeId topSurfaceNodeId = 2;
+    const RectI topSurfacePos(0, 0, 2, 2);
+    const std::pair<NodeId, RectI> topSurface{ topSurfaceNodeId, topSurfacePos };
+
+    displayNode->UpdateSurfaceNodePos(topSurface.first, topSurface.second);
+    displayNode->AddSurfaceNodePosByDescZOrder(topSurface.first, topSurface.second);
+    displayNode->UpdateSurfaceNodePos(bottomSurface.first, bottomSurface.second);
+    displayNode->AddSurfaceNodePosByDescZOrder(bottomSurface.first, bottomSurface.second);
+    displayNode->ClearCurrentSurfacePos();
+    displayNode->UpdateSurfaceNodePos(topSurface.first, topSurface.second);
+    displayNode->AddSurfaceNodePosByDescZOrder(topSurface.first, topSurface.second);
+
+    auto region = displayNode->GetDisappearedSurfaceRegionBelowCurrent(topSurface.first);
+    EXPECT_TRUE(region.GetBound() == bottomSurface.second);
+}
 } // namespace OHOS::Rosen

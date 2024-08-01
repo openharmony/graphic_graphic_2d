@@ -73,6 +73,7 @@ void RSHardwareThreadTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, Commit(_, _)).WillRepeatedly(testing::Return(0));
+    RSTestUtil::InitRenderNodeGC();
 }
 void RSHardwareThreadTest::TearDownTestCase() {}
 void RSHardwareThreadTest::TearDown()

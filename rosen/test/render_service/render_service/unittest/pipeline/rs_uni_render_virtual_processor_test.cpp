@@ -27,6 +27,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Rosen::DrawableV2;
 
 namespace {
     constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
@@ -253,16 +254,18 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Le
 {
     RSDisplayNodeConfig config;
     NodeId id = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
     auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
-    processor->ProcessDisplaySurface(rsDisplayRenderNode);
+    ASSERT_NE(processor, nullptr);
+    processor->ProcessDisplaySurface(*rsDisplayRenderNode);
     Drawing::Canvas canvas;
     processor->canvas_ = std::make_unique<RSPaintFilterCanvas>(&canvas);
     auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(rsDisplayRenderNode.GetRenderDrawable());
+        static_cast<RSDisplayRenderNodeDrawable*>(RSDisplayRenderNodeDrawable::OnGenerate(rsDisplayRenderNode));
     auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
     surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    processor->ProcessDisplaySurface(rsDisplayRenderNode);
+    processor->ProcessDisplaySurface(*rsDisplayRenderNode);
     EXPECT_FALSE(processor->forceCPU_);
 }
 } // namespace OHOS::Rosen

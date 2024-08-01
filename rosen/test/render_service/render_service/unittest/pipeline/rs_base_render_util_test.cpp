@@ -100,6 +100,7 @@ void RSBaseRenderUtilTest::SetUpTestCase()
 {
     RSSurfaceRenderNodeConfig config;
     node_ = std::make_shared<RSSurfaceRenderNode>(config);
+    RSTestUtil::InitRenderNodeGC();
 }
 
 void RSBaseRenderUtilTest::TearDownTestCase()

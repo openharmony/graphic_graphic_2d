@@ -339,6 +339,9 @@ private:
     static void CalcPerfNodeAll(const ArgList& args);
     static void SocketShutdown(const ArgList& args);
 
+    static void Version(const ArgList& args);
+    static void FileVersion(const ArgList& args);
+
     static void SaveSkp(const ArgList& args);
     static void SaveRdc(const ArgList& args);
 

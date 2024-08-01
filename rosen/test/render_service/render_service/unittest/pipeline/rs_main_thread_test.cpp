@@ -840,15 +840,16 @@ HWTEST_F(RSMainThreadTest, GetWatermarkImg, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsFirstOrLastFrameOfWatermark
- * @tc.desc: IsFirstOrLastFrameOfWatermark test
+ * @tc.name: IsWatermarkFlagChanged
+ * @tc.desc: IsWatermarkFlagChanged test
  * @tc.type: FUNC
- * @tc.require: issueI7HDVG
+ * @tc.require: issuesIA8LNR
  */
-HWTEST_F(RSMainThreadTest, IsFirstOrLastFrameOfWatermark, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, IsWatermarkFlagChanged, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->IsFirstOrLastFrameOfWatermark();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->IsWatermarkFlagChanged();
 }
 
 /**

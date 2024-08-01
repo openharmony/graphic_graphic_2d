@@ -346,8 +346,8 @@ void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useA
 
 void RSDisplayRenderNode::ClearCurrentSurfacePos()
 {
-    lastFrameSurfacePos_.clear();
-    lastFrameSurfacePos_.swap(currentFrameSurfacePos_);
+    lastFrameSurfacePos_ = std::move(currentFrameSurfacePos_);
+    lastFrameSurfacesByDescZOrder_ = std::move(currentFrameSurfacesByDescZOrder_);
 }
 
 void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
@@ -418,6 +418,25 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
     }
     isFullChildrenListValid_ = false;
     return std::atomic_load_explicit(&currentChildrenList_, std::memory_order_acquire);
+}
+
+Occlusion::Region RSDisplayRenderNode::GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const
+{
+    Occlusion::Region result;
+    auto it = std::find_if(lastFrameSurfacesByDescZOrder_.begin(), lastFrameSurfacesByDescZOrder_.end(),
+        [currentSurface](const std::pair<NodeId, RectI>& surface) { return surface.first == currentSurface; });
+    if (it == lastFrameSurfacesByDescZOrder_.end()) {
+        return result;
+    }
+
+    for (++it; it != lastFrameSurfacesByDescZOrder_.end(); ++it) {
+        if (currentFrameSurfacePos_.count(it->first) != 0) {
+            break;
+        }
+        Occlusion::Region disappearedSurface{ Occlusion::Rect{ it->second } };
+        result.OrSelf(disappearedSurface);
+    }
+    return result;
 }
 } // namespace Rosen
 } // namespace OHOS

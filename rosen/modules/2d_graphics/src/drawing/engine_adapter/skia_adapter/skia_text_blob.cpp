@@ -163,11 +163,11 @@ static void ConvertSkPaint(const Paint* drawingPaint, SkPaint &skPaint)
     Color color = drawingPaint->GetColor();
     skPaint.setColor(Color::ColorQuadSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetGreen()));
     skPaint.setStrokeWidth(drawingPaint->GetWidth());
-    const std::shared_ptr<PathEffect> effct = drawingPaint->GetPathEffect();
-    if (effct != nullptr) {
-        SkiaPathEffect *skiaEffct = effct->GetImpl<SkiaPathEffect>();
-        if (skiaEffct != nullptr) {
-            skPaint.setPathEffect(skiaEffct->GetPathEffect());
+    const std::shared_ptr<PathEffect> effect = drawingPaint->GetPathEffect();
+    if (effect != nullptr) {
+        SkiaPathEffect *skiaEffect = effect->GetImpl<SkiaPathEffect>();
+        if (skiaEffect != nullptr) {
+            skPaint.setPathEffect(skiaEffect->GetPathEffect());
         }
     }
 }

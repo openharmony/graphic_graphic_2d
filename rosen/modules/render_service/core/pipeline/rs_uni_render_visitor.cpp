@@ -908,6 +908,8 @@ bool RSUniRenderVisitor::CheckIfSurfaceRenderNodeStatic(RSSurfaceRenderNode& nod
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     // static surface keeps same position
     curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
+    curDisplayNode_->AddSurfaceNodePosByDescZOrder(
+        node.GetId(), curDisplayNode_->GetLastFrameSurfacePos(node.GetId()));
     return true;
 }
 
@@ -1236,7 +1238,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     }
     bool ret = CheckScreenPowerChange() || CheckColorFilterChange() ||
         CheckCurtainScreenUsingStatusChange() || IsFirstFrameOfPartialRender() ||
-        IsFirstOrLastFrameOfWatermark() || IsDisplayZoomIn();
+        IsWatermarkFlagChanged() || IsDisplayZoomIn();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -1270,9 +1272,9 @@ bool RSUniRenderVisitor::IsFirstFrameOfPartialRender() const
     return true;
 }
 
-bool RSUniRenderVisitor::IsFirstOrLastFrameOfWatermark() const
+bool RSUniRenderVisitor::IsWatermarkFlagChanged() const
 {
-    if (RSMainThread::Instance()->IsFirstOrLastFrameOfWatermark()) {
+    if (RSMainThread::Instance()->IsWatermarkFlagChanged()) {
         RS_LOGD("FirstOrLastFrameOfWatermark");
         return true;
     } else {
@@ -1900,6 +1902,7 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     UpdateSurfaceRenderNodeRotate(node);
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
+        curDisplayNode_->AddSurfaceNodePosByDescZOrder(node.GetId(), node.GetOldDirtyInSurface());
     }
     // 2. Update Occlusion info before children preparation
     if (node.IsMainWindowType()) {
@@ -2590,6 +2593,9 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
             "which is occluded don't need to process filter", surfaceNode->GetName().c_str());
         return;
     }
+    auto disappearedSurfaceRegionBelowCurrent =
+        curDisplayNode_->GetDisappearedSurfaceRegionBelowCurrent(surfaceNode->GetId());
+    accumulatedDirtyRegion.OrSelf(disappearedSurfaceRegionBelowCurrent);
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     auto filterVecIter = transparentCleanFilter_.find(surfaceNode->GetId());
     if (filterVecIter != transparentCleanFilter_.end()) {

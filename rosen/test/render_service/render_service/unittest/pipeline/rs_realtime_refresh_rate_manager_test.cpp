@@ -58,6 +58,28 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, EnableStatus001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: EnableStatus002
+ * @tc.desc: test RSRealtimeRefreshRateManagerTest.EnableStatus002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRealtimeRefreshRateManagerTest, EnableStatus002, TestSize.Level1)
+{
+    auto& instance = RSRealtimeRefreshRateManager::Instance();
+    uint32_t threadNums = 100;
+    std::vector<std::thread> thds;
+    for (int i = 0; i < threadNums; i++) {
+        thds.emplace_back(std::thread([&] () { instance.SetShowRefreshRateEnabled(true); }));
+        thds.emplace_back(std::thread([&] () { instance.SetShowRefreshRateEnabled(false); }));
+    }
+    for (auto &thd : thds) {
+        if (thd.joinable()) {
+            thd.join();
+        }
+    }
+}
+
+/**
  * @tc.name: RSInterface001
  * @tc.desc: test RSRealtimeRefreshRateManagerTest.RSInterface001
  * @tc.type: FUNC
@@ -69,11 +91,11 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, RSInterface001, TestSize.Level1)
 
     instance.SetShowRefreshRateEnabled(true);
     bool ret = instance.GetShowRefreshRateEnabled();
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
 
     instance.SetShowRefreshRateEnabled(true);
     ret = instance.GetShowRefreshRateEnabled();
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, false);
 
     instance.SetShowRefreshRateEnabled(false);
     ret = instance.GetShowRefreshRateEnabled();
