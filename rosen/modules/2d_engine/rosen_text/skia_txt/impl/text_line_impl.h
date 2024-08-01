@@ -40,6 +40,23 @@ public:
 
     void Paint(Drawing::Canvas *canvas, double x, double y) override;
 
+    std::unique_ptr<TextLineBase> CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
+        const std::string& ellipsisStr) const override;
+
+    double GetTypographicBounds(double* ascent, double* descent, double* leading) const override;
+
+    Drawing::Rect GetImageBounds() const override;
+
+    double GetTrailingSpaceWidth() const override;
+
+    int32_t GetStringIndexForPosition(SkPoint point) const override;
+
+    double GetOffsetForStringIndex(int32_t index) const override;
+
+    std::map<int32_t, double> GetIndexAndOffsets(bool& isHardBreak) const override;
+
+    double GetAlignmentOffset(double alignmentFactor, double alignmentWidth) const override;
+
 private:
     std::unique_ptr<skia::textlayout::TextLineBase> textLineBase_;
     const std::vector<PaintRecord>& paints_;

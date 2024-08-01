@@ -55,6 +55,14 @@ napi_value JsTextLine::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getGlyphRuns", JsTextLine::GetGlyphRuns),
         DECLARE_NAPI_FUNCTION("getTextRange", JsTextLine::GetTextRange),
         DECLARE_NAPI_FUNCTION("paint", JsTextLine::Paint),
+        DECLARE_NAPI_FUNCTION("createTruncatedLine", JsTextLine::CreateTruncatedLine),
+        DECLARE_NAPI_FUNCTION("getTrailingSpaceWidth", JsTextLine::GetTrailingSpaceWidth),
+        DECLARE_NAPI_FUNCTION("getTypographicBounds", JsTextLine::GetTypographicBounds),
+        DECLARE_NAPI_FUNCTION("getImageBounds", JsTextLine::GetImageBounds),
+        DECLARE_NAPI_FUNCTION("getStringIndexForPosition", JsTextLine::GetStringIndexForPosition),
+        DECLARE_NAPI_FUNCTION("getOffsetForStringIndex", JsTextLine::GetOffsetForStringIndex),
+        DECLARE_NAPI_FUNCTION("enumerateCaretOffsets", JsTextLine::EnumerateCaretOffsets),
+        DECLARE_NAPI_FUNCTION("getAlignmentOffset", JsTextLine::GetAlignmentOffset),
     };
 
     napi_value constructor = nullptr;
@@ -136,6 +144,54 @@ napi_value JsTextLine::Paint(napi_env env, napi_callback_info info)
 {
     JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
     return (me != nullptr) ? me->OnPaint(env, info) : nullptr;
+}
+
+napi_value JsTextLine::CreateTruncatedLine(napi_env env, napi_callback_info info)
+{
+    JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
+    return (me != nullptr) ? me->OnCreateTruncatedLine(env, info, constructor_) : nullptr;
+}
+
+napi_value JsTextLine::GetTypographicBounds(napi_env env, napi_callback_info info)
+{
+    JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
+    return (me != nullptr) ? me->OnGetTypographicBounds(env, info) : nullptr;
+}
+
+napi_value JsTextLine::GetImageBounds(napi_env env, napi_callback_info info)
+{
+    JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
+    return (me != nullptr) ? me->OnGetImageBounds(env, info) : nullptr;
+}
+
+napi_value JsTextLine::GetTrailingSpaceWidth(napi_env env, napi_callback_info info)
+{
+    JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
+    return (me != nullptr) ? me->OnGetTrailingSpaceWidth(env, info) : nullptr;
+}
+
+napi_value JsTextLine::GetStringIndexForPosition(napi_env env, napi_callback_info info)
+{
+    JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
+    return (me != nullptr) ? me->OnGetStringIndexForPosition(env, info) : nullptr;
+}
+
+napi_value JsTextLine::GetOffsetForStringIndex(napi_env env, napi_callback_info info)
+{
+    JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
+    return (me != nullptr) ? me->OnGetOffsetForStringIndex(env, info) : nullptr;
+}
+
+napi_value JsTextLine::EnumerateCaretOffsets(napi_env env, napi_callback_info info)
+{
+    JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
+    return (me != nullptr) ? me->OnEnumerateCaretOffsets(env, info) : nullptr;
+}
+
+napi_value JsTextLine::GetAlignmentOffset(napi_env env, napi_callback_info info)
+{
+    JsTextLine* me = CheckParamsAndGetThis<JsTextLine>(env, info);
+    return (me != nullptr) ? me->OnGetAlignmentOffset(env, info) : nullptr;
 }
 
 napi_value JsTextLine::OnGetGlyphCount(napi_env env, napi_callback_info info)
@@ -226,6 +282,304 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
     textLine_->Paint(jsCanvas->GetCanvas(), x, y);
 
     return NapiGetUndefined(env);
+}
+
+napi_value JsTextLine::OnCreateTruncatedLine(napi_env env, napi_callback_info info, napi_ref constructor)
+{
+    if (textLine_ == nullptr) {
+        TEXT_LOGE("TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    size_t argc = ARGC_THREE;
+    napi_value argv[ARGC_THREE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_THREE) {
+        TEXT_LOGE("Failed to get argc(%{public}zu)", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    double width = 0.0;
+    if (!ConvertFromJsValue(env, argv[0], width)) {
+        TEXT_LOGE("Failed to convert width");
+        return NapiGetUndefined(env);
+    }
+    uint32_t ellipsisMode = 0;
+    if (!ConvertFromJsValue(env, argv[ARGC_ONE], ellipsisMode)) {
+        TEXT_LOGE("Failed to convert ellipsisMode");
+        return NapiGetUndefined(env);
+    }
+    std::string ellipsisStr = "";
+    if (!ConvertFromJsValue(env, argv[ARGC_TWO], ellipsisStr)) {
+        TEXT_LOGE("Failed to convert ellipsisStr");
+        return NapiGetUndefined(env);
+    }
+
+    std::unique_ptr<TextLineBase> textLine = textLine_->CreateTruncatedLine(width, EllipsisModal(ellipsisMode),
+        ellipsisStr);
+    if (textLine == nullptr) {
+        TEXT_LOGE("Failed to create truncated textLine");
+        return NapiGetUndefined(env);
+    }
+
+    napi_value itemObject = JsTextLine::CreateTextLine(env, info);
+    if (itemObject == nullptr) {
+        TEXT_LOGE("Failed to create js textLine");
+        return NapiGetUndefined(env);
+    }
+
+    JsTextLine* jsTextLine = nullptr;
+    status = napi_unwrap(env, itemObject, reinterpret_cast<void**>(&jsTextLine));
+    if (status != napi_ok || jsTextLine == nullptr) {
+        TEXT_LOGE("Failed to napi_unwrap jsTextLine");
+        return NapiGetUndefined(env);
+    }
+    jsTextLine->SetTextLine(std::move(textLine));
+    jsTextLine->SetParagraph(paragraph_);
+
+    return itemObject;
+}
+
+napi_value JsTextLine::OnGetTypographicBounds(napi_env env, napi_callback_info info)
+{
+    if (textLine_ == nullptr) {
+        TEXT_LOGE("TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    double ascent = 0.0;
+    double descent = 0.0;
+    double leading = 0.0;
+    double width = textLine_->GetTypographicBounds(&ascent, &descent, &leading);
+
+    napi_value objValue = nullptr;
+    napi_status status = napi_create_object(env, &objValue);
+    if (status != napi_ok || objValue == nullptr) {
+        TEXT_LOGE("Failed to napi_create_object");
+        return NapiGetUndefined(env);
+    }
+
+    status = napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, ascent));
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to napi_set_named_property ascent");
+        return NapiGetUndefined(env);
+    }
+    status = napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, descent));
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to napi_set_named_property descent");
+        return NapiGetUndefined(env);
+    }
+    status = napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, leading));
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to napi_set_named_property leading");
+        return NapiGetUndefined(env);
+    }
+    status = napi_set_named_property(env, objValue, "width", CreateJsNumber(env, width));
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to napi_set_named_property width");
+        return NapiGetUndefined(env);
+    }
+
+    return objValue;
+}
+
+napi_value JsTextLine::OnGetImageBounds(napi_env env, napi_callback_info info)
+{
+    if (textLine_ == nullptr) {
+        TEXT_LOGE("TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    Drawing::Rect rect = textLine_->GetImageBounds();
+    return GetRectAndConvertToJsValue(env, rect);
+}
+
+napi_value JsTextLine::OnGetTrailingSpaceWidth(napi_env env, napi_callback_info info)
+{
+    if (textLine_ == nullptr) {
+        TEXT_LOGE("TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    double width = textLine_->GetTrailingSpaceWidth();
+    return CreateJsValue(env, width);
+}
+
+napi_value JsTextLine::OnGetStringIndexForPosition(napi_env env, napi_callback_info info)
+{
+    if (textLine_ == nullptr) {
+        TEXT_LOGE("TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get argc(%{public}zu)", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    double x = 0.0;
+    double y = 0.0;
+    napi_value tempValue = nullptr;
+    status = napi_get_named_property(env, argv[0], "x", &tempValue);
+    if (status != napi_ok || tempValue == nullptr) {
+        TEXT_LOGE("Failed to napi_get_named_property x");
+        return NapiGetUndefined(env);
+    }
+    if (!ConvertFromJsValue(env, tempValue, x)) {
+        TEXT_LOGE("Failed to convert x");
+        return NapiGetUndefined(env);
+    }
+    status = napi_get_named_property(env, argv[0], "y", &tempValue);
+    if (status != napi_ok || tempValue == nullptr) {
+        TEXT_LOGE("Failed to napi_get_named_property y");
+        return NapiGetUndefined(env);
+    }
+    if (!ConvertFromJsValue(env, tempValue, y)) {
+        TEXT_LOGE("Failed to convert y");
+        return NapiGetUndefined(env);
+    }
+
+    SkPoint point = {x, y};
+    int32_t index = textLine_->GetStringIndexForPosition(point);
+    return CreateJsValue(env, index);
+}
+
+napi_value JsTextLine::OnGetOffsetForStringIndex(napi_env env, napi_callback_info info)
+{
+    if (textLine_ == nullptr) {
+        TEXT_LOGE("TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get argc(%{public}zu)", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    int32_t index = 0;
+    if (!ConvertFromJsValue(env, argv[0], index)) {
+        TEXT_LOGE("Failed to convert index");
+        return NapiGetUndefined(env);
+    }
+
+    double offset = textLine_->GetOffsetForStringIndex(index);
+    return CreateJsValue(env, offset);
+}
+
+bool CallJsFunc(napi_env env, napi_value callback, int32_t index, double leftOffset, double rightOffset)
+{
+    static napi_value jsLeadingEdgeTrue = CreateJsValue(env, true);
+    static napi_value jsLeadingEdgeFalse = CreateJsValue(env, false);
+    napi_value jsIndex = CreateJsValue(env, index);
+    for (size_t i = 0; i < ARGC_TWO; i++) {
+        napi_value jsOffset = (i == 0) ? CreateJsValue(env, leftOffset) : CreateJsValue(env, rightOffset);
+        napi_value jsLeadingEdge = (i == 0) ? jsLeadingEdgeTrue : jsLeadingEdgeFalse;
+        napi_value retVal = nullptr;
+        napi_value params[ARGC_THREE] = {jsOffset, jsIndex, jsLeadingEdge};
+        napi_status status = napi_call_function(env, nullptr, callback, ARGC_THREE, params, &retVal);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to napi_call_function");
+            return false;
+        }
+
+        bool stop = false;
+        if (!ConvertFromJsValue(env, retVal, stop)) {
+            TEXT_LOGE("Failed to convert stop");
+            return false;
+        }
+        if (stop) {
+            TEXT_LOGI("js function call stoped");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+napi_value JsTextLine::OnEnumerateCaretOffsets(napi_env env, napi_callback_info info)
+{
+    if (textLine_ == nullptr) {
+        TEXT_LOGE("TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE];
+    napi_value jsCallback = nullptr;
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, &jsCallback, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get argc(%{public}zu)", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_valuetype valueType = napi_undefined;
+    status = napi_typeof(env, argv[0], &valueType);
+    if (status != napi_ok || valueType != napi_function) {
+        TEXT_LOGE("Failed to get napi type or argc is not function");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_ref refCallback = nullptr;
+    status = napi_create_reference(env, argv[0], 1, &refCallback);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to napi_create_reference");
+        return NapiGetUndefined(env);
+    }
+
+    napi_value callback = nullptr;
+    if ((napi_get_reference_value(env, refCallback, &callback)) != napi_ok) {
+        TEXT_LOGE("Failed to napi_get_reference_value");
+        return NapiGetUndefined(env);
+    }
+
+    bool isHardBreak = false;
+    std::map<int32_t, double> offsetMap = textLine_->GetIndexAndOffsets(isHardBreak);
+    double leftOffset = 0.0;
+    for (auto it = offsetMap.begin(); it != offsetMap.end(); ++it) {
+        if (!CallJsFunc(env, callback, it->first, leftOffset, it->second)) {
+            return NapiGetUndefined(env);
+        }
+        leftOffset = it->second;
+    }
+    if (isHardBreak && offsetMap.size() > 0) {
+        if (!CallJsFunc(env, callback, offsetMap.rbegin()->first + 1, leftOffset, leftOffset)) {
+            return NapiGetUndefined(env);
+        }
+    }
+
+    return NapiGetUndefined(env);
+}
+
+napi_value JsTextLine::OnGetAlignmentOffset(napi_env env, napi_callback_info info)
+{
+    if (textLine_ == nullptr) {
+        TEXT_LOGE("TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_TWO) {
+        TEXT_LOGE("Failed to get argc(%{public}zu)", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    double alignmentFactor = 0.0;
+    if (!ConvertFromJsValue(env, argv[0], alignmentFactor)) {
+        TEXT_LOGE("Failed to convert alignmentFactor");
+        return NapiGetUndefined(env);
+    }
+    double alignmentWidth = 0.0;
+    if (!ConvertFromJsValue(env, argv[ARGC_ONE], alignmentWidth)) {
+        TEXT_LOGE("Failed to convert alignmentWidth");
+        return NapiGetUndefined(env);
+    }
+
+    double offset = textLine_->GetAlignmentOffset(alignmentFactor, alignmentWidth);
+    return CreateJsValue(env, offset);
 }
 
 std::unique_ptr<TextLineBase> JsTextLine::GetTextLineBase()
