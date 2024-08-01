@@ -836,7 +836,6 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
     }
 
-    curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredDrawable);
     // set mirror screen capture param
     // Don't need to scale here since the canvas has been switched from mirror frame to offscreen
@@ -1441,9 +1440,9 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     canvasBackup_ = nullptr;
     // check offscreen size and hardware renderer
     useFixedOffscreenSurfaceSize_ = false;
-    auto frameSize = params->GetFrameRect();
-    int32_t offscreenWidth = static_cast<int32_t>(frameSize.GetWidth());
-    int32_t offscreenHeight = static_cast<int32_t>(frameSize.GetHeight());
+    const ScreenInfo& screenInfo = params->GetScreenInfo();
+    int32_t offscreenWidth = static_cast<int32_t>(screenInfo.width);
+    int32_t offscreenHeight = static_cast<int32_t>(screenInfo.height);
     // use fixed surface size in order to reduce create texture
     if (RSSystemProperties::IsFoldScreenFlag() && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
