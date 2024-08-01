@@ -17,6 +17,7 @@
 #define RS_HARDWARE_COMPOSE_DISABLED_REASON_COLLECTION_H
 
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 
