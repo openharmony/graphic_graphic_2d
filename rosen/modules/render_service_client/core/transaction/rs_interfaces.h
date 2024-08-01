@@ -76,7 +76,7 @@ public:
     void RemoveVirtualScreen(ScreenId id);
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval);
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
  
     int32_t SetPointerColorInversionEnabled(bool enable);
  
@@ -258,8 +258,6 @@ public:
 
     void EnableCacheForRotation();
 
-    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
-
     void DisableCacheForRotation();
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
@@ -280,6 +278,8 @@ public:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
+
+    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
 private:
     RSInterfaces();

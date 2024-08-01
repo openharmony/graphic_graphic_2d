@@ -17,11 +17,13 @@
 #define RS_HARDWARE_COMPOSE_DISABLED_REASON_COLLECTION_H
 
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 
 namespace OHOS {
 namespace Rosen {
+static const size_t HWC_DISABLED_REASON_INFO_OFFSET = 4;
 
 enum HwcDisabledReasons {
     DISABLED_BY_FLITER_RECT = 0,
@@ -34,7 +36,8 @@ enum HwcDisabledReasons {
     DISABLED_BY_INVALID_PARAM = 7,
     DISABLED_BY_PREVALIDATE = 8,
     DISABLED_BY_SRC_PIXEL = 9,
-    DISABLED_REASON_LENGTH = 10,
+    DISABLED_BY_BUFFER_NONMATCH = 10,
+    DISABLED_REASON_LENGTH = 11,
 };
 
 struct HwcDisabledReasonInfo {
@@ -50,8 +53,7 @@ public:
     static HwcDisabledReasonCollection& GetInstance();
 
     void UpdateHwcDisabledReasonForDFX(NodeId id, int32_t disabledReason, const std::string& nodeName);
-    HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
-    void ResetHwcDisabledReasonInfo();
+    HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
 
 private:
     HwcDisabledReasonCollection();

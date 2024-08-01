@@ -145,8 +145,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     auto cacheImgForCapture = std::make_shared<Drawing::Image>();
     rsDisplayRenderNode.GetOffScreenCacheImgForCapture();
     rsDisplayRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
-    rsDisplayRenderNode.GetRootIdOfCaptureWindow();
-    rsDisplayRenderNode.SetRootIdOfCaptureWindow(id);
     rsDisplayRenderNode.GetDirtySurfaceNodeMap();
     rsDisplayRenderNode.ClearSurfaceSrcRect();
     rsDisplayRenderNode.ClearSurfaceDstRect();

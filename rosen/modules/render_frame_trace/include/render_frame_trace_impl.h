@@ -39,8 +39,6 @@ private:
     bool AccessFrameTrace();
  
     static RenderFrameTraceImpl* instance_;
-    bool judgeFrameTrace_ = false;
-    bool accessFrameTrace_ = false;
 };
 
 } // namespace FRAME_TRACE

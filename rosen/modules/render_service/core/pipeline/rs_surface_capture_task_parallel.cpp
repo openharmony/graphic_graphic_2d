@@ -50,7 +50,12 @@ static inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::TextureOrigin& textureOrigin, Drawing::BitmapFormat& bitmapFormat)
 {
     RSPaintFilterCanvas canvas(&surface);
-    image.BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
+    auto gpuContext = canvas.GetGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("DrawCapturedImg failed: gpuContext is nullptr");
+        return;
+    }
+    image.BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(),
         textureOrigin, bitmapFormat, nullptr);
     canvas.DrawImage(image, 0.f, 0.f, Drawing::SamplingOptions());
     surface.FlushAndSubmit(true);

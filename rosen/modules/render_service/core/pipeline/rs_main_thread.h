@@ -111,6 +111,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    static bool CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -228,7 +229,7 @@ public:
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
 
-    bool IsFirstOrLastFrameOfWatermark() const
+    bool IsWatermarkFlagChanged() const
     {
         return lastWatermarkFlag_ != watermarkFlag_;
     }
@@ -334,8 +335,6 @@ public:
     {
         return needRequestNextVsyncAnimate_;
     }
-    
-    void ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     bool IsFirstFrameOfPartialRender() const
     {
@@ -346,6 +345,11 @@ public:
     void SetHardwareTaskNum(uint32_t num);
     void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback);
     void UnRegisterUIExtensionCallback(pid_t pid);
+
+    bool IsSystemAnimatedScenesListEmpty() const
+    {
+        return systemAnimatedScenesList_.empty();
+    }
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -377,10 +381,10 @@ private:
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
         std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
     void CalcOcclusion();
-    bool CheckSurfaceVisChanged(std::map<NodeId, RSVisibleLevel>& pidVisMap,
-        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
     void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
+    void SetUniVSyncRateByVisibleLevel(const std::shared_ptr<RSUniRenderVisitor>& visitor);
+    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
     void InitRSEventDetector();

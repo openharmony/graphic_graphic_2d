@@ -20,6 +20,8 @@
 #include "common/rs_singleton.h"
 #include "limit_number.h"
 
+#include "rs_test_util.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -32,7 +34,10 @@ public:
     void TearDown() override;
 };
 
-void RSUniUiCaptureTest::SetUpTestCase() {}
+void RSUniUiCaptureTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSUniUiCaptureTest::TearDownTestCase() {}
 void RSUniUiCaptureTest::SetUp() {}
 void RSUniUiCaptureTest::TearDown() {}

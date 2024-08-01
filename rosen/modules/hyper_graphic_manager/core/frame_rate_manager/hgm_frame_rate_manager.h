@@ -154,7 +154,7 @@ public:
     void ProcessPendingRefreshRate(uint64_t timestamp, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
-    void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp, pid_t pid);
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
@@ -172,7 +172,7 @@ public:
     void CheckPackageInConfigList(std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap);
 private:
     void Reset();
-    void UpdateAppSupportStatus();
+    void UpdateAppSupportedState();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
 
     void ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired);
@@ -244,7 +244,8 @@ private:
     HgmTouchManager touchManager_;
     std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
-    int32_t lastUpExpectFps_ = 0;
+    bool needHighRefresh_ = false;
+    int32_t lastTouchUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;

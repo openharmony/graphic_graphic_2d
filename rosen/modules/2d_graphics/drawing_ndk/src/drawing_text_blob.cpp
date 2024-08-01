@@ -157,6 +157,10 @@ void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rec
         return;
     }
     std::shared_ptr<Rect> rect = textblob->Bounds();
+    if (rect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
     *outRect = Rect(rect->GetLeft(), rect->GetTop(), rect->GetRight(), rect->GetBottom());
 }
 

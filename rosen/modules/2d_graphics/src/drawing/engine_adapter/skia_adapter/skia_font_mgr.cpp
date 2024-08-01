@@ -67,6 +67,9 @@ void SkiaFontMgr::LoadThemeFont(const std::string& themeName, std::shared_ptr<Ty
     }
     auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
     SkiaTypeface *skiaTypeFace = typeface->GetImpl<SkiaTypeface>();
+    if (skiaTypeFace == nullptr) {
+        return;
+    }
     dynamicFontMgr->font_provider().RegisterTypeface(skiaTypeFace->GetTypeface(), themeName);
 }
 

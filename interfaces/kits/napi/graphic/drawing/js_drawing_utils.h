@@ -143,6 +143,23 @@ private:
         }                                                                                                              \
     } while (0)
 
+#define GET_UNWRAP_PARAM_OR_NULL(argc, value)                                                                          \
+    do {                                                                                                               \
+        napi_valuetype valueType = napi_undefined;                                                                     \
+        if (napi_typeof(env, argv[argc], &valueType) != napi_ok) {                                                     \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
+        }                                                                                                              \
+        if (valueType != napi_null && valueType != napi_object) {                                                      \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect valueType ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");  \
+        }                                                                                                              \
+        if (valueType == napi_object && napi_unwrap(env, argv[argc], reinterpret_cast<void**>(&value)) != napi_ok) {   \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,                                          \
+                std::string("Incorrect unwrap ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");     \
+        }                                                                                                              \
+    } while (0)
+
 #define GET_JSVALUE_PARAM(argc, value)                                                                                 \
     do {                                                                                                               \
         if (!ConvertFromJsValue(env, argv[argc], value)) {                                                             \

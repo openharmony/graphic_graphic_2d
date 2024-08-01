@@ -431,6 +431,9 @@ void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate* handler)
 
 void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate* handler, OH_Drawing_TextStyle* style)
 {
+    if (!handler || !style) {
+        return;
+    }
     const TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
     ConvertToOriginalText<TypographyCreate>(handler)->PushStyle(*rosenTextStyle);
 }

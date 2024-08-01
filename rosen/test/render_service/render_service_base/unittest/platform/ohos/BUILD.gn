@@ -79,6 +79,10 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "skia:skia_canvaskit",
   ]
 
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
   if (ace_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",

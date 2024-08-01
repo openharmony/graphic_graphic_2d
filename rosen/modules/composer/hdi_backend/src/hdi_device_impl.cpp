@@ -90,6 +90,13 @@ int32_t HdiDeviceImpl::RegHotPlugCallback(HotPlugCallback callback, void *data)
     return g_composer->RegHotPlugCallback(callback, data);
 }
 
+int32_t HdiDeviceImpl::RegRefreshCallback(RefreshCallback callback, void *data)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->RegRefreshCallback(callback, data);
+}
+
+
 bool HdiDeviceImpl::RegHwcDeadCallback(OnHwcDeadCallback callback, void *data)
 {
     CHECK_FUNC(g_composer);

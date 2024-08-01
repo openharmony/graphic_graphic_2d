@@ -328,7 +328,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     }
 
     // if time not changed since last frame, return
-    if (time == animationFraction_.GetLastFrameTime()) {
+    if (time <= animationFraction_.GetLastFrameTime()) {
         return state_ == AnimationState::FINISHED;
     }
 

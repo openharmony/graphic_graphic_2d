@@ -265,7 +265,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetPointerColorInversionConfig, Tes
     float darkBuffer = 0.5f;
     float brightBuffer = 0.5f;
     int64_t interval = 50;
-    proxy->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    int32_t rangeSize = 20;
+    proxy->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     ASSERT_TRUE(true);
 }
 

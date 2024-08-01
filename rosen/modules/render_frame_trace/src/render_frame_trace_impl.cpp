@@ -19,12 +19,6 @@
 
 namespace FRAME_TRACE {
 
-#if (defined(__aarch64__) || defined(__x86_64__))
-const char* g_frameTraceSoPath = "/system/lib64/platformsdk/libframe_trace_intf.z.so";
-#else
-const char* g_frameTraceSoPath = "/system/lib/platformsdk/libframe_trace_intf.z.so";
-#endif
-
 RenderFrameTraceImpl* RenderFrameTraceImpl::instance_ = new RenderFrameTraceImpl();
 
 RenderFrameTraceImpl::RenderFrameTraceImpl()
@@ -34,11 +28,11 @@ RenderFrameTraceImpl::RenderFrameTraceImpl()
 
 bool RenderFrameTraceImpl::AccessFrameTrace()
 {
-    if (!judgeFrameTrace_) {
-        judgeFrameTrace_ = true;
-        accessFrameTrace_ = access(g_frameTraceSoPath, F_OK) ? false : true;
-    }
-    return accessFrameTrace_;
+#ifdef FRAME_TRACE_ENABLE
+    return true;
+#else
+    return false;
+#endif
 }
 
 void RenderFrameTraceImpl::RenderStartFrameTrace(const std::string& traceTag)

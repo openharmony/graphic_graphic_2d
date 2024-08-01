@@ -149,8 +149,10 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
         matrix.Get(Drawing::Matrix::Index::PERSP_1), matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     info.gravity = static_cast<int32_t>(Gravity::RESIZE);
 
-    info.displayNit = DEFAULT_BRIGHTNESS;
-    info.brightnessRatio = NO_RATIO;
+    const auto curDisplayParam = static_cast<RSDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
+    if (curDisplayParam) {
+        info.brightnessRatio = curDisplayParam->GetBrightnessRatio();
+    }
     return info;
 }
 
@@ -1196,7 +1198,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
             !surfaceHandler->GetBuffer());
         return nullptr;
     }
-    RSBaseRenderUtil::IncAcquiredBufferCount();
     ComposeInfo info = BuildComposeInfo(displayDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
@@ -1238,7 +1239,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }
-    RSBaseRenderUtil::IncAcquiredBufferCount();
     ComposeInfo info = BuildComposeInfo(*displayDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayNode zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());

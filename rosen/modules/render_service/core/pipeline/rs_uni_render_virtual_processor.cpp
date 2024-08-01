@@ -50,6 +50,11 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
         return false;
     }
     virtualScreenId_ = params->GetScreenId();
+    VirtualScreenStatus screenStatus = screenManager->GetVirtualScreenStatus(virtualScreenId_);
+    if (screenStatus == VIRTUAL_SCREEN_PAUSE) {
+        RS_LOGD("RSUniRenderVirtualProcessor::Init screenStatus is pause");
+        return false;
+    }
     auto virtualScreenInfo = screenManager->QueryScreenInfo(virtualScreenId_);
     canvasRotation_ = screenManager->GetCanvasRotation(virtualScreenId_);
     scaleMode_ = screenManager->GetScaleMode(virtualScreenId_);
@@ -69,6 +74,9 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     }
 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
+    FrameContextConfig frameContextConfig = {false, false};
+    frameContextConfig.isVirtual = true;
+    frameContextConfig.timeOut = 0;
 
     producerSurface_ = screenManager->GetProducerSurface(virtualScreenId_);
     if (producerSurface_ == nullptr) {
@@ -78,7 +86,8 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     }
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU_, false);
+        renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU_, false,
+            frameContextConfig);
     }
 #endif
     if (renderFrame_ == nullptr) {
@@ -94,10 +103,12 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
         }
 #ifdef NEW_RENDER_CONTEXT
         renderFrame_ = renderEngine_->RequestFrame(
-            std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
+            std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
+            frameContextConfig);
 #else
         renderFrame_ = renderEngine_->RequestFrame(
-            std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
+            std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
+            frameContextConfig);
 #endif
     }
     if (renderFrame_ == nullptr) {
@@ -189,6 +200,8 @@ void RSUniRenderVirtualProcessor::CanvasInit(RSDisplayRenderNode& node)
 
 void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
 {
+    // Save the initial canvas state
+    canvas_->Save();
     if (displayDrawable.IsFirstTimeToProcessor() || canvasRotation_) {
         if (displayDrawable.IsFirstTimeToProcessor()) {
             RS_LOGI("RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", " \

@@ -54,6 +54,7 @@ private:
     static Drawing::TileMode ParserArgumentType(napi_env env, napi_value argv);
 
     static float GetSpecialValue(napi_env env, napi_value argValue);
+    static uint32_t GetSpecialIntValue(napi_env env, napi_value argValue);
 
     std::shared_ptr<Filter> m_FilterObj = nullptr;
 };

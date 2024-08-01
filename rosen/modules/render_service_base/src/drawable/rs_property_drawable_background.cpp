@@ -389,21 +389,7 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (nativeWindowBuffer_ == nullptr && cleanUpHelper_ == nullptr) {
-            return;
-        }
-        RSTaskDispatcher::GetInstance().PostTask(
-            tid_, [nativeWindowBuffer = nativeWindowBuffer_, cleanUpHelper = cleanUpHelper_]() {
-                if (nativeWindowBuffer != nullptr) {
-                    DestroyNativeWindowBuffer(nativeWindowBuffer);
-                }
-                if (cleanUpHelper != nullptr) {
-                    NativeBufferUtils::DeleteVkImage(cleanUpHelper);
-                }
-            });
-    }
+    ReleaseNativeWindowBuffer();
 #endif
 }
 
@@ -436,6 +422,27 @@ Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSBackgroundImageDrawable::ReleaseNativeWindowBuffer()
+{
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (nativeWindowBuffer_ == nullptr && cleanUpHelper_ == nullptr) {
+            return;
+        }
+        RSTaskDispatcher::GetInstance().PostTask(
+            tid_, [nativeWindowBuffer = nativeWindowBuffer_, cleanUpHelper = cleanUpHelper_]() {
+                if (nativeWindowBuffer != nullptr) {
+                    DestroyNativeWindowBuffer(nativeWindowBuffer);
+                }
+                if (cleanUpHelper != nullptr) {
+                    NativeBufferUtils::DeleteVkImage(cleanUpHelper);
+                }
+            });
+        nativeWindowBuffer_ = nullptr;
+        cleanUpHelper_ = nullptr;
+    }
+}
+
 std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
 {
@@ -447,13 +454,17 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return nullptr;
     }
-    if (nativeWindowBuffer_ == nullptr) {
+    std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
+    if (pixelMapId_ != pixelMap->GetUniqueId()) {
+        backendTexture_ = {};
+        ReleaseNativeWindowBuffer();
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
         nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
         if (!nativeWindowBuffer_) {
             RS_LOGE("MakeFromTextureForVK create native window buffer fail");
             return nullptr;
         }
+        pixelMapId_ = pixelMap->GetUniqueId();
     }
     bool isProtected = (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
     if (!backendTexture_.IsValid() || isProtected) {
@@ -644,7 +655,18 @@ RSDrawable::Ptr RSUseEffectDrawable::OnGenerate(const RSRenderNode& node)
     if (!node.GetRenderProperties().GetUseEffect()) {
         return nullptr;
     }
-    return std::make_shared<RSUseEffectDrawable>();
+    // Find effect render node
+    auto parentNode = node.GetParent().lock();
+    while (parentNode && !parentNode->IsInstanceOf<RSEffectRenderNode>()) {
+        parentNode = parentNode->GetParent().lock();
+    }
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr effectRenderNodeDrawable = nullptr;
+    if (parentNode) {
+        effectRenderNodeDrawable = parentNode->GetRenderDrawable();
+    } else {
+        ROSEN_LOGD("RSUseEffectDrawable::OnGenerate: find EffectRenderNode failed.");
+    }
+    return std::make_shared<RSUseEffectDrawable>(effectRenderNodeDrawable);
 }
 
 bool RSUseEffectDrawable::OnUpdate(const RSRenderNode& node)
@@ -659,7 +681,27 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSUseEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (!RSSystemProperties::GetEffectMergeEnabled()) {
+            return;
+        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        if (paintFilterCanvas == nullptr) {
+            return;
+        }
+        const auto& effectData = paintFilterCanvas->GetEffectData();
+        if (effectData == nullptr || effectData->cachedImage_ == nullptr) {
+            ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect effectData null, try to generate.");
+            auto drawable = ptr->effectRenderNodeDrawableWeakRef_.lock();
+            if (!drawable) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Generate effectData");
+            bool disableFilterCache = paintFilterCanvas->GetDisableFilterCache();
+            paintFilterCanvas->SetDisableFilterCache(true);
+            int8_t index = drawable->drawCmdIndex_.backgroundFilterIndex_;
+            drawable->DrawImpl(*paintFilterCanvas, *rect, index);
+            paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
+        }
         RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas);
     };
 }

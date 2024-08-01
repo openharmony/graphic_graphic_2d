@@ -480,9 +480,10 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
     UpdateModifierMotionPathOption();
 }
 
-void RSNode::SetMagnifierParams(const Vector2f& para)
+void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
 {
-    SetProperty<RSMagnifierParamsModifier, RSProperty<Vector2f>>(RSModifierType::MAGNIFIER_PARA, para);
+    SetProperty<RSMagnifierParamsModifier, RSProperty<std::shared_ptr<RSMagnifierParams>>>(
+        RSModifierType::MAGNIFIER_PARA, para);
 }
 
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
@@ -1372,12 +1373,14 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
             auto rippleCenterX = waterRipplePara->GetRippleCenterX();
             auto rippleCenterY = waterRipplePara->GetRippleCenterY();
             auto progress = waterRipplePara->GetProgress();
-            RSWaterRipplePara rs_water_ripple_param = {
+            auto rippleMode = waterRipplePara->GetRippleMode();
+            RSWaterRipplePara params = {
                 waveCount,
                 rippleCenterX,
-                rippleCenterY
+                rippleCenterY,
+                rippleMode
             };
-            SetWaterRippleParams(rs_water_ripple_param, progress);
+            SetWaterRippleParams(params, progress);
         }
     }
 }
@@ -2061,14 +2064,17 @@ void RSNode::DoFlushModifier()
     if (modifiers_.empty()) {
         return;
     }
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        return;
+    }
+    std::unique_ptr<RSCommand> removeAllModifiersCommand = std::make_unique<RSRemoveAllModifiers>(GetId());
+    transactionProxy->AddCommand(removeAllModifiersCommand, IsRenderServiceNode(), GetFollowType(), GetId());
     for (const auto& [_, modifier] : modifiers_) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-            ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::flush modifier, node id: %{public}" PRIu64 ", type: %{public}s",
-                GetId(), modifier->GetModifierTypeString().c_str());
-        }
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::flush modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+            GetId(), modifier->GetModifierTypeString().c_str());
     }
 }
 

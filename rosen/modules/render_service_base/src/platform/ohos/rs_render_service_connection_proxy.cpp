@@ -50,7 +50,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
     // split to several parcels if parcel size > PARCEL_SPLIT_THRESHOLD during marshalling
     std::vector<std::shared_ptr<MessageParcel>> parcelVector;
-    while (transactionData->GetMarshallingIndex() < transactionData->GetCommandCount()) {
+    auto func = [&]() {
         if (isUniMode) {
             ++transactionDataIndex_;
         }
@@ -61,6 +61,14 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
             return;
         }
         parcelVector.emplace_back(parcel);
+    };
+    if (transactionData->IsNeedSync() && transactionData->IsEmpty()) {
+        RS_TRACE_NAME("Commit empty syncTransaction");
+        func();
+    } else {
+        while (transactionData->GetMarshallingIndex() < transactionData->GetCommandCount()) {
+            func();
+        }
     }
 
     MessageOption option;
@@ -554,7 +562,7 @@ void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnectionProxy::SetPointerColorInversionConfig(float darkBuffer,
-    float brightBuffer, int64_t interval)
+    float brightBuffer, int64_t interval, int32_t rangeSize)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -566,6 +574,7 @@ int32_t RSRenderServiceConnectionProxy::SetPointerColorInversionConfig(float dar
     data.WriteFloat(darkBuffer);
     data.WriteFloat(brightBuffer);
     data.WriteInt64(interval);
+    data.WriteInt32(rangeSize);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -2393,31 +2402,6 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
-void RSRenderServiceConnectionProxy::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return;
-    }
-    if (!data.WriteUint64(syncId)) {
-        return;
-    }
-    if (!data.WriteInt32(parentPid)) {
-        return;
-    }
-    if (!data.WriteInt32(childPid)) {
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CHANGE_SYNCHRONIZE_COUNT);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::ChangeSyncCount: Send Request err.");
-    }
-}
-
 void RSRenderServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     OnRemoteDiedCallback_ = callback;
@@ -2510,7 +2494,7 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
         return hwcDisabledReasonInfos;
     }
     int32_t size = reply.ReadInt32();
-    size_t readableSize = reply.GetReadableBytes() / sizeof(NodeId);
+    size_t readableSize = reply.GetReadableBytes() / (sizeof(HwcDisabledReasonInfo) - HWC_DISABLED_REASON_INFO_OFFSET);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > hwcDisabledReasonInfos.max_size()) {
         RS_LOGE("RSRenderServiceConnectionProxy GetHwcDisabledReasonInfo Failed read vector, size:%{public}zu,"
@@ -2620,6 +2604,28 @@ int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
     } else {
         return RS_CONNECTION_ERROR;
     }
+}
+
+bool RSRenderServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    if (!data.WriteUint8(static_cast<uint8_t>(screenStatus))) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
 }
 
 } // namespace Rosen

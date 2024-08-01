@@ -58,7 +58,7 @@ void RSSubThreadManager::Start(RenderContext *context)
 
 void RSSubThreadManager::StartColorPickerThread(RenderContext* context)
 {
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
     if (!RSSystemProperties::GetColorPickerPartialEnabled() || !RSUniRenderJudgement::IsUniRender()) {
         RS_LOGD("RSSubThreadManager::StartColorPickerThread:Filter thread not run");
         return;

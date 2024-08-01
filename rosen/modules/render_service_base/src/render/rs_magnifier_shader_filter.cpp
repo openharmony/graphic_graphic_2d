@@ -19,13 +19,15 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
+} // namespace
 
-RSMagnifierShaderFilter::RSMagnifierShaderFilter(float offsetX, float offsetY)
-    : offsetX_(offsetX), offsetY_(offsetY)
+RSMagnifierShaderFilter::RSMagnifierShaderFilter(const std::shared_ptr<RSMagnifierParams>& para)
+    : magnifierPara_(para)
 {
     type_ = ShaderFilterType::MAGNIFIER;
-    hash_ = SkOpts::hash(&offsetX_, sizeof(offsetX_), hash_);
-    hash_ = SkOpts::hash(&offsetY_, sizeof(offsetY_), hash_);
+    hash_ = SkOpts::hash(&magnifierPara_, sizeof(magnifierPara_), hash_);
 }
 
 RSMagnifierShaderFilter::~RSMagnifierShaderFilter() = default;
@@ -33,13 +35,61 @@ RSMagnifierShaderFilter::~RSMagnifierShaderFilter() = default;
 void RSMagnifierShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
+    if (magnifierPara_ == nullptr) {
+        ROSEN_LOGD("RSMagnifierShaderFilter::GenerateGEVisualEffect magnifierPara_ is nullptr!");
+        return;
+    }
+
     auto magnifierFilter = std::make_shared<Drawing::GEVisualEffect>("MAGNIFIER", Drawing::DrawingPaintType::BRUSH);
     if (magnifierFilter == nullptr) {
         ROSEN_LOGD("RSMagnifierShaderFilter::GenerateGEVisualEffect magnifierFilter is nullptr!");
         return;
     }
+    magnifierFilter->SetParam("FACTOR", magnifierPara_->factor_);
+    magnifierFilter->SetParam("WIDTH", magnifierPara_->width_);
+    magnifierFilter->SetParam("HEIGHT", magnifierPara_->height_);
+    magnifierFilter->SetParam("CORNERRADIUS", magnifierPara_->cornerRadius_);
+    magnifierFilter->SetParam("BORDERWIDTH", magnifierPara_->borderWidth_);
+    magnifierFilter->SetParam("SHADOWOFFSETX", magnifierPara_->shadowOffsetX_);
+    magnifierFilter->SetParam("SHADOWOFFSETY", magnifierPara_->shadowOffsetY_);
+    magnifierFilter->SetParam("SHADOWSIZE", magnifierPara_->shadowSize_);
+    magnifierFilter->SetParam("SHADOWSTRENGTH", magnifierPara_->shadowStrength_);
+    magnifierFilter->SetParam("GRADIENTMASKCOLOR1", magnifierPara_->gradientMaskColor1_);
+    magnifierFilter->SetParam("GRADIENTMASKCOLOR2", magnifierPara_->gradientMaskColor2_);
+    magnifierFilter->SetParam("OUTERCONTOURCOLOR1", magnifierPara_->outerContourColor1_);
+    magnifierFilter->SetParam("OUTERCONTOURCOLOR2", magnifierPara_->outerContourColor2_);
+    magnifierFilter->SetParam("ROTATEDEGREE", rotateDegree_);
 
     visualEffectContainer->AddToChainedFilter(magnifierFilter);
+}
+
+void RSMagnifierShaderFilter::SetMagnifierOffset(Drawing::Matrix& mat)
+{
+    if (!magnifierPara_) {
+        ROSEN_LOGD("RSMagnifierShaderFilter::SetMagnifierOffset magnifierPara_ is nullptr!");
+        return;
+    }
+
+    // 1 and 3 represents index
+    if ((mat.Get(1) > FLOAT_ZERO_THRESHOLD) && (mat.Get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
+        rotateDegree_ = 90; // 90 represents rotate degree
+        offsetX_ = magnifierPara_->offsetY_;
+        offsetY_ = -magnifierPara_->offsetX_;
+    // 0 and 4 represents index
+    } else if ((mat.Get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
+        rotateDegree_ = 180; // 180 represents rotate degree
+        offsetX_ = -magnifierPara_->offsetX_;
+        offsetY_ = -magnifierPara_->offsetY_;
+    // 1 and 3 represents index
+    } else if ((mat.Get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(3) > FLOAT_ZERO_THRESHOLD)) {
+        rotateDegree_ = 270; // 270 represents rotate degree
+        offsetX_ = -magnifierPara_->offsetY_;
+        offsetY_ = magnifierPara_->offsetX_;
+    } else {
+        rotateDegree_ = 0;
+        offsetX_ = magnifierPara_->offsetX_;
+        offsetY_ = magnifierPara_->offsetY_;
+    }
 }
 
 } // namespace Rosen

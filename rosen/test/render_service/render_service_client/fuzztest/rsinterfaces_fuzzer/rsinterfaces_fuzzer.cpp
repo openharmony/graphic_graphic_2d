@@ -90,12 +90,13 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     float darkBuffer = GetData<float>();
     float brightBuffer = GetData<float>();
     int64_t interval = GetData<int64_t>();
+    int32_t rangeSize = GetData<int32_t>();
 #endif
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    rsInterfaces.SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    rsInterfaces.SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     PointerLuminanceChangeCallback callback = [](int32_t) {};
     rsInterfaces.RegisterPointerLuminanceChangeCallback(callback);
 #endif
@@ -171,6 +172,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     UIExtensionCallback uiExtensionCallback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
     rsInterfaces.RegisterUIExtensionCallback(id, uiExtensionCallback);
     usleep(usleepTime);
+
+    VirtualScreenStatus screenStatus = VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
+    rsInterfaces.SetVirtualScreenStatus(static_cast<ScreenId>(id), static_cast<VirtualScreenStatus>(screenStatus));
 
     return true;
 }

@@ -31,7 +31,8 @@ namespace OHOS::Media {
 SurfaceBuffer* IncrementSurfaceBufferReference(sptr<SurfaceBuffer>& buffer)
 {
     if (auto object = buffer.GetRefPtr()) {
-        object->IncStrongRef(object);
+        OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(object);
+        ref->IncStrongRef(ref);
         return object;
     }
     return nullptr;

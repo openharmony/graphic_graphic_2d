@@ -31,7 +31,7 @@ let anim = (angle) => {
     return newAngle % 360;
 };
 
-export async function scene_demo(gl) {
+export async function sceneDemo(gl) {
     let image = await loadImage(Images.FLOOR);
     let box = await loadImage(Images.BOX);
     let scene = new Scene(gl);

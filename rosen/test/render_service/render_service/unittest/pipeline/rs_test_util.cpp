@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "rs_test_util.h"
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS::Rosen {
 NodeId RSTestUtil::id = 0;
@@ -54,5 +55,12 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
     rsSurfaceRenderNode->SetDrawingGPUContext(drGPUContext.get());
     return rsSurfaceRenderNode;
+}
+
+void RSTestUtil::InitRenderNodeGC()
+{
+    auto& renderNodeGC = RSRenderNodeGC::Instance();
+    renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
+    renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
 }
 }

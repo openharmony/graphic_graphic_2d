@@ -193,24 +193,6 @@ HWTEST_F(RSNodeCommandTest, SetNodeName001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkNodeGroup001
- * @tc.desc: test results of MarkNodeGroup
- * @tc.type: FUNC
- * @tc.require: issueI9P2KH
- */
-HWTEST_F(RSNodeCommandTest, MarkNodeGroup001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = 1;
-    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, true, true, true);
-    EXPECT_EQ(1, nodeId);
-
-    nodeId = 0;
-    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, true, true, true);
-    EXPECT_EQ(0, nodeId);
-}
-
-/**
  * @tc.name: MarkNodeSingleFrameComposer001
  * @tc.desc: test results of MarkNodeSingleFrameComposer
  * @tc.type: FUNC

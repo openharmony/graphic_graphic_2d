@@ -50,6 +50,15 @@ RSUifirstManager& RSUifirstManager::Instance()
     return instance;
 }
 
+RSUifirstManager::RSUifirstManager() :
+#if defined(RS_ENABLE_VK)
+    useDmaBuffer_(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
+        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN)
+#else
+    useDmaBuffer_(false)
+#endif
+{}
+
 std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
 {
     if (const auto cacheIt = subthreadProcessingNode_.find(id); cacheIt != subthreadProcessingNode_.end()) {
@@ -337,6 +346,9 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
 
 bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node)
 {
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+        return false;
+    }
     for (auto& child : *node->GetSortedChildren()) {
         if (std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
                 RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
@@ -519,12 +531,16 @@ void RSUifirstManager::ProcessSubDoneNode()
     ProcessDoneNode(); // release finish drawable
     UpdateSkipSyncNode();
     RestoreSkipSyncNode();
+    ResetCurrentFrameDeletedCardNodes();
 }
 
 void RSUifirstManager::ConvertPendingNodeToDrawable()
 {
-    if (!useDmaBuffer_) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
+        if (!useDmaBuffer_) {
+            return;
+        }
     }
     pendingPostDrawables_.clear();
     for (const auto& iter : pendingPostNodes_) {
@@ -957,6 +973,10 @@ bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
     if (events.empty()) {
         return false;
     }
+    if (isCurrentFrameHasCardNodeReCreate_) {
+        RS_OPTIONAL_TRACE_NAME("uifirst current frame can't skip wait");
+        return false;
+    }
     for (auto& item : events) {
         if (IsCardSkipFirstWaitScene(item.sceneId, item.appPid)) {
             return true;
@@ -1091,7 +1111,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
     std::string surfaceName = node.GetName();
     bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
-    if (needFilterSCB || node.IsSelfDrawingType()) {
+    if (!node.GetForceUIFirst() && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;
     }
     if ((node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
@@ -1219,8 +1239,11 @@ void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processor)
 {
-    if (!useDmaBuffer_) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
+        if (!useDmaBuffer_) {
+            return;
+        }
     }
     for (auto& drawable : pendingPostDrawables_) {
         if (!drawable) {
@@ -1239,8 +1262,11 @@ void RSUifirstManager::CreateUIFirstLayer(std::shared_ptr<RSProcessor>& processo
 
 void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, float zOrder)
 {
-    if (!useDmaBuffer_) {
-        return;
+    {
+        std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
+        if (!useDmaBuffer_) {
+            return;
+        }
     }
     for (const auto& iter : pendingPostNodes_) {
         auto& node = iter.second;
@@ -1255,6 +1281,7 @@ void RSUifirstManager::UpdateUIFirstLayerInfo(const ScreenInfo& screenInfo, floa
 
 void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
 {
+    RSUifirstManager::Instance().CheckCurrentFrameHasCardNodeReCreate(node);
     // Planning: do not clear complete image for card
     if (node.IsOnTheTree() || node.IsNodeToBeCaptured()) {
         return;
@@ -1277,12 +1304,40 @@ void RSUifirstManager::AddCapturedNodes(NodeId id)
 
 void RSUifirstManager::SetUseDmaBuffer(bool val)
 {
-    useDmaBuffer_ = val;
+    std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
+#if defined(RS_ENABLE_VK)
+    useDmaBuffer_ = val && RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
+        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN;
+#else
+    useDmaBuffer_ = false;
+#endif
 }
 
-bool RSUifirstManager::GetUseDmaBuffer(const std::string& name) const
+bool RSUifirstManager::GetUseDmaBuffer(const std::string& name)
 {
+    std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
     return useDmaBuffer_ && name.find("ScreenShotWindow") != std::string::npos;
 }
+
+void RSUifirstManager::ResetCurrentFrameDeletedCardNodes()
+{
+    currentFrameDeletedCardNodes_.clear();
+    isCurrentFrameHasCardNodeReCreate_ = false;
+}
+
+void RSUifirstManager::CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node)
+{
+    if (node.GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
+        node.GetName().find(ARKTSCARDNODE_NAME) == std::string::npos) {
+        return;
+    }
+    if (!node.IsOnTheTree()) {
+        currentFrameDeletedCardNodes_.emplace_back(node.GetId());
+    } else if (std::find(currentFrameDeletedCardNodes_.begin(), currentFrameDeletedCardNodes_.end(),
+        node.GetId()) != currentFrameDeletedCardNodes_.end()) {
+        isCurrentFrameHasCardNodeReCreate_ = true;
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

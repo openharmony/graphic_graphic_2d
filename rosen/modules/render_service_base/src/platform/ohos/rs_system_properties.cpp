@@ -247,6 +247,14 @@ bool RSSystemProperties::GetVirtualDirtyEnabled()
     return ConvertToInt(enable, 0) != 0;
 }
 
+bool RSSystemProperties::GetExpandScreenDirtyEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.expandscreendirty.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetReleaseResourceEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.release.gpuresource.enabled", "1");

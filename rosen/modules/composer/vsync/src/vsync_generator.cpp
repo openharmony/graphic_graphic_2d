@@ -87,7 +87,7 @@ static bool IsPcType()
 static bool IsPCRefreshRateLock60()
 {
     static bool isPCRefreshRateLock60 =
-        (std::atoi(system::GetParameter("persist.pc.refreshrate.lock60", "1").c_str()) != 0);
+        (std::atoi(system::GetParameter("persist.pc.refreshrate.lock60", "0").c_str()) != 0);
     return isPCRefreshRateLock60;
 }
 }

@@ -43,6 +43,10 @@ ohos_fuzztest("RSInterfacesFuzzTest") {
 
   sources = [ "rsinterfaces_fuzzer.cpp" ]
 
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",

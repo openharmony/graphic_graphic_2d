@@ -142,36 +142,31 @@ napi_value JsShaderEffect::CreateLinearGradient(napi_env env, napi_callback_info
 
     std::vector<scalar> pos;
     Drawing::Matrix* drawingMatrixPtr = nullptr;
-    
+
     if (argc == ARGC_FOUR) {
         std::shared_ptr<ShaderEffect> linearGradient = ShaderEffect::CreateLinearGradient(drawingStartPoint,
             drawingEndPoint, colors, pos, static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
         return JsShaderEffect::Create(env, linearGradient);
     }
-    napi_value arrayPos = argv[ARGC_FOUR];
-    napi_get_array_length(env, arrayPos, &size);
-    pos.reserve(size);
-    for (uint32_t i = 0; i < size; i++) {
-        napi_value element;
-        napi_get_element(env, arrayPos, i, &element);
-        double value = 0;
-        napi_get_value_double(env, element, &value);
-        pos.emplace_back(value);
-    }
-
     napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, argv[ARGC_FOUR], &valueType) != napi_ok ||
+        (valueType != napi_null && valueType != napi_object)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect CreateLinearGradient parameter4 type.");
+    }
+    if (valueType != napi_null) {
+        napi_value arrayPos = argv[ARGC_FOUR];
+        napi_get_array_length(env, arrayPos, &size);
+        pos.reserve(size);
+        for (uint32_t i = 0; i < size; i++) {
+            napi_value element;
+            napi_get_element(env, arrayPos, i, &element);
+            double value = 0;
+            napi_get_value_double(env, element, &value);
+            pos.emplace_back(value);
+        }
+    }
     if (argc == ARGC_FIVE) {
-        if (napi_typeof(env, argv[ARGC_FOUR], &valueType) != napi_ok ||
-            (valueType != napi_null && valueType != napi_object)) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect CreateLinearGradient parameter4 type.");
-        }
-        if (valueType == napi_null) {
-            pos.clear();
-            std::shared_ptr<ShaderEffect> linearGradient = ShaderEffect::CreateLinearGradient(drawingStartPoint,
-                drawingEndPoint, colors, pos, static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
-            return JsShaderEffect::Create(env, linearGradient);
-        }
         std::shared_ptr<ShaderEffect> linearGradient = ShaderEffect::CreateLinearGradient(drawingStartPoint,
             drawingEndPoint, colors, pos, static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
         return JsShaderEffect::Create(env, linearGradient);
@@ -235,31 +230,25 @@ napi_value JsShaderEffect::CreateRadialGradient(napi_env env, napi_callback_info
             radius, colors, pos, static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
         return JsShaderEffect::Create(env, radialGradient);
     }
-
-    napi_value arrayPos = argv[ARGC_FOUR];
-    napi_get_array_length(env, arrayPos, &size);
-    pos.reserve(size);
-    for (uint32_t i = 0; i < size; i++) {
-        napi_value element;
-        napi_get_element(env, arrayPos, i, &element);
-        double value = 0;
-        napi_get_value_double(env, element, &value);
-        pos.emplace_back(value);
-    }
-
     napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, argv[ARGC_FOUR], &valueType) != napi_ok ||
+        (valueType != napi_null && valueType != napi_object)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect CreateRadialGradient parameter4 type.");
+    }
+    if (valueType != napi_null) {
+        napi_value arrayPos = argv[ARGC_FOUR];
+        napi_get_array_length(env, arrayPos, &size);
+        pos.reserve(size);
+        for (uint32_t i = 0; i < size; i++) {
+            napi_value element;
+            napi_get_element(env, arrayPos, i, &element);
+            double value = 0;
+            napi_get_value_double(env, element, &value);
+            pos.emplace_back(value);
+        }
+    }
     if (argc == ARGC_FIVE) {
-        if (napi_typeof(env, argv[ARGC_FOUR], &valueType) != napi_ok ||
-            (valueType != napi_null && valueType != napi_object)) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect CreateRadialGradient parameter4 type.");
-        }
-        if (valueType == napi_null) {
-            pos.clear();
-            std::shared_ptr<ShaderEffect> radialGradient = ShaderEffect::CreateRadialGradient(drawingCenterPoint,
-                radius, colors, pos, static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
-            return JsShaderEffect::Create(env, radialGradient);
-        }
         std::shared_ptr<ShaderEffect> radialGradient = ShaderEffect::CreateRadialGradient(drawingCenterPoint,
             radius, colors, pos, static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
         return JsShaderEffect::Create(env, radialGradient);
@@ -324,31 +313,25 @@ napi_value JsShaderEffect::CreateSweepGradient(napi_env env, napi_callback_info 
             colors, pos, static_cast<TileMode>(jsTileMode), startAngle, endAngle, drawingMatrixPtr);
         return JsShaderEffect::Create(env, sweepGradient);
     }
-
-    napi_value arrayPos = argv[ARGC_FIVE];
-    napi_get_array_length(env, arrayPos, &size);
-    pos.reserve(size);
-    for (uint32_t i = 0; i < size; i++) {
-        napi_value element;
-        napi_get_element(env, arrayPos, i, &element);
-        double value = 0;
-        napi_get_value_double(env, element, &value);
-        pos.emplace_back(value);
-    }
-
     napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, argv[ARGC_FIVE], &valueType) != napi_ok ||
+        (valueType != napi_null && valueType != napi_object)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect CreateRadialGradient parameter5 type.");
+    }
+    if (valueType != napi_null) {
+        napi_value arrayPos = argv[ARGC_FIVE];
+        napi_get_array_length(env, arrayPos, &size);
+        pos.reserve(size);
+        for (uint32_t i = 0; i < size; i++) {
+            napi_value element;
+            napi_get_element(env, arrayPos, i, &element);
+            double value = 0;
+            napi_get_value_double(env, element, &value);
+            pos.emplace_back(value);
+        }
+    }
     if (argc == ARGC_SIX) {
-        if (napi_typeof(env, argv[ARGC_FIVE], &valueType) != napi_ok ||
-            (valueType != napi_null && valueType != napi_object)) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect CreateRadialGradient parameter5 type.");
-        }
-        if (valueType == napi_null) {
-            pos.clear();
-            std::shared_ptr<ShaderEffect> sweepGradient = ShaderEffect::CreateSweepGradient(drawingCenterPoint,
-                colors, pos, static_cast<TileMode>(jsTileMode), startAngle, endAngle, drawingMatrixPtr);
-            return JsShaderEffect::Create(env, sweepGradient);
-        }
         std::shared_ptr<ShaderEffect> sweepGradient = ShaderEffect::CreateSweepGradient(drawingCenterPoint,
             colors, pos, static_cast<TileMode>(jsTileMode), startAngle, endAngle, drawingMatrixPtr);
         return JsShaderEffect::Create(env, sweepGradient);
@@ -421,32 +404,25 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
             startRadius, drawingEndPoint, endRadius, colors, pos, static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
         return JsShaderEffect::Create(env, twoPointConicalGradient);
     }
-
-    napi_value arrayPos = argv[ARGC_SIX];
-    napi_get_array_length(env, arrayPos, &size);
-    pos.reserve(size);
-    for (uint32_t i = 0; i < size; i++) {
-        napi_value element;
-        napi_get_element(env, arrayPos, i, &element);
-        double value = 0;
-        napi_get_value_double(env, element, &value);
-        pos.emplace_back(value);
-    }
-
     napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, argv[ARGC_SIX], &valueType) != napi_ok ||
+        (valueType != napi_null && valueType != napi_object)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect CreateConicalGradient parameter6 type.");
+    }
+    if (valueType != napi_null) {
+        napi_value arrayPos = argv[ARGC_SIX];
+        napi_get_array_length(env, arrayPos, &size);
+        pos.reserve(size);
+        for (uint32_t i = 0; i < size; i++) {
+            napi_value element;
+            napi_get_element(env, arrayPos, i, &element);
+            double value = 0;
+            napi_get_value_double(env, element, &value);
+            pos.emplace_back(value);
+        }
+    }
     if (argc == ARGC_SEVEN) {
-        if (napi_typeof(env, argv[ARGC_SIX], &valueType) != napi_ok ||
-            (valueType != napi_null && valueType != napi_object)) {
-            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                "Incorrect CreateConicalGradient parameter6 type.");
-        }
-        if (valueType == napi_null) {
-            pos.clear();
-            std::shared_ptr<ShaderEffect> twoPointConicalGradient = ShaderEffect::CreateTwoPointConical(
-                drawingStartPoint, startRadius, drawingEndPoint, endRadius, colors, pos,
-                static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
-            return JsShaderEffect::Create(env, twoPointConicalGradient);
-        }
         std::shared_ptr<ShaderEffect> twoPointConicalGradient = ShaderEffect::CreateTwoPointConical(
             drawingStartPoint, startRadius, drawingEndPoint, endRadius, colors, pos,
             static_cast<TileMode>(jsTileMode), drawingMatrixPtr);

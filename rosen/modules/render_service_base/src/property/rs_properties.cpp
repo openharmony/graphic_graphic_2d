@@ -1402,9 +1402,11 @@ std::optional<RSWaterRipplePara> RSProperties::GetWaterRippleParams() const
  
 bool RSProperties::IsWaterRippleValid() const
 {
+    uint32_t WAVE_COUNT_MAX = 3;
+    uint32_t WAVE_COUNT_MIN = 1;
     return ROSEN_GE(waterRippleProgress_, 0.0f) && ROSEN_LE(waterRippleProgress_, 1.0f) &&
-           waterRippleParams_.has_value() && ROSEN_GE(waterRippleParams_->waveCount, 1.0f) &&
-           ROSEN_LE(waterRippleParams_->waveCount, 3.0f);
+           waterRippleParams_.has_value() && waterRippleParams_->waveCount >= WAVE_COUNT_MIN &&
+           waterRippleParams_->waveCount <= WAVE_COUNT_MAX;
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
@@ -1691,11 +1693,11 @@ void RSProperties::SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& par
     contentDirty_ = true;
 }
 
-void RSProperties::SetMagnifierParams(const std::optional<Vector2f>& para)
+void RSProperties::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
 {
     magnifierPara_ = para;
 
-    if (para.has_value()) {
+    if (para) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -1703,7 +1705,7 @@ void RSProperties::SetMagnifierParams(const std::optional<Vector2f>& para)
     contentDirty_ = true;
 }
 
-const std::optional<Vector2f>& RSProperties::GetMagnifierPara() const
+const std::shared_ptr<RSMagnifierParams>& RSProperties::GetMagnifierPara() const
 {
     return magnifierPara_;
 }
@@ -2914,7 +2916,7 @@ void RSProperties::GenerateLinearGradientBlurFilter()
 
 void RSProperties::GenerateMagnifierFilter()
 {
-    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara_->x_, magnifierPara_->y_);
+    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara_);
 
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(magnifierFilter);
     backgroundFilter_ = originalFilter;
@@ -2923,11 +2925,13 @@ void RSProperties::GenerateMagnifierFilter()
 
 void RSProperties::GenerateWaterRippleFilter()
 {
-    float waveCount = waterRippleParams_->waveCount;
+    uint32_t waveCount = waterRippleParams_->waveCount;
     float rippleCenterX = waterRippleParams_->rippleCenterX;
     float rippleCenterY = waterRippleParams_->rippleCenterY;
+    uint32_t rippleMode = waterRippleParams_->rippleMode;
     std::shared_ptr<RSWaterRippleShaderFilter> waterRippleFilter =
-        std::make_shared<RSWaterRippleShaderFilter>(waterRippleProgress_, waveCount, rippleCenterX, rippleCenterY);
+        std::make_shared<RSWaterRippleShaderFilter>(waterRippleProgress_, waveCount, rippleCenterX, rippleCenterY,
+            rippleMode);
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(waterRippleFilter);
     if (!backgroundFilter_) {
         backgroundFilter_ = originalFilter;
@@ -2944,7 +2948,7 @@ void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
         GenerateAIBarFilter();
-    } else if (magnifierPara_.has_value()) {
+    } else if (magnifierPara_ && ROSEN_GNE(magnifierPara_->factor_, 0.f)) {
         GenerateMagnifierFilter();
     } else if (IsBackgroundMaterialFilterValid()) {
         GenerateBackgroundMaterialBlurFilter();
@@ -4129,8 +4133,7 @@ void RSProperties::UpdateFilter()
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
-                  magnifierPara_.has_value();
+                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid();
 }
 
 void RSProperties::UpdateForegroundFilter()

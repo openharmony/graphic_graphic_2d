@@ -218,7 +218,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
-    preBuffer = nullptr;
+    params.SetPreBuffer(nullptr);
     layer->SetZorder(layerInfo.zOrder);
     layer->SetType(layerInfo.layerType);
 
@@ -258,6 +258,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetMatrix(matrix);
     layer->SetScalingMode(params.GetPreScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
+    layer->SetClearCacheSet(params.GetBufferClearCacheSet());
     return layer;
 }
 
@@ -325,7 +326,7 @@ void RSUniRenderProcessor::ProcessDisplaySurfaceForRenderThread(
     auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
     for (const auto& drawable : displayParams->GetAllMainAndLeashSurfaceDrawables()) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        if (!surfaceDrawable || surfaceDrawable->GetRenderParams() ||
+        if (!surfaceDrawable || !surfaceDrawable->GetRenderParams() ||
             !surfaceDrawable->GetRenderParams()->GetOcclusionVisible() ||
             surfaceDrawable->GetRenderParams()->IsLeashWindow()) {
             continue;

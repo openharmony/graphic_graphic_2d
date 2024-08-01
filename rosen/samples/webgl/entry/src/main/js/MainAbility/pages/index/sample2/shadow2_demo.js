@@ -19,13 +19,13 @@ import { Matrix4 } from '../utils/Matrix';
 
 let lastTime = Date.now();
 const WIDTH = 1024, HEIGHT = 1024;
-let g_modelMatrix = new Matrix4();
-let g_mvpMatrix = new Matrix4();
+let gmodelMatrix = new Matrix4();
+let gmvpMatrix = new Matrix4();
 const SHADOW_VS_CODE = `#version 300 es
         in vec4 a_Position;
-        uniform mat4 u_MvpMatrix;
+        uniform mat4 umvpMatrix;
         void main(){
-            gl_Position =  u_MvpMatrix * a_Position;
+            gl_Position =  umvpMatrix * a_Position;
         }
     `;
 const SHADOW_FS_CODE = `#version 300 es
@@ -40,14 +40,14 @@ const NORMAL_VS_CODE = `#version 300 es
         in vec4 a_Position;
         in vec4 a_Color;
         in vec2 a_TexCoord;
-        uniform mat4 u_MvpMatrix;
-        uniform mat4 u_MvpMatrixFromLight;
+        uniform mat4 umvpMatrix;
+        uniform mat4 umvpMatrixFromLight;
         out vec4 v_PositionFromLight;
         out vec4 v_Color;
         out vec2 v_TexCoord;
         void main(){
-            gl_Position =  u_MvpMatrix * a_Position;
-            v_PositionFromLight = u_MvpMatrixFromLight * a_Position;
+            gl_Position =  umvpMatrix * a_Position;
+            v_PositionFromLight = umvpMatrixFromLight * a_Position;
             v_Color = a_Color;
             v_TexCoord = a_TexCoord;
         }
@@ -71,14 +71,14 @@ const NORMAL_FS_CODE = `#version 300 es
         }
     `;
 let currentAngle = 0.0;
-let mvpMatrixFromLight_t = new Matrix4();
-let mvpMatrixFromLight_p = new Matrix4();
+let mvpMatrixFromLightOt = new Matrix4();
+let mvpMatrixFromLightOp = new Matrix4();
 
-export async function shadow2_demo(gl) {
+export async function shadow2Demo(gl) {
     let floorImage = await loadImage(Images.FLOOR);
     let boxImage = await loadImage(Images.BOX);
-    let shadowProgram = createProgram(gl, SHADOW_VS_CODE, SHADOW_FS_CODE, ['a_Position'], ['u_MvpMatrix']);
-    let program = createProgram(gl, NORMAL_VS_CODE, NORMAL_FS_CODE, ['a_Position', 'a_Color', 'a_TexCoord'], ['u_MvpMatrix', 'u_MvpMatrixFromLight', 'u_ShadowMap', 'u_Sampler']);
+    let shadowProgram = createProgram(gl, SHADOW_VS_CODE, SHADOW_FS_CODE, ['a_Position'], ['umvpMatrix']);
+    let program = createProgram(gl, NORMAL_VS_CODE, NORMAL_FS_CODE, ['a_Position', 'a_Color', 'a_TexCoord'], ['umvpMatrix', 'umvpMatrixFromLight', 'u_ShadowMap', 'u_Sampler']);
     let triangle = initVertexBuffersTriangle(gl);
     let plane = initVertexBuffersPlane(gl);
     let fbo = initFramebuffer(gl);
@@ -99,22 +99,22 @@ export async function shadow2_demo(gl) {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT); // 清除FBO
         gl.useProgram(shadowProgram);
         // 绘制三角形和平面（用于生成阴影贴图）设置旋转角度以模型矩阵并绘制三角形
-        g_modelMatrix.setRotate(currentAngle, 1, 1, 0);
+        gmodelMatrix.setRotate(currentAngle, 1, 1, 0);
         draw(gl, shadowProgram, triangle, matrixLight);
-        mvpMatrixFromLight_t.set(g_mvpMatrix);
-        g_modelMatrix.setRotate(0, 0, 1, 1);
+        mvpMatrixFromLightOt.set(gmvpMatrix);
+        gmodelMatrix.setRotate(0, 0, 1, 1);
         draw(gl, shadowProgram, plane, matrixLight);
-        mvpMatrixFromLight_p.set(g_mvpMatrix);
+        mvpMatrixFromLightOp.set(gmvpMatrix);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null); // 将绘图目标更改为颜色缓冲区
         gl.viewport(0, 0, gl.width, gl.height);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
         gl.useProgram(program); // 为常规绘制设置着色器
         gl.uniform1i(program.u_ShadowMap, 0);
-        gl.uniformMatrix4fv(program.u_MvpMatrixFromLight, false, mvpMatrixFromLight_t.getElements());
-        g_modelMatrix.setRotate(currentAngle, 0, 1, 0);
+        gl.uniformMatrix4fv(program.umvpMatrixFromLight, false, mvpMatrixFromLightOt.getElements());
+        gmodelMatrix.setRotate(currentAngle, 0, 1, 0);
         draw2(gl, program, triangle, matrixCamera, boxImage);
-        gl.uniformMatrix4fv(program.u_MvpMatrixFromLight, false, mvpMatrixFromLight_p.getElements());
-        g_modelMatrix.setRotate(0, 0, 1, 1);
+        gl.uniformMatrix4fv(program.umvpMatrixFromLight, false, mvpMatrixFromLightOp.getElements());
+        gmodelMatrix.setRotate(0, 0, 1, 1);
         draw2(gl, program, plane, matrixCamera, floorImage);
         gl.flush();
         if (!gl.closed) {
@@ -130,10 +130,10 @@ function draw(gl, program, o, viewProjMatrix) {
         initAttributeVariable(gl, program.a_Color, o.colorBuffer);
     }
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indexBuffer);
-    // 计算模型视图项目矩阵并将其传递给u_MvpMatrix
-    g_mvpMatrix.set(viewProjMatrix);
-    g_mvpMatrix.multiply(g_modelMatrix);
-    gl.uniformMatrix4fv(program.u_MvpMatrix, false, g_mvpMatrix.getElements());
+    // 计算模型视图项目矩阵并将其传递给umvpMatrix
+    gmvpMatrix.set(viewProjMatrix);
+    gmvpMatrix.multiply(gmodelMatrix);
+    gl.uniformMatrix4fv(program.umvpMatrix, false, gmvpMatrix.getElements());
     gl.drawElements(gl.TRIANGLES, o.numIndices, gl.UNSIGNED_BYTE, 0);
 }
 
@@ -149,17 +149,17 @@ function draw2(gl, program, o, viewProjMatrix, image) {
         initAttributeVariable(gl, program.a_Color, o.colorBuffer);
     }
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indexBuffer);
-    // 计算模型视图项目矩阵并将其传递给u_MvpMatrix
-    g_mvpMatrix.set(viewProjMatrix);
-    g_mvpMatrix.multiply(g_modelMatrix);
-    gl.uniformMatrix4fv(program.u_MvpMatrix, false, g_mvpMatrix.getElements());
+    // 计算模型视图项目矩阵并将其传递给umvpMatrix
+    gmvpMatrix.set(viewProjMatrix);
+    gmvpMatrix.multiply(gmodelMatrix);
+    gl.uniformMatrix4fv(program.umvpMatrix, false, gmvpMatrix.getElements());
     gl.drawElements(gl.TRIANGLES, o.numIndices, gl.UNSIGNED_BYTE, 0);
 }
 
-function initAttributeVariable(gl, a_attribute, buffer) {
+function initAttributeVariable(gl, atAttribute, buffer) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.vertexAttribPointer(a_attribute, buffer.num, buffer.type, false, 0, 0);
-    gl.enableVertexAttribArray(a_attribute);
+    gl.vertexAttribPointer(atAttribute, buffer.num, buffer.type, false, 0, 0);
+    gl.enableVertexAttribArray(atAttribute);
 }
 
 function initVertexBuffersPlane(gl) {

@@ -208,6 +208,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
         }
     };
+    RSBaseRenderUtil::IncAcquiredBufferCount();
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
@@ -230,6 +231,20 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         } else {
             PostDelayTask(task, delayTime_);
         }
+    }
+
+    for (const auto& layer : layers) {
+        if (layer->GetClearCacheSet().empty()) {
+            continue;
+        }
+
+        // Remove image caches when their SurfaceNode has gobackground/cleancache.
+        RSTaskMessage::RSTask clearTask = [this, cacheset = layer->GetClearCacheSet()]() {
+            if (uniRenderEngine_ != nullptr) {
+                uniRenderEngine_->ClearCacheSet(cacheset);
+            }
+        };
+        PostTask(clearTask);
     }
 }
 

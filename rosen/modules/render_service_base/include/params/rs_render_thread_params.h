@@ -68,6 +68,11 @@ public:
         return isVirtualDirtyEnabled_;
     }
 
+    bool IsExpandScreenDirtyEnabled() const
+    {
+        return isExpandScreenDirtyEnabled_;
+    }
+
     bool IsVirtualDirtyDfxEnabled() const
     {
         return isVirtualDirtyDfxEnabled_;
@@ -86,6 +91,16 @@ public:
     bool GetUIFirstDebugEnabled() const
     {
         return isUIFirstDebugEnable_;
+    }
+
+    void SetUIFirstCurrentFrameCanSkipFirstWait(bool canSkip)
+    {
+        isUIFirstCurrentFrameCanSkipFirstWait_ = canSkip;
+    }
+
+    bool GetUIFirstCurrentFrameCanSkipFirstWait() const
+    {
+        return isUIFirstCurrentFrameCanSkipFirstWait_;
     }
 
     void SetTimestamp(uint64_t timestamp)
@@ -375,8 +390,10 @@ private:
     bool isOpDropped_ = false;
     bool isOcclusionEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
+    bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
+    bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;

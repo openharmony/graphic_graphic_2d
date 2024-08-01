@@ -20,6 +20,7 @@
 
 #include "common/rs_color.h"
 #include "drawable/rs_property_drawable.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "external_window.h"
@@ -128,9 +129,11 @@ public:
 private:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
+    void ReleaseNativeWindowBuffer();
     void SetCompressedDataForASTC();
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     pid_t tid_ = 0;
+    uint32_t pixelMapId_ = 0;
     Drawing::BackendTexture backendTexture_ = {};
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
 #endif
@@ -162,12 +165,18 @@ public:
 class RSUseEffectDrawable : public RSDrawable {
 public:
     RSUseEffectDrawable() = default;
+    RSUseEffectDrawable(DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable)
+        : effectRenderNodeDrawableWeakRef_(drawable)
+    {}
     ~RSUseEffectDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override {};
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr effectRenderNodeDrawableWeakRef_;
 };
 
 class RSDynamicLightUpDrawable : public RSDrawable {
