@@ -416,6 +416,7 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
     float zeroThreshold = 0.0001;
 
     std::shared_ptr<RSRenderProperty<float>> floatValue = std::make_shared<RSRenderProperty<float>>();
+    floatValue->Set(0.00001f);
     std::shared_ptr<RSRenderProperty<Vector2f>> vector2fValue = std::make_shared<RSRenderProperty<Vector2f>>();
     vector2fValue->Set(vector2f);
     std::shared_ptr<RSRenderProperty<Quaternion>> quaternionValue = std::make_shared<RSRenderProperty<Quaternion>>();
@@ -435,15 +436,15 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
     std::shared_ptr<RSRenderProperty<RRect>> rectValue = std::make_shared<RSRenderProperty<RRect>>();
     rectValue->Set(rect);
 
-    ASSERT_TRUE(property1.IsNearEqual(floatValue, zeroThreshold));
-    ASSERT_TRUE(property2.IsNearEqual(vector2fValue, zeroThreshold));
-    ASSERT_TRUE(property3.IsNearEqual(quaternionValue, zeroThreshold));
-    ASSERT_TRUE(property4.IsNearEqual(vector4Value, zeroThreshold));
-    ASSERT_TRUE(property5.IsNearEqual(matrix3fValue, zeroThreshold));
-    ASSERT_TRUE(property6.IsNearEqual(colorValue, zeroThreshold));
-    ASSERT_TRUE(property7.IsNearEqual(pFilterValue, zeroThreshold));
-    ASSERT_TRUE(property8.IsNearEqual(vector4ColorValue, zeroThreshold));
-    ASSERT_TRUE(property9.IsNearEqual(rectValue, zeroThreshold));
+    EXPECT_TRUE(property1.IsNearEqual(floatValue, zeroThreshold));
+    EXPECT_TRUE(property2.IsNearEqual(vector2fValue, zeroThreshold));
+    EXPECT_TRUE(property3.IsNearEqual(quaternionValue, zeroThreshold));
+    EXPECT_TRUE(property4.IsNearEqual(vector4Value, zeroThreshold));
+    EXPECT_TRUE(property5.IsNearEqual(matrix3fValue, zeroThreshold));
+    EXPECT_TRUE(property6.IsNearEqual(colorValue, zeroThreshold));
+    EXPECT_TRUE(property7.IsNearEqual(pFilterValue, zeroThreshold));
+    EXPECT_TRUE(property8.IsNearEqual(vector4ColorValue, zeroThreshold));
+    EXPECT_TRUE(property9.IsNearEqual(rectValue, zeroThreshold));
     ASSERT_TRUE(property7.IsEqual(pFilterValue));
 }
 }
