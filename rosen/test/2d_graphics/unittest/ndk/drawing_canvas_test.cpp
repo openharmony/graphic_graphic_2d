@@ -1646,6 +1646,31 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_FilterSetImageFilter04
     OH_Drawing_FilterDestroy(filter);
     OH_Drawing_ImageFilterDestroy(imagefilter);
 }
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_CanvasDrawSingleCharacter045
+ * @tc.desc: test for OH_Drawing_CanvasDrawSingleCharacter.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawSingleCharacter045, TestSize.Level1)
+{
+    const char* strOne = "a";
+    const char* strTwo = "你好";
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    float x = 0.f;
+    float y = 0.f;
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strOne, font, x, y), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strTwo, font, x, y), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(nullptr, strOne, font, x, y), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, nullptr, font, x, y), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strOne, nullptr, x, y),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    const char* strThree = "";
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strThree, font, x, y), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FontDestroy(font);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
