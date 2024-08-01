@@ -163,6 +163,7 @@ protected:
     bool forceClearCacheForLastFrame_ = false;
     bool isAIBarInteractWithHWC_ = false;
     bool isEffectNode_ = false;
+    bool renderIsSkipFrame_ = false;
  
     // clear one of snapshot cache and filtered cache after drawing
     bool renderClearFilteredCacheAfterDrawing_ = false;
@@ -178,6 +179,7 @@ protected:
     // force cache with cacheUpdateInterval_
     bool isLargeArea_ = false;
     bool canSkipFrame_ = false;
+    bool isSkipFrame_  = false;
     RSFilter::FilterType filterType_ = RSFilter::NONE;
     int cacheUpdateInterval_ = 0;
     bool isFilterCacheValid_ = false; // catch status in current frame
