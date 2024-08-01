@@ -379,6 +379,43 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontMeasureText014, TestSize.Level1)
 
     OH_Drawing_FontDestroy(font);
 }
+
+/*
+ * @tc.name: NativeFontTest_FontMeasureSingleCharacter015
+ * @tc.desc: test for OH_Drawing_FontMeasureSingleCharacter.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontMeasureSingleCharacter015, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50); // 50 means font text size
+    const char* strOne = "a";
+    const char* strTwo = "你好";
+    float textWidth = 0.f;
+    OH_Drawing_ErrorCode drawingErrorCode = OH_DRAWING_SUCCESS;
+    drawingErrorCode = OH_Drawing_FontMeasureSingleCharacter(nullptr, strOne, &textWidth);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(textWidth, 0.f);
+    drawingErrorCode = OH_Drawing_FontMeasureSingleCharacter(font, nullptr, &textWidth);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(textWidth, 0.f);
+    drawingErrorCode = OH_Drawing_FontMeasureSingleCharacter(font, strOne, nullptr);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(textWidth, 0.f);
+    const char* strThree = "";
+    drawingErrorCode = OH_Drawing_FontMeasureSingleCharacter(font, strThree, &textWidth);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(textWidth, 0.f);
+    drawingErrorCode = OH_Drawing_FontMeasureSingleCharacter(font, strOne, &textWidth);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(textWidth > 0);
+    drawingErrorCode = OH_Drawing_FontMeasureSingleCharacter(font, strTwo, &textWidth);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(textWidth > 0);
+    OH_Drawing_FontDestroy(font);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
