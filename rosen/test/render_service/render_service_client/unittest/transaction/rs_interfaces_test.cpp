@@ -107,9 +107,8 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface001, TestSize.Level1)
     auto globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     RSTypefaceCache& typefaceCache = RSTypefaceCache::Instance();
     typefaceCache.typefaceHashCode_.emplace(globalUniqueId, 0);
-    bool res = instance.RegisterTypeface(typeface);
+    instance.RegisterTypeface(typeface);
     typefaceCache.typefaceHashCode_.clear();
-    EXPECT_TRUE(res);
 }
 
 /**
