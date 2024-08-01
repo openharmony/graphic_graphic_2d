@@ -114,7 +114,8 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::MAGNIFIER: {
-                shaderFilter = std::make_shared<GEMagnifierShaderFilter>();
+                const auto& magnifierParams = ve->GetMagnifierParams();
+                shaderFilter = std::make_shared<GEMagnifierShaderFilter>(*magnifierParams);
                 break;
             }
             default:

@@ -45,7 +45,7 @@ let modelMatrix = new Matrix4();
 let angle = 0;
 let lastTime = Date.now();
 
-export async function panorama_demo(gl) {
+export async function panoramaDemo(gl) {
     let program = createProgram(gl, VSCODE, FSCODE, ['a_Position', 'a_TexCoord'], ['u_MvpMatrix', 'u_ModelMatrix', 'u_Sampler']);
     let sphere = new SphereGraph(1, 16, 12);
     let arr = new Float32Array(sphere.vertices);

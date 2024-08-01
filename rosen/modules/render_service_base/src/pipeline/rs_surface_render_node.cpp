@@ -1340,7 +1340,7 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
     return WINDOW_LAYER_INFO_TYPE::SEMI_VISIBLE;
 }
 
-bool RSSurfaceRenderNode::IsSCBNode()
+bool RSSurfaceRenderNode::IsSCBNode() const
 {
     return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW;
 }
@@ -1362,6 +1362,11 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.blendType = GetBlendType();
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
+    if (IsHardwareEnabledTopSurface() && RSSystemProperties::GetLayerCursorEnable()) {
+        layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
+    } else {
+        layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
+    }
     isHardwareForcedDisabled_ = isProtectedLayer_ ? false : isHardwareForcedDisabled_;
 #ifndef ROSEN_CROSS_PLATFORM
     auto buffer = surfaceHandler_->GetBuffer();
@@ -1580,7 +1585,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusWithVisible(bool visible)
         return;
     }
     prevVisible_ = visible;
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSUniRenderJudgement::IsUniRender() && !visible && !filterNodes_.empty()
         && !isOcclusionVisibleWithoutFilter_) {
         for (auto& node : filterNodes_) {
@@ -1977,10 +1982,15 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
         opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
     if (!ret) {
-        // planning: default process focus window
+        if (absRect.IsEmpty()) {
+            RS_LOGW("%{public}s absRect is empty, dst rect: %{public}s, old dirty in surface: %{public}s",
+                GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
+            RS_TRACE_NAME_FMT("%s absRect is empty, dst rect: %s, old dirty in surface: %s",
+                GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
+        }
         ResetSurfaceOpaqueRegion(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
+        SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
     }
-    SetOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius);
 }
 
 bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect,

@@ -18,22 +18,18 @@
 
 namespace OHOS {
 namespace Rosen {
-RSUIExtensionData::~RSUIExtensionData()
-{
-}
-
 bool RSUIExtensionData::MarshallingRectInfo(const SecRectInfo& rectInfo, Parcel& parcel)
 {
     // Write coordinates(4 int), scale(2 float), anchor position(2float).
     bool marshallingSuccess = true;
-    marshallingSuccess = marshallingSuccess && parcel.WriteInt32(rectInfo.relativeCoords.GetLeft());
-    marshallingSuccess = marshallingSuccess && parcel.WriteInt32(rectInfo.relativeCoords.GetTop());
-    marshallingSuccess = marshallingSuccess && parcel.WriteInt32(rectInfo.relativeCoords.GetWidth());
-    marshallingSuccess = marshallingSuccess && parcel.WriteInt32(rectInfo.relativeCoords.GetHeight());
-    marshallingSuccess = marshallingSuccess && parcel.WriteFloat(rectInfo.scale[0]);
-    marshallingSuccess = marshallingSuccess && parcel.WriteFloat(rectInfo.scale[1]);
-    marshallingSuccess = marshallingSuccess && parcel.WriteFloat(rectInfo.anchor[0]);
-    marshallingSuccess = marshallingSuccess && parcel.WriteFloat(rectInfo.anchor[1]);
+    marshallingSuccess &= parcel.WriteInt32(rectInfo.relativeCoords.GetLeft());
+    marshallingSuccess &= parcel.WriteInt32(rectInfo.relativeCoords.GetTop());
+    marshallingSuccess &= parcel.WriteInt32(rectInfo.relativeCoords.GetWidth());
+    marshallingSuccess &= parcel.WriteInt32(rectInfo.relativeCoords.GetHeight());
+    marshallingSuccess &= parcel.WriteFloat(rectInfo.scale[0]);
+    marshallingSuccess &= parcel.WriteFloat(rectInfo.scale[1]);
+    marshallingSuccess &= parcel.WriteFloat(rectInfo.anchor[0]);
+    marshallingSuccess &= parcel.WriteFloat(rectInfo.anchor[1]);
     return marshallingSuccess;
 }
 
@@ -51,20 +47,20 @@ void RSUIExtensionData::UnmarshallingRectInfo(SecRectInfo& rectInfo, Parcel& par
 bool RSUIExtensionData::Marshalling(Parcel& parcel) const
 {
     bool marshallingSuccess = true;
-    marshallingSuccess = marshallingSuccess && parcel.WriteUint32(secData_.size());
+    marshallingSuccess &= parcel.WriteUint32(secData_.size());
     for (const auto& data : secData_) {
-        marshallingSuccess = marshallingSuccess && parcel.WriteUint64(data.first);     // hostNodeId
-        marshallingSuccess = marshallingSuccess && parcel.WriteUint32(static_cast<uint32_t>(data.second.size()));
+        marshallingSuccess &= parcel.WriteUint64(data.first);     // hostNodeId
+        marshallingSuccess &= parcel.WriteUint32(static_cast<uint32_t>(data.second.size()));
         for (const auto& secSurfaceInfo : data.second) {
-            marshallingSuccess = marshallingSuccess && MarshallingRectInfo(secSurfaceInfo.uiExtensionRectInfo, parcel);
-            marshallingSuccess = marshallingSuccess && parcel.WriteInt32(secSurfaceInfo.hostPid);
-            marshallingSuccess = marshallingSuccess && parcel.WriteInt32(secSurfaceInfo.uiExtensionPid);
-            marshallingSuccess = marshallingSuccess && parcel.WriteUint64(secSurfaceInfo.hostNodeId);
-            marshallingSuccess = marshallingSuccess && parcel.WriteUint64(secSurfaceInfo.uiExtensionNodeId);
+            marshallingSuccess &= MarshallingRectInfo(secSurfaceInfo.uiExtensionRectInfo, parcel);
+            marshallingSuccess &= parcel.WriteInt32(secSurfaceInfo.hostPid);
+            marshallingSuccess &= parcel.WriteInt32(secSurfaceInfo.uiExtensionPid);
+            marshallingSuccess &= parcel.WriteUint64(secSurfaceInfo.hostNodeId);
+            marshallingSuccess &= parcel.WriteUint64(secSurfaceInfo.uiExtensionNodeId);
 
-            marshallingSuccess = parcel.WriteUint32(static_cast<uint32_t>(secSurfaceInfo.upperNodes.size()));
+            marshallingSuccess &= parcel.WriteUint32(static_cast<uint32_t>(secSurfaceInfo.upperNodes.size()));
             for (const auto& rectInfo : secSurfaceInfo.upperNodes) {
-                marshallingSuccess = marshallingSuccess && MarshallingRectInfo(rectInfo, parcel);
+                marshallingSuccess &= MarshallingRectInfo(rectInfo, parcel);
             }
         }
     }

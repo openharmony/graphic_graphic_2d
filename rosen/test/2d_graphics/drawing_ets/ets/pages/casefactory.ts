@@ -24,6 +24,7 @@ import { MatrixGetValue, MatrixPostRotate, MatrixPostTranslate, MatrixReset, Mat
 import { MakeFromRunBuffer, MakeFromString, TextBlobBounds, MakeFromPosText, MakeUniqueId} from '../testcase/interface/textblobtest';
 import {PerformanceCanvasDrawRect, PerformanceCanvasDrawCircle, PerformanceCanvasDrawLine, PerformanceCanvasDrawTextBlob, PerformanceCanvasDrawPath,
   PerformanceCanvasPoint} from '../testcase/interface/performancetest';
+import { RoundRectSetCornerTest, RoundRectGetCornerTest, RoundRectOffsetTest } from '../testcase/interface/roundrecttest';
 import { PenGetFillPath } from '../testcase/interface/pentest'
 import { ColorFilterCreateMatrix } from '../testcase/interface/colorfiltertests';
 import { JoinRect } from '../testcase/interface/utilstests';
@@ -65,6 +66,10 @@ export class CaseFactory {
       ['createcolorimagefilter', () => { return new CreateColorImageFilter(); }],
 
       ['textblob_createfrom_postext', () => { return new MakeFromPosText(StyleType.DRAW_STYLE_COMPLEX); }],
+
+      ['roundrectsetcorner', () => { return new RoundRectSetCornerTest(); }],
+      ['roundrectgetcorner', () => { return new RoundRectGetCornerTest(); }],
+      ['roundrectoffset', () => { return new RoundRectOffsetTest(); }],
 
       ['pathisclosed', () => { return new PathIsClosed(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pathgetPositionAndTangent', () => { return new PathGetPositionAndTangent(StyleType.DRAW_STYLE_COMPLEX); }],
@@ -153,6 +158,10 @@ export class CaseFactory {
       ['create_blur_image_filter', () => { return new CreateBlurImageFilter(StyleType.DRAW_STYLE_COMPLEX); }],
       ['create_color_image_filter', () => { return new CreateColorImageFilter(StyleType.DRAW_STYLE_COMPLEX); }],
 
+      ['roundrect_setcorner', () => { return new RoundRectSetCornerTest(); }],
+      ['roundrect_getcorner', () => { return new RoundRectGetCornerTest(); }],
+      ['roundrect_offset', () => { return new RoundRectOffsetTest(); }],
+
       ['matrix_getvalue', () => { return new MatrixGetValue(); }],
       ['matrix_getall', () => { return new MatrixGetAll(); }],
       ['matrix_postrotate', () => { return new MatrixPostRotate(); }],
@@ -171,6 +180,16 @@ export class CaseFactory {
       ['join_Rect', () => { return new JoinRect(); }],
     ]
   );
+  
+  static StabilityMap: Map<string, Function> = new Map(
+    [
+      ['canvasdrawrect', () => { return new CanvasDrawRect(); }],
+    ]
+  );
+
+  static getStabilityCpuAllCase(): Map<string, Function> {
+    return this.StabilityMap;
+  }    
 
   static getFunctonCpuAllCase(): Map<string, Function> {
     return this.FunctionMap;

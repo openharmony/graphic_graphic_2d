@@ -32,6 +32,11 @@ void RSSurfaceOhosGl::SetSurfaceBufferUsage(uint64_t usage)
     bufferUsage_ = usage;
 }
 
+void RSSurfaceOhosGl::SetTimeOut(int32_t timeOut)
+{
+    timeOut_ = timeOut;
+}
+
 void RSSurfaceOhosGl::SetSurfacePixelFormat(int32_t pixelFormat)
 {
     pixelFormat_ = pixelFormat;

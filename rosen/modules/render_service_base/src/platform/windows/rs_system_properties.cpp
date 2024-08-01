@@ -107,6 +107,11 @@ bool RSSystemProperties::GetVirtualDirtyEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetExpandScreenDirtyEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};
@@ -474,6 +479,11 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 }
 
 bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetLayerCursorEnable()
 {
     return false;
 }

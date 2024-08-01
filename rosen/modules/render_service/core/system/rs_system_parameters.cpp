@@ -176,6 +176,9 @@ bool RSSystemParameters::GetHideNotchStatus()
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.hideNotch.status", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    if (!enable) {
+        return false;
+    }
     return (strcmp(enable, "2") == 0);
 }
 
@@ -184,6 +187,12 @@ bool RSSystemParameters::GetUIFirstDmaBufferEnabled()
     static bool enable =
         std::atoi((system::GetParameter("persist.sys.graphic.ui.first.dma.enabled", "1")).c_str()) != 0;
     return enable;
+}
+
+bool RSSystemParameters::GetTcacheEnabled()
+{
+    static bool flag = system::GetBoolParameter("persist.sys.graphic.tcache.enable", true);
+    return flag;
 }
 } // namespace Rosen
 } // namespace OHOS

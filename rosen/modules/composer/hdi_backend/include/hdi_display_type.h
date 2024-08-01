@@ -152,6 +152,16 @@ typedef struct {
 typedef void (*HotPlugCallback)(uint32_t devId, bool connected, void *data);
 
 /*
+ * @brief Called when a refresh event occurs.
+ *
+ * This callback must be registered by calling <b>RegRefreshCallback</b>.
+ *
+ * @param devId Indicates the ID of the display device.
+ * @param data Indicates the private data carried by the graphics service.
+ */
+typedef void (*RefreshCallback)(uint32_t devId, void *data);
+
+/*
  * @brief Called when a VBLANK event occurs.
  *
  * This callback must be registered by calling <b>RegDisplayVBlankCallback</b>.

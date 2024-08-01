@@ -824,7 +824,7 @@ void RSRenderNode::SubTreeSkipPrepare(
     RSDirtyRegionManager& dirtyManager, bool isDirty, bool accumGeoDirty, const RectI& clipRect)
 {
     // [planning] Prev and current dirty rect need to be joined only when accumGeoDirty is true.
-    if (accumGeoDirty && (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_)) {
+    if ((isDirty || accumGeoDirty) && (HasChildrenOutOfRect() || lastFrameHasChildrenOutOfRect_)) {
         auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
         if (geoPtr == nullptr) {
             return;
@@ -952,6 +952,8 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 {
     ApplyModifiers();
     PrepareChildrenForApplyModifiers();
+
+    stagingRenderParams_->SetAlpha(GetRenderProperties().GetAlpha());
 
     UpdateRenderParams();
     AddToPendingSyncList();
@@ -2167,6 +2169,12 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
             AddDirtyType(type);
         }
     }
+}
+
+void RSRenderNode::RemoveAllModifiers()
+{
+    modifiers_.clear();
+    renderContent_->drawCmdModifiers_.clear();
 }
 
 void RSRenderNode::DumpNodeInfo(DfxString& log)
@@ -3637,17 +3645,6 @@ void RSRenderNode::StoreMustRenewedInfo()
 bool RSRenderNode::HasMustRenewedInfo() const
 {
     return mustRenewedInfo_;
-}
-
-void RSRenderNode::ExecuteSurfaceCaptureCommand()
-{
-    auto task = RSOffscreenRenderThread::Instance().GetCaptureTask(GetId());
-    if (task) {
-        RSOffscreenRenderThread::Instance().PostTask(task);
-        commandExecuted_ = false;
-    } else {
-        commandExecuted_ = true;
-    }
 }
 
 void RSRenderNode::SetVisitedCacheRootIds(const std::unordered_set<NodeId>& visitedNodes)

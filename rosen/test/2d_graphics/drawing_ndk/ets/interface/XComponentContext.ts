@@ -21,4 +21,5 @@ export default interface XComponentContext {
   testFunctionGpu(string): void;
   testPerformanceCpu(string): void;
   testPerformanceGpu(string): void;
+  testStabilityCpu(string): void;
 };

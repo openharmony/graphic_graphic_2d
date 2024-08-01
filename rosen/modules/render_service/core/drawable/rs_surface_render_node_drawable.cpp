@@ -306,8 +306,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     bool isUiFirstNode = rscanvas->GetIsParallelCanvas();
     if (!isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] Id:%" PRIu64 "",
-            name_.c_str(), surfaceParams->GetId());
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] %sAlpha: %f, "
+            "NodeId:%" PRIu64 "", name_.c_str(), surfaceParams->GetAbsDrawRect().ToString().c_str(),
+            surfaceParams->GetGlobalAlpha(), surfaceParams->GetId());
         return;
     }
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
@@ -329,8 +330,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     if (!isUiFirstNode && uniParam->IsOpDropped() && surfaceParams->IsVisibleRegionEmpty(curSurfaceDrawRegion)) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s NodeId:%" PRIu64 "",
-            name_.c_str(), surfaceParams->GetId());
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s %sAlpha: %f, NodeId:"
+            "%" PRIu64 "", name_.c_str(), surfaceParams->GetAbsDrawRect().ToString().c_str(),
+            surfaceParams->GetGlobalAlpha(), surfaceParams->GetId());
         return;
     }
     const auto &absDrawRect = surfaceParams->GetAbsDrawRect();
@@ -349,14 +351,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     Drawing::GPUContext* gpuContext = renderEngine_->GetRenderContext()->GetDrGPUContext();
     RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
-    // will not use node in the future version
-    auto renderNode = renderNode_.lock();
-    if (renderNode == nullptr) {
-        return;
-    }
-    auto nodeSp = std::const_pointer_cast<RSRenderNode>(renderNode);
-    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
-    surfaceNode->UpdateFilterCacheStatusWithVisible(true);
 
     // Draw base pipeline start
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
@@ -371,10 +365,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             needOffscreen = false;
         }
     } else {
-        releaseCount_++;
-        if (releaseCount_ == MAX_RELEASE_FRAME) {
-            offscreenSurface_ = nullptr;
-            releaseCount_ = 0;
+        if (offscreenSurface_ != nullptr) {
+            releaseCount_++;
+            if (releaseCount_ == MAX_RELEASE_FRAME) {
+                std::shared_ptr<Drawing::Surface> hold = offscreenSurface_;
+                RSUniRenderThread::Instance().PostTask([hold] {});
+                offscreenSurface_ = nullptr;
+                releaseCount_ = 0;
+            }
         }
     }
 
@@ -689,12 +687,12 @@ void RSSurfaceRenderNodeDrawable::DealWithHdr(const RSSurfaceRenderParams& surfa
     if (buffer == nullptr) {
         return;
     }
+    bool isHdrBuffer = false;
     Media::VideoProcessingEngine::CM_ColorSpaceInfo colorSpaceInfo;
-    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-        return;
+    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) == GSERROR_OK) {
+        isHdrBuffer = colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
+            colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG;
     }
-    bool isHdrBuffer = colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
-        colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG;
 
     SetDisplayNit(RSLuminanceControl::Get().GetHdrDisplayNits(screenId));
     SetBrightnessRatio(isHdrBuffer ? 1.0f : RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
@@ -787,7 +785,8 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
-    if (enableType == MultiThreadCacheType::NONE) {
+    if (enableType == MultiThreadCacheType::NONE &&
+        GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) {
         return false;
     }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lld, type %d",
@@ -806,7 +805,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         drawCacheSuccess = DrawUIFirstCacheWithStarting(canvas, surfaceParams.GetUifirstUseStarting());
     } else {
         bool canSkipFirstWait = (enableType == MultiThreadCacheType::ARKTS_CARD) &&
-            (RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
+            uniParams.GetUIFirstCurrentFrameCanSkipFirstWait();
         drawCacheSuccess = useDmaBuffer ?
             DrawUIFirstCacheWithDma(canvas, surfaceParams) : DrawUIFirstCache(canvas, canSkipFirstWait);
     }

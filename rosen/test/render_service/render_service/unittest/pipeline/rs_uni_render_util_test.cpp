@@ -26,6 +26,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
 class RSUniRenderUtilTest : public testing::Test {
@@ -759,17 +760,21 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest, Function | SmallTest 
 {
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawawble;
     std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
-    NodeId id = 0;
-    std::shared_ptr<RSRenderNode> nodeNull = nullptr;
-    auto rsRenderNode = std::make_shared<RSRenderNode>(id);
-    auto node = std::make_shared<RSRenderNode>(id);
-    rsRenderNode->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
-    rsRenderNode->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(id);
+    NodeId id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceDrawable =
+        std::shared_ptr<RSSurfaceRenderNodeDrawable>(static_cast<RSSurfaceRenderNodeDrawable*>(drawable));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+
     allSurfaceDrawawble.emplace_back(nullptr);
-    allSurfaceDrawawble.emplace_back(rsRenderNode->renderDrawable_);
+    allSurfaceDrawawble.emplace_back(surfaceDrawable);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceDrawawble, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceDrawawble, hasVisibleDirtyRegionSurfaceVec, true);
-    EXPECT_TRUE(rsRenderNode->renderDrawable_->renderParams_);
+    EXPECT_TRUE(surfaceDrawable->renderParams_);
 }
 
 /**
@@ -782,15 +787,24 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest001, Function | SmallTe
 {
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
-    auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
+
+    NodeId id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    auto param = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(param, nullptr);
     param->isMainWindowType_ = false;
     param->isLeashWindow_ = false;
     param->isAppWindow_ = true;
     drawable->renderParams_ = std::move(param);
+
+    auto surfaceDrawable =
+        std::shared_ptr<RSSurfaceRenderNodeDrawable>(static_cast<RSSurfaceRenderNodeDrawable*>(drawable));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     allSurfaceNodeDrawables.push_back(nullptr);
-    allSurfaceNodeDrawables.push_back(drawable);
+    allSurfaceNodeDrawables.push_back(surfaceDrawable);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
     ASSERT_TRUE(drawable->renderParams_);
@@ -806,9 +820,15 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest002, Function | SmallTe
 {
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
-    allSurfaceNodeDrawables.push_back(drawable);
+    NodeId id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    auto surfaceDrawable =
+        std::shared_ptr<RSSurfaceRenderNodeDrawable>(static_cast<RSSurfaceRenderNodeDrawable*>(drawable));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    allSurfaceNodeDrawables.push_back(surfaceDrawable);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
     ASSERT_FALSE(drawable->renderParams_);
@@ -824,14 +844,23 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest003, Function | SmallTe
 {
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceNodeDrawables;
     std::vector<NodeId> hasVisibleDirtyRegionSurfaceVec;
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<DrawableV2::RSRenderNodeDrawable>(node);
-    auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
+    NodeId id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    auto param = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_NE(param, nullptr);
     param->isMainWindowType_ = false;
     param->isLeashWindow_ = false;
     param->isAppWindow_ = false;
     drawable->renderParams_ = std::move(param);
-    allSurfaceNodeDrawables.push_back(drawable);
+
+    auto surfaceDrawable =
+        std::shared_ptr<RSSurfaceRenderNodeDrawable>(static_cast<RSSurfaceRenderNodeDrawable*>(drawable));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    allSurfaceNodeDrawables.push_back(surfaceDrawable);
+
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, false);
     RSUniRenderUtil::MergeVisibleDirtyRegion(allSurfaceNodeDrawables, hasVisibleDirtyRegionSurfaceVec, true);
     ASSERT_TRUE(drawable->renderParams_);

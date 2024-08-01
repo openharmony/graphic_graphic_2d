@@ -32,6 +32,7 @@ public:
     static inline std::shared_ptr<HdiOutput> output_ = nullptr;
     static inline std::shared_ptr<MockSys::HdiLayerContext> hdiLayerTemp_ = nullptr;
     static inline std::vector<LayerInfoPtr> layerInfos_ = {};
+    static inline std::vector<std::string> paramKey_{};
 };
 
 void HdiBackendSysTest::SetUpTestCase()
@@ -41,6 +42,7 @@ void HdiBackendSysTest::SetUpTestCase()
     output_ = HdiOutput::CreateHdiOutput(screenId);
     output_->SetHdiOutputDevice(mockDevice_);
     output_->Init();
+    EXPECT_CALL(*mockDevice_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
 
     int32_t width = 50;
     int32_t height = 50;
@@ -83,7 +85,7 @@ HWTEST_F(HdiBackendSysTest, Repaint001, Function | MediumTest| Level3)
 {
     // Repaint before SetHdiBackendDevice
     hdiBackend_->Repaint(nullptr);
-    
+
     // repaint when layermap in output is empty
     hdiBackend_->Repaint(output_);
 

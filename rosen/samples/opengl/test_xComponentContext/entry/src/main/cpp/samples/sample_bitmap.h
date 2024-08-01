@@ -40,7 +40,7 @@ class SampleBitMap {
 public:
     SampleBitMap() = default;
     ~SampleBitMap();
-    explicit SampleBitMap(std::string id) : id_(id) {}
+    explicit SampleBitMap(std::string &id) : id_(id) {}
     static napi_value NapiDrawPattern(napi_env env, napi_callback_info info);
     static void Release(std::string &id);
     void DrawPath();

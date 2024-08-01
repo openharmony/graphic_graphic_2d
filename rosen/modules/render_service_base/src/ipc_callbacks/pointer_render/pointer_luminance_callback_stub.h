@@ -18,8 +18,8 @@
  
 #include <iremote_stub.h>
 #include "common/rs_macros.h"
-#include "ipc_callbacks/pointer_luminance_change_callback.h"
-#include "ipc_callbacks/pointer_luminance_change_callback_ipc_interface_code_access_verifier.h"
+#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
+#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback_ipc_interface_code_access_verifier.h"
 #include "ipc_security/rs_ipc_interface_code_security_manager.h"
  
 namespace OHOS {

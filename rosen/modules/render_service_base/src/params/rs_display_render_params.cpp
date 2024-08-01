@@ -95,6 +95,20 @@ bool RSDisplayRenderParams::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
+void RSDisplayRenderParams::SetBrightnessRatio (bool brightnessRatio)
+{
+    if (brightnessRatio_ == brightnessRatio) {
+        return;
+    }
+    brightnessRatio_ = brightnessRatio;
+    needSync_ = true;
+}
+
+float RSDisplayRenderParams::GetBrightnessRatio() const
+{
+    return brightnessRatio_;
+}
+
 void RSDisplayRenderParams::SetNewColorSpace(const GraphicColorGamut& newColorSpace)
 {
     if (newColorSpace_ == newColorSpace) {
@@ -161,7 +175,9 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
+    targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
+    targetDisplayParams->isMouseDirty_ = isMouseDirty_;
     RSRenderParams::OnSync(target);
 }
 

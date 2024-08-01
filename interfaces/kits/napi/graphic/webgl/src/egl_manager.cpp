@@ -88,43 +88,8 @@ EGLSurface EglManager::CreateSurface(NativeWindow* window)
     return eglSurface;
 }
 
-void EglManager::Init()
+void EglManager::CreateContext(int version)
 {
-    if (initialized_) {
-        return;
-    }
-    initialized_ = true;
-    LOGD("EglManag Init.");
-    if (eglContext_ != nullptr) {
-        LOGE("EglManager Init mEGLContext is already init.");
-        return;
-    }
-
-    eglDisplay_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (eglDisplay_ == EGL_NO_DISPLAY) {
-        LOGE("EglManager Init unable to get EGL display.");
-        return;
-    }
-
-    EGLint eglMajVers, eglMinVers;
-    if (!eglInitialize(eglDisplay_, &eglMajVers, &eglMinVers)) {
-        eglDisplay_ = EGL_NO_DISPLAY;
-        LOGE("EglManager Init unable to initialize display");
-        return;
-    }
-
-    int version = OPENGL_ES3_VERSION;
-    eglConfig_ = EglManager::GetConfig(version, eglDisplay_);
-    if (eglConfig_ == NULL) {
-        LOGE("EglManager Init config ERROR, try again");
-        version = OPENGL_ES2_VERSION;
-        eglConfig_ = EglManager::GetConfig(version, eglDisplay_);
-        if (eglConfig_ == NULL) {
-            LOGE("EglManager Init config ERROR again");
-            return;
-        }
-    }
-
     if (eglWindow_) {
         LOGD("EglManager Init eglSurface from eglWindow");
         currentSurface_ = eglCreateWindowSurface(eglDisplay_, eglConfig_, eglWindow_, NULL);
@@ -157,8 +122,48 @@ void EglManager::Init()
         LOGD("EglManager Init Create mEGLContext ok");
     } else {
         LOGE("EglManager Init eglCreateContext error %{public}x", error);
+        return;
     }
     eglMakeCurrent(eglDisplay_, currentSurface_, currentSurface_, eglContext_);
+}
+
+void EglManager::Init()
+{
+    if (initialized_) {
+        return;
+    }
+    initialized_ = true;
+    LOGD("EglManager Init.");
+    if (eglContext_ != nullptr) {
+        LOGE("EglManager Init mEGLContext is already init.");
+        return;
+    }
+
+    eglDisplay_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (eglDisplay_ == EGL_NO_DISPLAY) {
+        LOGE("EglManager Init unable to get EGL display.");
+        return;
+    }
+
+    EGLint eglMajVers, eglMinVers;
+    if (!eglInitialize(eglDisplay_, &eglMajVers, &eglMinVers)) {
+        eglDisplay_ = EGL_NO_DISPLAY;
+        LOGE("EglManager Init unable to initialize display");
+        return;
+    }
+
+    int version = OPENGL_ES3_VERSION;
+    eglConfig_ = EglManager::GetConfig(version, eglDisplay_);
+    if (eglConfig_ == NULL) {
+        LOGE("EglManager Init config ERROR, try again");
+        version = OPENGL_ES2_VERSION;
+        eglConfig_ = EglManager::GetConfig(version, eglDisplay_);
+        if (eglConfig_ == NULL) {
+            LOGE("EglManager Init config ERROR again");
+            return;
+        }
+    }
+    CreateContext(version);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -60,6 +60,13 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             auto dvsyncOn = data.ReadBool();
             return SetUiDvsyncSwitch(dvsyncOn);
         }
+        case IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG: {
+            int32_t bufferCount;
+            if (!data.ReadInt32(bufferCount)) {
+                return VSYNC_ERROR_API_FAILED;
+            }
+            return SetUiDvsyncConfig(bufferCount);
+        }
         default: {
             // check add log
             return VSYNC_ERROR_INVALID_OPERATING;

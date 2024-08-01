@@ -765,7 +765,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1
     node.shouldPaint_ = true;
     rsRenderThreadVisitor.childSurfaceNodeIds_.clear();
     rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(!rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
+    EXPECT_TRUE(rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
 
     node.isTextureExportNode_ = true;
     rsRenderThreadVisitor.childSurfaceNodeIds_.push_back(0);
@@ -1267,10 +1267,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessOtherSurfaceRenderNode001, TestSize.L
     RSSurfaceRenderNode node(0);
     Drawing::Canvas canvas;
     visitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    std::function<void(float, float, float, float)> fun = [](
-        float a, float b, float c, float d) {};
-    visitor.surfaceCallbacks_[0] = fun;
-    visitor.ProcessOtherSurfaceRenderNode(node);
-    EXPECT_EQ(visitor.surfaceCallbacks_.empty(), 0);
+    visitor.ProcessSurfaceRenderNode(node);
+    EXPECT_EQ(visitor.childSurfaceNodeIds_.size(), 0);
 }
 } // namespace OHOS::Rosen

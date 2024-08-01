@@ -51,7 +51,10 @@ public:
     static void* CreateParallelSyncSignal(uint32_t count);
 };
 
-void RSMainThreadTest::SetUpTestCase() {}
+void RSMainThreadTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSMainThreadTest::TearDownTestCase() {}
 void RSMainThreadTest::SetUp() {}
 void RSMainThreadTest::TearDown() {}
@@ -837,15 +840,16 @@ HWTEST_F(RSMainThreadTest, GetWatermarkImg, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsFirstOrLastFrameOfWatermark
- * @tc.desc: IsFirstOrLastFrameOfWatermark test
+ * @tc.name: IsWatermarkFlagChanged
+ * @tc.desc: IsWatermarkFlagChanged test
  * @tc.type: FUNC
- * @tc.require: issueI7HDVG
+ * @tc.require: issuesIA8LNR
  */
-HWTEST_F(RSMainThreadTest, IsFirstOrLastFrameOfWatermark, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, IsWatermarkFlagChanged, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->IsFirstOrLastFrameOfWatermark();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->IsWatermarkFlagChanged();
 }
 
 /**
@@ -2880,6 +2884,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation001, TestSize.Level1)
 
     NodeId idBottom = 0;
     auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    nodeBottom->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idBottom);
     RectI rectBottom = RectI(0, 0, 100, 100);
     nodeBottom->oldDirtyInSurface_ = rectBottom;
     nodeBottom->SetDstRect(rectBottom);
@@ -2887,6 +2892,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation001, TestSize.Level1)
 
     NodeId idTop = 1;
     auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    nodeTop->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idTop);
     RectI rectTop = RectI(100, 100, 100, 100);
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
@@ -2917,6 +2923,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation002, TestSize.Level1)
 
     NodeId idBottom = 0;
     auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    nodeBottom->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idBottom);
     RectI rectBottom = RectI(0, 0, 100, 100);
     nodeBottom->oldDirtyInSurface_ = rectBottom;
     nodeBottom->SetDstRect(rectBottom);
@@ -2924,6 +2931,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation002, TestSize.Level1)
 
     NodeId idTop = 1;
     auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    nodeTop->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idTop);
     RectI rectTop = RectI(50, 50, 100, 100);
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
@@ -2954,6 +2962,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation003, TestSize.Level1)
 
     NodeId idBottom = 0;
     auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    nodeBottom->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idBottom);
     RectI rectBottom = RectI(0, 0, 100, 100);
     nodeBottom->oldDirtyInSurface_ = rectBottom;
     nodeBottom->SetDstRect(rectBottom);
@@ -2961,6 +2970,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation003, TestSize.Level1)
 
     NodeId idTop = 1;
     auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    nodeTop->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idTop);
     RectI rectTop = RectI(0, 0, 100, 100);
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
@@ -2991,6 +3001,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation004, TestSize.Level1)
 
     NodeId idBottom = 0;
     auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    nodeBottom->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idBottom);
     RectI rectBottom = RectI(0, 0, 100, 100);
     nodeBottom->oldDirtyInSurface_ = rectBottom;
     nodeBottom->SetDstRect(rectBottom);
@@ -2998,6 +3009,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation004, TestSize.Level1)
 
     NodeId idTop = 1;
     auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    nodeTop->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idTop);
     RectI rectTop = RectI(0, 0, 100, 100);
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
@@ -3030,6 +3042,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
 
     NodeId idBottom = 0;
     auto nodeBottom = std::make_shared<RSSurfaceRenderNode>(idBottom, mainThread->context_);
+    nodeBottom->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idBottom);
     RectI rectBottom = RectI(0, 0, 100, 100);
     nodeBottom->oldDirtyInSurface_ = rectBottom;
     nodeBottom->SetDstRect(rectBottom);
@@ -3037,6 +3050,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
 
     NodeId idTop = 1;
     auto nodeTop = std::make_shared<RSSurfaceRenderNode>(idTop, mainThread->context_);
+    nodeTop->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(idTop);
     RectI rectTop = RectI(0, 0, 100, 100);
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
@@ -3122,22 +3136,6 @@ HWTEST_F(RSMainThreadTest, ProcessScreenHotPlugEvents, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->ProcessScreenHotPlugEvents();
-}
-
-/**
- * @tc.name: CheckSurfaceVisChanged001
- * @tc.desc: Test CheckSurfaceVisChanged, systemAnimatedScenesList is empty
- * @tc.type: FUNC
- * @tc.require: issueI97LXT
- */
-HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->systemAnimatedScenesList_.clear();
-    mainThread->CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces);
 }
 
 /**
@@ -3361,8 +3359,8 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
 }
 
 /**
- * @tc.name: UIExtensionNodesTraverseAndCallback001
- * @tc.desc: test UIExtensionNodesTraverseAndCallback, no need to callback
+ * @tc.name: CheckUIExtensionCallbackDataChanged001
+ * @tc.desc: test CheckUIExtensionCallbackDataChanged, no need to callback (2 frames of empty callback data)
  * @tc.type: FUNC
  * @tc.require: issueIABHAX
  */
@@ -3372,22 +3370,21 @@ HWTEST_F(RSMainThreadTest, UIExtensionNodesTraverseAndCallback001, TestSize.Leve
     ASSERT_NE(mainThread, nullptr);
     mainThread->lastFrameUIExtensionDataEmpty_ = true;
     mainThread->uiExtensionCallbackData_.clear();
-    mainThread->UIExtensionNodesTraverseAndCallback();
-    ASSERT_TRUE(mainThread->uiExtensionCallbackData_.empty());
+    ASSERT_FALSE(mainThread->CheckUIExtensionCallbackDataChanged());
 }
 
 /**
- * @tc.name: UIExtensionNodesTraverseAndCallback002
- * @tc.desc: test UIExtensionNodesTraverseAndCallback, empty callback list
+ * @tc.name: CheckUIExtensionCallbackDataChanged002
+ * @tc.desc: test CheckUIExtensionCallbackDataChanged, first frame of empty callbackdata, need to callback
  * @tc.type: FUNC
  * @tc.require: issueIABHAX
  */
-HWTEST_F(RSMainThreadTest, UIExtensionNodesTraverseAndCallback002, TestSize.Level2)
+HWTEST_F(RSMainThreadTest, CheckUIExtensionCallbackDataChanged002, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->lastFrameUIExtensionDataEmpty_ = false;
-    mainThread->UIExtensionNodesTraverseAndCallback();
-    ASSERT_TRUE(mainThread->uiExtensionCallbackData_.empty());
+    mainThread->uiExtensionCallbackData_.clear();
+    ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
 }
 } // namespace OHOS::Rosen

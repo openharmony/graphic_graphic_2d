@@ -17,6 +17,7 @@
 #define ROSEN_MODULES_SPTEXT_PARAGRAPH_IMPL_H
 
 #include <optional>
+#include <pthread.h>
 
 #include "modules/skparagraph/include/Paragraph.h"
 #include "txt/paint_record.h"
@@ -119,6 +120,7 @@ public:
     void UpdateColor(size_t from, size_t to, const RSColor& color) override;
 
 private:
+    void RecordDifferentPthreadCall(const char* caller) const;
 
     std::unique_ptr<skia::textlayout::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
@@ -127,6 +129,7 @@ private:
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
     uint32_t id_ = 0;
+    mutable pthread_t threadId_;
 };
 } // namespace SPText
 } // namespace Rosen

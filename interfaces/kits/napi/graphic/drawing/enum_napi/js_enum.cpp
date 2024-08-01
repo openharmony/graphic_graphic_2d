@@ -172,6 +172,12 @@ static const std::vector<struct JsEnumInt> g_pathFillType = {
     { "INVERSE_EVEN_ODD", static_cast<int32_t>(PathFillType::INVERSE_EVENTODD) },
 };
 
+static const std::vector<struct JsEnumInt> g_pathMeasureMatrixFlags = {
+    { "GET_POSITION_MATRIX", static_cast<int32_t>(PathMeasureMatrixFlags::GET_POSITION_MATRIX) },
+    { "GET_TANGENT_MATRIX", static_cast<int32_t>(PathMeasureMatrixFlags::GET_TANGENT_MATRIX) },
+    { "GET_POSITION_AND_TANGENT_MATRIX", static_cast<int32_t>(PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX) },
+};
+
 static const std::vector<struct JsEnumInt> g_srcRectConstraint = {
     { "STRICT", static_cast<int32_t>(Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) },
     { "FAST", static_cast<int32_t>(Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT) },
@@ -235,6 +241,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "PointMode", g_pointMode },
     { "PathDirection", g_pathDirection },
     { "PathFillType", g_pathFillType },
+    { "PathMeasureMatrixFlags", g_pathMeasureMatrixFlags },
     { "PathOp", g_pathOp },
     { "SrcRectConstraint", g_srcRectConstraint },
     { "ScaleToFit", g_scaleToFit },

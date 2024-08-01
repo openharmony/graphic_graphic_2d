@@ -193,24 +193,6 @@ HWTEST_F(RSNodeCommandTest, SetNodeName001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkNodeGroup001
- * @tc.desc: test results of MarkNodeGroup
- * @tc.type: FUNC
- * @tc.require: issueI9P2KH
- */
-HWTEST_F(RSNodeCommandTest, MarkNodeGroup001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = 1;
-    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, true, true, true);
-    EXPECT_EQ(1, nodeId);
-
-    nodeId = 0;
-    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, true, true, true);
-    EXPECT_EQ(0, nodeId);
-}
-
-/**
  * @tc.name: MarkNodeSingleFrameComposer001
  * @tc.desc: test results of MarkNodeSingleFrameComposer
  * @tc.type: FUNC
@@ -282,24 +264,6 @@ HWTEST_F(RSNodeCommandTest, SetOutOfParent001, TestSize.Level1)
 
     nodeId = 1;
     RSNodeCommandHelper::SetOutOfParent(context, nodeId, outOfParent);
-    EXPECT_EQ(1, nodeId);
-}
-
-/**
- * @tc.name: SetTakeSurfaceForUIFlag001
- * @tc.desc: test results of SetTakeSurfaceForUIFlag
- * @tc.type: FUNC
- * @tc.require: issueI9P2KH
- */
-HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId nodeId = 0;
-    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
-    EXPECT_EQ(0, nodeId);
-
-    nodeId = 1;
-    RSNodeCommandHelper::SetTakeSurfaceForUIFlag(context, nodeId);
     EXPECT_EQ(1, nodeId);
 }
 

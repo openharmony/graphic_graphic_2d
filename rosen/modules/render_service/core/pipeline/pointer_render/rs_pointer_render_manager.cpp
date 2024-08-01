@@ -27,6 +27,7 @@ static const std::string DISPLAY = "DisplayNode";
 static const std::string POINTER = "pointer";
 static const float RGB = 255.0f;
 static const float HALF = 0.5f;
+static const int32_t CALCULATE_MIDDLE = 2;
 } // namespace
 static std::unique_ptr<RSPointerRenderManager> g_pointerRenderManagerInstance =
     std::make_unique<RSPointerRenderManager>();
@@ -62,12 +63,14 @@ int64_t RSPointerRenderManager::GetCurrentTime()
     return std::chrono::duration_cast<std::chrono::milliseconds>(timeNow.time_since_epoch()).count();
 }
 
-void RSPointerRenderManager::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
+void RSPointerRenderManager::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+    int64_t interval, int32_t rangeSize)
 {
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
     darkBuffer_ = darkBuffer;
     brightBuffer_ = brightBuffer;
     colorSamplingInterval_ = interval;
+    rangeSize_ = rangeSize;
 }
  
 void RSPointerRenderManager::SetPointerColorInversionEnabled(bool enable)
@@ -192,6 +195,7 @@ bool RSPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::
         }
         image_ = std::make_shared<Drawing::Image>();
         RectI pointerRect = surfaceDrawable->GetRenderParams()->GetAbsDrawRect();
+        CalculateColorRange(pointerRect);
         Drawing::RectI drawingPointerRect = Drawing::RectI(pointerRect.GetLeft(), pointerRect.GetTop(),
             pointerRect.GetRight(), pointerRect.GetBottom());
         image_->BuildSubset(cacheImgForPointer_, drawingPointerRect, *gpuContext);
@@ -235,11 +239,20 @@ bool RSPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcessor> p
         ROSEN_LOGD("RSPointerRenderManager::CalculateTargetLayer cannot find pointer or display node.");
         return false;
     }
-
+    CalculateColorRange(pRect);
     // calculate the max intersection layer and rect
     GetRectAndTargetLayer(layers, pRect, displayNodeIndex);
 
     return true;
+}
+
+void RSPointerRenderManager::CalculateColorRange(RectI& pRect)
+{
+    if (rangeSize_ > 0) {
+        int left = pRect.GetLeft() + (pRect.GetWidth() - rangeSize_) / CALCULATE_MIDDLE;
+        int top = pRect.GetTop() + (pRect.GetHeight() - rangeSize_) / CALCULATE_MIDDLE;
+        pRect.SetAll(left, top, rangeSize_, rangeSize_);
+    }
 }
 
 void RSPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect,

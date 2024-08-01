@@ -4643,23 +4643,6 @@ HWTEST_F(RSNodeTest, RemoveChildByNodeId001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTakeSurfaceForUIFlagTest Test
- * @tc.desc: SetTakeSurfaceForUIFlag and AnimateWithCurrentOptions
- * @tc.type: FUNC
- * @tc.require:issueI9MWJR
- */
-HWTEST_F(RSNodeTest, SetTakeSurfaceForUIFlagTest, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->SetTakeSurfaceForUIFlag();
-    PropertyCallback propertyCallback;
-    std::function<void()> finishCallback = []() {};
-    RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, true);
-    propertyCallback = []() {};
-    ASSERT_EQ(RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, true).size(), 0);
-}
-
-/**
  * @tc.name: DrawOnNode Test
  * @tc.desc: DrawOnNode and SetFreeze
  * @tc.type: FUNC
@@ -5383,13 +5366,14 @@ HWTEST_F(RSNodeTest, SetMotionBlurPara, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetMagnifierParams, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    Vector2f para = { 1.f, 1.f }; // for test
     ASSERT_TRUE(rsNode != nullptr);
+    auto para = std::make_shared<RSMagnifierParams>();
     rsNode->SetMagnifierParams(para);
 
     auto iter = rsNode->propertyModifiers_.find(RSModifierType::MAGNIFIER_PARA);
     ASSERT_TRUE(iter != rsNode->propertyModifiers_.end());
-    auto property = std::static_pointer_cast<RSProperty<Vector2f>>(iter->second->GetProperty());
+    auto property = std::static_pointer_cast<RSProperty<std::shared_ptr<RSMagnifierParams>>>(
+        iter->second->GetProperty());
     ASSERT_TRUE(property != nullptr);
     EXPECT_EQ(property->Get(), para);
 }

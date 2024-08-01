@@ -524,6 +524,10 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
     { "brushrest",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<BrushReset>(TestBase::DRAW_STYLE_COMPLEX); } },
 };
+
+std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> StabilityCpuMap = {
+    { "aarectmodes", []() -> std::shared_ptr<TestBase> { return std::make_shared<AARectModes>(); } },
+};
 } // namespace
 
 std::shared_ptr<TestBase> TestCaseFactory::GetFunctionCpuCase(std::string caseName)
@@ -546,7 +550,22 @@ std::shared_ptr<TestBase> TestCaseFactory::GetPerformanceCpuCase(std::string cas
     return PerformanceCpuMap.find(caseName)->second();
 }
 
+std::shared_ptr<TestBase> TestCaseFactory::GetStabilityCpuCase(std::string caseName)
+{
+    if (StabilityCpuMap.find(caseName) == StabilityCpuMap.end()) {
+        DRAWING_LOGE("caseName error");
+        return nullptr;
+    }
+
+    return StabilityCpuMap.find(caseName)->second();
+}
+
 std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> TestCaseFactory::GetFunctionCpuCaseAll()
 {
     return FunctionalCpuMap;
+}
+
+std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> TestCaseFactory::GetStabilityCpuCaseAll()
+{
+    return StabilityCpuMap;
 }

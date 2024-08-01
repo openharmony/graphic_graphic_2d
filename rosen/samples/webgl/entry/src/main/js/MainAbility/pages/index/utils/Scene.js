@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Camera } from "./Camera.js";
+import { Camera } from './Camera.js';
 export class Scene {
     gl;
     _camera = new Camera();
@@ -56,7 +56,7 @@ export class Scene {
         let fun = () => {
             render();
             this.render();
-            if(!this.gl.closed){
+            if(!this.gl.closed) {
                 requestAnimationFrame(fun);
             }
         };

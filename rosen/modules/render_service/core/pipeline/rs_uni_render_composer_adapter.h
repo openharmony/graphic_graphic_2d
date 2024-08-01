@@ -54,9 +54,9 @@ private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static RectI SrcRectRotateTransform(DrawableV2::RSSurfaceRenderNodeDrawable& node);
 
-    ComposeInfo BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& node);
+    ComposeInfo BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
-    ComposeInfo BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& node) const;
+    ComposeInfo BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
 
     void SetComposeInfoToLayer(
@@ -78,10 +78,11 @@ private:
     static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
 
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
-    static void GetComposerInfoSrcRect(ComposeInfo& info, const DrawableV2::RSSurfaceRenderNodeDrawable& node);
+    static void GetComposerInfoSrcRect(
+        ComposeInfo& info, const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
     bool GetComposerInfoNeedClient(const ComposeInfo& info, RSRenderParams& params) const;
     bool CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node) const;
-    bool CheckStatusBeforeCreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& node) const;
+    bool CheckStatusBeforeCreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     void SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const;
 
     std::shared_ptr<HdiOutput> output_;

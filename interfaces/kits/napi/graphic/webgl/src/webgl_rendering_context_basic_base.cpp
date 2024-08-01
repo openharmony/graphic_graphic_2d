@@ -109,6 +109,9 @@ bool WebGLRenderingContextBasicBase::CreateSurface()
 {
     if (eglSurface_ == nullptr) {
         eglSurface_ = EglManager::GetInstance().CreateSurface(eglWindow_);
+        if (eglSurface_ == nullptr) {
+            return false;
+        }
     }
     return true;
 }

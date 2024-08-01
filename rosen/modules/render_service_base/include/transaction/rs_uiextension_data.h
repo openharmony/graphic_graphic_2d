@@ -54,7 +54,7 @@ public:
         }
     }
     RSUIExtensionData(RSUIExtensionData&& other) : secData_(std::move(other.secData_)) {}
-    ~RSUIExtensionData() override;
+    virtual ~RSUIExtensionData() noexcept = default;
 
     const UIExtensionCallbackData& GetSecData() const
     {

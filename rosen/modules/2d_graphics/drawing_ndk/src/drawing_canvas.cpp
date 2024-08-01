@@ -286,8 +286,8 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
     int32_t vertexCount, const OH_Drawing_Point2D* positions, const OH_Drawing_Point2D* texs,
     const uint32_t* colors, int32_t indexCount, const uint16_t* indices, OH_Drawing_BlendMode mode)
 {
-    if (positions == nullptr || texs == nullptr || colors == nullptr || indices == nullptr
-        || vertexCount < 0 || indexCount < 0) {
+    // 3 means the minimum number of vertices required for a triangle
+    if (positions == nullptr || vertexCount < 3 || (indexCount < 3 && indexCount != 0)) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return;
     }
@@ -316,19 +316,26 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
     for (int32_t i = 0; i < vertexCount; ++i) {
         positionsPoint[i] = CastToPoint(positions[i]);
     }
-    Point* texsPoint = new(std::nothrow) Point[vertexCount];
-    if (texsPoint == nullptr) {
-        delete [] positionsPoint;
-        LOGE("OH_Drawing_CanvasDrawVertices: new texs point failed.");
-        return;
+
+    Point* texsPoint = nullptr;
+    if (texs != nullptr) {
+        texsPoint = new(std::nothrow) Point[vertexCount];
+        if (texsPoint == nullptr) {
+            delete [] positionsPoint;
+            LOGE("OH_Drawing_CanvasDrawVertices: new texs point failed.");
+            return;
+        }
+        for (int32_t i = 0; i < vertexCount; i++) {
+            texsPoint[i] = CastToPoint(texs[i]);
+        }
     }
-    for (int32_t i = 0; i < vertexCount; ++i) {
-        texsPoint[i] = CastToPoint(texs[i]);
-    }
+
     Vertices* vertices = new Vertices();
-    vertices->MakeCopy(static_cast<VertexMode>(vertexMode), vertexCount, positionsPoint,
-        texsPoint, colors, indexCount, indices);
-    canvas->DrawVertices(*vertices, static_cast<BlendMode>(mode));
+    bool result = vertices->MakeCopy(static_cast<VertexMode>(vertexMode), vertexCount, positionsPoint,
+        texsPoint, colors, indices ? indexCount : 0, indices);
+    if (result) {
+        canvas->DrawVertices(*vertices, static_cast<BlendMode>(mode));
+    }
     delete vertices;
     delete [] positionsPoint;
     delete [] texsPoint;

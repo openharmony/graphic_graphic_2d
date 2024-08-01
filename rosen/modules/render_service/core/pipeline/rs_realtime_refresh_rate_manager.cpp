@@ -33,6 +33,7 @@ RSRealtimeRefreshRateManager& RSRealtimeRefreshRateManager::Instance()
 
 void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
 {
+    std::unique_lock<std::mutex> threadLock(threadMutex_);
     if (enableState_ == enable) {
         return;
     }
@@ -46,9 +47,9 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
             uint32_t lastRefreshRate = 0;
             uint32_t lastRealtimeRefreshRate = 0;
             currRealtimeRefreshRate_ = 1;
+            std::mutex condMutex;
             while (enableState_) {
-                std::unique_lock<std::mutex> lock(threadMutex_);
-
+                std::unique_lock<std::mutex> lock(condMutex);
                 auto st = std::chrono::steady_clock::now();
                 realtimeFrameCount_ = 0;
                 threadCondVar_.wait_for(lock, NS_FPS_SHOW_INTERVAL_);

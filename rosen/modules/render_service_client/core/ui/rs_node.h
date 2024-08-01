@@ -52,6 +52,7 @@ class RSCommand;
 class RSImplicitAnimParam;
 class RSImplicitAnimator;
 class RSModifier;
+class RSObjAbsGeometry;
 
 class RSC_EXPORT RSNode : public std::enable_shared_from_this<RSNode> {
 public:
@@ -291,7 +292,7 @@ public:
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
-    void SetMagnifierParams(const Vector2f& para);
+    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
     void SetDynamicDimDegree(const float dimDegree);
@@ -445,6 +446,15 @@ public:
         return isTextureExportNode_;
     }
 
+    bool IsGeometryDirty() const;
+    bool IsAppearanceDirty() const;
+    void MarkDirty(NodeDirtyType type, bool isDirty);
+
+    std::shared_ptr<RSObjAbsGeometry> GetLocalGeometry();
+    std::shared_ptr<RSObjAbsGeometry> GetGlobalGeometry();
+    void UpdateLocalGeometry();
+    void UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& parentGlobalGeometry);
+
     std::mutex childrenNodeLock_; // lock for map operation
     // key: symbolSpanID, value:nodeid and symbol animation node list
     std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
@@ -540,6 +550,11 @@ private:
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
+
+    uint32_t dirtyType_ = static_cast<uint32_t>(NodeDirtyType::NOT_DIRTY);
+
+    std::shared_ptr<RSObjAbsGeometry> localGeometry_;
+    std::shared_ptr<RSObjAbsGeometry> globalGeometry_;
 
     pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };

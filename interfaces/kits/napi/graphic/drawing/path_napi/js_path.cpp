@@ -753,7 +753,7 @@ napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    napi_value argv[ARGC_SIX] = {nullptr};
+    napi_value argv[ARGC_FOUR] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
 
     bool forceClosed = false;
@@ -762,13 +762,23 @@ napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info
     double distance = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, distance);
 
-    Point* position = nullptr;
-    GET_UNWRAP_PARAM(ARGC_TWO, position);
+    Drawing::Point position;
+    double startPoint[ARGC_TWO] = {0};
+    if (!ConvertFromJsPoint(env, argv[ARGC_TWO], startPoint, ARGC_TWO)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect parameter2 type. The type of x, y be number.");
+    }
+    position = Drawing::Point(startPoint[ARGC_ZERO], startPoint[ARGC_ONE]);
 
-    Point* tangent = nullptr;
-    GET_UNWRAP_PARAM(ARGC_THREE, tangent);
+    Drawing::Point tangent;
+    double endPoint[ARGC_TWO] = {0};
+    if (!ConvertFromJsPoint(env, argv[ARGC_THREE], endPoint, ARGC_TWO)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect parameter3 type. The type of x, y be number.");
+    }
+    tangent = Drawing::Point(endPoint[ARGC_ZERO], endPoint[ARGC_ONE]);
 
-    bool result = m_path->GetPositionAndTangent(distance, *position, *tangent, forceClosed);
+    bool result = m_path->GetPositionAndTangent(distance, position, tangent, forceClosed);
     return CreateJsNumber(env, result);
 }
 
@@ -846,8 +856,8 @@ napi_value JsPath::OnAddOval(napi_env env, napi_callback_info info)
     }
     drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
-    uint32_t start = 0;
-    GET_UINT32_PARAM(ARGC_ONE, start);
+    int32_t start = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, start);
     if (argc == ARGC_TWO) {
         JS_CALL_DRAWING_FUNC(m_path->AddOval(drawingRect, start,
             static_cast<PathDirection>(PathDirection::CW_DIRECTION)));

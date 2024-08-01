@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
+static const size_t HWC_DISABLED_REASON_INFO_OFFSET = 4;
 
 enum HwcDisabledReasons {
     DISABLED_BY_FLITER_RECT = 0,
@@ -50,8 +51,7 @@ public:
     static HwcDisabledReasonCollection& GetInstance();
 
     void UpdateHwcDisabledReasonForDFX(NodeId id, int32_t disabledReason, const std::string& nodeName);
-    HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
-    void ResetHwcDisabledReasonInfo();
+    HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
 
 private:
     HwcDisabledReasonCollection();

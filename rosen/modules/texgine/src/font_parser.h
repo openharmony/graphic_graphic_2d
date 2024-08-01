@@ -75,6 +75,7 @@ public:
         std::string fullName;
         std::string fontFamily;
         std::string fontSubfamily;
+        std::string requestedFullname;
         unsigned int postScriptNameLid;
         unsigned int fullNameLid;
         unsigned int fontFamilyLid;

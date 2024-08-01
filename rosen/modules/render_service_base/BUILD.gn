@@ -157,9 +157,6 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
     "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
     "src/ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.cpp",
-    "src/ipc_callbacks/pointer_luminance_callback_ipc_interface_code_access_verifier.cpp",
-    "src/ipc_callbacks/pointer_luminance_callback_proxy.cpp",
-    "src/ipc_callbacks/pointer_luminance_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
     "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
@@ -307,6 +304,15 @@ ohos_source_set("render_service_base_src") {
     "src/info_collection/rs_hardware_compose_disabled_reason_collection.cpp",
     "src/info_collection/rs_layer_compose_collection.cpp",
   ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    sources += [
+      #ipc_callbacks
+      "src/ipc_callbacks/pointer_render/pointer_luminance_callback_ipc_interface_code_access_verifier.cpp",
+      "src/ipc_callbacks/pointer_render/pointer_luminance_callback_proxy.cpp",
+      "src/ipc_callbacks/pointer_render/pointer_luminance_callback_stub.cpp",
+    ]
+  }
 
   if (rosen_is_ohos) {
     sources += [

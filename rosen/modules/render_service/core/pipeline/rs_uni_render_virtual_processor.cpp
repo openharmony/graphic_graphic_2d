@@ -50,6 +50,11 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
         return false;
     }
     virtualScreenId_ = params->GetScreenId();
+    VirtualScreenStatus screenStatus = screenManager->GetVirtualScreenStatus(virtualScreenId_);
+    if (screenStatus == VIRTUAL_SCREEN_PAUSE) {
+        RS_LOGD("RSUniRenderVirtualProcessor::Init screenStatus is pause");
+        return false;
+    }
     auto virtualScreenInfo = screenManager->QueryScreenInfo(virtualScreenId_);
     canvasRotation_ = screenManager->GetCanvasRotation(virtualScreenId_);
     scaleMode_ = screenManager->GetScaleMode(virtualScreenId_);
@@ -189,6 +194,8 @@ void RSUniRenderVirtualProcessor::CanvasInit(RSDisplayRenderNode& node)
 
 void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
 {
+    // Save the initial canvas state
+    canvas_->Save();
     if (displayDrawable.IsFirstTimeToProcessor() || canvasRotation_) {
         if (displayDrawable.IsFirstTimeToProcessor()) {
             RS_LOGI("RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", " \

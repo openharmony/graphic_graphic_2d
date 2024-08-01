@@ -227,6 +227,16 @@ public:
         isHardwareForcedDisabledByVisibility_ = forcesDisabled;
     }
 
+    void SetNodeHasBackgroundColorAlpha(bool forcesDisabled)
+    {
+        isHardwareForcedByBackgroundAlpha_ = forcesDisabled;
+    }
+
+    bool IsNodeHasBackgroundColorAlpha() const
+    {
+        return isHardwareForcedByBackgroundAlpha_;
+    }
+
     void SetHardwareDisabledByCache(bool disabledByCache)
     {
         isHardwareDisabledByCache_ = disabledByCache;
@@ -401,7 +411,7 @@ public:
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
-    bool IsSCBNode();
+    bool IsSCBNode() const;
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
@@ -584,6 +594,11 @@ public:
     uint8_t GetAbilityBgAlpha() const
     {
         return abilityBgAlpha_;
+    }
+
+    bool GetQosCal()
+    {
+        return qosPidCal_;
     }
 
     void setQosCal(bool qosPidCal)
@@ -1166,6 +1181,10 @@ public:
         return surfaceHandler_;
     }
 
+    void CheckContainerDirtyStatusAndUpdateDirty(bool containerDirty)
+    {
+        dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1423,6 +1442,8 @@ private:
 
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
+
+    bool isHardwareForcedByBackgroundAlpha_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

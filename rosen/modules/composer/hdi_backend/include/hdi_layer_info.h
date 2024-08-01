@@ -17,6 +17,7 @@
 #define HDI_BACKEND_HDI_LAYER_INFO_H
 
 #include <string>
+#include <set>
 #include "iconsumer_surface.h"
 #include <surface.h>
 #include <sync_fence.h>
@@ -108,6 +109,16 @@ public:
     void SetZorder(int32_t zOrder)
     {
         zOrder_ = static_cast<uint32_t>(zOrder);
+    }
+
+    void SetType(const GraphicLayerType& layerType)
+    {
+        layerType_ = layerType;
+    }
+
+    GraphicLayerType GetType() const
+    {
+        return layerType_;
     }
 
     void SetAlpha(const GraphicLayerAlpha &alpha)
@@ -422,6 +433,16 @@ public:
         layerSource_ = layerSouce;
     }
 
+    void SetClearCacheSet(const std::set<int32_t>& clearCacheSet)
+    {
+        clearCacheSet_ = clearCacheSet;
+    }
+
+    std::set<int32_t> GetClearCacheSet() const
+    {
+        return clearCacheSet_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -452,6 +473,7 @@ public:
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
         scalingMode_ = layerInfo->GetScalingMode();
         layerSource_ = layerInfo->GetLayerSourceTuning();
+        clearCacheSet_ = layerInfo->GetClearCacheSet();
     }
 
     void Dump(std::string &result) const
@@ -533,6 +555,7 @@ public:
 
 private:
     uint32_t zOrder_ = 0;
+    GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     GraphicIRect layerRect_;
     GraphicIRect boundRect_; // node's bound width and height related to this layer, used for uni render redraw
     std::vector<GraphicIRect> visibleRegions_;
@@ -569,6 +592,7 @@ private:
     uint64_t nodeId_ = 0;
     ScalingMode scalingMode_;
     int32_t layerSource_ = 0; // default layer source tag
+    std::set<int32_t> clearCacheSet_;
 };
 } // namespace Rosen
 } // namespace OHOS

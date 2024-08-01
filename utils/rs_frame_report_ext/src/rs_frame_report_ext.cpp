@@ -23,11 +23,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-#if (defined(__aarch64__) || defined(__x86_64__))
-    const std::string FRAME_AWARE_SO_PATH = "/system/lib64/libframe_ui_intf.z.so";
-#else
-    const std::string FRAME_AWARE_SO_PATH = "/system/lib/platformsdk/libframe_ui_intf.z.so";
-#endif
+
+const std::string FRAME_AWARE_SO_PATH = "libframe_ui_intf.z.so";
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001706

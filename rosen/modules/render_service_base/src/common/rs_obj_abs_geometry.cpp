@@ -123,7 +123,7 @@ bool RSObjAbsGeometry::IsNeedClientCompose() const
 }
 
 namespace {
-    void ApplySkewToMatrix44(const Transform& trans, Drawing::Matrix44& m44, bool preConcat)
+    void ApplySkewToMatrix44(const RSTransform& trans, Drawing::Matrix44& m44, bool preConcat)
     {
         if (!ROSEN_EQ(trans.skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans.skewY_, 0.f, EPSILON)) {
             Drawing::Matrix44 skewM44 {};
@@ -139,7 +139,7 @@ namespace {
         }
     }
 
-    void ApplyPerspToMatrix(const Transform& trans, Drawing::Matrix& m, bool preConcat)
+    void ApplyPerspToMatrix(const RSTransform& trans, Drawing::Matrix& m, bool preConcat)
     {
         if (!ROSEN_EQ(trans.perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans.perspY_, 0.f, EPSILON)) {
             Drawing::Matrix perspM {};
@@ -154,7 +154,7 @@ namespace {
         }
     }
 
-    void ApplyPerspToMatrix44(const Transform& trans, Drawing::Matrix44& m44, bool preConcat)
+    void ApplyPerspToMatrix44(const RSTransform& trans, Drawing::Matrix44& m44, bool preConcat)
     {
         if (!ROSEN_EQ(trans.perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans.perspY_, 0.f, EPSILON)) {
             Drawing::Matrix44 perspM44 {};

@@ -41,6 +41,7 @@ public:
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
 
     void SetSurfaceBufferUsage(uint64_t usage) override;
+    void SetTimeOut(int32_t timeOut) override;
     void SetSurfacePixelFormat(int32_t pixelFormat) override;
     sptr<SurfaceBuffer> GetCurrentBuffer() override
     {

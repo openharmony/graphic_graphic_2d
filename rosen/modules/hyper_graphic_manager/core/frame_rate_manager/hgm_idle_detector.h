@@ -27,32 +27,32 @@ public:
     HgmIdleDetector() = default;
     ~HgmIdleDetector() = default;
 
-    void SetAppSupportStatus(bool appSupported)
+    void SetAppSupportedState(bool appSupported)
     {
         std::lock_guard<std::mutex> lock(appSupportedMutex_);
         appSupported_ = appSupported;
     }
 
-    bool GetAppSupportStatus()
+    bool GetAppSupportedState()
     {
         std::lock_guard<std::mutex> lock(appSupportedMutex_);
         return appSupported_;
     }
 
-    void SetAceAnimatorIdleStatus(bool aceAnimatorIdleState)
+    void SetAceAnimatorIdleState(bool aceAnimatorIdleState)
     {
         aceAnimatorIdleState_ = aceAnimatorIdleState;
     }
 
-    bool GetAceAnimatorIdleStatus() const
+    bool GetAceAnimatorIdleState() const
     {
         return aceAnimatorIdleState_;
     }
 
-    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,  pid_t pid);
     bool GetSurfaceIdleState(uint64_t timestamp);
-    int32_t GetSurfaceUpExpectFps();
-    bool GetSupportSurface();
+    int32_t GetTouchUpExpectedFPS();
+    bool ThirdFrameNeedHighRefresh();
     void ClearAppBufferList()
     {
         std::lock_guard<std::mutex> lock(appBufferListMutex_);

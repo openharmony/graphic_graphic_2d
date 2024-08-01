@@ -432,7 +432,8 @@ HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, TestSize.Level1)
     float darkBuffer = 0.5f;
     float brightBuffer = 0.5f;
     int64_t interval = 50;
-    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    int32_t rangeSize = 20;
+    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
@@ -1706,7 +1707,33 @@ HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_002, Function | SmallTest
     UIExtensionCallback callback = nullptr;
     uint64_t userId = 0;
     auto res = rsInterfaces->RegisterUIExtensionCallback(userId, callback);
-    EXPECT_EQ(res, INVALID_ARGUMENTS);
+    EXPECT_EQ(res, SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus
+ * @tc.desc: Test SetVirtualScreenStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIAF42F
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenStatus, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY), true);
+    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PAUSE), true);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 } // namespace Rosen
 } // namespace OHOS

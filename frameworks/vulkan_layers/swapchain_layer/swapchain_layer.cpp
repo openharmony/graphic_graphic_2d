@@ -425,7 +425,6 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
 
     VkLayerDispatchTable* pDisp =
         GetLayerDataPtr(GetDispatchKey(device))->deviceDispatchTable.get();
-    pDisp->DeviceWaitIdle(device);
     if (image.requested) {
         if (releaseFence >= 0) {
             if (image.requestFence >= 0) {

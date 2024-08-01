@@ -419,9 +419,9 @@ napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsShaderEffect* jsShaderEffect = nullptr;
-    GET_UNWRAP_PARAM(ARGC_ZERO, jsShaderEffect);
-    
-    brush->SetShaderEffect(jsShaderEffect->GetShaderEffect());
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsShaderEffect);
+
+    brush->SetShaderEffect(jsShaderEffect ? jsShaderEffect->GetShaderEffect() : nullptr);
     return nullptr;
 }
 

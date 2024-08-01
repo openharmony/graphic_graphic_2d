@@ -142,6 +142,7 @@ public:
     static bool GetAllSurfaceVisibleDebugEnabled();
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
+    static bool GetExpandScreenDirtyEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetDirectClientCompEnableStatus();
@@ -233,6 +234,7 @@ public:
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool GetHDRImageEnable();
+    static bool GetLayerCursorEnable();
     static bool IsForceClient();
     static bool GetUnmarshParallelFlag();
     static uint32_t GetUnMarshParallelSize();

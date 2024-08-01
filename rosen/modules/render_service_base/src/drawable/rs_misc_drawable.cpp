@@ -48,6 +48,9 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
                 continue;
             }
             if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
+                if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
+                    childDrawable->SetSkip(SkipType::NONE);
+                }
                 stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
             }
         }
@@ -211,7 +214,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
                 canvas->ConcatMatrix(mat);
             }
             drawCmdList->Playback(*canvas, rect);
-            if (ptr->needClearOp_) {
+            if (ptr->needClearOp_ && ptr->type_ == RSModifierType::CONTENT_STYLE) {
                 drawCmdList->ClearOp();
             }
         }

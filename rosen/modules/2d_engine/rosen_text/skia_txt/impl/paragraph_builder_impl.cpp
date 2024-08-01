@@ -19,6 +19,7 @@
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
 #include "txt/paragraph_style.h"
+#include "utils/txt_log.h"
 
 namespace skt = skia::textlayout;
 
@@ -103,6 +104,7 @@ ParagraphBuilderImpl::ParagraphBuilderImpl(
     const ParagraphStyle& style, std::shared_ptr<txt::FontCollection> fontCollection)
     : baseStyle_(style.ConvertToTextStyle())
 {
+    threadId_ = pthread_self();
     builder_ = skt::ParagraphBuilder::make(TextStyleToSkStyle(style), fontCollection->CreateSktFontCollection());
 }
 
@@ -110,21 +112,25 @@ ParagraphBuilderImpl::~ParagraphBuilderImpl() = default;
 
 void ParagraphBuilderImpl::PushStyle(const TextStyle& style)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     builder_->pushStyle(TextStyleToSkStyle(style));
 }
 
 void ParagraphBuilderImpl::Pop()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     builder_->pop();
 }
 
 void ParagraphBuilderImpl::AddText(const std::u16string& text)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     builder_->addText(text);
 }
 
 void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     skt::PlaceholderStyle placeholderStyle;
     placeholderStyle.fHeight = run.height;
     placeholderStyle.fWidth = run.width;
@@ -137,6 +143,7 @@ void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)
 
 std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     auto ret = std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
     builder_->Reset();
     return ret;
@@ -283,6 +290,16 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetAnimationStart(txt.symbol.GetAnimationStart());
         paint.symbol.SetCommonSubType(txt.symbol.GetCommonSubType());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
+    }
+}
+
+void ParagraphBuilderImpl::RecordDifferentPthreadCall(const char* caller) const
+{
+    pthread_t currenetThreadId = pthread_self();
+    if (threadId_ != currenetThreadId) {
+        TXT_LOGD("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
+            threadId_, caller);
+        threadId_ = currenetThreadId;
     }
 }
 } // namespace SPText

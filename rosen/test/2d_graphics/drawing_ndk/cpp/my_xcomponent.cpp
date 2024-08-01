@@ -31,6 +31,8 @@
 #include "plugin/plugin_manager.h"
 #include "testcasefactory.h"
 #include "test_common.h"
+#include <iostream>
+#include <thread>
 
 static std::unordered_map<std::string, MyXComponent *> g_instance;
 
@@ -300,6 +302,38 @@ void MyXComponent::TestFunctionCpu(napi_env env, std::string caseName)
     BitmapToScreenCanvas(testCase->GetBitmap());
 }
 
+void MyXComponent::TestStabilityCpuInner(std::string caseName)
+{
+    if (caseName == "All") {
+        for (auto map: TestCaseFactory::GetStabilityCpuCaseAll()) {
+            auto testCase = map.second();
+            testCase->SetTestCount(testCount_);
+            testCase->SetFileName(map.first);
+            testCase->TestStabilityCpu();
+            BitmapToScreenCanvas(testCase->GetBitmap());
+        }
+        DRAWING_LOGI("TestStabilityCpuAll end");
+    } else {
+        auto testCase = TestCaseFactory::GetStabilityCpuCase(caseName);
+        if (testCase == nullptr) {
+            FlushScreen();
+            DRAWING_LOGE("failed to get testcase");
+            return;
+        }
+        testCase->SetTestCount(testCount_);
+        testCase->SetFileName(caseName);
+        testCase->TestStabilityCpu();
+        BitmapToScreenCanvas(testCase->GetBitmap());
+        DRAWING_LOGI("TestStabilityCpu end");
+    }
+}
+
+void MyXComponent::TestStabilityCpu(napi_env env, std::string caseName)
+{
+    std::thread threadObj(std::bind(&MyXComponent::TestStabilityCpuInner, this, std::string(caseName)));
+    threadObj.detach();
+}
+
 void MyXComponent::TestFunctionGpu(napi_env env, std::string caseName)
 {
     auto testCase = TestCaseFactory::GetFunctionCpuCase(caseName);
@@ -535,6 +569,58 @@ napi_value MyXComponent::NapiFunctionCpu(napi_env env, napi_callback_info info)
     return nullptr;
 }
 
+napi_value MyXComponent::NapiStabilityCpu(napi_env env, napi_callback_info info)
+{
+    DRAWING_LOGI("NapiStabilityCpu");
+    if ((env == nullptr) || (info == nullptr)) {
+        DRAWING_LOGE("NapiStabilityCpu: env or info is null");
+        return nullptr;
+    }
+
+    napi_value thisArg;
+    size_t argc = 1;
+    napi_value argv[1] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, &thisArg, nullptr) != napi_ok) {
+        DRAWING_LOGE("NapiStabilityCpu: napi_get_cb_info fail");
+        return nullptr;
+    }
+    std::string caseName = "";
+    if (!ConvertStringFromJsValue(env, argv[0], caseName)) {
+        DRAWING_LOGE("NapiStabilityCpu: get caseName fail");
+        return nullptr;
+    }
+    DRAWING_LOGI("caseName = %{public}s", caseName.c_str());
+
+    napi_value exportInstance;
+    if (napi_get_named_property(env, thisArg, OH_NATIVE_XCOMPONENT_OBJ, &exportInstance) != napi_ok) {
+        DRAWING_LOGE("NapiStabilityCpu: napi_get_named_property fail");
+        return nullptr;
+    }
+
+    OH_NativeXComponent *nativeXComponent = nullptr;
+    if (napi_unwrap(env, exportInstance, reinterpret_cast<void **>(&nativeXComponent)) != napi_ok) {
+        DRAWING_LOGE("NapiStabilityCpu: napi_unwrap fail");
+        return nullptr;
+    }
+
+    char idStr[OH_XCOMPONENT_ID_LEN_MAX + 1] = {'\0'};
+    uint64_t idSize = OH_XCOMPONENT_ID_LEN_MAX + 1;
+    if (OH_NativeXComponent_GetXComponentId(nativeXComponent, idStr, &idSize) != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
+        DRAWING_LOGE("NapiStabilityCpu: Unable to get XComponent id");
+        return nullptr;
+    }
+    DRAWING_LOGI("NapiStabilityCpu ID = %{public}s", idStr);
+    std::string id(idStr);
+    MyXComponent *render = MyXComponent().GetOrCreateInstance(id);
+    if (render != nullptr) {
+        render->InitScreenCanvas();
+        render->TestStabilityCpu(env, caseName);
+    } else {
+        DRAWING_LOGE("NapiStabilityCpu: render is nullptr");
+    }
+    return nullptr;
+}
+
 napi_value MyXComponent::NapiFunctionGpu(napi_env env, napi_callback_info info)
 {
     DRAWING_LOGI("NapiFunctionGpu");
@@ -752,6 +838,7 @@ void MyXComponent::Export(napi_env env, napi_value exports)
             nullptr, nullptr, nullptr, napi_default, nullptr},
         {"testPerformanceGpu", nullptr, MyXComponent::NapiPerformanceGpu,
             nullptr, nullptr, nullptr, napi_default, nullptr},
+        {"testStabilityCpu", nullptr, MyXComponent::NapiStabilityCpu, nullptr, nullptr, nullptr, napi_default, nullptr},
     };
     if (napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc) != napi_ok) {
         DRAWING_LOGE("Export: napi_define_properties failed");

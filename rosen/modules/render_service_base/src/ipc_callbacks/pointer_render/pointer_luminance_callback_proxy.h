@@ -18,8 +18,8 @@
  
 #include <iremote_proxy.h>
  
-#include "ipc_callbacks/pointer_luminance_change_callback.h"
-#include "ipc_callbacks/pointer_luminance_change_callback_ipc_interface_code.h"
+#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
+#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback_ipc_interface_code.h"
  
 namespace OHOS {
 namespace Rosen {

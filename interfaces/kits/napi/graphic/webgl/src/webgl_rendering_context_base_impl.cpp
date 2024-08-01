@@ -690,7 +690,7 @@ napi_value WebGLRenderingContextBaseImpl::GetShaderPrecisionFormat(
     WebGLShaderPrecisionFormat* webGLShaderPrecisionFormat = nullptr;
     napi_value objShaderPrecisionFormat =
         WebGLShaderPrecisionFormat::CreateObjectInstance(env, &webGLShaderPrecisionFormat).val_;
-    if (objShaderPrecisionFormat == nullptr) {
+    if (webGLShaderPrecisionFormat == nullptr) {
         LOGE("WebGL getShaderPrecisionFormat fail oshaderType %{public}u", shaderType);
         return NVal::CreateNull(env).val_;
     }
@@ -1009,7 +1009,7 @@ napi_value WebGLRenderingContextBaseImpl::GetUniformLocation(napi_env env, napi_
     napi_value objUniformLocation = GetNapiValue<WebGLUniformLocation>(env, locationId);
     if (webGLUniformLocation == nullptr) { // create new
         objUniformLocation = WebGLUniformLocation::CreateObjectInstance(env, &webGLUniformLocation).val_;
-        if (!objUniformLocation) {
+        if (webGLUniformLocation == nullptr) {
             return NVal::CreateNull(env).val_;
         }
         webGLUniformLocation->SetUniformLocationId(locationId);

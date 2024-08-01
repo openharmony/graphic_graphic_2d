@@ -411,7 +411,7 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
 
         std::vector<char> out;
         DataWriter archive(out);
-        char headerType = static_cast<char>(PackageID::RS_PROFILER_RS_METRICS);
+        char headerType = static_cast<char>(PackageID::RS_PROFILER_RENDER_METRICS);
         archive.Serialize(headerType);
         captureData.Serialize(archive);
 
@@ -1162,6 +1162,16 @@ void RSProfiler::SocketShutdown(const ArgList& args)
     Network::ForceShutdown();
 }
 
+void RSProfiler::Version(const ArgList& args)
+{
+    Respond("Version: " + std::to_string(RSFILE_VERSION_LATEST));
+}
+
+void RSProfiler::FileVersion(const ArgList& args)
+{
+    Respond("File version: " + std::to_string(RSFILE_VERSION_LATEST));
+}
+
 void RSProfiler::CalcPerfNodeAll(const ArgList& args)
 {
     if (g_nodeSetPerf.empty()) {
@@ -1574,6 +1584,8 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
         { "calc_perf_node", CalcPerfNode },
         { "calc_perf_node_all", CalcPerfNodeAll },
         { "socket_shutdown", SocketShutdown },
+        { "version", Version },
+        { "file_version", FileVersion },
     };
 
     if (command.empty()) {

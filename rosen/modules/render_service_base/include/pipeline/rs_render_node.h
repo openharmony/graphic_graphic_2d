@@ -319,6 +319,7 @@ public:
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
+    void RemoveAllModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
     bool IsShadowValidLastFrame() const;
@@ -430,7 +431,6 @@ public:
 
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
-    void ExecuteSurfaceCaptureCommand();
     bool GetCommandExecuted() const
     {
         return commandExecuted_;
@@ -802,6 +802,8 @@ protected:
     RectI filterRegion_;
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     mutable bool isFullChildrenListValid_ = true;
+    NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
+    NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
@@ -833,8 +835,7 @@ private:
     std::string DumpDrawableVec() const;
 
     std::weak_ptr<RSContext> context_ = {};
-    NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
-    NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
+
     bool isContentDirty_ = false;
     bool isNewOnTree_ = false;
     bool isOnlyBasicGeoTransform_ = true;

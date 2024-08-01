@@ -65,9 +65,9 @@ public:
     /**
      * @brief Set the Color object
      *
-     * @param c color int value to set
+     * @param c color uint32_t value to set
      */
-    void SetColor(int c);
+    void SetColor(uint32_t c);
     
     /**
      * @brief set ARGB of pen

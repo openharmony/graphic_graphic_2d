@@ -66,6 +66,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr int SLEEP_TIME_US = 1000;
 constexpr int TASK_DELAY_TIME_MS = 1000;
+const std::string REGISTER_NODE = "RegisterNode";
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSRenderServiceConnection::RSRenderServiceConnection(
@@ -330,7 +331,7 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     if (config.isSync) {
         mainThread_->PostSyncTask(registerNode);
     } else {
-        mainThread_->PostTask(registerNode);
+        mainThread_->PostTask(registerNode, REGISTER_NODE, 0, AppExecFwk::EventQueue::Priority::VIP);
     }
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(node);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
@@ -487,9 +488,10 @@ bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
-    float brightBuffer, int64_t interval)
+    float brightBuffer, int64_t interval, int32_t rangeSize)
 {
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
+        interval, rangeSize);
     return StatusCode::SUCCESS;
 }
  
@@ -885,6 +887,9 @@ bool RSRenderServiceConnection::GetTotalAppMemSize(float& cpuMemSize, float& gpu
 MemoryGraphic RSRenderServiceConnection::GetMemoryGraphic(int pid)
 {
     MemoryGraphic memoryGraphic;
+    if (!mainThread_) {
+        return memoryGraphic;
+    }
     if (GetUniRenderEnabled()) {
         RSMainThread* mainThread = mainThread_;
         mainThread_->ScheduleTask([mainThread, &pid, &memoryGraphic]() {
@@ -1003,8 +1008,7 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
 
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RSHardwareThread::Instance().ScheduleTask(
-            [=]() { return screenManager_->SetScreenBacklight(id, level); }).wait();
+        screenManager_->SetScreenBacklight(id, level);
     } else {
         mainThread_->ScheduleTask(
             [=]() { screenManager_->SetScreenBacklight(id, level); }).wait();
@@ -1695,11 +1699,9 @@ LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
     return layerComposeInfo;
 }
 
-HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
+std::vector<HwcDisabledReasonInfo> RSRenderServiceConnection::GetHwcDisabledReasonInfo()
 {
-    const auto& hwcDisabledReasonInfos = HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
-    HwcDisabledReasonCollection::GetInstance().ResetHwcDisabledReasonInfo();
-    return hwcDisabledReasonInfos;
+    return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
 }
 
 #ifdef TP_FEATURE_ENABLE
@@ -1751,6 +1753,13 @@ int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, 
     }
     mainThread_->RegisterUIExtensionCallback(remotePid_, userId, callback);
     return StatusCode::SUCCESS;
+}
+
+bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    RS_LOGD("RSRenderServiceConnection::SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",
+        id, screenStatus);
+    return screenManager_->SetVirtualScreenStatus(id, screenStatus);
 }
 } // namespace Rosen
 } // namespace OHOS

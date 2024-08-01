@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { Shape } from "./Shape.js";
-import { Point } from "./Point.js";
+import { Shape } from './Shape.js';
+import { Point } from './Point.js';
 
 export class PlaneShape extends Shape {
     width; //边长
@@ -39,8 +39,8 @@ export class PlaneShape extends Shape {
     texture = null;
     vao = null;
     ext = null;
-    attributes = ["a_Position", "a_Color", "a_Normal", "a_TexCoord"];
-    uniforms = ["u_MvpMatrix", "u_NormalMatrix", "u_ModelMatrix", "alpha", "lightPosition", "lightDirection", "lightInnerCutoff", "lightOuterCutoff", "u_FogColor", "u_FogDist", "u_Eye", "v_UseTexture", "u_Sampler"];
+    attributes = ['a_Position', 'a_Color', 'a_Normal', 'a_TexCoord'];
+    uniforms = ['u_MvpMatrix', 'u_NormalMatrix', 'u_ModelMatrix', 'alpha', 'lightPosition', 'lightDirection', 'lightInnerCutoff', 'lightOuterCutoff', 'u_FogColor', 'u_FogDist', 'u_Eye', 'v_UseTexture', 'u_Sampler'];
 
     constructor(width = 1, height = 1, center = new Point(), widthSegments = 1, heightSegments = 1) {
         super();

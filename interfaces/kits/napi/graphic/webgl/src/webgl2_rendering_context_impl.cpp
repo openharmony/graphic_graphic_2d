@@ -59,7 +59,7 @@ napi_value WebGL2RenderingContextImpl::CreateQuery(napi_env env)
 {
     WebGLQuery* webGlQuery = nullptr;
     napi_value objQuery = WebGLQuery::CreateObjectInstance(env, &webGlQuery).val_;
-    if (!objQuery) {
+    if (webGlQuery == nullptr) {
         return NVal::CreateNull(env).val_;
     }
 
@@ -214,7 +214,7 @@ napi_value WebGL2RenderingContextImpl::CreateSampler(napi_env env)
 {
     WebGLSampler* webGlSampler = nullptr;
     napi_value objSampler = WebGLSampler::CreateObjectInstance(env, &webGlSampler).val_;
-    if (!objSampler) {
+    if (webGlSampler == nullptr) {
         return NVal::CreateNull(env).val_;
     }
     GLuint samplerId = 0;
@@ -351,7 +351,7 @@ napi_value WebGL2RenderingContextImpl::CreateVertexArray(napi_env env)
 {
     WebGLVertexArrayObject* webGLVertexArrayObject = nullptr;
     napi_value objVertexArrayObject = WebGLVertexArrayObject::CreateObjectInstance(env, &webGLVertexArrayObject).val_;
-    if (!objVertexArrayObject) {
+    if (webGLVertexArrayObject == nullptr) {
         return NVal::CreateNull(env).val_;
     }
     uint32_t vertexArraysId = 0;
@@ -414,7 +414,7 @@ napi_value WebGL2RenderingContextImpl::FenceSync(napi_env env, GLenum condition,
 {
     WebGLSync* webGlSync = nullptr;
     napi_value objSync = WebGLSync::CreateObjectInstance(env, &webGlSync).val_;
-    if (!objSync) {
+    if (webGlSync == nullptr) {
         return NVal::CreateNull(env).val_;
     }
     GLsync returnValue = glFenceSync(condition, flags);
@@ -511,7 +511,7 @@ napi_value WebGL2RenderingContextImpl::CreateTransformFeedback(napi_env env)
 {
     WebGLTransformFeedback* webGlTransformFeedback = nullptr;
     napi_value objTransformFeedback = WebGLTransformFeedback::CreateObjectInstance(env, &webGlTransformFeedback).val_;
-    if (!objTransformFeedback || webGlTransformFeedback == nullptr) {
+    if (webGlTransformFeedback == nullptr) {
         return NVal::CreateNull(env).val_;
     }
     GLuint transformFeedbackId = 0;
@@ -626,7 +626,7 @@ napi_value WebGL2RenderingContextImpl::GetTransformFeedbackVarying(napi_env env,
 
     WebGLActiveInfo* webGLActiveInfo = nullptr;
     napi_value objActiveInfo = WebGLActiveInfo::CreateObjectInstance(env, &webGLActiveInfo).val_;
-    if (!objActiveInfo) {
+    if (webGLActiveInfo == nullptr) {
         return NVal::CreateNull(env).val_;
     }
 

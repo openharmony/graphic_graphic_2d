@@ -159,8 +159,9 @@ void RSCanvasRenderNode::PropertyDrawableRender(RSPaintFilterCanvas& canvas, boo
         DrawPropertyDrawableRange(
             RSPropertyDrawableSlot::TRANSITION, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
         if (includeProperty) {
+            // Just need to skip RSPropertyDrawableSlot::SHADOW
             DrawPropertyDrawableRange(
-                RSPropertyDrawableSlot::BG_SAVE_BOUNDS, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+                RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
         } else {
             DrawPropertyDrawableRange(
                 RSPropertyDrawableSlot::SAVE_FRAME, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
@@ -189,7 +190,17 @@ void RSCanvasRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canvas)
 
 void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
-    DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+    auto parent = GetParent().lock();
+    if (parent &&
+        parent->GetRenderProperties().GetUseShadowBatching()) {
+        DrawPropertyDrawableRange(
+            RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
+        // Just need to skip RSPropertyDrawableSlot::SHADOW
+        DrawPropertyDrawableRange(
+            RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+    } else {
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+    }
 }
 
 void RSCanvasRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)

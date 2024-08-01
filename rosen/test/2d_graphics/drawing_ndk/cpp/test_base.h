@@ -58,10 +58,13 @@ public:
     void TestPerformanceCpu(napi_env env);
     void TestPerformanceGpu(OH_Drawing_Canvas* canvas);
     void TestPerformanceGpu(napi_env env);
+    void TestStabilityCpu();
     // CPU drawing function test, save drawing results to image (filename_)
     virtual void OnTestFunction(OH_Drawing_Canvas* canvas) {};
     // CPU drawing performance test, execute critical interface testCount_ times repeatedly
     virtual void OnTestPerformance(OH_Drawing_Canvas* canvas) {};
+    // CPU drawing stability test
+    virtual void OnTestStability(OH_Drawing_Canvas* canvas) {};
 
     enum {                      // 公共的pen，brush，filter等配置,在执行性能用例前设置
         DRAW_STYLE_NONE = 0, // 无配置
@@ -78,7 +81,7 @@ protected:
     // cpu bitmap canvas
     void CreateBitmapCanvas();
     void CreateGpuCanvas();
-    void BitmapCanvasToFile(napi_env env);
+    void BitmapCanvasToFile();
     void GpuCanvasToFile(napi_env env, bool saveFile = true);
     void Pixmap2RawFile(void *pixelmap, uint32_t pixelMapSize);
     void Pixmap2ImageFile(OH_PixelmapNative* pixelMap);
