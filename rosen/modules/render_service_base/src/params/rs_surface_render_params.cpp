@@ -412,13 +412,13 @@ std::string RSSurfaceRenderParams::ToString() const
     return ret;
 }
 
-bool RSSurfaceRenderParams::IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
+bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
 {
     if (IsMainWindowType()) {
         return curSurfaceDrawRegion.IsEmpty();
     }
     if (IsLeashWindow()) {
-        return GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE && GetLeashWindowVisibleRegionEmptyParam();
+        return GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;
 }

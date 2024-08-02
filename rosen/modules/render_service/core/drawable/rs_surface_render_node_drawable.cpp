@@ -126,7 +126,8 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThre
         return resultRegion;
     }
 
-    if (uniParam.IsOcclusionEnabled() && surfaceParams.GetVisibleRegion().IsEmpty()) {
+    auto visibleRegion = surfaceParams.GetVisibleRegion();
+    if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty()) {
         return resultRegion;
     }
     // The region is dirty region of this SurfaceNode.
@@ -134,7 +135,8 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThre
     // The region is the result of global dirty region AND occlusion region.
     Occlusion::Region globalDirtyRegion = GetGlobalDirtyRegion();
     // This include dirty region and occlusion region when surfaceNode is mainWindow.
-    auto visibleDirtyRegion = globalDirtyRegion.Or(surfaceNodeDirtyRegion);
+    auto dirtyRegion = globalDirtyRegion.Or(surfaceNodeDirtyRegion);
+    auto visibleDirtyRegion = dirtyRegion.And(visibleRegion);
     if (visibleDirtyRegion.IsEmpty()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s NodeId:%" PRIu64 "",
             surfaceDrawable.GetName().c_str(), surfaceParams.GetId());
@@ -330,7 +332,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         MergeDirtyRegionBelowCurSurface(*uniParam, curSurfaceDrawRegion);
     }
 
-    if (!isUiFirstNode && uniParam->IsOpDropped() && surfaceParams->IsVisibleRegionEmpty(curSurfaceDrawRegion)) {
+    if (!isUiFirstNode && uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s %sAlpha: %f, NodeId:"
             "%" PRIu64 "", name_.c_str(), surfaceParams->GetAbsDrawRect().ToString().c_str(),
             surfaceParams->GetGlobalAlpha(), surfaceParams->GetId());
@@ -444,7 +446,11 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(renderParams_.get());
-    if (surfaceParams->IsMainWindowType() && surfaceParams->GetVisibleRegion().IsEmpty()) {
+    if (!surfaceParams) {
+        return;
+    }
+    auto visibleRegion = surfaceParams->GetVisibleRegion();
+    if (surfaceParams->IsMainWindowType() && visibleRegion.IsEmpty()) {
         return;
     }
     if (surfaceParams->IsMainWindowType() || surfaceParams->IsLeashWindow()) {
@@ -452,9 +458,10 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(
         Occlusion::Region calcRegion;
         if ((surfaceParams->IsMainWindowType() && surfaceParams->IsParentScaling()) ||
             surfaceParams->IsSubSurfaceNode() || uniParam.IsAllSurfaceVisibleDebugEnabled()) {
-            calcRegion = surfaceParams->GetVisibleRegion();
+            calcRegion = visibleRegion;
         } else if (!surfaceParams->GetTransparentRegion().IsEmpty()) {
-            calcRegion = surfaceParams->GetTransparentRegion();
+            auto transparentRegion = surfaceParams->GetTransparentRegion();
+            calcRegion = visibleRegion.And(transparentRegion);
         }
         if (!calcRegion.IsEmpty()) {
             auto dirtyRegion = calcRegion.And(accumulatedDirtyRegion);
