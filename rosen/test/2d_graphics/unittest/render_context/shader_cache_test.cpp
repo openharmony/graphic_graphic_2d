@@ -270,5 +270,51 @@ HWTEST_F(ShaderCacheTest, writing_test_002, TestSize.Level1)
     EXPECT_EQ(fakeData->GetSize(), cache.Load(*fakeKey)->GetSize());
 #endif
 }
+
+/**
+ * @tc.name: load_test_001
+ * @tc.desc: Imporve Coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ShaderCacheTest, load_test_001, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
+    EXPECT_EQ(nullptr, cache.Load(*fakeData));
+}
+
+/**
+ * @tc.name: cleanAllShaders_test_001
+ * @tc.desc: Imporve Coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ShaderCacheTest, cleanAllShaders_test_001, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    cache.CleanAllShaders();
+    const char* identity = nullptr;
+    cache.InitShaderCache(identity, 0, false);
+    cache.CleanAllShaders();
+}
+
+/**
+ * @tc.name: querryShaderNum_test_001
+ * @tc.desc: Imporve Coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ShaderCacheTest, querryShaderNum_test_001, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    cache.QuerryShaderNum();
+    const char* identity = nullptr;
+    cache.InitShaderCache(identity, 0, false);
+    cache.QuerryShaderNum();
+}
 } // namespace Rosen
 } // namespace OHOS

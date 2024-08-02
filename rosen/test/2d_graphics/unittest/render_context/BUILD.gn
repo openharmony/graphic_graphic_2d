@@ -28,6 +28,7 @@ group("unittest") {
 ## Build RenderContextTest
 ohos_unittest("RenderContextTest") {
   module_out_path = module_output_path
+  public_configs = [ ":render_context_public_config" ]
   sources = [ "render_context_test.cpp" ]
   deps = [
     ":render_context",
@@ -77,6 +78,8 @@ ohos_static_library("render_context") {
 
 ohos_unittest("2d_graphics_shader_cache_test") {
   module_out_path = module_output_path
+
+  public_configs = [ ":render_context_public_config" ]
 
   sources = [
     "cache_data_test.cpp",
