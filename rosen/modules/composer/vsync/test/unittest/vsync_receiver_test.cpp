@@ -126,21 +126,6 @@ HWTEST_F(VsyncReceiverTest, Init002, Function | MediumTest| Level3)
 }
 
 /*
-* Function: Init003
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call Init
- */
-HWTEST_F(VsyncReceiverTest, Init003, Function | MediumTest| Level3)
-{
-    int fd;
-    sptr<IVSyncConnection> connection_ = nullptr;
-    VsyncError ret = connection_->GetReceiveFd(fd);
-    ASSERT_NE(ret, VSYNC_ERROR_OK);
-}
-
-/*
 * Function: IsRequestedNextVSync001
 * Type: Function
 * Rank: Important(2)

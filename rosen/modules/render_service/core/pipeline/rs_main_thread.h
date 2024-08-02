@@ -335,13 +335,14 @@ public:
     {
         return needRequestNextVsyncAnimate_;
     }
-    
-    void ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     bool IsFirstFrameOfPartialRender() const
     {
         return isFirstFrameOfPartialRender_;
     }
+
+    bool IsHardwareEnabledNodesNeedSync();
+    bool IsOcclusionNodesNeedSync(NodeId id);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
@@ -497,6 +498,7 @@ private:
     uint64_t lastCleanCacheTimestamp_ = 0;
     pid_t lastCleanCachePid_ = -1;
     int hardwareTid_ = -1;
+    std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     std::shared_ptr<RSContext> context_;

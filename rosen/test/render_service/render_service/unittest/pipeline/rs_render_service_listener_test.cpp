@@ -33,7 +33,10 @@ public:
     void TearDown() override;
 };
 
-void RSRenderServiceListenerTest::SetUpTestCase() {}
+void RSRenderServiceListenerTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSRenderServiceListenerTest::TearDownTestCase() {}
 void RSRenderServiceListenerTest::SetUp() {}
 void RSRenderServiceListenerTest::TearDown() {}

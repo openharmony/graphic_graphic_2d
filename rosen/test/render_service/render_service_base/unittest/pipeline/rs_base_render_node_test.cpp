@@ -1050,36 +1050,6 @@ HWTEST_F(RSBaseRenderNodeTest, DumpDrawCmdModifiers, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpDrawCmdModifier
- * @tc.desc: test results of DumpDrawCmdModifier
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, DumpDrawCmdModifier, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    std::string propertyDesc = "noDesc";
-    RSModifierType type;
-    Drawing::Matrix matrix;
-    PropertyId id = 1;
-    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
-        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
-    std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
-        std::make_shared<RSGeometryTransRenderModifier>(property);
-    std::shared_ptr<RSRenderModifier> modifier = modifierCast;
-
-    type = RSModifierType::ENV_FOREGROUND_COLOR;
-    node->DumpDrawCmdModifier(propertyDesc, type, modifier);
-
-    type = RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY;
-    node->DumpDrawCmdModifier(propertyDesc, type, modifier);
-
-    type = RSModifierType::GEOMETRYTRANS;
-    node->DumpDrawCmdModifier(propertyDesc, type, modifier);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: SetContentDirty
  * @tc.desc: test results of SetContentDirty
  * @tc.type:FUNC

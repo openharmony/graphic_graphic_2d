@@ -1594,7 +1594,7 @@ napi_value JsCanvas::OnClipRegion(napi_env env, napi_callback_info info)
     }
 
     int32_t jsClipOp = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsClipOp);
+    GET_ENUM_PARAM(ARGC_ONE, jsClipOp, 0, static_cast<int32_t>(ClipOp::INTERSECT));
 
     m_canvas->ClipRegion(*region, static_cast<ClipOp>(jsClipOp));
     return nullptr;
@@ -1823,7 +1823,7 @@ napi_value JsCanvas::OnClipRoundRect(napi_env env, napi_callback_info info)
     }
 
     int32_t clipOpInt = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, clipOpInt);
+    GET_ENUM_PARAM(ARGC_ONE, clipOpInt, 0, static_cast<int32_t>(ClipOp::INTERSECT));
 
     if (argc == ARGC_TWO) {
         m_canvas->ClipRoundRect(jsRoundRect->GetRoundRect(), static_cast<ClipOp>(clipOpInt));

@@ -48,5 +48,10 @@ void RSSurfaceOhos::ClearAllBuffer()
         producer_->Disconnect();
     }
 }
+
+void RSSurfaceOhos::SetTimeOut(int32_t timeOut)
+{
+    timeOut_ = timeOut;
+}
 } // namespace Rosen
 } // namespace OHOS

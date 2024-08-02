@@ -360,6 +360,15 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     if (isForegroundFilter) {
         paintFilterCanvas->SetAlpha(1.0);
     }
+    auto imageClipIBounds = clipIBounds;
+    std::shared_ptr<RSShaderFilter> magnifierShaderFilter =
+        filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
+    if (magnifierShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
+        auto canvasMatrix = canvas->GetTotalMatrix();
+        tmpFilter->SetMagnifierOffset(canvasMatrix);
+        imageClipIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
+    }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
@@ -384,12 +393,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
         tmpFilter->IsOffscreenCanvas(true);
         filter->SetSnapshotOutset(false);
-    }
-    auto imageClipIBounds = clipIBounds;
-    std::shared_ptr<RSShaderFilter> magnifierShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
-    if (magnifierShaderFilter != nullptr) {
-        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
-        imageClipIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
     }
 
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);

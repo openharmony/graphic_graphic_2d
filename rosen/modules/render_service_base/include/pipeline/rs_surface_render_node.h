@@ -1185,6 +1185,13 @@ public:
     {
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
+
+    NodeId GetRootIdOfCaptureWindow() const
+    {
+        return rootIdOfCaptureWindow_;
+    }
+    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow);
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1444,6 +1451,8 @@ private:
     bool isSkipDraw_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
+
+    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

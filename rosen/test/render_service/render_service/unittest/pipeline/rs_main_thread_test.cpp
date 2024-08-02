@@ -436,7 +436,6 @@ HWTEST_F(RSMainThreadTest, ProcessSyncTransactionCount, TestSize.Level1)
 
     rsTransactionData->MarkNeedCloseSync();
     mainThread->ProcessSyncTransactionCount(rsTransactionData);
-    mainThread->ProcessEmptySyncTransactionCount(0, 0, 0);
     mainThread->StartSyncTransactionFallbackTask(rsTransactionData);
     ASSERT_EQ(rsTransactionData->IsNeedCloseSync(), true);
 }

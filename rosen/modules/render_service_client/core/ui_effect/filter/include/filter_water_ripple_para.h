@@ -38,12 +38,12 @@ public:
         return progress_;
     }
  
-    void SetWaveCount(float waveCount)
+    void SetWaveCount(uint32_t waveCount)
     {
         waveCount_ = waveCount;
     }
  
-    float GetWaveCount () const
+    uint32_t GetWaveCount () const
     {
         return waveCount_;
     }
@@ -68,12 +68,23 @@ public:
         return rippleCenterY_;
     }
 
+    void SetRippleMode(uint32_t rippleMode)
+    {
+        rippleMode_ = rippleMode;
+    }
+
+    uint32_t GetRippleMode() const
+    {
+        return rippleMode_;
+    }
+
 private:
     float rippleCenterX_ = 0.0f;
     float rippleCenterY_ = 0.0f;
     float progress_ = 0.0f;
-    float waveCount_ = 0.0f;
+    uint32_t waveCount_ = 0;
+    uint32_t rippleMode_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // UIEFFECT_FILTER_BLUR_PARA_H
+#endif // UIEFFECT_FILTER_WATER_RIPPPLE_PARA_H

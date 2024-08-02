@@ -397,7 +397,7 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 
 void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    RS_LOGI("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
+    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
@@ -612,11 +612,6 @@ void RSInterfaces::ReportGameStateData(GameStateData info)
 void RSInterfaces::EnableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(true);
-}
-
-void RSInterfaces::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
-{
-    renderServiceClient_->ChangeSyncCount(syncId, parentPid, childPid);
 }
 
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)

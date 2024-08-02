@@ -63,7 +63,7 @@ bool CreateFile(const std::string& filePath)
 
 bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
 {
-    if (!CreateFile(filePath)) {
+    if (size == 0 || !CreateFile(filePath)) {
         return false;
     }
     if (filePath.empty()) {
@@ -71,16 +71,16 @@ bool WriteToFile(uintptr_t data, size_t size, const std::string& filePath)
     }
     int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
-        RS_LOGE("FileUtils: %{public}s failed. file: %{public}s, fd = %{public}d", __func__, filePath.c_str(), fd);
+        RS_LOGE("FileUtils: %{public}s failed. file: %{public}s, fd < 0", __func__, filePath.c_str());
         return false;
     }
     ssize_t nwrite = write(fd, reinterpret_cast<uint8_t *>(data), size);
+    close(fd);
     if (nwrite < 0) {
-        RS_LOGE("FileUtils: %{public}s failed to persist data, size = %{public}zu,  fd = %{public}d",
-            __func__, size, fd);
+        RS_LOGE("FileUtils: %{public}s failed to write data, size = %{public}zu",
+            __func__, size);
         return false;
     }
-    close(fd);
     return true;
 }
 
@@ -110,7 +110,7 @@ bool WriteStringToFile(const std::string& str, const std::string& filePath)
     }
     int fd = open(filePath.c_str(), O_RDWR | O_CREAT, static_cast<mode_t>(0600));
     if (fd < 0) {
-        RS_LOGE("FileUtils: %{public}s failed. file: %{public}s, fd = %{public}d", __func__, filePath.c_str(), fd);
+        RS_LOGE("FileUtils: %{public}s failed. file: %{public}s, fd < 0", __func__, filePath.c_str());
         return false;
     }
     bool result = WriteStringToFile(fd, str);
@@ -121,6 +121,9 @@ bool WriteStringToFile(const std::string& str, const std::string& filePath)
 bool WriteMessageParcelToFile(std::shared_ptr<MessageParcel> messageParcel, const std::string& opsDescription,
     int frameNum, const std::string& fileDir)
 {
+    if (messageParcel == nullptr) {
+        return false;
+    }
     // file name
     std::string drawCmdListFile = fileDir + "/frame" + std::to_string(frameNum) + ".drawing";
     std::string opsFile = fileDir + "/ops_frame" + std::to_string(frameNum) + ".txt";

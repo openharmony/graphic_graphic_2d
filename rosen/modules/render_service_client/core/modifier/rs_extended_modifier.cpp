@@ -59,6 +59,9 @@ static sptr<SurfaceBuffer> DmaMemAlloc(const int32_t& width, const int32_t& heig
         return nullptr;
     }
     void* nativeBuffer = surfaceBuffer.GetRefPtr();
+    if (!nativeBuffer) {
+        return nullptr;
+    }
     OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(nativeBuffer);
     ref->IncStrongRef(ref);
     int32_t bufferSize = pixelMap->GetByteCount();

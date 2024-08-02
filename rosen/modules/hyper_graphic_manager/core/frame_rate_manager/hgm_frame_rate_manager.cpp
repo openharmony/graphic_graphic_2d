@@ -1055,38 +1055,36 @@ void HgmFrameRateManager::DeliverRefreshRateVote(const VoteInfo& voteInfo, bool 
     }
 }
 
-bool HgmFrameRateManager::MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange)
+std::pair<bool, bool> HgmFrameRateManager::MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange)
 {
     auto &[min, max] = rangeRes;
     auto &[minTemp, maxTemp] = curVoteRange;
+    bool needMergeVoteInfo = false;
     if (minTemp > min) {
         min = minTemp;
         if (min >= max) {
             min = max;
-            return true;
+            return {true, needMergeVoteInfo};
         }
     }
     if (maxTemp < max) {
         max = maxTemp;
+        needMergeVoteInfo = true;
         if (min >= max) {
             max = min;
-            return true;
+            return {true, needMergeVoteInfo};
         }
     }
     if (min == max) {
-        return true;
+        return {true, needMergeVoteInfo};
     }
-    return false;
+    return {false, needMergeVoteInfo};
 }
 
 bool HgmFrameRateManager::MergeLtpo2IdleVote(
     std::vector<std::string>::iterator &voterIter, VoteInfo& resultVoteInfo, VoteRange &mergedVoteRange)
 {
     bool mergeSuccess = false;
-    auto log = [](std::string voter, pid_t pid, uint32_t minTemp, uint32_t maxTemp) {
-        RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d] skip", voter.c_str(), pid, minTemp, maxTemp);
-        HGM_LOGI("Process:%{public}s(%{public}d):[%{public}d, %{public}d] skip", voter.c_str(), pid, minTemp, maxTemp);
-    };
     // [VOTER_LTPO, VOTER_IDLE)
     for (; voterIter != voters_.end() - 1; voterIter++) {
         if (voteRecord_.find(*voterIter) == voteRecord_.end()) {
@@ -1099,27 +1097,23 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
 
         VoteInfo curVoteInfo = vec.back();
         if (!multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
-            log(curVoteInfo.voterName, curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
+            ProcessVoteLog(curVoteInfo, true);
             continue;
         }
         if (curVoteInfo.voterName == "VOTER_VIDEO") {
             auto foregroundPidApp = multiAppStrategy_.GetForegroundPidApp();
             if (foregroundPidApp.find(curVoteInfo.pid) == foregroundPidApp.end()) {
-                log(curVoteInfo.voterName, curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
+                ProcessVoteLog(curVoteInfo, true);
                 continue;
             }
             auto configData = HgmCore::Instance().GetPolicyConfigData();
             if (configData != nullptr && configData->videoFrameRateList_.find(
                 foregroundPidApp[curVoteInfo.pid].second) == configData->videoFrameRateList_.end()) {
-                log(curVoteInfo.voterName, curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
+                ProcessVoteLog(curVoteInfo, true);
                 continue;
             }
         }
-        RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d]",
-            curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
-        // FORMAT voter(pid):[min，max]
-        HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d]",
-            curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
+        ProcessVoteLog(curVoteInfo, false);
         if (mergeSuccess) {
             mergedVoteRange.first = mergedVoteRange.first > curVoteInfo.min ? mergedVoteRange.first : curVoteInfo.min;
             if (curVoteInfo.max >= mergedVoteRange.second) {
@@ -1138,8 +1132,10 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
 VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
 {
     if (!isRefreshNeed_) {
-        RS_TRACE_NAME_FMT("Process nothing, lastVoteInfo: %s[%d, %d]",
-            lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
+        const auto& packages = multiAppStrategy_.GetPackages();
+        RS_TRACE_NAME_FMT("Process nothing, lastVoteInfo: %s[%d, %d] curPackage: %s, touchState: %d",
+            lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max,
+            packages.empty() ? "" : packages.front().c_str(), touchManager_.GetState());
         return lastVoteInfo_;
     }
     UpdateVoteRule();
@@ -1151,9 +1147,14 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
     auto &[min, max] = voteRange;
 
     for (auto voterIter = voters_.begin(); voterIter != voters_.end(); voterIter++) {
-        if (*voterIter == "VOTER_LTPO") {
-            VoteRange info;
-            if (MergeLtpo2IdleVote(voterIter, resultVoteInfo, info) && MergeRangeByPriority(voteRange, info)) {
+        VoteRange range;
+        VoteInfo info;
+        if (*voterIter == "VOTER_LTPO" && MergeLtpo2IdleVote(voterIter, info, range)) {
+            auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, range);
+            if (mergeVoteInfo) {
+                resultVoteInfo.Merge(info);
+            }
+            if (mergeVoteRange) {
                 break;
             }
         }
@@ -1164,22 +1165,17 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
         }
         VoteInfo curVoteInfo = voteRecord_[voter].back();
         if ((voter == "VOTER_GAMES" && !gameScenes_.empty()) || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
-            RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d] skip",
-                curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
-            HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d] skip",
-                curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
+            ProcessVoteLog(curVoteInfo, true);
             continue;
         }
-
-        RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d]",
-            curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
-        HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d]",
-            curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max);
-        if (MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max})) {
+        ProcessVoteLog(curVoteInfo, false);
+        auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
+        if (mergeVoteInfo) {
             resultVoteInfo.Merge(curVoteInfo);
+        }
+        if (mergeVoteRange) {
             break;
         }
-        resultVoteInfo.Merge(curVoteInfo);
     }
     isRefreshNeed_ = false;
     HGM_LOGI("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
@@ -1343,6 +1339,14 @@ void HgmFrameRateManager::ExitEnergyConsumptionAssuranceMode()
     HgmTaskHandleThread::Instance().RemoveEvent(UI_ENERGY_ASSURANCE_TASK_ID);
     HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(false);
     HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(false);
+}
+
+void HgmFrameRateManager::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip)
+{
+    RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d] skip: %s",
+        curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? "true" : "false");
+    HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d] skip: %{public}s",
+        curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? "true" : "false");
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -40,10 +40,6 @@ int RSRenderServiceStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
 #endif
-    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-        RS_LOGE("RSRenderServiceStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
-        return ERR_INVALID_STATE;
-    }
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     securityUtils_.IncreaseAccessCounter(code);
 #endif

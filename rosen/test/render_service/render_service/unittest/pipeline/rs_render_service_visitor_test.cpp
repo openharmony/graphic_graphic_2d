@@ -42,7 +42,10 @@ public:
     void TearDown() override;
 };
 
-void RSRenderServiceVisitorTest::SetUpTestCase() {}
+void RSRenderServiceVisitorTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSRenderServiceVisitorTest::TearDownTestCase() {}
 void RSRenderServiceVisitorTest::SetUp()
 {

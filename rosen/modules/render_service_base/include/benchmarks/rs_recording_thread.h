@@ -46,7 +46,7 @@ public:
 
     RSRecordingThread(RenderContext* context) : renderContext_(context){};
     ~RSRecordingThread();
-    
+
     static RSRecordingThread& Instance(RenderContext* context);
     void Start();
     bool IsIdle();
@@ -62,11 +62,11 @@ public:
     {
         return mode_ != RecordingMode::STOP_RECORDING;
     }
- 
+
 private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
-    void FinishRecordingOneFrameTask(RecordingMode mode);
+    void FinishRecordingOneFrameTask(RecordingMode modeSubThread);
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
 
     const static size_t RECORDING_PARCEL_CAPCITY = 234 * 1000 * 1024;

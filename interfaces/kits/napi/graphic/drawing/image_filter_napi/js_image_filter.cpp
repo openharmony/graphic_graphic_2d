@@ -119,7 +119,7 @@ napi_value JsImageFilter::CreateBlurImageFilter(napi_env env, napi_callback_info
 
     JsImageFilter *jsImageFilter = nullptr;
     if (argc > ARGC_THREE) {
-        napi_unwrap(env, argv[ARGC_THREE], reinterpret_cast<void**>(&jsImageFilter));
+        GET_UNWRAP_PARAM_OR_NULL(ARGC_THREE, jsImageFilter);
     }
 
     std::shared_ptr<ImageFilter> imageFilter = (jsImageFilter == nullptr) ?
@@ -141,7 +141,7 @@ napi_value JsImageFilter::CreateFromColorFilter(napi_env env, napi_callback_info
 
     JsImageFilter *jsImageFilter = nullptr;
     if (argc > ARGC_ONE) {
-        napi_unwrap(env, argv[ARGC_ONE], reinterpret_cast<void**>(&jsImageFilter));
+        GET_UNWRAP_PARAM_OR_NULL(ARGC_ONE, jsImageFilter);
     }
 
     std::shared_ptr<ColorFilter> colorFilter = jsColorFilter->GetColorFilter();

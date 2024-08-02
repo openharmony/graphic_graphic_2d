@@ -58,6 +58,11 @@ public:
 
     virtual PropertyId GetPropertyId() = 0;
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
+    void Dump(std::string& out)
+    {
+        GetProperty()->Dump(out);
+    }
+
     virtual RSModifierType GetType()
     {
         return RSModifierType::INVALID;

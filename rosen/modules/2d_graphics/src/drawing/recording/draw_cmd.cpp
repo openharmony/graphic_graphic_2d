@@ -39,6 +39,63 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+std::unordered_map<uint32_t, std::string> typeOpDes = {
+    { DrawOpItem::OPITEM_HEAD,              "OPITEM_HEAD"},
+    { DrawOpItem::POINT_OPITEM,             "POINT_OPITEM" },
+    { DrawOpItem::POINTS_OPITEM,            "POINTS_OPITEM" },
+    { DrawOpItem::LINE_OPITEM,              "LINE_OPITEM" },
+    { DrawOpItem::RECT_OPITEM,              "RECT_OPITEM" },
+    { DrawOpItem::ROUND_RECT_OPITEM,        "ROUND_RECT_OPITEM" },
+    { DrawOpItem::NESTED_ROUND_RECT_OPITEM, "NESTED_ROUND_RECT_OPITEM" },
+    { DrawOpItem::ARC_OPITEM,               "ARC_OPITEM" },
+    { DrawOpItem::PIE_OPITEM,               "PIE_OPITEM" },
+    { DrawOpItem::OVAL_OPITEM,              "OVAL_OPITEM" },
+    { DrawOpItem::CIRCLE_OPITEM,            "CIRCLE_OPITEM" },
+    { DrawOpItem::PATH_OPITEM,              "PATH_OPITEM" },
+    { DrawOpItem::BACKGROUND_OPITEM,        "BACKGROUND_OPITEM" },
+    { DrawOpItem::SHADOW_OPITEM,            "SHADOW_OPITEM" },
+    { DrawOpItem::SHADOW_STYLE_OPITEM,      "SHADOW_STYLE_OPITEM" },
+    { DrawOpItem::COLOR_OPITEM,             "COLOR_OPITEM" },
+    { DrawOpItem::IMAGE_NINE_OPITEM,        "IMAGE_NINE_OPITEM" },
+    { DrawOpItem::IMAGE_LATTICE_OPITEM,     "IMAGE_LATTICE_OPITEM" },
+    { DrawOpItem::ATLAS_OPITEM,             "ATLAS_OPITEM" },
+    { DrawOpItem::BITMAP_OPITEM,            "BITMAP_OPITEM" },
+    { DrawOpItem::IMAGE_OPITEM,             "IMAGE_OPITEM" },
+    { DrawOpItem::IMAGE_RECT_OPITEM,        "IMAGE_RECT_OPITEM" },
+    { DrawOpItem::PICTURE_OPITEM,           "PICTURE_OPITEM" },
+    { DrawOpItem::TEXT_BLOB_OPITEM,         "TEXT_BLOB_OPITEM" },
+    { DrawOpItem::SYMBOL_OPITEM,            "SYMBOL_OPITEM" },
+    { DrawOpItem::CLIP_RECT_OPITEM,         "CLIP_RECT_OPITEM" },
+    { DrawOpItem::CLIP_IRECT_OPITEM,        "CLIP_IRECT_OPITEM" },
+    { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   "CLIP_ROUND_RECT_OPITEM" },
+    { DrawOpItem::CLIP_PATH_OPITEM,         "CLIP_PATH_OPITEM" },
+    { DrawOpItem::CLIP_REGION_OPITEM,       "CLIP_REGION_OPITEM" },
+    { DrawOpItem::SET_MATRIX_OPITEM,        "SET_MATRIX_OPITEM" },
+    { DrawOpItem::RESET_MATRIX_OPITEM,      "RESET_MATRIX_OPITEM" },
+    { DrawOpItem::CONCAT_MATRIX_OPITEM,     "CONCAT_MATRIX_OPITEM" },
+    { DrawOpItem::TRANSLATE_OPITEM,         "TRANSLATE_OPITEM" },
+    { DrawOpItem::SCALE_OPITEM,             "SCALE_OPITEM" },
+    { DrawOpItem::ROTATE_OPITEM,            "ROTATE_OPITEM" },
+    { DrawOpItem::SHEAR_OPITEM,             "SHEAR_OPITEM" },
+    { DrawOpItem::FLUSH_OPITEM,             "FLUSH_OPITEM" },
+    { DrawOpItem::CLEAR_OPITEM,             "CLEAR_OPITEM" },
+    { DrawOpItem::SAVE_OPITEM,              "SAVE_OPITEM" },
+    { DrawOpItem::SAVE_LAYER_OPITEM,        "SAVE_LAYER_OPITEM" },
+    { DrawOpItem::RESTORE_OPITEM,           "RESTORE_OPITEM" },
+    { DrawOpItem::DISCARD_OPITEM,           "DISCARD_OPITEM" },
+    { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM,  "CLIP_ADAPTIVE_ROUND_RECT_OPITEM" },
+    { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   "IMAGE_WITH_PARM_OPITEM" },
+    { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, "PIXELMAP_WITH_PARM_OPITEM" },
+    { DrawOpItem::PIXELMAP_RECT_OPITEM,     "PIXELMAP_RECT_OPITEM" },
+    { DrawOpItem::REGION_OPITEM,            "REGION_OPITEM" },
+    { DrawOpItem::PATCH_OPITEM,             "PATCH_OPITEM" },
+    { DrawOpItem::EDGEAAQUAD_OPITEM,        "EDGEAAQUAD_OPITEM" },
+    { DrawOpItem::VERTICES_OPITEM,          "VERTICES_OPITEM" },
+    { DrawOpItem::IMAGE_SNAPSHOT_OPITEM,    "IMAGE_SNAPSHOT_OPITEM" },
+    { DrawOpItem::SURFACEBUFFER_OPITEM,     "SURFACEBUFFER_OPITEM"},
+    { DrawOpItem::DRAW_FUNC_OPITEM,         "DRAW_FUNC_OPITEM"},
+};
+
 namespace {
 constexpr int TEXT_BLOB_CACHE_MARGIN = 10;
 constexpr float HIGH_CONTRAST_OFFSCREEN_THREASHOLD = 0.99f;
@@ -221,6 +278,16 @@ void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, P
     if (paint.GetPathEffect()) {
         paintHandle.pathEffectHandle = CmdListHelper::AddPathEffectToCmdList(cmdList, paint.GetPathEffect());
     }
+}
+
+std::string DrawOpItem::GetOpDesc()
+{
+    return typeOpDes[GetType()];
+}
+
+void DrawOpItem::Dump(std::string& out)
+{
+    out += typeOpDes[GetType()];
 }
 
 GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas, const Rect* rect)

@@ -107,6 +107,9 @@ public:
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 
     virtual void SetNodeId(NodeId id) {}
+    virtual void Dump(std::string& out);
+
+    std::string GetOpDesc();
 
     static void SetBaseCallback(
         std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc);

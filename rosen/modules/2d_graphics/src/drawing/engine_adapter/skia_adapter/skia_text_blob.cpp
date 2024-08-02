@@ -198,7 +198,10 @@ Path SkiaTextBlob::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* b
 {
     SkTextBlob* skTextBlob = nullptr;
     if (blob) {
-        skTextBlob = blob->GetImpl<SkiaTextBlob>()->GetTextBlob().get();
+        auto skiaBlobImpl = blob->GetImpl<SkiaTextBlob>();
+        if (skiaBlobImpl != nullptr) {
+            skTextBlob = skiaBlobImpl->GetTextBlob().get();
+        }
     }
     SkPath skPath = GetPathforTextBlob(glyphId, skTextBlob);
     Path path;

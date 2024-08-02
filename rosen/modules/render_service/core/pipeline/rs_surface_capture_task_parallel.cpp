@@ -64,44 +64,19 @@ static inline void DrawCapturedImg(Drawing::Image& image,
 void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
 {
     RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::CheckModifiers");
-    auto nodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
-    if (nodePtr == nullptr) {
-        return;
-    }
-
-    bool needSync = false;
-    if (nodePtr->IsLeashWindow() && nodePtr->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE) {
-        auto children = nodePtr->GetSortedChildren();
-        for (auto child : *children) {
-            auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-            if (childSurfaceNode && childSurfaceNode->IsMainWindowType() &&
-                childSurfaceNode->GetVisibleRegion().IsEmpty()) {
-                childSurfaceNode->ApplyModifiers();
-                childSurfaceNode->PrepareChildrenForApplyModifiers();
-                needSync = true;
-            }
-        }
-    } else if (nodePtr->IsMainWindowType() && nodePtr->GetVisibleRegion().IsEmpty()) {
-        auto curNode = nodePtr;
-        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr->GetParent().lock());
-        if (parentNode && parentNode->IsLeashWindow()) {
-            curNode = parentNode;
-        }
-        if (curNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE) {
-            nodePtr->ApplyModifiers();
-            nodePtr->PrepareChildrenForApplyModifiers();
-            needSync = true;
-        }
-    }
-
+    bool needSync = RSMainThread::Instance()->IsOcclusionNodesNeedSync(id) ||
+        RSMainThread::Instance()->IsHardwareEnabledNodesNeedSync();
     if (needSync) {
         std::function<void()> syncTask = []() -> void {
             RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
             auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
             for (auto& [id, weakPtr] : pendingSyncNodes) {
                 if (auto node = weakPtr.lock()) {
-                    node->Sync();
+                    if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
+                        node->Sync();
+                    } else {
+                        node->SkipSync();
+                    }
                 }
             }
             pendingSyncNodes.clear();

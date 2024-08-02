@@ -144,13 +144,14 @@ struct RSDynamicBrightnessPara {
 };
 
 struct RSWaterRipplePara {
-    float waveCount = 0.0f;
+    uint32_t waveCount = 0;
     float rippleCenterX = 0.5f;
     float rippleCenterY = 0.7f;
+    uint32_t rippleMode = 1;
     bool operator==(const RSWaterRipplePara& other) const
     {
-        return (waveCount == other.waveCount && rippleCenterX == other.rippleCenterX &&
-        rippleCenterY == other.rippleCenterY);
+        return (waveCount == other.waveCount && ROSEN_EQ(rippleCenterX, other.rippleCenterX) &&
+        ROSEN_EQ(rippleCenterY, other.rippleCenterY) && rippleMode == other.rippleMode);
     }
 };
 

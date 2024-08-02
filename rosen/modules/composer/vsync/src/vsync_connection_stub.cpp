@@ -16,9 +16,16 @@
 #include "vsync_connection_stub.h"
 #include <unistd.h>
 #include "graphic_common.h"
+#include "accesstoken_kit.h"
+#include "ipc_skeleton.h"
+#include "vsync_log.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    const std::string RSS_PROCESS_NAME = "resource_schedule_service";
+}
+
 int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -29,9 +36,7 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
 
     switch (code) {
         case IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC: {
-            auto fromWho = data.ReadString();
-            auto ts = data.ReadInt64();
-            RequestNextVSync(fromWho, ts);
+            RequestNextVSync();
             break;
         }
         case IVSYNC_CONNECTION_GET_RECEIVE_FD: {
@@ -61,10 +66,10 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             return SetUiDvsyncSwitch(dvsyncOn);
         }
         case IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG: {
-            int32_t bufferCount;
-            if (!data.ReadInt32(bufferCount)) {
-                return VSYNC_ERROR_API_FAILED;
+            if (!CheckCallingPermission()) {
+                return VSYNC_ERROR_UNKOWN;
             }
+            int32_t bufferCount = data.ReadInt32();
             return SetUiDvsyncConfig(bufferCount);
         }
         default: {
@@ -73,6 +78,18 @@ int32_t VSyncConnectionStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
         }
     }
     return 0;
+}
+
+bool VSyncConnectionStub::CheckCallingPermission()
+{
+    Security::AccessToken::AccessTokenID tokenId = OHOS::IPCSkeleton::GetCallingTokenID();
+    Security::AccessToken::AccessTokenID rssToken =
+        Security::AccessToken::AccessTokenKit::GetNativeTokenId(RSS_PROCESS_NAME);
+    if (tokenId != rssToken) {
+        VLOGE("CheckPermissionFailed, calling process illegal");
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

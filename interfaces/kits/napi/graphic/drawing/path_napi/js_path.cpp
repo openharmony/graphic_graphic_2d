@@ -779,6 +779,13 @@ napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info
     tangent = Drawing::Point(endPoint[ARGC_ZERO], endPoint[ARGC_ONE]);
 
     bool result = m_path->GetPositionAndTangent(distance, position, tangent, forceClosed);
+    if (napi_set_named_property(env, argv[ARGC_TWO], "x", CreateJsNumber(env, position.GetX())) != napi_ok ||
+        napi_set_named_property(env, argv[ARGC_TWO], "y",  CreateJsNumber(env, position.GetY())) != napi_ok ||
+        napi_set_named_property(env, argv[ARGC_THREE], "x", CreateJsNumber(env, tangent.GetX())) != napi_ok ||
+        napi_set_named_property(env, argv[ARGC_THREE], "y", CreateJsNumber(env, tangent.GetY())) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "JsPath::OnGetPositionAndTangent Cannot fill 'position' and 'tangent' Point type.");
+    }
     return CreateJsNumber(env, result);
 }
 
@@ -1097,7 +1104,7 @@ napi_value JsPath::OnIsClosed(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    bool result = m_path->IsClosed(true);
+    bool result = m_path->IsClosed(false);
     return CreateJsNumber(env, result);
 }
 

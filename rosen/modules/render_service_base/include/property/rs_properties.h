@@ -35,6 +35,7 @@
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
+#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_particles_drawable.h"
@@ -292,7 +293,7 @@ public:
 
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
-    void SetMagnifierParams(const std::optional<Vector2f>& para);
+    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
@@ -300,7 +301,7 @@ public:
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
-    const std::optional<Vector2f>& GetMagnifierPara() const;
+    const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool NeedFilter() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
@@ -626,6 +627,7 @@ private:
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
+    std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
     std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
@@ -688,7 +690,6 @@ private:
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
     std::optional<Vector2f> greyCoef_;
-    std::optional<Vector2f> magnifierPara_;
 
     // OnApplyModifiers hooks
     void CheckEmptyBounds();

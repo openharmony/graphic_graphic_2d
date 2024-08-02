@@ -1704,10 +1704,13 @@ HWTEST_F(RSPropertiesTest, SetMotionBlurPara001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetMagnifierParams001, TestSize.Level1)
 {
     RSProperties properties;
-    std::optional<Vector2f> para({1.f, 1.f});
+    auto para = std::make_shared<RSMagnifierParams>();
     properties.SetMagnifierParams(para);
-    ASSERT_TRUE(properties.GetMagnifierPara().has_value());
-    EXPECT_EQ(properties.GetMagnifierPara().value(), para.value());
+    EXPECT_NE(properties.GetMagnifierPara(), nullptr);
+
+    para->factor_ = 1.f;
+    properties.SetMagnifierParams(para);
+    EXPECT_NE(para, nullptr);
 }
 
 /**
@@ -1719,8 +1722,9 @@ HWTEST_F(RSPropertiesTest, SetMagnifierParams001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetMagnifierParams002, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetMagnifierParams(std::nullopt);
-    EXPECT_EQ(properties.GetMagnifierPara(), std::nullopt);
+    std::shared_ptr<RSMagnifierParams> para;
+    properties.SetMagnifierParams(para);
+    EXPECT_EQ(properties.GetMagnifierPara(), nullptr);
 }
 
 /**
@@ -2467,13 +2471,15 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
     EXPECT_TRUE(properties.systemBarEffect_);
 
     properties.waterRippleProgress_ = 0.1f;
-    float waveCount = 2.0f;
+    uint32_t waveCount = 2;
     float rippleCenterX = 0.3f;
     float rippleCenterY = 0.5f;
+    uint32_t rippleMode = 1;
     RSWaterRipplePara rs_water_ripple_param = {
         waveCount,
         rippleCenterX,
-        rippleCenterY
+        rippleCenterY,
+        rippleMode
     };
     properties.waterRippleParams_ =  std::optional<RSWaterRipplePara>(rs_water_ripple_param);
     properties.GenerateBackgroundFilter();
@@ -3174,14 +3180,16 @@ HWTEST_F(RSPropertiesTest, SetNGetWaterRippleParams001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetNGetWaterRippleParams002, TestSize.Level1)
 {
     RSProperties properties;
-    float waveCount = 2.0f;
+    float progress = 0.5f;
+    uint32_t waveCount = 2;
     float rippleCenterX = 0.3f;
     float rippleCenterY = 0.5f;
-    float progress = 0.5f;
+    uint32_t rippleMode = 1;
     RSWaterRipplePara rs_water_ripple_param = {
         waveCount,
         rippleCenterX,
-        rippleCenterY
+        rippleCenterY,
+        rippleMode
     };
     properties.SetWaterRippleParams(rs_water_ripple_param);
     properties.SetWaterRippleProgress(progress);

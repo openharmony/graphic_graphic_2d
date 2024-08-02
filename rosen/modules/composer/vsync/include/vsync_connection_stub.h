@@ -28,6 +28,9 @@ class VSyncConnectionStub : public IRemoteStub<IVSyncConnection> {
 public:
     virtual int32_t OnRemoteRequest(uint32_t code, MessageParcel &data,
                                     MessageParcel &reply, MessageOption &option) override;
+
+private:
+    bool CheckCallingPermission();
 };
 } // namespace Rosen
 } // namespace OHOS

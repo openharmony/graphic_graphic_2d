@@ -1296,7 +1296,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     // 0. init display info
     RS_TRACE_NAME("RSUniRender:QuickPrepareDisplayRenderNode " + std::to_string(node.GetScreenId()));
     if (!InitDisplayInfo(node)) {
-        RS_LOGE("RSUniRenderVisitor::QuickPrepareDisplayRenderNode InitDisplayInfo fail");
         return;
     }
     SendRcdMessage(node);
@@ -1422,12 +1421,25 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     dirtyFlag_ = dirtyFlag;
 
     PrepareForUIFirstNode(node);
+    PrepareForCapsuleWindowNode(node);
     node.OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
+}
+
+void RSUniRenderVisitor::PrepareForCapsuleWindowNode(RSSurfaceRenderNode& node)
+{
+    if (UNLIKELY(!curDisplayNode_)) {
+        RS_LOGE("RSUniRenderVisitor::PrepareForCapsuleWindowNode curDisplayNode is nullptr");
+        return;
+    }
+    if (node.GetName().find("CapsuleWindow") == std::string::npos) {
+        return;
+    }
+    node.SetRootIdOfCaptureWindow(FindInstanceChildOfDisplay(node.GetParent().lock()));
 }
 
 void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)
@@ -1826,7 +1838,6 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
             break;
         default:
-            RS_LOGE("RSUniRenderVisitor::ProcessDisplayRenderNode ScreenState unsupported");
             return false;
     }
 
@@ -1977,6 +1988,7 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         UpdateSrcRect(node, geo->GetAbsMatrix(), geo->GetAbsRect());
         UpdateHwcNodeByTransform(node);
         UpdateHwcNodeEnableByBackgroundAlpha(node);
+        UpdateHwcNodeEnableByBufferSize(node);
         UpdateHwcNodeEnableBySrcRect(node);
     }
 }
@@ -2059,6 +2071,49 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
         node.SetNodeHasBackgroundColorAlpha(true);
         hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node.GetName());
+    }
+}
+
+void RSUniRenderVisitor::UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node)
+{
+    if (!node.IsRosenWeb() || node.IsHardwareForcedDisabled()) {
+        return;
+    }
+    if (!node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
+        return;
+    }
+    const auto& property = node.GetRenderProperties();
+    auto gravity = property.GetFrameGravity();
+    if (gravity != Gravity::TOP_LEFT) {
+        return;
+    }
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    auto consumer = surfaceHandler->GetConsumer();
+    if (consumer == nullptr) {
+        return;
+    }
+
+    auto buffer = surfaceHandler->GetBuffer();
+    const auto bufferWidth = buffer->GetSurfaceBufferWidth();
+    const auto bufferHeight = buffer->GetSurfaceBufferHeight();
+    auto boundsWidth = property.GetBoundsWidth();
+    auto boundsHeight = property.GetBoundsHeight();
+
+    auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
+        RS_LOGE("RSUniRenderVisitor::UpdateHwcNodeEnableByBufferSize GetSurfaceBufferTransformType failed");
+    }
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
+        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
+        std::swap(boundsWidth, boundsHeight);
+    }
+    if ((bufferWidth < boundsWidth) || (bufferHeight < boundsHeight)) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "hwc debug: name:%s id:%llu buffer:[%d, %d] bounds:[%f, %f] disabled by buffer nonmatching",
+            node.GetName().c_str(), node.GetId(), bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+        node.SetHardwareForcedDisabledState(true);
+        hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(
+            node.GetId(), HwcDisabledReasons::DISABLED_BY_BUFFER_NONMATCH, node.GetName());
     }
 }
 
@@ -2902,6 +2957,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             UpdateSrcRect(*hwcNodePtr, matrix, rect);
             UpdateHwcNodeByTransform(*hwcNodePtr);
             UpdateHwcNodeEnableBySrcRect(*hwcNodePtr);
+            UpdateHwcNodeEnableByBufferSize(*hwcNodePtr);
         }
         hwcNodePtr->SetTotalMatrix(matrix);
     }
