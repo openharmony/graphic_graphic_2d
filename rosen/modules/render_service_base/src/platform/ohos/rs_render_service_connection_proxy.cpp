@@ -749,6 +749,7 @@ void RSRenderServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, co
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return;
     }
 
     option.SetFlags(MessageOption::TF_SYNC);

@@ -168,7 +168,7 @@ public:
         isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
     }
 
-    static bool MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
     void CheckPackageInConfigList(std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap);
 private:
     void Reset();
@@ -204,6 +204,7 @@ private:
     void UpdateEnergyConsumptionConfig();
     void EnterEnergyConsumptionAssuranceMode();
     void ExitEnergyConsumptionAssuranceMode();
+    static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
 
