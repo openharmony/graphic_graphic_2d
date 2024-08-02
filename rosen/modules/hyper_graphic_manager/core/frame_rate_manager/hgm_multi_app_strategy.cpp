@@ -479,7 +479,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     if (configData == nullptr) {
         return;
     }
-    std::unordered_map<std::string, std::string> videoConfigFromHgm = configData->souceTuningConfig_;
+    std::unordered_map<std::string, std::string> videoConfigFromHgm = configData->sourceTuningConfig_;
     if (!videoConfigFromHgm.empty()) {
         for (auto &param: pkgs) {
             std::string pkgNameForCheck = param.substr(0, param.find(':'));
