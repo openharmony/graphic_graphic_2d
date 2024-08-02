@@ -403,7 +403,7 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     Rect damage;
     SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGE("AcquireBuffer failed: %d", ret);
+        BLOGE("AcquireBuffer failed: %{public}d", ret);
         return ret;
     }
     currentSurfaceBuffer_ = buffer;
@@ -415,7 +415,10 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
         currentTransformType_, currentCrop_);
 
     *fenceFd = acquireFence->Dup();
-    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
+    OHNativeWindowBuffer *nwBuffer = new(std::nothrow) OHNativeWindowBuffer();
+    if (nwBuffer == nullptr) {
+        return SURFACE_ERROR_NOMEM;
+    }
     nwBuffer->sfbuffer = buffer;
     NativeObjectReference(nwBuffer);
     *nativeWindowBuffer = nwBuffer;
@@ -429,7 +432,7 @@ SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativ
     // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
     SurfaceError ret = ReleaseBuffer(nativeWindowBuffer->sfbuffer, fenceFd);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGE("ReleaseBuffer failed: %d", ret);
+        BLOGE("ReleaseBuffer failed: %{public}d", ret);
         return ret;
     }
     NativeObjectUnreference(nativeWindowBuffer);
