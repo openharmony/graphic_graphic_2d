@@ -79,7 +79,7 @@ bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName)
     return true;
 }
 
-void HgmIdleDetector::ProcessNuknownIdleState(const std::unordered_map<NodeId,
+void HgmIdleDetector::ProcessNuknownUIFwkIdleState(const std::unordered_map<NodeId,
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
 {
     if (activeNodesInRoot.empty()) {

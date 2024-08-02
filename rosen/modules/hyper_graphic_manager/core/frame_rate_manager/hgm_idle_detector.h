@@ -84,7 +84,7 @@ public:
     {
         supportAppBufferList_ = supportAppBufferList;
     }
-    void ProcessNuknownIdleState(const std::unordered_map<NodeId,
+    void ProcessNuknownUIFwkIdleState(const std::unordered_map<NodeId,
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
 private:
     bool GetUnknownFrameworkState(const std::string& surfaceName);
