@@ -150,6 +150,10 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
             ROSEN_LOGE("RSSurfaceOhosVulkan: skSurface is null, return");
             mSurfaceList.pop_back();
             NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
+            if (fenceFd != -1) {
+                close(fenceFd);
+                fenceFd = -1;
+            }
             mSurfaceMap.erase(nativeWindowBuffer);
             return nullptr;
         } else {
