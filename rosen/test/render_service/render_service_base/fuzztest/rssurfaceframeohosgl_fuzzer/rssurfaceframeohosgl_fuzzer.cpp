@@ -25,14 +25,15 @@
 #include <securec.h>
 #include <unistd.h>
 
+#include "platform/common/rs_system_properties.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_gl.h"
 #include "render_context/render_context.h"
 namespace OHOS {
 namespace Rosen {
 
-auto rsSurfaceFrameOhosGl = std::make_shared<RSSurfaceFrameOhosGl>(1, 1);
-
 namespace {
+auto g_rsSurfaceFrameOhosGl = std::make_shared<RSSurfaceFrameOhosGl>(1, 1);
+std::shared_ptr<RenderContext> g_context;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -64,10 +65,7 @@ bool DoGetCanvas(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RenderContext context;
-    context.InitializeEglContext();
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-    rsSurfaceFrameOhosGl->GetCanvas();
+    g_rsSurfaceFrameOhosGl->GetCanvas();
     return true;
 }
 bool DoGetSurface(const uint8_t* data, size_t size)
@@ -81,10 +79,7 @@ bool DoGetSurface(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RenderContext context;
-    context.InitializeEglContext();
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-    rsSurfaceFrameOhosGl->GetSurface();
+    g_rsSurfaceFrameOhosGl->GetSurface();
     return true;
 }
 bool DoSetDamageRegion(const uint8_t* data, size_t size)
@@ -103,13 +98,10 @@ bool DoSetDamageRegion(const uint8_t* data, size_t size)
     int32_t width1 = GetData<int32_t>();
     int32_t height1 = GetData<int32_t>();
 
-    RenderContext context;
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-
-    rsSurfaceFrameOhosGl->SetDamageRegion(left, top, width1, height1);
+    g_rsSurfaceFrameOhosGl->SetDamageRegion(left, top, width1, height1);
 
     std::vector<RectI> rects;
-    rsSurfaceFrameOhosGl->SetDamageRegion(rects);
+    g_rsSurfaceFrameOhosGl->SetDamageRegion(rects);
 
     return true;
 }
@@ -124,9 +116,7 @@ bool DoGetBufferAge(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RenderContext context;
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-    rsSurfaceFrameOhosGl->GetBufferAge();
+    g_rsSurfaceFrameOhosGl->GetBufferAge();
     return true;
 }
 bool DoGetReleaseFence(const uint8_t* data, size_t size)
@@ -140,9 +130,7 @@ bool DoGetReleaseFence(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RenderContext context;
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-    rsSurfaceFrameOhosGl->GetReleaseFence();
+    g_rsSurfaceFrameOhosGl->GetReleaseFence();
     return true;
 }
 bool DoSetReleaseFence(const uint8_t* data, size_t size)
@@ -156,10 +144,8 @@ bool DoSetReleaseFence(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RenderContext context;
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
     int32_t fence = GetData<int32_t>();
-    rsSurfaceFrameOhosGl->SetReleaseFence(fence);
+    g_rsSurfaceFrameOhosGl->SetReleaseFence(fence);
     return true;
 }
 bool DoCreateSurface(const uint8_t* data, size_t size)
@@ -173,11 +159,45 @@ bool DoCreateSurface(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RenderContext context;
-    context.InitializeEglContext();
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-    rsSurfaceFrameOhosGl->CreateSurface();
+    g_rsSurfaceFrameOhosGl->CreateSurface();
     return true;
+}
+void InitRenderContext()
+{
+    g_context = std::make_shared<RenderContext>();
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+#ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        g_context->InitializeEglContext();
+    }
+#endif
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        g_context->SetUpGpuContext(drawingContext);
+    }
+    else {
+        g_context->SetUpGpuContext();
+    }
+#else
+    g_context->SetUpGpuContext();
+#endif    
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
+    g_rsSurfaceFrameOhosGl->SetRenderContext(g_context.get());
+}
+void ReleaseRenderContext()
+{
+    g_rsSurfaceFrameOhosGl->SetRenderContext(nullptr);
+#if defined(RS_ENABLE_VK)
+    g_context->AbandonContext();
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        g_context->drGPUContext_->ReleaseResourcesAndAbandonContext();
+        g_context->drGPUContext_ = nullptr;
+    }
+#endif
+    g_context = nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -185,6 +205,8 @@ bool DoCreateSurface(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    OHOS::Rosen::InitRenderContext();
+
     /* Run your code on data */
     OHOS::Rosen::DoGetCanvas(data, size);       // GetCanvas
     OHOS::Rosen::DoGetSurface(data, size);      // GetSurface
@@ -193,5 +215,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetReleaseFence(data, size); // GetReleaseFence
     OHOS::Rosen::DoSetReleaseFence(data, size); // SetReleaseFence
     OHOS::Rosen::DoCreateSurface(data, size);   // CreateSurface
+
+    OHOS::Rosen::ReleaseRenderContext();
+
     return 0;
 }
