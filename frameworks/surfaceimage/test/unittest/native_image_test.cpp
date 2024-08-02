@@ -17,6 +17,7 @@
 #include <native_image.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <sys/time.h>
 #include "graphic_common_c.h"
 #include "surface_type.h"
 #include "window.h"
@@ -932,6 +933,149 @@ HWTEST_F(NativeImageTest, OHNativeImageAcquireNativeWindowBuffer002, Function | 
         ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage, nativeWindowBuffer, fenceFd);
         ASSERT_EQ(ret, GSERROR_OK);
     }
+
+    delete rect;
+    delete region;
+    OH_NativeImage_Destroy(&newImage);
+}
+
+/*
+* Function: OH_NativeImage_AcquireNativeWindowBuffer
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_AcquireNativeWindowBuffer
+*                  2. check ret
+*                  3. call OH_NativeImage_ReleaseNativeWindowBuffer
+*                  4. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OHNativeImageAcquireNativeWindowBuffer003, Function | MediumTest | Level1)
+{
+    OH_NativeImage* newImage = OH_NativeImage_Create(0, 0);
+    ASSERT_NE(newImage, nullptr);
+    OHNativeWindow* newNativeWindow = OH_NativeImage_AcquireNativeWindow(newImage);
+    ASSERT_NE(newNativeWindow, nullptr);
+
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t width = 0x100;
+    int32_t height = 0x100;
+    int32_t ret = NativeWindowHandleOpt(newNativeWindow, code, width, height);
+    ASSERT_EQ(ret, GSERROR_OK);
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;
+    rect->y = 0x100;
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    int fenceFd = -1;
+
+    ret = OH_NativeImage_AcquireNativeWindowBuffer(newImage, &nativeWindowBuffer, &fenceFd);
+    ASSERT_EQ(ret, SURFACE_ERROR_NO_BUFFER);
+
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(newNativeWindow, &nativeWindowBuffer, &fenceFd);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(newNativeWindow, nativeWindowBuffer, fenceFd, *region);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage, nativeWindowBuffer, fenceFd);
+    ASSERT_EQ(ret, SURFACE_ERROR_BUFFER_STATE_INVALID);
+
+    OH_NativeImage* newImage1 = OH_NativeImage_Create(0, 0);
+    ASSERT_NE(newImage1, nullptr);
+    OHNativeWindow* newNativeWindow1 = OH_NativeImage_AcquireNativeWindow(newImage1);
+    ASSERT_NE(newNativeWindow1, nullptr);
+    code = SET_BUFFER_GEOMETRY;
+    width = 0x100;
+    height = 0x100;
+    ret = NativeWindowHandleOpt(newNativeWindow1, code, width, height);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    NativeWindowBuffer* nativeWindowBuffer1 = nullptr;
+    ret = OH_NativeWindow_NativeWindowRequestBuffer(newNativeWindow1, &nativeWindowBuffer1, &fenceFd);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = OH_NativeWindow_NativeWindowFlushBuffer(newNativeWindow1, nativeWindowBuffer1, fenceFd, *region);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    ret = OH_NativeImage_AcquireNativeWindowBuffer(newImage1, &nativeWindowBuffer1, &fenceFd);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage, nativeWindowBuffer1, fenceFd);
+    ASSERT_EQ(ret, SURFACE_ERROR_BUFFER_NOT_INCACHE);
+
+    delete rect;
+    delete region;
+    OH_NativeImage_Destroy(&newImage);
+    OH_NativeImage_Destroy(&newImage1);
+}
+
+/*
+* Function: OH_NativeImage_AcquireNativeWindowBuffer
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_AcquireNativeWindowBuffer
+*                  2. check ret
+*                  3. call OH_NativeImage_ReleaseNativeWindowBuffer
+*                  4. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OHNativeImageAcquireNativeWindowBuffer004, Function | MediumTest | Level1)
+{
+    OH_NativeImage* newImage = OH_NativeImage_Create(0, 0);
+    ASSERT_NE(newImage, nullptr);
+    OHNativeWindow* newNativeWindow = OH_NativeImage_AcquireNativeWindow(newImage);
+    ASSERT_NE(newNativeWindow, nullptr);
+
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t width = 0x100;
+    int32_t height = 0x100;
+    int32_t ret = NativeWindowHandleOpt(newNativeWindow, code, width, height);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    int fenceFd = -1;
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;
+    rect->y = 0x100;
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+    struct timeval acquireStartTime;
+    struct timeval acquireEndTime;
+    struct timeval releaseStartTime;
+    struct timeval releaseEndTime;
+    uint64_t acquireTotalTime = 0;
+    uint64_t releaseTotalTime = 0;
+    for (int32_t i = 0; i < 10000; i++) {
+        ret = OH_NativeWindow_NativeWindowRequestBuffer(newNativeWindow, &nativeWindowBuffer, &fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        ret = OH_NativeWindow_NativeWindowFlushBuffer(newNativeWindow, nativeWindowBuffer, fenceFd, *region);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        nativeWindowBuffer = nullptr;
+        gettimeofday(&acquireStartTime, nullptr);
+        ret = OH_NativeImage_AcquireNativeWindowBuffer(newImage, &nativeWindowBuffer, &fenceFd);
+        gettimeofday(&acquireEndTime, nullptr);
+        acquireTotalTime += (1000000 * (acquireEndTime.tv_sec - acquireStartTime.tv_sec) +
+            (acquireEndTime.tv_usec - acquireStartTime.tv_usec));
+        ASSERT_EQ(ret, GSERROR_OK);
+        ASSERT_NE(nativeWindowBuffer, nullptr);
+
+        gettimeofday(&releaseStartTime, nullptr);
+        ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage, nativeWindowBuffer, fenceFd);
+        gettimeofday(&releaseEndTime, nullptr);
+        releaseTotalTime += (1000000 * (releaseEndTime.tv_sec - releaseStartTime.tv_sec) +
+            (releaseEndTime.tv_usec - releaseStartTime.tv_usec));
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
+    std::cout << "10000 count total time, OH_NativeImage_AcquireNativeWindowBuffer: " << acquireTotalTime << " us" <<
+        " OH_NativeImage_ReleaseNativeWindowBuffer: " << releaseTotalTime << " us" << std::endl;
 
     delete rect;
     delete region;
