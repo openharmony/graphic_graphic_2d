@@ -32,7 +32,7 @@ constexpr size_t ARGC_TWO = 2;
 constexpr size_t ARGC_MAX = 10;
 constexpr int32_t ERR_NOT_OK = -1;
 constexpr int32_t ERR_OK = 0;
-constexpr int32_t ERR_NOT_SYSTEM_APP = 222;
+constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 
 napi_value RSWindowAnimationManager::Init(napi_env env, napi_value exportObj)
 {
@@ -62,8 +62,8 @@ napi_value RSWindowAnimationManager::SetController(napi_env env, napi_callback_i
     WALOGD("SetController");
     if (!RSWindowAnimationUtils::IsSystemApp()) {
         WALOGE("SetController failed");
-        napi_throw(env, CreateJsError(env, ERR_NOT_SYSTEM_APP,
-            "WindowAnimationManager setController failed, is not system app"));
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "WindowAnimationManager setController failed, is not system app");
         return nullptr;
     }
     auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(env, info);
@@ -75,8 +75,8 @@ napi_value RSWindowAnimationManager::MinimizeWindowWithAnimation(napi_env env, n
     WALOGD("MinimizeWindowWithAnimation");
     if (!RSWindowAnimationUtils::IsSystemApp()) {
         WALOGE("MinimizeWindowWithAnimation failed");
-        napi_throw(env, CreateJsError(env, ERR_NOT_SYSTEM_APP,
-            "WindowAnimationManager minimizeWindowWithAnimation failed, is not system app"));
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "WindowAnimationManager minimizeWindowWithAnimation failed, is not system app");
         return nullptr;
     }
 
@@ -89,8 +89,8 @@ napi_value RSWindowAnimationManager::GetWindowAnimationTargets(napi_env env, nap
     WALOGD("GetWindowAnimationTargets");
     if (!RSWindowAnimationUtils::IsSystemApp()) {
         WALOGE("GetWindowAnimationTargets failed");
-        napi_throw(env, CreateJsError(env, ERR_NOT_SYSTEM_APP,
-            "WindowAnimationManager getWindowAnimationTargets failed, is not system app"));
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "WindowAnimationManager getWindowAnimationTargets failed, is not system app");
         return nullptr;
     }
     auto me = CheckParamsAndGetThis<RSWindowAnimationManager>(env, info);
