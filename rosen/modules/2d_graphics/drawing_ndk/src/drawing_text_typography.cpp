@@ -1337,8 +1337,11 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
         fontList[i] = nullptr;
         bool res = CopyStrData(&fontList[i], systemFontList[i].fullName);
         if (!res) {
-            for (size_t j = i; j >= 0; j--) {
-                delete fontList[j];
+            for (size_t j = i; j >= 0 && j != SIZE_MAX; j--) {
+                if (fontList[j] == nullptr) {
+                    continue;
+                }
+                delete[] fontList[j];
                 fontList[j] = nullptr;
             }
             delete[] fontList;
