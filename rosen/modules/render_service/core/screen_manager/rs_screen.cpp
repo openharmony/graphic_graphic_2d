@@ -654,7 +654,7 @@ void RSScreen::SetScreenBacklight(uint32_t level)
         return;
     }
 
-    RS_LOGI("RSScreen_%{public}" PRIu64 " SetScreenBacklight, level is %{public}u", id_, level);
+    RS_LOGD("RSScreen_%{public}" PRIu64 " SetScreenBacklight, level is %{public}u", id_, level);
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
         return;
     }
