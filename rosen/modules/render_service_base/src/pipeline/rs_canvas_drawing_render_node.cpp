@@ -41,7 +41,9 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace {
+constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 50;
+}
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSCanvasRenderNode(id, context, isTextureExportNode)
@@ -496,6 +498,15 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
             if (cmd->GetOpItemSize() > 0) {
                 SetNeedProcess(true);
             }
+        }
+        // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
+        // too many drawOp, so we need to add the limit of drawcmdlists.
+        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() ||
+            ((renderDrawable_ && renderDrawable_->IsDrawCmdListsVisited()))) &&
+            drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
+            RS_LOGD("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
+                type, drawCmdLists_[type].size());
+            drawCmdLists_[type].pop_front();
         }
     }
 }
