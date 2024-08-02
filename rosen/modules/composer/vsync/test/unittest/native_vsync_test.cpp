@@ -38,6 +38,10 @@ void NativeVsyncTest::TearDownTestCase()
 
 static void OnVSync(long long timestamp, void* data)
 {
+    if (data != nullptr) {
+        delete (std::string *)data;
+        data = nullptr;
+    }
 }
 
 namespace {
@@ -107,6 +111,118 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrame003, Function | MediumTest 
 {
     OH_NativeVSync_FrameCallback callback = OnVSync;
     ASSERT_EQ(OH_NativeVSync_RequestFrame(native_vsync, callback, nullptr), 0);
+}
+
+/*
+* Function: OH_NativeVSync_RequestFrameWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_RequestFrameWithMultiCallback with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback001, Function | MediumTest | Level2)
+{
+    std::string *userData = new std::string("userData");
+    OH_NativeVSync_FrameCallback callback = OnVSync;
+    ASSERT_NE(OH_NativeVSync_RequestFrameWithMultiCallback(nullptr, callback, userData), 0);
+}
+
+/*
+* Function: OH_NativeVSync_RequestFrameWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_RequestFrameWithMultiCallback with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback002, Function | MediumTest | Level2)
+{
+    std::string *userData = new std::string("userData");
+    ASSERT_NE(OH_NativeVSync_RequestFrameWithMultiCallback(native_vsync, nullptr, userData), 0);
+}
+
+/*
+* Function: OH_NativeVSync_RequestFrameWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_RequestFrameWithMultiCallback with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback003, Function | MediumTest | Level2)
+{
+    OH_NativeVSync_FrameCallback callback = OnVSync;
+    ASSERT_EQ(OH_NativeVSync_RequestFrameWithMultiCallback(native_vsync, callback, nullptr), 0);
+}
+
+/*
+* Function: OH_NativeVSync_RequestFrameWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_RequestFrameWithMultiCallback with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback004, Function | MediumTest | Level2)
+{
+    std::string *userData = new std::string("userData");
+    ASSERT_NE(OH_NativeVSync_RequestFrameWithMultiCallback(nullptr, nullptr, userData), 0);
+}
+
+/*
+* Function: OH_NativeVSync_RequestFrameWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_RequestFrameWithMultiCallback with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback005, Function | MediumTest | Level2)
+{
+    OH_NativeVSync_FrameCallback callback = OnVSync;
+    ASSERT_NE(OH_NativeVSync_RequestFrameWithMultiCallback(nullptr, callback, nullptr), 0);
+}
+
+/*
+* Function: OH_NativeVSync_RequestFrameWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_RequestFrameWithMultiCallback with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback006, Function | MediumTest | Level2)
+{
+    ASSERT_NE(OH_NativeVSync_RequestFrameWithMultiCallback(native_vsync, nullptr, nullptr), 0);
+}
+
+/*
+* Function: OH_NativeVSync_RequestFrameWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_RequestFrameWithMultiCallback with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback007, Function | MediumTest | Level2)
+{
+    ASSERT_NE(OH_NativeVSync_RequestFrameWithMultiCallback(nullptr, nullptr, nullptr), 0);
+}
+
+/*
+* Function: OH_NativeVSync_RequestFrameWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_RequestFrameWithMultiCallback with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback008, Function | MediumTest | Level2)
+{
+    std::string *userData = new std::string("userData");
+    OH_NativeVSync_FrameCallback callback = OnVSync;
+    ASSERT_EQ(OH_NativeVSync_RequestFrameWithMultiCallback(native_vsync, callback, userData), 0);
 }
 
 /*
