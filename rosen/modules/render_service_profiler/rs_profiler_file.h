@@ -112,7 +112,8 @@ public:
     void SetPreparedHeaderMode(bool mode);
     void Close();
 
-    uint32_t GetVersion();
+    uint32_t GetVersion() const;
+    void SetVersion(uint32_t);
 
     static const std::string& GetDefaultPath();
 
