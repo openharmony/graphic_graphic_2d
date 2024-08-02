@@ -47,7 +47,7 @@ void RSLinearGradientBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const st
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
     auto& para = linearGradientBlurPara_;
-    if (!image || para == nullptr || para->blurRadius_ <= 0) {
+    if (!image || para == nullptr || para->blurRadius_ <= 0 || imageScale_ <= 0) {
         return;
     }
 
