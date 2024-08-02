@@ -695,12 +695,15 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
             if (!drawable) {
                 return;
             }
-            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Generate effectData");
+            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Fallback");
+            RSAutoCanvasRestore arc(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kEnv);
             bool disableFilterCache = paintFilterCanvas->GetDisableFilterCache();
             paintFilterCanvas->SetDisableFilterCache(true);
             int8_t index = drawable->drawCmdIndex_.backgroundFilterIndex_;
             drawable->DrawImpl(*paintFilterCanvas, *rect, index);
             paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
+            RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas);
+            return;
         }
         RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas);
     };
