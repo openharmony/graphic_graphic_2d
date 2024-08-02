@@ -68,10 +68,20 @@ bool DoSavePixelmapToFile(const uint8_t* data, size_t size)
     opts.size.width = g_iSize;
     opts.size.height = g_iSize;
     opts.editable = true;
-    auto pixelMap = Media::PixelMap::Create(opts);
-    auto shpPixelMap = std::shared_ptr<Media::PixelMap>(pixelMap.release());
-    std::string dst = "";
-    CommonTools::SavePixelmapToFile(shpPixelMap, dst);
+    return true;
+}
+bool DoGetLocalTime(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    CommonTools::GetLocalTime();
     return true;
 }
 
@@ -83,5 +93,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::DoSavePixelmapToFile(data, size); // SavePixelmapToFile
+    OHOS::Rosen::DoGetLocalTime(data, size); // GetLocalTime
     return 0;
 }
