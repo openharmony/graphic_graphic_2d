@@ -2971,16 +2971,16 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
 void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes)
 {
-    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodeVector;
+    std::list<RectI> hwcRects;
     for (int i = 0; i < hwcNodes.size(); i++) {
         auto hwcNodePtr = hwcNodes[i].lock();
         if (!hwcNodePtr) {
             continue;
         }
         if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
-            hwcNodeVector.push_back(hwcNodes[i]);
+            hwcNodeVector.push_back(hwcNodes[i].lock()->GetDstRect());
         } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
-                   hwcNodeVector.size() != 0 && IsNodeBelowDstCoverNodeAboveDst(hwcNodes[i], hwcNodeVector)) {
+                   hwcNodeVector.size() != 0 && IsNodeBelowInsideOfNodeAbove(hwcNodes[i].lock()->GetDstRect(), hwcRects)) {
             return;
         } else {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
@@ -2988,11 +2988,10 @@ void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     }
 }
 
-bool RSUniRenderVisitor::IsNodeBelowDstCoverNodeAboveDst(std::weak_ptr<RSSurfaceRenderNode> hwcNode,
-    std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodeVector)
+bool RSUniRenderVisitor::IsNodeBelowInsideOfNodeAbove(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList)
 {
-    for (int i = hwcNodeVector.size() - 1; i >= 0; i--) {
-        if (hwcNode.lock()->GetDstRect().IsInsideOf(hwcNodeVector[i].lock()->GetDstRect())) {
+    for (auto rectBelow: hwcNodeRectList) {
+        if (rectAbove.IsInsideOf(rectBelow)) {
             return true;
         }
     }
