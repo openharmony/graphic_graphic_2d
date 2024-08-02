@@ -64,8 +64,7 @@ private:
 
     const std::string dclMsgErr_ = "error input!\n use command '--help' get more information\n";
     const std::string breakLine_ = std::string(80, '-');
-    const std::string dclMsg_ =
-        "usage: /bin/drawing_sample_replayer drawing_engine_sample dcl <option> <argument> \n" + breakLine_ +
+    const std::string dclMsg_ = "usage: /bin/drawing_engine_sample dcl <option> <argument> \n" + breakLine_ +
         "\nThere are common commands list:\n"
         " -t,--type                  set the type of playback, \n"
         "                            \t0: iterate by frame,\n"
