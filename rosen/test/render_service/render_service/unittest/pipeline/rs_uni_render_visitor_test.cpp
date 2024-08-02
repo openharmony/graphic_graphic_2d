@@ -5202,7 +5202,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInfoAndUpdateDirty003, TestSize.Le
  * @tc.name: UpdateHardwareStateByHwcNodeBackgroundAlpha
  * @tc.desc: Test RSUnitRenderVisitorTest.UpdateHardwareStateByHwcNodeBackgroundAlpha
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: IAHFXD
  */
 HWTEST_F(RSUniRenderVisitorTest, UpdateHardwareStateByHwcNodeBackgroundAlpha, TestSize.Level1)
 {
