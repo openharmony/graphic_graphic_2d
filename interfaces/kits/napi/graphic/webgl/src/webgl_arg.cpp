@@ -339,11 +339,11 @@ napi_value WebGLWriteBufferArg::GenExternalArray()
     if (status == napi_ok) {
         status = napi_create_typedarray(env_, (napi_typedarray_type)type_, count, outputBuffer, 0, &outputArray);
     }
+    data_ = nullptr;
     if (status != napi_ok) {
         LOGE("GenExternalArray error %{public}d", status);
         return nullptr;
     }
-    data_ = nullptr;
     return outputArray;
 }
 

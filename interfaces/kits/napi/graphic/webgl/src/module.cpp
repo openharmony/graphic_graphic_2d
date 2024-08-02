@@ -78,6 +78,7 @@ static napi_value Export(napi_env env, napi_value exports)
     }
     size_t webglItem = vec[0].find("webgl");
     if (webglItem == std::string::npos) {
+        LOGE("can not find webgl");
         return nullptr;
     }
     string webgl2Str = vec[0].substr(webglItem, 6); // length of webgl2
