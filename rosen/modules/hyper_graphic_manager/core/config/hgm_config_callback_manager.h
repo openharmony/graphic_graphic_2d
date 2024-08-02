@@ -47,9 +47,9 @@ private:
     std::mutex mtx_;
     static std::once_flag createFlag_;
     static sptr<HgmConfigCallbackManager> instance_;
-    std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;
+    PidToRefreshRateModeCallback animDynamicCfgCallbacks_;
     PidToRefreshRateModeCallback refreshRateModeCallbacks_;
-    std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> refreshRateUpdateCallbacks_;
+    PidToRefreshRateModeCallback refreshRateUpdateCallbacks_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CONFIG_CALLBACK_MANAGER_H

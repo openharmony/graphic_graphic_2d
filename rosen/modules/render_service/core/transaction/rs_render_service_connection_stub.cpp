@@ -504,11 +504,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("OnRemoteRequest no permission to access GET_CURRENT_REFRESH_RATE_MODE");
+                return ERR_INVALID_STATE;
+            }
             int32_t refreshRateMode = GetCurrentRefreshRateMode();
             reply.WriteInt32(refreshRateMode);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("OnRemoteRequest no permission to access GET_SCREEN_SUPPORTED_REFRESH_RATES");
+                return ERR_INVALID_STATE;
+            }
             ScreenId id = data.ReadUint64();
             std::vector<int32_t> rates = GetScreenSupportedRefreshRates(id);
             reply.WriteUint64(static_cast<uint64_t>(rates.size()));
@@ -1171,7 +1179,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
             auto listSize = data.ReadUint32();
-            const uint32_t MAX_LIST_SIZE = 30;
+            const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
                 ret = ERR_INVALID_STATE;
                 break;

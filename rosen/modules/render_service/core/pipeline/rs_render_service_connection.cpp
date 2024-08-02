@@ -1569,7 +1569,7 @@ void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std:
         RS_LOGW("RSRenderServiceConnection::NotifyPackageEvent: frameRateMgr is nullptr.");
         return;
     }
-    mainThread_->GetFrameRateMgr()->HandlePackageEvent(remotePid_, listSize, packageList);
+    mainThread_->GetFrameRateMgr()->HandlePackageEvent(remotePid_, packageList);
 }
 
 void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)

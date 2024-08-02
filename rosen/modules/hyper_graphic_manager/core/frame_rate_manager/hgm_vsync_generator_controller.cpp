@@ -78,6 +78,10 @@ uint64_t HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime(uint64_t lastVSy
 void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
     const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData, uint64_t targetTime, bool isNeedUpdateAppOffset)
 {
+    if (vsyncGenerator_ == nullptr) {
+        HGM_LOGE("HgmVSyncGeneratorController::vsyncGenerator is nullptr");
+        return;
+    }
     int pulseNum;
     if (isNeedUpdateAppOffset) {
         pulseNum = 0;
