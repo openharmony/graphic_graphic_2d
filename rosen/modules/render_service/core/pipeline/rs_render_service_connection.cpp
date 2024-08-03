@@ -360,10 +360,12 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
-        auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
-        auto& context = mainThread_->GetContext();
-        auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
-        frameRateLinkerMap.RegisterFrameRateLinker(linker);
+        mainThread_->ScheduleTask([=]() {
+            auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
+            auto& context = mainThread_->GetContext();
+            auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
+            frameRateLinkerMap.RegisterFrameRateLinker(linker);
+        }).wait();
         conn->id_ = id;
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
