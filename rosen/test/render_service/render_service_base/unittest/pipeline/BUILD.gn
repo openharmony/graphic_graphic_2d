@@ -29,7 +29,6 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
     "rs_canvas_drawing_render_node_test.cpp",
     "rs_canvas_render_node_test.cpp",
     "rs_context_test.cpp",
-    "rs_dirty_region_manager_test.cpp",
     "rs_display_render_node_test.cpp",
     "rs_draw_cmd_list_test.cpp",
     "rs_draw_cmd_test.cpp",
@@ -94,7 +93,49 @@ ohos_unittest("RSRenderServiceBasePipelineTest") {
   subsystem_name = "graphic"
 }
 
+## Build RSDirtyRegionManagerTest
+ohos_unittest("RSDirtyRegionManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_dirty_region_manager_test.cpp" ]
+  configs = [
+    ":render_test",
+    ":rs_base_common_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
+config("rs_base_common_config") {
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+}
+
 config("render_test") {
   visibility = [ ":*" ]
   include_dirs = [
