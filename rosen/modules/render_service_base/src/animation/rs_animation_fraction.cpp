@@ -109,8 +109,8 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
 {
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
-    int64_t deltaTime = time - lastFrameTime_;
-    lastFrameTime_ = time;
+    int64_t deltaTime = time >= lastFrameTime_ ? (time - lastFrameTime_) : 0;
+    lastFrameTime_ += deltaTime;
     bool isInStartDelay = false;
     bool isRepeatFinished = false;
     bool isFinished = true;
