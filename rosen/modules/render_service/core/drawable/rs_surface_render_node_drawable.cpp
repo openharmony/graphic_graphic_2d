@@ -271,6 +271,11 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
     return false;
 }
 
+Drawing::Rect RSSurfaceRenderNodeDrawable::GetLocalClipRect() const
+{
+    return localClipRect_;
+}
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
@@ -717,6 +722,10 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             canvas.ClipRect({std::round(bounds.GetLeft()), std::round(bounds.GetTop()),
                 std::round(bounds.GetRight()), std::round(bounds.GetBottom())});
             canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
+            if (surfaceParams.GetForceHardwareByUser()) {
+                auto localClip = canvas.GetLocalClipBounds(canvas);
+                localClipRect_ = localClip.has_value() ? localClip.value() : Drawing::Rect();
+            }
         }
         return;
     }
