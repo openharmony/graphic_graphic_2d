@@ -284,6 +284,7 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    void RefreshEntireDisplay();
     bool IsCurtainScreenOn() const;
     void NotifySurfaceCapProcFinish();
     void WaitUntilSurfaceCapProcFinished();
