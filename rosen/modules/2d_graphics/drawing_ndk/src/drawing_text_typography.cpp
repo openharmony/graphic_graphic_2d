@@ -1332,7 +1332,7 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
 
     if (systemFontList.empty()) {
         *num = 0;
-        return fontList;
+        return nullptr;
     }
 
     fontList = new char* [systemFontList.size()];
