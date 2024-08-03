@@ -261,6 +261,11 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
     }
+
+    inline bool CheckCacheSurface()
+    {
+        return cacheSurface_ ? true : false;
+    }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, RSDisplayRenderNodeDrawable& curDisplayNode);
@@ -276,7 +281,6 @@ private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 
-    std::string name_;
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id);
     // To be deleted after captureWindow being deleted
@@ -299,6 +303,7 @@ private:
     void DrawSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas,
         const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
 
+    std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
 
 #ifndef ROSEN_CROSS_PLATFORM

@@ -162,7 +162,7 @@ private:
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
-    bool CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node);
+    bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,

@@ -418,12 +418,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
     isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
-    {
-        if (isDrawingCacheDfxEnabled_) {
-            std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
-            drawingCacheInfos_.clear();
-            cacheUpdatedNodeMap_.clear();
-        }
+    if (isDrawingCacheDfxEnabled_) {
+        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+        drawingCacheInfos_.clear();
+        cacheUpdatedNodeMap_.clear();
     }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
@@ -969,9 +967,8 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
     } else {
         RS_TRACE_NAME("DrawWiredMirrorCopy with displaySurface");
-        bool forceCPU = false;
         auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(
-            *mirroredDrawable->GetRSSurfaceHandlerOnDraw(), forceCPU);
+            *mirroredDrawable->GetRSSurfaceHandlerOnDraw(), false); // false: draw with gpu
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
         drawParams.isMirror = true;
         renderEngine->DrawDisplayNodeWithParams(*curCanvas_,
@@ -1110,17 +1107,23 @@ void RSDisplayRenderNodeDrawable::ResetRotateIfNeed(RSDisplayRenderNodeDrawable&
 
 void RSDisplayRenderNodeDrawable::RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight)
 {
-    if (rotation == ScreenRotation::ROTATION_0) {
-        return;
-    } else if (rotation == ScreenRotation::ROTATION_90) {
-        curCanvas_->Rotate(90, 0, 0); // 90 is the rotate angle
-        curCanvas_->Translate(0, -mainHeight);
-    } else if (rotation == ScreenRotation::ROTATION_180) {
-        // 180 is the rotate angle, calculate half width and half height requires divide by 2
-        curCanvas_->Rotate(180, mainWidth / 2, mainHeight / 2);
-    } else if (rotation == ScreenRotation::ROTATION_270) {
-        curCanvas_->Rotate(270, 0, 0); // 270 is the rotate angle
-        curCanvas_->Translate(-mainWidth, 0);
+    switch (rotation) {
+        case ScreenRotation::ROTATION_0:
+            break;
+        case ScreenRotation::ROTATION_90:
+            curCanvas_->Rotate(90, 0, 0); // 90 is the rotate angle
+            curCanvas_->Translate(0, -mainHeight);
+            break;
+        case ScreenRotation::ROTATION_180:
+            // 180 is the rotate angle, calculate half width and half height requires divide by 2
+            curCanvas_->Rotate(180, mainWidth / 2, mainHeight / 2);
+            break;
+        case ScreenRotation::ROTATION_270:
+            curCanvas_->Rotate(270, 0, 0); // 270 is the rotate angle
+            curCanvas_->Translate(-mainWidth, 0);
+            break;
+        default:
+            break;
     }
 }
 
@@ -1349,7 +1352,7 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
     canvas.ConcatMatrix(params.GetMatrix());
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode, rscanvas us nullptr");
+        RS_LOGE("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode, rscanvas is nullptr");
         return;
     }
     // draw hardware-composition nodes
@@ -1463,7 +1466,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     }
     // create offscreen surface and canvas
     if (useFixedOffscreenSurfaceSize_) {
-        if (!offscreenSurface_) {
+        if (offscreenSurface_ == nullptr) {
             RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
         }

@@ -330,13 +330,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (!isUiFirstNode) {
         MergeDirtyRegionBelowCurSurface(*uniParam, curSurfaceDrawRegion);
-    }
-
-    if (!isUiFirstNode && uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s %sAlpha: %f, NodeId:"
-            "%" PRIu64 "", name_.c_str(), surfaceParams->GetAbsDrawRect().ToString().c_str(),
-            surfaceParams->GetGlobalAlpha(), surfaceParams->GetId());
-        return;
+        if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw occlusion skip SurfaceName:%s %sAlpha: %f, NodeId:"
+                "%" PRIu64 "", name_.c_str(), surfaceParams->GetAbsDrawRect().ToString().c_str(),
+                surfaceParams->GetGlobalAlpha(), surfaceParams->GetId());
+            return;
+        }
     }
     const auto &absDrawRect = surfaceParams->GetAbsDrawRect();
     // warning : don't delete this trace or change trace level to optional !!!
@@ -446,17 +445,15 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(
         return;
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(renderParams_.get());
-    if (!surfaceParams) {
-        return;
-    }
+    auto isMainWindowType = surfaceParams->IsMainWindowType();
     auto visibleRegion = surfaceParams->GetVisibleRegion();
-    if (surfaceParams->IsMainWindowType() && visibleRegion.IsEmpty()) {
+    if (isMainWindowType && visibleRegion.IsEmpty()) {
         return;
     }
-    if (surfaceParams->IsMainWindowType() || surfaceParams->IsLeashWindow()) {
+    if (isMainWindowType || surfaceParams->IsLeashWindow()) {
         auto& accumulatedDirtyRegion = uniParam.GetAccumulatedDirtyRegion();
         Occlusion::Region calcRegion;
-        if ((surfaceParams->IsMainWindowType() && surfaceParams->IsParentScaling()) ||
+        if ((isMainWindowType && surfaceParams->IsParentScaling()) ||
             surfaceParams->IsSubSurfaceNode() || uniParam.IsAllSurfaceVisibleDebugEnabled()) {
             calcRegion = visibleRegion;
         } else if (!surfaceParams->GetTransparentRegion().IsEmpty()) {

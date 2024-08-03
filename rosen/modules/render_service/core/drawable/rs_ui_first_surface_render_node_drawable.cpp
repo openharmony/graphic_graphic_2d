@@ -45,111 +45,6 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
-#ifdef RS_ENABLE_VK
-namespace {
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
-
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkContext.vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    return UINT32_MAX;
-}
-
-void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
-    const VkImageCreateInfo& imageInfo)
-{
-    vkImageInfo->imageTiling = imageInfo.tiling;
-    vkImageInfo->imageLayout = imageInfo.initialLayout;
-    vkImageInfo->format = imageInfo.format;
-    vkImageInfo->imageUsageFlags = imageInfo.usage;
-    vkImageInfo->levelCount = imageInfo.mipLevels;
-    vkImageInfo->currentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
-    vkImageInfo->ycbcrConversionInfo = {};
-    vkImageInfo->sharingMode = imageInfo.sharingMode;
-}
-
-OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height,
-    VkFormat format = VK_FORMAT_R8G8B8A8_UNORM)
-{
-    VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
-    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    VkImageCreateInfo imageInfo {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .format = format,
-        .extent = {width, height, 1},
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .tiling = tiling,
-        .usage = usage,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-    };
-
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    VkDevice device = vkContext.GetDevice();
-    VkImage image = VK_NULL_HANDLE;
-    VkDeviceMemory memory = VK_NULL_HANDLE;
-
-    if (width * height > VKIMAGE_LIMIT_SIZE) {
-        ROSEN_LOGE(
-            "RSUniRenderUtil::MakeBackendTexture failed, image is too large, width:%{public}u, height::%{public}u",
-            width, height);
-        return {};
-    }
-
-    if (vkContext.vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
-        return {};
-    }
-
-    VkMemoryRequirements memRequirements;
-    vkContext.vkGetImageMemoryRequirements(device, image, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    if (allocInfo.memoryTypeIndex == UINT32_MAX) {
-        return {};
-    }
-
-    if (vkContext.vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
-        return {};
-    }
-
-    vkContext.vkBindImageMemory(device, image, memory, 0);
-
-    OHOS::Rosen::Drawing::BackendTexture backendTexture(true);
-    OHOS::Rosen::Drawing::TextureInfo textureInfo;
-    textureInfo.SetWidth(width);
-    textureInfo.SetHeight(height);
-
-    std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo =
-        std::make_shared<OHOS::Rosen::Drawing::VKTextureInfo>();
-    vkImageInfo->vkImage = image;
-    vkImageInfo->vkAlloc.memory = memory;
-    vkImageInfo->vkAlloc.size = memRequirements.size;
-
-    SetVkImageInfo(vkImageInfo, imageInfo);
-    textureInfo.SetVKTextureInfo(vkImageInfo);
-    backendTexture.SetTextureInfo(textureInfo);
-    return backendTexture;
-}
-} // un-named
-#endif // RS_ENABLE_VK
 namespace OHOS::Rosen::DrawableV2 {
 CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus() const
 {
@@ -164,13 +59,11 @@ void RSSurfaceRenderNodeDrawable::SetCacheSurfaceProcessedStatus(CacheProcessSta
 std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(uint32_t threadIndex,
     bool needCheckThread, bool releaseAfterGet)
 {
-    {
-        if (releaseAfterGet) {
-            return std::move(cacheSurface_);
-        }
-        if (!needCheckThread || cacheSurfaceThreadIndex_ == threadIndex || !cacheSurface_) {
-            return cacheSurface_;
-        }
+    if (releaseAfterGet) {
+        return std::move(cacheSurface_);
+    }
+    if (!needCheckThread || cacheSurfaceThreadIndex_ == threadIndex || !cacheSurface_) {
+        return cacheSurface_;
     }
 
     // freeze cache scene
@@ -317,7 +210,8 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
 
     auto cacheImage = GetCompletedImage(canvas, threadIndex, isUIFirst);
     RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheImage, "cacheImage");
-    if (cacheImage == nullptr) {
+    if (cacheImage == nullptr || ROSEN_EQ(cacheImage->GetWidth(), 0) ||
+        ROSEN_EQ(cacheImage->GetHeight(), 0)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawCacheSurface return %d", __LINE__);
         return false;
     }
@@ -395,7 +289,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        cacheBackendTexture_ = MakeBackendTexture(width, height);
+        cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
             if (func) {
