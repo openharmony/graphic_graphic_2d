@@ -997,6 +997,9 @@ public:
         return false;
     }
 
+    void SetNeedClearPreBuffer(bool needClear);
+    bool GetNeedClearPreBuffer() const;
+
     void UpdateSurfaceCacheContentStaticFlag();
 
     void UpdateSurfaceSubTreeDirtyFlag();
@@ -1262,6 +1265,7 @@ private:
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
     std::atomic_bool isBufferAvailable_ = false;
+    std::atomic_bool isNeedClearPreBuffer_ = false;
     sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
     sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
     sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;

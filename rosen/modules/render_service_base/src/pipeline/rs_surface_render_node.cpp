@@ -616,6 +616,16 @@ void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas
     needDrawAnimateProperty_ = false;
 }
 
+void RSSurfaceRenderNode::SetNeedClearPreBuffer(bool needClear)
+{
+    isNeedClearPreBuffer_.store(needClear);
+}
+
+bool RSSurfaceRenderNode::GetNeedClearPreBuffer() const
+{
+    return isNeedClearPreBuffer_;
+}
+
 void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)
 {
     if (GetCacheType() != CacheType::ANIMATE_PROPERTY && !needDrawAnimateProperty_) {

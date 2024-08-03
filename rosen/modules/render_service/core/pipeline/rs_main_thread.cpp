@@ -1271,6 +1271,14 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
         }
+        if (surfaceNode->GetNeedClearPreBuffer()) {
+            surfaceNode->SetNeedClearPreBuffer(false);
+            if(!surfaceHandler.IsCurrentFrameBufferConsumed()) {
+                RS_LOGD("%{public}s, Clear prebuffer", surfaceNode->GetName().c_str());
+                surfaceNode->ResetPreBuffer();
+                surfaceNode->GetRSSurfaceHandler()->CleanPreBuffer();
+            }
+        }
 #ifdef RS_ENABLE_VK
         if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
