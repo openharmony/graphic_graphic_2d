@@ -560,6 +560,14 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
         pendingPostCardNodes_.find(node->GetId()) != pendingPostCardNodes_.end()) {
         node->SetUifirstSyncFlag(true);
     }
+    using surfaceDrawable = DrawableV2::RSSurfaceRenderNodeDrawable;
+    if (auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node->GetInstanceRootNode())) {
+        if (std::static_pointer_cast<surfaceDrawable>(drawableNode)->GetCacheSurfaceProcessedStatus() ==
+            CacheProcessStatus::DOING) {
+            pendingSyncForSkipBefore_[node->GetInstanceRootNodeId()].push_back(node);
+            return true;
+        }
+    }
 
     if (NodeIsInCardWhiteList(*node) && processingCardNodeSkipSync_.count(node->GetUifirstRootNodeId())) {
         pendingSyncForSkipBefore_[node->GetUifirstRootNodeId()].push_back(node);
