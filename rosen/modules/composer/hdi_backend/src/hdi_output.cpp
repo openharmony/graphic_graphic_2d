@@ -710,8 +710,16 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFence()
         }
 
         const LayerPtr &layer = iter->second;
-        layer->MergeWithLayerFence(fences_[i]);
-        res[layer->GetLayerInfo()] = layer->GetReleaseFence();
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr) {
+            continue;
+        }
+        if (layer->GetLayerInfo()->GetUniRenderFlag()) {
+            layer->SetReleaseFence(fences_[i]);
+            res[layer->GetLayerInfo()] = fences_[i];
+        } else {
+            layer->MergeWithLayerFence(fences_[i]);
+            res[layer->GetLayerInfo()] = layer->GetReleaseFence();
+        }
     }
     return res;
 }
