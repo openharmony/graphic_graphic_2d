@@ -1330,14 +1330,11 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
     std::vector<TextEngine::FontParser::FontDescriptor> systemFontList =
         ConvertToOriginalText<TextEngine::FontParser>(fontParser)->GetVisibilityFonts(std::string(locale.getName()));
     fontList = new char* [systemFontList.size()];
-    if (fontList == nullptr) {
-        return nullptr;
-    }
     for (size_t i = 0; i < systemFontList.size(); ++i) {
         fontList[i] = nullptr;
         bool res = CopyStrData(&fontList[i], systemFontList[i].fullName);
         if (!res) {
-            for (size_t j = i; j >= 0 && j != SIZE_MAX; j--) {
+            if (size_t j = 0; j < i; j++) {
                 if (fontList[j] == nullptr) {
                     continue;
                 }
