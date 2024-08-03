@@ -23,35 +23,36 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsMatrix::constructor_ = nullptr;
 const std::string CLASS_NAME = "Matrix";
+
+static const napi_property_descriptor g_properties[] = {
+    DECLARE_NAPI_FUNCTION("getValue", JsMatrix::GetValue),
+    DECLARE_NAPI_FUNCTION("postRotate", JsMatrix::PostRotate),
+    DECLARE_NAPI_FUNCTION("postTranslate", JsMatrix::PostTranslate),
+    DECLARE_NAPI_FUNCTION("preRotate", JsMatrix::PreRotate),
+    DECLARE_NAPI_FUNCTION("preScale", JsMatrix::PreScale),
+    DECLARE_NAPI_FUNCTION("preTranslate", JsMatrix::PreTranslate),
+    DECLARE_NAPI_FUNCTION("setRotation", JsMatrix::SetRotation),
+    DECLARE_NAPI_FUNCTION("setScale", JsMatrix::SetScale),
+    DECLARE_NAPI_FUNCTION("setTranslation", JsMatrix::SetTranslation),
+    DECLARE_NAPI_FUNCTION("setMatrix", JsMatrix::SetMatrix),
+    DECLARE_NAPI_FUNCTION("preConcat", JsMatrix::PreConcat),
+    DECLARE_NAPI_FUNCTION("isEqual", JsMatrix::IsEqual),
+    DECLARE_NAPI_FUNCTION("invert", JsMatrix::Invert),
+    DECLARE_NAPI_FUNCTION("isIdentity", JsMatrix::IsIdentity),
+    DECLARE_NAPI_FUNCTION("mapPoints", JsMatrix::MapPoints),
+    DECLARE_NAPI_FUNCTION("postScale", JsMatrix::PostScale),
+    DECLARE_NAPI_FUNCTION("reset", JsMatrix::Reset),
+    DECLARE_NAPI_FUNCTION("getAll", JsMatrix::GetAll),
+    DECLARE_NAPI_FUNCTION("setPolyToPoly", JsMatrix::SetPolyToPoly),
+    DECLARE_NAPI_FUNCTION("setRectToRect", JsMatrix::SetRectToRect),
+    DECLARE_NAPI_FUNCTION("mapRect", JsMatrix::MapRect),
+};
+
 napi_value JsMatrix::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("getValue", JsMatrix::GetValue),
-        DECLARE_NAPI_FUNCTION("postRotate", JsMatrix::PostRotate),
-        DECLARE_NAPI_FUNCTION("postTranslate", JsMatrix::PostTranslate),
-        DECLARE_NAPI_FUNCTION("preRotate", JsMatrix::PreRotate),
-        DECLARE_NAPI_FUNCTION("preScale", JsMatrix::PreScale),
-        DECLARE_NAPI_FUNCTION("preTranslate", JsMatrix::PreTranslate),
-        DECLARE_NAPI_FUNCTION("setRotation", JsMatrix::SetRotation),
-        DECLARE_NAPI_FUNCTION("setScale", JsMatrix::SetScale),
-        DECLARE_NAPI_FUNCTION("setTranslation", JsMatrix::SetTranslation),
-        DECLARE_NAPI_FUNCTION("setMatrix", JsMatrix::SetMatrix),
-        DECLARE_NAPI_FUNCTION("preConcat", JsMatrix::PreConcat),
-        DECLARE_NAPI_FUNCTION("isEqual", JsMatrix::IsEqual),
-        DECLARE_NAPI_FUNCTION("invert", JsMatrix::Invert),
-        DECLARE_NAPI_FUNCTION("isIdentity", JsMatrix::IsIdentity),
-        DECLARE_NAPI_FUNCTION("mapPoints", JsMatrix::MapPoints),
-        DECLARE_NAPI_FUNCTION("postScale", JsMatrix::PostScale),
-        DECLARE_NAPI_FUNCTION("reset", JsMatrix::Reset),
-        DECLARE_NAPI_FUNCTION("getAll", JsMatrix::GetAll),
-        DECLARE_NAPI_FUNCTION("setPolyToPoly", JsMatrix::SetPolyToPoly),
-        DECLARE_NAPI_FUNCTION("setRectToRect", JsMatrix::SetRectToRect),
-        DECLARE_NAPI_FUNCTION("mapRect", JsMatrix::MapRect),
-    };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+        sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("JsMatrix::Init Failed to define Matrix class");
         return nullptr;
@@ -104,6 +105,35 @@ void JsMatrix::Destructor(napi_env env, void* nativeObject, void* finalize)
         JsMatrix* napi = reinterpret_cast<JsMatrix*>(nativeObject);
         delete napi;
     }
+}
+
+napi_value JsMatrix::CreateJsMatrix(napi_env env, const std::shared_ptr<Matrix> matrix)
+{
+    napi_value constructor = nullptr;
+    napi_value result = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status == napi_ok) {
+        auto jsMatrix = new(std::nothrow) JsMatrix(matrix);
+        if (jsMatrix == nullptr) {
+            ROSEN_LOGE("JsMatrix::CreateJsMatrix allocation failed!");
+            return nullptr;
+        }
+        napi_create_object(env, &result);
+        if (result == nullptr) {
+            delete jsMatrix;
+            ROSEN_LOGE("JsMatrix::CreateJsMatrix Create matrix object failed!");
+            return nullptr;
+        }
+        napi_status status = napi_wrap(env, result, jsMatrix, JsMatrix::Destructor, nullptr, nullptr);
+        if (status != napi_ok) {
+            delete jsMatrix;
+            ROSEN_LOGE("JsMatrix::CreateJsMatrix failed to wrap native instance");
+            return nullptr;
+        }
+        napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+        return result;
+    }
+    return result;
 }
 
 napi_value JsMatrix::GetValue(napi_env env, napi_callback_info info)

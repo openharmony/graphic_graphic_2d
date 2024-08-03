@@ -27,45 +27,46 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsPath::constructor_ = nullptr;
 const std::string CLASS_NAME = "Path";
+
+static const napi_property_descriptor g_properties[] = {
+    DECLARE_NAPI_FUNCTION("moveTo", JsPath::MoveTo),
+    DECLARE_NAPI_FUNCTION("lineTo", JsPath::LineTo),
+    DECLARE_NAPI_FUNCTION("arcTo", JsPath::ArcTo),
+    DECLARE_NAPI_FUNCTION("quadTo", JsPath::QuadTo),
+    DECLARE_NAPI_FUNCTION("conicTo", JsPath::ConicTo),
+    DECLARE_NAPI_FUNCTION("cubicTo", JsPath::CubicTo),
+    DECLARE_NAPI_FUNCTION("rMoveTo", JsPath::RMoveTo),
+    DECLARE_NAPI_FUNCTION("rLineTo", JsPath::RLineTo),
+    DECLARE_NAPI_FUNCTION("rQuadTo", JsPath::RQuadTo),
+    DECLARE_NAPI_FUNCTION("rConicTo", JsPath::RConicTo),
+    DECLARE_NAPI_FUNCTION("rCubicTo", JsPath::RCubicTo),
+    DECLARE_NAPI_FUNCTION("addPolygon", JsPath::AddPolygon),
+    DECLARE_NAPI_FUNCTION("addOval", JsPath::AddOval),
+    DECLARE_NAPI_FUNCTION("addCircle", JsPath::AddCircle),
+    DECLARE_NAPI_FUNCTION("addArc", JsPath::AddArc),
+    DECLARE_NAPI_FUNCTION("addRect", JsPath::AddRect),
+    DECLARE_NAPI_FUNCTION("addRoundRect", JsPath::AddRoundRect),
+    DECLARE_NAPI_FUNCTION("addPath", JsPath::AddPath),
+    DECLARE_NAPI_FUNCTION("transform", JsPath::Transform),
+    DECLARE_NAPI_FUNCTION("contains", JsPath::Contains),
+    DECLARE_NAPI_FUNCTION("setFillType", JsPath::SetFillType),
+    DECLARE_NAPI_FUNCTION("getBounds", JsPath::GetBounds),
+    DECLARE_NAPI_FUNCTION("close", JsPath::Close),
+    DECLARE_NAPI_FUNCTION("offset", JsPath::Offset),
+    DECLARE_NAPI_FUNCTION("reset", JsPath::Reset),
+    DECLARE_NAPI_FUNCTION("op", JsPath::Op),
+    DECLARE_NAPI_FUNCTION("getLength", JsPath::GetLength),
+    DECLARE_NAPI_FUNCTION("getPositionAndTangent", JsPath::GetPositionAndTangent),
+    DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
+    DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
+    DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
+};
+
 napi_value JsPath::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("moveTo", JsPath::MoveTo),
-        DECLARE_NAPI_FUNCTION("lineTo", JsPath::LineTo),
-        DECLARE_NAPI_FUNCTION("arcTo", JsPath::ArcTo),
-        DECLARE_NAPI_FUNCTION("quadTo", JsPath::QuadTo),
-        DECLARE_NAPI_FUNCTION("conicTo", JsPath::ConicTo),
-        DECLARE_NAPI_FUNCTION("cubicTo", JsPath::CubicTo),
-        DECLARE_NAPI_FUNCTION("rMoveTo", JsPath::RMoveTo),
-        DECLARE_NAPI_FUNCTION("rLineTo", JsPath::RLineTo),
-        DECLARE_NAPI_FUNCTION("rQuadTo", JsPath::RQuadTo),
-        DECLARE_NAPI_FUNCTION("rConicTo", JsPath::RConicTo),
-        DECLARE_NAPI_FUNCTION("rCubicTo", JsPath::RCubicTo),
-        DECLARE_NAPI_FUNCTION("addPolygon", JsPath::AddPolygon),
-        DECLARE_NAPI_FUNCTION("addOval", JsPath::AddOval),
-        DECLARE_NAPI_FUNCTION("addCircle", JsPath::AddCircle),
-        DECLARE_NAPI_FUNCTION("addArc", JsPath::AddArc),
-        DECLARE_NAPI_FUNCTION("addRect", JsPath::AddRect),
-        DECLARE_NAPI_FUNCTION("addRoundRect", JsPath::AddRoundRect),
-        DECLARE_NAPI_FUNCTION("addPath", JsPath::AddPath),
-        DECLARE_NAPI_FUNCTION("transform", JsPath::Transform),
-        DECLARE_NAPI_FUNCTION("contains", JsPath::Contains),
-        DECLARE_NAPI_FUNCTION("setFillType", JsPath::SetFillType),
-        DECLARE_NAPI_FUNCTION("getBounds", JsPath::GetBounds),
-        DECLARE_NAPI_FUNCTION("close", JsPath::Close),
-        DECLARE_NAPI_FUNCTION("offset", JsPath::Offset),
-        DECLARE_NAPI_FUNCTION("reset", JsPath::Reset),
-        DECLARE_NAPI_FUNCTION("op", JsPath::Op),
-        DECLARE_NAPI_FUNCTION("getLength", JsPath::GetLength),
-        DECLARE_NAPI_FUNCTION("getPositionAndTangent", JsPath::GetPositionAndTangent),
-        DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
-        DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
-        DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
-    };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+        sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("Failed to define Path class");
         return nullptr;
@@ -150,6 +151,36 @@ void JsPath::Destructor(napi_env env, void *nativeObject, void *finalize)
         JsPath *napi = reinterpret_cast<JsPath *>(nativeObject);
         delete napi;
     }
+}
+
+napi_value JsPath::CreateJsPath(napi_env env, Path* path)
+{
+    napi_value constructor = nullptr;
+    napi_value result = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status == napi_ok) {
+        auto jsPath = new(std::nothrow) JsPath(path);
+        if (jsPath == nullptr) {
+            delete path;
+            ROSEN_LOGE("JsPath::CreateJsPath allocation failed!");
+            return nullptr;
+        }
+        napi_create_object(env, &result);
+        if (result == nullptr) {
+            delete jsPath;
+            ROSEN_LOGE("JsPath::CreateJsPath Create path object failed!");
+            return nullptr;
+        }
+        napi_status status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
+        if (status != napi_ok) {
+            delete jsPath;
+            ROSEN_LOGE("JsPath::CreateJsPath failed to wrap native instance");
+            return nullptr;
+        }
+        napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+        return result;
+    }
+    return result;
 }
 
 JsPath::~JsPath()
@@ -688,36 +719,17 @@ napi_value JsPath::OnOffset(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_TWO] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
 
-    napi_value newJsPathObj;
-    napi_status status = napi_create_object(env, &newJsPathObj);
-    if (status != napi_ok) {
-        ROSEN_LOGE("failed to napi_create_object");
-        return nullptr;
-    }
+    double dx = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, dx);
+    double dy = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, dy);
     Path* path = new (std::nothrow) Path();
     if (path == nullptr) {
         ROSEN_LOGE("JsPath::OnOffset Failed to create Path");
         return nullptr;
     }
-    JsPath* newJsPath = new (std::nothrow) JsPath(path);
-    if (newJsPath == nullptr) {
-        delete path;
-        ROSEN_LOGE("JsPath::OnOffset Failed to create JsPath");
-        return nullptr;
-    }
-    double dx = 0.0;
-    GET_DOUBLE_PARAM(ARGC_ZERO, dx);
-    double dy = 0.0;
-    GET_DOUBLE_PARAM(ARGC_ONE, dy);
-
-    m_path->Offset(newJsPath->GetPath(), dx, dy);
-    status = napi_wrap(env, newJsPathObj, newJsPath, JsPath::Destructor, nullptr, nullptr);
-    if (status != napi_ok) {
-        delete newJsPath;
-        ROSEN_LOGE("JsPath::OnOffset Failed to wrap native instance");
-        return nullptr;
-    }
-    return newJsPathObj;
+    m_path->Offset(path, dx, dy);
+    return CreateJsPath(env, path);
 }
 
 napi_value JsPath::OnReset(napi_env env, napi_callback_info info)
