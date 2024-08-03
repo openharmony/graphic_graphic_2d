@@ -1349,6 +1349,7 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
             }
             delete[] fontList;
             fontList = nullptr;
+            *num = 0;
             return nullptr;
         }
     }
