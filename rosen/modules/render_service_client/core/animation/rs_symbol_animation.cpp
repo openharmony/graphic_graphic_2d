@@ -257,7 +257,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
         return false;
     }
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
-    auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
+    const auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_,
         symbolFirstNode.nodeBoundary[0], symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
@@ -380,7 +380,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
     }
 
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
-    auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
+    const auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
 
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_, symbolFirstNode.nodeBoundary[0],
         symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
