@@ -3880,6 +3880,11 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus %{public}d", isCurtainScreenOn);
 }
 
+void RSMainThread::RefreshEntireDisplay()
+{
+    isCurtainScreenUsingStatusChanged_ = true;
+}
+
 bool RSMainThread::IsCurtainScreenOn() const
 {
     return isCurtainScreenOn_;
