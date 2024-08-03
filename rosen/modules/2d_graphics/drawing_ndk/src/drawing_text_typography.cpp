@@ -1320,6 +1320,20 @@ static bool CopyStrData(char** destination, const std::string& source,
     return true;
 }
 
+void clearFontList(size_t index, char** fontList, size_t* num)
+{
+    for (size_t j = 0; j <= index; j++) {
+        if (fontList[j] == nullptr) {
+            continue;
+        }
+        delete[] fontList[j];
+        fontList[j] = nullptr;
+    }
+    delete[] fontList;
+    fontList = nullptr;
+    *num = 0;
+}
+
 char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser, size_t* num)
 {
     if (fontParser == nullptr || num == nullptr) {
@@ -1340,16 +1354,7 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
         fontList[i] = nullptr;
         bool res = CopyStrData(&fontList[i], systemFontList[i].fullName);
         if (!res) {
-            for (size_t j = 0; j <= i; j++) {
-                if (fontList[j] == nullptr) {
-                    continue;
-                }
-                delete[] fontList[j];
-                fontList[j] = nullptr;
-            }
-            delete[] fontList;
-            fontList = nullptr;
-            *num = 0;
+            clearFontList(i, fontList, num);
             return nullptr;
         }
     }
