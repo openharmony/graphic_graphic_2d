@@ -1243,7 +1243,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
             if (isUniRender_ && surfaceHandler.IsCurrentFrameBufferConsumed()) {
                 auto buffer = surfaceHandler.GetBuffer();
-                auto preBuffer = surfaceHandler.GetPreBuffer().buffer;
+                auto preBuffer = surfaceHandler.GetPreBuffer();
                 surfaceNode->UpdateBufferInfo(buffer,
                     surfaceHandler.GetDamageRegion(), surfaceHandler.GetAcquireFence(), preBuffer);
                 if (surfaceHandler.GetBufferSizeChanged()) {
@@ -1276,7 +1276,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if(!surfaceHandler.IsCurrentFrameBufferConsumed()) {
                 RS_LOGD("%{public}s, Clear prebuffer", surfaceNode->GetName().c_str());
                 surfaceNode->ResetPreBuffer();
-                surfaceNode->GetRSSurfaceHandler()->CleanPreBuffer();
+                surfaceNode->GetRSSurfaceHandler()->ResetPreBuffer();
             }
         }
 #ifdef RS_ENABLE_VK
@@ -1507,16 +1507,16 @@ void RSMainThread::ReleaseAllNodesBuffer()
         if (surfaceNode->IsHardwareEnabledType()) {
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
                 if (!surfaceNode->IsCurrentFrameHardwareEnabled()) {
-                    auto& preBuffer = surfaceHandler->GetPreBuffer();
-                    if (preBuffer.buffer != nullptr) {
-                        auto releaseTask = [buffer = preBuffer.buffer, consumer = surfaceHandler->GetConsumer(),
-                            fence = preBuffer.releaseFence]() mutable {
+                    auto preBuffer = surfaceHandler->GetPreBuffer();
+                    if (preBuffer != nullptr) {
+                        auto releaseTask = [buffer = preBuffer, consumer = surfaceHandler->GetConsumer(),
+                            fence = surfaceHandler->GetPreBufferReleaseFence()]() mutable {
                             auto ret = consumer->ReleaseBuffer(buffer, fence);
                             if (ret != OHOS::SURFACE_ERROR_OK) {
                                 RS_LOGD("surfaceHandler ReleaseBuffer failed(ret: %{public}d)!", ret);
                             }
                         };
-                        preBuffer.Reset();
+                        surfaceHandler->ResetPreBuffer();
                         RSHardwareThread::Instance().PostTask(releaseTask);
                     }
                 }

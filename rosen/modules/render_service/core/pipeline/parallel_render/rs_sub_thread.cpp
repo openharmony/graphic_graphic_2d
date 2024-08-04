@@ -364,7 +364,11 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get());
+    bool optFenceWait = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
+        optFenceWait = false;
+    }
+    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateBackendTexture();
 
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
@@ -409,10 +413,13 @@ void RSSubThread::DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRend
     rsCanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-
     nodeDrawable->SubDraw(*rsCanvas);
+    bool optFenceWait = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
+        optFenceWait = false;
+    }
     RS_TRACE_BEGIN("FlushFrame");
-    RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get());
+    RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get(), optFenceWait);
     renderFrame->Flush();
     RS_TRACE_END();
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
