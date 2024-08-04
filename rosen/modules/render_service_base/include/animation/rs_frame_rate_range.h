@@ -79,6 +79,7 @@ public:
     {
         if (this->preferred_ < other.preferred_) {
             this->Set(other.min_, other.max_, other.preferred_, other.type_);
+            this->isEnergyAssurance_ = other.isEnergyAssurance_;
             return true;
         }
         return false;
@@ -88,15 +89,15 @@ public:
     {
         switch (type_) {
             case RS_ANIMATION_FRAME_RATE_TYPE:
-                return "RS_ANIMATION";
+                return std::string("RS_ANIMATION") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
             case UI_ANIMATION_FRAME_RATE_TYPE:
-                return "UI_ANIMATION";
+                return std::string("UI_ANIMATION") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
             case DISPLAY_SYNC_FRAME_RATE_TYPE:
-                return "DISPLAY_SYNC";
+                return std::string("DISPLAY_SYNC") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
             case ACE_COMPONENT_FRAME_RATE_TYPE:
-                return "ACE_COMPONENT";
+                return std::string("ACE_COMPONENT") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
             case DISPLAY_SOLOIST_FRAME_RATE_TYPE:
-                return "DISPLAY_SOLOIST";
+                return std::string("DISPLAY_SOLOIST") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
             default:
                 return "";
         }
@@ -118,6 +119,7 @@ public:
     int max_ = 0;
     int preferred_ = 0;
     int type_ = 0;
+    bool isEnergyAssurance_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

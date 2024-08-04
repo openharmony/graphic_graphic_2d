@@ -147,6 +147,7 @@ void HgmEnergyConsumptionPolicy::StartNewAnimation()
 void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    rsRange.isEnergyAssurance_ = false;
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
         return;
     }
@@ -160,6 +161,7 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    rsRange.isEnergyAssurance_ = false;
     if (!isUiEnergyConsumptionAssuranceMode_) {
         return;
     }
@@ -178,6 +180,9 @@ void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps)
 {
     RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s, maxFps:%d", rsRange.GetExtInfo().c_str(), idleFps);
+    if (rsRange.preferred_ > idleFps) {
+        rsRange.isEnergyAssurance_ = true;
+    }
     rsRange.max_ = std::min(rsRange.max_, idleFps);
     rsRange.min_ = std::min(rsRange.min_, idleFps);
     rsRange.preferred_ = std::min(rsRange.preferred_, idleFps);
