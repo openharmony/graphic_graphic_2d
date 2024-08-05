@@ -1334,7 +1334,7 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
         *num = 0;
         return nullptr;
     }
-    fontList = new char*[systemFontList.size()];
+    fontList = new char* [systemFontList.size()];
     if (fontList == nullptr) {
         return nullptr;
     }
