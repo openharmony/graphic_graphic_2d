@@ -87,20 +87,27 @@ public:
 
     std::string GetExtInfo() const
     {
+        std::string extInfo = "";
         switch (type_) {
             case RS_ANIMATION_FRAME_RATE_TYPE:
-                return std::string("RS_ANIMATION") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
+                extInfo = "RS_ANIMATION";
+                break;
             case UI_ANIMATION_FRAME_RATE_TYPE:
-                return std::string("UI_ANIMATION") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
+                extInfo = "UI_ANIMATION";
+                break;
             case DISPLAY_SYNC_FRAME_RATE_TYPE:
-                return std::string("DISPLAY_SYNC") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
+                extInfo = "DISPLAY_SYNC";
+                break;
             case ACE_COMPONENT_FRAME_RATE_TYPE:
-                return std::string("ACE_COMPONENT") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
+                extInfo = "ACE_COMPONENT";
+                break;
             case DISPLAY_SOLOIST_FRAME_RATE_TYPE:
-                return std::string("DISPLAY_SOLOIST") + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
+                extInfo = "DISPLAY_SOLOIST";
+                break;
             default:
                 return "";
         }
+        return extInfo + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
     }
 
     bool operator==(const FrameRateRange& other) const
