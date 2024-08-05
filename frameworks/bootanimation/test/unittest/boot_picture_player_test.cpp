@@ -146,7 +146,7 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
     player->picCurNo_ = 2;
     player->imgVecSize_ = 0;
     handler->PostTask([&] {
-        player->Draw(); 
+        player->Draw();
         runner->Stop();
     });
     runner->Run();
