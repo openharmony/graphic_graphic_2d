@@ -47,11 +47,15 @@ HWTEST_F(UtilTest, UtilTest_001, TestSize.Level1)
     cJSON* jsonData1 = cJSON_Parse(jsonStr1.c_str());
     OHOS::ParseOldConfigFile(jsonData1, configs);
 
-    std::string jsonStr2 = "{\"cust.bootanimation.pics\":1,\"cust.bootanimation.sounds\":1,\"cust.bootanimation.video\":1,\"cust.bootanimation.video.extra\":1,\"cust.bootanimation.rotate.screenid\":1,\"cust.bootanimation.rotate.degree\":1}";
+    std::string jsonStr2 = "{\"cust.bootanimation.pics\":1,\"cust.bootanimation.sounds\":1,\
+    \"cust.bootanimation.video\":1,\"cust.bootanimation.video.extra\":1,\"cust.bootanimation.rotate.screenid\":1,\
+    \"cust.bootanimation.rotate.degree\":1}";
     cJSON* jsonData2 = cJSON_Parse(jsonStr2.c_str());
     OHOS::ParseOldConfigFile(jsonData2, configs);
 
-    std::string jsonStr3 = "{\"cust.bootanimation.pics\":\"abc\",\"cust.bootanimation.sounds\":\"abc\",\"cust.bootanimation.video\":\"abc\",\"cust.bootanimation.video.extra\":\"abc\",\"cust.bootanimation.rotate.screenid\":\"0\",\"cust.bootanimation.rotate.degree\":\"270\"}";;
+    std::string jsonStr3 = "{\"cust.bootanimation.pics\":\"abc\",\"cust.bootanimation.sounds\":\"abc\",\
+    \"cust.bootanimation.video\":\"abc\",\"cust.bootanimation.video.extra\":\"abc\",\
+    \"cust.bootanimation.rotate.screenid\":\"0\",\"cust.bootanimation.rotate.degree\":\"270\"}";;
     cJSON* jsonData3 = cJSON_Parse(jsonStr3.c_str());
     OHOS::ParseOldConfigFile(jsonData3, configs);
 }
@@ -90,11 +94,17 @@ HWTEST_F(UtilTest, UtilTest_002, TestSize.Level1)
     cJSON* jsonData6 = cJSON_Parse(jsonStr6.c_str());
     OHOS::ParseNewConfigFile(jsonData6, isMultiDisplay, configs);
 
-    std::string jsonStr7 = "{\"screen_config\":[{\"cust.bootanimation.screen_id\":1,\"cust.bootanimation.pics\":1,\"cust.bootanimation.sounds\":1,\"cust.bootanimation.video_default\":1,\"cust.bootanimation.rotate_degree\":1,\"cust.bootanimation.video_extensions\":1}]}";
+    std::string jsonStr7 = "{\"screen_config\":[{\"cust.bootanimation.screen_id\":1,\
+    \"cust.bootanimation.pics\":1,\"cust.bootanimation.sounds\":1,\
+    \"cust.bootanimation.video_default\":1,\"cust.bootanimation.rotate_degree\":1,\
+    \"cust.bootanimation.video_extensions\":1}]}";
     cJSON* jsonData7 = cJSON_Parse(jsonStr7.c_str());
     OHOS::ParseNewConfigFile(jsonData7, isMultiDisplay, configs);
 
-    std::string jsonStr8 = "{\"screen_config\":[{\"cust.bootanimation.screen_id\":\"0\",\"cust.bootanimation.pics\":\"abc\",\"cust.bootanimation.sounds\":\"abc\",\"cust.bootanimation.video_default\":\"abc\",\"cust.bootanimation.rotate_degree\":\"270\",\"cust.bootanimation.video_extensions\":[]}]}";
+    std::string jsonStr8 = "{\"screen_config\":[{\"cust.bootanimation.screen_id\":\"0\",\
+    \"cust.bootanimation.pics\":\"abc\",\"cust.bootanimation.sounds\":\"abc\",\
+    \"cust.bootanimation.video_default\":\"abc\",\"cust.bootanimation.rotate_degree\":\"270\",\
+    \"cust.bootanimation.video_extensions\":[]}]}";
     cJSON* jsonData8 = cJSON_Parse(jsonStr8.c_str());
     OHOS::ParseNewConfigFile(jsonData8, isMultiDisplay, configs);
 }
