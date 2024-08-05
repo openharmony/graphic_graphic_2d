@@ -20,7 +20,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
-    constexpr uint64_t MAX_VALID_SURFACE_NAME_COUNT = 60;
+    constexpr uint64_t MAX_CACHED_VALID_SURFACE_NAME_COUNT = 60;
     constexpr uint32_t MAX_VALID_SURFACE_NAME_LENGTH = 10;
     constexpr uint32_t FPS_MAX = 120;
     const std::string ACE_ANIMATOR_NAME = "AceAnimato";
@@ -28,26 +28,27 @@ namespace {
 }
 
 void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
-    pid_t pid, UIFWKType uifwkType)
+    pid_t pid, UIFWKType uiFwkType)
 {
-    if (!GetAppSupportedState() || frameTimeMap_.size() > MAX_VALID_SURFACE_NAME_COUNT) {
+    if (surfaceName.empty()) {
+        return;
+    }
+
+    if (!GetAppSupportedState() || frameTimeMap_.size() > MAX_CACHED_VALID_SURFACE_NAME_COUNT) {
         if (!frameTimeMap_.empty()) {
             frameTimeMap_.clear();
         }
-        return;
-    }
-    if (surfaceName.empty()) {
         return;
     }
     auto validSurfaceName = surfaceName.size() > MAX_VALID_SURFACE_NAME_LENGTH ?
         surfaceName.substr(0, MAX_VALID_SURFACE_NAME_LENGTH) : surfaceName;
 
     bool needHighRefresh = false;
-    switch (uifwkType) {
-        case UIFWKType::UNKNOWN:
+    switch (uiFwkType) {
+        case UIFWKType::FROM_UNKNOWN:
             needHighRefresh = GetUnknownFrameworkState(validSurfaceName);
             break;
-        case UIFWKType::SURFACE:
+        case UIFWKType::FROM_SURFACE:
             needHighRefresh = GetSurfaceFrameworkState(validSurfaceName);
             break;
         default:
@@ -79,7 +80,7 @@ bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName)
     return true;
 }
 
-void HgmIdleDetector::ProcessNuknownUIFwkIdleState(const std::unordered_map<NodeId,
+void HgmIdleDetector::ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
 {
     if (activeNodesInRoot.empty()) {
@@ -89,7 +90,7 @@ void HgmIdleDetector::ProcessNuknownUIFwkIdleState(const std::unordered_map<Node
     for (const auto &[_, idToMap] : activeNodesInRoot) {
         for (const auto &[_, weakPenderNode] : idToMap) {
             auto renderNode = weakPenderNode.lock();
-            if (renderNode) {
+            if (renderNode != nullptr) {
                 UpdateSurfaceTime(renderNode->GetNodeName(), timestamp, ExtractPid(renderNode->GetId()));
             }
         }

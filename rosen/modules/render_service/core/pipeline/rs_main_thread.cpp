@@ -1239,7 +1239,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (frameRateMgr_ != nullptr && surfaceHandler.GetAvailableBufferCount() > 0) {
             auto surfaceNodeName = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
             frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_,
-                ExtractPid(surfaceNode->GetId()), UIFWKType::SURFACE);
+                ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
         }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
@@ -1730,7 +1730,10 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (!frameRateMgr_ || !rsVSyncDistributor_) {
         return;
     }
-    frameRateMgr_->ProcessNuknownIdleState(GetContext().GetActiveNodesInRootMap(), timestamp);
+    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+    auto activeNodesInRootMap = context_->activeNodesInRoot_;
+    lock.unlock();
+    frameRateMgr_->ProcessUnknownUIFwkIdleState(activeNodesInRootMap, timestamp);
     DvsyncInfo info;
     info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
     info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();

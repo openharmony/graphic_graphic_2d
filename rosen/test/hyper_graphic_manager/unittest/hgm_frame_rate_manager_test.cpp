@@ -124,7 +124,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             frameRateMgr.idleDetector_.SetAppSupportedState(true);
             std::vector<std::string> supportedAppBufferList = { otherSurface };
             frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::SURFACE);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::FROM_SURFACE);
         }
         STEP("2. handle touch up event") {
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
@@ -182,7 +182,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS002, Function | SmallTest | Level1
             frameRateMgr.idleDetector_.SetAppSupportedState(true);
             std::vector<std::string> supportedAppBufferList = { otherSurface };
             frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::SURFACE);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::FROM_SURFACE);
         }
         STEP("2. handle touch up event") {
             std::vector<std::string> appBufferBlackList = { otherSurface };

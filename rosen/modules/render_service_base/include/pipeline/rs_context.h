@@ -155,12 +155,6 @@ public:
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
 
-    const std::unordered_map<NodeId,
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> GetActiveNodesInRootMap() const
-    {
-        return activeNodesInRoot_;
-    }
-
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
