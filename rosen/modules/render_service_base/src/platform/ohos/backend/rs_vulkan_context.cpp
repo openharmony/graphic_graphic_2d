@@ -88,7 +88,7 @@ void RsVulkanInterface::Init(bool isProtected)
 
 RsVulkanInterface::~RsVulkanInterface()
 {
-    for (auto && semaphoreFence : usedSemaphoreFenceList_) {
+    for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
         if (semaphoreFence.fence != nullptr) {
             semaphoreFence.fence->Wait(-1);
         }
