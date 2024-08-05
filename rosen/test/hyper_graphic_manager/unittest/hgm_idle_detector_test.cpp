@@ -126,7 +126,7 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
         STEP("4. get buffer idle state") {
             idleDetector->SetAppSupportedState(false);
             idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
-            ret = idleDetector->GetSurfaceIdleState(lastTime);
+            bool ret = idleDetector->GetSurfaceIdleState(lastTime);
             STEP_ASSERT_EQ(ret, true);
 
             idleDetector->supportAppBufferList_.clear();
@@ -299,7 +299,7 @@ HWTEST_F(HgmIdleDetectorTest, ProcessUnknownUIFwkIdleState, Function | SmallTest
         }
         STEP("2. set app support status") {
             idleDetector->SetAppSupportedState(true);
-            nodeWeaKPtr->SetNodeMame(flutterBuffer);
+            nodeWeaKPtr->SetNodeName(flutterBuffer);
             rsRSRenderNodeMap[id] = nodeWeaKPtr;
             activeNodesInRoot[id] = rsRSRenderNodeMap;
         }
