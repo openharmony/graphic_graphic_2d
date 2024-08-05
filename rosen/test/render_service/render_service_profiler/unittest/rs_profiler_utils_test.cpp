@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <fcntl.h>
+
 #include "gtest/gtest.h"
 #include "rs_profiler_utils.h"
 
@@ -57,6 +59,19 @@ HWTEST_F(RSProfilerUtilsTest, UtilsFileTest, testing::ext::TestSize.Level1)
     fd = Utils::FileOpen("file.json", "invalid open options");
     EXPECT_EQ(Utils::FileSize(fd), 0);
     EXPECT_EQ(Utils::FileTell(fd), 0);
+
+    std::string name = "/tmp/file.json";
+    auto createdFile = open(name.data(), O_CREAT, S_IRUSR | S_IWUSR);
+    close(createdFile);
+
+    fd = Utils::FileOpen(name.data(), "rw");
+    EXPECT_TRUE(Utils::IsFileValid(fd));
+    EXPECT_NE(fd, nullptr);
+    EXPECT_EQ(Utils::FileSize(fd), 0);
+    EXPECT_EQ(Utils::FileTell(fd), 0);
+
+    Utils::FileClose(fd);
+    std::remove(name.data());
 }
 
 /*
