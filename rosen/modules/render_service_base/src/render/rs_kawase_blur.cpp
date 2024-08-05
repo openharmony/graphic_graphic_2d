@@ -284,15 +284,13 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
     if (!blurImage) {
         return false;
     }
-    return ApplyBlur(canvas, input, blurImage, param);
+    ApplyBlur(canvas, input, blurImage, param);
+    return true;
 }
 
 std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image>& input, const KawaseParameter& inParam, const BlurParams& blur) const
 {
-    if (!input || !blurEffect_ || (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && blurEffectAF_ == nullptr)) {
-        return input;
-    }
     auto originImageInfo = input->GetImageInfo();
     auto scaledInfo = Drawing::ImageInfo(std::ceil(blur.width * blurScale_), std::ceil(blur.height * blurScale_),
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
@@ -304,7 +302,8 @@ std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::C
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
     // Advanced Filter: check is AF usable only the first time
-    Drawing::RuntimeShaderBuilder blurBuilder(IS_ADVANCED_FILTER_USABLE_CHECK_ONCE ? blurEffectAF_ : blurEffect_);
+    bool isUsingAF = IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && blurEffectAF_ != nullptr;
+    Drawing::RuntimeShaderBuilder blurBuilder(isUsingAF ? blurEffectAF_ : blurEffect_);
     if (RSSystemProperties::GetBlurExtraFilterEnabled() && simpleFilter_) {
         blurBuilder.SetChild("imageInput", ApplySimpleFilter(canvas, input, blurMatrix, scaledInfo, linear));
     } else {
@@ -349,12 +348,12 @@ std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::C
     return tmpBlur;
 }
 
-bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+void KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Drawing::Image>& blurImage, const KawaseParameter& param) const
 {
     if (!mixEffect_ || !image || !blurImage) {
         ROSEN_LOGE("KawaseBlurFilter::ApplyBlur input error, use Gauss instead");
-        return false;
+        return;
     }
     auto src = param.src;
     auto dst = param.dst;

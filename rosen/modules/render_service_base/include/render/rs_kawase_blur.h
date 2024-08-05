@@ -71,7 +71,7 @@ private:
         const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear) const;
     std::shared_ptr<Drawing::Image> ExecutePingPongBlur(Drawing::Canvas& canvas,
         const std::shared_ptr<Drawing::Image>& input, const KawaseParameter& kParam, const BlurParams& bParam) const;
-    bool ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    void ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const std::shared_ptr<Drawing::Image>& blurImage, const KawaseParameter& param) const;
     void ComputeRadiusAndScale(int radius);
     void AdjustRadiusAndScale();
