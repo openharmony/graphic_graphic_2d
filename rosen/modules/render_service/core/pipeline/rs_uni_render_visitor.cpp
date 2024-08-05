@@ -5103,7 +5103,6 @@ bool RSUniRenderVisitor::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> r
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
         RS_LOGW("RSUniRenderVisitor::DoDirectComposition: hardwareThread task has too many to Execute");
-        return false;
     }
     if (!RSMainThread::Instance()->CheckIsHardwareEnabledBufferUpdated()) {
         for (auto& surfaceNode: hardwareEnabledNodes_) {
