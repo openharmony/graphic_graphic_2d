@@ -1656,6 +1656,8 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         return;
     }
     RS_TRACE_NAME_FMT("Render surface flush and submit");
+    RS_LOGD("RSUniRenderUtil::optimized flush and submit GpuApiType:%{public}d",
+        RSSystemProperties::GetGpuApiType());
 #ifdef RS_ENABLE_VK
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && optFenceWait) {

@@ -99,6 +99,9 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
             params.GetShadowRect().GetHeight(), HasFilterOrEffect());
     }
 
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::GenerateCacheCondition drawingCacheType:%{public}d"
+        " RSFreezeFlag:%{public}d OpincGetCachedMark:%{public}d", params.GetDrawingCacheType(),
+        params.GetRSFreezeFlag(), OpincGetCachedMark());
     if (params.GetRSFreezeFlag()) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::GenerateCacheIfNeed id:%llu"
                                    " GetRSFreezeFlag:%d hasFilter:%d",
@@ -133,6 +136,8 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     bool needUpdateCache = CheckIfNeedUpdateCache(params, updateTimes);
     if (needUpdateCache && params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
         updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
+        RS_LOGD("RSRenderNodeDrawable::GenerateCacheCondition updateTimes:%{public}d needUpdateCache:%{public}d",
+            updateTimes, needUpdateCache);
         RS_TRACE_NAME_FMT("DisableCache by update time > 3, id:%llu", params.GetId());
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
@@ -196,6 +201,9 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
 void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
+        hasFilter, GetDrawingCacheType());
     if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE &&
         params.GetForegroundFilterCache() == nullptr) {
         // traverse children to draw filter/shadow/effect
@@ -232,6 +240,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         }
     }
 
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}d", GetCacheType());
     switch (GetCacheType()) {
         case DrawableCacheType::NONE: {
             RSRenderNodeDrawable::OnDraw(canvas);
@@ -239,6 +248,8 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         }
         case DrawableCacheType::CONTENT: {
             RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
+            RS_LOGD("RSRenderNodeDrawable::CheckCacheTAD drawingCacheIncludeProperty is %{public}d",
+                params.GetDrawingCacheIncludeProperty());
             if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
                 DrawBackground(canvas, params.GetBounds());
                 DrawCachedImage(*curCanvas, params.GetCacheSize());
