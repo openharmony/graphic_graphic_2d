@@ -68,6 +68,10 @@ HWTEST_F(RSSpringModelTest, RSSpringModelFloatTest001, TestSize.Level1)
     duration = model3->EstimateDuration();
     EXPECT_TRUE(duration != 0.0f);
 
+    auto model4 = std::make_shared<RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>>(0.0f, 2.0f,
+        initialOffset, initialVelocity, 1.0f);
+    duration = model4->EstimateDuration();
+    EXPECT_TRUE(duration == 0.0f);
     GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelFloatTest001 end";
 }
 
@@ -340,6 +344,10 @@ HWTEST_F(RSSpringModelTest, RSSpringModelRSRSRenderPropertyBaseTest001, TestSize
     duration = model3->EstimateDuration();
     EXPECT_TRUE(duration != 0.0f);
 
+    auto model4 = std::make_shared<RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>>(0.0f, 2.0f,
+        initialOffset, initialVelocity, 1.0f);
+    duration = model4->EstimateDuration();
+    EXPECT_TRUE(duration == 0.0f);
     GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRSRSRenderPropertyBaseTest001 end";
 }
 

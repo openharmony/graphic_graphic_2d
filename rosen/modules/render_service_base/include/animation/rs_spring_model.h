@@ -96,6 +96,7 @@ public:
     float EstimateDuration() const
     {
         if (dampingRatio_ <= 0.0f || response_ <= 0.0f) {
+            ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized spring model", __func__);
             return 0.0f;
         }
 

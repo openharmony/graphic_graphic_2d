@@ -21,6 +21,18 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+class MockParcel : public Parcel {
+public:
+    MockParcel() {}
+
+    ~MockParcel() {}
+
+    bool WriteUint16(uint16_t value)
+    {
+        return value != InterpolatorType::CUSTOM;
+    }
+};
+
 class RSInterpolatorTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -102,6 +114,10 @@ HWTEST_F(RSCustomInterpolatorTest, MarshallingTest, TestSize.Level1)
     Parcel parcel;
     bool res = rsCustomInterpolator.Marshalling(parcel);
     EXPECT_EQ(res, true);
+
+    MockParcel parcel2;
+    res = rsCustomInterpolator.Marshalling(parcel2);
+    EXPECT_EQ(res, false);
 }
 
 /**
