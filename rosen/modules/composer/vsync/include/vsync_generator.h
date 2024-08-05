@@ -154,10 +154,10 @@ private:
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-    int64_t period_;
-    int64_t phase_;
-    int64_t referenceTime_;
-    int64_t wakeupDelay_;
+    int64_t period_ = 0;
+    int64_t phase_ = 0;
+    int64_t referenceTime_ = 0;
+    int64_t wakeupDelay_ = 0;
 
     std::vector<Listener> listeners_;
 
@@ -169,10 +169,10 @@ private:
     bool vsyncThreadRunning_;
     static std::once_flag createFlag_;
     static sptr<OHOS::Rosen::VSyncGenerator> instance_;
-    int64_t pulse_; // by ns
-    uint32_t currRefreshRate_; // by Hz
-    int32_t referenceTimeOffsetPulseNum_;
-    int32_t defaultReferenceTimeOffsetPulseNum_;
+    int64_t pulse_ = 0; // by ns
+    uint32_t currRefreshRate_ = 0; // by Hz
+    int32_t referenceTimeOffsetPulseNum_ = 0;
+    int32_t defaultReferenceTimeOffsetPulseNum_ = 0;
     ListenerRefreshRateData changingRefreshRates_ = {};
     ListenerPhaseOffsetData changingPhaseOffset_ = {};
     uint32_t changingGeneratorRefreshRate_ = 0;
