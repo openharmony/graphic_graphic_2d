@@ -50,7 +50,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
     // split to several parcels if parcel size > PARCEL_SPLIT_THRESHOLD during marshalling
     std::vector<std::shared_ptr<MessageParcel>> parcelVector;
-    auto func = [&]() {
+    auto func = [isUniMode, &parcelVector, &transactionData, this]() {
         if (isUniMode) {
             ++transactionDataIndex_;
         }
