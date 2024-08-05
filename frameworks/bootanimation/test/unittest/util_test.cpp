@@ -55,7 +55,7 @@ HWTEST_F(UtilTest, UtilTest_001, TestSize.Level1)
 
     std::string jsonStr3 = "{\"cust.bootanimation.pics\":\"abc\",\"cust.bootanimation.sounds\":\"abc\",\
     \"cust.bootanimation.video\":\"abc\",\"cust.bootanimation.video.extra\":\"abc\",\
-    \"cust.bootanimation.rotate.screenid\":\"0\",\"cust.bootanimation.rotate.degree\":\"270\"}";;
+    \"cust.bootanimation.rotate.screenid\":\"0\",\"cust.bootanimation.rotate.degree\":\"270\"}";
     cJSON* jsonData3 = cJSON_Parse(jsonStr3.c_str());
     OHOS::ParseOldConfigFile(jsonData3, configs);
 }

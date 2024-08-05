@@ -107,7 +107,7 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_004, TestSize.Level1)
     ImageStructVec imgVec;
     player->imageVector_ = imgVec;
     handler->PostTask([&] {
-        player->Play(); 
+        player->Play();
         runner->Stop();
     });
     runner->Run();
@@ -156,7 +156,7 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
     player->picCurNo_ = -2;
     player->imgVecSize_ = 0;
     handler->PostTask([&] {
-        player->Draw(); 
+        player->Draw();
         runner->Stop();
     });
     runner->Run();
