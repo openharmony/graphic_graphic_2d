@@ -5056,6 +5056,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheFullyCovered001, TestSize.Level
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
     node2->renderContent_->renderProperties_.SetBackgroundFilter(filter);
 
+    surfaceNode1->visibleFilterChild_.emplace_back(id0);
     surfaceNode1->visibleFilterChild_.emplace_back(node1->GetId());
     surfaceNode1->visibleFilterChild_.emplace_back(node2->GetId());
     rsUniRenderVisitor->CheckFilterCacheFullyCovered(surfaceNode1);
