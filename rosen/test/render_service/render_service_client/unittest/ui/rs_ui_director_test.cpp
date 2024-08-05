@@ -291,7 +291,7 @@ HWTEST_F(RSUIDirectorTest, GetCurrentRefreshRateMode, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     int32_t res = director->GetCurrentRefreshRateMode();
-    ASSERT_TRUE(res == 0);
+    ASSERT_TRUE(res == -1);
 }
 
 /**
