@@ -938,6 +938,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
     }
     auto consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
+        RS_LOGE("Consume and update buffer fail for consumer is nullptr");
         return false;
     }
     DropFrameProcess(surfaceHandler);
@@ -1557,6 +1558,7 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
     }
     png_infop pngInfo = png_create_info_struct(pngStruct);
     if (pngInfo == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::WriteDataPng fail, pngInfo is nullptr");
         png_destroy_write_struct(&pngStruct, nullptr);
         return false;
     }
