@@ -791,4 +791,60 @@ bool GetTextTabFromJS(napi_env env, napi_value argValue, TextTab& tab)
     }
     return true;
 }
+
+napi_value GetTypographicBoundsAndConvertToJsValue(napi_env env, float ascent,
+    float descent, float leading, float width)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_status status = napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, ascent));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+        status = napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, descent));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+        status = napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, leading));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+        status = napi_set_named_property(env, objValue, "width", CreateJsNumber(env, width));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+    }
+    return objValue;
+}
+
+bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &end)
+{
+    napi_valuetype valueType = napi_undefined;
+    if (arg == nullptr || napi_typeof(env, arg, &valueType) != napi_ok || valueType != napi_object) {
+        TEXT_LOGE("Failed arg is invalid");
+        return false;
+    }
+    napi_value tempValue = nullptr;
+    if (napi_get_named_property(env, arg, "start", &tempValue) != napi_ok) {
+        TEXT_LOGE("Failed start is invalid");
+        return false;
+    }
+    bool isStartOk = ConvertFromJsValue(env, tempValue, start);
+    if (napi_get_named_property(env, arg, "end", &tempValue) != napi_ok) {
+        TEXT_LOGE("Failed end is invalid");
+        return false;
+    }
+    bool isEndOk = ConvertFromJsValue(env, tempValue, end);
+    if (!isStartOk || !isEndOk || start < 0 || end < 0) {
+        TEXT_LOGE("Failed start or end is invalid");
+        return false;
+    }
+
+    return true;
+}
 } // namespace OHOS::Rosen

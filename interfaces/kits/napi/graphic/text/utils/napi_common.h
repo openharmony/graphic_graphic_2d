@@ -542,5 +542,10 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, Drawing::FontMetrics*
 bool NapiValueTypeIsValid(napi_env env, napi_value argValue);
 
 bool GetTextTabFromJS(napi_env env, napi_value argValue, TextTab& tab);
+
+napi_value GetTypographicBoundsAndConvertToJsValue(napi_env env, float ascent,
+    float descent, float leading, float width);
+
+bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &end);
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H

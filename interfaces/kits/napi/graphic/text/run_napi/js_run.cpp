@@ -58,6 +58,10 @@ napi_value JsRun::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getPositions", JsRun::GetPositions),
         DECLARE_NAPI_FUNCTION("getOffsets", JsRun::GetOffsets),
         DECLARE_NAPI_FUNCTION("getFont", JsRun::GetFont),
+        DECLARE_NAPI_FUNCTION("getStringRange", JsRun::GetStringRange),
+        DECLARE_NAPI_FUNCTION("getStringIndices", JsRun::GetStringIndices),
+        DECLARE_NAPI_FUNCTION("getImageBounds", JsRun::GetImageBounds),
+        DECLARE_NAPI_FUNCTION("getTypographicBounds", JsRun::GetTypographicBounds),
         DECLARE_NAPI_FUNCTION("paint", JsRun::Paint),
     };
 
@@ -145,11 +149,25 @@ napi_value JsRun::GetGlyphs(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetGlyphs(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Run is null");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetGlyphs run is nullptr.");
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr");
     }
 
-    std::vector<uint16_t> glyphs = run_->GetGlyphs();
+    size_t argc = ARGC_ONE;
+    int64_t start = 0;
+    int64_t end = 0;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get the info");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    } else if (argc == ARGC_ONE) {
+        if (!GetStartEndParams(env, argv[0], start, end)) {
+            return NapiGetUndefined(env);
+        }
+    }
+
+    std::vector<uint16_t> glyphs = run_->GetGlyphs(start, end);
     napi_value napiGlyphs = nullptr;
     NAPI_CALL(env, napi_create_array(env, &napiGlyphs));
     size_t glyphSize = glyphs.size();
@@ -169,11 +187,25 @@ napi_value JsRun::GetPositions(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetPositions(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Run is null");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetPositions run is nullptr.");
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
     }
 
-    std::vector<Drawing::Point> positions = run_->GetPositions();
+    size_t argc = ARGC_ONE;
+    int64_t start = 0;
+    int64_t end = 0;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get the info");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    } else if (argc == ARGC_ONE) {
+        if (!GetStartEndParams(env, argv[0], start, end)) {
+            return NapiGetUndefined(env);
+        }
+    }
+
+    std::vector<Drawing::Point> positions = run_->GetPositions(start, end);
     napi_value napiPositions = nullptr;
     NAPI_CALL(env, napi_create_array(env, &napiPositions));
     size_t positionSize = positions.size();
@@ -278,5 +310,111 @@ napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
 void JsRun::SetParagraph(std::shared_ptr<Typography> paragraph)
 {
     paragraph_ = paragraph;
+}
+
+napi_value JsRun::GetStringRange(napi_env env, napi_callback_info info)
+{
+    JsRun* me = CheckParamsAndGetThis<JsRun>(env, info);
+    return (me != nullptr) ? me->OnGetStringRange(env, info) : nullptr;
+}
+
+napi_value JsRun::OnGetStringRange(napi_env env, napi_callback_info info)
+{
+    if (!run_) {
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
+    }
+    uint64_t location = 0;
+    uint64_t length = 0;
+    run_->GetStringRange(&location, &length);
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_status status = napi_set_named_property(env, objValue, "start", CreateJsNumber(env, location));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+        status = napi_set_named_property(env, objValue, "end", CreateJsNumber(env, length));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+    }
+    return objValue;
+}
+
+napi_value JsRun::GetStringIndices(napi_env env, napi_callback_info info)
+{
+    JsRun* me = CheckParamsAndGetThis<JsRun>(env, info);
+    return (me != nullptr) ? me->OnGetStringIndices(env, info) : nullptr;
+}
+
+napi_value JsRun::OnGetStringIndices(napi_env env, napi_callback_info info)
+{
+    if (!run_) {
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
+    }
+
+    size_t argc = ARGC_ONE;
+    int64_t start = 0;
+    int64_t end = 0;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get the info");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    } else if (argc == ARGC_ONE) {
+        if (!GetStartEndParams(env, argv[0], start, end)) {
+            return NapiGetUndefined(env);
+        }
+    }
+
+    std::vector<uint64_t> stringIndices = run_->GetStringIndices(start, end);
+    napi_value napiStringIndices = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &napiStringIndices));
+    size_t stringIndicesSize = stringIndices.size();
+    for (size_t index = 0; index < stringIndicesSize; ++index) {
+        NAPI_CALL(env, napi_set_element(env, napiStringIndices, index,
+            CreateJsNumber(env, stringIndices.at(index))));
+    }
+    return napiStringIndices;
+}
+
+napi_value JsRun::GetImageBounds(napi_env env, napi_callback_info info)
+{
+    JsRun* me = CheckParamsAndGetThis<JsRun>(env, info);
+    return (me != nullptr) ? me->OnGetImageBounds(env, info) : nullptr;
+}
+
+napi_value JsRun::OnGetImageBounds(napi_env env, napi_callback_info info)
+{
+    if (!run_) {
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
+    }
+    Drawing::Rect imageBounds = run_->GetImageBounds();
+    return GetRectAndConvertToJsValue(env, imageBounds);
+}
+
+napi_value JsRun::GetTypographicBounds(napi_env env, napi_callback_info info)
+{
+    JsRun* me = CheckParamsAndGetThis<JsRun>(env, info);
+    return (me != nullptr) ? me->OnGetTypographicBounds(env, info) : nullptr;
+}
+
+napi_value JsRun::OnGetTypographicBounds(napi_env env, napi_callback_info info)
+{
+    if (!run_) {
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
+    }
+
+    float ascent = 0.0;
+    float descent = 0.0;
+    float leading = 0.0;
+    float width = run_->GetTypographicBounds(&ascent, &descent, &leading);
+    return GetTypographicBoundsAndConvertToJsValue(env, ascent, descent, leading, width);
 }
 } // namespace OHOS::Rosen

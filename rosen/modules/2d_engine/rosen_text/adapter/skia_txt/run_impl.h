@@ -31,6 +31,12 @@ public:
     std::vector<uint16_t> GetGlyphs() const override;
     std::vector<Drawing::Point> GetPositions() override;
     std::vector<Drawing::Point> GetOffsets() override;
+    std::vector<uint16_t> GetGlyphs(int64_t start, int64_t length) const override;
+    std::vector<Drawing::Point> GetPositions(int64_t start, int64_t length) const override;
+    void GetStringRange(uint64_t* location, uint64_t* length) const override;
+    std::vector<uint64_t> GetStringIndices(int64_t start, int64_t length) const override;
+    Drawing::Rect GetImageBounds() const override;
+    float GetTypographicBounds(float* ascent, float* descent, float* leading) const override;
     void Paint(Drawing::Canvas *canvas, double x, double y) override;
 
     void SetSpRunBase(std::unique_ptr<SPText::Run>& run) { run_ = std::move(run); }
