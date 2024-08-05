@@ -1533,7 +1533,11 @@ void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
     if (!mainThread_) {
         return;
     }
-    auto task = [this, num]() -> void {
+    auto task = [weakMainThread = wptr<RSMainThread>(mainThread_), num]() -> void {
+        sptr<RSMainThread> mainThread = weakMainThread.promote();
+        if (!mainThread) {
+            return;
+        }
         mainThread_->SetAppWindowNum(num);
     };
     mainThread_->PostTask(task);
