@@ -15,6 +15,8 @@
 
 #include "modifier/rs_render_property.h"
 
+#include <iomanip>
+
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "rs_profiler.h"
@@ -352,31 +354,51 @@ bool operator!=(
 }
 
 template<>
-void RSRenderProperty<float>::Dump(std::string& out) const
+void RSRenderProperty<int>::Dump(std::string& out) const
 {
     out += "[" + std::to_string(Get()) + "]";
+}
+
+template<>
+void RSRenderProperty<float>::Dump(std::string& out) const
+{
+    std::stringstream ss;
+    ss << "[" << std::fixed << std::setprecision(1) << Get() << "]";
+    out += ss.str();
 }
 
 template<>
 void RSRenderProperty<Vector4f>::Dump(std::string& out) const
 {
     Vector4f v4f = Get();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1);
     switch (modifierType_) {
+        case RSModifierType::BORDER_WIDTH:
+        case RSModifierType::BORDER_DASH_WIDTH:
+        case RSModifierType::BORDER_DASH_GAP:
+        case RSModifierType::OUTLINE_WIDTH:
+        case RSModifierType::OUTLINE_DASH_WIDTH:
+        case RSModifierType::OUTLINE_DASH_GAP: {
+            ss << "[left:" << v4f.x_ << " top:" << v4f.y_ << " right:" << v4f.z_ << " bottom:" << v4f.w_ << + "]";
+            break;
+        }
+        case RSModifierType::CORNER_RADIUS:
+        case RSModifierType::OUTLINE_RADIUS: {
+            ss << "[topLeft:" << v4f.x_ << " topRight:" << v4f.y_ \
+               << " bottomRight:" << v4f.z_ << " bottomLeft:" << v4f.w_ << + "]";
+            break;
+        }
         case RSModifierType::BOUNDS: {
-            out += "[x:" + std::to_string(v4f.x_) + " y:";
-            out += std::to_string(v4f.y_) + " width:";
-            out += std::to_string(v4f.z_) + " height:";
-            out += std::to_string(v4f.w_) + "]";
+            ss << "[x:" << v4f.x_ << " y:" << v4f.y_ << " width:" << v4f.z_ << " height:" << v4f.w_ << + "]";
             break;
         }
         default: {
-            out += "[x:" + std::to_string(v4f.x_) + " y:";
-            out += std::to_string(v4f.y_) + " z:";
-            out += std::to_string(v4f.z_) + " w:";
-            out += std::to_string(v4f.w_) + "]";
+            ss << "[x:" << v4f.x_ << " y:" << v4f.y_ << " z:" << v4f.z_ << " w:" << v4f.w_ << + "]";
             break;
         }
     }
+    out += ss.str();
 }
 
 template<>
@@ -388,8 +410,9 @@ template<>
 void RSRenderProperty<Vector2f>::Dump(std::string& out) const
 {
     Vector2f v2f = Get();
-    out += "[x:" + std::to_string(v2f.x_) + " y:";
-    out += std::to_string(v2f.y_) + "]";
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1) << "[x:" << v2f.x_ << " y:" << v2f.y_ << "]";
+    out += ss.str();
 }
 
 template<>
@@ -400,10 +423,8 @@ void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Color>::Dump(std::string& out) const
 {
-    std::ostringstream ss;
-    ss << "0x" << std::hex << Get().AsRgbaInt();
-    out += "[RGBA-";
-    out += ss.str();
+    out += "[";
+    Get().Dump(out);
     out += "]";
 }
 
@@ -415,6 +436,16 @@ void RSRenderProperty<std::shared_ptr<RSFilter>>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const
 {
+    Vector4<Color> v4Color = Get();
+    out += "[left:";
+    v4Color.x_.Dump(out);
+    out += " top:";
+    v4Color.y_.Dump(out);
+    out += " right:";
+    v4Color.z_.Dump(out);
+    out += " bottom";
+    v4Color.w_.Dump(out);
+    out += "]";
 }
 
 template<>
@@ -607,6 +638,7 @@ bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
     }
 }
 
+template class RSRenderProperty<int>;
 template class RSRenderProperty<float>;
 template class RSRenderProperty<Vector4f>;
 template class RSRenderProperty<Quaternion>;
