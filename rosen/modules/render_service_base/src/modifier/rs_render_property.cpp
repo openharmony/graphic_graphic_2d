@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include <iomanip>
 #include "modifier/rs_render_property.h"
+
+#include <iomanip>
 
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
@@ -384,7 +385,8 @@ void RSRenderProperty<Vector4f>::Dump(std::string& out) const
         }
         case RSModifierType::CORNER_RADIUS:
         case RSModifierType::OUTLINE_RADIUS: {
-            ss << "[topLeft:" << v4f.x_ << " topRight:" << v4f.y_ << " bottomRight:" << v4f.z_ << " bottomLeft:" << v4f.w_ << + "]";
+            ss << "[topLeft:" << v4f.x_ << " topRight:" << v4f.y_ \
+               << " bottomRight:" << v4f.z_ << " bottomLeft:" << v4f.w_ << + "]";
             break;
         }
         case RSModifierType::BOUNDS: {
@@ -421,9 +423,9 @@ void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Color>::Dump(std::string& out) const
 {
-    std::stringstream ss;
-    ss << "[RGBA-0x" << std::hex << std:: setfill('0') << std::setw(8) << std::uppercase << Get().AsRgbaInt() << "]";
-    out += ss.str();
+    out += "[";
+    Get().Dump(out);
+    out += "]";
 }
 
 template<>
@@ -435,13 +437,15 @@ template<>
 void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const
 {
     Vector4<Color> v4Color = Get();
-    std::stringstream ss;
-    ss << std::hex << std:: setfill('0');
-    ss << "[left:RGBA-0x" << std::setw(8) << std::uppercase << v4Color.x_.AsRgbaInt() << std::nouppercase \
-       << " top:RGBA-0x" << std::setw(8) << std::uppercase << v4Color.y_.AsRgbaInt() << std::nouppercase \
-       << " right:RGBA-0x" << std::setw(8) << std::uppercase << v4Color.z_.AsRgbaInt() << std::nouppercase \
-       << " bottom:RGBA-0x" << std::setw(8) << std::uppercase << v4Color.w_.AsRgbaInt() << + "]";
-    out += ss.str();
+    out += "[left:";
+    v4Color.x_.Dump(out);
+    out += " top:";
+    v4Color.y_.Dump(out);
+    out += " right:";
+    v4Color.z_.Dump(out);
+    out += " bottom";
+    v4Color.w_.Dump(out);
+    out += "]";
 }
 
 template<>
