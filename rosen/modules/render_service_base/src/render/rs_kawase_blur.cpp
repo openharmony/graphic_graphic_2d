@@ -290,6 +290,9 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
 std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image>& input, const KawaseParameter& inParam, const BlurParams& blur) const
 {
+    if (!input || !blurEffect_ || (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && blurEffectAF_ == nullptr)) {
+        return input;
+    }
     auto originImageInfo = input->GetImageInfo();
     auto scaledInfo = Drawing::ImageInfo(std::ceil(blur.width * blurScale_), std::ceil(blur.height * blurScale_),
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
@@ -301,8 +304,7 @@ std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::C
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
     // Advanced Filter: check is AF usable only the first time
-    bool isUsingAF = IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && blurEffectAF_ != nullptr;
-    Drawing::RuntimeShaderBuilder blurBuilder(isUsingAF ? blurEffectAF_ : blurEffect_);
+    Drawing::RuntimeShaderBuilder blurBuilder(IS_ADVANCED_FILTER_USABLE_CHECK_ONCE ? blurEffectAF_ : blurEffect_);
     if (RSSystemProperties::GetBlurExtraFilterEnabled() && simpleFilter_) {
         blurBuilder.SetChild("imageInput", ApplySimpleFilter(canvas, input, blurMatrix, scaledInfo, linear));
     } else {
