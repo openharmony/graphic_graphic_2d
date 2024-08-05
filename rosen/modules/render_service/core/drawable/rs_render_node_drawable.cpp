@@ -609,6 +609,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     // So set isOpDropped_ = false here.
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
+    Drawing::AutoCanvasRestore arc(*cacheCanvas, true);
     cacheCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
     OpincCanvasUnionTranslate(*cacheCanvas);
