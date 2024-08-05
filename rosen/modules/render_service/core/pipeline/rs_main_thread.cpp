@@ -1730,7 +1730,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (!frameRateMgr_ || !rsVSyncDistributor_) {
         return;
     }
-    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
+    std::unique_lock<std::mutex> lock(context_->activeNodesInRootMutex_);
     auto activeNodesInRootMap = context_->activeNodesInRoot_;
     lock.unlock();
     frameRateMgr_->ProcessUnknownUIFwkIdleState(activeNodesInRootMap, timestamp);

@@ -120,9 +120,20 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
         }
         STEP("3. set buffer renew time") {
             idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
+            bool ret = idleDetector->GetSurfaceIdleState(lastTime);
+            STEP_ASSERT_EQ(ret, false);
         }
         STEP("4. get buffer idle state") {
-            bool ret = idleDetector->GetSurfaceIdleState(lastTime);
+            idleDetector->SetAppSupportedState(false);
+            idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
+            ret = idleDetector->GetSurfaceIdleState(lastTime);
+            STEP_ASSERT_EQ(ret, true);
+
+            idleDetector->supportAppBufferList_.clear();
+            idleDetector->SetAppSupportedState(true);
+            idleDetector->supportAppBufferList_.insert(idleDetector->supportAppBufferList_.begin(), rosenWeb);
+            idleDetector->UpdateSurfaceTime(rosenWeb, currTime, Pid, UIFWKType::FROM_SURFACE);
+            ret = idleDetector->GetSurfaceIdleState(lastTime);
             STEP_ASSERT_EQ(ret, false);
         }
     }
@@ -146,6 +157,10 @@ HWTEST_F(HgmIdleDetectorTest, ThirdFrameNeedHighRefresh, Function | SmallTest | 
             idleDetector->SetAppSupportedState(true);
             idleDetector->ClearAppBufferBlackList();
             bool ret = idleDetector->ThirdFrameNeedHighRefresh();
+            STEP_ASSERT_EQ(ret, true);
+
+            idleDetector->SetAceAnimatorIdleState(false);
+            ret = idleDetector->ThirdFrameNeedHighRefresh();
             STEP_ASSERT_EQ(ret, true);
 
             idleDetector->appBufferBlackList_.push_back(aceAnimator);
@@ -188,9 +203,11 @@ HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS001, Function | SmallTest | L
             STEP_ASSERT_EQ(ret, fps120HZ);
 
             idleDetector->SetAceAnimatorIdleState(false);
+            idleDetector->frameTimeMap_[bufferName] = currTime;
             ret = idleDetector->GetTouchUpExpectedFPS();
             STEP_ASSERT_EQ(ret, fps120HZ);
 
+            idleDetector->frameTimeMap_.clear();
             idleDetector->appBufferList_.push_back(std::make_pair(aceAnimator, fps90HZ));
             ret = idleDetector->GetTouchUpExpectedFPS();
             STEP_ASSERT_EQ(ret, fps90HZ);
@@ -285,15 +302,14 @@ HWTEST_F(HgmIdleDetectorTest, ProcessUnknownUIFwkIdleState, Function | SmallTest
             nodeWeaKPtr->SetNodeMame(flutterBuffer);
             rsRSRenderNodeMap[id] = nodeWeaKPtr;
             activeNodesInRoot[id] = rsRSRenderNodeMap;
-            idleDetector->supportAppBufferList_.insert(idleDetector->supportAppBufferList_.begin(), otherSurface);
         }
         STEP("3. set buffer renew time") {
             idleDetector->ProcessUnknownUIFwkIdleState(activeNodesInRoot, Pid);
             bool ret = idleDetector->GetSurfaceIdleState(lastTime);
-            STEP_ASSERT_EQ(ret, true);            
+            STEP_ASSERT_EQ(ret, true);
         }
         STEP("4. get buffer idle state") {
-            idleDetector->ProcessUnknownUIFwkIdleState(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
+            idleDetector->supportAppBufferList_.insert(idleDetector->supportAppBufferList_.begin(), flutterBuffer);
             idleDetector->ProcessUnknownUIFwkIdleState(activeNodesInRoot, Pid);
             bool ret = idleDetector->GetSurfaceIdleState(lastTime);
             STEP_ASSERT_EQ(ret, false);
