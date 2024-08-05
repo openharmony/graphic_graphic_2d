@@ -306,7 +306,7 @@ bool EglWrapperLayer::LoadLayers()
     return true;
 }
 
-bool EglWrapperLayer::LoadLayerFuncs(std::string realLayerPath)
+bool EglWrapperLayer::LoadLayerFuncs(const std::string& realLayerPath)
 {
     void *dlhandle = dlopen(realLayerPath.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (dlhandle == nullptr) {
