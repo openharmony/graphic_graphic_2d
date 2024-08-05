@@ -101,6 +101,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             success = success && parcel.WriteUint8(static_cast<uint8_t>(followType));
         }
         if (!command) {
+            success = false;
             parcel.WriteUint8(0);
             RS_LOGW("failed RSTransactionData::Marshalling, command is nullptr");
         } else {

@@ -181,7 +181,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         relativeMatrix.Set(Drawing::Matrix::SCALE_X, scaleX_);
         relativeMatrix.Set(Drawing::Matrix::SCALE_Y, scaleY_);
         Drawing::Matrix invertMatrix;
-        if (geoPtr->GetMatrix().Invert(invertMatrix)) {
+        if (geoPtr && geoPtr->GetMatrix().Invert(invertMatrix)) {
             relativeMatrix.PreConcat(invertMatrix);
         }
         canvas_->SetMatrix(relativeMatrix);
