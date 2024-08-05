@@ -196,9 +196,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawImageRect, TestSize.Level1)
     params.dstRect = dstRect;
     params.paint = paint;
     Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-    renderEngine->DrawImageRect(paintCanvase, image, params, samplingOptions);
+    RSBaseRenderEngine::DrawImageRect(paintCanvase, image, params, samplingOptions);
     ASSERT_NE(image, nullptr);
 }
 

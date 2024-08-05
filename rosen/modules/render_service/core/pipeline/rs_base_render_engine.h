@@ -183,9 +183,6 @@ public:
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
         const FrameContextConfig& frameContextConfig = {false, false});
 
-    void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
-        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
-
     // There would only one user(thread) to renderFrame(request frame) at one time.
 #ifdef NEW_RENDER_CONTEXT
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
@@ -293,6 +290,9 @@ private:
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
+
+    static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
+        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 #if defined(NEW_RENDER_CONTEXT)
