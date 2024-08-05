@@ -179,7 +179,8 @@ void RSColor::MultiplyAlpha(float alpha)
     alpha_ = static_cast<int16_t>(alpha_ * std::clamp(alpha, 0.0f, 1.0f));
 }
 
-void RSColor::Dump(std::string& out) {
+void RSColor::Dump(std::string& out)
+{
     constexpr int32_t colorStrWidth = 8;
     std::stringstream ss;
     ss << "RGBA-0x" << std::hex << std::setfill('0') << std::setw(colorStrWidth) << std::uppercase << AsRgbaInt();
