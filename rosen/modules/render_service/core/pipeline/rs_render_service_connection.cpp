@@ -500,16 +500,6 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Sur
     return screenManager_->SetVirtualScreenSurface(id, surface);
 }
 
-#ifdef RS_ENABLE_VK
-bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
-{
-    if (RsVulkanContext::GetSingleton().GetRsVulkanInterface().vkSetFreqAdjustEnable != nullptr) {
-        RsVulkanContext::GetSingleton().GetRsVulkanInterface().vkSetFreqAdjustEnable(enable);
-    }
-    return true;
-}
-#endif
-
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
     float brightBuffer, int64_t interval, int32_t rangeSize)
