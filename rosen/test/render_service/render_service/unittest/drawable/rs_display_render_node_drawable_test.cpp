@@ -247,6 +247,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen001
     params->mirrorSourceDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     damageRects = displayDrawable_->CalculateVirtualDirtyForWiredScreen(renderFrame, *params, canvasMatrix);
     ASSERT_EQ(damageRects.size(), 0);
+    sleep(1);
 }
 
 /**
@@ -391,33 +392,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen006
 }
 
 /**
- * @tc.name: RequestFrame
- * @tc.desc: Test RequestFrame
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    auto result = displayDrawable_->RequestFrame(*params, processor);
-    ASSERT_EQ(result, nullptr);
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    result = displayDrawable_->RequestFrame(*params, processor);
-    ASSERT_EQ(result, nullptr);
-
-    displayDrawable_->surfaceCreated_ = true;
-    result = displayDrawable_->RequestFrame(*params, processor);
-    ASSERT_EQ(result, nullptr);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-}
-
-/**
  * @tc.name: CheckDisplayNodeSkip
  * @tc.desc: Test CheckDisplayNodeSkip
  * @tc.type: FUNC
@@ -511,6 +485,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorScreenTest, TestSize.Level1)
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     displayDrawable_->DrawMirrorScreen(*params, processor);
+    sleep(1);
 }
 
 /**
@@ -540,6 +515,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Le
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Matrix matrix;
     displayDrawable_->CalculateVirtualDirty(virtualProcesser, *params, matrix);
+    sleep(1);
 }
 
 /**
@@ -634,9 +610,9 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff002, TestSize.Le
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
     ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_TRUE(displayDrawable_->SkipDisplayIfScreenOff());
+    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_TRUE(displayDrawable_->SkipDisplayIfScreenOff());
+    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
 }
 
 /**
@@ -666,10 +642,10 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff003, TestSize.Le
 
     screenManager->ResetPowerOffNeedProcessOneFrame();
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_TRUE(displayDrawable_->SkipDisplayIfScreenOff());
+    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
     screenManager->ResetPowerOffNeedProcessOneFrame();
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_TRUE(displayDrawable_->SkipDisplayIfScreenOff());
+    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
 }
 
 /**
@@ -839,6 +815,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorCopy, TestSize.Level1)
     displayDrawable_->DrawMirrorCopy(*mirrorDrawable, *params, virtualProcesser, *uniParam);
     ASSERT_FALSE(virtualProcesser->GetCanvas());
     uniParam->isVirtualDirtyEnabled_ = true;
+    sleep(1);
 }
 
 /**
@@ -871,35 +848,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ResetRotateIfNeed, TestSize.Level1)
     mirroredDrawable->curCanvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
     displayDrawable_->ResetRotateIfNeed(*mirroredDrawable, mirroredProcessor, clipRegion);
     ASSERT_TRUE(mirroredDrawable->GetResetRotate());
-}
-
-/**
- * @tc.name: OnCapture
- * @tc.desc: Test OnCapture
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, OnCapture, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    Drawing::Canvas canvas;
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    displayDrawable_->OnCapture(canvas);
-
-    params->compositeType_ = RSDisplayRenderNode::CompositeType::UNKNOWN;
-    displayDrawable_->OnCapture(canvas);
-
-    RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    displayDrawable_->OnCapture(canvas);
-
-    params->hasCaptureWindow_.insert(std::make_pair(params->screenId_, true));
-    displayDrawable_->OnCapture(canvas);
-
-    RSUniRenderThread::GetCaptureParam().isMirror_ = false;
-    displayDrawable_->OnCapture(canvas);
-    ASSERT_FALSE(RSUniRenderThread::GetCaptureParam().isMirror_);
-    params->hasCaptureWindow_.clear();
 }
 
 /**

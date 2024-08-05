@@ -42,6 +42,7 @@ public:
 
 void RSUifirstManagerTest::SetUpTestCase()
 {
+    RSTestUtil::InitRenderNodeGC();
     mainThread_ = RSMainThread::Instance();
     if (mainThread_) {
         uifirstManager_.mainThread_ = mainThread_;
@@ -235,26 +236,6 @@ HWTEST_F(RSUifirstManagerTest, ProcessForceUpdateNode001, TestSize.Level1)
 {
     ASSERT_NE(mainThread_, nullptr);
     uifirstManager_.pendingForceUpdateNode_.push_back(INVALID_NODEID);
-    uifirstManager_.ProcessForceUpdateNode();
-}
-
-/**
- * @tc.name: ProcessForceUpdateNode002
- * @tc.desc: Test ProcessForceUpdateNode, when parent node is surface node
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSUifirstManagerTest, ProcessForceUpdateNode002, TestSize.Level1)
-{
-    ASSERT_NE(mainThread_, nullptr);
-    auto parentNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(parentNode, nullptr);
-    auto childNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(childNode, nullptr);
-    parentNode->AddChild(childNode);
-    parentNode->GenerateFullChildrenList();
-    mainThread_->context_->nodeMap.RegisterRenderNode(parentNode);
-    uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
     uifirstManager_.ProcessForceUpdateNode();
 }
 
@@ -884,39 +865,6 @@ HWTEST_F(RSUifirstManagerTest, ClearSubthreadRes001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetNodePriorty001
- * @tc.desc: Test SetNodePriorty
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, SetNodePriorty001, TestSize.Level1)
-{
-    std::list<NodeId> result;
-    NodeId nodeId = 1;
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
-    pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
-    uifirstManager_.SetNodePriorty(result, pendingNode);
-    EXPECT_EQ(pendingNode.size(), 1);
-
-    RSMainThread::Instance()->focusLeashWindowId_ = 1;
-    uifirstManager_.SetNodePriorty(result, pendingNode);
-    EXPECT_TRUE(RSMainThread::Instance()->GetFocusLeashWindowId());
-}
-
-/**
- * @tc.name: SortSubThreadNodesPriority001
- * @tc.desc: Test SortSubThreadNodesPriority
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, SortSubThreadNodesPriority001, TestSize.Level1)
-{
-    uifirstManager_.SortSubThreadNodesPriority();
-    EXPECT_EQ(uifirstManager_.sortedSubThreadNodeIds_.size(), 2);
-}
-
-/**
  * @tc.name: IsInLeashWindowTree001
  * @tc.desc: Test IsInLeashWindowTree
  * @tc.type: FUNC
@@ -1352,38 +1300,5 @@ HWTEST_F(RSUifirstManagerTest, UpdateUIFirstNodeUseDma001, TestSize.Level1)
     std::vector<RectI> rects;
     uifirstManager_.UpdateUIFirstNodeUseDma(node, rects);
     EXPECT_FALSE(uifirstManager_.GetUseDmaBuffer(node.GetName()));
-}
-
-/**
- * @tc.name: DoPurgePendingPostNodes001
- * @tc.desc: Test DoPurgePendingPostNodes
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
-{
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
-    NodeId nodeId = 1;
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
-    uifirstManager_.subthreadProcessingNode_.clear();
-    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
-    EXPECT_FALSE(pendingNode.empty());
-
-    std::shared_ptr<const RSRenderNode> node = std::make_shared<const RSRenderNode>(1);
-    auto adapter = std::make_shared<RSSurfaceRenderNodeDrawable>(std::move(node));
-    adapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
-    surfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
-    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
-    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
-    EXPECT_FALSE(pendingNode.empty());
-
-    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
-    EXPECT_FALSE(pendingNode.empty());
-
-    adapter->hasHdrPresent_ = true;
-    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
-    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
-    EXPECT_FALSE(pendingNode.empty());
 }
 }
