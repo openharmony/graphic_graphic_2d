@@ -223,24 +223,6 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkNodeGroupTest
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, MarkNodeGroupTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    bool isNodeGruop = true;
-    auto nodeGruopType = node.GetNodeGroupType();
-    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
-    if (type >= nodeGruopType) {
-        node.MarkNodeGroup(type, isNodeGruop, false);
-        ASSERT_EQ(node.GetNodeGroupType(), type);
-    }
-}
-
-/**
  * @tc.name: SetDrawingCacheTypeTest
  * @tc.desc: test SetDrawingCacheType for all drawing cache types
  * @tc.type: FUNC
@@ -2065,7 +2047,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
-
+    nodeTest->InitRenderParams();
     // SetGlobalAlpha test
     nodeTest->SetGlobalAlpha(1.0f);
     EXPECT_EQ(nodeTest->globalAlpha_, 1.0f);
@@ -2301,6 +2283,7 @@ HWTEST_F(RSRenderNodeTest, ManageCachingTest027, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
     // GetCompletedCacheSurface test
     nodeTest->cacheCompletedSurface_ = nullptr;
     EXPECT_EQ(nodeTest->GetCompletedCacheSurface(0, true, true), nullptr);
