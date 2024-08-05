@@ -67,7 +67,6 @@ public:
 void RSHardwareThreadTest::SetUpTestCase()
 {
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
-    EXPECT_CALL(*hdiDeviceMock_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*hdiDeviceMock_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));

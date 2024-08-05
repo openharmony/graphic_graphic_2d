@@ -31,11 +31,21 @@ struct OH_NativeImage {
 OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget)
 {
     OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage(textureId, textureTarget);
+    if (surfaceImage == nullptr) {
+        return nullptr;
+    }
     sptr<OHOS::IBufferProducer> producer = surfaceImage->GetProducer();
     OH_NativeImage* nativeImage = new OH_NativeImage();
+    if (nativeImage == nullptr) {
+        return nullptr;
+    }
     nativeImage->consumer = surfaceImage;
     nativeImage->producer = producer;
     sptr<IBufferConsumerListener> listener = new SurfaceImageListener(surfaceImage);
+    if (listener == nullptr) {
+        delete nativeImage;
+        return nullptr;
+    }
     nativeImage->consumer->RegisterConsumerListener(listener);
     return nativeImage;
 }
@@ -60,7 +70,7 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
 
 int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -69,7 +79,7 @@ int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 
 int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -78,7 +88,7 @@ int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 
 int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -87,7 +97,7 @@ int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 
 int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return -1;
     }
@@ -96,7 +106,7 @@ int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 
 int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16])
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -105,7 +115,7 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
 
 int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[16])
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error, please check input parameter");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -154,7 +164,7 @@ void OH_NativeImage_Destroy(OH_NativeImage** image)
     if ((*image)->consumer != nullptr) {
         (void)(*image)->consumer->UnsetOnBufferAvailableListener();
     }
-    
+
     if ((*image)->nativeWindow != nullptr) {
         DestoryNativeWindow((*image)->nativeWindow);
         (*image)->nativeWindow = nullptr;

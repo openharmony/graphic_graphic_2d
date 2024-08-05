@@ -21,6 +21,7 @@
 #include <vector>
 #include <unordered_map>
 
+#include "graphic_error.h"
 #include "surface_type.h"
 #include "hdi_layer.h"
 #include "hdi_framebuffer_surface.h"

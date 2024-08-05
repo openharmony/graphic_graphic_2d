@@ -37,6 +37,7 @@ using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 namespace OHOS {
 namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
+static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
@@ -178,7 +179,7 @@ void HdiOutput::ResetLayerStatusLocked()
 int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo)
 {
     LayerPtr layer = HdiLayer::CreateHdiLayer(screenId_);
-    if (!layer->Init(layerInfo)) {
+    if (layer == nullptr || !layer->Init(layerInfo)) {
         HLOGE("Init hdiLayer failed");
         return GRAPHIC_DISPLAY_FAILURE;
     }
@@ -199,7 +200,6 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &lay
     }
 
     const auto& validKeys = device_->GetSupportedLayerPerFrameParameterKey();
-    const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
     if (std::find(validKeys.begin(), validKeys.end(), GENERIC_METADATA_KEY_ARSR_PRE_NEEDED) != validKeys.end()) {
         if (CheckIfDoArsrPre(layerInfo)) {
             const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
@@ -332,11 +332,8 @@ int32_t HdiOutput::PreProcessLayersComp()
 
         uint32_t layersNum = layerIdMap_.size();
         // If doClientCompositionDirectly is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
-        doClientCompositionDirectly = ((layerCompCapacity_ != LAYER_COMPOSITION_CAPACITY_INVALID) &&
-                                            (layersNum > layerCompCapacity_));
-        if (!directClientCompositionEnabled_) {
-            doClientCompositionDirectly = false;
-        }
+        doClientCompositionDirectly = directClientCompositionEnabled_ &&
+            ((layerCompCapacity_ != LAYER_COMPOSITION_CAPACITY_INVALID) && (layersNum > layerCompCapacity_));
 
         for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
             const LayerPtr &layer = iter->second;
@@ -523,7 +520,6 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
         return ret;
     }
 
-    CHECK_DEVICE_NULL(device_);
     if (bufferCached && index < bufferCacheCountMax_) {
         ret = device_->SetScreenClientBuffer(screenId_, nullptr, index, fbAcquireFence);
     } else {
@@ -556,6 +552,9 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
 int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (thirdFrameAheadPresentFence_ == nullptr) {
+        return GRAPHIC_DISPLAY_NULL_PTR;
+    }
     UpdatePrevLayerInfoLocked();
 
     if (sampler_ == nullptr) {
@@ -725,7 +724,6 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
 int32_t HdiOutput::StartVSyncSampler(bool forceReSample)
 {
     ScopedBytrace func("HdiOutput::StartVSyncSampler, forceReSample:" + std::to_string(forceReSample));
-    CHECK_DEVICE_NULL(device_);
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }
@@ -804,12 +802,18 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr) {
+            continue;
+        }
         if (arg == "UniRender") {
             if (layer->GetLayerInfo()->GetUniRenderFlag()) {
                 result += "\n surface [" + arg + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
                 layer->DumpMergedResult(result);
                 break;
             }
+            continue;
+        }
+        if (layer->GetLayerInfo()->GetSurface() == nullptr) {
             continue;
         }
         const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
@@ -873,6 +877,10 @@ void HdiOutput::ClearFpsDump(std::string &result, const std::string &arg)
 
 static inline bool Cmp(const LayerDumpInfo &layer1, const LayerDumpInfo &layer2)
 {
+    if (layer1.layer == nullptr || layer1.layer->GetLayerInfo() == nullptr ||
+        layer2.layer == nullptr || layer2.layer->GetLayerInfo() == nullptr) {
+        return false;
+    }
     return layer1.layer->GetLayerInfo()->GetZorder() < layer2.layer->GetLayerInfo()->GetZorder();
 }
 

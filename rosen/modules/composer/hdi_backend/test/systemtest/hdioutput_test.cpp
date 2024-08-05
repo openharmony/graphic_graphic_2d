@@ -278,11 +278,9 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence002, Function | MediumTest| Level3)
 {
-    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(1));
     std::map<LayerInfoPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 
-    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(0));
     res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 }
