@@ -93,8 +93,7 @@ void RSProfiler::DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out)
         auto p = node.parent_.lock();
         subclass["Parent"] = p ? p->GetId() : uint64_t(0);
         subclass["Name"] = surfaceNode.GetName();
-        const auto& surfaceHandler = static_cast<const RSSurfaceHandler&>(surfaceNode);
-        subclass["hasConsumer"] = surfaceHandler.HasConsumer();
+        out["hasConsumer"] = surfaceNode.GetRSSurfaceHandler()->HasConsumer();
         std::string contextAlpha = std::to_string(surfaceNode.contextAlpha_);
         std::string propertyAlpha = std::to_string(surfaceNode.GetRenderProperties().GetAlpha());
         subclass["Alpha"] = propertyAlpha + " (include ContextAlpha: " + contextAlpha + ")";
@@ -254,7 +253,7 @@ void RSProfiler::DumpNodePropertiesTransform(const RSProperties& properties, Jso
     if (!ROSEN_EQ(properties.GetPositionZ(), 0.f)) {
         out["PositionZ"] = properties.GetPositionZ();
     }
-    Transform defaultTransform;
+    RSTransform defaultTransform;
     Vector2f pivot = properties.GetPivot();
     if ((!ROSEN_EQ(pivot[0], defaultTransform.pivotX_) || !ROSEN_EQ(pivot[1], defaultTransform.pivotY_))) {
         out["Pivot"] = { pivot[0], pivot[1] };

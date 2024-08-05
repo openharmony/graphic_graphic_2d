@@ -16,9 +16,11 @@
 #include "params/rs_render_params.h"
 #include <string>
 
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
-
+#include "property/rs_properties_painter.h"
+#include "screen_manager/rs_screen_info.h"
 namespace OHOS::Rosen {
 namespace {
 thread_local Drawing::Matrix parentSurfaceMatrix_;
@@ -79,7 +81,7 @@ void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bo
             canvas.ConcatMatrix(matrix_);
         }
         if (alpha_ < 1.0f && (drawingCacheType_ == RSDrawingCacheType::FORCED_CACHE || alphaOffScreen_)) {
-            auto rect = GetBounds();
+            auto rect = RSPropertiesPainter::Rect2DrawingRect(GetLocalDrawRect());
             Drawing::Brush brush;
             brush.SetAlpha(static_cast<uint32_t>(std::clamp(alpha_, 0.f, 1.f) * UINT8_MAX));
             Drawing::SaveLayerOps slr(&rect, &brush);
@@ -463,11 +465,29 @@ const Drawing::Matrix& RSRenderParams::GetParentSurfaceMatrix()
     return parentSurfaceMatrix_;
 }
 
-// overrided by displayNode
-ScreenRotation RSRenderParams::GetScreenRotation() const
+// overrided surface params
+const RSLayerInfo& RSRenderParams::GetLayerInfo() const
 {
-    static const ScreenRotation defaultRotation = ScreenRotation::ROTATION_0;
-    return defaultRotation;
+    static const RSLayerInfo defaultLayerInfo = {};
+    return defaultLayerInfo;
 }
 
+// overrided by displayNode
+const ScreenInfo& RSRenderParams::GetScreenInfo() const
+{
+    static ScreenInfo defalutScreenInfo;
+    return defalutScreenInfo;
+}
+
+const Drawing::Matrix& RSRenderParams::GetTotalMatrix()
+{
+    static const Drawing::Matrix defaultMatrix;
+    return defaultMatrix;
+}
+// virtual display params
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetMirrorSourceDrawable()
+{
+    static DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr defaultPtr;
+    return defaultPtr;
+}
 } // namespace OHOS::Rosen

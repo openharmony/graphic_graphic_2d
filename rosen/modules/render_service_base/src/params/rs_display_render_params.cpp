@@ -95,6 +95,20 @@ bool RSDisplayRenderParams::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
+void RSDisplayRenderParams::SetBrightnessRatio (float brightnessRatio)
+{
+    if (ROSEN_EQ(brightnessRatio_, brightnessRatio)) {
+        return;
+    }
+    brightnessRatio_ = brightnessRatio;
+    needSync_ = true;
+}
+
+float RSDisplayRenderParams::GetBrightnessRatio() const
+{
+    return brightnessRatio_;
+}
+
 void RSDisplayRenderParams::SetNewColorSpace(const GraphicColorGamut& newColorSpace)
 {
     if (newColorSpace_ == newColorSpace) {
@@ -152,7 +166,6 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->isSecurityDisplay_ = isSecurityDisplay_;
     targetDisplayParams->mirroredId_ = mirroredId_;
     targetDisplayParams->compositeType_ = compositeType_;
-    targetDisplayParams->mirrorSource_ = mirrorSource_;
     targetDisplayParams->mirrorSourceDrawable_ = mirrorSourceDrawable_;
     targetDisplayParams->mirrorSourceId_ = mirrorSourceId_;
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);
@@ -162,7 +175,9 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
+    targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
+    targetDisplayParams->isMouseDirty_ = isMouseDirty_;
     RSRenderParams::OnSync(target);
 }
 
@@ -183,7 +198,12 @@ std::string RSDisplayRenderParams::ToString() const
     return ret;
 }
 
-bool RSDisplayRenderParams::HasSecurityLayer()
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSDisplayRenderParams::GetMirrorSourceDrawable()
+{
+    return mirrorSourceDrawable_;
+}
+
+bool RSDisplayRenderParams::HasSecurityLayer() const
 {
     bool hasSecLayerFlag = false;
     auto iter = displayHasSecSurface_.find(screenId_);
@@ -193,7 +213,7 @@ bool RSDisplayRenderParams::HasSecurityLayer()
     return hasSecLayerFlag;
 }
 
-bool RSDisplayRenderParams::HasSkipLayer()
+bool RSDisplayRenderParams::HasSkipLayer() const
 {
     bool hasSkipLayerFlag = false;
     auto iter = displayHasSkipSurface_.find(screenId_);
@@ -203,7 +223,7 @@ bool RSDisplayRenderParams::HasSkipLayer()
     return hasSkipLayerFlag;
 }
 
-bool RSDisplayRenderParams::HasProtectedLayer()
+bool RSDisplayRenderParams::HasProtectedLayer() const
 {
     bool hasProtectedLayerFlag = false;
     auto iter = displayHasProtectedSurface_.find(screenId_);
@@ -213,7 +233,7 @@ bool RSDisplayRenderParams::HasProtectedLayer()
     return hasProtectedLayerFlag;
 }
 
-bool RSDisplayRenderParams::HasCaptureWindow()
+bool RSDisplayRenderParams::HasCaptureWindow() const
 {
     bool hasCaptureWindow = false;
     auto iter = hasCaptureWindow_.find(screenId_);

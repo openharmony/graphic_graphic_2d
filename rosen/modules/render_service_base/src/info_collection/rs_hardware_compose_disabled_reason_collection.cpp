@@ -35,25 +35,21 @@ void HwcDisabledReasonCollection::UpdateHwcDisabledReasonForDFX(NodeId id,
     int32_t disabledReason, const std::string& nodeName)
 {
     std::lock_guard<std::mutex> lock(hwcDisabledReasonMtx_);
-    ++hwcDisabledReasonInfoMap_[id].disabledReasonStatistics[disabledReason];
-    hwcDisabledReasonInfoMap_[id].pidOfBelongsApp = ExtractPid(id);
-    hwcDisabledReasonInfoMap_[id].nodeName = nodeName;
+    auto& hwcDisabledReasonInfo = hwcDisabledReasonInfoMap_[id];
+    ++hwcDisabledReasonInfo.disabledReasonStatistics[disabledReason];
+    hwcDisabledReasonInfo.pidOfBelongsApp = ExtractPid(id);
+    hwcDisabledReasonInfo.nodeName = nodeName;
 }
 
-HwcDisabledReasonInfos HwcDisabledReasonCollection::GetHwcDisabledReasonInfo() const
+HwcDisabledReasonInfos HwcDisabledReasonCollection::GetHwcDisabledReasonInfo()
 {
     std::lock_guard<std::mutex> lock(hwcDisabledReasonMtx_);
     HwcDisabledReasonInfos hwcDisabledReasonInfos;
     for (const auto& hwcDisabledReasonInfo : hwcDisabledReasonInfoMap_) {
         hwcDisabledReasonInfos.emplace_back(hwcDisabledReasonInfo.second);
     }
-    return hwcDisabledReasonInfos;
-}
-
-void HwcDisabledReasonCollection::ResetHwcDisabledReasonInfo()
-{
-    std::lock_guard<std::mutex> lock(hwcDisabledReasonMtx_);
     hwcDisabledReasonInfoMap_.clear();
+    return hwcDisabledReasonInfos;
 }
 } // namespace Rosen
 } // namespace OHOS

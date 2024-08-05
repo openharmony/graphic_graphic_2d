@@ -176,6 +176,10 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_penSetBlendMode008, TestSize
     OH_Drawing_PenSetBlendMode(pen8, OH_Drawing_BlendMode::BLEND_MODE_SRC);
     OH_Drawing_PenSetBlendMode(nullptr, OH_Drawing_BlendMode::BLEND_MODE_SRC);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_PenSetBlendMode(pen8, (OH_Drawing_BlendMode)(BLEND_MODE_LUMINOSITY + 1));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    OH_Drawing_PenSetBlendMode(pen8, (OH_Drawing_BlendMode)(BLEND_MODE_CLEAR - 1));
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
     OH_Drawing_PenDestroy(pen8);
 }
 
@@ -199,7 +203,7 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_penReset009, TestSize.Level1
     EXPECT_EQ(OH_Drawing_PenIsAntiAlias(pen9), false);
     EXPECT_EQ(OH_Drawing_PenGetColor(pen9), 0xFF000000);
     EXPECT_EQ(OH_Drawing_PenGetWidth(pen9), 0);
-    EXPECT_EQ(OH_Drawing_PenGetMiterLimit(pen9), -1);
+    EXPECT_EQ(OH_Drawing_PenGetMiterLimit(pen9), 4.0f);
     EXPECT_EQ(OH_Drawing_PenGetCap(pen9), OH_Drawing_PenLineCapStyle::LINE_FLAT_CAP);
     EXPECT_EQ(OH_Drawing_PenGetJoin(pen9), OH_Drawing_PenLineJoinStyle::LINE_MITER_JOIN);
 

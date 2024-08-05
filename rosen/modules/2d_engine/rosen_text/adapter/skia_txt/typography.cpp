@@ -64,6 +64,11 @@ double Typography::GetActualWidth() const
     return paragraph_->GetLongestLine();
 }
 
+double Typography::GetLongestLineWithIndent() const
+{
+    return paragraph_->GetLongestLineWithIndent();
+}
+
 double Typography::GetMinIntrinsicWidth()
 {
     return paragraph_->GetMinIntrinsicWidth();
@@ -357,13 +362,13 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
         return false;
     }
     std::vector<LineMetrics> vecLineMetrics = GetLineMetrics();
-	
+
     if (vecLineMetrics.empty()) {
         return false;
     }
 
     *lineMetrics = vecLineMetrics[lineNumber];
-	
+
     return true;
 }
 
@@ -403,6 +408,14 @@ std::unique_ptr<OHOS::Rosen::Typography> Typography::CloneSelf()
         return nullptr;
     }
     return std::make_unique<Typography>(paragraph_->CloneSelf());
+}
+
+void Typography::UpdateColor(size_t from, size_t to, const Drawing::Color& color)
+{
+    if (!paragraph_) {
+        return;
+    }
+    paragraph_->UpdateColor(from, to, color);
 }
 } // namespace AdapterTxt
 } // namespace Rosen

@@ -68,9 +68,9 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int flags = 0,
-        std::vector<uint64_t> filteredAppVector = {}) = 0;
+        std::vector<uint64_t> whiteList = {}) = 0;
 
-    virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t>& blackListVector) = 0;
+    virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
 
@@ -218,6 +218,9 @@ public:
     virtual void ClearFrameBufferIfNeed() = 0;
 
     virtual int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) = 0;
+
+    virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
+    virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -262,9 +265,9 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId,
         int32_t flags,
-        std::vector<uint64_t> filteredAppVector) override;
+        std::vector<uint64_t> whiteList) override;
 
-    int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t>& blackListVector) override;
+    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
@@ -418,12 +421,17 @@ public:
 
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) override;
 
+    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
+    VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
 
     static void OnHotPlug(std::shared_ptr<HdiOutput> &output, bool connected, void *data);
     void OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool connected);
+    static void OnRefresh(ScreenId id, void *data);
+    void OnRefreshEvent(ScreenId id);
     static void OnHwcDead(void *data);
     void OnHwcDeadEvent();
     static void OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data);
@@ -487,6 +495,7 @@ private:
     bool mipiCheckInFirstHotPlugEvent_ = false;
     bool isHwcDead_ = false;
     std::vector<ScreenId> connectedIds_;
+    std::unordered_map<ScreenId, ScreenRotation> screenCorrection_;
     std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
     std::unordered_set<uint64_t> castScreenBlackLists_ = {};

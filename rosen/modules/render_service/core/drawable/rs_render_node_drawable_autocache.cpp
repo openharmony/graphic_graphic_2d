@@ -18,13 +18,21 @@
 #include "string_utils.h"
 #endif
 #include "common/rs_optional_trace.h"
-
+#include "params/rs_render_params.h"
 namespace OHOS::Rosen::DrawableV2 {
 
 namespace {
 constexpr int32_t BITMAP_CACHE_SIZE_MIN = 50;
 constexpr int32_t REALDRAW_WIDTH_EX = 200;
 constexpr int32_t OPINC_ROOT_TOTAL_MAX = 1;
+constexpr int32_t OPINC_CACHE_HEIGHT_THRESHOLD = 2720;
+constexpr int32_t OPINC_CACHE_WIDTH_MAX = 1460;
+constexpr int32_t OPINC_CACHE_SIZE_MAX = 1314000;
+}
+
+bool RSRenderNodeDrawable::ShouldPaint() const
+{
+    return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
 }
 
 bool RSRenderNodeDrawable::IsOpincRenderCacheEnable()
@@ -58,7 +66,7 @@ void RSRenderNodeDrawable::OpincCalculateAfter(Drawing::Canvas& canvas, bool& is
     if (isOpincCaculateStart_) {
         isOpincCaculateStart_ = false;
         auto localBound =
-            Drawing::Rect(0.f, 0.f, (float)(1260 + REALDRAW_WIDTH_EX), (float)2720);
+            Drawing::Rect(0.f, 0.f, (float)(OPINC_CACHE_WIDTH_MAX), (float)OPINC_CACHE_HEIGHT_THRESHOLD);
         auto drawAreaTemp = canvas.OpCalculateAfter(localBound);
         isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
         opCanCache_ = false;
@@ -143,7 +151,7 @@ bool RSRenderNodeDrawable::BeforeDrawCacheProcessChildNode(NodeStrategyType& cac
         cacheStragy, recordState_, temNodeStragyType_);
 #endif
     // find root node
-    if (cacheStragy != NodeStrategyType::CACHE_NONE) {
+    if (cacheStragy != NodeStrategyType::CACHE_NONE || !params.OpincGetRootFlag()) {
         if (recordState_ == NodeRecordState::RECORD_CACHED &&
             rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE) {
             DrawableCacheStateReset(params);
@@ -159,14 +167,20 @@ bool RSRenderNodeDrawable::BeforeDrawCacheProcessChildNode(NodeStrategyType& cac
 void RSRenderNodeDrawable::BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas,
     const RSRenderParams& params, bool& isOpincDropNodeExt)
 {
-    auto isOffscreen = (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    if (IsOpincRealDrawCacheEnable() && !params.OpincGetRootFlag()) {
+        return;
+    }
     auto size = params.GetCacheSize();
-    if (params.OpincGetRootFlag() && !isOffscreen &&
-        size.y_ > BITMAP_CACHE_SIZE_MIN && size.x_ > BITMAP_CACHE_SIZE_MIN) {
-        if (IsOpincRealDrawCacheEnable()) {
-            recordState_ = NodeRecordState::RECORD_CALCULATE;
-            rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
-        }
+    if (size.x_ > OPINC_CACHE_WIDTH_MAX || size.y_ > OPINC_CACHE_HEIGHT_THRESHOLD) {
+        RS_TRACE_NAME_FMT("opinc oversize: width:%d, height:%d", size.x_, size.y_);
+        return;
+    }
+    auto isOffscreen = (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    if (!isOffscreen &&
+        size.y_ > BITMAP_CACHE_SIZE_MIN && size.x_ > BITMAP_CACHE_SIZE_MIN &&
+        size.x_ * size.y_ < OPINC_CACHE_SIZE_MAX) {
+        recordState_ = NodeRecordState::RECORD_CALCULATE;
+        rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
     }
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
     RS_TRACE_NAME_FMT("BeforeDrawCacheFindRootNode rootS:%d xy:%d", rootNodeStragyType_,

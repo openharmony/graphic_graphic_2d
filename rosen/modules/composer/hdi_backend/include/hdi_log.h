@@ -18,8 +18,6 @@
 
 #include <hilog/log.h>
 
-#include "graphic_error.h"
-
 namespace OHOS {
 namespace Rosen {
 
@@ -38,16 +36,6 @@ namespace {
 #define HLOGI(fmt, ...) C_HLOG(HILOG_INFO, fmt, ##__VA_ARGS__)
 #define HLOGW(fmt, ...) C_HLOG(HILOG_WARN, fmt, ##__VA_ARGS__)
 #define HLOGE(fmt, ...) C_HLOG(HILOG_ERROR, fmt, ##__VA_ARGS__)
-
-#define HLOG_SUCCESS(fmt, ...) HLOGI("Success, Way: " fmt, ##__VA_ARGS__)
-#define HLOG_FAILURE(fmt, ...) HLOGE("Failure, Reason: " fmt, ##__VA_ARGS__)
-
-#define HLOG_ERROR(errno, fmt, ...) \
-    HLOGE(fmt ", means %{public}s", ##__VA_ARGS__, strerror(errno))
-
-#define HLOG_ERROR_API(ret, api) \
-    HLOG_ERROR(ret, #api " failed with %{public}d", ret)
-
 } // namespace Rosen
 } // namespace OHOS
 

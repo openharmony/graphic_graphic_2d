@@ -128,7 +128,7 @@ public:
     {
         return;
     };
-    void SetColor(std::string fillColor, std::string strokeColor, float alpha) override
+    void SetColor(std::string fillColor, std::string strokeColor, float alpha)
     {
         return;
     };

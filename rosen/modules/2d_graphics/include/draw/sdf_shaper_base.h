@@ -28,7 +28,7 @@ class DRAWING_API SDFShapeBase
 {
 public:
     SDFShapeBase() {};
-    ~SDFShapeBase() {};
+    virtual ~SDFShapeBase() {};
 
     virtual std::string Getshader() const = 0;
     virtual float GetSize() const = 0;
@@ -46,7 +46,6 @@ public:
 
     virtual void UpdateTime(float time) = 0;
     virtual void BuildShader() = 0;
-    virtual void SetColor(std::string fillColor, std::string strokeColor, float alpha) = 0;
 
 private:
 

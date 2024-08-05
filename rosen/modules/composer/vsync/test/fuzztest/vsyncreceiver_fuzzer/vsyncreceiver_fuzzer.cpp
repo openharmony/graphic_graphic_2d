@@ -94,6 +94,7 @@ namespace OHOS {
         };
         vsyncReceiver->SetVSyncRate(fcb, rate);
         vsyncReceiver->RequestNextVSync(fcb);
+        vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
 
         return true;
     }

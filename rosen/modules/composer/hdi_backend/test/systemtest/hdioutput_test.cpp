@@ -32,6 +32,7 @@ public:
     static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
     static inline std::vector<LayerInfoPtr> layerInfos_;
     static inline std::shared_ptr<HdiLayerContext> hdiLayerTemp_;
+    static inline std::vector<std::string> paramKey_{};
 };
 
 void HdiOutputSysTest::SetUpTestCase()
@@ -59,6 +60,7 @@ void HdiOutputSysTest::SetUpTestCase()
 
     mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
     hdiOutput_->SetHdiOutputDevice(mockDevice_);
+    EXPECT_CALL(*mockDevice_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
 }
 
 void HdiOutputSysTest::TearDownTestCase() {}
@@ -276,11 +278,9 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence002, Function | MediumTest| Level3)
 {
-    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(1));
     std::map<LayerInfoPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 
-    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(0));
     res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 }

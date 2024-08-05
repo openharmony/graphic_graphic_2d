@@ -40,7 +40,7 @@ class SampleBitMap {
 public:
     SampleBitMap() = default;
     ~SampleBitMap();
-    explicit SampleBitMap(std::string id) : id_(id) {}
+    explicit SampleBitMap(std::string &id) : id_(id) {}
     static napi_value NapiDrawPattern(napi_env env, napi_callback_info info);
     static void Release(std::string &id);
     void DrawPath();
@@ -52,11 +52,11 @@ public:
     void DisPlay();
     void ConstructPath();
     void SetPenAndBrush();
-    void Export(napi_env env, napi_value exports);
+    static void Export(napi_env env, napi_value exports);
     void RegisterCallback(OH_NativeXComponent *nativeXComponent);
     void Destroy();
     static SampleBitMap *GetInstance(std::string &id);
-    std::string id_;
+    std::string id_ = "";
 private:
     OH_NativeXComponent_Callback renderCallback_;
 

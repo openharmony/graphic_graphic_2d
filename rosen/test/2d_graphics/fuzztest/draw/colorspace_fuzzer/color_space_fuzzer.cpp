@@ -17,13 +17,21 @@
 #include <cstddef>
 #include <cstdint>
 #include "get_object.h"
+#include "draw/color.h"
 #include "effect/color_space.h"
+#include "image/bitmap.h"
+#include "image/image.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr size_t CMSMATRIX_SIZE = 3;
+constexpr size_t FUNCTYPE_SIZE = 4;
+constexpr size_t MATRIXTYPE_SIZE = 5;
+}
 namespace Drawing {
 
-bool ColorSpaceFuzzTest(const uint8_t* data, size_t size)
+bool ColorSpaceFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -42,6 +50,41 @@ bool ColorSpaceFuzzTest(const uint8_t* data, size_t size)
 
     return true;
 }
+
+bool ColorSpaceFuzzTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<ColorSpace> colorSpaceOne = ColorSpace::CreateSRGBLinear();
+    uint32_t funcType = GetObject<uint32_t>();
+    uint32_t matrixType = GetObject<uint32_t>();
+    std::shared_ptr<ColorSpace> colorSpaceTwo = ColorSpace::CreateRGB(
+        static_cast<CMSTransferFuncType>(funcType % FUNCTYPE_SIZE),
+        static_cast<CMSMatrixType>(matrixType % MATRIXTYPE_SIZE));
+    float g = GetObject<float>();
+    float a = GetObject<float>();
+    float b = GetObject<float>();
+    float c = GetObject<float>();
+    float d = GetObject<float>();
+    float e = GetObject<float>();
+    float f = GetObject<float>();
+    CMSTransferFunction func { g, a, b, c, d, e, f };
+    CMSMatrix3x3 matrix;
+    for (uint32_t i = 0; i < CMSMATRIX_SIZE; i++) {
+        for (uint32_t j = 0; j < CMSMATRIX_SIZE; j++) {
+            matrix.vals[i][j] = GetObject<float>();
+        }
+    }
+    std::shared_ptr<ColorSpace> colorSpaceThree = ColorSpace::CreateCustomRGB(func, matrix);
+
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -50,6 +93,7 @@ bool ColorSpaceFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::ColorSpaceFuzzTest(data, size);
+    OHOS::Rosen::Drawing::ColorSpaceFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::ColorSpaceFuzzTest002(data, size);
     return 0;
 }

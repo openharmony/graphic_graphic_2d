@@ -27,7 +27,7 @@ HdiDevice* HdiDevice::GetInstance()
     static std::mutex mutex;
     std::lock_guard<std::mutex> lock(mutex);
     {
-        if (instance.Init() != ROSEN_ERROR_OK) {
+        if (!instance.Init()) {
             HLOGE("hdi device get instances failed.");
             return nullptr;
         }

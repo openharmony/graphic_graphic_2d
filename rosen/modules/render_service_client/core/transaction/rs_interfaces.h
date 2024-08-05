@@ -60,7 +60,7 @@ public:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int flags = 0,
-        std::vector<NodeId> filteredAppVector = {});
+        std::vector<NodeId> whiteList = {});
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
@@ -75,13 +75,15 @@ public:
 
     void RemoveVirtualScreen(ScreenId id);
 
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval);
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
  
     int32_t SetPointerColorInversionEnabled(bool enable);
  
     int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
  
     int32_t UnRegisterPointerLuminanceChangeCallback();
+#endif
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
@@ -242,7 +244,7 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
-    void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
 
@@ -255,8 +257,6 @@ public:
     void ReportGameStateData(GameStateData info);
 
     void EnableCacheForRotation();
-
-    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     void DisableCacheForRotation();
 
@@ -278,6 +278,8 @@ public:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
+
+    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
 private:
     RSInterfaces();

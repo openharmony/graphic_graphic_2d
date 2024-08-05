@@ -106,7 +106,7 @@ DECLARE_NOANIMATABLE_MODIFIER(LinearGradientBlurPara, std::shared_ptr<RSLinearGr
 
 DECLARE_NOANIMATABLE_MODIFIER(MotionBlurPara, std::shared_ptr<MotionBlurParam>, MOTION_BLUR_PARA, Foreground)
 
-DECLARE_NOANIMATABLE_MODIFIER(MagnifierParams, Vector2f, MAGNIFIER_PARA, Foreground)
+DECLARE_NOANIMATABLE_MODIFIER(MagnifierParams, std::shared_ptr<RSMagnifierParams>, MAGNIFIER_PARA, Foreground)
 
 DECLARE_NOANIMATABLE_MODIFIER(EmitterUpdater, std::vector<std::shared_ptr<EmitterUpdater>>, PARTICLE_EMITTER_UPDATER, Foreground)
 
@@ -175,6 +175,10 @@ DECLARE_NOANIMATABLE_MODIFIER(SystemBarEffect, bool, SYSTEMBAREFFECT, Background
 DECLARE_ANIMATABLE_MODIFIER(WaterRippleProgress, float, WATER_RIPPLE_PROGRESS, Add, Background, COARSE)
  
 DECLARE_NOANIMATABLE_MODIFIER(WaterRippleParams, RSWaterRipplePara, WATER_RIPPLE_PARAMS, Background)
+
+DECLARE_ANIMATABLE_MODIFIER(FlyOutDegree, float, FLY_OUT_DEGREE, Add, Foreground, COARSE)
+ 
+DECLARE_NOANIMATABLE_MODIFIER(FlyOutParams, RSFlyOutPara, FLY_OUT_PARAMS, Foreground)
 
 DECLARE_ANIMATABLE_MODIFIER(HueRotate, float, HUE_ROTATE, Add, Foreground, COARSE)
 

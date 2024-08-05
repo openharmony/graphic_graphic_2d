@@ -60,7 +60,7 @@ public:
 
     bool FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod = 0);
     void FlushModifier();
-    bool HasUIAnimation();
+    bool HasUIRunningAnimation();
     void FlushAnimationStartTime(uint64_t timeStamp);
 
     void SetAppFreeze(bool isAppFreeze);
@@ -71,6 +71,8 @@ public:
 
     int32_t GetCurrentRefreshRateMode();
     int32_t GetAnimateExpectedRate() const;
+
+    uint32_t GetIndex();
 
 private:
     void AttachSurface();
@@ -96,6 +98,7 @@ private:
     bool isUniRenderEnabled_ = false;
     uint64_t refreshPeriod_ = 16666667;
     uint64_t timeStamp_ = 0;
+    uint32_t index_ = 0;
     std::string abilityName_;
     std::weak_ptr<RSSurfaceNode> surfaceNode_;
     int surfaceWidth_ = 0;

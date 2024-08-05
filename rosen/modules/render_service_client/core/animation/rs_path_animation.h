@@ -107,7 +107,7 @@ private:
     float endTangent_ { 0.0f };
     bool isNeedPath_ { true };
     bool needAddOrigin_ { true };
-    PropertyId rotationId_;
+    PropertyId rotationId_ {};
     RotationMode rotationMode_ { RotationMode::ROTATE_NONE };
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
     std::shared_ptr<RSPath> animationPath_;

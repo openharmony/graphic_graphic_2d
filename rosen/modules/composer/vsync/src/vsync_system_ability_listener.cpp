@@ -21,6 +21,7 @@
 #include "res_sched_client.h"
 #include "res_type.h"
 #include "system_ability_definition.h"
+#include "vsync_res_event_listener.h"
 #endif
 
 namespace OHOS {
@@ -42,6 +43,9 @@ void VSyncSystemAbilityListener::OnAddSystemAbility(int32_t systemAbilityId, con
         mapPayload["cgroupPrio"] = "1";
         OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
             ResourceSchedule::ResType::RES_TYPE_KEY_PERF_SCENE, userInteraction, mapPayload);
+        OHOS::ResourceSchedule::ResSchedClient::GetInstance().RegisterEventListener(
+            VSyncResEventListener::GetInstance(),
+            ResourceSchedule::ResType::EventType::EVENT_DRAW_FRAME_REPORT);
     }
 #endif
 }

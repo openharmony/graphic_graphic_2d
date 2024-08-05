@@ -21,6 +21,8 @@
 #include <hitrace_meter.h>
 #include "event_handler.h"
 #include "graphic_common.h"
+#include "res_sched_client.h"
+#include "res_type.h"
 #include "rs_frame_report_ext.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
@@ -39,7 +41,6 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     }
     // 3 is array size.
     int64_t data[3];
-    int64_t now = 0;
     ssize_t ret = 0;
     ssize_t dataCount = 0;
     do {
@@ -58,35 +59,66 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         }
     } while (ret != -1);
 
+    HandleVsyncCallbacks(data, dataCount);
+}
+
+void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCount)
+{
     VSyncCallback cb = nullptr;
     VSyncCallbackWithId cbWithId = nullptr;
-    int64_t expectedEnd;
+    void *userData = nullptr;
+    int64_t now = 0;
+    int64_t expectedEnd = 0;
+    std::vector<FrameCallback> callbacks;
     {
         std::lock_guard<std::mutex> locker(mtx_);
         cb = vsyncCallbacks_;
         cbWithId = vsyncCallbacksWithId_;
+        userData = userData_;
         RNVFlag_ = false;
         now = data[0];
         period_ = data[1];
         periodShared_ = data[1];
         timeStamp_ = data[0];
         timeStampShared_ = data[0];
-        expectedEnd = now + period_;
-        // rs vsync offset is 5000000ns
-        expectedEnd = (name_ == "rs") ? (expectedEnd + period_ - 5000000) : expectedEnd;
+        expectedEnd = CalculateExpectedEndLocked(now);
+        callbacks = frameCallbacks_;
+        frameCallbacks_.clear();
     }
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
     RS_TRACE_NAME_FMT("ReceiveVsync dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld",
         dataCount, now, expectedEnd, data[2]); // data[2] is vsyncId
-    if (dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
+    if (callbacks.empty() && dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
         // data[2] is frameCount
-        cbWithId != nullptr ? cbWithId(now, data[2], userData_) : cb(now, userData_);
+        cbWithId != nullptr ? cbWithId(now, data[2], userData) : cb(now, userData);
+    }
+    for (const auto& cb : callbacks) {
+        if (cb.callback_ != nullptr) {
+            cb.callback_(now, cb.userData_);
+        } else if (cb.callbackWithId_ != nullptr) {
+            cb.callbackWithId_(now, data[2], cb.userData_); // data[2] is vsyncId
+        }
     }
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
     }
+}
+
+int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
+{
+    int64_t expectedEnd = 0;
+    if (now < period_ || now > INT64_MAX - period_) {
+        RS_TRACE_NAME_FMT("invalid timestamps, now:%ld, period_:%ld", now, period_);
+        VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
+        period_ = 0;
+        return 0;
+    }
+    expectedEnd = now + period_;
+    // rs vsync offset is 5000000ns
+    expectedEnd = (name_ == "rs") ? (expectedEnd + period_ - 5000000) : expectedEnd;
+    return expectedEnd;
 }
 
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
@@ -125,14 +157,30 @@ VsyncError VSyncReceiver::Init()
     listener_->SetName(name_);
 
     if (looper_ == nullptr) {
-        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(true);
+        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
         looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         runner->Run();
+        looper_->PostTask([this] { this->ThreadCreateNotify(); });
     }
 
     looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
     return VSYNC_ERROR_OK;
+}
+
+void VSyncReceiver::ThreadCreateNotify()
+{
+    int32_t pid = getprocpid();
+    int32_t uid = getuid();
+    int32_t tid = static_cast<int32_t>(getproctid());
+    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}d.", pid, tid, uid);
+
+    std::unordered_map<std::string, std::string> mapPayload;
+    mapPayload["pid"] = std::to_string(pid);
+    mapPayload["uid"] = std::to_string(uid);
+    mapPayload["tid"] = std::to_string(tid);
+    OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
+        ResourceSchedule::ResType::RES_TYPE_REPORT_VSYNC_TID, tid, mapPayload);
 }
 
 VSyncReceiver::~VSyncReceiver()
@@ -164,6 +212,22 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::st
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
     }
     return connection_->RequestNextVSync(fromWhom, lastVSyncTS);
+}
+
+VsyncError VSyncReceiver::RequestNextVSyncWithMultiCallback(FrameCallback callback)
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        VLOGE("%{public}s not init", __func__);
+        return VSYNC_ERROR_NOT_INIT;
+    }
+    listener_->AddCallback(callback);
+    listener_->SetRNVFlag(true);
+    ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
+    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
+        OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
+    }
+    return connection_->RequestNextVSync();
 }
 
 VsyncError VSyncReceiver::SetVSyncRate(FrameCallback callback, int32_t rate)
@@ -239,7 +303,7 @@ void VSyncReceiver::CloseVsyncReceiverFd()
 VsyncError VSyncReceiver::Destroy()
 {
     std::lock_guard<std::mutex> locker(initMutex_);
-    if (!init_) {
+    if (connection_ == nullptr) {
         return VSYNC_ERROR_API_FAILED;
     }
     return connection_->Destroy();
@@ -261,6 +325,16 @@ VsyncError VSyncReceiver::SetUiDvsyncSwitch(bool dvsyncSwitch)
         return VSYNC_ERROR_API_FAILED;
     }
     return connection_->SetUiDvsyncSwitch(dvsyncSwitch);
+}
+
+VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount)
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
+    VLOGI("%{public}s bufferCount:%{public}d", __func__, bufferCount);
+    return connection_->SetUiDvsyncConfig(bufferCount);
 }
 } // namespace Rosen
 } // namespace OHOS

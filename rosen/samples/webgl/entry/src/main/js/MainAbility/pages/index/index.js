@@ -18,29 +18,29 @@ import { Demo, main } from './main';
 export default {
     data: {
         demo: Demo.WEBGL1_SHADOW_DEMO,
-        title: "",
+        title: '',
     },
     onInit() {
         this.title = this.$t('strings.world');
     },
     onShow() {
         let canvas = this.$refs.canvas;
-        if (this.demo.toUpperCase().startsWith("WEBGL1")) {
-            globalThis.gl = canvas.getContext("webgl", {
+        if (this.demo.toUpperCase().startsWith('WEBGL1')) {
+            globalThis.gl = canvas.getContext('webgl', {
                 antialias: true, alpha: true, depth: true
-            })
+            });
         } else {
-            globalThis.gl = canvas.getContext("webgl2", {
+            globalThis.gl = canvas.getContext('webgl2', {
                 antialias: true, alpha: true, depth: true
-            })
+            });
         }
         globalThis.gl.width = canvas.getBoundingClientRect().width;
         globalThis.gl.height = canvas.getBoundingClientRect().height;
         let gl = globalThis.gl;
         globalThis.gl.closed = false;
-        main(gl, this.demo)
+        main(gl, this.demo);
     },
     onHide() {
         globalThis.gl.closed = true;
     }
-}
+};

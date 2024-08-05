@@ -67,12 +67,12 @@ public:
 void RSHardwareThreadTest::SetUpTestCase()
 {
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
-    EXPECT_CALL(*hdiDeviceMock_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*hdiDeviceMock_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, Commit(_, _)).WillRepeatedly(testing::Return(0));
+    RSTestUtil::InitRenderNodeGC();
 }
 void RSHardwareThreadTest::TearDownTestCase() {}
 void RSHardwareThreadTest::TearDown()
@@ -205,7 +205,7 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
 HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
     sProducer->SetQueueSize(1);

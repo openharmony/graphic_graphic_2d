@@ -381,17 +381,13 @@ void DrawingDCL::Test(Drawing::Canvas* canvas, int width, int height)
         case IterateType::REPLAY_MSKP:
             std::cout << "replay mskp... " << std::endl;
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::IsUseVulkan()) {
-                UpdateParameters(ReplayMSKP(skiaCanvas_) || (beginFrame_ == 1));
-            }
+            UpdateParameters(ReplayMSKP(skiaCanvas_) || (beginFrame_ == 1));
 #endif
             break;
         case IterateType::REPLAY_SKP:
             std::cout << "replay skp... " << std::endl;
 #ifdef RS_ENABLE_VK
-            if (RSSystemProperties::IsUseVulkan()) {
-                ReplaySKP(skiaCanvas_);
-            }
+            ReplaySKP(skiaCanvas_);
 #endif
             break;
         case IterateType::OTHER:

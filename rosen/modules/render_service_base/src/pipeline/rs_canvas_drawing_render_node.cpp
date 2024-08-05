@@ -42,9 +42,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 10;
+constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 50;
 }
-
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSCanvasRenderNode(id, context, isTextureExportNode)
@@ -396,6 +395,9 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pix
     std::shared_ptr<Drawing::Surface> surface;
     std::unique_ptr<RSPaintFilterCanvas> canvas;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (!canvas_) {
+        return false;
+    }
     auto gpuContext = canvas_->GetGPUContext();
     if (gpuContext == nullptr) {
         if (!WriteSkImageToPixelmap(image, info, pixelmap, rect)) {
@@ -423,6 +425,9 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pix
     canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
     drawCmdList->Playback(*canvas, rect);
     auto pixelmapImage = surface->GetImageSnapshot();
+    if (!pixelmapImage) {
+        return false;
+    }
     if (!WriteSkImageToPixelmap(pixelmapImage, info, pixelmap, rect)) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetPixelmap: readPixels failed");
         return false;
@@ -468,12 +473,13 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
     }
 }
 
-void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
+void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 {
-    dirtyTypes_.set(static_cast<int>(type), true);
+    ClearResource();
+    dirtyTypes_.set(static_cast<int>(modifierType), true);
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     for (auto& [type, list]: GetDrawCmdModifiers()) {
-        if (list.empty()) {
+        if (modifierType != type || list.empty()) {
             continue;
         }
         for (const auto& modifier : list) {
@@ -489,11 +495,14 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType type)
                 continue;
             }
             drawCmdLists_[type].emplace_back(cmd);
-            SetNeedProcess(true);
+            if (cmd->GetOpItemSize() > 0) {
+                SetNeedProcess(true);
+            }
         }
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
-        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || drawCmdListsVisited_) &&
+        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() ||
+            ((renderDrawable_ && renderDrawable_->IsDrawCmdListsVisited()))) &&
             drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
             RS_LOGD("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
                 type, drawCmdLists_[type].size());
@@ -527,21 +536,12 @@ const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDraw
 
 void RSCanvasDrawingRenderNode::ClearResource()
 {
-    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-    if (drawCmdListsVisited_) {
+    if (renderDrawable_ && renderDrawable_->IsDrawCmdListsVisited()) {
+        std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
         drawCmdLists_.clear();
-        drawCmdListsVisited_ = false;
+        renderDrawable_->SetDrawCmdListsVisited(false);
     }
 }
 
-bool RSCanvasDrawingRenderNode::IsDrawCmdListsVisited() const
-{
-    return drawCmdListsVisited_;
-}
-
-void RSCanvasDrawingRenderNode::SetDrawCmdListsVisited(bool flag)
-{
-    drawCmdListsVisited_ = flag;
-}
 } // namespace Rosen
 } // namespace OHOS

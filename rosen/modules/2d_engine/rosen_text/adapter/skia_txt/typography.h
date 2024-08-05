@@ -29,6 +29,7 @@ public:
     double GetMaxWidth() const override;
     double GetHeight() const override;
     double GetActualWidth() const override;
+    double GetLongestLineWithIndent() const override;
     double GetMinIntrinsicWidth() override;
     double GetMaxIntrinsicWidth() override;
     double GetAlphabeticBaseline() override;
@@ -71,6 +72,7 @@ public:
         std::vector<Drawing::FontMetrics>& fontMetrics) override;
     std::vector<std::unique_ptr<TextLineBase>> GetTextLines() const override;
     std::unique_ptr<OHOS::Rosen::Typography> CloneSelf() override;
+    void UpdateColor(size_t from, size_t to, const Drawing::Color& color) override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;

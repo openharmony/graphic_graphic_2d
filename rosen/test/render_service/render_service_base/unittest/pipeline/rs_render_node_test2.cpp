@@ -18,6 +18,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -35,7 +36,7 @@ namespace OHOS {
 namespace Rosen {
 const std::string OUT_STR3 =
     ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, VisibleRegion [Empty], "
-    "OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0";
+    "OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0";
 const std::string OUT_STR4 = ", Visible: 1, Size: [-inf, -inf], EnableRender: 1";
 const std::string OUT_STR5 = ", skipLayer: 0";
 
@@ -850,10 +851,13 @@ HWTEST_F(RSRenderNodeTest2, CheckBlurFilterCacheNeedForceClearOrSave, TestSize.L
 {
     RSRenderNode node(id, context);
     bool rotationChanged = true;
+    bool rotationStatusChanged = true;
     auto& properties = node.GetMutableRenderProperties();
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.filter_ = std::make_shared<RSFilter>();
-    node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged);
+    node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
+    rotationStatusChanged = false;
+    node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
     ASSERT_TRUE(true);
 }
 
@@ -1107,29 +1111,15 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpDrawCmdModifierTest033
- * @tc.desc: DumpDrawCmdModifier ForceMergeSubTreeDirtyRegion SubTreeSkipPrepare test
+ * @tc.name: ForceMergeSubTreeDirtyRegionTest033
+ * @tc.desc: ForceMergeSubTreeDirtyRegion SubTreeSkipPrepare test
  * @tc.type: FUNC
  * @tc.require: issueIA61E9
  */
-HWTEST_F(RSRenderNodeTest2, DumpDrawCmdModifierTest033, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
-
-    std::string outTest7;
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> propertyTest =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    EXPECT_NE(propertyTest, nullptr);
-    std::shared_ptr<RSDrawCmdListRenderModifier> drawCmdModifiersTest =
-        std::make_shared<RSDrawCmdListRenderModifier>(propertyTest);
-    EXPECT_NE(drawCmdModifiersTest, nullptr);
-    std::shared_ptr<RSRenderModifier> modifier = std::dynamic_pointer_cast<RSRenderModifier>(drawCmdModifiersTest);
-    EXPECT_NE(modifier, nullptr);
-    nodeTest->DumpDrawCmdModifier(outTest7, RSModifierType::ENV_FOREGROUND_COLOR, modifier);
-    nodeTest->DumpDrawCmdModifier(outTest7, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, modifier);
-    nodeTest->DumpDrawCmdModifier(outTest7, RSModifierType::GEOMETRYTRANS, modifier);
-    EXPECT_NE(outTest7, "");
 
     RSDirtyRegionManager dirtyManagerTest1;
     RectI clipRectTest1 = RectI { 0, 0, 1, 1 };

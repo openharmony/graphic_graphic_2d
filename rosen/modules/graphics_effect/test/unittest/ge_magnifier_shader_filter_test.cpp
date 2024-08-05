@@ -66,7 +66,9 @@ void GEMagnifierShaderFilterTest::TearDown() {}
  */
 HWTEST_F(GEMagnifierShaderFilterTest, GetDescription001, TestSize.Level1)
 {
-    auto filter = std::make_shared<GEMagnifierShaderFilter>();
+    Drawing::GEMagnifierShaderFilterParams params{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000};
+    auto filter = std::make_shared<GEMagnifierShaderFilter>(params);
     ASSERT_TRUE(filter != nullptr);
 
     std::string expectStr = "GEMagnifierShaderFilter";
@@ -80,7 +82,9 @@ HWTEST_F(GEMagnifierShaderFilterTest, GetDescription001, TestSize.Level1)
  */
 HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage001, TestSize.Level1)
 {
-    auto filter = std::make_shared<GEMagnifierShaderFilter>();
+    Drawing::GEMagnifierShaderFilterParams params{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000};
+    auto filter = std::make_shared<GEMagnifierShaderFilter>(params);
     ASSERT_TRUE(filter != nullptr);
 
     std::shared_ptr<Drawing::Image> image = nullptr;
@@ -94,7 +98,9 @@ HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage001, TestSize.Level1)
  */
 HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage002, TestSize.Level1)
 {
-    auto filter = std::make_shared<GEMagnifierShaderFilter>();
+    Drawing::GEMagnifierShaderFilterParams params{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000};
+    auto filter = std::make_shared<GEMagnifierShaderFilter>(params);
     ASSERT_TRUE(filter != nullptr);
 
     EXPECT_EQ(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
@@ -107,21 +113,15 @@ HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage002, TestSize.Level1)
  */
 HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage003, TestSize.Level1)
 {
-    auto filter = std::make_shared<GEMagnifierShaderFilter>();
+    Drawing::GEMagnifierShaderFilterParams params{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000};
+    auto filter = std::make_shared<GEMagnifierShaderFilter>(params);
     ASSERT_TRUE(filter != nullptr);
 
     // 1.0f, 1.0f, 200.0f, 200.0f is left top right bottom
     Drawing::Rect src { 1.0f, 1.0f, 200.0f, 200.0f };
     Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
-#ifdef GE_OHOS
-#undef GE_OHOS
     EXPECT_EQ(filter->ProcessImage(canvas_, image_, src, dst), image_);
-#define GE_OHOS
-#else
-#define GE_OHOS
-    EXPECT_EQ(filter->ProcessImage(canvas_, image_, src, dst), image_);
-#undef GE_OHOS
-#endif
 }
 
 /**
@@ -131,7 +131,9 @@ HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage003, TestSize.Level1)
  */
 HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage004, TestSize.Level1)
 {
-    auto filter = std::make_shared<GEMagnifierShaderFilter>();
+    Drawing::GEMagnifierShaderFilterParams params{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000};
+    auto filter = std::make_shared<GEMagnifierShaderFilter>(params);
     ASSERT_TRUE(filter != nullptr);
 
     EXPECT_EQ(filter->ProcessImage(canvas_, image_, src_, dst_), image_);
@@ -148,7 +150,9 @@ HWTEST_F(GEMagnifierShaderFilterTest, ProcessImage004, TestSize.Level1)
  */
 HWTEST_F(GEMagnifierShaderFilterTest, ConvertToRgba001, TestSize.Level1)
 {
-    auto filter = std::make_shared<GEMagnifierShaderFilter>();
+    Drawing::GEMagnifierShaderFilterParams params{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000};
+    auto filter = std::make_shared<GEMagnifierShaderFilter>(params);
     ASSERT_TRUE(filter != nullptr);
 
     uint32_t color1 = uint32_t(0x80808000);
@@ -163,7 +167,9 @@ HWTEST_F(GEMagnifierShaderFilterTest, ConvertToRgba001, TestSize.Level1)
  */
 HWTEST_F(GEMagnifierShaderFilterTest, ConvertToRgba002, TestSize.Level1)
 {
-    auto filter = std::make_shared<GEMagnifierShaderFilter>();
+    Drawing::GEMagnifierShaderFilterParams params{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000};
+    auto filter = std::make_shared<GEMagnifierShaderFilter>(params);
     ASSERT_TRUE(filter != nullptr);
 
     uint32_t color1 = uint32_t(0x80808000);

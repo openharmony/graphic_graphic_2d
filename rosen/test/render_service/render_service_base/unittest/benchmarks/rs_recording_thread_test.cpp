@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
+#ifdef ENABLE_RECORDING_DCL
 #include "gtest/gtest.h"
 #include "benchmarks/rs_recording_thread.h"
 #include "render_context/render_context.h"
@@ -77,3 +79,4 @@ HWTEST_F(RSRecordingThreadTest, RecordingToFile001, TestSize.Level1)
     rsRecordingThread.RecordingToFile(list);
 }
 } // namespace OHOS::Rosen
+#endif // ENABLE_RECORDING_DCL

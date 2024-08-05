@@ -90,10 +90,11 @@ public:
     static SkImageInfo ConvertToSkImageInfo(const ImageInfo& imageInfo)
     {
         auto colorSpace = imageInfo.GetColorSpace();
+        auto colorSpaceImpl = colorSpace ? colorSpace->GetImpl<SkiaColorSpace>() : nullptr;
         return SkImageInfo::Make(imageInfo.GetWidth(), imageInfo.GetHeight(),
                                  ConvertToSkColorType(imageInfo.GetColorType()),
                                  ConvertToSkAlphaType(imageInfo.GetAlphaType()),
-                                 colorSpace ? colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace() : nullptr);
+                                 colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : nullptr);
     }
 
     static ColorType ConvertToColorType(const SkColorType& format)

@@ -245,4 +245,27 @@ HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
     ASSERT_EQ(renderContext.GetPixelFormat(), GRAPHIC_PIXEL_FMT_RGBA_1010102);
 #endif
 }
+
+/**
+ * @tc.name: DiscodingTest001
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, DiscodingTest001, Level1)
+{
+    RenderContext* renderContext = new RenderContext();
+    delete renderContext;
+    renderContext = nullptr;
+}
+
+/**
+ * @tc.name: CreatePbufferSurfaceTest001
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, CreatePbufferSurfaceTest001, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->CreatePbufferSurface();
+}
 } // namespace OHOS::Rosen

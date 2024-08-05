@@ -69,13 +69,17 @@ enum RSNodeCommandType : uint16_t {
 
     SET_NODE_NAME,
     UPDATE_MODIFIER_MOTION_BLUR_PTR,
+    UPDATE_MODIFIER_MAGNIFIER_PTR,
     UPDATE_MODIFIER_WATER_RIPPLE,
+    UPDATE_MODIFIER_FLY_OUT,
+    REMOVE_ALL_MODIFIERS,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
 public:
     static void AddModifier(RSContext& context, NodeId nodeId, const std::shared_ptr<RSRenderModifier>& modifier);
     static void RemoveModifier(RSContext& context, NodeId nodeId, PropertyId propertyId);
+    static void RemoveAllModifiers(RSContext& context, NodeId nodeId);
 
     template<typename T>
     static void UpdateModifier(RSContext& context, NodeId nodeId, T value, PropertyId id, PropertyUpdateType type)
@@ -136,7 +140,6 @@ public:
 
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
-    static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
@@ -188,6 +191,10 @@ ADD_COMMAND(RSUpdatePropertyWaterRipple,
     ARG(RS_NODE, UPDATE_MODIFIER_WATER_RIPPLE,
         RSNodeCommandHelper::UpdateModifier<RSWaterRipplePara>,
         NodeId, RSWaterRipplePara, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyFlyOut,
+    ARG(RS_NODE, UPDATE_MODIFIER_FLY_OUT,
+        RSNodeCommandHelper::UpdateModifier<RSFlyOutPara>,
+        NodeId, RSFlyOutPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyLinearGradientBlurPara,
     ARG(RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSLinearGradientBlurPara>>,
@@ -196,6 +203,10 @@ ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
     ARG(RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyMagnifierPara,
+    ARG(RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMagnifierParams>>,
+        NodeId, std::shared_ptr<RSMagnifierParams>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateModifier<std::vector<std::shared_ptr<EmitterUpdater>>>,
@@ -250,13 +261,13 @@ ADD_COMMAND(RSSetDrawRegion,
 ADD_COMMAND(RSSetOutOfParent,
     ARG(RS_NODE, SET_OUT_OF_PARENT, RSNodeCommandHelper::SetOutOfParent,
         NodeId, OutOfParentType))
-ADD_COMMAND(RSSetTakeSurfaceForUIFlag,
-    ARG(RS_NODE, SET_TAKE_SURFACE_CAPTURE_FOR_UI_FLAG, RSNodeCommandHelper::SetTakeSurfaceForUIFlag, NodeId))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(RS_NODE, REGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
     ARG(RS_NODE, UNREGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
+ADD_COMMAND(RSRemoveAllModifiers,
+    ARG(RS_NODE, REMOVE_ALL_MODIFIERS, RSNodeCommandHelper::RemoveAllModifiers, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 

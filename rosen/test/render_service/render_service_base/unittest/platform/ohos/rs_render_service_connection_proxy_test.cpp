@@ -204,8 +204,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CreateVirtualScreen, TestSize.Level
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
     ScreenId mirrorId = 1;
     int32_t flags = 1;
-    std::vector<NodeId> filteredAppVector;
-    EXPECT_EQ(proxy->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector),
+    std::vector<NodeId> whiteList;
+    EXPECT_EQ(proxy->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
         INVALID_SCREEN_ID);
 }
 
@@ -253,6 +253,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RemoveVirtualScreen, TestSize.Level
     ASSERT_TRUE(true);
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 /**
  * @tc.name: SetPointerColorInversionConfig Test
  * @tc.desc: SetPointerColorInversionConfig Test
@@ -264,7 +265,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetPointerColorInversionConfig, Tes
     float darkBuffer = 0.5f;
     float brightBuffer = 0.5f;
     int64_t interval = 50;
-    proxy->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    int32_t rangeSize = 20;
+    proxy->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     ASSERT_TRUE(true);
 }
 
@@ -298,6 +300,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterPointerLuminanceChangeCallb
     proxy->RegisterPointerLuminanceChangeCallback(callback);
     ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
+#endif
 
 /**
  * @tc.name: SetScreenChangeCallback Test
@@ -902,7 +905,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
     proxy->NotifyRefreshRateEvent(eventInfo);
     int32_t touchStatus = 1;
     int32_t touchCnt = 0;
-    proxy->NotifyTouchEvent(touchStatus, "", 0, touchCnt);
+    proxy->NotifyTouchEvent(touchStatus, touchCnt);
     proxy->NotifyDynamicModeEvent(true);
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);

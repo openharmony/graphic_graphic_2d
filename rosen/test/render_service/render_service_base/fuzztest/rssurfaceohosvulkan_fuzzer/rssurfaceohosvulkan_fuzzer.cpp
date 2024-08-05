@@ -26,17 +26,15 @@
 #include <securec.h>
 #include <unistd.h>
 
-#include "generated/vk_loader_extensions.h"
-
+#include "image/gpu_context.h"
+#include "core/ui/rs_surface_node.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
-
 namespace OHOS {
 namespace Rosen {
-using namespace Drawing;
 
 namespace {
-const uint8_t* g_data = nullptr;
+const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 } // namespace
@@ -46,10 +44,10 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
+    if (DATA == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
@@ -63,12 +61,11 @@ bool DoIsValid(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     rsSurfaceOhosVulkan->IsValid();
@@ -76,25 +73,7 @@ bool DoIsValid(const uint8_t* data, size_t size)
     rsSurfaceOhosVulkan->ResetBufferAge();
     return true;
 }
-bool DoDestroySemaphore(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
-    auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
-
-    void* context = nullptr;
-    RSSurfaceOhosVulkan::DestroySemaphore(context);
-    return true;
-}
 bool DoRequestFrame(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -102,18 +81,17 @@ bool DoRequestFrame(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     uint64_t uiTimestamp = GetData<uint64_t>();
-    rsSurfaceOhosVulkan->RequestFrame();
+    rsSurfaceOhosVulkan->RequestFrame(width, height, uiTimestamp);
     return true;
 }
 bool DoFlushFrame(const uint8_t* data, size_t size)
@@ -123,12 +101,11 @@ bool DoFlushFrame(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     uint64_t uiTimestamp = GetData<uint64_t>();
@@ -143,12 +120,11 @@ bool DoSetColorSpace(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     GraphicColorGamut colorSpacel = GetData<GraphicColorGamut>();
@@ -162,12 +138,11 @@ bool DoSetSurfaceBufferUsage(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     uint64_t usage = GetData<uint64_t>();
@@ -181,12 +156,11 @@ bool DoSetSurfacePixelFormat(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     int32_t pixelFormat = GetData<int32_t>();
@@ -200,12 +174,11 @@ bool DoSetUiTimeStamp(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     uint64_t uiTimestamp = GetData<uint64_t>();
@@ -220,15 +193,14 @@ bool DoSetSkContext(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
-    std::shared_ptr<GPUContext> skContext = nullptr;
+    std::shared_ptr<Drawing::GPUContext> skContext = nullptr;
     rsSurfaceOhosVulkan->SetSkContext(skContext);
     return true;
 }
@@ -239,18 +211,17 @@ bool DoSetNativeWindowInfo(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     bool useAFBC = GetData<bool>();
-    rsSurfaceOhosVulkan->SetSkContext(width, height, useAFBC);
+    rsSurfaceOhosVulkan->SetNativeWindowInfo(width, height, useAFBC);
     return true;
 }
 bool DoRequestNativeWindowBuffer(const uint8_t* data, size_t size)
@@ -260,12 +231,11 @@ bool DoRequestNativeWindowBuffer(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     int32_t width = GetData<int32_t>();
@@ -285,16 +255,15 @@ bool DoCreateVkSemaphore(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
-
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    
+    sptr<Surface> surface;
     auto rsSurfaceOhosVulkan = std::make_shared<RSSurfaceOhosVulkan>(surface);
 
     NativeBufferUtils::NativeSurfaceInfo nativeSurface;
-    const auto& vkContext = RsVulkanContext::GetSingleton();
+    auto& vkContext = RsVulkanContext::GetSingleton();
     VkSemaphore semaphore;
     rsSurfaceOhosVulkan->CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
     return true;
@@ -307,16 +276,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::DoIsValid(data, size);                   // IsValid
-    OHOS::Rosen::DoDestroySemaphore(data, size);          // DestroySemaphore
-    OHOS::Rosen::DoRequestFrame(data, size);              // RequestFrame
-    OHOS::Rosen::DoFlushFrame(data, size);                // FlushFrame
-    OHOS::Rosen::DoSetColorSpace(data, size);             // SetColorSpace
-    OHOS::Rosen::DoSetSurfaceBufferUsage(data, size);     // SetSurfaceBufferUsage
-    OHOS::Rosen::DoSetSurfacePixelFormat(data, size);     // SetSurfacePixelFormat
-    OHOS::Rosen::DoSetUiTimeStamp(data, size);            // SetUiTimeStamp
-    OHOS::Rosen::DoSetSkContext(data, size);              // SetSkContext
-    OHOS::Rosen::DoSetNativeWindowInfo(data, size);       // SetNativeWindowInfo
-    OHOS::Rosen::DoRequestNativeWindowBuffer(data, size); // RequestNativeWindowBuffer
-    OHOS::Rosen::DoCreateVkSemaphore(data, size);         // CreateVkSemaphore
     return 0;
 }

@@ -36,8 +36,8 @@ public:
     float factor_ = 0.f;
     float width_ = 0.f;
     float height_ = 0.f;
-    float borderWidth_ = 0.f;
     float cornerRadius_ = 0.f;
+    float borderWidth_ = 0.f;
 
     float shadowOffsetX_ = 0.f;
     float shadowOffsetY_ = 0.f;
@@ -49,11 +49,13 @@ public:
     uint32_t gradientMaskColor2_ = 0x00000000;
     uint32_t outerContourColor1_ = 0x00000000;
     uint32_t outerContourColor2_ = 0x00000000;
+
+    int32_t rotateDegree_ = 0;
 };
 
 class GEMagnifierShaderFilter : public GEShaderFilter {
 public:
-    GEMagnifierShaderFilter();
+    GEMagnifierShaderFilter(const Drawing::GEMagnifierShaderFilterParams& params);
     GEMagnifierShaderFilter(const GEMagnifierShaderFilter&) = delete;
     GEMagnifierShaderFilter operator=(const GEMagnifierShaderFilter&) = delete;
     ~GEMagnifierShaderFilter() override = default;

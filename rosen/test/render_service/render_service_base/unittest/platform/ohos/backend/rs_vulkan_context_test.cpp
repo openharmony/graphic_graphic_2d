@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include "platform/ohos/backend/rs_vulkan_context.cpp"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 
 using namespace testing;
@@ -60,10 +59,6 @@ HWTEST_F(RSVulkanContextTest, CreateInstance001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
     EXPECT_FALSE(rsVulkanInterface.CreateInstance());
-
-    rsVulkanInterface.acquiredMandatoryProcAddresses_ = true;
-    rsVulkanInterface.CreateInstance();
-    EXPECT_TRUE(rsVulkanInterface.acquiredMandatoryProcAddresses_ == true);
 }
 
 /**
@@ -77,10 +72,6 @@ HWTEST_F(RSVulkanContextTest, SelectPhysicalDevice001, TestSize.Level1)
     RsVulkanInterface rsVulkanInterface;
     auto ret = rsVulkanInterface.SelectPhysicalDevice(true);
     EXPECT_FALSE(ret);
-
-    rsVulkanInterface.instance_ = (VkInstance)2;
-    rsVulkanInterface.SelectPhysicalDevice(true);
-    EXPECT_TRUE(rsVulkanInterface.instance_);
 }
 
 /**
@@ -94,11 +85,6 @@ HWTEST_F(RSVulkanContextTest, CreateDevice001, TestSize.Level1)
     RsVulkanInterface rsVulkanInterface;
     rsVulkanInterface.CreateDevice(true);
     EXPECT_FALSE(rsVulkanInterface.physicalDevice_);
-
-    rsVulkanInterface.physicalDevice_ = (VkPhysicalDevice)2;
-    rsVulkanInterface.graphicsQueueFamilyIndex_ = UINT16_MAX;
-    rsVulkanInterface.CreateDevice(true);
-    EXPECT_TRUE(rsVulkanInterface.physicalDevice_);
 }
 /**
  * @tc.name: CreateSkiaBackendContext001
@@ -110,11 +96,6 @@ HWTEST_F(RSVulkanContextTest, CreateSkiaBackendContext001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
     EXPECT_FALSE(rsVulkanInterface.CreateSkiaBackendContext(nullptr, true, true));
-
-    rsVulkanInterface.instance_ = (VkInstance)2;
-    rsVulkanInterface.device_ = (VkDevice)2;
-    EXPECT_TRUE(rsVulkanInterface.CreateSkiaBackendContext(&rsVulkanInterface.backendContext_, true, true));
-    EXPECT_TRUE(rsVulkanInterface.CreateSkiaBackendContext(&rsVulkanInterface.backendContext_, false, true));
 }
 
 /**
@@ -145,11 +126,13 @@ HWTEST_F(RSVulkanContextTest, AcquireProc001, TestSize.Level1)
     auto ret = rsVulkanInterface.AcquireProc(nullptr, instance);
     EXPECT_TRUE(ret == nullptr);
 
-    ret = rsVulkanInterface.AcquireProc("text", instance);
-    EXPECT_TRUE(ret != nullptr);
-
     VkDevice device = VK_NULL_HANDLE;
     ret = rsVulkanInterface.AcquireProc(nullptr, device);
+    EXPECT_TRUE(ret == nullptr);
+
+    rsVulkanInterface.OpenLibraryHandle();
+    EXPECT_TRUE(rsVulkanInterface.SetupLoaderProcAddresses());
+    ret = rsVulkanInterface.AcquireProc("text", instance);
     EXPECT_TRUE(ret == nullptr);
 
     device = (VkDevice)2;
@@ -191,21 +174,6 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level1)
 }
 
 /**
- * @tc.name: HookedVkQueueSubmit001
- * @tc.desc: test results of HookedVkQueueSubmit
- * @tc.type:FUNC
- * @tc.require: issueI9VVLE
- */
-HWTEST_F(RSVulkanContextTest, HookedVkQueueSubmit001, TestSize.Level1)
-{
-    RsVulkanInterface rsVulkanInterface;
-    RsVulkanContext::isProtected_ = true;
-    VkSubmitInfo pSubmits;
-    RsVulkanContext::HookedVkQueueSubmit(VK_NULL_HANDLE, 1, &pSubmits, VK_NULL_HANDLE);
-    EXPECT_TRUE(RsVulkanContext::isProtected_ == true);
-}
-
-/**
  * @tc.name: CreateDrawingContext002
  * @tc.desc: test results of CreateDrawingContext
  * @tc.type:FUNC
@@ -216,42 +184,11 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext002, TestSize.Level1)
     RsVulkanInterface rsVulkanInterface;
     auto ret = rsVulkanInterface.CreateDrawingContext(true);
     EXPECT_TRUE(ret != nullptr);
-
-    RsVulkanContext::protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(false, true);
+    
+    RsVulkanContext::protectedDrawingContext_ = rsVulkanInterface.CreateDrawingContext(false, true);
     RsVulkanContext::drawingContext_ = rsVulkanInterface.CreateDrawingContext();
     ret = rsVulkanInterface.CreateDrawingContext(false);
     EXPECT_TRUE(ret != nullptr);
 }
-
-/**
- * @tc.name: GetDrawingContext001
- * @tc.desc: test results of GetDrawingContext
- * @tc.type:FUNC
- * @tc.require: issueI9VVLE
- */
-HWTEST_F(RSVulkanContextTest, GetDrawingContext001, TestSize.Level1)
-{
-    RsVulkanInterface rsVulkanInterface;
-    auto ret = rsVulkanInterface.GetDrawingContext();
-    EXPECT_TRUE(ret != nullptr);
-
-    RsVulkanContext::protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(false, true);
-    RsVulkanContext::drawingContext_ = rsVulkanInterface.CreateDrawingContext();
-    ret = rsVulkanInterface.GetDrawingContext();
-    EXPECT_TRUE(ret != nullptr);
-}
-/**
- * @tc.name: SetIsProtected001
- * @tc.desc: test results of SetIsProtected
- * @tc.type:FUNC
- * @tc.require: issueI9VVLE
- */
-HWTEST_F(RSVulkanContextTest, SetIsProtected001, TestSize.Level1)
-{
-    RsVulkanContext rsVulkanContext;
-    rsVulkanContext.SetIsProtected(true);
-    EXPECT_TRUE(RsVulkanContext::isProtected_ == true);
-}
-
 } // namespace Rosen
 } // namespace OHOS

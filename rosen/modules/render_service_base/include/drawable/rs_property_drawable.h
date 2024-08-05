@@ -124,6 +124,7 @@ public:
     void MarkFilterRegionIsLargeArea();
     void MarkFilterForceUseCache(bool forceUseCache = true);
     void MarkFilterForceClearCache();
+    void MarkEffectNode();
     void ForceClearCacheWithLastFrame();
     void MarkRotationChanged();
     void MarkNodeIsOccluded(bool isOccluded);
@@ -159,12 +160,16 @@ protected:
     bool filterRegionChanged_ = false;
     bool filterInteractWithDirty_ = false;
     bool rotationChanged_ = false;
-    bool clearFilteredCacheAfterDrawing_ = false;
-    bool forceClearCacheWithLastFrame_ = false;
+    bool forceClearCacheForLastFrame_ = false;
     bool isAIBarInteractWithHWC_ = false;
+    bool isEffectNode_ = false;
+    bool renderIsSkipFrame_ = false;
  
     // clear one of snapshot cache and filtered cache after drawing
-    bool stagingClearFilteredCacheAfterDrawing_ = false;
+    bool renderClearFilteredCacheAfterDrawing_ = false;
+    bool renderFilterHashChanged_ = false;
+    bool renderForceClearCacheForLastFrame_ = false;
+    bool renderIsEffectNode_ = false;
  
     // the type cache needed clear before drawing
     FilterCacheType clearType_ = FilterCacheType::NONE;
@@ -174,6 +179,7 @@ protected:
     // force cache with cacheUpdateInterval_
     bool isLargeArea_ = false;
     bool canSkipFrame_ = false;
+    bool isSkipFrame_  = false;
     RSFilter::FilterType filterType_ = RSFilter::NONE;
     int cacheUpdateInterval_ = 0;
     bool isFilterCacheValid_ = false; // catch status in current frame

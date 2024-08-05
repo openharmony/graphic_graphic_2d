@@ -280,6 +280,38 @@ HWTEST_F(RSBlurFilterTest, SubTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SubTest003
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBlurFilterTest, SubTest003, TestSize.Level1)
+{
+    float blurRadiusX = 27.0f;
+    float blurRadiusY = 26.0f;
+    auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
+    auto materialFilter = RSFilter::CreateMaterialFilter(1, 1.0f, BLUR_COLOR_MODE::DEFAULT, 1.0f);
+
+    EXPECT_EQ(blurFilter->Sub(materialFilter), blurFilter);
+    EXPECT_NE(blurFilter->Sub(blurFilter), blurFilter);
+}
+
+/**
+ * @tc.name: IsEqualTest001
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBlurFilterTest, IsEqualTest001, TestSize.Level1)
+{
+    float blurRadiusX = 27.0f;
+    float blurRadiusY = 26.0f;
+    auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
+    auto materialFilter = RSFilter::CreateMaterialFilter(1, 1.0f, BLUR_COLOR_MODE::DEFAULT, 1.0f);
+
+    EXPECT_FALSE(blurFilter->IsEqual(materialFilter));
+    EXPECT_TRUE(blurFilter->IsEqual(nullptr));
+}
+
+/**
  * @tc.name: DrawImageRect
  * @tc.desc:
  * @tc.type: FUNC

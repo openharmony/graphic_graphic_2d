@@ -67,6 +67,9 @@ static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_
         return nullptr;
     }
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+    if (surfaceBuffer == nullptr) {
+        return nullptr;
+    }
     BufferRequestConfig requestConfig = {
         .width = width,
         .height = height,
@@ -142,11 +145,7 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
             return nullptr;
         }
     }
-    EGLint attrs[] = {
-        EGL_IMAGE_PRESERVED,
-        EGL_TRUE,
-        EGL_NONE,
-    };
+    EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE, };
 
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
@@ -155,7 +154,6 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
             return nullptr;
         }
     }
-
     // Create texture object
     if (texId_ == 0U) {
         glGenTextures(1, &texId_);
@@ -171,9 +169,7 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
         }
         glEGLImageTargetTexture2DOESFunc(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
     }
-
     GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
-
     GrBackendTexture backendTexture(
         surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
     auto skSurface = SkSurface::MakeFromBackendTexture(context, backendTexture,
@@ -209,11 +205,14 @@ private:
         const OHOS::Media::Rect &srcRect);
     std::shared_ptr<Drawing::Image> CreateDrawingImage();
 
-    sptr<SurfaceBuffer> surfaceBuffer_;
+    sptr<Surface> surface_ = nullptr;
+    sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     OHNativeWindowBuffer *nativeWindowBuffer_ = nullptr;
 #if defined(RS_ENABLE_GL)
     GLuint texId_ = 0U;
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
+    std::unique_ptr<OHOS::Media::PixelMap> CreatePixelMapForGL(sk_sp<GrDirectContext> grContext,
+        const OHOS::Media::Rect &srcRect);
 #endif
     std::unique_ptr<OHOS::Media::PixelMap> CreateForGL(const sptr<Surface> &surface, const OHOS::Media::Rect &srcRect);
 
@@ -233,16 +232,24 @@ PixelMapFromSurface::~PixelMapFromSurface() noexcept
 
 void PixelMapFromSurface::Clear() noexcept
 {
+    if (surfaceBuffer_ && surface_) {
+        if (surface_->ReleaseLastFlushedBuffer(surfaceBuffer_) != GSERROR_OK) {
+            RS_LOGE("PixelMapFromSurface clear, ReleaseLastFlushedBuffer fail");
+        }
+    }
+    surfaceBuffer_ = nullptr;
+    surface_ = nullptr;
+
 #if defined(RS_ENABLE_GL)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        if (texId_ != 0U) {
+            glDeleteTextures(1, &texId_);
+            texId_ = 0U;
+        }
         if (eglImage_ != EGL_NO_IMAGE_KHR) {
             auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
             eglDestroyImageKHR(disp, eglImage_);
             eglImage_ = EGL_NO_IMAGE_KHR;
-        }
-        if (texId_ != 0U) {
-            glDeleteTextures(1, &texId_);
-            texId_ = 0U;
         }
     }
 #endif
@@ -251,8 +258,6 @@ void PixelMapFromSurface::Clear() noexcept
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
         nativeWindowBuffer_ = nullptr;
     }
-
-    surfaceBuffer_ = nullptr;
 }
 
 #if defined(RS_ENABLE_VK)
@@ -271,6 +276,41 @@ static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 }
 #endif
 
+#if defined(RS_ENABLE_GL)
+std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreatePixelMapForGL(
+    sk_sp<GrDirectContext> grContext, const OHOS::Media::Rect &srcRect)
+{
+    DmaMem dmaMem;
+    InitializationOptions options;
+    options.size.width = srcRect.width;
+    options.size.height = srcRect.height;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_8888;
+    auto pixelMap = PixelMap::Create(options);
+    if (pixelMap == nullptr) {
+        RS_LOGE("create pixelMap fail");
+        return nullptr;
+    }
+
+    sptr<SurfaceBuffer> surfaceBuffer = DmaMem::DmaMemAlloc(srcRect.width, srcRect.height, pixelMap);
+    if (surfaceBuffer == nullptr) {
+        dmaMem.ReleaseGLMemory();
+        return nullptr;
+    }
+    auto skSurface = dmaMem.GetSkSurfaceFromSurfaceBuffer(grContext.get(), surfaceBuffer);
+    if (skSurface == nullptr) {
+        dmaMem.ReleaseGLMemory();
+        return nullptr;
+    }
+    if (!DrawImage(grContext.get(), srcRect, skSurface)) {
+        dmaMem.ReleaseGLMemory();
+        return nullptr;
+    }
+    dmaMem.ReleaseGLMemory();
+    return pixelMap;
+}
+#endif
+
 std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForGL(const sptr<Surface> &surface,
     const OHOS::Media::Rect &srcRect)
 {
@@ -278,11 +318,13 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForGL(const sp
     ScopedBytrace trace(__func__);
     nativeWindowBuffer_ = GetNativeWindowBufferFromSurface(surfaceBuffer_, surface, srcRect);
     if (!nativeWindowBuffer_ || !surfaceBuffer_) {
+        RS_LOGE("GetNativeWindowBufferFromSurface fail");
         return nullptr;
     }
 
     auto gpuContext = RSBackgroundThread::Instance().GetShareGPUContext();
     if (!gpuContext) {
+        RS_LOGE("get gpuContext  fail");
         return nullptr;
     }
 
@@ -292,34 +334,14 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForGL(const sp
         grContext = skiaGpuContext->GetGrContext();
     }
     if (!grContext) {
+        RS_LOGE("get gpuContext  fail");
         return nullptr;
     }
 
     if (!CreateEGLImage()) {
         return nullptr;
     }
-    DmaMem dmaMem;
-    InitializationOptions options;
-    options.size.width = srcRect.width;
-    options.size.height = srcRect.height;
-    options.srcPixelFormat = PixelFormat::RGBA_8888;
-    options.pixelFormat = PixelFormat::RGBA_8888;
-    auto pixelMap = PixelMap::Create(options);
-
-    sptr<SurfaceBuffer> surfaceBuffer = DmaMem::DmaMemAlloc(srcRect.width, srcRect.height, pixelMap);
-    auto skSurface = dmaMem.GetSkSurfaceFromSurfaceBuffer(grContext.get(), surfaceBuffer);
-    if (skSurface == nullptr) {
-        dmaMem.ReleaseGLMemory();
-        return nullptr;
-    }
-
-    if (!DrawImage(grContext.get(), srcRect, skSurface)) {
-        dmaMem.ReleaseGLMemory();
-        return nullptr;
-    }
-
-    dmaMem.ReleaseGLMemory();
-    return pixelMap;
+    return CreatePixelMapForGL(grContext, srcRect);
 #else
     return nullptr;
 #endif
@@ -350,6 +372,9 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         return false;
     }
     auto vkTextureInfo = backendTextureTmp.GetTextureInfo().GetVKTextureInfo();
+    if (vkTextureInfo == nullptr) {
+        return false;
+    }
     vkTextureInfo->imageUsageFlags = vkTextureInfo->imageUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
         vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
@@ -363,10 +388,12 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
         PixelMapFromSurface::DeleteVkImage, cleanUpHelper);
     if (drawingSurface == nullptr) {
-        cleanUpHelper->UnRef();
         return false;
     }
     auto canvas = drawingSurface->GetCanvas();
+    if (canvas == nullptr) {
+        return false;
+    }
     Drawing::Paint paint;
     paint.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
     canvas->AttachPaint(paint);
@@ -392,10 +419,12 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
     backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
         surfaceBuffer_->GetWidth(), surfaceBuffer_->GetHeight());
     if (!backendTexture_.IsValid()) {
+        RS_LOGE("make backendTexture fail");
         return nullptr;
     }
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     if (!vkTextureInfo) {
+        RS_LOGE("make vkTextureInfo fail");
         return nullptr;
     }
 
@@ -403,6 +432,7 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
         new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
         vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     if (!cleanUpHelper) {
+        RS_LOGE("make cleanUpHelper fail");
         return nullptr;
     }
 
@@ -410,15 +440,15 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
         Drawing::AlphaType::ALPHATYPE_PREMUL };
     std::shared_ptr<Drawing::Image> drawingImage = std::make_shared<Drawing::Image>();
     if (!drawingImage) {
+        RS_LOGE("make drawingImage fail");
         cleanUpHelper->UnRef();
         return nullptr;
     }
 
     if (!drawingImage->BuildFromTexture(*(RSBackgroundThread::Instance().GetShareGPUContext().get()),
-        backendTexture_.GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
-        NativeBufferUtils::DeleteVkImage,
-        cleanUpHelper)) {
+        backendTexture_.GetTextureInfo(), Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
+        NativeBufferUtils::DeleteVkImage, cleanUpHelper)) {
+        RS_LOGE("drawingImage BuildFromTexture fail");
         return nullptr;
     }
     return drawingImage;
@@ -449,21 +479,25 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sp
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
     if (!pixelMap) {
+        RS_LOGE("create pixelMap fail");
         return nullptr;
     }
 
     sptr<SurfaceBuffer> surfaceBufferTmp = LocalDmaMemAlloc(srcRect.width, srcRect.height, pixelMap);
     if (!surfaceBufferTmp) {
+        RS_LOGE("LocalDmaMemAlloc fail");
         return nullptr;
     }
 
     OHNativeWindowBuffer *nativeWindowBufferTmp = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBufferTmp);
     if (!nativeWindowBufferTmp) {
+        RS_LOGE("CreateNativeWindowBufferFromSurfaceBuffer fail");
         return nullptr;
     }
 
     if (!DrawImageRectVK(drawingImage, nativeWindowBufferTmp, surfaceBufferTmp, srcRect)) {
         DestroyNativeWindowBuffer(nativeWindowBufferTmp);
+        RS_LOGE("DrawImageRectVK fail");
         return nullptr;
     }
     DestroyNativeWindowBuffer(nativeWindowBufferTmp);
@@ -486,8 +520,9 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
         0, 0, 1, 0,
         0, 0, 0, 1
     };
-    int ret = surface->GetLastFlushedBuffer(surfaceBuffer, fence, matrix);
+    int ret = surface->AcquireLastFlushedBuffer(surfaceBuffer, fence, matrix, 16, false); // 16 : matrix size
     if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
+        RS_LOGE("GetLastFlushedBuffer fail");
         return nullptr;
     }
 
@@ -496,6 +531,9 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
     if (srcRect.width > bufferWidth || srcRect.height > bufferHeight ||
         srcRect.left >= bufferWidth || srcRect.top >= bufferHeight ||
         srcRect.left + srcRect.width > bufferWidth || srcRect.top + srcRect.height > bufferHeight) {
+        RS_LOGE("invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d],"
+            "bufferWidth=%{public}d, bufferHeight=%{public}d",
+            srcRect.left, srcRect.top, srcRect.width, srcRect.height, bufferWidth, bufferHeight);
         return nullptr;
     }
 
@@ -514,6 +552,7 @@ bool PixelMapFromSurface::CreateEGLImage()
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
+        RS_LOGE("create eglImage fail");
         return false;
     }
     glGenTextures(1, &texId_);
@@ -525,6 +564,7 @@ bool PixelMapFromSurface::CreateEGLImage()
     static auto glEGLImageTargetTexture2DOESFunc = reinterpret_cast<PFNGLEGLIMAGETARGETTEXTURE2DOESPROC>(
         eglGetProcAddress("glEGLImageTargetTexture2DOES"));
     if (glEGLImageTargetTexture2DOESFunc == nullptr) {
+        RS_LOGE("CreateEGLImage fail");
         return false;
     }
     glEGLImageTargetTexture2DOESFunc(GL_TEXTURE_EXTERNAL_OES, static_cast<GLeglImageOES>(eglImage_));
@@ -554,14 +594,20 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
     GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, static_cast<GrGLenum>(glType) };
     auto backendTexturePtr =
         std::make_shared<GrBackendTexture>(bufferWidth, bufferHeight, GrMipMapped::kNo, grExternalTextureInfo);
-
+    if (backendTexturePtr == nullptr) {
+        return false;
+    }
     sk_sp<SkImage> image = SkImage::MakeFromTexture(context, *backendTexturePtr,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
     if (image == nullptr) {
+        RS_LOGE("make skImage fail");
         return false;
     }
 
     SkCanvas* canvas = surface->getCanvas();
+    if (canvas == nullptr) {
+        return false;
+    }
     SkPaint paint;
     paint.setStyle(SkPaint::kFill_Style);
     SkSamplingOptions sampling(SkFilterMode::kNearest);
@@ -593,6 +639,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, con
             srcRect.left, srcRect.top, srcRect.width, srcRect.height);
         return nullptr;
     }
+    surface_ = surface;
 
     std::unique_ptr<PixelMap> pixelMap = nullptr;
 #if defined(RS_ENABLE_GL)

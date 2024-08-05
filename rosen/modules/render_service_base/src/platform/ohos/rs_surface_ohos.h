@@ -44,12 +44,14 @@ public:
     virtual void SetSurfacePixelFormat(int32_t pixelFormat) = 0;
     virtual sptr<SurfaceBuffer> GetCurrentBuffer() = 0;
     void ClearAllBuffer() override;
+    virtual void SetTimeOut(int32_t timeOut);
 protected:
     sptr<Surface> producer_;
     RenderContext* context_ = nullptr;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     int32_t pixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
     uint64_t bufferUsage_ = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
+    int32_t timeOut_ = 3000; // ms
 };
 
 } // namespace Rosen

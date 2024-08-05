@@ -121,8 +121,7 @@ public:
     void HandleLightFactorStatus(pid_t pid, bool isSafe);
     void HandlePackageEvent(pid_t pid, uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    void HandleTouchEvent(pid_t remotePid, int32_t touchStatus, const std::string& pkgName,
-        uint32_t pid, int32_t touchCnt);
+    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
     void HandleDynamicModeEvent(bool enableDynamicModeEvent);
 
     void CleanVote(pid_t pid);
@@ -155,7 +154,7 @@ public:
     void ProcessPendingRefreshRate(uint64_t timestamp, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
-    void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp, pid_t pid);
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
@@ -169,10 +168,11 @@ public:
         isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
     }
 
-    static bool MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    void CheckPackageInConfigList(std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap);
 private:
     void Reset();
-    void UpdateAppSupportStatus();
+    void UpdateAppSupportedState();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
 
     void ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired);
@@ -204,6 +204,7 @@ private:
     void UpdateEnergyConsumptionConfig();
     void EnterEnergyConsumptionAssuranceMode();
     void ExitEnergyConsumptionAssuranceMode();
+    static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -242,11 +243,10 @@ private:
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
-    std::atomic<uint32_t> lastTouchState_ = IDLE_STATE;
-    bool startCheck_ = false;
-    bool prepareCheck_ = false;
+    std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
-    int32_t lastUpExpectFps_ = 0;
+    bool needHighRefresh_ = false;
+    int32_t lastTouchUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;

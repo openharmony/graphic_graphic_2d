@@ -105,10 +105,10 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_,
-        currentTransformType_, currentCrop_);
-    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, currentSurfaceBuffer_,
-        currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrix(currentTransformMatrix_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
 
     // wait on this acquireFence.
     if (acquireFence != nullptr) {
@@ -209,7 +209,7 @@ int64_t SurfaceImage::GetTimeStamp()
 SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrix_),
+    auto ret = memcpy_s(matrix, sizeof(float) * 16,  // 16 is the length of array
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
@@ -221,7 +221,7 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 SurfaceError SurfaceImage::GetTransformMatrixV2(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrixV2_),
+    auto ret = memcpy_s(matrix, sizeof(float) * 16, // 16 is the length of array
                         currentTransformMatrixV2_, sizeof(currentTransformMatrixV2_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrixV2: currentTransformMatrixV2_ memcpy_s failed");
@@ -392,5 +392,50 @@ void SurfaceImageListener::OnBufferAvailable()
     if (surfaceImage->listener_ != nullptr) {
         surfaceImage->listener_(surfaceImage->context_);
     }
+}
+
+SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    int64_t timestamp;
+    Rect damage;
+    SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("AcquireBuffer failed: %{public}d", ret);
+        return ret;
+    }
+    currentSurfaceBuffer_ = buffer;
+    currentTimeStamp_ = timestamp;
+    currentCrop_ = damage;
+    currentTransformType_ = ConsumerSurface::GetTransform();
+    auto utils = SurfaceUtils::GetInstance();
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+
+    *fenceFd = acquireFence->Dup();
+    OHNativeWindowBuffer *nwBuffer = new(std::nothrow) OHNativeWindowBuffer();
+    if (nwBuffer == nullptr) {
+        return SURFACE_ERROR_NOMEM;
+    }
+    nwBuffer->sfbuffer = buffer;
+    NativeObjectReference(nwBuffer);
+    *nativeWindowBuffer = nwBuffer;
+
+    return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
+    SurfaceError ret = ReleaseBuffer(nativeWindowBuffer->sfbuffer, fenceFd);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("ReleaseBuffer failed: %{public}d", ret);
+        return ret;
+    }
+    NativeObjectUnreference(nativeWindowBuffer);
+    return SURFACE_ERROR_OK;
 }
 } // namespace OHOS

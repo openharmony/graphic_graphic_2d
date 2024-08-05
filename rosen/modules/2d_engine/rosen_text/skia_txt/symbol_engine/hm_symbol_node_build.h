@@ -80,8 +80,8 @@ private:
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
-    float offsetX_;
-    float offsetY_;
+    float offsetX_ = 0.0f;
+    float offsetY_ = 0.0f;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
     bool animationStart_ = false;

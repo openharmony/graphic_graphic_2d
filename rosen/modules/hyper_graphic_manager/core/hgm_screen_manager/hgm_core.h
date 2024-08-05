@@ -52,7 +52,7 @@ public:
 
     bool IsInit() const
     {
-        return isInit_;
+        return isInit_.load();
     }
 
     int32_t GetScreenListSize() const
@@ -219,7 +219,7 @@ private:
     int32_t SetCustomRateMode(int32_t mode);
 
     bool isEnabled_ = true;
-    bool isInit_ = false;
+    std::atomic<bool> isInit_{false};
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;

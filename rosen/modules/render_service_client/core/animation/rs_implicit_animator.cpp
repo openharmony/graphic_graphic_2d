@@ -118,14 +118,14 @@ void RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationF
     if (finishCallback->finishCallbackType_ == FinishCallbackType::TIME_INSENSITIVE || protocol.GetDuration() < 0) {
         ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
                    "callback asynchronously");
-        RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); });
+        RSUIDirector::PostTask([finishCallback]() { finishCallback->Execute(); }, protocol.GetInstanceId());
     } else {
         // we are the only one who holds the finish callback, if the callback is timing sensitive, we need to create
         // a delay task, in order to execute it on the right time.
         ROSEN_LOGD("RSImplicitAnimator::CloseImplicitAnimation, No implicit animations created, execute finish "
                    "callback on delay duration");
-        RSUIDirector::PostDelayTask(
-            [finishCallback]() { finishCallback->Execute(); }, static_cast<uint32_t>(protocol.GetDuration()));
+        RSUIDirector::PostDelayTask([finishCallback]() { finishCallback->Execute(); },
+            static_cast<uint32_t>(protocol.GetDuration()), protocol.GetInstanceId());
     }
 }
 

@@ -27,44 +27,32 @@ public:
     HgmIdleDetector() = default;
     ~HgmIdleDetector() = default;
 
-    void SetAppSupportStatus(bool appSupported)
+    void SetAppSupportedState(bool appSupported)
     {
         std::lock_guard<std::mutex> lock(appSupportedMutex_);
         appSupported_ = appSupported;
     }
 
-    bool GetAppSupportStatus()
+    bool GetAppSupportedState()
     {
         std::lock_guard<std::mutex> lock(appSupportedMutex_);
         return appSupported_;
     }
 
-    void SetAceAnimatorIdleStatus(bool aceAnimatorIdleState)
+    void SetAceAnimatorIdleState(bool aceAnimatorIdleState)
     {
         aceAnimatorIdleState_ = aceAnimatorIdleState;
     }
 
-    bool GetAceAnimatorIdleStatus() const
+    bool GetAceAnimatorIdleState() const
     {
         return aceAnimatorIdleState_;
     }
 
-    void SetTouchUpTime(uint64_t touchUpTime)
-    {
-        std::lock_guard<std::mutex> lock(touchUpTimeMutex_);
-        touchUpTime_ = touchUpTime;
-    }
-
-    uint64_t GetTouchUpTime()
-    {
-        std::lock_guard<std::mutex> lock(touchUpTimeMutex_);
-        return touchUpTime_;
-    }
-
-    void UpdateSurfaceTime(const std::string& name, uint64_t timestamp);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,  pid_t pid);
     bool GetSurfaceIdleState(uint64_t timestamp);
-    uint32_t GetSurfaceUpExpectFps();
-    bool GetSupportSurface();
+    int32_t GetTouchUpExpectedFPS();
+    bool ThirdFrameNeedHighRefresh();
     void ClearAppBufferList()
     {
         std::lock_guard<std::mutex> lock(appBufferListMutex_);
@@ -75,7 +63,7 @@ public:
         std::lock_guard<std::mutex> lock(appBufferBlackListMutex_);
         appBufferBlackList_.clear();
     }
-    void UpdateAppBufferList(std::vector<std::pair<std::string, uint32_t>> &appBufferList)
+    void UpdateAppBufferList(std::vector<std::pair<std::string, int32_t>> &appBufferList)
     {
         std::lock_guard<std::mutex> lock(appBufferListMutex_);
         appBufferList_ = appBufferList;
@@ -92,9 +80,7 @@ public:
 private:
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
-    uint64_t touchUpTime_ = 0;
     std::mutex appSupportedMutex_;
-    std::mutex touchUpTimeMutex_;
     std::mutex appBufferListMutex_;
     std::mutex appBufferBlackListMutex_;
     // FORMAT: <buffername>
@@ -103,7 +89,7 @@ private:
     // FORMAT: <buffername, time>
     std::unordered_map<std::string, uint64_t> frameTimeMap_;
     // FORMAT: <buffername, fps>
-    std::vector<std::pair<std::string, uint32_t>> appBufferList_;
+    std::vector<std::pair<std::string, int32_t>> appBufferList_;
 };
 } // namespace Rosen
 } // namespace OHOS

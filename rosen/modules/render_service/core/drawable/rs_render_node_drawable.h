@@ -61,10 +61,7 @@ public:
         return isOpDropped_;
     }
 
-    inline bool ShouldPaint() const
-    {
-        return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
-    }
+    bool ShouldPaint() const;
 
     // opinc switch
     bool IsOpincRenderCacheEnable();
@@ -116,6 +113,7 @@ public:
 
     // dfx
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
+    void DumpDrawableTree(std::string& out) const override;
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);

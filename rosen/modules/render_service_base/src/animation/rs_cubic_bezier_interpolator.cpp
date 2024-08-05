@@ -23,6 +23,9 @@ inline float GetCubicBezierValue(const float time, const float ctl1, const float
     if (time < 0.0f) {
         return 0.0f;
     }
+    if (time > 1.0f) {
+        return 1.0f;
+    }
     constexpr static int three = 3.0;
     const float oneMinusTime = 1.0f - time;
     return three * oneMinusTime * oneMinusTime * time * ctl1 + three * oneMinusTime * time * time * ctl2 +

@@ -46,16 +46,10 @@ void PluginManager::SetNativeXComponent(std::string &id, OH_NativeXComponent *na
         return;
     }
 
-    if (nativeXComponentMap_.find(id) == nativeXComponentMap_.end()) {
-        nativeXComponentMap_[id] = nativeXComponent;
-        return;
-    }
-
-    if (nativeXComponentMap_[id] != nativeXComponent) {
-        OH_NativeXComponent *tmp = nativeXComponentMap_[id];
-        delete tmp;
-        tmp = nullptr;
-        nativeXComponentMap_[id] = nativeXComponent;
+    auto [iter, inserted] = nativeXComponentMap_.try_emplace(id, nativeXComponent);
+    if (!inserted && iter->second != nativeXComponent) {
+        delete iter->second;
+        iter->second = nativeXComponent;
     }
 }
 

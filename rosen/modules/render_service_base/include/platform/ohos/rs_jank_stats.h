@@ -21,6 +21,7 @@
 #include <mutex>
 #include <queue>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -54,6 +55,12 @@ struct JankFrames {
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t endTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t lastEndTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t traceCreateTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t traceTerminateTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t maxFrameOccurenceTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t lastMaxFrameOccurenceTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t maxHitchOccurenceTimeSteady_ = TIMESTAMP_INITIAL;
+    int64_t lastMaxHitchOccurenceTimeSteady_ = TIMESTAMP_INITIAL;
     int32_t seqMissedFrames_ = 0;
     int32_t totalFrames_ = 0;
     int32_t lastTotalFrames_ = 0;
@@ -134,9 +141,11 @@ private:
     void SetRSJankStats(bool skipJankStats, uint32_t dynamicRefreshRate);
     size_t GetJankRangeType(int64_t missedVsync) const;
     void UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, uint32_t dynamicRefreshRate);
+    void UpdateHitchTime(JankFrames& jankFrames, float standardFrameTime);
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
+    std::tuple<int64_t, int64_t, int64_t> GetMaxJankInfo(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
     void ReportEventHitchTimeRatio(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
@@ -144,8 +153,8 @@ private:
     void RecordJankFrame(uint32_t dynamicRefreshRate);
     void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);
     void RecordAnimationDynamicFrameRate(JankFrames& jankFrames, bool isReportTaskDelayed);
-    void SetAnimationTraceBegin(std::pair<int64_t, std::string> animationId, const JankFrames& jankFrames);
-    void SetAnimationTraceEnd(const JankFrames& jankFrames);
+    void SetAnimationTraceBegin(std::pair<int64_t, std::string> animationId, JankFrames& jankFrames);
+    void SetAnimationTraceEnd(JankFrames& jankFrames);
     void CheckAnimationTraceTimeout();
     void ClearAllAnimation();
     std::string GetSceneDescription(const DataBaseRs& info) const;

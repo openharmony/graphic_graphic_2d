@@ -297,6 +297,10 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
 #endif
             break;
         }
+        case TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH: {
+            rosenDecoration = static_cast<TextDecoration>(TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
+            break;
+        }
         default: {
             rosenDecoration = TextDecoration::NONE;
         }
@@ -427,6 +431,9 @@ void OH_Drawing_DestroyTypographyHandler(OH_Drawing_TypographyCreate* handler)
 
 void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate* handler, OH_Drawing_TextStyle* style)
 {
+    if (!handler || !style) {
+        return;
+    }
     const TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
     ConvertToOriginalText<TypographyCreate>(handler)->PushStyle(*rosenTextStyle);
 }
@@ -2392,7 +2399,10 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle* style)
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string str = convert.to_bytes(buffer);
     char* result = new char[str.size()+1];
-    strcpy(result, str.c_str());
+    if (strcpy_s(result, str.size() + 1, str.c_str()) != 0) {
+        delete[] result;
+        return nullptr;
+    }
     return result;
 }
 

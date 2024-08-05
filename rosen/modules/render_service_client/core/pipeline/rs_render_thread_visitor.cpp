@@ -41,6 +41,7 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+#include "utils/camera3d.h"
 
 #ifdef ROSEN_OHOS
 #include <frame_collector.h>
@@ -167,6 +168,9 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     node.ApplyModifiers();
     bool dirtyFlag = dirtyFlag_;
     auto nodeParent = node.GetParent().lock();
+    if (nodeParent == nullptr) {
+        return;
+    }
     // If rt buffer switches to be available
     // set its SurfaceRenderNode's render dirty
     if (!node.IsNotifyRTBufferAvailablePre() && node.IsNotifyRTBufferAvailable()) {
@@ -191,6 +195,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
 void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 {
+#ifndef CROSS_PLATFORM
     if (!node.ShouldPaint() || curDirtyManager_ == nullptr) {
         return;
     }
@@ -205,6 +210,7 @@ void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
 
     effectRegion_ = effectRegion;
     dirtyFlag_ = dirtyFlag;
+#endif
 }
 
 void RSRenderThreadVisitor::DrawRectOnCanvas(const RectI& dirtyRect, const Drawing::ColorQuad color,
@@ -736,6 +742,47 @@ Drawing::Matrix RSRenderThreadVisitor::CacRotationFromTransformType(GraphicTrans
     return matrix;
 }
 
+GraphicTransformType RSRenderThreadVisitor::GetFlipTransform(GraphicTransformType transform)
+{
+    switch (transform) {
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270: {
+            return GraphicTransformType::GRAPHIC_FLIP_H;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270: {
+            return GraphicTransformType::GRAPHIC_FLIP_V;
+        }
+        default: {
+            return transform;
+        }
+    }
+}
+
+void RSRenderThreadVisitor::FlipMatrix(GraphicTransformType transform, Drawing::Matrix& matrix, const RectF& bounds)
+{
+    GraphicTransformType type = GetFlipTransform(transform);
+    if (type != GraphicTransformType::GRAPHIC_FLIP_H && type != GraphicTransformType::GRAPHIC_FLIP_V) {
+        return;
+    }
+     
+    const int angle = 180;
+    Drawing::Camera3D camera3D;
+    if (GraphicTransformType::GRAPHIC_FLIP_H) {
+        camera3D.RotateYDegrees(angle);
+    } else {
+        camera3D.RotateXDegrees(angle);
+    }
+    Drawing::Matrix flip;
+    camera3D.ApplyToMatrix(flip);
+    const float half = 0.5f;
+    flip.PreTranslate(-half * bounds.GetWidth(), -half * bounds.GetHeight());
+    flip.PostTranslate(half * bounds.GetWidth(), half * bounds.GetHeight());
+    matrix.PreConcat(flip);
+}
+
 void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
@@ -747,6 +794,9 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     if (surface == nullptr) {
         RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is %{public}" PRIu64
                 " cannot find surface by surfaceId %{public}" PRIu64 "",
+            node.GetId(), node.GetSurfaceId());
+        RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessSurfaceViewInRT nodeId is " PRIu64
+                " cannot find surface by surfaceId " PRIu64 "",
             node.GetId(), node.GetSurfaceId());
         return;
     }
@@ -761,16 +811,20 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     sptr<SyncFence> fence;
     int ret = surface->GetLastFlushedBuffer(surfaceBuffer, fence, matrix);
     if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSRenderThreadVisitor::ProcessSurfaceViewInRT:GetLastFlushedBuffer failed, err: %d", ret);
         RS_LOGE("RSRenderThreadVisitor::ProcessSurfaceViewInRT: GetLastFlushedBuffer failed, err: %{public}d", ret);
         return;
     }
     if (fence != nullptr) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessSurfaceViewInRT: waitfence");
         fence->Wait(3000); // wait at most 3000ms
     }
     auto transform = surface->GetTransform();
     RectF bounds = {property.GetBoundsPositionX(), property.GetBoundsPositionY(),
         property.GetBoundsWidth(), property.GetBoundsHeight()};
     Drawing::Matrix transfromMatrix = CacRotationFromTransformType(transform, bounds);
+    FlipMatrix(transform, transfromMatrix, bounds);
     canvas_->ConcatMatrix(transfromMatrix);
     auto recordingCanvas =
         std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
@@ -991,10 +1045,10 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
     } else {
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {
-            canvas_->clear(backgroundColor.AsArgbInt());
+            canvas_->Clear(backgroundColor.AsArgbInt());
         }
     }
-    canvas_->restore();
+    canvas_->Restore();
 }
 #endif
 

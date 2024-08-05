@@ -181,6 +181,12 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
     }
     napi_value object = nullptr;
     napi_create_object(env, &object);
+    if (object == nullptr) {
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender object is Faild");
+        delete blender;
+        blender = nullptr;
+        return nullptr;
+    }
     napi_wrap(
         env, object, blender,
         [](napi_env env, void* data, void* hint) {
@@ -195,17 +201,23 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, argc number is not 1.");
+        delete blender;
+        blender = nullptr;
         return nullptr;
     }
 
     napi_value nativeObj = argv[0];
     if (nativeObj == nullptr) {
         UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, nativeObj is nullptr.");
+        delete blender;
+        blender = nullptr;
         return nullptr;
     }
 
-    if (!CheckCreateBrightnessBlender (env, nativeObj)) {
+    if (!CheckCreateBrightnessBlender(env, nativeObj)) {
         UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
+        delete blender;
+        blender = nullptr;
         return nullptr;
     }
 
@@ -218,9 +230,6 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
     napi_set_named_property(env, object, "negativeCoefficient", ParseJsValue(env, nativeObj, "negativeCoefficient"));
     napi_set_named_property(env, object, "fraction", ParseJsValue(env, nativeObj, "fraction"));
 
-    if (object == nullptr) {
-        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender object is Faild");
-    }
     return object;
 }
  
@@ -241,6 +250,9 @@ bool ParseJsDoubleValue(napi_value jsObject, napi_env env, const std::string& na
 {
     napi_value value = nullptr;
     napi_get_named_property(env, jsObject, name.c_str(), &value);
+    if (value == nullptr) {
+        return false;
+    }
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
     if (valueType != napi_undefined) {
@@ -259,7 +271,9 @@ bool ParseJsVec3Value(napi_value jsObject, napi_env env, const std::string& name
 {
     napi_value param = nullptr;
     napi_get_named_property(env, jsObject, name.c_str(), &param);
- 
+    if (param == nullptr) {
+        return false;
+    }
     napi_valuetype valueType = napi_undefined;
     valueType = UIEffectNapiUtils::getType(env, param);
     if (valueType == napi_undefined) {

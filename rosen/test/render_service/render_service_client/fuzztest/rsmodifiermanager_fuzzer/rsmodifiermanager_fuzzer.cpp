@@ -106,7 +106,7 @@ bool TestHasUIAnimation(const uint8_t* data, size_t size)
     g_pos = 0;
 
     RSModifierManager manager;
-    manager.HasUIAnimation();
+    manager.HasUIRunningAnimation();
     manager.Draw();
     manager.GetFrameRateRange();
     manager.IsDisplaySyncEnabled();

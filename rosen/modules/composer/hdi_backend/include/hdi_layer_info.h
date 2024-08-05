@@ -17,9 +17,11 @@
 #define HDI_BACKEND_HDI_LAYER_INFO_H
 
 #include <string>
+#include <set>
 #include "iconsumer_surface.h"
 #include <surface.h>
 #include <sync_fence.h>
+#include "graphic_error.h"
 #include "hdi_log.h"
 #include "hdi_display_type.h"
 
@@ -49,8 +51,8 @@ static const std::map<GraphicCompositionType, std::string> CompositionTypeStrs =
     {GRAPHIC_COMPOSITION_DEVICE_CLEAR,       "4 <device clear composistion>"},
     {GRAPHIC_COMPOSITION_CLIENT_CLEAR,       "5 <client clear composistion>"},
     {GRAPHIC_COMPOSITION_TUNNEL,             "6 <tunnel composistion>"},
-    {GRAPHIC_COMPOSITION_BUTT,               "7 <uninitialized>"},
-    {GRAPHIC_COMPOSITION_SOLID_COLOR,        "8 <layercolor composition>"},
+    {GRAPHIC_COMPOSITION_SOLID_COLOR,        "7 <layercolor composition>"},
+    {GRAPHIC_COMPOSITION_BUTT,               "8 <uninitialized>"},
 };
 
 static const std::map<GraphicBlendType, std::string> BlendTypeStrs = {
@@ -108,6 +110,16 @@ public:
     void SetZorder(int32_t zOrder)
     {
         zOrder_ = static_cast<uint32_t>(zOrder);
+    }
+
+    void SetType(const GraphicLayerType& layerType)
+    {
+        layerType_ = layerType;
+    }
+
+    GraphicLayerType GetType() const
+    {
+        return layerType_;
     }
 
     void SetAlpha(const GraphicLayerAlpha &alpha)
@@ -411,6 +423,26 @@ public:
     {
         return scalingMode_;
     }
+    // source crop tuning
+    int32_t GetLayerSourceTuning() const
+    {
+        return layerSource_;
+    }
+
+    void SetLayerSourceTuning(int32_t layerSouce)
+    {
+        layerSource_ = layerSouce;
+    }
+
+    void SetClearCacheSet(const std::set<int32_t>& clearCacheSet)
+    {
+        clearCacheSet_ = clearCacheSet;
+    }
+
+    std::set<int32_t> GetClearCacheSet() const
+    {
+        return clearCacheSet_;
+    }
 
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
@@ -441,6 +473,8 @@ public:
         displayNit_ = layerInfo->GetDisplayNit();
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
         scalingMode_ = layerInfo->GetScalingMode();
+        layerSource_ = layerInfo->GetLayerSourceTuning();
+        clearCacheSet_ = layerInfo->GetClearCacheSet();
     }
 
     void Dump(std::string &result) const
@@ -508,10 +542,21 @@ public:
     {
         return layerMask_;
     }
+
+    inline uint64_t GetNodeId()
+    {
+        return nodeId_;
+    }
+
+    void SetNodeId(uint64_t nodeId)
+    {
+        nodeId_ = nodeId;
+    }
     /* hdiLayer get layer info end */
 
 private:
     uint32_t zOrder_ = 0;
+    GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     GraphicIRect layerRect_;
     GraphicIRect boundRect_; // node's bound width and height related to this layer, used for uni render redraw
     std::vector<GraphicIRect> visibleRegions_;
@@ -545,7 +590,10 @@ private:
     mutable std::mutex mutex_;
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
+    uint64_t nodeId_ = 0;
     ScalingMode scalingMode_;
+    int32_t layerSource_ = 0; // default layer source tag
+    std::set<int32_t> clearCacheSet_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -19,6 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/screen_types.h"
 #include "visitor/rs_node_visitor.h"
@@ -27,14 +28,12 @@ namespace OHOS {
 namespace Rosen {
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(id, context), RSSurfaceHandler(id), screenId_(config.screenId), offsetX_(0), offsetY_(0),
+    : RSRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
       isMirroredDisplay_(config.isMirrored), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {
     RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
-    syncDirtyManager_ = RSSystemProperties::GetRenderParallelEnabled() ?
-        std::make_shared<RSDirtyRegionManager>(true) : dirtyManager_;
 }
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
@@ -181,7 +180,11 @@ void RSDisplayRenderNode::OnSync()
         RS_LOGE("RSDisplayRenderNode::OnSync displayParams is null");
         return;
     }
-    dirtyManager_->OnSync(syncDirtyManager_);
+    if (!renderDrawable_) {
+        return;
+    }
+    auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
+    dirtyManager_->OnSync(syncDirtyManager);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
     HandleCurMainAndLeashSurfaceNodes();
@@ -190,7 +193,7 @@ void RSDisplayRenderNode::OnSync()
 void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
 {
     surfaceCountForMultiLayersPerf_ = 0;
-    for (const auto surface : curMainAndLeashSurfaceNodes_) {
+    for (const auto& surface : curMainAndLeashSurfaceNodes_) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
         if (!surfaceNode || surfaceNode->IsLeashWindow()) {
             continue;
@@ -266,46 +269,20 @@ void RSDisplayRenderNode::UpdatePartialRenderParams()
     displayParams->SetAllMainAndLeashSurfaces(curMainAndLeashSurfaceNodes_);
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
-bool RSDisplayRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
+bool RSDisplayRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval)
 {
-    if (consumer_ != nullptr && surface_ != nullptr) {
-        RS_LOGI("RSDisplayRenderNode::CreateSurface already created, return");
-        return true;
-    }
-    consumer_ = IConsumerSurface::Create("DisplayNode");
-    if (consumer_ == nullptr) {
-        RS_LOGE("RSDisplayRenderNode::CreateSurface get consumer surface fail");
+    if (refreshRate == 0 || skipFrameInterval <= 1) {
         return false;
     }
-    SurfaceError ret = consumer_->RegisterConsumerListener(listener);
-    if (ret != SURFACE_ERROR_OK) {
-        RS_LOGE("RSDisplayRenderNode::CreateSurface RegisterConsumerListener fail");
-        return false;
+    int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    int64_t refreshInterval = currentTime - lastRefreshTime_;
+    // 1000000000ns == 1s, 110/100 allows 10% over.
+    bool needSkip = refreshInterval < (1000000000LL / refreshRate) * (skipFrameInterval - 1) * 110 / 100;
+    if (!needSkip) {
+        lastRefreshTime_ = currentTime;
     }
-    consumerListener_ = listener;
-    auto producer = consumer_->GetProducer();
-    sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
-    surface->SetQueueSize(4); // 4 Buffer rotation
-    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-    surface_ = client->CreateRSSurface(surface);
-    RS_LOGI("RSDisplayRenderNode::CreateSurface end");
-    surfaceCreated_ = true;
-    return true;
-}
-#endif
-
-bool RSDisplayRenderNode::SkipFrame(uint32_t skipFrameInterval)
-{
-    frameCount_++;
-    // ensure skipFrameInterval is not 0
-    if (skipFrameInterval == 0) {
-        return false;
-    }
-    if (frameCount_ >= 1 && (frameCount_ - 1) % skipFrameInterval == 0) {
-        return false;
-    }
-    return true;
+    return needSkip;
 }
 
 void RSDisplayRenderNode::SetDisplayGlobalZOrder(float zOrder)
@@ -344,6 +321,10 @@ bool RSDisplayRenderNode::IsRotationChanged() const
 void RSDisplayRenderNode::UpdateRotation()
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
     AddToPendingSyncList();
 
     auto& boundsGeoPtr = (GetRenderProperties().GetBoundsGeometry());
@@ -352,25 +333,30 @@ void RSDisplayRenderNode::UpdateRotation()
     }
     lastRotationChanged_ = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
-    displayParams->SetRotationChanged(IsRotationChanged());
+    preRotationStatus_ = curRotationStatus_;
+    curRotationStatus_ = IsRotationChanged();
+    displayParams->SetRotationChanged(curRotationStatus_);
 }
 
-void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion, bool renderParallel)
+void RSDisplayRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
 {
-    auto dirtyManager = renderParallel ? syncDirtyManager_ : dirtyManager_;
-    dirtyManager->SetBufferAge(bufferage);
-    dirtyManager->UpdateDirty(useAlignedDirtyRegion);
+    dirtyManager_->SetBufferAge(bufferage);
+    dirtyManager_->UpdateDirty(useAlignedDirtyRegion);
 }
 
 void RSDisplayRenderNode::ClearCurrentSurfacePos()
 {
-    lastFrameSurfacePos_.clear();
-    lastFrameSurfacePos_.swap(currentFrameSurfacePos_);
+    lastFrameSurfacePos_ = std::move(currentFrameSurfacePos_);
+    lastFrameSurfacesByDescZOrder_ = std::move(currentFrameSurfacesByDescZOrder_);
 }
 
 void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
     displayParams->SetMainAndLeashSurfaceDirty(isDirty);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
@@ -380,7 +366,20 @@ void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
 void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
     displayParams->SetHDRPresent(hdrPresent);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    displayParams->SetBrightnessRatio(brightnessRatio);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
@@ -417,7 +416,27 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
         }
         currentChildrenList_->emplace_back(child);
     }
+    isFullChildrenListValid_ = false;
     return std::atomic_load_explicit(&currentChildrenList_, std::memory_order_acquire);
+}
+
+Occlusion::Region RSDisplayRenderNode::GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const
+{
+    Occlusion::Region result;
+    auto it = std::find_if(lastFrameSurfacesByDescZOrder_.begin(), lastFrameSurfacesByDescZOrder_.end(),
+        [currentSurface](const std::pair<NodeId, RectI>& surface) { return surface.first == currentSurface; });
+    if (it == lastFrameSurfacesByDescZOrder_.end()) {
+        return result;
+    }
+
+    for (++it; it != lastFrameSurfacesByDescZOrder_.end(); ++it) {
+        if (currentFrameSurfacePos_.count(it->first) != 0) {
+            break;
+        }
+        Occlusion::Region disappearedSurface{ Occlusion::Rect{ it->second } };
+        result.OrSelf(disappearedSurface);
+    }
+    return result;
 }
 } // namespace Rosen
 } // namespace OHOS

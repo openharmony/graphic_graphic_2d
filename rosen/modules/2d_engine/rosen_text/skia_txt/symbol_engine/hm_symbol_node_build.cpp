@@ -27,13 +27,13 @@ namespace SPText {
  */
 static void GetLayersGroupId(std::vector<size_t>& groupIds, const RSRenderGroup& renderGroup, size_t index)
 {
-    for (auto& groupInfo : renderGroup.groupInfos) {
-        for (auto& j : groupInfo.layerIndexes) {
+    for (const auto& groupInfo : renderGroup.groupInfos) {
+        for (size_t j : groupInfo.layerIndexes) {
             if (j < groupIds.size()) {
                 groupIds[j] = index;
             }
         }
-        for (auto& j : groupInfo.maskIndexes) {
+        for (size_t j : groupInfo.maskIndexes) {
             if (j < groupIds.size()) {
                 groupIds[j] = index;
             }
@@ -87,7 +87,7 @@ static void MergePathByLayerColor(const std::vector<RSGroupInfo>& groupInfos,
         TextEngine::NodeLayerInfo tempLayer;
         size_t currentIndex = 0; // the current layerindex, that effective index of tempLayer
         bool isFirst = true;
-        for (auto& layerIndex: groupInfo.layerIndexes) {
+        for (size_t layerIndex: groupInfo.layerIndexes) {
             if (layerIndex >= pathLayers.size() || layerIndex >= groupIndexes.size()) {
                 continue;
             }

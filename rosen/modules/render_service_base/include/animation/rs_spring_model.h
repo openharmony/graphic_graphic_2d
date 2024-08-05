@@ -183,8 +183,8 @@ protected:
     // physical parameters of spring-damper model
     float response_ { 0.0f };
     float dampingRatio_ { 0.0f };
-    RSAnimatableType initialOffset_;
-    RSAnimatableType initialVelocity_;
+    RSAnimatableType initialOffset_ {};
+    RSAnimatableType initialVelocity_ {};
 
     // estimated duration until the spring is at rest
     float minimumAmplitudeRatio_ { 0.001f };

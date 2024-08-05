@@ -73,18 +73,20 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     rsNode = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_NE(rsNode, nullptr);
+    rsNode->InitRenderParams();
 
     // add the node on tree, and visible default true
     // so that RSRenderServiceListener will increase AvailableBufferCount
     rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
     ASSERT_NE(rsParentNode, nullptr);
+    rsParentNode->InitRenderParams();
     rsParentNode->AddChild(rsNode);
     rsNode->SetIsOnTheTree(true);
     ASSERT_TRUE(rsNode->IsOnTheTree());
 
     csurf = IConsumerSurface::Create(config.name);
     ASSERT_NE(csurf, nullptr);
-    rsNode->SetConsumer(csurf);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
     ASSERT_NE(listener, nullptr);
@@ -111,7 +113,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     }
     
     // create RSHardwareProcessor
-    RSBaseRenderUtil::DropFrameProcess(*rsNode.get());
-    ASSERT_EQ(2, rsNode->GetAvailableBufferCount());
+    RSBaseRenderUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
+    ASSERT_EQ(2, rsNode->GetRSSurfaceHandler()->GetAvailableBufferCount());
 }
 } // namespace OHOS::Rosen

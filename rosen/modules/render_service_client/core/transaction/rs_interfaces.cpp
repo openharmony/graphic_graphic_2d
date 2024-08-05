@@ -76,9 +76,9 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     sptr<Surface> surface,
     ScreenId mirrorId,
     int flags,
-    std::vector<NodeId> filteredAppVector)
+    std::vector<NodeId> whiteList)
 {
-    return renderServiceClient_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector);
+    return renderServiceClient_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
 }
 
 int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -109,12 +109,14 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
-int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+    int64_t interval, int32_t rangeSize)
 {
     if (renderServiceClient_ == nullptr) {
         return StatusCode::RENDER_SERVICE_NULL;
     }
-    return renderServiceClient_->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    return renderServiceClient_->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
 }
  
 int32_t RSInterfaces::SetPointerColorInversionEnabled(bool enable)
@@ -140,6 +142,7 @@ int32_t RSInterfaces::UnRegisterPointerLuminanceChangeCallback()
     }
     return renderServiceClient_->UnRegisterPointerLuminanceChangeCallback();
 }
+#endif
 
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
@@ -394,7 +397,7 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 
 void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    RS_LOGI("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
+    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
@@ -611,11 +614,6 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
-void RSInterfaces::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
-{
-    renderServiceClient_->ChangeSyncCount(syncId, parentPid, childPid);
-}
-
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
 {
     renderServiceClient_->NotifyLightFactorStatus(isSafe);
@@ -631,9 +629,9 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
-void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt)
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    renderServiceClient_->NotifyTouchEvent(touchStatus, pkgName, pid, touchCnt);
+    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
 }
 
 void RSInterfaces::NotifyDynamicModeEvent(bool enableDynamicMode)
@@ -695,6 +693,11 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
 {
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
+}
+
+bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);
 }
 
 #ifdef RS_ENABLE_VK

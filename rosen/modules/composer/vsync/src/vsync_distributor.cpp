@@ -45,7 +45,7 @@ constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int32_t DEFAULT_VSYNC_RATE = 1;
 constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
-constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 128;
+constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 256;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -111,7 +111,8 @@ VSyncConnection::~VSyncConnection()
 
 VsyncError VSyncConnection::RequestNextVSync()
 {
-    return RequestNextVSync("unknown", 0);
+    static const std::string DEFAULT_REQUEST = "unknown";
+    return RequestNextVSync(DEFAULT_REQUEST, 0);
 }
 
 VsyncError VSyncConnection::GetRemoteDistributorLocked(sptr<VSyncDistributor> &distributor)
@@ -182,6 +183,13 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     data[1] = period;
     data[2] = vsyncCount;
     int32_t ret = socketPair->SendData(data, sizeof(data));
+    if (ret == ERRNO_EAGAIN) {
+        RS_TRACE_NAME("remove the earlies data and SendData again.");
+        VLOGW("vsync signal is not processed in time, please check pid:%{public}d", proxyPid_);
+        int64_t receiveData[3];
+        socketPair->ReceiveData(receiveData, sizeof(receiveData));
+        ret = socketPair->SendData(data, sizeof(data));
+    }
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
         info_.postVSyncCount_++;
@@ -242,11 +250,29 @@ VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch)
     return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this);
 }
 
+VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
+{
+    sptr<VSyncDistributor> distributor;
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        if (isDead_) {
+            VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+            return VSYNC_ERROR_API_FAILED;
+        }
+        VsyncError ret = GetRemoteDistributorLocked(distributor);
+        if (ret != VSYNC_ERROR_OK) {
+            return ret;
+        }
+    }
+    return distributor->SetUiDvsyncConfig(bufferCount);
+}
+
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name)
     : controller_(controller), mutex_(), con_(), connections_(),
     event_(), vsyncEnabled_(false), name_(name)
 {
-    if (name == "rs") {
+    static const std::string DEFAULT_RS_NAME = "rs";
+    if (name == DEFAULT_RS_NAME) {
         isRs_ = true;
     }
 #if defined(RS_ENABLE_DVSYNC)
@@ -570,10 +596,10 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
 void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
 {
     std::vector<sptr<VSyncConnection>> conns;
-    bool waitForVSync = false;
     uint32_t generatorRefreshRate;
     int64_t vsyncCount;
     {
+        bool waitForVSync = false;
         std::lock_guard<std::mutex> locker(mutex_);
         event_.vsyncCount++;
         vsyncCount = event_.vsyncCount;
@@ -655,7 +681,7 @@ int32_t VSyncDistributor::GetUIDVsyncPid()
 {
     int32_t pid = 0;
     if (!isRs_ && IsDVsyncOn()) {
-        pid = dvsync->GetProxyPid();
+        pid = dvsync_->GetProxyPid();
     }
     return pid;
 }
@@ -813,6 +839,11 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
             std::unique_lock<std::mutex> locker(mutex_);
             // Trigger VSync Again for LTPO
             conns[i]->triggerThisTime_ = true;
+#if defined(RS_ENABLE_DVSYNC)
+            if (isDvsyncThread) {
+                hasVsync_.store(true);
+            }
+#endif
             // Exclude SetVSyncRate for LTPS
             if (conns[i]->rate_ < 0) {
                 conns[i]->rate_ = 0;
@@ -940,7 +971,10 @@ VsyncError VSyncDistributor::GetVSyncConnectionInfos(std::vector<ConnectionInfo>
 
 VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& pid)
 {
-    if (name.find("WM") == std::string::npos && name.find("NWeb") == std::string::npos) {
+    if (name.find("WM") == std::string::npos) {
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    if (name.find("NWeb") != std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::string::size_type pos = name.find("_");
@@ -1117,6 +1151,15 @@ VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSy
 #if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
     dvsync_->RuntimeMark(dvsyncSwitch ? connection : nullptr);
+#endif
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    std::lock_guard<std::mutex> locker(mutex_);
+    dvsync_->SetUiDvsyncConfig(bufferCount);
 #endif
     return VSYNC_ERROR_OK;
 }

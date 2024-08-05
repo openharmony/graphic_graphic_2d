@@ -54,6 +54,15 @@ public:
         return curThreadInfo_.first;
     }
     void ResetSurface();
+    bool IsDrawCmdListsVisited() const override
+    {
+        return drawCmdListsVisited_;
+    }
+    void SetDrawCmdListsVisited(bool flag) override
+    {
+        drawCmdListsVisited_ = flag;
+    }
+
 private:
     explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;
@@ -72,7 +81,7 @@ private:
     bool ReuseBackendTexture(int width, int height, RSPaintFilterCanvas& canvas);
     void ClearPreSurface(std::shared_ptr<Drawing::Surface>& surface);
     bool GetCurrentContextAndImage(std::shared_ptr<Drawing::GPUContext>& grContext,
-        std::shared_ptr<Drawing::Image>& image);
+        std::shared_ptr<Drawing::Image>& image, const uint64_t tid);
 #endif
     static Registrar instance_;
     std::recursive_mutex drawableMutex_;
@@ -86,10 +95,13 @@ private:
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
-    pid_t threadId_ = RSUniRenderThread::Instance().GetTid();
+    std::atomic<pid_t> threadId_ = RSUniRenderThread::Instance().GetTid();
 
     ThreadInfo curThreadInfo_ = { UNI_RENDER_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_RENDER_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
+
+    // setted in render thread, used and resetted in main thread
+    std::atomic<bool> drawCmdListsVisited_ = false;
 };
 
 } // namespace OHOS::Rosen::DrawableV2

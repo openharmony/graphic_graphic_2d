@@ -22,7 +22,7 @@ namespace Rosen {
 namespace Drawing {
 Pen::Pen() noexcept
     : width_(0),
-      miterLimit_(-1),
+      miterLimit_(DEFAULT_MITER_VAL),
       join_(Pen::JoinStyle::MITER_JOIN),
       cap_(Pen::CapStyle::FLAT_CAP),
       pathEffect_(nullptr),
@@ -49,7 +49,7 @@ void Pen::SetColor(const Color& c)
     brush_.SetColor(c);
 }
 
-void Pen::SetColor(int c)
+void Pen::SetColor(uint32_t c)
 {
     brush_.SetColor(c);
 }

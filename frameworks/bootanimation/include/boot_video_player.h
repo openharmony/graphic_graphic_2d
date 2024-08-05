@@ -39,7 +39,6 @@ private:
 
     VSyncCallback vSyncCallback_;
     void *userData_;
-    std::mutex mtx_;
 
 #ifdef PLAYER_FRAMEWORK_ENABLE
     friend class VideoPlayerCallback;

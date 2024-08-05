@@ -13,7 +13,7 @@
  * limitations under the License.
  */
  
-#include "chrono"
+#include <chrono>
  
 #include "ge_log.h"
 #include "ge_water_ripple_filter.h"
@@ -24,21 +24,18 @@ namespace Rosen {
 #define PROPERTY_HIGPU_VERSION "const.gpu.vendor"
 #define PROPERTY_DEBUG_SUPPORT_AF "persist.sys.graphic.supports_af"
 namespace {
- 
-static std::shared_ptr<Drawing::RuntimeEffect> g_waterRippleEffect = nullptr;
- 
+
+const int SMALL2MEDIUM_RECV = 0;
+const int SMALL2MEDIUM_SEND = 1;
+const int SMALL2SMALL = 2;
+
 } // namespace
  
  
 GEWaterRippleFilter::GEWaterRippleFilter(const Drawing::GEWaterRippleFilterParams& params)
     : progress_(params.progress), waveCount_(params.waveCount), rippleCenterX_(params.rippleCenterX),
-    rippleCenterY_(params.rippleCenterY)
-{
-    if (!InitWaterRippleEffect()) {
-        LOGE("GEWaterRippleFilter::GEWaterRippleFilter failed when initializing WaterRippleEffect.");
-        return;
-    }
-}
+    rippleCenterY_(params.rippleCenterY), rippleMode_(params.rippleMode)
+{}
  
 std::shared_ptr<Drawing::Image> GEWaterRippleFilter::ProcessImage(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
@@ -51,23 +48,37 @@ std::shared_ptr<Drawing::Image> GEWaterRippleFilter::ProcessImage(Drawing::Canva
     Drawing::Matrix matrix;
     auto shader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
-    if (g_waterRippleEffect == nullptr) {
-        if (InitWaterRippleEffect() == false) {
-            LOGE("GEWaterRippleFilter::ProcessImage g_waterRippleEffect init failed");
-            return nullptr;
-        }
-        LOGE("GEWaterRippleFilter::ProcessImage g_waterRippleEffect first time create");
-    }
     auto imageInfo = image->GetImageInfo();
     float height = imageInfo.GetHeight();
     float width = imageInfo.GetWidth();
-    LOGD("GEWaterRippleFilter::ProcessImage input image heigth = %{public}f, width = %{public}f", height, width);
-    Drawing::RuntimeShaderBuilder builder(g_waterRippleEffect);
- 
+    std::shared_ptr<Drawing::RuntimeEffect> waterRipple;
+    switch (rippleMode_) {
+        case SMALL2MEDIUM_RECV: {
+            waterRipple = GetWaterRippleEffectSM(SMALL2MEDIUM_RECV);
+            break;
+        }
+        case SMALL2MEDIUM_SEND: {
+            waterRipple = GetWaterRippleEffectSM(SMALL2MEDIUM_SEND);
+            break;
+        }
+        case SMALL2SMALL: {
+            waterRipple = GetWaterRippleEffectSS();
+            break;
+        }
+        default: {
+            LOGE("GEWaterRippleFilter::ProcessImage: Not support current ripple mode");
+            return nullptr;
+        }
+    }
+    if (waterRipple == nullptr) {
+        LOGE("GEWaterRippleFilter::ProcessImage g_waterRippleEffect init failed");
+        return nullptr;
+    }
+    Drawing::RuntimeShaderBuilder builder(waterRipple);
     builder.SetChild("image", shader);
     builder.SetUniform("iResolution", width, height);
     builder.SetUniform("progress", progress_);
-    builder.SetUniform("waveNum", waveCount_);
+    builder.SetUniform("waveCount", static_cast<float>(waveCount_));
     builder.SetUniform("rippleCenter", rippleCenterX_, rippleCenterY_);
  
     auto invertedImage = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, imageInfo, false);
@@ -78,15 +89,25 @@ std::shared_ptr<Drawing::Image> GEWaterRippleFilter::ProcessImage(Drawing::Canva
     return invertedImage;
 }
 
-bool GEWaterRippleFilter::InitWaterRippleEffect()
+std::shared_ptr<Drawing::RuntimeEffect> GEWaterRippleFilter::GetWaterRippleEffectSM(const int rippleMode)
 {
-    g_waterRippleEffect = Drawing::RuntimeEffect::CreateForShader(shaderString);
-    if (g_waterRippleEffect == nullptr) {
-        LOGE("GEWaterRippleFilter::RuntimeShader failed to create water ripple filter");
-        return false;
+    static std::shared_ptr<Drawing::RuntimeEffect> g_waterRippleEffectSM = nullptr;
+    if (g_waterRippleEffectSM == nullptr) {
+        g_waterRippleEffectSM = (rippleMode == SMALL2MEDIUM_SEND) ?
+            Drawing::RuntimeEffect::CreateForShader(shaderStringSMsend) :
+            Drawing::RuntimeEffect::CreateForShader(shaderStringSMrecv);
     }
-    return true;
+    return g_waterRippleEffectSM;
 }
- 
+
+std::shared_ptr<Drawing::RuntimeEffect> GEWaterRippleFilter::GetWaterRippleEffectSS()
+{
+    static std::shared_ptr<Drawing::RuntimeEffect> g_waterRippleEffectSS = nullptr;
+    if (g_waterRippleEffectSS == nullptr) {
+        g_waterRippleEffectSS = Drawing::RuntimeEffect::CreateForShader(shaderStringSSmutual);
+    }
+    return g_waterRippleEffectSS;
+}
+
 } // namespace Rosen
 } // namespace OHOS

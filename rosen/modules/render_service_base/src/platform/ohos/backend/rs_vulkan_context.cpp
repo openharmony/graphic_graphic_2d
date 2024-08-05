@@ -31,7 +31,6 @@
 #define ACQUIRE_PROC(name, context)                         \
     if (!(vk##name = AcquireProc("vk" #name, context))) {   \
         ROSEN_LOGE("Could not acquire proc: vk" #name);     \
-        return false;                                       \
     }
 
 namespace OHOS {
@@ -89,7 +88,7 @@ void RsVulkanInterface::Init(bool isProtected)
 
 RsVulkanInterface::~RsVulkanInterface()
 {
-    for (auto && semaphoreFence : usedSemaphoreFenceList_) {
+    for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
         if (semaphoreFence.fence != nullptr) {
             semaphoreFence.fence->Wait(-1);
         }

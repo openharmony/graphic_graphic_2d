@@ -220,9 +220,7 @@ HWTEST_F(RSCanvasRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    RSCanvasRenderNode::ClearSurfaceTask taskCallback = []() { printf("OnTreeStateChanged taskCallback\n"); };
     rsCanvasRenderNode.SetCacheType(CacheType::CONTENT);
-    rsCanvasRenderNode.RegisterClearSurfaceFunc(taskCallback);
     EXPECT_EQ(rsCanvasRenderNode.IsOnTheTree(), false);
     EXPECT_FALSE(rsCanvasRenderNode.needClearSurface_);
     rsCanvasRenderNode.OnTreeStateChanged();

@@ -69,11 +69,11 @@
         }                                    \
     } while (0)
 
-#define NAPI_CHECK_AND_THROW_ERROR(ret, format, ...)   \
+#define NAPI_CHECK_AND_THROW_ERROR(ret, errorCode, errorMessage)   \
     do {                                               \
         if (!(ret)) {                                  \
-            TEXT_LOGE(format, ##__VA_ARGS__);          \
-            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params."); \
+            TEXT_LOGE("%{public}s", #errorMessage);          \
+            return NapiThrowError(env, errorCode, errorMessage); \
         }                                              \
     } while (0)
 

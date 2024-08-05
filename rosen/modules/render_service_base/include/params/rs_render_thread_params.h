@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
 
 #include <memory>
+#include <mutex>
 #include <vector>
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -28,6 +29,7 @@ struct CaptureParam {
     bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
+    NodeId rootIdInWhiteList_ = INVALID_NODEID;
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
@@ -56,9 +58,19 @@ public:
         return isRegionDebugEnabled_;
     }
 
+    bool IsAllSurfaceVisibleDebugEnabled() const
+    {
+        return isAllSurfaceVisibleDebugEnabled_;
+    }
+
     bool IsVirtualDirtyEnabled() const
     {
         return isVirtualDirtyEnabled_;
+    }
+
+    bool IsExpandScreenDirtyEnabled() const
+    {
+        return isExpandScreenDirtyEnabled_;
     }
 
     bool IsVirtualDirtyDfxEnabled() const
@@ -81,6 +93,16 @@ public:
         return isUIFirstDebugEnable_;
     }
 
+    void SetUIFirstCurrentFrameCanSkipFirstWait(bool canSkip)
+    {
+        isUIFirstCurrentFrameCanSkipFirstWait_ = canSkip;
+    }
+
+    bool GetUIFirstCurrentFrameCanSkipFirstWait() const
+    {
+        return isUIFirstCurrentFrameCanSkipFirstWait_;
+    }
+
     void SetTimestamp(uint64_t timestamp)
     {
         timestamp_ = timestamp;
@@ -96,10 +118,11 @@ public:
         return selfDrawingNodes_;
     }
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetHardwareEnabledTypeNodes() const
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
     {
-        return hardwareEnabledTypeNodes_;
+        return hardwareEnabledTypeDrawables_;
     }
+
 
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
@@ -254,12 +277,26 @@ public:
 
     void SetBlackList(std::unordered_set<NodeId> blackList)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         blackList_ = blackList;
     }
 
-    std::unordered_set<NodeId> GetBlackList() const
+    const std::unordered_set<NodeId> GetBlackList() const
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return blackList_;
+    }
+
+    void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        whiteList_ = whiteList;
+    }
+
+    const std::unordered_set<NodeId> GetWhiteList() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return whiteList_;
     }
 
     // To be deleted after captureWindow being deleted
@@ -330,9 +367,11 @@ public:
     }
 
 private:
+    mutable std::mutex mutex_;
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
     bool hasCaptureImg_ = false;  // To be deleted after captureWindow being deleted
     std::unordered_set<NodeId> blackList_ = {};
+    std::unordered_set<NodeId> whiteList_ = {};
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -347,15 +386,18 @@ private:
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
+    bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
     bool isOcclusionEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
+    bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
+    bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTypeNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.

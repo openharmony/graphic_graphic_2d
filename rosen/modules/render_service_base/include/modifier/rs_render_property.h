@@ -22,6 +22,8 @@
 #include "common/rs_rect.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier/rs_modifier_type.h"
+#include "property/rs_properties_def.h"
+#include "recording/draw_cmd_list.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -59,6 +61,10 @@ public:
     {
         modifierType_ = type;
         UpdatePropertyUnit(type);
+    }
+
+    virtual void Dump(std::string& out) const
+    {
     }
 
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
@@ -198,6 +204,10 @@ public:
         return stagingValue_;
     }
 
+    void Dump(std::string& out) const override
+    {
+    }
+
     void SetUpdateUIPropertyFunc(
         const std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)>& updateUIPropertyFunc)
     {
@@ -207,7 +217,7 @@ public:
 protected:
     T stagingValue_;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
-    RSRenderPropertyType GetPropertyType() const
+    RSRenderPropertyType GetPropertyType() const override
     {
         return RSRenderPropertyType::INVALID;
     }
@@ -347,6 +357,31 @@ template<>
 RSB_EXPORT float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
 
 template<>
+RSB_EXPORT void RSRenderProperty<float>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Vector4f>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Quaternion>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Vector2f>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Matrix3f>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Color>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSFilter>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<RRect>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Drawing::DrawCmdListPtr>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<SkMatrix>::Dump(std::string& out) const;
+
+template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<float>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
 template<>
@@ -378,6 +413,19 @@ RSB_EXPORT bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
     const std::shared_ptr<const RSRenderPropertyBase>& value) const;
 
 #if defined(_WIN32)
+extern template class RSRenderProperty<float>;
+extern template class RSRenderProperty<Vector4f>;
+extern template class RSRenderProperty<Quaternion>;
+extern template class RSRenderProperty<Vector2f>;
+extern template class RSRenderProperty<Matrix3f>;
+extern template class RSRenderProperty<Color>;
+extern template class RSRenderProperty<std::shared_ptr<RSFilter>>;
+extern template class RSRenderProperty<Vector4<Color>>;
+extern template class RSRenderProperty<RRect>;
+extern template class RSRenderProperty<Drawing::DrawCmdListPtr>;
+extern template class RSRenderProperty<ForegroundColorStrategyType>;
+extern template class RSRenderProperty<SkMatrix>;
+
 extern template class RSRenderAnimatableProperty<float>;
 extern template class RSRenderAnimatableProperty<Vector4f>;
 extern template class RSRenderAnimatableProperty<Quaternion>;

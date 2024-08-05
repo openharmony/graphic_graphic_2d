@@ -14,6 +14,7 @@
  */
 #include "gtest/gtest.h"
 
+#include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 
 using namespace testing;

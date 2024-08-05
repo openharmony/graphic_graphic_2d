@@ -123,7 +123,7 @@ bool RSObjAbsGeometry::IsNeedClientCompose() const
 }
 
 namespace {
-    void ApplySkewToMatrix44(const Transform& trans, Drawing::Matrix44& m44, bool preConcat)
+    void ApplySkewToMatrix44(const RSTransform& trans, Drawing::Matrix44& m44, bool preConcat)
     {
         if (!ROSEN_EQ(trans.skewX_, 0.f, EPSILON) || !ROSEN_EQ(trans.skewY_, 0.f, EPSILON)) {
             Drawing::Matrix44 skewM44 {};
@@ -139,7 +139,7 @@ namespace {
         }
     }
 
-    void ApplyPerspToMatrix(const Transform& trans, Drawing::Matrix& m, bool preConcat)
+    void ApplyPerspToMatrix(const RSTransform& trans, Drawing::Matrix& m, bool preConcat)
     {
         if (!ROSEN_EQ(trans.perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans.perspY_, 0.f, EPSILON)) {
             Drawing::Matrix perspM {};
@@ -154,7 +154,7 @@ namespace {
         }
     }
 
-    void ApplyPerspToMatrix44(const Transform& trans, Drawing::Matrix44& m44, bool preConcat)
+    void ApplyPerspToMatrix44(const RSTransform& trans, Drawing::Matrix44& m44, bool preConcat)
     {
         if (!ROSEN_EQ(trans.perspX_, 0.f, EPSILON) || !ROSEN_EQ(trans.perspY_, 0.f, EPSILON)) {
             Drawing::Matrix44 perspM44 {};
@@ -306,12 +306,12 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_1), 0.f, EPSILON) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::PERSP_2), 0.f, EPSILON)) {
         Drawing::RectF src(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
-        Drawing::RectF dts;
-        matrix.MapRect(dts, src);
-        absRect.left_ = static_cast<int>(dts.GetLeft());
-        absRect.top_ = static_cast<int>(dts.GetTop());
-        absRect.width_ = static_cast<int>(std::ceil(dts.GetRight() - absRect.left_));
-        absRect.height_ = static_cast<int>(std::ceil(dts.GetBottom() - absRect.top_));
+        Drawing::RectF dst;
+        matrix.MapRect(dst, src);
+        absRect.left_ = static_cast<int>(std::floor(dst.GetLeft()));
+        absRect.top_ = static_cast<int>(std::floor(dst.GetTop()));
+        absRect.width_ = static_cast<int>(std::ceil(dst.GetRight() - absRect.left_));
+        absRect.height_ = static_cast<int>(std::ceil(dst.GetBottom() - absRect.top_));
     } else if (!ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_X), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_X) < 0) ||
         !ROSEN_EQ(matrix.Get(Drawing::Matrix::SKEW_Y), 0.f) || (matrix.Get(Drawing::Matrix::SCALE_Y) < 0)) {
         // Map the rectangle's points to the absolute matrix
@@ -328,8 +328,8 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
             p[RIGHT_BOTTOM_POINT].GetY(), p[LEFT_BOTTOM_POINT].GetY());
 
         // Set the absolute rectangle's properties
-        absRect.left_ = static_cast<int>(xRange[0]);
-        absRect.top_ = static_cast<int>(yRange[0]);
+        absRect.left_ = static_cast<int>(std::floor(xRange[0]));
+        absRect.top_ = static_cast<int>(std::floor(yRange[0]));
         absRect.width_ = static_cast<int>(std::ceil(xRange[1] - absRect.left_));
         absRect.height_ = static_cast<int>(std::ceil(yRange[1] - absRect.top_));
     } else {
@@ -338,8 +338,8 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
         Drawing::scalar transY = matrix.Get(Drawing::Matrix::TRANS_Y);
         Drawing::scalar scaleX = matrix.Get(Drawing::Matrix::SCALE_X);
         Drawing::scalar scaleY = matrix.Get(Drawing::Matrix::SCALE_Y);
-        absRect.left_ = static_cast<int>(rect.left_ * scaleX + transX);
-        absRect.top_ = static_cast<int>(rect.top_ * scaleY + transY);
+        absRect.left_ = static_cast<int>(std::floor(rect.left_ * scaleX + transX));
+        absRect.top_ = static_cast<int>(std::floor(rect.top_ * scaleY + transY));
         float right = (rect.left_ + rect.width_) * scaleX + transX;
         float bottom = (rect.top_ + rect.height_) * scaleY + transY;
         absRect.width_ = static_cast<int>(std::ceil(right - absRect.left_));

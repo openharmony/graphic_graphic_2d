@@ -32,11 +32,7 @@ namespace Rosen {
 #define LOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 namespace {
-#if (defined(__aarch64__) || defined(__x86_64__))
-    const std::string FRAME_AWARE_SO_PATH = "/system/lib64/libframe_ui_intf.z.so";
-#else
-    const std::string FRAME_AWARE_SO_PATH = "/system/lib/platformsdk/libframe_ui_intf.z.so";
-#endif
+const std::string FRAME_AWARE_SO_PATH = "libframe_ui_intf.z.so";
 }
 RsFrameReport& RsFrameReport::GetInstance()
 {

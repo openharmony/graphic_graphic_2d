@@ -38,7 +38,6 @@
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
-#include "params/rs_render_params.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_content.h"
@@ -54,6 +53,7 @@ class RSChildrenDrawable;
 class RSRenderNodeDrawableAdapter;
 class RSRenderNodeShadowDrawable;
 }
+class RSRenderParams;
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
@@ -66,7 +66,6 @@ class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
-    using ClearSurfaceTask = std::function<void()>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
     std::atomic<int32_t> cacheCnt_ = -1;
     virtual RSRenderNodeType GetType() const
@@ -110,6 +109,11 @@ public:
     virtual bool IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded = false);
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor);
+    bool SetAccumulatedClipFlag(bool clipChange);
+    bool GetAccumulatedClipFlagChange() const
+    {
+        return isAccumulatedClipFlagChanged_;
+    }
     bool IsDirty() const;
     bool IsSubTreeDirty() const;
     void SetSubTreeDirty(bool val);
@@ -132,8 +136,6 @@ public:
     {
         return parent_;
     }
-    void RegisterClearSurfaceFunc(ClearSurfaceTask task);
-    void ResetClearSurfaeFunc();
 
     inline NodeId GetId() const
     {
@@ -146,7 +148,6 @@ public:
     }
 
     bool IsFirstLevelNode();
-    bool SubSurfaceNodeNeedDraw(PartialRenderType opDropType);
     void AddSubSurfaceNode(SharedPtr parent);
     void RemoveSubSurfaceNode(SharedPtr parent);
     void UpdateChildSubSurfaceNode();
@@ -318,6 +319,7 @@ public:
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
+    void RemoveAllModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
     bool IsShadowValidLastFrame() const;
@@ -328,6 +330,7 @@ public:
 
     // update parent's children rect including childRect and itself
     void MapAndUpdateChildrenRect();
+    void UpdateSubTreeInfo(const RectI& clipRect);
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
 
     void SetStaticCached(bool isStaticCached);
@@ -428,7 +431,6 @@ public:
 
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
-    void ExecuteSurfaceCaptureCommand();
     bool GetCommandExecuted() const
     {
         return commandExecuted_;
@@ -484,7 +486,8 @@ public:
     virtual void OnFilterCacheStateChanged() {};
 
     // for blur filter cache
-    virtual void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false);
+    virtual void CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged = false,
+        bool rotationStatusChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
         const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
@@ -696,7 +699,7 @@ public:
     virtual void MarkClearFilterCacheIfEffectChildrenChanged() {}
     bool HasBlurFilter() const;
     void SetChildrenHasSharedTransition(bool hasSharedTransition);
-    virtual bool SkipFrame(uint32_t skipFrameInterval) { return false; }
+    virtual bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval) { return false; }
     void RemoveChildFromFulllist(NodeId nodeId);
     void SetStartingWindowFlag(bool startingFlag);
     bool GetStartingWindowFlag() const
@@ -709,11 +712,14 @@ public:
         return childrenHasUIExtension_;
     }
 
-    // Used to collect renderDrawable for UniRenderThread.
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable()
+    // temporary used for dfx/surfaceHandler/canvas drawing render node
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable() const
     {
         return renderDrawable_;
     }
+
+    // DFX
+    void DumpDrawableTree(int32_t depth, std::string& out) const;
 
 protected:
     virtual void OnApplyModifiers() {}
@@ -734,8 +740,7 @@ protected:
 
     void DumpSubClassNode(std::string& out) const;
     void DumpDrawCmdModifiers(std::string& out) const;
-    void DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType type,
-        std::shared_ptr<RSRenderModifier>& modifier) const;
+    void DumpModifiers(std::string& out) const;
 
     virtual void OnTreeStateChanged();
     // recursive update subSurfaceCnt
@@ -768,7 +773,6 @@ protected:
     ModifierDirtyTypes dirtyTypes_;
     ModifierDirtyTypes curDirtyTypes_;
     bool isBootAnimation_ = false;
-    ClearSurfaceTask clearSurfaceTask_ = nullptr;
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
@@ -796,6 +800,9 @@ protected:
     bool lastFrameHasVisibleEffect_ = false;
     RectI filterRegion_;
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
+    mutable bool isFullChildrenListValid_ = true;
+    NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
+    NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
@@ -817,16 +824,17 @@ private:
     // When an empty list is needed, use EmptyChildrenList instead.
     static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
-    bool isFullChildrenListValid_ = true;
     bool isChildrenSorted_ = true;
 
     void GenerateFullChildrenList();
     void ResortChildren();
     bool ShouldClearSurface();
 
+    // DFX
+    std::string DumpDrawableVec() const;
+
     std::weak_ptr<RSContext> context_ = {};
-    NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
-    NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
+
     bool isContentDirty_ = false;
     bool isNewOnTree_ = false;
     bool isOnlyBasicGeoTransform_ = true;
@@ -838,7 +846,12 @@ private:
     bool lastFrameSubTreeSkipped_ = false;
     bool hasChildrenOutOfRect_ = false;
     bool lastFrameHasChildrenOutOfRect_ = false;
+    bool isAccumulatedClipFlagChanged_ = false;
+    bool hasAccumulatedClipFlag_ = false;
     RectI childrenRect_;
+    RectI oldChildrenRect_;
+    RectI oldClipRect_;
+    Drawing::Matrix oldAbsMatrix_;
     
     // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
@@ -1039,6 +1052,7 @@ private:
     friend class RSRenderThread;
     friend class RSRenderTransition;
     friend class DrawableV2::RSRenderNodeDrawableAdapter;
+    friend class DrawableV2::RSChildrenDrawable;
     friend class DrawableV2::RSRenderNodeShadowDrawable;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

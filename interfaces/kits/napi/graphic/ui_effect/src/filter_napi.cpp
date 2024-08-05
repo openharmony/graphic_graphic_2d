@@ -21,6 +21,7 @@ namespace {
     constexpr uint32_t NUM_2 = 2;
     constexpr uint32_t NUM_3 = 3;
     constexpr uint32_t NUM_4 = 4;
+    constexpr uint32_t NUM_5 = 5;
 }
 
 namespace OHOS {
@@ -158,6 +159,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("blur", SetBlur),
         DECLARE_NAPI_FUNCTION("pixelStretch", SetPixelStretch),
         DECLARE_NAPI_FUNCTION("waterRipple", SetWaterRipple),
+        DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
     };
     NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
     return object;
@@ -293,39 +295,52 @@ float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
     }
     return tmp;
 }
- 
+
+uint32_t FilterNapi::GetSpecialIntValue(napi_env env, napi_value argValue)
+{
+    uint32_t tmp = 0;
+    if (UIEffectNapiUtils::getType(env, argValue) == napi_number &&
+        UIEFFECT_IS_OK(napi_get_value_uint32(env, argValue, &tmp))) {
+            return tmp;
+    }
+    return tmp;
+}
+
 napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
 {
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
     napi_value thisVar = nullptr;
-    napi_value argValue[NUM_4] = {0};
-    size_t argCount = NUM_4;
+    napi_value argValue[NUM_5] = {0};
+    size_t argCount = NUM_5;
     UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_water_ripple_info"));
- 
+
     std::shared_ptr<WaterRipplePara> para = std::make_shared<WaterRipplePara>();
- 
+
     float progress = 0.0f;
-    float waveCount = 0.0f;
+    uint32_t waveCount = 0;
     float rippleCenterX = 0.0f;
     float rippleCenterY = 0.0f;
- 
-    if (argCount != NUM_4) {
-        FILTER_LOG_E("Args number less than 4");
+    uint32_t rippleMode = 0;
+
+    if (argCount != NUM_5) {
+        FILTER_LOG_E("Args number less than 5");
     }
-    
+
     progress = GetSpecialValue(env, argValue[NUM_0]);
-    waveCount = GetSpecialValue(env, argValue[NUM_1]);
+    waveCount = GetSpecialIntValue(env, argValue[NUM_1]);
     rippleCenterX = GetSpecialValue(env, argValue[NUM_2]);
     rippleCenterY = GetSpecialValue(env, argValue[NUM_3]);
+    rippleMode = GetSpecialIntValue(env, argValue[NUM_4]);
 
     para->SetProgress(progress);
     para->SetWaveCount(waveCount);
     para->SetRippleCenterX(rippleCenterX);
     para->SetRippleCenterY(rippleCenterY);
-   
+    para->SetRippleMode(rippleMode);
+
     Filter* filterObj = nullptr;
     NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
     if (filterObj == nullptr) {
@@ -333,7 +348,45 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
         return thisVar;
     }
     filterObj->AddPara(para);
- 
+
+    return thisVar;
+}
+
+napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
+{
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_2] = {0};
+    size_t argCount = NUM_2;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_fly_out_info"));
+
+    std::shared_ptr<FlyOutPara> para = std::make_shared<FlyOutPara>();
+    if (para == nullptr) {
+        FILTER_LOG_E("FlyOutPara is nullptr");
+        return thisVar;
+    }
+
+    if (argCount != NUM_2) {
+        FILTER_LOG_E("Args number less than 2");
+    }
+
+    float degree = GetSpecialValue(env, argValue[NUM_0]);
+    uint32_t flyMode = GetSpecialIntValue(env, argValue[NUM_1]);
+
+    para->SetDegree(degree);
+    para->SetFlyMode(flyMode);
+
+    Filter* filterObj = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
+    if (filterObj == nullptr) {
+        FILTER_LOG_E("filterNapi is nullptr");
+        return thisVar;
+    }
+    filterObj->AddPara(para);
+
     return thisVar;
 }
 

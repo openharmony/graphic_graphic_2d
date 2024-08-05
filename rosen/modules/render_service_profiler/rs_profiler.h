@@ -237,11 +237,12 @@ private:
     RSB_EXPORT static void MarshalNode(const RSRenderNode* node, std::stringstream& data);
     RSB_EXPORT static void MarshalNode(const RSRenderNode& node, std::stringstream& data);
 
-    RSB_EXPORT static void UnmarshalNodes(RSContext& context, std::stringstream& data);
-    RSB_EXPORT static void UnmarshalTree(RSContext& context, std::stringstream& data);
-    RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data);
-    RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data, NodeId nodeId);
-    RSB_EXPORT static void UnmarshalNode(RSRenderNode& node, std::stringstream& data);
+    RSB_EXPORT static void UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static void UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static void UnmarshalNode(
+        RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
+    RSB_EXPORT static void UnmarshalNode(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
 
     // RSRenderNode
     RSB_EXPORT static std::string DumpRenderProperties(const RSRenderNode& node);
@@ -287,7 +288,7 @@ private:
 
     static bool IsLoadSaveFirstScreenInProgress();
     static std::string FirstFrameMarshalling();
-    static void FirstFrameUnmarshalling(const std::string& data);
+    static void FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion);
     static void HiddenSpaceTurnOff();
     static void HiddenSpaceTurnOn();
 
@@ -337,6 +338,9 @@ private:
     static void CalcPerfNode(const ArgList& args);
     static void CalcPerfNodeAll(const ArgList& args);
     static void SocketShutdown(const ArgList& args);
+
+    static void Version(const ArgList& args);
+    static void FileVersion(const ArgList& args);
 
     static void SaveSkp(const ArgList& args);
     static void SaveRdc(const ArgList& args);

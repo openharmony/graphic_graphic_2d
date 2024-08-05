@@ -116,7 +116,6 @@ if (current_os != "ohos") {
     output_name = "EGL"
     output_extension = "so"
 
-    innerapi_tags = [ "platformsdk" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -247,7 +246,6 @@ if (current_os != "ohos") {
     output_name = "GLESv3"
     output_extension = "so"
 
-    innerapi_tags = [ "platformsdk" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

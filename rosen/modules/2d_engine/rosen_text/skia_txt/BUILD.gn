@@ -78,6 +78,7 @@ template("skia_libtxt") {
     if (platform == "ohos" || platform == "ohos_ng") {
       external_deps += [ "init:libbegetutil" ]
       defines += [ "HM_SYMBOL_TXT_ENABLE" ]
+      defines += [ "HM_TXT_ENABLE" ]
     }
 
     is_cross_platform =
@@ -164,7 +165,7 @@ ohos_source_set("skia_paragraph") {
     include_dirs +=
         [ "//foundation/multimedia/image_framework/mock/native/include/log" ]
   }
-  defines = []
+  defines = [ "OHOS_SUPPORT" ]
 
   sources = [
     "//third_party/skia/modules/skparagraph/src/Decorations.cpp",

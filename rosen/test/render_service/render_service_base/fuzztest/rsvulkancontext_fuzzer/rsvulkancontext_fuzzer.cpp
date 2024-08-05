@@ -25,13 +25,13 @@
 #include <memory>
 #include <securec.h>
 #include <unistd.h>
+#include <iostream>
 
-#include "platform/ohos/backend/rs_vulkan_context.cpp"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* g_data = nullptr;
+const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 } // namespace
@@ -41,10 +41,10 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
+    if (DATA == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
@@ -58,31 +58,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
-    RsVulkanInterface rsVulkanInterface;
-    rsVulkanInterface.Init();
-    rsVulkanInterface.CreateInstance();
-    rsVulkanInterface.SelectPhysicalDevice();
-    rsVulkanInterface.CreateDevice();
-    rsVulkanInterface.GetRsVkMemStat();
-    rsVulkanInterface.IsValid();
-    rsVulkanInterface.CreateSkiaGetProc();
-    rsVulkanInterface.GetMemoryHandler();
-    rsVulkanInterface.GetPhysicalDevice();
-    rsVulkanInterface.GetDevice();
-    rsVulkanInterface.GetQueue();
-    rsVulkanInterface.GetGrVkBackendContext();
-    rsVulkanInterface.GetVulkanVersion();
-    rsVulkanInterface.GetDrawingContext();
-    rsVulkanInterface.GetHardWareGrContext();
-    rsVulkanInterface.GetHardwareQueue();
-    rsVulkanInterface.OpenLibraryHandle();
-    rsVulkanInterface.SetupLoaderProcAddresses();
-    rsVulkanInterface.CloseLibraryHandle();
-    auto& rsVulkanContext = OHOS::Rosen::RsVulkanContext::GetSingleton();
+    RsVulkanContext rsVulkanContext;
     rsVulkanContext.SetIsProtected(true);
     rsVulkanContext.GetRsVulkanInterface();
     rsVulkanContext.IsValid();
@@ -95,11 +75,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsVulkanContext.GetVulkanVersion();
     rsVulkanContext.CreateDrawingContext();
     rsVulkanContext.GetDrawingContext();
-    rsVulkanContext.ClearGrContext();
     rsVulkanContext.GetHardWareGrContext();
     rsVulkanContext.GetHardwareQueue();
     rsVulkanContext.GetMemoryHandler();
     rsVulkanContext.GetIsProtected();
+    rsVulkanContext.ClearGrContext();
     return true;
 }
 } // namespace Rosen

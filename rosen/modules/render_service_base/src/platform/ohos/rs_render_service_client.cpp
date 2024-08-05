@@ -25,7 +25,7 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
-#include "ipc_callbacks/pointer_luminance_callback_stub.h"
+#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
@@ -319,14 +319,14 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     sptr<Surface> surface,
     ScreenId mirrorId,
     int32_t flags,
-    std::vector<NodeId> filteredAppVector)
+    std::vector<NodeId> whiteList)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return INVALID_SCREEN_ID;
     }
 
-    return renderService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, filteredAppVector);
+    return renderService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -381,14 +381,16 @@ void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
     renderService->RemoveVirtualScreen(id);
 }
 
-int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval)
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+    int64_t interval, int32_t rangeSize)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
  
-    return renderService->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    return renderService->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
 }
  
 int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
@@ -437,6 +439,7 @@ int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
     }
     return renderService->UnRegisterPointerLuminanceChangeCallback();
 }
+#endif
 
 class CustomScreenChangeCallback : public RSScreenChangeCallbackStub
 {
@@ -1320,12 +1323,11 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
-void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid,
-    int32_t touchCnt)
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        renderService->NotifyTouchEvent(touchStatus, pkgName, pid, touchCnt);
+        renderService->NotifyTouchEvent(touchStatus, touchCnt);
     }
 }
 
@@ -1342,14 +1344,6 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetCacheEnabledForRotation(isEnabled);
-    }
-}
-
-void RSRenderServiceClient::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->ChangeSyncCount(syncId, parentPid, childPid);
     }
 }
 
@@ -1450,6 +1444,15 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     }
     sptr<CustomUIExtensionCallback> cb = new CustomUIExtensionCallback(callback);
     return renderService->RegisterUIExtensionCallback(userId, cb);
+}
+
+bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->SetVirtualScreenStatus(id, screenStatus);
+    }
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -17,7 +17,7 @@
 #include "rs_trace.h"
 #include "render/rs_filter.h"
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "include/gpu/GrBackendSurface.h"
 #include "src/image/SkImage_Base.h"
 

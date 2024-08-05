@@ -31,6 +31,7 @@ public:
     virtual ~HdiDevice() = default;
     /* set & get device screen info begin */
     virtual int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) = 0;
+    virtual int32_t RegRefreshCallback(RefreshCallback callback, void *data) = 0;
     virtual int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) = 0;
     virtual bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) = 0;
     virtual int32_t RegScreenVBlankIdleCallback(OnVBlankIdleCallback callback, void *data) = 0;
@@ -52,8 +53,6 @@ public:
     virtual int32_t SetScreenClientBufferCacheCount(uint32_t screen, uint32_t count) = 0;
     virtual int32_t SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect> &damageRect) = 0;
     virtual int32_t SetScreenVsyncEnabled(uint32_t screenId, bool enabled) = 0;
-    virtual int32_t GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layersId,
-                                          std::vector<sptr<SyncFence>> &fences) = 0;
     virtual int32_t GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<GraphicColorGamut> &gamuts) = 0;
     virtual int32_t SetScreenColorGamut(uint32_t screenId, GraphicColorGamut gamut) = 0;
     virtual int32_t GetScreenColorGamut(uint32_t screenId, GraphicColorGamut &gamut) = 0;
@@ -102,6 +101,8 @@ public:
     virtual int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t cacheCount,
                                 uint32_t &layerId) = 0;
     virtual int32_t CloseLayer(uint32_t screenId, uint32_t layerId) = 0;
+    virtual int32_t ClearLayerBuffer(uint32_t screenId, uint32_t layerId) = 0;
+    virtual int32_t ClearClientBuffer(uint32_t screenId) = 0;
     virtual void Destroy() = 0;
 
 private:

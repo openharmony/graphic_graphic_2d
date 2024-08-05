@@ -20,6 +20,7 @@
 #include "pipeline/sk_resource_manager.h"
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
+constexpr uint32_t VKIMAGE_LIMIT_SIZE = 10000 * 10000; // Vk-Image Size need less than 10000*10000
 void DeleteVkImage(void* context)
 {
     VulkanCleanupHelper* cleanupHelper = static_cast<VulkanCleanupHelper*>(context);
@@ -86,6 +87,13 @@ bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
         0,
         VK_IMAGE_LAYOUT_UNDEFINED,
     };
+
+    if (imageSize.width * imageSize.height * imageSize.depth > VKIMAGE_LIMIT_SIZE) {
+        ROSEN_LOGE("NativeBufferUtils: vkCreateImag failed, image is too large, width:%{public}u, height::%{public}u,"
+                   "depth::%{public}u",
+            imageSize.width, imageSize.height, imageSize.depth);
+        return false;
+    }
 
     VkResult err = vkContext.GetRsVulkanInterface().vkCreateImage(vkContext.GetDevice(),
         &imageCreateInfo, nullptr, image);

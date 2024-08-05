@@ -99,8 +99,14 @@ void RSSubThread::RemoveTask(const std::string& name)
 
 void RSSubThread::DumpMem(DfxString& log)
 {
-    PostSyncTask([&log, this]() {
-        MemoryManager::DumpDrawingGpuMemory(log, grContext_.get());
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        std::string name = node->GetName() + " " + std::to_string(node->GetId());
+        nodeTags.push_back({node->GetId(), name});
+    });
+    PostSyncTask([&log, &nodeTags, this]() {
+        MemoryManager::DumpDrawingGpuMemory(log, grContext_.get(), nodeTags);
     });
 }
 
@@ -197,8 +203,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         RS_TRACE_NAME_FMT("draw cache render nodeDrawable: [%s, %llu]", surfaceNodePtr->GetName().c_str(),
             surfaceNodePtr->GetId());
         if (surfaceNodePtr->GetCacheSurface(threadIndex_, true) == nullptr || surfaceNodePtr->NeedInitCacheSurface()) {
-            RSRenderNode::ClearCacheSurfaceFunc func = std::bind(&RSUniRenderUtil::ClearNodeCacheSurface,
-                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+            RSRenderNode::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
             surfaceNodePtr->InitCacheSurface(grContext_.get(), func, threadIndex_);
         }
 
@@ -334,9 +339,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     }
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
-        DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = std::bind(
-            &RSUniRenderUtil::ClearNodeCacheSurface, std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3, std::placeholders::_4);
+        DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
         nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_);
         cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     }
@@ -361,7 +364,11 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get());
+    bool optFenceWait = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
+        optFenceWait = false;
+    }
+    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateBackendTexture();
 
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
@@ -406,10 +413,13 @@ void RSSubThread::DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRend
     rsCanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-
     nodeDrawable->SubDraw(*rsCanvas);
+    bool optFenceWait = true;
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
+        optFenceWait = false;
+    }
     RS_TRACE_BEGIN("FlushFrame");
-    RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get());
+    RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get(), optFenceWait);
     renderFrame->Flush();
     RS_TRACE_END();
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:

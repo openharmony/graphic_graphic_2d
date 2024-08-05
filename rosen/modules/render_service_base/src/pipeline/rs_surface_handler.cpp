@@ -25,8 +25,9 @@ RSSurfaceHandler::~RSSurfaceHandler() noexcept
 #endif
 }
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceHandler::SetConsumer(const sptr<IConsumerSurface>& consumer)
+void RSSurfaceHandler::SetConsumer(sptr<IConsumerSurface> consumer)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     consumer_ = consumer;
 }
 #endif
@@ -54,7 +55,7 @@ float RSSurfaceHandler::GetGlobalZOrder() const
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
 {
-    auto& consumer = GetConsumer();
+    auto consumer = GetConsumer();
     if (consumer != nullptr && buffer.buffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(buffer.buffer, SyncFence::INVALID_FENCE);
         if (ret != OHOS::SURFACE_ERROR_OK) {
@@ -73,8 +74,8 @@ void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
     if (!buffer.buffer) {
         return;
     }
-    SetBufferSizeChanged(buffer.buffer);
     SetBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
+    SetBufferSizeChanged(buffer.buffer);
     SetCurrentFrameBufferConsumed();
     RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "\
         "buffer timestamp = %{public}" PRId64 " .", GetNodeId(), buffer.timestamp);
@@ -82,7 +83,7 @@ void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
 
 void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
 {
-    std::lock_guard<std::mutex> lock(bufMutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     uint64_t bufferTimestamp = static_cast<uint64_t>(buffer.timestamp);
     auto found = bufferCache_.find(bufferTimestamp);
     if (found != bufferCache_.end()) {
@@ -94,13 +95,13 @@ void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
 
 bool RSSurfaceHandler::HasBufferCache() const
 {
-    std::lock_guard<std::mutex> lock(bufMutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     return bufferCache_.size() != 0;
 }
 
 RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64_t vsyncTimestamp)
 {
-    std::lock_guard<std::mutex> lock(bufMutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     RSSurfaceHandler::SurfaceBufferEntry buffer;
     for (auto iter = bufferCache_.begin(); iter != bufferCache_.end();) {
         if (iter->first < vsyncTimestamp) {
@@ -112,8 +113,9 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
         }
     }
     if (buffer.buffer != nullptr) {
-        RS_TRACE_NAME_FMT("RSSurfaceHandler: get buffer from cache success, id = %" PRIu64 " cacheCount = %zu",
-            GetNodeId(), bufferCache_.size());
+        RS_TRACE_NAME_FMT("RSSurfaceHandler: get buffer from cache success, "
+            "id = %" PRIu64 ", timestamp = %" PRId64 ",cacheCount = %zu .",
+            GetNodeId(), buffer.timestamp, bufferCache_.size());
         RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
     }
     return buffer;
@@ -121,7 +123,7 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
 
 void RSSurfaceHandler::ClearBufferCache()
 {
-    std::lock_guard<std::mutex> lock(bufMutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     while (!bufferCache_.empty()) {
         ReleaseBuffer(bufferCache_.begin()->second);
         bufferCache_.erase(bufferCache_.begin());

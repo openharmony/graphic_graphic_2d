@@ -30,7 +30,9 @@
 #include "message_parcel.h"
 #include "securec.h"
 
-#include "ipc_callbacks/pointer_luminance_callback_stub.h"
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
+#endif
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "pipeline/rs_render_service.h"
 #include "pipeline/rs_render_service_connection.h"
@@ -508,6 +510,7 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     return true;
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -528,7 +531,8 @@ bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
     float darkBuffer = GetData<float>();
     float brightBuffer = GetData<float>();
     int64_t interval = GetData<int64_t>();
-    rsConn->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    int32_t rangeSize = GetData<int32_t>();
+    rsConn->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     return true;
 }
 
@@ -567,6 +571,7 @@ bool DoRegisterPointerLuminanceChangeCallback(const uint8_t* data, size_t size)
     rsConn->RegisterPointerLuminanceChangeCallback(cb);
     return true;
 }
+#endif
 
 bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
@@ -921,8 +926,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenGamutMap(data, size);
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     OHOS::Rosen::DoSetPointerColorInversionConfig(data, size);
     OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback(data, size);
+#endif
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetRefreshRateMode(data, size);
     OHOS::Rosen::DoCreateVSyncConnection(data, size);

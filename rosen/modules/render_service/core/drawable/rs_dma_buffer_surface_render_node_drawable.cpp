@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 
 #include "rs_trace.h"
@@ -25,6 +26,7 @@
 #include "pipeline/parallel_render/rs_ui_first_render_listener.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
@@ -44,7 +46,8 @@ bool RSSurfaceRenderNodeDrawable::UseDmaBuffer()
 #ifndef ROSEN_CROSS_PLATFORM
 bool RSSurfaceRenderNodeDrawable::CreateSurface()
 {
-    if (consumer_ != nullptr && surface_ != nullptr) {
+    auto consumer = surfaceHandlerUiFirst_->GetConsumer();
+    if (consumer != nullptr && surface_ != nullptr) {
         RS_LOGI("RSSurfaceRenderNodeDrawable::CreateSurface already created, return");
         return true;
     }
@@ -57,21 +60,19 @@ bool RSSurfaceRenderNodeDrawable::CreateSurface()
         return false;
     }
     if (consumerListener_ == nullptr) {
-        auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(GetNodeId());
-        auto sharedPtr = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(ptr);
-        consumerListener_ = new RSUIFirstRenderListener(sharedPtr);
+        consumerListener_ = new RSUIFirstRenderListener(surfaceHandlerUiFirst_);
     }
-    consumer_ = IConsumerSurface::Create(name_);
-    if (consumer_ == nullptr) {
+    consumer = IConsumerSurface::Create(name_);
+    if (consumer == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::CreateSurface get consumer surface fail");
         return false;
     }
-    SurfaceError ret = consumer_->RegisterConsumerListener(consumerListener_);
+    SurfaceError ret = consumer->RegisterConsumerListener(consumerListener_);
     if (ret != SURFACE_ERROR_OK) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::CreateSurface RegisterConsumerListener fail");
         return false;
     }
-    auto producer = consumer_->GetProducer();
+    auto producer = consumer->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
     if (surface == nullptr) {
         return false;
@@ -81,6 +82,7 @@ bool RSSurfaceRenderNodeDrawable::CreateSurface()
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     surface_ = client->CreateRSSurface(surface);
     surfaceCreated_ = true;
+    surfaceHandlerUiFirst_->SetConsumer(consumer);
     return true;
 }
 #endif
@@ -147,13 +149,13 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
     if (surfaceParams.GetHardwareEnabled()) {
         return true;
     }
-    if (!GetBuffer() && GetAvailableBufferCount() <= 0) {
+    if (!surfaceHandlerUiFirst_->GetBuffer() && surfaceHandlerUiFirst_->GetAvailableBufferCount() <= 0) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", surfaceParams.GetId());
         RSSubThreadManager::Instance()->WaitNodeTask(surfaceParams.GetId());
     }
-    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*this);
     // ConsumeAndUpdateBuffer may set buffer, must be before !GetBuffer()
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, true) || !GetBuffer()) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandlerUiFirst_, true) ||
+        !surfaceHandlerUiFirst_->GetBuffer()) {
         RS_LOGE("DrawUIFirstCacheWithDma ConsumeAndUpdateBuffer or GetBuffer return false");
         return false;
     }
@@ -163,19 +165,18 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
 
 void RSSurfaceRenderNodeDrawable::DrawDmaBufferWithGPU(RSPaintFilterCanvas& canvas)
 {
-    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*this);
-    auto buffer = GetBuffer();
+    auto buffer = surfaceHandlerUiFirst_->GetBuffer();
     BufferDrawParam param;
     param.srcRect = {0, 0, buffer->GetWidth(), buffer->GetHeight()};
     param.dstRect = {0, 0, boundsWidth_, boundsHeight_};
     param.threadIndex = 0;
     param.buffer = buffer;
-    param.acquireFence = surfaceHandler.GetAcquireFence();
+    param.acquireFence = surfaceHandlerUiFirst_->GetAcquireFence();
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    renderEngine->RegisterDeleteBufferListener(GetConsumer());
-    renderEngine->RegisterDeleteBufferListener(surfaceHandler);
+    renderEngine->RegisterDeleteBufferListener(surfaceHandlerUiFirst_->GetConsumer());
+    renderEngine->RegisterDeleteBufferListener(*surfaceHandlerUiFirst_);
     renderEngine->DrawUIFirstCacheWithParams(canvas, param);
-    RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
+    RSBaseRenderUtil::ReleaseBuffer(*surfaceHandlerUiFirst_);
 }
 
 void RSSurfaceRenderNodeDrawable::ClipRoundRect(Drawing::Canvas& canvas)
@@ -197,12 +198,13 @@ void RSSurfaceRenderNodeDrawable::ClearBufferQueue()
         surface_->ClearBuffer();
         surface_ = nullptr;
     }
-    if (consumer_ != nullptr) {
-        consumer_->GoBackground();
-        consumer_ = nullptr;
+    auto consumer = surfaceHandlerUiFirst_->GetConsumer();
+    if (consumer != nullptr) {
+        consumer->GoBackground();
+        surfaceHandlerUiFirst_->SetConsumer(nullptr);
     }
-    ResetBufferAvailableCount();
-    CleanCache();
+    surfaceHandlerUiFirst_->ResetBufferAvailableCount();
+    surfaceHandlerUiFirst_->CleanCache();
     surfaceCreated_ = false;
 }
 } // namespace OHOS::Rosen::DrawableV2

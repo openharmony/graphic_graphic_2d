@@ -249,32 +249,26 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawVertices007, TestS
     uint32_t colors[COLOR_PARAMETER] = {0xFFFF0000, 0xFFFF0000, 0xFFFF0000};
 
     uint16_t indices[COLOR_PARAMETER] = {0, 1, 2};
+
+    // test canvas == nullptr
     OH_Drawing_CanvasDrawVertices(nullptr, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
                                   colors, POINT_PARAMETER, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, NEGATIVE_ONE, points_vertices, texs_vertices,
+
+    // test vertexCount < 3
+    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, 1, points_vertices, texs_vertices,
                                   colors, POINT_PARAMETER, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    // test position == nullptr
     OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, nullptr, texs_vertices, colors,
                                   POINT_PARAMETER, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, nullptr, colors,
-                                  POINT_PARAMETER, indices, BLEND_MODE_COLOR);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    // test indexCount != 0 && indexCount < 3
     OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
-                                  nullptr, POINT_PARAMETER, indices, BLEND_MODE_COLOR);
+                                  colors, 1, indices, BLEND_MODE_COLOR);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
-                                  colors, NEGATIVE_ONE, indices, BLEND_MODE_COLOR);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
-                                  colors, POINT_PARAMETER, nullptr, BLEND_MODE_COLOR);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(nullptr, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, nullptr, nullptr, nullptr,
-                                  POINT_PARAMETER, nullptr, BLEND_MODE_COLOR);
-    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    OH_Drawing_CanvasDrawVertices(canvas_, VERTEX_MODE_TRIANGLES, POINT_PARAMETER, points_vertices, texs_vertices,
-                                  colors, POINT_PARAMETER, indices, BLEND_MODE_COLOR);
 }
 
 /*
@@ -1651,6 +1645,31 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_FilterSetImageFilter04
     OH_Drawing_FilterSetImageFilter(filter, imagefilter);
     OH_Drawing_FilterDestroy(filter);
     OH_Drawing_ImageFilterDestroy(imagefilter);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_CanvasDrawSingleCharacter045
+ * @tc.desc: test for OH_Drawing_CanvasDrawSingleCharacter.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawSingleCharacter045, TestSize.Level1)
+{
+    const char* strOne = "a";
+    const char* strTwo = "你好";
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    float x = 0.f;
+    float y = 0.f;
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strOne, font, x, y), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strTwo, font, x, y), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(nullptr, strOne, font, x, y), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, nullptr, font, x, y), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strOne, nullptr, x, y),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    const char* strThree = "";
+    EXPECT_EQ(OH_Drawing_CanvasDrawSingleCharacter(canvas_, strThree, font, x, y), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FontDestroy(font);
 }
 } // namespace Drawing
 } // namespace Rosen

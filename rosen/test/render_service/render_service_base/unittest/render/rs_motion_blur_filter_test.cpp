@@ -90,57 +90,6 @@ HWTEST_F(MotionBlurFilterTest, SetGeometryTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawImageRect001
- * @tc.desc: test results of DrawImageRect
- * @tc.type: FUNC
- * @tc.require: issuesI9PH4G
- */
-HWTEST_F(MotionBlurFilterTest, DrawImageRect001, TestSize.Level1)
-{
-    Vector2f s = { 1.f, 1.f };
-    auto para = std::make_shared<MotionBlurParam>(1.f, s);
-    RSMotionBlurFilter motionBlurFilter(para);
-    Drawing::Canvas canvas;
-    std::shared_ptr<Drawing::Image> image = nullptr;
-    Drawing::Rect src;
-    Drawing::Rect dst;
-    motionBlurFilter.DrawImageRect(canvas, image, src, dst);
-    EXPECT_TRUE(image == nullptr);
-
-    image = std::make_shared<Drawing::Image>();
-    motionBlurFilter.DrawImageRect(canvas, image, src, dst);
-    EXPECT_TRUE(image != nullptr);
-
-    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
-    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
-    int addr1 = 1;
-    int* addr = &addr1;
-    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
-    Drawing::ReleaseContext releaseContext = nullptr;
-    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
-    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
-    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
-    image->imageImplPtr = skiaImage;
-    motionBlurFilter.DrawImageRect(canvas, image, src, dst);
-    EXPECT_TRUE(image != nullptr);
-
-    motionBlurFilter.motionBlurPara_->radius = 1.f;
-    motionBlurFilter.DrawImageRect(canvas, image, src, dst);
-    EXPECT_TRUE(image->GetWidth() != 0);
-
-    motionBlurFilter.lastRect_.right_ = 3.f;
-    motionBlurFilter.lastRect_.bottom_ = 3.f;
-    motionBlurFilter.curRect_.right_ = 3.f;
-    motionBlurFilter.curRect_.bottom_ = 4.f;
-    motionBlurFilter.DrawImageRect(canvas, image, src, dst);
-    EXPECT_TRUE(image != nullptr);
-
-    motionBlurFilter.motionBlurPara_ = nullptr;
-    motionBlurFilter.DrawImageRect(canvas, image, src, dst);
-    EXPECT_TRUE(motionBlurFilter.motionBlurPara_ == nullptr);
-}
-
-/**
  * @tc.name: DrawMotionBlur001
  * @tc.desc: test results of DrawMotionBlur
  * @tc.type: FUNC

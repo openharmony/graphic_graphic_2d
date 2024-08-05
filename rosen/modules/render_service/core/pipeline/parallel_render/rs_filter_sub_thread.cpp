@@ -227,7 +227,13 @@ void RSFilterSubThread::PostSyncTask(const std::function<void()>& task)
 
 void RSFilterSubThread::DumpMem(DfxString& log)
 {
-    PostSyncTask([&log, this]() { MemoryManager::DumpDrawingGpuMemory(log, grContext_.get()); });
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        std::string name = node->GetName() + " " + std::to_string(node->GetId());
+        nodeTags.push_back({node->GetId(), name});
+    });
+    PostSyncTask([&log, &nodeTags, this]() { MemoryManager::DumpDrawingGpuMemory(log, grContext_.get(), nodeTags); });
 }
 
 float RSFilterSubThread::GetAppGpuMemoryInMB()

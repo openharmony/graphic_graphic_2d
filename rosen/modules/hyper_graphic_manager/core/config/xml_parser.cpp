@@ -147,7 +147,9 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
     } else if (paraName == "screen_config") {
         setResult = ParseScreenConfig(node);
     } else if (paraName == "rs_video_frame_rate_vote_config") {
-        mParsedData_->videoFrameRateVoteSwitch_ = ExtractPropertyValue("switch", node) == "1";
+        setResult = ParseVideoFrameVoteConfig(node);
+    } else if (paraName == "source_tuning_for_yuv420") {
+        setResult = ParseSimplex(node, mParsedData_->sourceTuningConfig_);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -289,7 +291,7 @@ void XMLParser::ParseBufferStrategyList(xmlNode &node, PolicyConfigData::Strateg
         return;
     }
     std::sort(strategy.appBufferList.begin(), strategy.appBufferList.end(),
-        [](const std::pair<std::string, uint32_t>& a, const std::pair<std::string, uint32_t>& b) {
+        [](const std::pair<std::string, int32_t>& a, const std::pair<std::string, int32_t>& b) {
         return a.second > b.second;
     });
 

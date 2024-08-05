@@ -22,8 +22,44 @@ import resourceManager from '@ohos.resourceManager';
 import image from '@ohos.multimedia.image';
 import componentSnapshot from '@ohos.arkui.componentSnapshot';
 import fs from '@ohos.file.fs'
+import taskpool from '@ohos.taskpool'
 
 const TAG = '[DrawingTest]';
+
+@Concurrent
+async function TestOffScreenDrawCpu(caseNameStr: string, testCount :number) {
+  let cases : Map<string, Function> = new Map();
+  cases = CaseFactory.getStabilityCpuAllCase()
+
+  if (caseNameStr == 'All') {
+    for (let key of cases.keys()) {
+      let func:Function | undefined = cases.get(key);
+      if (func == undefined) {
+        return;
+      }
+      let test:TestBase = func();
+      test.SetTestCount(testCount);
+      test.fileName_ = key
+      await test.TestStabilityCpu()
+      taskpool.Task.sendData(test.pixelMap_);
+    };
+  } else {
+    let func:Function | undefined = cases.get(caseNameStr);
+    if (func == undefined) {
+      return;
+    }
+    let test:TestBase = func();
+    if (test == null || test == undefined) {
+      return;
+    }
+    test.SetTestCount(testCount);
+    test.fileName_ = caseNameStr;
+
+    await test.TestStabilityCpu()
+    // 异步处理 绘制到屏幕上
+    taskpool.Task.sendData(test.pixelMap_);
+  }
+}
 
 @Entry
 @Component
@@ -33,8 +69,8 @@ struct Index {
   //用来创建CanvasRenderingContext2D对象，通过在canvas中调用CanvasRenderingContext2D对象来绘制。
   private context: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings)
   @State testType: string = 'function';
-  @State drawingType: string = 'gpu';
-  @State caseNameStr: string  = 'canvasdrawimage';
+  @State drawingType: string = 'cpu';
+  @State caseNameStr: string  = 'canvasdrawrect';
   @State information: string = '';
   @State testAll: boolean = false;
   caseNameStrBefore: string  = '';
@@ -45,7 +81,7 @@ struct Index {
   build() {
     Column() {
       Row() {
-        if (this.drawingType == 'cpu') {
+        if (this.drawingType == 'cpu' && this.testType != 'stability') {
           Canvas(this.context)
             .width('100%')
             .height('100%')
@@ -67,6 +103,7 @@ struct Index {
         Select([
           { value: 'function' },
           { value: 'performance' },
+          { value: 'stability'},
         ])
           .id('testType')
           .selected(0)
@@ -79,20 +116,32 @@ struct Index {
             console.log(TAG, "select: " + this.testType);
           })
 
-        Select([
-          { value: 'cpu' },
-          { value: 'gpu' },
-        ])
-          .id('drawingType')
-          .selected(0)
-          .value(this.drawingType)
-          .padding({left:5})
-          .border({width:1})
-          .width('40%')
-          .onSelect((index: number, value: string)=>{
-            this.drawingType = value;
-            console.log(TAG, "select: " + this.drawingType);
-          })
+        if (this.testType == 'stability') {
+          Select([
+            { value: 'cpu' },
+          ])
+            .id('drawingType')
+            .selected(0)
+            .value('cpu')
+            .padding({ left: 5 })
+            .border({ width: 1 })
+            .width('40%')
+        } else {
+          Select([
+            { value: 'cpu' },
+            { value: 'gpu' },
+          ])
+            .id('drawingType')
+            .selected(0)
+            .value(this.drawingType)
+            .padding({ left: 5 })
+            .border({ width: 1 })
+            .width('40%')
+            .onSelect((index: number, value: string) => {
+              this.drawingType = value;
+              console.log(TAG, "select: " + this.drawingType);
+            })
+        }
       }
       .height('7%')
       Row() {
@@ -120,7 +169,7 @@ struct Index {
       .width('80%')
       .margin({left:5})
 
-      if(this.testType == 'performance') {
+      if(this.testType == 'performance' || this.testType == 'stability') {
         Row() {
           Text('TestCount')
             .fontSize(14)
@@ -163,7 +212,7 @@ struct Index {
             .fontWeight(500)
             .onClick(() => {
               console.log(TAG, "TestAll click");
-              this.caseNameStr = 'All';
+              this.caseNameStr = "All"
               this.Draw();
             })
             .width('80%')
@@ -233,6 +282,7 @@ struct Index {
       this.LogMsg(str);
     })
   }
+
   async Draw():Promise<void> {
     console.log(TAG, 'Drawing test start!');
     if (this.testType == 'function') {
@@ -251,6 +301,27 @@ struct Index {
         return;
       }
     }
+    if (this.testType == 'stability') {
+      const context : Context = getContext(this);
+      try {
+        this.LogMsg('TestStabilityCpu start');
+        let testCount = Number.parseInt(this.caseCountStr, 10)
+        let task = new taskpool.Task(TestOffScreenDrawCpu, this.caseNameStr, testCount)
+        task.onReceiveData(async (pixelMap: image.PixelMap | undefined) => {
+          console.log(TAG, 'taskpool onReceiveData');
+          if (pixelMap == null || pixelMap == undefined) {
+            console.log(TAG, 'this.pixelMap_ is invalid');
+            return;
+          }
+          this.myNodeController.TestStability(this.caseNameStr, pixelMap);
+          Global.savePixmap(context.cacheDir + "/stability/", this.caseNameStr, pixelMap);
+          this.LogMsg('TestStabilityCpu end');
+        })
+        taskpool.execute(task);
+      } catch(e) {
+        this.LogMsg('error'+e);
+      }
+    }
   }
 
   sleep(ms: number): Promise<void> {
@@ -267,7 +338,6 @@ struct Index {
           await this.sleep(500);
         }
       }
-      this.LogMsg('TestFunctionalGpu All end');
     } else {
       this.TestSingleFunctionGpu(str);
     }

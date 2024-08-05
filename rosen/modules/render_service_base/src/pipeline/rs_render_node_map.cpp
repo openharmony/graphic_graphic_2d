@@ -167,7 +167,7 @@ void RSRenderNodeMap::EraseAbilityComponentNumsInProcess(NodeId id)
     auto surfaceNodeIter = surfaceNodeMap_.find(id);
     if (surfaceNodeIter != surfaceNodeMap_.end()) {
         auto surfaceNode = GetRenderNode<RSSurfaceRenderNode>(id);
-        if ((surfaceNode->IsAbilityComponent()) && (surfaceNode->GetName() != ARKTS_CARD_NODE) &&
+        if (surfaceNode && (surfaceNode->IsAbilityComponent()) && (surfaceNode->GetName() != ARKTS_CARD_NODE) &&
             (surfaceNode->GetName().find(SYSTEM_APP) == std::string::npos)) {
             auto pid = ExtractPid(id);
             auto iter = abilityComponentNumsInProcess_.find(pid);
@@ -226,8 +226,14 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (ExtractPid(pair.first) != pid) {
             return false;
         }
-        // update node flag to avoid animation fallback
-        pair.second->fallbackAnimationOnDestroy_ = false;
+        if (pair.second == nullptr) {
+            return true;
+        }
+        // Fix the loss of animation callbacks for the host when uiextension exits abnormally
+        if (pair.second->GetType() != RSRenderNodeType::SURFACE_NODE) {
+            // update node flag to avoid animation fallback
+            pair.second->fallbackAnimationOnDestroy_ = false;
+        }
         // remove node from tree
         pair.second->RemoveFromTree(false);
         return true;

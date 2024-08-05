@@ -157,16 +157,20 @@ void OH_Drawing_TextBlobGetBounds(OH_Drawing_TextBlob* cTextBlob, OH_Drawing_Rec
         return;
     }
     std::shared_ptr<Rect> rect = textblob->Bounds();
+    if (rect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
     *outRect = Rect(rect->GetLeft(), rect->GetTop(), rect->GetRight(), rect->GetBottom());
 }
 
 uint32_t OH_Drawing_TextBlobUniqueID(const OH_Drawing_TextBlob* cTextBlob)
 {
-    const TextBlob* textblob = CastToTextBlob(cTextBlob);
     if (cTextBlob == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return 0;
     }
+    const TextBlob* textblob = CastToTextBlob(cTextBlob);
     return textblob->UniqueID();
 }
 

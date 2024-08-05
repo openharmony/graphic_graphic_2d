@@ -91,7 +91,7 @@ private:
         sptr<Surface> surface,
         ScreenId mirrorId = 0,
         int32_t flags = 0,
-        std::vector<NodeId> filteredAppVector = {}) override;
+        std::vector<NodeId> whiteList = {}) override;
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
@@ -105,13 +105,16 @@ private:
 
     void RemoveVirtualScreen(ScreenId id) override;
 
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) override;
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+        int64_t interval, int32_t rangeSize) override;
  
     int32_t SetPointerColorInversionEnabled(bool enable) override;
  
     int32_t RegisterPointerLuminanceChangeCallback(sptr<RSIPointerLuminanceChangeCallback> callback) override;
  
     int32_t UnRegisterPointerLuminanceChangeCallback() override;
+#endif
 
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
@@ -145,12 +148,7 @@ private:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig) override;
-
-    void TakeSurfaceCaptureForUIWithUni(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
-    static void TakeSurfaceCaptureForUiParallel(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
+        const RSSurfaceCaptureConfig& captureConfig, bool accessible = true) override;
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
@@ -263,13 +261,13 @@ private:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
-    void NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid, int32_t touchCnt) override;
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) override;
+    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 

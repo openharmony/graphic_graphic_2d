@@ -379,13 +379,13 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen004, Function | SmallTest | Level2
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: call CreateVirtualScreen with filteredAppVector
+* CaseDescription: call CreateVirtualScreen with whiteList
 */
 HWTEST_F(RSInterfacesTest, CreateVirtualScreen005, Function | SmallTest | Level2)
 {
-    std::vector<NodeId> filteredAppVector = {};
+    std::vector<NodeId> whiteList = {};
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+        "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 
@@ -420,6 +420,7 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedModes002, Function | SmallTest | Le
     EXPECT_EQ(supportedScreenModes.size(), 0);
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 /**
  * @tc.name: SetPointerColorInversionConfig001
  * @tc.desc: set pointer color inversion config function.
@@ -431,7 +432,8 @@ HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, TestSize.Level1)
     float darkBuffer = 0.5f;
     float brightBuffer = 0.5f;
     int64_t interval = 50;
-    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    int32_t rangeSize = 20;
+    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
@@ -470,6 +472,7 @@ HWTEST_F(RSInterfacesTest, UnRegisterPointerLuminanceChangeCallback001, TestSize
     int32_t ret = rsInterfaces->UnRegisterPointerLuminanceChangeCallback();
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
+#endif
 
 /*
 * Function: SetScreenActiveMode
@@ -1334,8 +1337,7 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t touchStatus = 0;
     int32_t touchCnt = 0;
-    uint32_t pid = 0;
-    rsInterfaces->NotifyTouchEvent(touchStatus, "", pid, touchCnt);
+    rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1705,7 +1707,33 @@ HWTEST_F(RSInterfacesTest, RegisterUIExtensionCallback_002, Function | SmallTest
     UIExtensionCallback callback = nullptr;
     uint64_t userId = 0;
     auto res = rsInterfaces->RegisterUIExtensionCallback(userId, callback);
-    EXPECT_EQ(res, INVALID_ARGUMENTS);
+    EXPECT_EQ(res, SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus
+ * @tc.desc: Test SetVirtualScreenStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIAF42F
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenStatus, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY), true);
+    EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PAUSE), true);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 } // namespace Rosen
 } // namespace OHOS

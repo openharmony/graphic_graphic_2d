@@ -81,9 +81,10 @@ HWTEST_F(RSSystemPropertiesTest, GetRecordingEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetUniRenderEnabled, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::GetUniRenderEnabled());
-    RSSystemProperties::isUniRenderEnabled_ = true;
-    ASSERT_FALSE(RSSystemProperties::GetUniRenderEnabled());
+    ASSERT_TRUE(RSSystemProperties::GetUniRenderEnabled());
+    // it is not possible to change RSSystemProperties::isUniRenderEnabled from test
+    // check the second API calling returns the same value
+    ASSERT_TRUE(RSSystemProperties::GetUniRenderEnabled());
 }
 
 /**
@@ -618,13 +619,10 @@ HWTEST_F(RSSystemPropertiesTest, GetKawaseEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, SetForceHpsBlurDisabled, TestSize.Level1)
 {
-    bool origin = RSSystemProperties::forceHpsBlurDisabled_;
     RSSystemProperties::SetForceHpsBlurDisabled(true);
-    ASSERT_TRUE(RSSystemProperties::forceHpsBlurDisabled_);
     ASSERT_TRUE(!RSSystemProperties::GetHpsBlurEnabled());
     RSSystemProperties::SetForceHpsBlurDisabled(false);
-    ASSERT_TRUE(!RSSystemProperties::forceHpsBlurDisabled_);
-    RSSystemProperties::SetForceHpsBlurDisabled(origin);
+    ASSERT_TRUE(RSSystemProperties::GetHpsBlurEnabled());
 }
 
 /**
@@ -635,6 +633,7 @@ HWTEST_F(RSSystemPropertiesTest, SetForceHpsBlurDisabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetHpsBlurEnabled, TestSize.Level1)
 {
+    RSSystemProperties::SetForceHpsBlurDisabled(false);
     ASSERT_TRUE(RSSystemProperties::GetHpsBlurEnabled());
 }
 

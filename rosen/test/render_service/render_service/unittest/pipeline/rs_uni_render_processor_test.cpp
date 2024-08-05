@@ -149,12 +149,12 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
     renderProcessor->uniComposerAdapter_->output_ = output;
     RSSurfaceRenderNode node(0);
     auto iConsumerSurface = IConsumerSurface::Create();
-    node.SetConsumer(iConsumerSurface);
+    node.GetRSSurfaceHandler()->SetConsumer(iConsumerSurface);
     RSSurfaceRenderParams params(0);
     RSLayerInfo layerInfo;
     sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
     sptr<SurfaceBuffer> preBufferTest = OHOS::SurfaceBuffer::Create();
-    params.SetBuffer(bufferTest);
+    params.SetBuffer(bufferTest, {});
     params.SetPreBuffer(preBufferTest);
     layerInfo.zOrder = 0;
     params.SetLayerInfo(layerInfo);

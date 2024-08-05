@@ -26,6 +26,12 @@ ohos_executable("drawing_engine_sample") {
     "-Wno-error=deprecated-declarations",
   ]
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   sources = [
     "drawing_engine_sample.cpp",
     "main.cpp",

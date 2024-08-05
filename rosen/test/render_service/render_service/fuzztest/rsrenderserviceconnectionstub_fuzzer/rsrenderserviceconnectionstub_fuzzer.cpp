@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_connection.h"
@@ -33,11 +34,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr size_t MAX_SIZE = 4;
-constexpr size_t SCREEN_WIDTH = 100;
-constexpr size_t SCREEN_HEIGHT = 100;
-constexpr size_t SCREEN_REFRESH_RATE = 60;
-const std::u16string RENDERSERVICECONNECTION_INTERFACE_TOKEN = u"ohos.rosen.RenderServiceConnection";
-static std::shared_ptr<RSRenderServiceClient> rsClient = std::make_shared<RSRenderServiceClient>();
+DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 
 namespace {
 const uint8_t* g_data = nullptr;
@@ -80,467 +77,23 @@ bool DoOnRemoteRequest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t code = GetData<uint32_t>();
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = fdp.ConsumeIntegralInRange<uint32_t>(0, 100);
+    auto newPid = getpid();
+
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(0, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
 
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
-    uint8_t subData = GetData<uint8_t>();
-    std::vector<uint8_t> subDataVec;
-    subDataVec.push_back(subData);
-    dataParcel.WriteBuffer(subDataVec.data(), subDataVec.size());
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-    return true;
-}
-
-bool DoCommitTransaction(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto transactionData = std::make_unique<RSTransactionData>();
-    rsClient->CommitTransaction(transactionData);
-    return true;
-}
-
-bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
-    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, property);
-    RSTransactionProxy::GetInstance()->ExecuteSynchronousTask(task, true);
-    return true;
-}
-
-bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test", .bundleName = "test" };
-    rsClient->CreateNode(config);
-    rsClient->CreateNodeAndSurface(config);
-    return true;
-}
-
-bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    MessageParcel datas;
-    datas.WriteBuffer(data, size);
-    int32_t pid = datas.ReadInt32();
-    int32_t uid = datas.ReadInt32();
-    std::string bundleName = datas.ReadString();
-    std::string abilityName = datas.ReadString();
-    uint64_t focusNodeId = datas.ReadUint64();
-    rsClient->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
-    return true;
-}
-
-bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
-    sptr<IBufferProducer> bp = cSurface->GetProducer();
-    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
-    rsClient->CreateVirtualScreen("name", SCREEN_WIDTH, SCREEN_HEIGHT, pSurface, 0, 1);
-    rsClient->SetVirtualScreenSurface(0, pSurface);
-    rsClient->RemoveVirtualScreen(0);
-    return true;
-}
-
-bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    static ScreenId screenId = INVALID_SCREEN_ID;
-    static ScreenEvent screenEvent = ScreenEvent::UNKNOWN;
-    static bool callbacked = false;
-    auto callback = [](ScreenId id, ScreenEvent event) {
-        screenId = id;
-        screenEvent = event;
-        callbacked = true;
-    };
-    rsClient->SetScreenChangeCallback(callback);
-    return true;
-}
-
-bool DoSetPointerColorInversionConfig(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
- 
-    if (size < MAX_SIZE) {
-        return false;
-    }
- 
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
- 
-    float darkBuffer = GetData<float>();
-    float brightBuffer = GetData<float>();
-    int64_t interval = GetData<int64_t>();
-    rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
-    return true;
-}
-
-bool DoRegisterPointerLuminanceChangeCallback(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
- 
-    if (size < MAX_SIZE) {
-        return false;
-    }
- 
-    PointerLuminanceChangeCallback cb = [](int32_t brightness) {};
-    rsClient->RegisterPointerLuminanceChangeCallback(cb);
-    return true;
-}
-
-bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    ScreenId id = GetData<ScreenId>();
-    uint32_t modeId = GetData<uint32_t>();
-    rsClient->SetScreenActiveMode(id, modeId);
-    rsClient->GetScreenActiveMode(id);
-    return true;
-}
-
-bool DoSetScreenRefreshRate(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
-    rsClient->SetScreenRefreshRate(id, 0, SCREEN_REFRESH_RATE);
-    rsClient->GetScreenCurrentRefreshRate(id);
-    rsClient->GetScreenSupportedRefreshRates(id);
-    return true;
-}
-
-bool DoSetRefreshRateMode(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    rsClient->SetRefreshRateMode(0);
-    return true;
-}
-
-bool DoSetVirtualScreenResolution(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
-    rsClient->SetVirtualScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
-    rsClient->GetVirtualScreenResolution(id);
-    return true;
-}
-
-bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
-    rsClient->SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(0));
-    rsClient->GetScreenPowerStatus(id);
-    return true;
-}
-
-class TestSurfaceCaptureCallback : public SurfaceCaptureCallback {
-public:
-    explicit TestSurfaceCaptureCallback() {}
-    ~TestSurfaceCaptureCallback() override {}
-    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
-};
-
-bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto nodeId = GetData<NodeId>();
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = GetData<float>();
-    captureConfig.scaleY = GetData<float>();
-    captureConfig.useDma = GetData<bool>();
-    captureConfig.useCurWindow = GetData<bool>();
-    uint8_t type = GetData<uint8_t>();
-    captureConfig.captureType = (SurfaceCaptureType)type;
-    captureConfig.isSync = GetData<bool>();
-
-    std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
-    rsClient->TakeSurfaceCapture(nodeId, cb, captureConfig);
-    return true;
-}
-
-bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    ScreenId id = GetData<ScreenId>();
-    rsClient->GetScreenSupportedModes(id);
-    return true;
-}
-
-bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    int pid = GetData<int>();
-    rsClient->GetMemoryGraphic(pid);
-    return true;
-}
-
-bool DoGetScreenCapability(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    ScreenId id = GetData<ScreenId>();
-    rsClient->GetScreenCapability(id);
-    return true;
-}
-
-bool DoGetScreenData(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    ScreenId id = GetData<ScreenId>();
-    rsClient->GetScreenData(id);
-    return true;
-}
-
-bool DoGetScreenBacklight(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    ScreenId id = GetData<ScreenId>();
-    uint32_t level = GetData<uint32_t>();
-    rsClient->SetScreenBacklight(id, level);
-    rsClient->GetScreenBacklight(id);
-    return true;
-}
-
-bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    NodeId id = GetData<NodeId>();
-    bool isFromRenderThread = GetData<bool>();
-    BufferAvailableCallback cb = []() {};
-    rsClient->RegisterBufferAvailableListener(id, cb, isFromRenderThread);
-    return true;
-}
-
-bool DoGetScreenSupportedColorGamuts(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    std::vector<ScreenColorGamut> mode;
-    rsClient->GetScreenSupportedColorGamuts(0, mode);
-
-    std::vector<ScreenHDRMetadataKey> keys;
-    rsClient->GetScreenSupportedMetaDataKeys(0, keys);
-    return true;
-}
-
-bool DoGetScreenColorGamut(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    ScreenId id = GetData<ScreenId>();
-    int32_t modeIdx = GetData<int32_t>();
-    rsClient->SetScreenColorGamut(id, modeIdx);
-    ScreenColorGamut mode;
-    rsClient->GetScreenColorGamut(id, mode);
     return true;
 }
 
@@ -559,76 +112,26 @@ bool DoSetScreenGamutMap(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
-    ScreenGamutMap mapMode = ScreenGamutMap::GAMUT_MAP_CONSTANT;
-    rsClient->SetScreenGamutMap(id, mapMode);
-    rsClient->GetScreenGamutMap(id, mapMode);
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
 
-bool DoCreateVSyncConnection(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    rsClient->CreateVSyncReceiver("test", handler);
-    return true;
-}
-
-bool DoGetScreenHDRCapability(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
-    RSScreenHDRCapability screenHDRCapability;
-    rsClient->GetScreenHDRCapability(id, screenHDRCapability);
-    return true;
-}
-
-bool DoGetScreenType(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
-    RSScreenType type;
-    rsClient->GetScreenType(id, type);
-    return true;
-}
-
-bool DoGetBitmap(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    Drawing::Bitmap bm;
-    rsClient->GetBitmap(0, bm);
-    return true;
-}
-
-bool DoSetScreenSkipFrameInterval(const uint8_t* data, size_t size)
+bool DoGetScreenGamutMap(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -643,13 +146,26 @@ bool DoSetScreenSkipFrameInterval(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    ScreenId id = *(reinterpret_cast<const uint32_t*>(data));
-    uint32_t skipFrameInterval = GetData<uint32_t>();
-    rsClient->SetScreenSkipFrameInterval(id, skipFrameInterval);
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
 
-bool DoRegisterOcclusionChangeCallback(const uint8_t* data, size_t size)
+bool DoGetScreenHDRCapability(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -659,8 +175,95 @@ bool DoRegisterOcclusionChangeCallback(const uint8_t* data, size_t size)
         return false;
     }
 
-    OcclusionChangeCallback cb = [](std::shared_ptr<RSOcclusionData> data) {};
-    rsClient->RegisterOcclusionChangeCallback(cb);
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetScreenType(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetBitmap(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
 
@@ -679,8 +282,22 @@ bool DoSetAppWindowNum(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t num = GetData<uint32_t>();
-    rsClient->SetAppWindowNum(num);
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
 
@@ -699,30 +316,26 @@ bool DoShowWatermark(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    bool isShow = GetData<bool>();
-    std::shared_ptr<Media::PixelMap> pixelMap1;
-    rsClient->ShowWatermark(pixelMap1, isShow);
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
 
-bool DoReportEventResponse(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
-    DataBaseRs info;
-    rsClient->ReportEventResponse(info);
-    rsClient->ReportEventComplete(info);
-    rsClient->ReportEventJankFrame(info);
-    return true;
-}
-
-bool DoSetHardwareEnabled(const uint8_t* data, size_t size)
+bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -737,12 +350,27 @@ bool DoSetHardwareEnabled(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    auto isEnabled = GetData<bool>();
-    rsClient->SetHardwareEnabled(0, isEnabled, SelfDrawingNodeType::DEFAULT);
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
 
-bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
+bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -752,12 +380,32 @@ bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
         return false;
     }
 
-    HgmConfigChangeCallback cb2 = [](std::shared_ptr<RSHgmConfigData> data) {};
-    rsClient->RegisterHgmConfigChangeCallback(cb2);
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
 
-bool DoRegisterHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size)
+bool DoGetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -767,8 +415,448 @@ bool DoRegisterHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size
         return false;
     }
 
-    HgmRefreshRateModeChangeCallback cb = [](int32_t refreshRateMode) {};
-    rsClient->RegisterHgmRefreshRateModeChangeCallback(cb);
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoSetRefreshRateMode(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetScreenSupportedRefreshRates(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetScreenCapability(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC);
+    auto newPid = getpid();
+    
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
+    auto newPid = getpid();
+    
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoRemoveVirtualScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN);
+    auto newPid = getpid();
+    
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetScreenData(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_DATA);
+    auto newPid = getpid();
+    
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetScreenBacklight(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT);
+    auto newPid = getpid();
+    
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoSetScreenBacklight(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
+    auto newPid = getpid();
+    
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetScreenColorGamut(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT);
+    auto newPid = getpid();
+    
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoSetScreenColorGamut(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT);
+    auto newPid = getpid();
+    
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
 } // Rosen
@@ -779,40 +867,28 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::DoOnRemoteRequest(data, size);
-    OHOS::Rosen::DoCommitTransaction(data, size);
-    OHOS::Rosen::DoExecuteSynchronousTask(data, size);
-    OHOS::Rosen::DoCreateNodeAndSurface(data, size);
-    OHOS::Rosen::DoSetFocusAppInfo(data, size);
-    OHOS::Rosen::DoCreateVirtualScreen(data, size);
-    OHOS::Rosen::DoSetScreenChangeCallback(data, size);
-    OHOS::Rosen::DoSetPointerColorInversionConfig(data, size);
-    OHOS::Rosen::DoRegisterPointerLuminanceChangeCallback(data, size);
-    OHOS::Rosen::DoSetScreenActiveMode(data, size);
-    OHOS::Rosen::DoSetScreenRefreshRate(data, size);
-    OHOS::Rosen::DoSetRefreshRateMode(data, size);
-    OHOS::Rosen::DoSetVirtualScreenResolution(data, size);
-    OHOS::Rosen::DoSetScreenPowerStatus(data, size);
-    OHOS::Rosen::DoTakeSurfaceCapture(data, size);
-    OHOS::Rosen::DoGetScreenSupportedModes(data, size);
-    OHOS::Rosen::DoGetMemoryGraphic(data, size);
-    OHOS::Rosen::DoGetScreenCapability(data, size);
-    OHOS::Rosen::DoGetScreenData(data, size);
-    OHOS::Rosen::DoGetScreenBacklight(data, size);
-    OHOS::Rosen::DoRegisterBufferAvailableListener(data, size);
-    OHOS::Rosen::DoGetScreenSupportedColorGamuts(data, size);
-    OHOS::Rosen::DoGetScreenColorGamut(data, size);
     OHOS::Rosen::DoSetScreenGamutMap(data, size);
-    OHOS::Rosen::DoCreateVSyncConnection(data, size);
+    OHOS::Rosen::DoGetScreenGamutMap(data, size);
     OHOS::Rosen::DoGetScreenHDRCapability(data, size);
     OHOS::Rosen::DoGetScreenType(data, size);
     OHOS::Rosen::DoGetBitmap(data, size);
-    OHOS::Rosen::DoSetScreenSkipFrameInterval(data, size);
-    OHOS::Rosen::DoRegisterOcclusionChangeCallback(data, size);
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
-    OHOS::Rosen::DoReportEventResponse(data, size);
-    OHOS::Rosen::DoSetHardwareEnabled(data, size);
-    OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
-    OHOS::Rosen::DoRegisterHgmRefreshRateModeChangeCallback(data, size);
+    OHOS::Rosen::DoSetScreenPowerStatus(data, size);
+    OHOS::Rosen::DoSetScreenActiveMode(data, size);
+    OHOS::Rosen::DoGetScreenActiveMode(data, size);
+    OHOS::Rosen::DoSetRefreshRateMode(data, size);
+    OHOS::Rosen::DoGetScreenSupportedRefreshRates(data, size);
+    OHOS::Rosen::DoGetScreenSupportedModes(data, size);
+    OHOS::Rosen::DoGetScreenCapability(data, size);
+    OHOS::Rosen::DoGetMemoryGraphic(data, size);
+    OHOS::Rosen::DoCreateVirtualScreen(data, size);
+    OHOS::Rosen::DoRemoveVirtualScreen(data, size);
+    OHOS::Rosen::DoGetScreenData(data, size);
+    OHOS::Rosen::DoGetScreenBacklight(data, size);
+    OHOS::Rosen::DoSetScreenBacklight(data, size);
+    OHOS::Rosen::DoGetScreenColorGamut(data, size);
+    OHOS::Rosen::DoSetScreenColorGamut(data, size);
+
     return 0;
 }

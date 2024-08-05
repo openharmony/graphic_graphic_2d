@@ -37,31 +37,22 @@ int RSWindowAnimationStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
     switch (code) {
         case RSIWindowAnimationController::ON_START_APP:
             return StartApp(data, reply);
-            break;
         case RSIWindowAnimationController::ON_APP_TRANSITION:
             return AppTransition(data, reply);
-            break;
         case RSIWindowAnimationController::ON_APP_BACK_TRANSITION:
             return AppBackTransition(data, reply);
-            break;
         case RSIWindowAnimationController::ON_MINIMIZE_WINDOW:
             return MinimizeWindow(data, reply);
-            break;
         case RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW:
             return MinimizeAllWindow(data, reply);
-            break;
         case RSIWindowAnimationController::ON_CLOSE_WINDOW:
             return CloseWindow(data, reply);
-            break;
         case RSIWindowAnimationController::ON_SCREEN_UNLOCK:
             return ScreenUnlock(data, reply);
-            break;
         case RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE:
             return WindowAnimationTargetsUpdate(data, reply);
-            break;
         case RSIWindowAnimationController::ON_WALLPAPER_UPDATE:
             return WallpaperUpdate(data, reply);
-            break;
         default:
             break;
     }

@@ -16,6 +16,7 @@
 #include "rs_test_util.h"
 #include "surface_buffer_impl.h"
 
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_egl_image_manager.h"
 #include "pipeline/rs_main_thread.h"
@@ -86,15 +87,18 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     node->InitRenderParams();
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    node->SetConsumer(consumer);
+    auto displayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node->GetRenderDrawable());
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    node->SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_NE(node, nullptr);
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        sptr<OHOS::SurfaceBuffer> buffer = displayNode->GetBuffer();
+        sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
         // create image with null fence
         auto invalidFenceCache = eglImageManager_->CreateImageCacheFromBuffer(buffer, nullptr);
         ASSERT_NE(invalidFenceCache, nullptr);
@@ -130,15 +134,18 @@ HWTEST_F(RSEglImageManagerTest, MapEglImageFromSurfaceBuffer001, TestSize.Level1
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     node->InitRenderParams();
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    node->SetConsumer(consumer);
+    auto displayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node->GetRenderDrawable());
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    node->SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_NE(node, nullptr);
     if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
-        sptr<OHOS::SurfaceBuffer> buffer = displayNode->GetBuffer();
+        sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
         sptr<SyncFence> acquireFence;
         auto ret = eglImageManager_->MapEglImageFromSurfaceBuffer(buffer, acquireFence, 0);
         ASSERT_NE(ret, 0);
@@ -202,9 +209,10 @@ HWTEST_F(RSEglImageManagerTest, UnMapEglImage001, TestSize.Level1)
 HWTEST_F(RSEglImageManagerTest, ImageCacheSeqCreate001, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto imageCache = ImageCacheSeq::Create(EGL_NO_DISPLAY, EGL_NO_IMAGE_KHR, node->GetBuffer());
+    auto imageCache = ImageCacheSeq::Create(EGL_NO_DISPLAY, EGL_NO_IMAGE_KHR, node->GetRSSurfaceHandler()->GetBuffer());
     ASSERT_EQ(imageCache, nullptr);
-    imageCache = ImageCacheSeq::Create(renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetBuffer());
+    imageCache = ImageCacheSeq::Create(
+        renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetRSSurfaceHandler()->GetBuffer());
     ASSERT_NE(imageCache, nullptr);
 }
 
@@ -217,7 +225,8 @@ HWTEST_F(RSEglImageManagerTest, ImageCacheSeqCreate001, TestSize.Level1)
 HWTEST_F(RSEglImageManagerTest, ImageCacheSeqBindToTexture001, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto imageCache = ImageCacheSeq::Create(renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetBuffer());
+    auto imageCache = ImageCacheSeq::Create(
+        renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetRSSurfaceHandler()->GetBuffer());
     ASSERT_NE(imageCache, nullptr);
     ASSERT_EQ(imageCache->BindToTexture(), true);
     imageCache->eglImage_ =  EGL_NO_IMAGE_KHR;

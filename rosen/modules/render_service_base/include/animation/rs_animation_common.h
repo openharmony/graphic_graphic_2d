@@ -24,7 +24,8 @@ static constexpr float FRACTION_MIN = 0.0f;
 static constexpr float FRACTION_MAX = 1.0f;
 static constexpr float EPSILON = 1e-6;
 static constexpr int64_t MS_TO_NS = 1000000;
-static constexpr float FRAME_PER_TIME_FRACTION = 1.0f / 120.0f;
+static constexpr int64_t SECOND_TO_MS = 1000;
+static constexpr int32_t MAX_FRAME_TIME_FRACTION = 120;
 
 enum class RotationMode {
     ROTATE_NONE,

@@ -523,5 +523,4 @@ HWTEST_F(VulkanLoaderSystemTest, getDeviceGroupPresentCapabilitiesKHR_Test, Test
         EXPECT_EQ(res, VK_SUCCESS);
     }
 }
-
 }

@@ -99,7 +99,7 @@ public:
         int32_t drawMax;
         int32_t down;
         // <bufferName, fps>
-        std::vector<std::pair<std::string, uint32_t>> appBufferList;
+        std::vector<std::pair<std::string, int32_t>> appBufferList;
         std::vector<std::string> appBufferBlackList;
     };
     // <"1", StrategyConfig>
@@ -158,6 +158,7 @@ public:
     bool virtualDisplaySwitch_;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
+    std::unordered_map<std::string, std::string> sourceTuningConfig_;;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     bool videoFrameRateVoteSwitch_ = false;

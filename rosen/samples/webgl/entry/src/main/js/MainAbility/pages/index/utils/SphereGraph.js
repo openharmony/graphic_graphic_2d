@@ -65,21 +65,25 @@ export class SphereGraph {
             }
             grid.push(verticesRow);
         }
-        // indices
-        for (let iy = 0; iy < heightSegments; iy++) {
-            for (let ix = 0; ix < widthSegments; ix++) {
-                const a = grid[iy][ix + 1];
-                const b = grid[iy][ix];
-                const c = grid[iy + 1][ix];
-                const d = grid[iy + 1][ix + 1];
-                if (iy !== 0 || this.thetaStart > 0)
-                    indices.push(a, b, d);
-                if (iy !== heightSegments - 1 || thetaEnd < Math.PI)
-                    indices.push(b, c, d);
-            }
-        }
+        this.generateIndices(grid, indices, heightSegments, widthSegments, thetaStart, thetaEnd);
         this.indices = indices;
         this.vertices = vertices;
         this.textureCoord = textureCoord;
+    }
+    generateIndices(grid, indices, heightSegments, widthSegments, thetaStart, thetaEnd) {         
+        for (let iy = 0; iy < heightSegments; iy++) {             
+            for (let ix = 0; ix < widthSegments; ix++) {                 
+                const a = grid[iy][ix + 1];                 
+                const b = grid[iy][ix];                 
+                const c = grid[iy + 1][ix];                 
+                const d = grid[iy + 1][ix + 1];                 
+                if (iy !== 0 || thetaStart > 0) {                     
+                    indices.push(a, b, d);                 
+                }                 
+                if (iy !== heightSegments - 1 || thetaEnd < Math.PI) {                     
+                    indices.push(b, c, d);                 
+                }             
+            }         
+        }     
     }
 }

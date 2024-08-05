@@ -373,5 +373,20 @@ HWTEST_F(RSAttractionEffectFilterTest, CalculateLowerCtrlPointOfVertex001, TestS
     EXPECT_NE(upperControlPointOfVertex1[2].GetX(), upperControlPointOfVertex2[2].GetX());
     EXPECT_NE(upperControlPointOfVertex1[3].GetX(), upperControlPointOfVertex2[3].GetX());
 }
+
+/**
+ * @tc.name: GetDescriptionTest
+ * @tc.desc: test results of GetDescription
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSAttractionEffectFilterTest, GetDescriptionTest, TestSize.Level1)
+{
+    float attractionFraction = 0.5f;
+    RSAttractionEffectFilter effectFilter(attractionFraction);
+    std::string expectRes = "RSAttractionEffectFilter " + std::to_string(attractionFraction);
+    EXPECT_EQ(effectFilter.GetDescription(), expectRes);
+}
+
 } // namespace Rosen
 } // namespace OHOS

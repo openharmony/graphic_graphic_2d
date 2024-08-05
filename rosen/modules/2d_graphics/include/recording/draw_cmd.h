@@ -107,6 +107,9 @@ public:
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 
     virtual void SetNodeId(NodeId id) {}
+    virtual void Dump(std::string& out);
+
+    std::string GetOpDesc();
 
     static void SetBaseCallback(
         std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc);
@@ -838,8 +841,10 @@ public:
 
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
 protected:
-    void DrawHighContrast(Canvas* canvas) const;
+    void DrawHighContrast(Canvas* canvas, bool offSreen = false) const;
     void DrawHighContrastEnabled(Canvas* canvas) const;
+    bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
+        std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas) const;
 private:
     scalar x_;
     scalar y_;

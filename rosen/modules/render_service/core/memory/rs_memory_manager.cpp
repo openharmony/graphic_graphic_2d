@@ -329,23 +329,23 @@ void MemoryManager::DumpGpuCache(
 #endif
 }
 
-void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gpuContext)
+void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
+    std::vector<std::pair<NodeId, std::string>>& nodeTags)
 {
     if (!gpuContext) {
         log.AppendFormat("No valid gpu cache instance.\n");
         return;
     }
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes([&log, &gpuContext](const std::shared_ptr<RSSurfaceRenderNode> node) {
-        Drawing::GPUResourceTag tag(ExtractPid(node->GetId()), 0, node->GetId(), 0);
-        std::string name = node->GetName() + " " + std::to_string(node->GetId());
-        DumpGpuCache(log, gpuContext, &tag, name);
-    });
+    for (auto& nodeTag : nodeTags) {
+        Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0);
+        DumpGpuCache(log, gpuContext, &tag, nodeTag.second);
+    }
 #endif
 }
 
-void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* gpuContext)
+void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* gpuContext,
+    std::vector<std::pair<NodeId, std::string>>& nodeTags)
 {
     if (!gpuContext) {
         log.AppendFormat("No valid gpu cache instance.\n");
@@ -357,7 +357,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     // total
     DumpGpuCache(log, gpuContext, nullptr, gpuInfo);
     // Get memory of window by tag
-    DumpAllGpuInfo(log, gpuContext);
+    DumpAllGpuInfo(log, gpuContext, nodeTags);
     for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
         Drawing::GPUResourceTag tag(0, 0, 0, tagtype);
         std::string tagType = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));

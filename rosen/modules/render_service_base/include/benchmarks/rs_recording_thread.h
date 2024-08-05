@@ -16,6 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_BENCHMARKS_RS_RECORDING_THREAD_H
 #define ROSEN_RENDER_SERVICE_BASE_BENCHMARKS_RS_RECORDING_THREAD_H
 
+#ifdef ENABLE_RECORDING_DCL
 
 #include <cstdint>
 #include <sys/stat.h>
@@ -45,7 +46,7 @@ public:
 
     RSRecordingThread(RenderContext* context) : renderContext_(context){};
     ~RSRecordingThread();
-    
+
     static RSRecordingThread& Instance(RenderContext* context);
     void Start();
     bool IsIdle();
@@ -61,11 +62,11 @@ public:
     {
         return mode_ != RecordingMode::STOP_RECORDING;
     }
- 
+
 private:
     void CreateShareEglContext();
     void DestroyShareEglContext();
-    void FinishRecordingOneFrameTask(RecordingMode mode);
+    void FinishRecordingOneFrameTask(RecordingMode modeSubThread);
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
 
     const static size_t RECORDING_PARCEL_CAPCITY = 234 * 1000 * 1024;
@@ -86,4 +87,5 @@ private:
 };
 } // namespace OHOS::Rosen
 
+#endif // ENABLE_RECORDING_DCL
 #endif // ROSEN_RENDER_SERVICE_BASE_BENCHMARKS_RS_RECORDING_THREAD_H

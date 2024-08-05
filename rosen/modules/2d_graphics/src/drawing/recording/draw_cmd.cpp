@@ -39,23 +39,66 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+std::unordered_map<uint32_t, std::string> typeOpDes = {
+    { DrawOpItem::OPITEM_HEAD,              "OPITEM_HEAD"},
+    { DrawOpItem::POINT_OPITEM,             "POINT_OPITEM" },
+    { DrawOpItem::POINTS_OPITEM,            "POINTS_OPITEM" },
+    { DrawOpItem::LINE_OPITEM,              "LINE_OPITEM" },
+    { DrawOpItem::RECT_OPITEM,              "RECT_OPITEM" },
+    { DrawOpItem::ROUND_RECT_OPITEM,        "ROUND_RECT_OPITEM" },
+    { DrawOpItem::NESTED_ROUND_RECT_OPITEM, "NESTED_ROUND_RECT_OPITEM" },
+    { DrawOpItem::ARC_OPITEM,               "ARC_OPITEM" },
+    { DrawOpItem::PIE_OPITEM,               "PIE_OPITEM" },
+    { DrawOpItem::OVAL_OPITEM,              "OVAL_OPITEM" },
+    { DrawOpItem::CIRCLE_OPITEM,            "CIRCLE_OPITEM" },
+    { DrawOpItem::PATH_OPITEM,              "PATH_OPITEM" },
+    { DrawOpItem::BACKGROUND_OPITEM,        "BACKGROUND_OPITEM" },
+    { DrawOpItem::SHADOW_OPITEM,            "SHADOW_OPITEM" },
+    { DrawOpItem::SHADOW_STYLE_OPITEM,      "SHADOW_STYLE_OPITEM" },
+    { DrawOpItem::COLOR_OPITEM,             "COLOR_OPITEM" },
+    { DrawOpItem::IMAGE_NINE_OPITEM,        "IMAGE_NINE_OPITEM" },
+    { DrawOpItem::IMAGE_LATTICE_OPITEM,     "IMAGE_LATTICE_OPITEM" },
+    { DrawOpItem::ATLAS_OPITEM,             "ATLAS_OPITEM" },
+    { DrawOpItem::BITMAP_OPITEM,            "BITMAP_OPITEM" },
+    { DrawOpItem::IMAGE_OPITEM,             "IMAGE_OPITEM" },
+    { DrawOpItem::IMAGE_RECT_OPITEM,        "IMAGE_RECT_OPITEM" },
+    { DrawOpItem::PICTURE_OPITEM,           "PICTURE_OPITEM" },
+    { DrawOpItem::TEXT_BLOB_OPITEM,         "TEXT_BLOB_OPITEM" },
+    { DrawOpItem::SYMBOL_OPITEM,            "SYMBOL_OPITEM" },
+    { DrawOpItem::CLIP_RECT_OPITEM,         "CLIP_RECT_OPITEM" },
+    { DrawOpItem::CLIP_IRECT_OPITEM,        "CLIP_IRECT_OPITEM" },
+    { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   "CLIP_ROUND_RECT_OPITEM" },
+    { DrawOpItem::CLIP_PATH_OPITEM,         "CLIP_PATH_OPITEM" },
+    { DrawOpItem::CLIP_REGION_OPITEM,       "CLIP_REGION_OPITEM" },
+    { DrawOpItem::SET_MATRIX_OPITEM,        "SET_MATRIX_OPITEM" },
+    { DrawOpItem::RESET_MATRIX_OPITEM,      "RESET_MATRIX_OPITEM" },
+    { DrawOpItem::CONCAT_MATRIX_OPITEM,     "CONCAT_MATRIX_OPITEM" },
+    { DrawOpItem::TRANSLATE_OPITEM,         "TRANSLATE_OPITEM" },
+    { DrawOpItem::SCALE_OPITEM,             "SCALE_OPITEM" },
+    { DrawOpItem::ROTATE_OPITEM,            "ROTATE_OPITEM" },
+    { DrawOpItem::SHEAR_OPITEM,             "SHEAR_OPITEM" },
+    { DrawOpItem::FLUSH_OPITEM,             "FLUSH_OPITEM" },
+    { DrawOpItem::CLEAR_OPITEM,             "CLEAR_OPITEM" },
+    { DrawOpItem::SAVE_OPITEM,              "SAVE_OPITEM" },
+    { DrawOpItem::SAVE_LAYER_OPITEM,        "SAVE_LAYER_OPITEM" },
+    { DrawOpItem::RESTORE_OPITEM,           "RESTORE_OPITEM" },
+    { DrawOpItem::DISCARD_OPITEM,           "DISCARD_OPITEM" },
+    { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM,  "CLIP_ADAPTIVE_ROUND_RECT_OPITEM" },
+    { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   "IMAGE_WITH_PARM_OPITEM" },
+    { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, "PIXELMAP_WITH_PARM_OPITEM" },
+    { DrawOpItem::PIXELMAP_RECT_OPITEM,     "PIXELMAP_RECT_OPITEM" },
+    { DrawOpItem::REGION_OPITEM,            "REGION_OPITEM" },
+    { DrawOpItem::PATCH_OPITEM,             "PATCH_OPITEM" },
+    { DrawOpItem::EDGEAAQUAD_OPITEM,        "EDGEAAQUAD_OPITEM" },
+    { DrawOpItem::VERTICES_OPITEM,          "VERTICES_OPITEM" },
+    { DrawOpItem::IMAGE_SNAPSHOT_OPITEM,    "IMAGE_SNAPSHOT_OPITEM" },
+    { DrawOpItem::SURFACEBUFFER_OPITEM,     "SURFACEBUFFER_OPITEM"},
+    { DrawOpItem::DRAW_FUNC_OPITEM,         "DRAW_FUNC_OPITEM"},
+};
+
 namespace {
 constexpr int TEXT_BLOB_CACHE_MARGIN = 10;
-bool GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
-    std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas)
-{
-    auto surface = canvas.GetSurface();
-    if (!surface) {
-        return false;
-    }
-    offScreenSurface = surface->MakeSurface(surface->Width(), surface->Height());
-    if (!offScreenSurface) {
-        return false;
-    }
-    offScreenCanvas = offScreenSurface->GetCanvas();
-    offScreenCanvas->SetMatrix(canvas.GetTotalMatrix());
-    return true;
-}
+constexpr float HIGH_CONTRAST_OFFSCREEN_THREASHOLD = 0.99f;
 }
 
 std::function<void (std::shared_ptr<Drawing::Image> image)> DrawOpItem::holdDrawingImagefunc_ = nullptr;
@@ -235,6 +278,16 @@ void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, P
     if (paint.GetPathEffect()) {
         paintHandle.pathEffectHandle = CmdListHelper::AddPathEffectToCmdList(cmdList, paint.GetPathEffect());
     }
+}
+
+std::string DrawOpItem::GetOpDesc()
+{
+    return typeOpDes[GetType()];
+}
+
+void DrawOpItem::Dump(std::string& out)
+{
+    out += typeOpDes[GetType()];
 }
 
 GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas, const Rect* rect)
@@ -1118,6 +1171,26 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
 }
 
+bool DrawTextBlobOpItem::GetOffScreenSurfaceAndCanvas(const Canvas& canvas,
+    std::shared_ptr<Drawing::Surface>& offScreenSurface, std::shared_ptr<Canvas>& offScreenCanvas) const
+{
+    auto surface = canvas.GetSurface();
+    auto textBlobBounds = textBlob_->Bounds();
+    if (!surface || !textBlobBounds) {
+        return false;
+    }
+    offScreenSurface = surface->MakeSurface(textBlobBounds->GetWidth(), textBlobBounds->GetHeight());
+    if (!offScreenSurface) {
+        return false;
+    }
+    offScreenCanvas = offScreenSurface->GetCanvas();
+    if (!offScreenCanvas) {
+        return false;
+    }
+    offScreenCanvas->Translate(-textBlobBounds->GetLeft(), -textBlobBounds->GetTop());
+    return true;
+}
+
 void DrawTextBlobOpItem::DrawHighContrastEnabled(Canvas* canvas) const
 {
     ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
@@ -1126,46 +1199,47 @@ void DrawTextBlobOpItem::DrawHighContrastEnabled(Canvas* canvas) const
         canvas->DrawTextBlob(textBlob_.get(), x_, y_);
         return;
     }
-    if (canvas->GetAlphaSaveCount() > 0 && canvas->GetAlpha() < 1.0f) {
+    // in case of perceptible transparent, text should be drawn offscreen to avoid stroke and content overlap.
+    if (canvas->GetAlphaSaveCount() > 0 && canvas->GetAlpha() < HIGH_CONTRAST_OFFSCREEN_THREASHOLD) {
         std::shared_ptr<Drawing::Surface> offScreenSurface;
         std::shared_ptr<Canvas> offScreenCanvas;
         if (GetOffScreenSurfaceAndCanvas(*canvas, offScreenSurface, offScreenCanvas)) {
-            DrawHighContrast(offScreenCanvas.get());
+            DrawHighContrast(offScreenCanvas.get(), true);
             offScreenCanvas->Flush();
             Drawing::Brush paint;
             paint.SetAntiAlias(true);
             canvas->AttachBrush(paint);
             Drawing::SamplingOptions sampling =
                 Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
-            canvas->Save();
-            canvas->ResetMatrix();
-            canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(), 0, 0, sampling);
+            canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(),
+                x_ + textBlob_->Bounds()->GetLeft(), y_ + textBlob_->Bounds()->GetTop(), sampling);
             canvas->DetachBrush();
-            canvas->Restore();
             return;
         }
     }
     DrawHighContrast(canvas);
 }
 
-void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas) const
+void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas, bool offScreen) const
 {
     ColorQuad colorQuad = paint_.GetColor().CastToColorQuad();
     uint32_t channelSum = Color::ColorQuadGetR(colorQuad) + Color::ColorQuadGetG(colorQuad) +
         Color::ColorQuadGetB(colorQuad);
     bool flag = channelSum < 594; // 594 is empirical value
 
-    Paint outlinePaint(paint_);
-    SimplifyPaint(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK, outlinePaint);
-    outlinePaint.SetStyle(Paint::PAINT_FILL_STROKE);
-    canvas->AttachPaint(outlinePaint);
-    canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    // draw outline stroke with pen
+    Drawing::Pen outlinePen;
+    outlinePen.SetColor(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK);
+    outlinePen.SetAntiAlias(false);
+    canvas->AttachPen(outlinePen);
+    offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 
-    Paint innerPaint(paint_);
-    SimplifyPaint(flag ? Color::COLOR_BLACK : Color::COLOR_WHITE, innerPaint);
-    innerPaint.SetStyle(Paint::PAINT_FILL);
-    canvas->AttachPaint(innerPaint);
-    canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    // draw inner content with brush
+    Drawing::Brush innerBrush;
+    innerBrush.SetColor(flag ? Color::COLOR_BLACK : Color::COLOR_WHITE);
+    canvas->DetachPen();
+    canvas->AttachBrush(innerBrush);
+    offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 }
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(

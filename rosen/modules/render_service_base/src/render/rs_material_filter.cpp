@@ -182,7 +182,10 @@ std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialFilter(flo
 {
     colorFilter_ = GetColorFilter(sat, brightness);
     auto blurType = KAWASE_BLUR_ENABLED ? Drawing::ImageBlurType::KAWASE : Drawing::ImageBlurType::GAUSS;
-    return Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter_, radius, radius, blurType);
+    if (colorFilter_) {
+        return Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter_, radius, radius, blurType);
+    }
+    return Drawing::ImageFilter::CreateBlurImageFilter(radius, radius, Drawing::TileMode::CLAMP, nullptr, blurType);
 }
 
 std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialStyle(
@@ -354,8 +357,9 @@ void RSMaterialFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_
         return;
     }
     // if hps blur failed, use kawase blur
+    Drawing::HpsBlurParameter hpsParam = Drawing::HpsBlurParameter(src, dst, GetRadius(), saturation_, brightness_);
     if (HPS_BLUR_ENABLED &&
-        canvas.DrawBlurImage(*greyImage, Drawing::HpsBlurParameter(src, dst, GetRadius(), saturation_, brightness_))) {
+        HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, greyImage, hpsParam, brush.GetColor().GetAlphaF())) {
         RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(GetRadius()));
         return;
     }

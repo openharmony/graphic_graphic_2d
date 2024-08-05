@@ -115,7 +115,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, CollectSurfaceTest003, TestSize.Level1)
     renderNode->CollectSurface(rsBaseRenderNode, vec, false, true);
     EXPECT_FALSE(renderNode->IsLeashWindow());
     auto surfaceBufferImpl = new SurfaceBufferImpl();
-    renderNode->buffer_.buffer = surfaceBufferImpl;
+    renderNode->GetRSSurfaceHandler()->buffer_.buffer = surfaceBufferImpl;
     renderNode->CollectSurface(rsBaseRenderNode, vec, false, true);
     EXPECT_FALSE(renderNode->IsLeashWindow());
     renderNode->shouldPaint_ = false;
@@ -197,11 +197,11 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateSrcRectTest, TestSize.Level1)
     auto handle = new BufferHandle();
     handle->format = 22;
     surfaceBufferImpl->handle_ = handle;
-    renderNode->buffer_.buffer = surfaceBufferImpl;
+    renderNode->GetRSSurfaceHandler()->buffer_.buffer = surfaceBufferImpl;
     renderNode->UpdateSrcRect(canvas, dstRect, true);
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
-    if (renderNode->buffer_.buffer) {
-        delete renderNode->buffer_.buffer;
+    if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
+        delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
     }
 }
 
@@ -217,7 +217,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateHwcDisabledBySrcRectTest, TestSize.Le
     renderNode->UpdateHwcDisabledBySrcRect(true);
     EXPECT_FALSE(renderNode->IsYUVBufferFormat());
     auto surfaceBufferImpl = new SurfaceBufferImpl();
-    renderNode->buffer_.buffer = surfaceBufferImpl;
+    renderNode->GetRSSurfaceHandler()->buffer_.buffer = surfaceBufferImpl;
     renderNode->UpdateHwcDisabledBySrcRect(true);
     EXPECT_FALSE(renderNode->IsYUVBufferFormat());
     auto handle = new BufferHandle();
@@ -225,8 +225,8 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateHwcDisabledBySrcRectTest, TestSize.Le
     surfaceBufferImpl->handle_ = handle;
     renderNode->UpdateHwcDisabledBySrcRect(true);
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
-    if (renderNode->buffer_.buffer) {
-        delete renderNode->buffer_.buffer;
+    if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
+        delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
     }
 }
 
@@ -241,7 +241,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsYUVBufferFormatTest, TestSize.Level1)
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_FALSE(renderNode->IsYUVBufferFormat());
     auto surfaceBufferImpl = new SurfaceBufferImpl();
-    renderNode->buffer_.buffer = surfaceBufferImpl;
+    renderNode->GetRSSurfaceHandler()->buffer_.buffer = surfaceBufferImpl;
     EXPECT_FALSE(renderNode->IsYUVBufferFormat());
     auto handle = new BufferHandle();
     handle->format = 20;
@@ -253,8 +253,8 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsYUVBufferFormatTest, TestSize.Level1)
     EXPECT_FALSE(renderNode->IsYUVBufferFormat());
     handle->format = 22;
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
-    if (renderNode->buffer_.buffer) {
-        delete renderNode->buffer_.buffer;
+    if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
+        delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
     }
 }
 
@@ -572,7 +572,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, AccumulateOcclusionRegion, TestSize.Level1)
     EXPECT_FALSE(hasFilterCacheOcclusion);
     isUniRender = false;
     auto surfaceBufferImpl = new SurfaceBufferImpl();
-    testNode->buffer_.buffer = surfaceBufferImpl;
+    testNode->GetRSSurfaceHandler()->buffer_.buffer = surfaceBufferImpl;
     testNode->AccumulateOcclusionRegion(
         accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender, filterCacheOcclusionEnabled);
     EXPECT_FALSE(testNode->IsSurfaceInStartingWindowStage());
@@ -597,8 +597,8 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, AccumulateOcclusionRegion, TestSize.Level1)
     testNode->AccumulateOcclusionRegion(
         accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender, filterCacheOcclusionEnabled);
     EXPECT_TRUE(testNode->IsSurfaceInStartingWindowStage());
-    if (testNode->buffer_.buffer) {
-        delete testNode->buffer_.buffer;
+    if (testNode->GetRSSurfaceHandler()->buffer_.buffer) {
+        delete testNode->GetRSSurfaceHandler()->buffer_.buffer;
     }
 }
 
@@ -780,7 +780,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsUIFirstSelfDrawCheck, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> rssNode = nullptr;
     std::weak_ptr<RSSurfaceRenderNode> rssNodeF = rssNode;
     std::shared_ptr<RSSurfaceRenderNode> rssNodeTT = std::make_shared<RSSurfaceRenderNode>(0);
-    rssNodeTT->isCurrentFrameBufferConsumed_ = true;
+    rssNodeTT->GetRSSurfaceHandler()->isCurrentFrameBufferConsumed_ = true;
     std::weak_ptr<RSSurfaceRenderNode> rssNodeT = rssNodeTT;
     node->childHardwareEnabledNodes_.emplace_back(rssNodeF);
     node->childHardwareEnabledNodes_.emplace_back(rssNodeT);
@@ -884,9 +884,9 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetNodeIsSingleFrameComposer, TestSize.Leve
     bool res = node->GetNodeIsSingleFrameComposer();
     ASSERT_FALSE(res);
     system::SetParameter("persist.sys.graphic.singleFrame", "1");
-    EXPECT_FALSE(node->GetNodeIsSingleFrameComposer());
-    node->name_ = "hwstylusfeature";
+    ASSERT_FALSE(node->GetNodeIsSingleFrameComposer());
     node->isNodeSingleFrameComposer_ = true;
+    node->name_ = "hwstylusfeature";
     EXPECT_TRUE(node->GetNodeIsSingleFrameComposer());
 }
 

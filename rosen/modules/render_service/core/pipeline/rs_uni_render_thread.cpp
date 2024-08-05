@@ -25,8 +25,11 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "include/core/SkGraphics.h"
+#include "include/gpu/GrDirectContext.h"
 #include "surface.h"
 #include "sync_fence.h"
+#include "drawable/rs_display_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -50,6 +53,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_uifirst_manager.h"
+#include "system/rs_system_parameters.h"
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
@@ -61,6 +65,8 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
+constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
+constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES = "AsyncFreeVMAMemoryBetweenFrames";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -125,6 +131,7 @@ void RSUniRenderThread::InitGrContext()
     uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     if (!uniRenderEngine_) {
         RS_LOGE("uniRenderEngine_ is nullptr");
+        return;
     }
     uniRenderEngine_->Init();
 #ifdef RS_ENABLE_VK
@@ -139,17 +146,20 @@ void RSUniRenderThread::InitGrContext()
 
 void RSUniRenderThread::Inittcache()
 {
-    // enable cache
-    mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
+    if (RSSystemParameters::GetTcacheEnabled()) {
+        // enable cache
+        mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
+    }
 }
 
 void RSUniRenderThread::Start()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     if (!runner_) {
         RS_LOGE("RSUniRenderThread Start runner null");
+        return;
     }
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
@@ -217,8 +227,7 @@ void RSUniRenderThread::PostImageReleaseTask(const std::function<void()>& task)
         PostRTTask(task);
         return;
     }
-    static bool isAln = system::GetParameter("const.build.product", "") == "ALN";
-    if (isAln && tid_ == gettid()) {
+    if (tid_ == gettid()) {
         task();
         return;
     }
@@ -286,7 +295,6 @@ void RSUniRenderThread::Render()
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
-    // TO-DO replace Canvas* with Canvas&
     Drawing::Canvas canvas;
     RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(canvas);
@@ -328,31 +336,42 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
     std::vector<std::function<void()>> releaseTasks;
     for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
-        auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
-        bool needRelease = !params->GetHardwareEnabled() || !params->GetLayerCreated();
-        if (needRelease && params->GetLastFrameHardwareEnabled()) {
-            params->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
+        auto drawable = surfaceNode->GetRenderDrawable();
+        if (UNLIKELY(!drawable)) {
+            continue;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+        auto& params = surfaceDrawable->GetRenderParams();
+        if (UNLIKELY(!params)) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
+        bool needRelease = !surfaceParams->GetHardwareEnabled() || !surfaceParams->GetLayerCreated();
+        if (needRelease && surfaceParams->GetLastFrameHardwareEnabled()) {
+            surfaceParams->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
         }
         if (needRelease) {
-            auto& preBuffer = params->GetPreBuffer();
+            auto preBuffer = params->GetPreBuffer();
             if (preBuffer == nullptr) {
-                if (params->releaseInHardwareThreadTaskNum_ > 0) {
-                    params->releaseInHardwareThreadTaskNum_--;
+                if (surfaceParams->releaseInHardwareThreadTaskNum_ > 0) {
+                    surfaceParams->releaseInHardwareThreadTaskNum_--;
                 }
                 continue;
             }
-            auto releaseTask = [buffer = preBuffer, consumer = surfaceNode->GetConsumer(),
-                useReleaseFence = params->GetLastFrameHardwareEnabled(), acquireFence = acquireFence_]() mutable {
+            auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+            auto releaseTask = [buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
+                                   useReleaseFence = surfaceParams->GetLastFrameHardwareEnabled(),
+                                   acquireFence = acquireFence_]() mutable {
                 auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
                     RSHardwareThread::Instance().releaseFence_ : acquireFence);
                 if (ret != OHOS::SURFACE_ERROR_OK) {
                     RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
                 }
             };
-            preBuffer = nullptr;
-            if (params->releaseInHardwareThreadTaskNum_ > 0) {
+            params->SetPreBuffer(nullptr);
+            if (surfaceParams->releaseInHardwareThreadTaskNum_ > 0) {
                 releaseTasks.emplace_back(releaseTask);
-                params->releaseInHardwareThreadTaskNum_--;
+                surfaceParams->releaseInHardwareThreadTaskNum_--;
             } else {
                 releaseTask();
             }
@@ -429,14 +448,16 @@ void RSUniRenderThread::SubScribeSystemAbility()
     }
 }
 #endif
-bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(std::shared_ptr<RSDisplayRenderNode> displayNode)
+bool RSUniRenderThread::WaitUntilDisplayNodeBufferReleased(
+    DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable)
 {
     std::unique_lock<std::mutex> lock(displayNodeBufferReleasedMutex_);
     displayNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
-    if (!displayNode->IsSurfaceCreated()) {
+    if (!displayNodeDrawable.IsSurfaceCreated()) {
         return true;
     }
-    if (displayNode->GetConsumer() && displayNode->GetConsumer()->QueryIfBufferAvailable()) {
+    auto consumer = displayNodeDrawable.GetRSSurfaceHandlerOnDraw()->GetConsumer();
+    if (consumer && consumer->QueryIfBufferAvailable()) {
         return true;
     }
     return displayNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +
@@ -611,8 +632,14 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 
 void RSUniRenderThread::DumpMem(DfxString& log)
 {
-    PostSyncTask([&log, this]() {
-        MemoryManager::DumpDrawingGpuMemory(log, GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        std::string name = node->GetName() + " " + std::to_string(node->GetId());
+        nodeTags.push_back({node->GetId(), name});
+    });
+    PostSyncTask([&log, &nodeTags, this]() {
+        MemoryManager::DumpDrawingGpuMemory(log, GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), nodeTags);
     });
 }
 
@@ -712,13 +739,54 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
         PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
-void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
+void RSUniRenderThread::PreAllocateTextureBetweenFrames()
 {
-    if (!rootNodeDrawable_) {
-        dumpString.append("rootNode is null\n");
+    if (!RSSystemProperties::IsPhoneType()) {
         return;
     }
-    rootNodeDrawable_->DumpDrawableTree(0, dumpString);
+    RemoveTask(PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES);
+    PostTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("PreAllocateTextureBetweenFrames");
+            GrDirectContext::preAllocateTextureBetweenFrames();
+        },
+        PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES,
+        0,
+        AppExecFwk::EventQueue::Priority::LOW);
+}
+
+void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
+{
+    RemoveTask(ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES);
+    PostTask(
+        [this]() {
+            RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames");
+            GrDirectContext::asyncFreeVMAMemoryBetweenFrames([this]() -> bool {
+                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+            });
+        },
+        ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
+}
+
+void RSUniRenderThread::MemoryManagementBetweenFrames()
+{
+    if (RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()) {
+        PreAllocateTextureBetweenFrames();
+    }
+    if (RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()) {
+        AsyncFreeVMAMemoryBetweenFrames();
+    }
+}
+
+void RSUniRenderThread::RenderServiceTreeDump(std::string& dumpString) const
+{
+    const std::shared_ptr<RSBaseRenderNode> rootNode =
+        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    if (!rootNode) {
+        dumpString += "rootNode is nullptr";
+        return;
+    }
+    rootNode->DumpDrawableTree(0, dumpString);
 }
 
 void RSUniRenderThread::UpdateDisplayNodeScreenId()

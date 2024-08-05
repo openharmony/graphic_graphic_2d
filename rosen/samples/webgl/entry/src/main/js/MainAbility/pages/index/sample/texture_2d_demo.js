@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createProgram, loadImage } from "../utils/extension";
+import { createProgram, loadImage } from '../utils/extension';
 import { Images } from '../utils/Images';
 
 const VS_CODE = `
@@ -44,9 +44,9 @@ let arr = new Float32Array([
     0.5, -0.5, maxS, 0.0
 ]);
 
-export async function texture_2d_demo() {
+export async function texture2dDemo() {
     let gl = globalThis.gl;
-    let program = createProgram(globalThis.gl, VS_CODE, FS_CODE, ["a_Matrix", "a_Position", "a_TexCoord"], ["u_Sampler"]);
+    let program = createProgram(globalThis.gl, VS_CODE, FS_CODE, ['a_Matrix', 'a_Position', 'a_TexCoord'], ['u_Sampler']);
     let buffer = gl.createBuffer();
     if (buffer === null) {
         gl.deleteBuffer(buffer);
@@ -59,7 +59,7 @@ export async function texture_2d_demo() {
     gl.vertexAttribPointer(program.a_TexCoord, 2, gl.FLOAT, false, Float32Array.BYTES_PER_ELEMENT * 4, Float32Array.BYTES_PER_ELEMENT * 2);
     gl.enableVertexAttribArray(program.a_TexCoord);
     let image = await loadImage(Images.MF_IMG);
-    console.log("webgltest", image);
+    console.log('webgltest', image);
     let texture = gl.createTexture();
     if (texture === null) {
         gl.deleteTexture(texture);

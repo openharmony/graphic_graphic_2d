@@ -940,6 +940,23 @@ bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const D
     return result;
 }
 
+std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
+{
+    std::array<int, 2> result = {0, 0}; // There are 2 variables
+#ifdef ENABLE_RECORDING_DCL
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            result = (*iter)->CalcHpsBluredImageDimension(blurParams);
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        result = canvas_->CalcHpsBluredImageDimension(blurParams);
+    }
+#endif
+    return result;
+}
+
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ 1.0f }),
       envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } })

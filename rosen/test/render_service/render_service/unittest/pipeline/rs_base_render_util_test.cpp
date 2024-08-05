@@ -100,6 +100,7 @@ void RSBaseRenderUtilTest::SetUpTestCase()
 {
     RSSurfaceRenderNodeConfig config;
     node_ = std::make_shared<RSSurfaceRenderNode>(config);
+    RSTestUtil::InitRenderNodeGC();
 }
 
 void RSBaseRenderUtilTest::TearDownTestCase()
@@ -226,7 +227,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
     // create producer and consumer
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     ASSERT_NE(surfaceConsumer, nullptr);
     auto producer = surfaceConsumer->GetProducer();
     ASSERT_NE(producer, nullptr);
@@ -247,7 +248,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
     ASSERT_EQ(ret, GSERROR_OK);
 
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+        auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
         uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
         RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
         ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
@@ -265,7 +266,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
     // create producer and consumer
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     ASSERT_NE(surfaceConsumer, nullptr);
     auto producer = surfaceConsumer->GetProducer();
     ASSERT_NE(producer, nullptr);
@@ -285,7 +286,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    auto& surfaceHandler = static_cast<RSSurfaceHandler&>(*(rsSurfaceRenderNode.get()));
+    auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
     uint64_t vsyncTimestamp = 200; // let vync's timestamp bigger than buffer timestamp
     RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
     ASSERT_EQ(surfaceHandler.bufferCache_.size(), 0);
@@ -474,7 +475,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
     psurf->SetQueueSize(1);
@@ -504,7 +505,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
     psurf->SetQueueSize(1);
@@ -535,7 +536,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_003, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetConsumer();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
     psurf->SetQueueSize(1);
@@ -615,7 +616,7 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
     rsNode->SetIsOnTheTree(true);
 
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
-    rsNode->SetConsumer(csurf);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
         rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
 }
@@ -870,7 +871,7 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_001, Function | SmallTest | Level2)
 
     sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     surface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H);
-    rsNode->SetConsumer(surface);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(surface);
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
 
     ASSERT_EQ(params.matrix.Get(0), -matrix.Get(0));
@@ -896,7 +897,7 @@ HWTEST_F(RSBaseRenderUtilTest, FlipMatrix_002, Function | SmallTest | Level2)
 
     sptr<IConsumerSurface> surface = IConsumerSurface::Create(config.name);
     surface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V);
-    rsNode->SetConsumer(surface);
+    rsNode->GetRSSurfaceHandler()->SetConsumer(surface);
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
 
     ASSERT_EQ(params.matrix.Get(1), -matrix.Get(1));

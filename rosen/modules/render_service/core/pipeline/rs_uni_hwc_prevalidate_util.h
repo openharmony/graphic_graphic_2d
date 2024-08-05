@@ -86,6 +86,7 @@ private:
     RSUniHwcPrevalidateUtil();
     ~RSUniHwcPrevalidateUtil();
 
+    bool IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const;
     void CopyCldInfo(CldInfo src, RequestLayerInfo& info);
     void LayerRotate(
         RequestLayerInfo& info, const sptr<IConsumerSurface>& surface, const ScreenInfo &screenInfo);

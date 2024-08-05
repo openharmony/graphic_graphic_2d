@@ -367,6 +367,9 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
         SetStrutStyleFromJS(env, strutStyleValue, pographyStyle);
     }
 
+    pographyStyle.ellipsis = textStyle.ellipsis;
+    pographyStyle.ellipsisModal = textStyle.ellipsisModal;
+
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
 
     return true;

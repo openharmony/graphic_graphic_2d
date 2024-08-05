@@ -352,6 +352,101 @@ bool operator!=(
 }
 
 template<>
+void RSRenderProperty<float>::Dump(std::string& out) const
+{
+    out += "[" + std::to_string(Get()) + "]";
+}
+
+template<>
+void RSRenderProperty<Vector4f>::Dump(std::string& out) const
+{
+    Vector4f v4f = Get();
+    switch (modifierType_) {
+        case RSModifierType::BOUNDS: {
+            out += "[x:" + std::to_string(v4f.x_) + " y:";
+            out += std::to_string(v4f.y_) + " width:";
+            out += std::to_string(v4f.z_) + " height:";
+            out += std::to_string(v4f.w_) + "]";
+            break;
+        }
+        default: {
+            out += "[x:" + std::to_string(v4f.x_) + " y:";
+            out += std::to_string(v4f.y_) + " z:";
+            out += std::to_string(v4f.z_) + " w:";
+            out += std::to_string(v4f.w_) + "]";
+            break;
+        }
+    }
+}
+
+template<>
+void RSRenderProperty<Quaternion>::Dump(std::string& out) const
+{
+}
+
+template<>
+void RSRenderProperty<Vector2f>::Dump(std::string& out) const
+{
+    Vector2f v2f = Get();
+    out += "[x:" + std::to_string(v2f.x_) + " y:";
+    out += std::to_string(v2f.y_) + "]";
+}
+
+template<>
+void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
+{
+}
+
+template<>
+void RSRenderProperty<Color>::Dump(std::string& out) const
+{
+    std::ostringstream ss;
+    ss << "0x" << std::hex << Get().AsRgbaInt();
+    out += "[RGBA-";
+    out += ss.str();
+    out += "]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSFilter>>::Dump(std::string& out) const
+{
+}
+
+template<>
+void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const
+{
+}
+
+template<>
+void RSRenderProperty<RRect>::Dump(std::string& out) const
+{
+}
+
+template<>
+void RSRenderProperty<Drawing::DrawCmdListPtr>::Dump(std::string& out) const
+{
+    out += "drawCmdList[";
+    Get()->Dump(out);
+    out += "]";
+}
+
+template<>
+void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
+{
+    out += "ENV_FOREGROUND_COLOR_STRATEGY[";
+    out += std::to_string(static_cast<int>(Get()));
+    out += "]";
+}
+
+template<>
+void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
+{
+    out += "GEOMETRYTRANS[";
+    Get().dump(out, 0);
+    out += "]";
+}
+
+template<>
 bool RSRenderAnimatableProperty<float>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
 {
@@ -511,6 +606,19 @@ bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
         return filter->IsEqualZero();
     }
 }
+
+template class RSRenderProperty<float>;
+template class RSRenderProperty<Vector4f>;
+template class RSRenderProperty<Quaternion>;
+template class RSRenderProperty<Vector2f>;
+template class RSRenderProperty<Matrix3f>;
+template class RSRenderProperty<Color>;
+template class RSRenderProperty<std::shared_ptr<RSFilter>>;
+template class RSRenderProperty<Vector4<Color>>;
+template class RSRenderProperty<RRect>;
+template class RSRenderProperty<Drawing::DrawCmdListPtr>;
+template class RSRenderProperty<ForegroundColorStrategyType>;
+template class RSRenderProperty<SkMatrix>;
 
 template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;

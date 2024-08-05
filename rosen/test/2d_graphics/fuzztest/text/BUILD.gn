@@ -15,8 +15,11 @@ group("fuzztest") {
   testonly = true
 
   deps = [
+    "font_fuzzer:fuzztest",
     "fontarguments_fuzzer:fuzztest",
+    "fontmgr_fuzzer:fuzztest",
     "fontstyle_fuzzer:fuzztest",
     "fontstyleset_fuzzer:fuzztest",
+    "hmsymbolconfigohos_fuzzer:fuzztest",
   ]
 }

@@ -18,6 +18,7 @@
 
 #include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
 #include "rs_profiler.h"
+#include "rs_profiler_archive.h"
 #include "rs_profiler_cache.h"
 #include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_capturedata.h"
@@ -179,7 +180,10 @@ void RSProfiler::Init(RSRenderService* renderService)
     g_context = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
     if (!IsBetaRecordEnabled()) {
-        static std::thread const THREAD(Network::Run);
+        static auto const networkRunLambda = []() {
+            Network::Run();
+        };
+        static std::thread const thread(networkRunLambda);
     }
 }
 
@@ -406,10 +410,10 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
         captureData.SetProperty(RSCaptureData::KEY_RENDER_FRAME_LEN, frameLengthNanosecs);
 
         std::vector<char> out;
-        captureData.Serialize(out);
-
-        const char headerType = static_cast<const char>(PackageID::RS_PROFILER_RENDER_METRICS);
-        out.insert(out.begin(), headerType);
+        DataWriter archive(out);
+        char headerType = static_cast<char>(PackageID::RS_PROFILER_RENDER_METRICS);
+        archive.Serialize(headerType);
+        captureData.Serialize(archive);
 
         Network::SendBinary(out.data(), out.size());
         g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
@@ -418,6 +422,10 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
 
 bool RSProfiler::ShouldBlockHWCNode()
 {
+    if (!IsEnabled()) {
+        return false;
+    }
+
     return GetMode() == Mode::READ;
 }
 
@@ -555,11 +563,19 @@ void RSProfiler::ScheduleTask(std::function<void()> && task)
 
 void RSProfiler::RequestNextVSync()
 {
+    if (g_mainThread) {
+        g_mainThread->RequestNextVSync();
+    }
     ScheduleTask([]() { g_mainThread->RequestNextVSync(); });
 }
 
 void RSProfiler::AwakeRenderServiceThread()
 {
+    if (g_mainThread) {
+        g_mainThread->RequestNextVSync();
+        g_mainThread->SetAccessibilityConfigChanged();
+        g_mainThread->SetDirtyFlag();
+    }
     ScheduleTask([]() {
         g_mainThread->SetAccessibilityConfigChanged();
         g_mainThread->SetDirtyFlag();
@@ -587,9 +603,9 @@ void RSProfiler::AwakeRenderServiceThreadResetCaches()
                 return;
             }
             surfaceNode->NeedClearBufferCache();
-            surfaceNode->ResetBufferAvailableCount();
-            surfaceNode->CleanCache();
-            surfaceNode->UpdateBufferInfo(nullptr, nullptr, nullptr);
+            surfaceNode->GetRSSurfaceHandler()->ResetBufferAvailableCount();
+            surfaceNode->GetRSSurfaceHandler()->CleanCache();
+            surfaceNode->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);
             surfaceNode->SetNotifyRTBufferAvailable(false);
             surfaceNode->SetContentDirty();
             surfaceNode->ResetHardwareEnabledStates();
@@ -693,7 +709,7 @@ std::string RSProfiler::FirstFrameMarshalling()
     return stream.str();
 }
 
-void RSProfiler::FirstFrameUnmarshalling(const std::string& data)
+void RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion)
 {
     std::stringstream stream;
     stream.str(data);
@@ -701,7 +717,7 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data)
     SetMode(Mode::READ_EMUL);
 
     DisableSharedMemory();
-    UnmarshalNodes(*g_context, stream);
+    UnmarshalNodes(*g_context, stream, fileVersion);
     EnableSharedMemory();
 
     SetMode(Mode::NONE);
@@ -796,10 +812,10 @@ void RSProfiler::RecordUpdate()
         captureData.SetProperty(RSCaptureData::KEY_RS_CPU_ID, g_renderServiceCpuId.load());
 
         std::vector<char> out;
-        captureData.Serialize(out);
-
-        const char headerType = static_cast<const char>(PackageID::RS_PROFILER_RS_METRICS);
-        out.insert(out.begin(), headerType);
+        DataWriter archive(out);
+        char headerType = static_cast<char>(PackageID::RS_PROFILER_RS_METRICS);
+        archive.Serialize(headerType);
+        captureData.Serialize(archive);
 
         Network::SendBinary(out.data(), out.size());
         g_recordFile.WriteRSMetrics(0, timeSinceRecordStart, out.data(), out.size());
@@ -1146,6 +1162,16 @@ void RSProfiler::SocketShutdown(const ArgList& args)
     Network::ForceShutdown();
 }
 
+void RSProfiler::Version(const ArgList& args)
+{
+    Respond("Version: " + std::to_string(RSFILE_VERSION_LATEST));
+}
+
+void RSProfiler::FileVersion(const ArgList& args)
+{
+    Respond("File version: " + std::to_string(RSFILE_VERSION_LATEST));
+}
+
 void RSProfiler::CalcPerfNodeAll(const ArgList& args)
 {
     if (g_nodeSetPerf.empty()) {
@@ -1208,7 +1234,7 @@ void RSProfiler::TestSaveFrame(const ArgList& args)
 
 void RSProfiler::TestLoadFrame(const ArgList& args)
 {
-    FirstFrameUnmarshalling(g_testDataFrame);
+    FirstFrameUnmarshalling(g_testDataFrame, RSFILE_VERSION_LATEST);
     Respond("Load Frame Size: " + std::to_string(g_testDataFrame.size()));
 }
 
@@ -1329,9 +1355,11 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     std::string dataFirstFrame = g_playbackFile.GetHeaderFirstFrame();
 
     // get first frame data
-    FirstFrameUnmarshalling(dataFirstFrame);
-    constexpr int defaultWaitFrames = 50;
+    FirstFrameUnmarshalling(dataFirstFrame, g_playbackFile.GetVersion());
+    // The number of frames loaded before command processing
+    constexpr int defaultWaitFrames = 5;
     g_playbackWaitFrames = defaultWaitFrames;
+    Respond("awake_frame " + std::to_string(g_playbackWaitFrames));
     AwakeRenderServiceThread();
 }
 
@@ -1379,7 +1407,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
 void RSProfiler::PlaybackStop(const ArgList& args)
 {
-    if (g_playbackShouldBeTerminated) {
+    if (g_childOfDisplayNodes.empty()) {
         return;
     }
     HiddenSpaceTurnOff();
@@ -1451,6 +1479,7 @@ void RSProfiler::PlaybackUpdate()
         g_playbackFile.Close();
         g_playbackPid = 0;
         TimePauseClear();
+        g_playbackShouldBeTerminated = false;
     }
 }
 
@@ -1555,6 +1584,8 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
         { "calc_perf_node", CalcPerfNode },
         { "calc_perf_node_all", CalcPerfNodeAll },
         { "socket_shutdown", SocketShutdown },
+        { "version", Version },
+        { "file_version", FileVersion },
     };
 
     if (command.empty()) {
@@ -1569,7 +1600,9 @@ void RSProfiler::ProcessCommands()
 {
     if (g_playbackWaitFrames > 0) {
         g_playbackWaitFrames--;
+        Respond("awake_frame " + std::to_string(g_playbackWaitFrames));
         AwakeRenderServiceThread();
+        return;
     }
 
     std::vector<std::string> commandData;

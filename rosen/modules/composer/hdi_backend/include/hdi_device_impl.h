@@ -17,7 +17,6 @@
 #define HDI_BACKEND_HDI_DEVICE_IMPL_H
 
 #include "hdi_device.h"
-#include "graphic_error.h"
 #include "v1_2/include/idisplay_composer_interface.h"
 
 namespace OHOS {
@@ -26,9 +25,10 @@ class HdiDeviceImpl : public HdiDevice {
 public:
     HdiDeviceImpl();
     virtual ~HdiDeviceImpl();
-    RosenError Init();
+    bool Init();
     /* set & get device screen info begin */
     int32_t RegHotPlugCallback(HotPlugCallback callback, void *data) override;
+    int32_t RegRefreshCallback(RefreshCallback callback, void *data) override;
     int32_t RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data) override;
     bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) override;
     int32_t RegScreenVBlankIdleCallback(OnVBlankIdleCallback callback, void *data) override;
@@ -50,8 +50,6 @@ public:
     int32_t SetScreenClientBufferCacheCount(uint32_t screen, uint32_t count) override;
     int32_t SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect> &damageRect) override;
     int32_t SetScreenVsyncEnabled(uint32_t screenId, bool enabled) override;
-    int32_t GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layersId,
-                                  std::vector<sptr<SyncFence>> &fences) override;
     int32_t GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<GraphicColorGamut> &gamuts) override;
     int32_t SetScreenColorGamut(uint32_t screenId, GraphicColorGamut gamut) override;
     int32_t GetScreenColorGamut(uint32_t screenId, GraphicColorGamut &gamut) override;
@@ -100,6 +98,8 @@ public:
     int32_t CreateLayer(uint32_t screenId, const GraphicLayerInfo &layerInfo, uint32_t cacheCount,
                         uint32_t &layerId) override;
     int32_t CloseLayer(uint32_t screenId, uint32_t layerId) override;
+    int32_t ClearLayerBuffer(uint32_t screenId, uint32_t layerId) override;
+    int32_t ClearClientBuffer(uint32_t screenId) override;
     void Destroy() override;
 
 private:
@@ -109,7 +109,7 @@ private:
     HdiDeviceImpl& operator=(HdiDeviceImpl&& rhs) = delete;
 
     std::once_flag layerPerFrameParameterKeyCreateFlag_;
-    std::vector<std::string> layerPerFrameParameterKeys_ = {};
+    std::vector<std::string> layerPerFrameParameterKeys_{};
 };
 
 } // namespace Rosen

@@ -52,9 +52,16 @@ static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
 HgmCore& HgmCore::Instance()
 {
     static HgmCore instance;
+    static std::mutex mtx;
     if (instance.IsInit()) {
         return instance;
     }
+
+    std::lock_guard<std::mutex> lock(mtx);
+    if (instance.IsInit()) {
+        return instance;
+    }
+    
     if (instance.Init() == false) {
         HGM_LOGI("HgmCore initialization failed");
     }
@@ -69,10 +76,6 @@ HgmCore::HgmCore()
 
 bool HgmCore::Init()
 {
-    if (isInit_) {
-        return true;
-    }
-
     if (!isEnabled_) {
         HGM_LOGE("HgmCore Hgm is desactivated");
         return false;
@@ -106,7 +109,7 @@ bool HgmCore::Init()
 
     SetLtpoConfig();
 
-    isInit_ = true;
+    isInit_.store(true);
     HGM_LOGI("HgmCore initialization success!!!");
     return isInit_;
 }

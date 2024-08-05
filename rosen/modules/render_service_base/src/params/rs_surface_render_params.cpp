@@ -135,6 +135,19 @@ void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
     isLastFrameHardwareEnabled_ = enabled;
     needSync_ = true;
 }
+void RSSurfaceRenderParams::SetLayerSourceTuning(int32_t needSourceTuning)
+{
+    if (layerSource_ == needSourceTuning) {
+        return;
+    }
+    layerSource_ = needSourceTuning;
+    needSync_ = true;
+}
+
+int32_t RSSurfaceRenderParams::GetLayerSourceTuning() const
+{
+    return layerSource_;
+}
 
 bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 {
@@ -156,9 +169,10 @@ bool RSSurfaceRenderParams::GetForceHardwareByUser() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer)
+void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect)
 {
     buffer_ = buffer;
+    damageRect_ = damageRect;
     needSync_ = true;
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
@@ -168,6 +182,11 @@ sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
     return buffer_;
 }
 
+const Rect& RSSurfaceRenderParams::GetBufferDamage() const
+{
+    return damageRect_;
+}
+
 void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
 {
     preBuffer_ = preBuffer;
@@ -175,7 +194,7 @@ void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
-sptr<SurfaceBuffer>& RSSurfaceRenderParams::GetPreBuffer()
+sptr<SurfaceBuffer> RSSurfaceRenderParams::GetPreBuffer()
 {
     return preBuffer_;
 }
@@ -313,6 +332,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->buffer_ = buffer_;
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
+        targetSurfaceParams->damageRect_ = damageRect_;
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
@@ -323,6 +343,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
+    targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
@@ -348,6 +369,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->animateState_ = animateState_;
+    targetSurfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
@@ -366,6 +388,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->preScalingMode_ = preScalingMode_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
+    targetSurfaceParams->layerSource_ = layerSource_;
+    targetSurfaceParams->totalMatrix_ = totalMatrix_;
+    targetSurfaceParams->globalAlpha_ = globalAlpha_;
+    targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
+    targetSurfaceParams->rootIdOfCaptureWindow_ = rootIdOfCaptureWindow_;
     RSRenderParams::OnSync(target);
 }
 
@@ -386,13 +413,13 @@ std::string RSSurfaceRenderParams::ToString() const
     return ret;
 }
 
-bool RSSurfaceRenderParams::IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
+bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
 {
     if (IsMainWindowType()) {
         return curSurfaceDrawRegion.IsEmpty();
     }
     if (IsLeashWindow()) {
-        return GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE && GetLeashWindowVisibleRegionEmptyParam();
+        return GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;
 }
@@ -405,5 +432,19 @@ void RSSurfaceRenderParams::SetOpaqueRegion(const Occlusion::Region& opaqueRegio
 const Occlusion::Region& RSSurfaceRenderParams::GetOpaqueRegion() const
 {
     return opaqueRegion_;
+}
+
+void RSSurfaceRenderParams::SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
+{
+    if (rootIdOfCaptureWindow_ == rootIdOfCaptureWindow) {
+        return;
+    }
+    needSync_ = true;
+    rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
+}
+
+NodeId RSSurfaceRenderParams::GetRootIdOfCaptureWindow() const
+{
+    return rootIdOfCaptureWindow_;
 }
 } // namespace OHOS::Rosen

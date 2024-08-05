@@ -291,12 +291,37 @@ HWTEST_F(GEVisualEffectImplTest, SetParam010, TestSize.Level1)
     Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_WATER_RIPPLE);
     geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_PROGRESS, 0.5f);
     EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->progress, 0.5f);
-    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_WAVE_NUM, 1.0f);
-    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->waveCount, 1.0f);
     geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X, 0.5f);
     EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleCenterX, 0.5f);
     geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y, 0.5f);
     EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleCenterY, 0.5f);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_MODE, 1.0f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleMode, 1.0f);
+}
+
+/**
+ * @tc.name: SetParam011
+ * @tc.desc: Verify function SetParam for action is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam011, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImplWaterRipple(Drawing::GE_FILTER_WATER_RIPPLE);
+    Drawing::GEVisualEffectImpl geVisualEffectImplKawaseBulr(Drawing::GE_FILTER_KAWASE_BLUR);
+
+    // test invalid params setting
+    geVisualEffectImplWaterRipple.SetParam(Drawing::GE_FILTER_WATER_RIPPLE_PROGRESS, 0.5);
+    EXPECT_NE(geVisualEffectImplWaterRipple.GetWaterRippleParams()->progress, 0.5);
+
+    // test invalid params setting
+    uint32_t paramUint32{1};
+    geVisualEffectImplKawaseBulr.SetParam("GE_FILTER_KAWASE_BLUR_RADIUS", paramUint32);
+    ASSERT_NE(geVisualEffectImplKawaseBulr.GetKawaseParams(), nullptr);
+    EXPECT_NE(geVisualEffectImplKawaseBulr.GetKawaseParams()->radius, paramUint32);
+
+    geVisualEffectImplKawaseBulr.SetParam("GE_FILTER_KAWASE_BLUR_RADIUS", "1");
+    ASSERT_NE(geVisualEffectImplKawaseBulr.GetKawaseParams(), nullptr);
+    EXPECT_NE(geVisualEffectImplKawaseBulr.GetKawaseParams()->radius, paramUint32);
 }
  
 /**
@@ -310,14 +335,28 @@ HWTEST_F(GEVisualEffectImplTest, SetWaterRippleParams001, TestSize.Level1)
     ASSERT_NE(geVisualEffectImpl.waterRippleParams_, nullptr);
     geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_PROGRESS, 0.5f);
     EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->progress, 0.5f);
-    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_WAVE_NUM, 1.0f);
-    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->waveCount, 1.0f);
     geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X, 0.5f);
     EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleCenterX, 0.5f);
     geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y, 0.5f);
     EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleCenterY, 0.5f);
+    geVisualEffectImpl.SetWaterRippleParams(Drawing::GE_FILTER_WATER_RIPPLE_RIPPLE_MODE, 1.0f);
+    EXPECT_EQ(geVisualEffectImpl.GetWaterRippleParams()->rippleMode, 1.0f);
 }
- 
+
+/**
+ * @tc.name: SetWaterRippleParams002
+ * @tc.desc: Verify function SetWaterRippleParams
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetWaterRippleParams002, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_WATER_RIPPLE);
+    
+    // test invalid params setting
+    geVisualEffectImpl.SetWaterRippleParams("GE_FILTER_WATER_RIPPLE_PROGRESS", 0.5f);
+    EXPECT_NE(geVisualEffectImpl.GetWaterRippleParams()->progress, 0.5f);
+}
+
 /**
  * @tc.name: MakeWaterRippleParams001
  * @tc.desc: Verify function MakeWaterRippleParams is invalid

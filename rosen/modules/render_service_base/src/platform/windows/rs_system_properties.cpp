@@ -92,6 +92,11 @@ float RSSystemProperties::GetClipRectThreshold()
     return 1.f;
 }
 
+bool RSSystemProperties::GetAllSurfaceVisibleDebugEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
 {
     return {};
@@ -100,6 +105,11 @@ bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
 bool RSSystemProperties::GetVirtualDirtyEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetExpandScreenDirtyEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
@@ -469,6 +479,11 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 }
 
 bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetLayerCursorEnable()
 {
     return false;
 }

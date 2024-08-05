@@ -32,6 +32,7 @@ public:
 
     /* set & get device screen info begin */
     MOCK_METHOD2(RegHotPlugCallback, int32_t(HotPlugCallback, void*));
+    MOCK_METHOD2(RegRefreshCallback, int32_t(RefreshCallback, void*));
     MOCK_METHOD3(RegScreenVBlankCallback, int32_t(uint32_t, VBlankCallback, void*));
     MOCK_METHOD2(RegHwcDeadCallback, bool(OnHwcDeadCallback, void*));
     MOCK_METHOD2(RegScreenVBlankIdleCallback, int32_t(OnVBlankIdleCallback, void*));
@@ -51,7 +52,6 @@ public:
     MOCK_METHOD2(SetScreenClientBufferCacheCount, int32_t(uint32_t, uint32_t));
     MOCK_METHOD2(SetScreenClientDamage, int32_t(uint32_t, const std::vector<GraphicIRect> &damageRect));
     MOCK_METHOD2(SetScreenVsyncEnabled, int32_t(uint32_t, bool));
-    MOCK_METHOD3(GetScreenReleaseFence, int32_t(uint32_t, std::vector<uint32_t>&, std::vector<sptr<SyncFence>>&));
     MOCK_METHOD2(GetScreenSupportedColorGamuts, int32_t(uint32_t, std::vector<GraphicColorGamut>&));
     MOCK_METHOD2(SetScreenColorGamut, int32_t(uint32_t, GraphicColorGamut));
     MOCK_METHOD2(GetScreenColorGamut, int32_t(uint32_t, GraphicColorGamut&));
@@ -93,6 +93,8 @@ public:
 
     MOCK_METHOD4(CreateLayer, int32_t(uint32_t, const GraphicLayerInfo&, uint32_t, uint32_t&));
     MOCK_METHOD2(CloseLayer, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD2(ClearLayerBuffer, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD1(ClearClientBuffer, int32_t(uint32_t));
 
     MOCK_METHOD7(CommitAndGetReleaseFence, int32_t(uint32_t, sptr<SyncFence>&, int32_t&, bool&,
         std::vector<uint32_t>&, std::vector<sptr<SyncFence>>&, bool));

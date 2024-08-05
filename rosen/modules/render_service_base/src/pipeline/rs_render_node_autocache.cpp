@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX

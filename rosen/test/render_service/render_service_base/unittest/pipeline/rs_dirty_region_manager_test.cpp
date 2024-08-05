@@ -26,6 +26,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+    const RectI DEFAULT_RECT = {0, 0, 100, 100};
+}
 class RSDirtyRegionManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -449,6 +452,87 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectAfterMergeHistory, TestSize.Lev
     fun.isDisplayDirtyManager_ = true;
     fun.MergeDirtyRect(rect, true);
     EXPECT_FALSE(fun.dirtyRegion_.IsEmpty());
+}
+
+/**
+ * @tc.name: MergeHwcDirtyRect
+ * @tc.desc: test if MergeHwcDirtyRect can merge successfully
+ * @tc.type:FUNC
+ * @tc.require:IAHN26
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeHwcDirtyRect, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI rect = DEFAULT_RECT;
+    fun.MergeHwcDirtyRect(rect);
+    EXPECT_FALSE(fun.hwcDirtyRegion_.IsEmpty());
+
+    fun.MergeHwcDirtyRect(RectI());
+    fun.MergeHwcDirtyRect(rect);
+    EXPECT_FALSE(fun.hwcDirtyRegion_.IsEmpty());
+}
+
+/**
+ * @tc.name: MergeDirtyRectIfIntersect
+ * @tc.desc: test if MergeDirtyRectIfIntersect can merge successfully
+ * @tc.type:FUNC
+ * @tc.require:IAHN26
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectIfIntersect, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI rect = DEFAULT_RECT;
+    fun.MergeDirtyRectIfIntersect(rect);
+    EXPECT_TRUE(fun.GetCurrentFrameDirtyRegion().IsEmpty());
+
+    fun.MergeDirtyRect(rect);
+    fun.MergeDirtyRectIfIntersect(rect);
+    EXPECT_FALSE(fun.GetCurrentFrameDirtyRegion().IsEmpty());
+
+    fun.isDisplayDirtyManager_ = true;
+    fun.MergeDirtyRectIfIntersect(rect);
+    EXPECT_FALSE(fun.mergedDirtyRegions_.empty());
+}
+
+/**
+ * @tc.name: IntersectDirtyRect
+ * @tc.desc: test IntersectDirtyRect can intersect successfully
+ * @tc.type:FUNC
+ * @tc.require:IAHN26
+ */
+HWTEST_F(RSDirtyRegionManagerTest, IntersectDirtyRect, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI rect = DEFAULT_RECT;
+    fun.IntersectDirtyRect(rect);
+    EXPECT_TRUE(fun.GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: SetCurrentFrameDirtyRect
+ * @tc.desc: test SetCurrentFrameDirtyRect can set successfully
+ * @tc.type:FUNC
+ * @tc.require:IAHN26
+ */
+HWTEST_F(RSDirtyRegionManagerTest, SetCurrentFrameDirtyRect, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    RectI rect = DEFAULT_RECT;
+    fun.SetCurrentFrameDirtyRect(rect);
+    EXPECT_FALSE(fun.GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: IsCurrentFrameDirty
+ * @tc.desc: test IsCurrentFrameDirty can get successfully
+ * @tc.type:FUNC
+ * @tc.require:IAHN26
+ */
+HWTEST_F(RSDirtyRegionManagerTest, IsCurrentFrameDirty, TestSize.Level1)
+{
+    RSDirtyRegionManager fun;
+    EXPECT_FALSE(fun.IsCurrentFrameDirty());
+    EXPECT_FALSE(fun.IsDirty());
 }
 
 /**

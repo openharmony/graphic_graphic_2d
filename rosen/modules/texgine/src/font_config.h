@@ -40,6 +40,7 @@ protected:
 
 private:
     std::vector<std::string> fontSet_;
+    std::string rootPath_;
 };
 
 typedef struct AdjustInfo {

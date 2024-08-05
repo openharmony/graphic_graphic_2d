@@ -313,11 +313,11 @@ void RSUIDirector::FlushModifier()
     RSUIDirector::RecvMessages();
 }
 
-bool RSUIDirector::HasUIAnimation()
+bool RSUIDirector::HasUIRunningAnimation()
 {
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
-        return modifierManager->HasUIAnimation();
+        return modifierManager->HasUIRunningAnimation();
     }
     return false;
 }
@@ -340,7 +340,13 @@ void RSUIDirector::SendMessages()
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
     }
+    index_ = transactionProxy->GetTransactionDataIndex();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+}
+
+uint32_t RSUIDirector::GetIndex()
+{
+    return index_;
 }
 
 void RSUIDirector::RecvMessages()

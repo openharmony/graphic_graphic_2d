@@ -72,10 +72,6 @@ bool RSInterfaceCodeAccessVerifierBase::CheckHapPermission(
 
 bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code) const
 {
-    bool securityPermissionCheckEnabled =  RSSystemProperties::GetSecurityPermissionCheckEnabled();
-    if (!securityPermissionCheckEnabled) {
-        return true;
-    }
     std::vector<std::string> permissions = GetPermissions(code);
     bool hasPermission = true;
     auto tokenType = GetTokenType();
@@ -96,34 +92,6 @@ bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code)
         }
         if (!hasPermission) {
             RS_LOGD("%{public}d ipc interface code access denied: HAS NO PERMISSION", code);
-            return false;
-        }
-    }
-    return true;
-}
-
-bool RSInterfaceCodeAccessVerifierBase::IsPermissionAuthenticated(CodeUnderlyingType code) const
-{
-    std::vector<std::string> permissions = GetPermissions(code);
-    bool hasPermission = true;
-    auto tokenType = GetTokenType();
-    auto tokenID = GetTokenID();
-    for (auto& permission : permissions) {
-        switch (tokenType) {
-            case Security::AccessToken::ATokenTypeEnum::TOKEN_HAP:
-                hasPermission = CheckHapPermission(tokenID, permission);
-                break;
-            case Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE:
-                hasPermission = CheckNativePermission(tokenID, permission);
-                break;
-            case Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL:
-                hasPermission = CheckNativePermission(tokenID, permission);
-                break;
-            default:
-                break;
-        }
-        if (!hasPermission) {
-            RS_LOGE("%{public}d ipc interface code access denied: permission authentication failed", code);
             return false;
         }
     }
@@ -205,11 +173,6 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* ca
 }
 
 bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code) const
-{
-    return true;
-}
-
-bool RSInterfaceCodeAccessVerifierBase::IsPermissionAuthenticated(CodeUnderlyingType code) const
 {
     return true;
 }

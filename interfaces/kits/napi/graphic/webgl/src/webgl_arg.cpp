@@ -331,19 +331,19 @@ napi_value WebGLWriteBufferArg::GenExternalArray()
     } else {
         status = napi_create_external_arraybuffer(
             env_, data_, dataLen_,
-            [](napi_env env_, void* finalize_data, void* finalize_hint) {
-                LOGD("GenExternalArray free %{private}zu", hash_pointer(finalize_data));
-                delete[] reinterpret_cast<uint8_t*>(finalize_data);
+            [](napi_env env_, void* finalizeData, void* finalizeHint) {
+                free(finalizeData);
             },
             nullptr, &outputBuffer);
     }
     if (status == napi_ok) {
         status = napi_create_typedarray(env_, (napi_typedarray_type)type_, count, outputBuffer, 0, &outputArray);
     }
-    if (status != napi_ok) {
-        LOGD("GenExternalArray error %{public}d", status);
-    }
     data_ = nullptr;
+    if (status != napi_ok) {
+        LOGE("GenExternalArray error %{public}d", status);
+        return nullptr;
+    }
     return outputArray;
 }
 

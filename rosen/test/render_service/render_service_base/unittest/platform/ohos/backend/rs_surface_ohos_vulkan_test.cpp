@@ -19,12 +19,20 @@
 
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "render_context/render_context.h"
-
+#include "platform/common/rs_system_properties.h"
+#include "platform/ohos/backend/rs_surface_ohos_gl.h"
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+class BufferConsumerListener : public IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override
+    {
+    }
+};
+
 class RSSurfaceOhosVulkanTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -59,7 +67,11 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer001, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer002, TestSize.Level1)
 {
-    RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         int32_t width = 1;
@@ -92,11 +104,15 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ResetBufferAge001, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosVulkanTest, ResetBufferAge002, TestSize.Level1)
 {
-    RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
-    rsSurface = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        rsSurface.SetRenderContext(renderContext);
+        std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>();
+        rsSurface.SetRenderContext(renderContext.get());
         int32_t width = 1;
         int32_t height = 1;
         uint64_t uiTimestamp = 1;
@@ -151,7 +167,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, RequestNativeWindowBuffer001, TestSize.Level1)
     bool useAFBC = true;
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     auto res = rsSurface.RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC);
-    EXPECT_TRUE(ret != GSERROR_OK);
+    EXPECT_TRUE(res != GSERROR_OK);
 }
 /**
  * @tc.name: RequestFrame001
@@ -161,8 +177,11 @@ HWTEST_F(RSSurfaceOhosVulkanTest, RequestNativeWindowBuffer001, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosVulkanTest, RequestFrame001, TestSize.Level1)
 {
-    RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
-
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
     int32_t width = 1;
     int32_t height = 1;
     uint64_t uiTimestamp = 1;
@@ -181,7 +200,24 @@ HWTEST_F(RSSurfaceOhosVulkanTest, GetCurrentBuffer001, TestSize.Level1)
     sptr<SurfaceBuffer> ret = rsSurface.GetCurrentBuffer();
     EXPECT_TRUE(ret == nullptr);
 
-    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
+    sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+    int32_t fence;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
     rsSurface.mSurfaceList.emplace_back(nativeWindowBuffer);
     ret = rsSurface.GetCurrentBuffer();
     EXPECT_TRUE(ret != nullptr);
@@ -197,7 +233,9 @@ HWTEST_F(RSSurfaceOhosVulkanTest, SetColorSpace001, TestSize.Level1)
 {
     RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
     rsSurface.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
-    ASSERT_EQ(rsSurface->colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    ASSERT_EQ(rsSurface.colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    rsSurface.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    ASSERT_EQ(rsSurface.colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
 }
 
 /**
@@ -210,20 +248,8 @@ HWTEST_F(RSSurfaceOhosVulkanTest, SetSurfacePixelFormat001, TestSize.Level1)
 {
     RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
     rsSurface.SetSurfacePixelFormat(11);
-    ASSERT_EQ(rsSurface->pixelFormat_, GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBX_8888);
-}
-
-/**
- * @tc.name: ClearBuffer001
- * @tc.desc: test results of ClearBuffer
- * @tc.type:FUNC
- * @tc.require: issueI9VVLE
- */
-HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer001, TestSize.Level1)
-{
-    RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
-    rsSurface.ClearBuffer();
-    EXPECT_TRUE(rsSurface.producer_ != nullptr);
+    rsSurface.SetSurfacePixelFormat(11);
+    ASSERT_EQ(rsSurface.pixelFormat_, GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBX_8888);
 }
 
 /**
@@ -234,11 +260,18 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer001, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceOhosVulkanTest, FlushFrame001, TestSize.Level1)
 {
-    sptr<Surface> producer = nullptr;
-    RSSurfaceOhosVulkan rsSurface(producer);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("DisplayNode");
+    ASSERT_TRUE(cSurface != nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
     uint64_t uiTimestamp = 1;
     std::unique_ptr<RSSurfaceFrame> frame = nullptr;
     rsSurface.SetUiTimeStamp(frame, uiTimestamp);
+
+    int32_t width = 1;
+    int32_t height = 1;
+    std::unique_ptr<RSSurfaceFrame> ret = rsSurface.RequestFrame(width, height, uiTimestamp, true, true);
     EXPECT_FALSE(rsSurface.FlushFrame(frame, uiTimestamp));
     {
         sptr<Surface> producer = nullptr;

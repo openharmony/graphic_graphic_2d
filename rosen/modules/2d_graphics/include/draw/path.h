@@ -497,7 +497,7 @@ public:
      */
     bool IsClosed(bool forceClosed) const;
 
-    bool GetMatrix(bool forceClosed, float distance, Matrix* matrix,
+    bool GetMatrix(bool forceClosed, scalar distance, Matrix* matrix,
         PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX);
 
     std::shared_ptr<Data> Serialize() const;

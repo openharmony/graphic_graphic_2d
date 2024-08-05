@@ -161,6 +161,8 @@ protected:
 
     void MarkModifierDirty();
 
+    void MarkNodeDirty();
+
     void UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node);
 
     virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty()
@@ -264,6 +266,7 @@ public:
             return;
         }
 
+        MarkNodeDirty();
         UpdateExtendModifierForGeometry(node);
         if (isCustom_) {
             MarkModifierDirty();
@@ -352,6 +355,7 @@ public:
             return;
         }
 
+        RSProperty<T>::MarkNodeDirty();
         RSProperty<T>::UpdateExtendModifierForGeometry(node);
         auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {
@@ -708,11 +712,17 @@ template<>
 RSC_EXPORT void RSProperty<RSWaterRipplePara>::UpdateToRender(
     const RSWaterRipplePara& value, PropertyUpdateType type) const;
 template<>
+RSC_EXPORT void RSProperty<RSFlyOutPara>::UpdateToRender(
+    const RSFlyOutPara& value, PropertyUpdateType type) const;
+template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
     const std::shared_ptr<RSLinearGradientBlurPara>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<MotionBlurParam>>::UpdateToRender(
     const std::shared_ptr<MotionBlurParam>& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSMagnifierParams>>::UpdateToRender(
+    const std::shared_ptr<RSMagnifierParams>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::UpdateToRender(
     const std::vector<std::shared_ptr<EmitterUpdater>>& value, PropertyUpdateType type) const;

@@ -33,7 +33,7 @@ public:
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
 
     static napi_value CreateImageLattice(napi_env env, napi_callback_info info);
-    std::shared_ptr<Lattice> GetLattice();
+    DRAWING_API std::shared_ptr<Lattice> GetLattice();
 
 private:
     static napi_value Create(napi_env env, std::shared_ptr<Lattice> lattice);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,13 +17,18 @@
 #include <cstddef>
 #include <cstdint>
 #include "get_object.h"
+#include "text/font_arguments.h"
 #include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr size_t MAX_SIZE = 5000;
+constexpr size_t SLANT_SIZE = 3;
+} // namespace
 namespace Drawing {
 
-bool TypefaceFuzzTest(const uint8_t* data, size_t size)
+bool TypefaceFuzzTest001(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -34,7 +39,6 @@ bool TypefaceFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
-
     typeface->GetFamilyName();
     typeface->GetFontStyle();
     uint32_t tag = GetObject<uint32_t>();
@@ -46,9 +50,134 @@ bool TypefaceFuzzTest(const uint8_t* data, size_t size)
     typeface->GetItalic();
     typeface->GetUniqueID();
     typeface->GetUnitsPerEm();
-
+    typeface->IsCustomTypeface();
     return true;
 }
+
+bool TypefaceFuzzTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* path = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        path[i] = GetObject<char>();
+    }
+    path[length - 1] = '\0';
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(path, length);
+    if (path != nullptr) {
+        delete [] path;
+        path = nullptr;
+    }
+    return true;
+}
+
+bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* fontData = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        fontData[i] = GetObject<char>();
+    }
+    fontData[length - 1] = '\0';
+    bool copyData = GetObject<bool>();
+    std::unique_ptr<MemoryStream> memoryStream = std::make_unique<MemoryStream>(
+        reinterpret_cast<const void*>(fontData), length, copyData);
+    int32_t index = GetObject<int32_t>();
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromStream(std::move(memoryStream), index);
+
+    if (fontData != nullptr) {
+        delete [] fontData;
+        fontData = nullptr;
+    }
+    return true;
+}
+
+bool TypefaceFuzzTest004(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
+    FontArguments arg;
+    int fontCollectionIndex = GetObject<int>();
+    arg.SetCollectionIndex(fontCollectionIndex);
+    size_t coordinateCount = GetObject<size_t>() % MAX_SIZE + 1;
+    FontArguments::VariationPosition::Coordinate* coordinates = new
+        FontArguments::VariationPosition::Coordinate[coordinateCount];
+    for (size_t i = 0; i < coordinateCount; i++) {
+        coordinates[i] = {GetObject<uint32_t>(), GetObject<float>()};
+    }
+    FontArguments::VariationPosition variationPosition = { 0 };
+    variationPosition.coordinates = coordinates;
+    arg.SetVariationDesignPosition(variationPosition);
+    int index = GetObject<int>();
+    size_t overrideCount = GetObject<size_t>() % MAX_SIZE + 1;
+    FontArguments::Palette::Override* overrides = new FontArguments::Palette::Override[overrideCount];
+    for (size_t i = 0; i < overrideCount; i++) {
+        overrides[i] = {GetObject<int>(), GetObject<uint32_t>()};
+    }
+    FontArguments::Palette palette = {index, overrides, overrideCount};
+    arg.SetPalette(palette);
+    typeface->MakeClone(arg);
+    if (coordinates != nullptr) {
+        delete [] coordinates;
+        coordinates = nullptr;
+    }
+    if (overrides != nullptr) {
+        delete [] overrides;
+        overrides = nullptr;
+    }
+    return true;
+}
+
+bool TypefaceFuzzTest005(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
+    char* familyName = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        familyName[i] =  GetObject<char>();
+    }
+    familyName[count - 1] = '\0';
+    int weight = GetObject<int>();
+    int width = GetObject<int>();
+    uint32_t slant = GetObject<uint32_t>();
+    FontStyle fontStyle = FontStyle(weight, width, static_cast<FontStyle::Slant>(slant % SLANT_SIZE));
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromName(familyName, fontStyle);
+    if (familyName != nullptr) {
+        delete [] familyName;
+        familyName = nullptr;
+    }
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -57,6 +186,10 @@ bool TypefaceFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::Drawing::TypefaceFuzzTest(data, size);
+    OHOS::Rosen::Drawing::TypefaceFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::TypefaceFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::TypefaceFuzzTest003(data, size);
+    OHOS::Rosen::Drawing::TypefaceFuzzTest004(data, size);
+    OHOS::Rosen::Drawing::TypefaceFuzzTest005(data, size);
     return 0;
 }

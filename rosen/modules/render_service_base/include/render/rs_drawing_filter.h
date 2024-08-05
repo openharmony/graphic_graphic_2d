@@ -27,6 +27,7 @@
 #include "render/rs_filter.h"
 #include "render/rs_kawase_blur.h"
 #include "render/rs_shader_filter.h"
+#include "render/rs_hps_blur.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_uni_render_composer_adapter.h"
 #include "pipeline/rs_uni_render_listener.h"
 #include "surface_buffer_impl.h"
@@ -97,7 +98,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, Start001, TestSize.Level1)
     RectI dstRect{0, 0, 400, 600};
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
-    auto layer1 = composerAdapter_->CreateLayer(*surfaceNode);
+    auto surfaceDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_NE(surfaceDrawable, nullptr);
+    auto layer1 =
+        composerAdapter_->CreateLayer(static_cast<DrawableV2::RSSurfaceRenderNodeDrawable&>(*surfaceDrawable));
     ASSERT_NE(layer1, nullptr);
     std::vector<LayerInfoPtr> layers;
     layers.emplace_back(layer1);
@@ -121,7 +125,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo001, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     SetUp();
-    composerAdapter_->BuildComposeInfo(*surfaceNode);
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    composerAdapter_->BuildComposeInfo(static_cast<DrawableV2::RSDisplayRenderNodeDrawable&>(*drawable));
 }
 
 /**
@@ -142,7 +148,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo002, TestSize.Level1)
     csurf->SetTransform(GRAPHIC_ROTATE_270);
     auto srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
     ASSERT_EQ(srcRect.IsEmpty(), true);
-    surfaceNode->SetConsumer(csurf);
+    surfaceNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
     ASSERT_EQ(srcRect.IsEmpty(), true);
     RectI dstRect{0, 0, 400, 600};
@@ -170,7 +176,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo002, TestSize.Level1)
 HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect001, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -194,7 +200,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect001, TestSize.Lev
 HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect002, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -212,7 +218,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect002, TestSize.Lev
 HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect003, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -292,7 +298,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect006, TestSize.Lev
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_CROP;
-    surfaceNode->GetConsumer()->SetScalingMode(info.buffer->GetSeqNum(), scalingMode);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetScalingMode(info.buffer->GetSeqNum(), scalingMode);
     composerAdapter_->GetComposerInfoSrcRect(info, *surfaceNode);
 }
 
@@ -305,7 +311,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect006, TestSize.Lev
 HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
@@ -335,7 +341,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level1
 HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity002, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
@@ -364,7 +370,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity002, TestSize.Level1
 HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity003, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
@@ -391,7 +397,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity003, TestSize.Level1
 HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity004, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
@@ -418,7 +424,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity004, TestSize.Level1
 HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity005, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(surfaceNode, nullptr);
@@ -455,7 +461,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity006, TestSize.Level1
 
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
     ASSERT_NE(csurf, nullptr);
-    surfaceNode->SetConsumer(csurf);
+    surfaceNode->GetRSSurfaceHandler()->SetConsumer(csurf);
 
     composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode);
     ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
@@ -471,7 +477,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity006, TestSize.Level1
 HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform001, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -490,7 +496,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform001, TestSize.Lev
 HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform002, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -509,7 +515,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform002, TestSize.Lev
 HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform003, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -528,7 +534,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform003, TestSize.Lev
 HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform004, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(dstRect);
@@ -547,7 +553,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform004, TestSize.Lev
 HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer001, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     ASSERT_NE(surfaceNode, nullptr);
     composerAdapter_->output_ = nullptr;
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
@@ -563,7 +569,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer002, TestSi
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    const auto& buffer = surfaceNode->GetBuffer();
+    const auto& buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     ASSERT_EQ(buffer, nullptr);
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
@@ -749,7 +755,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown003, TestSize.Level1)
 
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
     ASSERT_NE(csurf, nullptr);
-    surfaceNode->SetConsumer(csurf);
+    surfaceNode->GetRSSurfaceHandler()->SetConsumer(csurf);
 
     bool statusReady = composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode);
     ASSERT_EQ(statusReady, true);
@@ -767,7 +773,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown003, TestSize.Level1)
     isOutOfRegion = composerAdapter_->IsOutOfScreenRegion(info);
 
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    composerAdapter_->SetComposeInfoToLayer(layer, info, surfaceNode->GetConsumer(), &(*surfaceNode));
+    composerAdapter_->SetComposeInfoToLayer(layer, info, surfaceNode->GetRSSurfaceHandler()->GetConsumer());
 
     composerAdapter_->LayerRotate(layer, *surfaceNode);
     composerAdapter_->LayerCrop(layer);
@@ -790,7 +796,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit001, TestSize.Level1)
     auto layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
     layer->sbuffer_ = nullptr;
-    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+    composerAdapter_->LayerScaleFit(layer);
 }
 
 /**
@@ -809,7 +815,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit002, TestSize.Level1)
     auto layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
     layer->cSurface_ = nullptr;
-    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+    composerAdapter_->LayerScaleFit(layer);
 }
 
 /**
@@ -831,18 +837,18 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit003, TestSize.Level1)
 
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
     ASSERT_NE(csurf, nullptr);
-    surfaceNode->SetConsumer(csurf);
+    surfaceNode->GetRSSurfaceHandler()->SetConsumer(csurf);
 
     bool statusReady = composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode);
     ASSERT_EQ(statusReady, true);
     ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
 
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    composerAdapter_->SetComposeInfoToLayer(layer, info, surfaceNode->GetConsumer(), &(*surfaceNode));
+    composerAdapter_->SetComposeInfoToLayer(layer, info, surfaceNode->GetRSSurfaceHandler()->GetConsumer());
 
     composerAdapter_->LayerRotate(layer, *surfaceNode);
     composerAdapter_->LayerCrop(layer);
-    composerAdapter_->LayerScaleFit(layer, *surfaceNode);
+    composerAdapter_->LayerScaleFit(layer);
 }
 
 /**
@@ -998,7 +1004,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer001, TestSize.Level1)
     surfaceNode->SetDstRect(dstRect);
     composerAdapter_->screenInfo_.phyWidth = DEFAULT_CANVAS_WIDTH_1K;
     composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT_1K;
-    surfaceNode->consumer_ = nullptr;
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = nullptr;
     ASSERT_EQ(nullptr, composerAdapter_->CreateLayer(*surfaceNode));
 }
 
@@ -1019,7 +1025,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetLayerSize001, TestSize.Level1)
     composerAdapter_->screenInfo_.phyHeight = DEFAULT_CANVAS_HEIGHT_1K;
     auto layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
-    surfaceNode->consumer_ = nullptr;
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = nullptr;
     composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_90;
     composerAdapter_->LayerRotate(layer, *surfaceNode);
 
@@ -1049,7 +1055,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoNeedClient001, TestSize.
     
     info.buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     composerAdapter_->screenInfo_.colorGamut = ScreenColorGamut::COLOR_GAMUT_DISPLAY_BT2020;
-    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *surfaceNode));
+    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *surfaceNode->GetStagingRenderParams()));
 }
 
 /**
@@ -1068,7 +1074,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoNeedClient002, TestSize.
     auto node = surfaceNode->ReinterpretCastTo<RSRenderNode>();
     info.buffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     composerAdapter_->screenInfo_.colorGamut = ScreenColorGamut::COLOR_GAMUT_DISPLAY_BT2020;
-    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *node));
+    ASSERT_TRUE(composerAdapter_->GetComposerInfoNeedClient(info, *node->GetStagingRenderParams()));
 }
 
 /**
@@ -1087,7 +1093,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform005, TestSize.Lev
     surfaceNode->SetDstRect(rect);
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH * 1.5);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT * 1.5);
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
     auto srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
     ASSERT_EQ(srcRect.top_, DEFAULT_CANVAS_WIDTH * 0.5);
 }
@@ -1131,7 +1137,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform006, TestSize.Lev
     ASSERT_NE(surfaceNode, nullptr);
     RectI rect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(rect);
-    surfaceNode->consumer_ = nullptr;
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = nullptr;
     ASSERT_EQ(composerAdapter_->SrcRectRotateTransform(*surfaceNode), rect);
 }
 
@@ -1178,8 +1184,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown004, TestSize.Level2)
     layer->SetDirtyRegions(dirtyRegions);
 
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_CROP;
-    surfaceNode->GetConsumer()->AttachBuffer(layer->sbuffer_);
-    surfaceNode->GetConsumer()->SetScalingMode(layer->GetBuffer()->GetSeqNum(), scalingMode);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->AttachBuffer(layer->sbuffer_);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetScalingMode(layer->GetBuffer()->GetSeqNum(), scalingMode);
     
     composerAdapter_->LayerScaleDown(layer, *surfaceNode);
     ASSERT_TRUE(layer->GetDirtyRegions()[0].w == DEFAULT_CANVAS_WIDTH);
@@ -1210,10 +1216,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown005, TestSize.Level2)
     layer->SetDirtyRegions(dirtyRegions);
 
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_CROP;
-    surfaceNode->GetConsumer()->AttachBuffer(layer->sbuffer_);
-    surfaceNode->GetConsumer()->SetScalingMode(layer->GetBuffer()->GetSeqNum(), scalingMode);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->AttachBuffer(layer->sbuffer_);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetScalingMode(layer->GetBuffer()->GetSeqNum(), scalingMode);
 
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
     composerAdapter_->LayerScaleDown(layer, *surfaceNode);
     ASSERT_FALSE(layer->GetDirtyRegions()[0].w == DEFAULT_CANVAS_WIDTH);
 }
@@ -1243,10 +1249,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown006, TestSize.Level2)
     layer->SetDirtyRegions(dirtyRegions);
 
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_CROP;
-    surfaceNode->GetConsumer()->AttachBuffer(layer->sbuffer_);
-    surfaceNode->GetConsumer()->SetScalingMode(layer->GetBuffer()->GetSeqNum(), scalingMode);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->AttachBuffer(layer->sbuffer_);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetScalingMode(layer->GetBuffer()->GetSeqNum(), scalingMode);
 
-    surfaceNode->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
     composerAdapter_->LayerScaleDown(layer, *surfaceNode);
     ASSERT_FALSE(layer->GetDirtyRegions()[0].h == DEFAULT_CANVAS_WIDTH);
 }
@@ -1265,11 +1271,13 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
 
     RSDisplayNodeConfig config;
     RSDisplayRenderNode::SharedPtr nodePtr = std::make_shared<RSDisplayRenderNode>(1, config);
+    auto displayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(nodePtr->GetRenderDrawable());
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
+    displayDrawable->CreateSurface(listener);
 
-    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(nodePtr);
-    nodePtr->CreateSurface(listener);
-
-    auto rsSurface = nodePtr->GetRSSurface();
+    auto rsSurface = displayDrawable->GetRSSurface();
     rsSurface->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
@@ -1285,9 +1293,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
     GSError ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    nodePtr->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
+    surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
 
-    RSUniRenderComposerAdapter::SetBufferColorSpace(*nodePtr);
+    RSUniRenderComposerAdapter::SetBufferColorSpace(*displayDrawable);
 
     CM_ColorSpaceType colorSpaceType;
     ret = MetadataHelper::GetColorSpaceType(buffer, colorSpaceType);
@@ -1320,7 +1328,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace002, TestSize.Level2
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    composerAdapter_->SetBufferColorSpace(*node);
+    auto drawable = DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node);
+    ASSERT_NE(drawable, nullptr);
+    auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
+    composerAdapter_->SetBufferColorSpace(*displayDrawable);
 }
 
 /**
@@ -1336,12 +1347,16 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2
     NodeId id = 1;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    composerAdapter_->SetBufferColorSpace(*node);
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(displayDrawable, nullptr);
+    composerAdapter_->SetBufferColorSpace(*displayDrawable);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    node->SetBuffer(buffer, acquireFence, damage, timestamp);
-    composerAdapter_->SetBufferColorSpace(*node);
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+    composerAdapter_->SetBufferColorSpace(*displayDrawable);
 }
 } // namespace

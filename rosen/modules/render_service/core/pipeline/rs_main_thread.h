@@ -34,6 +34,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
@@ -110,6 +111,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    static bool CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -170,9 +172,6 @@ public:
     void WaitUtilUniRenderFinished();
     void NotifyUniRenderFinish();
 
-    bool WaitUntilDisplayNodeBufferReleased(RSDisplayRenderNode& node);
-    void NotifyDisplayNodeBufferReleased();
-
     bool WaitHardwareThreadTaskExecute();
     void NotifyHardwareThreadCanExecuteTask();
 
@@ -230,7 +229,7 @@ public:
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
 
-    bool IsFirstOrLastFrameOfWatermark() const
+    bool IsWatermarkFlagChanged() const
     {
         return lastWatermarkFlag_ != watermarkFlag_;
     }
@@ -285,6 +284,7 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    void RefreshEntireDisplay();
     bool IsCurtainScreenOn() const;
     void NotifySurfaceCapProcFinish();
     void WaitUntilSurfaceCapProcFinished();
@@ -336,18 +336,24 @@ public:
     {
         return needRequestNextVsyncAnimate_;
     }
-    
-    void ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     bool IsFirstFrameOfPartialRender() const
     {
         return isFirstFrameOfPartialRender_;
     }
 
+    bool IsHardwareEnabledNodesNeedSync();
+    bool IsOcclusionNodesNeedSync(NodeId id);
+
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
     void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback);
     void UnRegisterUIExtensionCallback(pid_t pid);
+
+    bool IsSystemAnimatedScenesListEmpty() const
+    {
+        return systemAnimatedScenesList_.empty();
+    }
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -379,10 +385,10 @@ private:
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
         std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
     void CalcOcclusion();
-    bool CheckSurfaceVisChanged(std::map<NodeId, RSVisibleLevel>& pidVisMap,
-        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
     void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
+    void SetUniVSyncRateByVisibleLevel(const std::shared_ptr<RSUniRenderVisitor>& visitor);
+    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
     void InitRSEventDetector();
@@ -493,6 +499,7 @@ private:
     uint64_t lastCleanCacheTimestamp_ = 0;
     pid_t lastCleanCachePid_ = -1;
     int hardwareTid_ = -1;
+    std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     std::shared_ptr<RSContext> context_;
@@ -524,11 +531,6 @@ private:
     mutable std::mutex uniRenderMutex_;
     bool uniRenderFinished_ = false;
     std::condition_variable uniRenderCond_;
-    // used for blocking mainThread before displayNode has no freed buffer to request
-    mutable std::mutex displayNodeBufferReleasedMutex_;
-    bool displayNodeBufferReleased_ = false;
-    // used for stalling mainThread before displayNode has no freed buffer to request
-    std::condition_variable displayNodeBufferReleasedCond_;
 
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
@@ -587,6 +589,7 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
 
     // used for watermark
     std::mutex watermarkMutex_;
@@ -649,6 +652,13 @@ private:
 
     bool forceUIFirstChanged_ = false;
 
+    // uiextension
+    std::mutex uiExtensionMutex_;
+    UIExtensionCallbackData uiExtensionCallbackData_;
+    bool lastFrameUIExtensionDataEmpty_ = false;
+    // <pid, <uid, callback>>
+    std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
@@ -674,13 +684,6 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
-
-    // uiextension
-    std::mutex uiExtensionMutex_;
-    UIExtensionCallbackData uiExtensionCallbackData_;
-    bool lastFrameUIExtensionDataEmpty_ = false;
-    // <pid, <uid, callback>>
-    std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

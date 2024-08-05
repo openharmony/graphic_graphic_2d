@@ -61,10 +61,14 @@
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
+#include "res_sched_client.h"
+#include "res_type.h"
+#include "vsync_res_event_listener.h"
 #endif
 
 namespace OHOS::Rosen {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+constexpr uint64_t SAMPLE_TIME = 100000000;
 
 RSHardwareThread& RSHardwareThread::Instance()
 {
@@ -166,6 +170,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     delayTime_ = 0;
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
+#ifdef RES_SCHED_ENABLE
+    ReportFrameToRSS();
+#endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
@@ -176,6 +183,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         uint32_t currentRate = HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId());
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu, size: %lu",
+            currentRate, param.frameTimestamp, layers.size());
+        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers rate:%{public}d, now:%{public}" PRIu64 ", size:%{public}zu",
             currentRate, param.frameTimestamp, layers.size());
         ExecuteSwitchRefreshRate(param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
@@ -199,6 +208,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
         }
     };
+    RSBaseRenderUtil::IncAcquiredBufferCount();
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
@@ -222,7 +232,43 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             PostDelayTask(task, delayTime_);
         }
     }
+
+    for (const auto& layer : layers) {
+        if (layer->GetClearCacheSet().empty()) {
+            continue;
+        }
+
+        // Remove image caches when their SurfaceNode has gobackground/cleancache.
+        RSTaskMessage::RSTask clearTask = [this, cacheset = layer->GetClearCacheSet()]() {
+            if (uniRenderEngine_ != nullptr) {
+                uniRenderEngine_->ClearCacheSet(cacheset);
+            }
+        };
+        PostTask(clearTask);
+    }
 }
+
+#ifdef RES_SCHED_ENABLE
+void RSHardwareThread::ReportFrameToRSS()
+{
+    if (VSyncResEventListener::GetInstance()->GetIsNeedReport()) {
+            uint64_t currTime = static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch()).count());
+        if (VSyncResEventListener::GetInstance()->GetIsFirstReport() ||
+            lastReportTime_ == 0 || currTime - lastReportTime_ >= SAMPLE_TIME) {
+            uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_SEND_FRAME_EVENT;
+            int64_t value = 0;
+            std::unordered_map<std::string, std::string> mapPayload;
+            OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
+            VSyncResEventListener::GetInstance()->SetIsFirstReport(false);
+            lastReportTime_ = static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch()).count());
+        }
+    }
+}
+#endif
 
 RefreshRateParam RSHardwareThread::GetRefreshRateParam()
 {

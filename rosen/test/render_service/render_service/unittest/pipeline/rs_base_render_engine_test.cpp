@@ -31,7 +31,10 @@ public:
     void TearDown() override;
 };
 
-void RSBaseRenderEngineUnitTest::SetUpTestCase() {}
+void RSBaseRenderEngineUnitTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSBaseRenderEngineUnitTest::TearDownTestCase() {}
 void RSBaseRenderEngineUnitTest::SetUp() {}
 void RSBaseRenderEngineUnitTest::TearDown() {}
@@ -71,7 +74,7 @@ HWTEST(RSBaseRenderEngineUnitTest, SetHighContrast_002, TestSize.Level1)
 HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto buffer = node->GetBuffer();
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
     std::vector<LayerInfoPtr> layers;
     layers.emplace_back(nullptr);
@@ -94,11 +97,11 @@ HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
 HWTEST(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto buffer = node->GetBuffer();
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
     std::vector<LayerInfoPtr> layers;
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetBuffer(buffer, node->GetAcquireFence());
+    layer->SetBuffer(buffer, node->GetRSSurfaceHandler()->GetAcquireFence());
     layers.emplace_back(layer);
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
@@ -130,7 +133,7 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
 
     if (RSSystemProperties::IsUseVulkan()) {
         auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-        param.buffer = surfaceNode->GetBuffer();
+        param.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
 
         auto renderEngine = std::make_shared<RSRenderEngine>();
         renderEngine->Init(true);
@@ -173,9 +176,30 @@ HWTEST(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
         ASSERT_EQ(nullptr, img);
         [[maybe_unused]] auto grContext = canvas->GetGPUContext();
         grContext = nullptr;
-        img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetBuffer(), nullptr);
+        img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
         ASSERT_EQ(nullptr, img);
     }
+}
+
+HWTEST(RSBaseRenderEngineUnitTest, DrawImageRect, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintCanvase(&canvas);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    BufferDrawParam params;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    Drawing::Rect srcRect(0.0f, 0.0f, 10, 20);
+    Drawing::Rect dstRect(0.0f, 0.0f, 10, 20);
+    Drawing::Brush paint;
+    params.srcRect = srcRect;
+    params.dstRect = dstRect;
+    params.paint = paint;
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(renderEngine, nullptr);
+    renderEngine->DrawImageRect(paintCanvase, image, params, samplingOptions);
+    ASSERT_NE(image, nullptr);
 }
 
 /**
@@ -192,8 +216,8 @@ HWTEST(RSBaseRenderEngineUnitTest, RegisterDeleteBufferListener001, TestSize.Lev
 #ifdef RS_ENABLE_VK
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
-    renderEngine->RegisterDeleteBufferListener(node->GetConsumer(), true);
-    renderEngine->RegisterDeleteBufferListener(node->GetConsumer(), false);
+    renderEngine->RegisterDeleteBufferListener(node->GetRSSurfaceHandler()->GetConsumer(), true);
+    renderEngine->RegisterDeleteBufferListener(node->GetRSSurfaceHandler()->GetConsumer(), false);
 #endif
 }
 #endif

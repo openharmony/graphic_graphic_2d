@@ -30,6 +30,7 @@ bool JsDrawingTestUtils::closeDrawingTest_ =
 bool JsDrawingTestUtils::closeDrawingTest_ = true;
 #endif
 namespace Drawing {
+const char* const JSPROPERTY[4] = {"alpha", "red", "green", "blue"};
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
 {
     std::string fullName;
@@ -87,6 +88,7 @@ napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string&
 
 static const char* g_argbString[4] = {"alpha", "red", "green", "blue"};
 static const char* g_ltrbString[4] = {"left", "top", "right", "bottom"};
+static const char* g_pointString[2] = {"x", "y"};
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size)
 {
@@ -122,6 +124,71 @@ bool ConvertFromJsIRect(napi_env env, napi_value jsValue, int32_t* ltrb, size_t 
         int32_t* curEdge = ltrb + idx;
         napi_get_named_property(env, jsValue, g_ltrbString[idx], &tempValue);
         if (napi_get_value_int32(env, tempValue, curEdge) != napi_ok) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ConvertFromJsShadowFlag(napi_env env, napi_value src, ShadowFlags& shadowFlag, ShadowFlags defaultFlag)
+{
+    if (src == nullptr) {
+        return false;
+    }
+    uint32_t value = 0;
+    if (!ConvertFromJsValue(env, src, value)) {
+        return false;
+    }
+    shadowFlag = defaultFlag;
+    if (value >= static_cast<uint32_t>(ShadowFlags::NONE) && value <= static_cast<uint32_t>(ShadowFlags::ALL)) {
+        shadowFlag = static_cast<ShadowFlags>(value);
+    }
+    return true;
+}
+
+bool ConvertFromJsPoint3d(napi_env env, napi_value src, Point3& point3d)
+{
+    if (src == nullptr) {
+        return false;
+    }
+    napi_value tempValue = nullptr;
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+    napi_get_named_property(env, src, "x", &tempValue);
+    bool isXOk = ConvertFromJsValue(env, tempValue, x);
+    napi_get_named_property(env, src, "y", &tempValue);
+    bool isYOk = ConvertFromJsValue(env, tempValue, y);
+    napi_get_named_property(env, src, "z", &tempValue);
+    bool isZOk = ConvertFromJsValue(env, tempValue, z);
+    if (!(isXOk && isYOk && isZOk)) {
+        return false;
+    }
+    point3d = Point3(x, y, z);
+    return true;
+}
+
+bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count)
+{
+    for (uint32_t i = 0; i < count; i++)  {
+        napi_value tempPoint = nullptr;
+        if (napi_get_element(env, array, i, &tempPoint) != napi_ok) {
+            return false;
+        }
+        if (!GetPointFromJsValue(env, tempPoint, points[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t size)
+{
+    napi_value tempValue = nullptr;
+    for (size_t idx = 0; idx < size; idx++) {
+        double* curEdge = point + idx;
+        napi_get_named_property(env, jsValue, g_pointString[idx], &tempValue);
+        if (napi_get_value_double(env, tempValue, curEdge) != napi_ok) {
             return false;
         }
     }

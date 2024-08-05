@@ -29,7 +29,8 @@ public:
     static void DumpMemoryUsage(DfxString& log, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const Drawing::GPUContext* gpuContext);
     static MemoryGraphic CountSubMemory(int pid, const Drawing::GPUContext* gpuContext);
-    static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext);
+    static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext,
+        std::vector<std::pair<NodeId, std::string>>& nodeTags);
     // Count memory for hidumper
     static MemoryGraphic CountPidMemory(int pid, const Drawing::GPUContext* gpuContext);
     static void CountMemory(std::vector<pid_t> pids,
@@ -52,7 +53,8 @@ private:
     static void DumpDrawingCpuMemory(DfxString& log);
     static void DumpGpuCache(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag, std::string& name);
-    static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext);
+    static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext,
+        std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
     static void DumpMallocStat(std::string& log);
 };

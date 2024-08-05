@@ -76,6 +76,9 @@ WebGLRenderingContextBasicBase *Util::GetContextObject(napi_env env, napi_value 
         return nullptr;
     }
     size_t webglItem = info[0].find("webgl");
+    if (webglItem == std::string::npos) {
+        return nullptr;
+    }
     string webgl2Str = info[0].substr(webglItem, 6); // length of webgl2
     return ObjectManager::GetInstance().GetWebGLContext(webgl2Str == "webgl2", contextId);
 }

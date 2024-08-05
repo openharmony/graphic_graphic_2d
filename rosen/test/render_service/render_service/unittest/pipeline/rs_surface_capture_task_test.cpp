@@ -20,6 +20,7 @@
 
 #include "rs_test_util.h"
 #include "surface_buffer_impl.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -35,6 +36,7 @@
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing::ext;
+using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS {
 namespace Rosen {
@@ -141,6 +143,7 @@ void RSSurfaceCaptureTaskTest::TearDown()
 
 void RSSurfaceCaptureTaskTest::SetUpTestCase()
 {
+    RSTestUtil::InitRenderNodeGC();
     rsInterfaces_ = &(RSInterfaces::GetInstance());
     if (rsInterfaces_ == nullptr) {
         HiLog::Error(LOG_LABEL, "%s: rsInterfaces_ == nullptr", __func__);
@@ -1023,15 +1026,19 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode004, Function | Small
     visitor_->hasSecurityOrSkipOrProtectedLayer_ = true;
     NodeId id = 1;
     RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(id, config);
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    node.SetConsumer(consumer);
+    auto displayDrawable =
+        static_cast<RSDisplayRenderNodeDrawable*>(RSDisplayRenderNodeDrawable::OnGenerate(node));
+    ASSERT_NE(nullptr, displayDrawable);
+    auto surfaceHandler = displayDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    surfaceHandler->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    node.SetBuffer(buffer, acquireFence, damage, timestamp);
-    visitor_->ProcessDisplayRenderNode(node);
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+    visitor_->ProcessDisplayRenderNode(*node);
     visitor_->hasSecurityOrSkipOrProtectedLayer_ = hasSecurityOrSkipOrProtectedLayer;
 }
 

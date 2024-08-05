@@ -33,4 +33,46 @@ void RsCommonHook::OnStartNewAnimation()
         startNewAniamtionFunc_();
     }
 }
+
+void RsCommonHook::SetVideoSurfaceConfig(std::unordered_map<std::string, std::string> sourceTuningConfig)
+{
+    sourceTuningConfig_ = sourceTuningConfig;
+}
+
+const std::unordered_map<std::string, std::string>& RsCommonHook::GetVideoSurfaceConfig() const
+{
+    return sourceTuningConfig_;
+}
+
+void RsCommonHook::SetVideoSurfaceFlag(bool videoSurfaceFlag)
+{
+    videoSurfaceFlag_ = videoSurfaceFlag;
+}
+
+bool RsCommonHook::GetVideoSurfaceFlag() const
+{
+    return videoSurfaceFlag_;
+}
+
+// skip hwcnode hardware state updating
+void RsCommonHook::SetHardwareEnabledByHwcnodeFlag(bool hardwareEnabledByHwcnodeSkippedFlag)
+{
+    hardwareEnabledByHwcnodeSkippedFlag_ = hardwareEnabledByHwcnodeSkippedFlag;
+}
+
+void RsCommonHook::SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag)
+{
+    hardwareEnabledByBackgroundAlphaSkippedFlag_ = hardwareEnabledByBackgroundAlphaSkippedFlag;
+}
+
+bool RsCommonHook::GetHardwareEnabledByHwcnodeFlag() const
+{
+    return hardwareEnabledByHwcnodeSkippedFlag_;
+}
+
+bool RsCommonHook::GetHardwareEnabledByBackgroundAlphaFlag() const
+{
+    return hardwareEnabledByBackgroundAlphaSkippedFlag_;
+}
+
 } // namespace OHOS::Rosen

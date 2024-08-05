@@ -128,7 +128,7 @@ HWTEST_F(RSFrameRatePolicyTest, GetRefreshRateModeName, TestSize.Level1)
 {
     auto instance = RSFrameRatePolicy::GetInstance();
     int32_t res = instance->GetRefreshRateModeName();
-    EXPECT_TRUE(res == 0);
+    EXPECT_TRUE(res == -1);
 }
 
 /**

@@ -21,6 +21,7 @@
 #include <vector>
 #include <unordered_map>
 
+#include "graphic_error.h"
 #include "surface_type.h"
 #include "hdi_layer.h"
 #include "hdi_framebuffer_surface.h"
@@ -35,6 +36,7 @@ static constexpr uint32_t LAYER_COMPOSITION_CAPACITY_INVALID = 0;
 
 // dump layer
 struct LayerDumpInfo {
+    uint64_t nodeId;
     uint64_t surfaceId;
     LayerPtr layer;
 };
@@ -120,7 +122,7 @@ private:
 
     std::vector<sptr<SurfaceBuffer> > bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
-    mutable std::mutex layerMutex_;
+    mutable std::mutex mutex_;
 
     std::vector<uint32_t> layersId_;
     std::vector<sptr<SyncFence>> fences_;
@@ -128,11 +130,11 @@ private:
     // DISPLAYENGINE
     bool arsrPreEnabled_ = false;
 
-    int32_t CreateLayer(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
-    void DeletePrevLayers();
-    void ResetLayerStatus();
-    void ReorderLayerInfo(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
-    void UpdatePrevLayerInfo();
+    int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
+    void DeletePrevLayersLocked();
+    void ResetLayerStatusLocked();
+    void ReorderLayerInfoLocked(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
+    void UpdatePrevLayerInfoLocked();
     void ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence);
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
@@ -141,6 +143,9 @@ private:
 
     // DISPLAY ENGINE
     bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
+
+    void ClearBufferCache();
+    std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
 };
 } // namespace Rosen
 } // namespace OHOS

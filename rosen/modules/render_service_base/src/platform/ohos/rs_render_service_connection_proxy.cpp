@@ -50,7 +50,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
     // split to several parcels if parcel size > PARCEL_SPLIT_THRESHOLD during marshalling
     std::vector<std::shared_ptr<MessageParcel>> parcelVector;
-    while (transactionData->GetMarshallingIndex() < transactionData->GetCommandCount()) {
+    auto func = [isUniMode, &parcelVector, &transactionData, this]() {
         if (isUniMode) {
             ++transactionDataIndex_;
         }
@@ -61,6 +61,14 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
             return;
         }
         parcelVector.emplace_back(parcel);
+    };
+    if (transactionData->IsNeedSync() && transactionData->IsEmpty()) {
+        RS_TRACE_NAME("Commit empty syncTransaction");
+        func();
+    } else {
+        while (transactionData->GetMarshallingIndex() < transactionData->GetCommandCount()) {
+            func();
+        }
     }
 
     MessageOption option;
@@ -401,7 +409,7 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     sptr<Surface> surface,
     ScreenId mirrorId,
     int32_t flags,
-    std::vector<NodeId> filteredAppVector)
+    std::vector<NodeId> whiteList)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -425,7 +433,7 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
 
     data.WriteUint64(mirrorId);
     data.WriteInt32(flags);
-    data.WriteUInt64Vector(filteredAppVector);
+    data.WriteUInt64Vector(whiteList);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -552,8 +560,9 @@ void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
     }
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnectionProxy::SetPointerColorInversionConfig(float darkBuffer,
-    float brightBuffer, int64_t interval)
+    float brightBuffer, int64_t interval, int32_t rangeSize)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -565,6 +574,7 @@ int32_t RSRenderServiceConnectionProxy::SetPointerColorInversionConfig(float dar
     data.WriteFloat(darkBuffer);
     data.WriteFloat(brightBuffer);
     data.WriteInt64(interval);
+    data.WriteInt32(rangeSize);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -642,6 +652,7 @@ int32_t RSRenderServiceConnectionProxy::UnRegisterPointerLuminanceChangeCallback
     int32_t result = reply.ReadInt32();
     return result;
 }
+#endif
 
 int32_t RSRenderServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
 {
@@ -738,6 +749,7 @@ void RSRenderServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, co
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RSRenderServiceProxy failed to get descriptor");
+        return;
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
@@ -994,7 +1006,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig)
+    const RSSurfaceCaptureConfig& captureConfig, bool /* accessible */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -2331,8 +2343,7 @@ void RSRenderServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& eve
     }
 }
 
-void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, const std::string& pkgName, uint32_t pid,
-    int32_t touchCnt)
+void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2341,12 +2352,6 @@ void RSRenderServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, const
         return;
     }
     if (!data.WriteInt32(touchStatus)) {
-        return;
-    }
-    if (!data.WriteString(pkgName)) {
-        return;
-    }
-    if (!data.WriteUint32(pid)) {
         return;
     }
     if (!data.WriteInt32(touchCnt)) {
@@ -2395,31 +2400,6 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCacheEnabledForRotation: Send Request err.");
-    }
-}
-
-void RSRenderServiceConnectionProxy::ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return;
-    }
-    if (!data.WriteUint64(syncId)) {
-        return;
-    }
-    if (!data.WriteInt32(parentPid)) {
-        return;
-    }
-    if (!data.WriteInt32(childPid)) {
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CHANGE_SYNCHRONIZE_COUNT);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::ChangeSyncCount: Send Request err.");
     }
 }
 
@@ -2515,7 +2495,7 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
         return hwcDisabledReasonInfos;
     }
     int32_t size = reply.ReadInt32();
-    size_t readableSize = reply.GetReadableBytes() / sizeof(NodeId);
+    size_t readableSize = reply.GetReadableBytes() / (sizeof(HwcDisabledReasonInfo) - HWC_DISABLED_REASON_INFO_OFFSET);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > hwcDisabledReasonInfos.max_size()) {
         RS_LOGE("RSRenderServiceConnectionProxy GetHwcDisabledReasonInfo Failed read vector, size:%{public}zu,"
@@ -2625,6 +2605,28 @@ int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
     } else {
         return RS_CONNECTION_ERROR;
     }
+}
+
+bool RSRenderServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    data.WriteUint64(id);
+    if (!data.WriteUint8(static_cast<uint8_t>(screenStatus))) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    bool result = reply.ReadBool();
+    return result;
 }
 
 } // namespace Rosen

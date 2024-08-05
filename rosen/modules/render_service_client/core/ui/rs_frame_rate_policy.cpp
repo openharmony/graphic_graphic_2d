@@ -44,13 +44,6 @@ void RSFrameRatePolicy::RegisterHgmConfigChangeCallback()
     if (RSInterfaces::GetInstance().RegisterHgmConfigChangeCallback(callback) != NO_ERROR) {
         ROSEN_LOGE("RegisterHgmConfigChangeCallback failed");
     }
-
-    auto refreshRateModeChangeCallback =
-        [this](int32_t mode) { this->RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(mode); };
-    if (RSInterfaces::GetInstance().RegisterHgmRefreshRateModeChangeCallback(
-        refreshRateModeChangeCallback) != NO_ERROR) {
-        ROSEN_LOGE("RegisterHgmRefreshRateModeChangeCallback failed");
-    }
 }
 
 void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData)
@@ -85,6 +78,7 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
 void RSFrameRatePolicy::HgmRefreshRateModeChangeCallback(int32_t refreshRateMode)
 {
     RSUIDirector::PostFrameRateTask([this, refreshRateMode]() {
+        ROSEN_LOGD("HgmRefreshRateModeChangeCallback refreshRateMode: %{public}d", refreshRateMode);
         currentRefreshRateModeName_ = refreshRateMode;
     });
 }

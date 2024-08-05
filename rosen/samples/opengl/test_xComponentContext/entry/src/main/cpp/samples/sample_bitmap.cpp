@@ -301,13 +301,16 @@ static void OnSurfaceCreatedCB(OH_NativeXComponent *component,
     }
     std::string id(idStr);
     auto render = SampleBitMap::GetInstance(id);
+    if (render == nullptr) {
+        return;
+    }
     OHNativeWindow *nativeWindow = static_cast<OHNativeWindow *>(window);
     render->SetNativeWindow(nativeWindow);
 
     uint64_t width;
     uint64_t height;
     int32_t xSize = OH_NativeXComponent_GetXComponentSize(component, window, &width, &height);
-    if ((xSize == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) && (render != nullptr)) {
+    if (xSize == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
         render->SetHeight(height);
         render->SetWidth(width);
         DRAWING_LOGI("xComponent width = %{public}llu, height = %{public}llu", width, height);

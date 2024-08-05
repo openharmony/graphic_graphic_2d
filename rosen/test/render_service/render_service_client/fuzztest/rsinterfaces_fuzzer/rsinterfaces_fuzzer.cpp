@@ -86,15 +86,20 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t height = GetData<uint32_t>();
     bool canvasRotation = GetData<bool>();
     uint32_t scaleMode = GetData<uint32_t>();
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     float darkBuffer = GetData<float>();
     float brightBuffer = GetData<float>();
     int64_t interval = GetData<int64_t>();
+    int32_t rangeSize = GetData<int32_t>();
+#endif
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
+    rsInterfaces.SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     PointerLuminanceChangeCallback callback = [](int32_t) {};
     rsInterfaces.RegisterPointerLuminanceChangeCallback(callback);
+#endif
     rsInterfaces.SetScreenActiveMode(static_cast<ScreenId>(id), modeId);
     rsInterfaces.SetScreenPowerStatus(static_cast<ScreenId>(id), static_cast<ScreenPowerStatus>(status));
     rsInterfaces.SetScreenBacklight(static_cast<ScreenId>(id), level);
@@ -167,6 +172,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     UIExtensionCallback uiExtensionCallback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
     rsInterfaces.RegisterUIExtensionCallback(id, uiExtensionCallback);
     usleep(usleepTime);
+
+    VirtualScreenStatus screenStatus = VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
+    rsInterfaces.SetVirtualScreenStatus(static_cast<ScreenId>(id), static_cast<VirtualScreenStatus>(screenStatus));
 
     return true;
 }

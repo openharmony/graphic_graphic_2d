@@ -14,6 +14,8 @@
  */
 
 #include "pipeline/rs_render_node_gc.h"
+
+#include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "rs_trace.h"
 

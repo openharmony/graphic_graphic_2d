@@ -26,5 +26,6 @@ public:
 
 protected:
     void OnTestFunction(OH_Drawing_Canvas *canvas) override;
+    void OnTestStability(OH_Drawing_Canvas *canvas) override;
 };
 #endif // AA_RECT_MODES_H

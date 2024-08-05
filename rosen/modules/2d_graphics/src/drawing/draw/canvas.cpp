@@ -66,6 +66,16 @@ bool Canvas::GetOffscreen() const
 {
     return isOffscreen_;
 }
+
+void Canvas::SetUICapture(bool isUICapture)
+{
+    isUICapture_ = isUICapture;
+}
+
+bool Canvas::GetUICapture() const
+{
+    return isUICapture_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

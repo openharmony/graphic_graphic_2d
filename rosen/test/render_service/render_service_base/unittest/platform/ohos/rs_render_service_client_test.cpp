@@ -193,9 +193,9 @@ HWTEST_F(RSClientTest, RegisterApplicationAgent_Nullptr, TestSize.Level1)
 HWTEST_F(RSClientTest, CreateVirtualScreen, TestSize.Level2)
 {
     ASSERT_NE(rsClient, nullptr);
-    std::vector<NodeId> filteredAppVector = {1};
+    std::vector<NodeId> whiteList = {1};
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
-        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, filteredAppVector);
+        "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 }
 
@@ -441,6 +441,7 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
     EXPECT_EQ(status, StatusCode::SUCCESS);
 }
 
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 /**
  * @tc.name: SetPointerColorInversionConfig Test
  * @tc.desc: SetPointerColorInversionConfig Test
@@ -452,7 +453,9 @@ HWTEST_F(RSClientTest, SetPointerColorInversionConfig001, TestSize.Level1)
     float darkBuffer = 0.5f;
     float brightBuffer = 0.5f;
     int64_t interval = 50;
-    EXPECT_EQ(rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval), StatusCode::SUCCESS);
+    int32_t rangeSize = 20;
+    EXPECT_EQ(rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize),
+        StatusCode::SUCCESS);
 }
 
 /**
@@ -488,6 +491,7 @@ HWTEST_F(RSClientTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Lev
 {
     EXPECT_EQ(rsClient->UnRegisterPointerLuminanceChangeCallback(), StatusCode::SUCCESS);
 }
+#endif
 
 /**
  * @tc.name: SetScreenActiveMode Test

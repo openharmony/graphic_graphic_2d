@@ -56,6 +56,7 @@ public:
 
     float GetTime() const;
 
+    void Serialize(class Archive& archive);
     void Serialize(std::vector<char>& out);
     void Deserialize(const std::vector<char>& in);
 
@@ -78,9 +79,6 @@ public:
     uint32_t GetPropertyUint32(const std::string& name) const;
     int64_t GetPropertyInt64(const std::string& name) const;
     uint64_t GetPropertyUint64(const std::string& name) const;
-
-protected:
-    void Serialize(class Archive& archive);
 
 private:
     float time_ = 0.0f;

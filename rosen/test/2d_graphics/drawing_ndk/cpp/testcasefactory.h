@@ -24,7 +24,9 @@ public:
 
     static std::shared_ptr<TestBase> GetFunctionCpuCase(std::string caseName);
     static std::shared_ptr<TestBase> GetPerformanceCpuCase(std::string caseName);
+    static std::shared_ptr<TestBase> GetStabilityCpuCase(std::string caseName);
     static std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> GetFunctionCpuCaseAll();
+    static std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> GetStabilityCpuCaseAll();
 };
 
 #endif

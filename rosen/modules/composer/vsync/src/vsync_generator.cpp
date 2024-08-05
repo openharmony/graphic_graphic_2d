@@ -87,7 +87,7 @@ static bool IsPcType()
 static bool IsPCRefreshRateLock60()
 {
     static bool isPCRefreshRateLock60 =
-        (std::atoi(system::GetParameter("persist.pc.refreshrate.lock60", "1").c_str()) != 0);
+        (std::atoi(system::GetParameter("persist.pc.refreshrate.lock60", "0").c_str()) != 0);
     return isPCRefreshRateLock60;
 }
 }
@@ -98,8 +98,7 @@ sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::instance_ = nullptr;
 sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::GetInstance() noexcept
 {
     std::call_once(createFlag_, []() {
-        auto vsyncGenerator = new VSyncGenerator();
-        instance_ = vsyncGenerator;
+        instance_ = new VSyncGenerator();
     });
 
     return instance_;
@@ -111,11 +110,11 @@ void VSyncGenerator::DeleteInstance() noexcept
 }
 
 VSyncGenerator::VSyncGenerator()
-    : period_(DEFAULT_SOFT_VSYNC_PERIOD), phase_(0), referenceTime_(0), wakeupDelay_(0),
-      pulse_(0), currRefreshRate_(0), referenceTimeOffsetPulseNum_(0), defaultReferenceTimeOffsetPulseNum_(0)
 {
     if (IsPcType() && IsPCRefreshRateLock60()) {
         period_ = REFRESH_PERIOD;
+    } else {
+        period_ = DEFAULT_SOFT_VSYNC_PERIOD;
     }
     vsyncThreadRunning_ = true;
     thread_ = std::thread([this] { this->ThreadLoop(); });
@@ -156,7 +155,9 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         listeners.size(), periodRecord_, currRefreshRate_, vsyncMode_);
     for (uint32_t i = 0; i < listeners.size(); i++) {
         RS_TRACE_NAME_FMT("listener phase is %ld", listeners[i].phase_);
-        listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
+        if (listeners[i].callback_ != nullptr) {
+            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
+        }
     }
 }
 
@@ -256,7 +257,9 @@ bool VSyncGenerator::ChangeListenerOffsetInternal()
     if (it == listenersRecord_.end()) {
         return false;
     }
-    it->callback_->OnPhaseOffsetChanged(phaseOffset);
+    if (it->callback_ != nullptr) {
+        it->callback_->OnPhaseOffsetChanged(phaseOffset);
+    }
     changingPhaseOffset_ = {}; // reset
     return true;
 }
@@ -275,7 +278,9 @@ bool VSyncGenerator::ChangeListenerRefreshRatesInternal()
     if (it == listenersRecord_.end()) {
         return false;
     }
-    it->callback_->OnConnsRefreshRateChanged(changingRefreshRates_.refreshRates);
+    if (it->callback_ != nullptr) {
+        it->callback_->OnConnsRefreshRateChanged(changingRefreshRates_.refreshRates);
+    }
     // reset
     changingRefreshRates_.cb = nullptr;
     changingRefreshRates_.refreshRates.clear();
@@ -720,6 +725,7 @@ VsyncError VSyncGenerator::SetReferenceTimeOffset(int32_t offsetByPulseNum)
 
 VsyncError VSyncGenerator::StartRefresh()
 {
+    RS_TRACE_NAME("StartRefresh");
     std::lock_guard<std::mutex> lock(mutex_);
     startRefresh_ = true;
     referenceTimeOffsetPulseNum_ = defaultReferenceTimeOffsetPulseNum_;
@@ -771,7 +777,7 @@ void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenc
 {
     int64_t actualOffset = referenceTime - pendingReferenceTime_;
     int32_t actualOffsetPulseNum = round((double)actualOffset/(double)pulse_);
-    if (startRefresh_) {
+    if (startRefresh_ || (defaultReferenceTimeOffsetPulseNum_ == 0)) {
         referenceTimeOffsetPulseNum_ = defaultReferenceTimeOffsetPulseNum_;
     } else {
         referenceTimeOffsetPulseNum_ = std::max(actualOffsetPulseNum, defaultReferenceTimeOffsetPulseNum_);

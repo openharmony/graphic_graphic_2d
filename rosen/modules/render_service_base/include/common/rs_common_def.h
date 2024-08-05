@@ -97,6 +97,16 @@ enum RSRenderParamsDirtyType {
     MAX_DIRTY_TYPE,
 };
 
+enum class NodeDirtyType : uint32_t {
+    NOT_DIRTY           = 0x0000u,
+    GEOMETRY            = 0x0001u,
+    BACKGROUND          = 0x0002u,
+    CONTENT             = 0x0004u,
+    FOREGROUND          = 0x0008u,
+    OVERLAY             = 0x0010u,
+    APPEARANCE          = 0x0020u,
+};
+
 enum class CacheType : uint8_t {
     NONE = 0,
     CONTENT,

@@ -48,6 +48,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace DrawableV2 {
+class RSDisplayRenderNodeDrawable;
+class RSSurfaceRenderNodeDrawable;
+}
 struct FrameContextConfig {
 public:
     FrameContextConfig(bool isProtected, bool independentContext)
@@ -57,6 +61,8 @@ public:
     }
     bool isProtected = false;
     bool independentContext = false;
+    bool isVirtual = false;
+    int32_t timeOut = 3000; // ms
 };
 // The RenderFrame can do auto flush
 class RSRenderFrame {
@@ -177,6 +183,9 @@ public:
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
         const FrameContextConfig& frameContextConfig = {false, false});
 
+    void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
+        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
+
     // There would only one user(thread) to renderFrame(request frame) at one time.
 #ifdef NEW_RENDER_CONTEXT
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
@@ -196,6 +205,9 @@ public:
 
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
         BufferDrawParam& params, PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) = 0;
+    virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params,
+        PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) {}
 
     virtual void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) = 0;
 
@@ -268,7 +280,8 @@ public:
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
-    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params);
+    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
+        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
 #endif
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);

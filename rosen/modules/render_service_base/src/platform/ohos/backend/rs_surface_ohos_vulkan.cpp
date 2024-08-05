@@ -17,7 +17,6 @@
 
 #include <memory>
 #include "memory/rs_tag_tracker.h"
-#include "SkColor.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
@@ -144,18 +143,15 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         nativeSurface.window = mNativeWindow;
         nativeSurface.graphicColorGamut = colorSpace_;
         if (!NativeBufferUtils::MakeFromNativeWindowBuffer(
-            mSkContext, nativeWindowBuffer, nativeSurface, width, height, isProtected)) {
-            ROSEN_LOGE("RSSurfaceOhosVulkan: MakeFromeNativeWindow failed");
-            mSurfaceList.pop_back();
-            NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
-            mSurfaceMap.erase(nativeWindowBuffer);
-            return nullptr;
-        }
-
-        if (!nativeSurface.drawingSurface) {
+            mSkContext, nativeWindowBuffer, nativeSurface, width, height, isProtected)
+            || !nativeSurface.drawingSurface) {
             ROSEN_LOGE("RSSurfaceOhosVulkan: skSurface is null, return");
             mSurfaceList.pop_back();
             NativeWindowCancelBuffer(mNativeWindow, nativeWindowBuffer);
+            if (fenceFd != -1) {
+                close(fenceFd);
+                fenceFd = -1;
+            }
             mSurfaceMap.erase(nativeWindowBuffer);
             return nullptr;
         } else {

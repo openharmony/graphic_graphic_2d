@@ -52,7 +52,7 @@ group("test") {
     "render_service_base/fuzztest/rsdisplayrendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/rseventdetector_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsframereport_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rsfuntionaldelegate_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsfunctionaldelegate_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsgpuoverdrawcanvaslistener_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsisurfaceocclusionchangecallbackipcinterfacecodeaccessverifier_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslineargradientblurfilter_fuzzer:fuzztest",
@@ -95,7 +95,6 @@ group("test") {
     "render_service_base/fuzztest/rsvsyncclientohos_fuzzer:fuzztest",
     "render_service_base/fuzztest/skresourcemanager_fuzzer:fuzztest",
     "render_service_base/unittest/animation:unittest",
-    "render_service_base/unittest/benchmarks:unittest",
     "render_service_base/unittest/command:unittest",
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
@@ -113,13 +112,13 @@ group("test") {
     "render_service_base/unittest/render:unittest",
     "render_service_base/unittest/screen_manager:unittest",
     "render_service_base/unittest/transaction:unittest",
+    "render_service_client/fuzztest/rsclientproperty_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsextendedmodifier_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsmodifier_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsmodifierextractor_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsmodifiermanager_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
-    "render_service_client/fuzztest/rsproperty_fuzzer:fuzztest",
     "render_service_client/fuzztest/rspropertymodifier_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsshowingpropertiesfreezer_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rscanvasdrawingnode_fuzzer:fuzztest",
@@ -160,5 +159,8 @@ group("test") {
 
   if (graphic_2d_feature_rs_enable_profiler) {
     deps += [ "render_service_profiler/unittest:unittest" ]
+  }
+  if (graphic_2d_feature_enable_recording_dcl) {
+    deps += [ "render_service_base/unittest/benchmarks:unittest" ]
   }
 }

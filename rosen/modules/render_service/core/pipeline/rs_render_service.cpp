@@ -34,10 +34,14 @@
 
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/round_corner_display/rs_message_bus.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "system/rs_system_parameters.h"
+
+#include "text/font_mgr.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -55,11 +59,18 @@ RSRenderService::~RSRenderService() noexcept {}
 
 bool RSRenderService::Init()
 {
-    // enable cache
-    mallopt(M_OHOS_CONFIG, M_TCACHE_NORMAL_MODE);
-    mallopt(M_OHOS_CONFIG, M_ENABLE_OPT_TCACHE);
-    mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
-    mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
+    std::thread preLoadSysTTFThread([]() {
+        Drawing::FontMgr::CreateDefaultFontMgr();
+    });
+    preLoadSysTTFThread.detach();
+
+    if (RSSystemParameters::GetTcacheEnabled()) {
+        // enable cache
+        mallopt(M_OHOS_CONFIG, M_TCACHE_NORMAL_MODE);
+        mallopt(M_OHOS_CONFIG, M_ENABLE_OPT_TCACHE);
+        mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
+        mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
+    }
 
     RSMainThread::Instance();
     RSUniRenderJudgement::InitUniRenderConfig();
@@ -76,7 +87,7 @@ bool RSRenderService::Init()
     } else {
         RSUniRenderThread::Instance().Start();
         RSHardwareThread::Instance().Start();
-        StartRCDUpdateThread(RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext().get());
+        RegisterRcdMsg();
     }
 
     auto generator = CreateVSyncGenerator();
@@ -140,11 +151,27 @@ void RSRenderService::Run()
     mainThread_->Start();
 }
 
-void RSRenderService::StartRCDUpdateThread(RenderContext* context) const
+void RSRenderService::RegisterRcdMsg()
 {
-    auto subThreadManager = RSSubThreadManager::Instance();
     if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        subThreadManager->StartRCDThread(context);
+        RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
+        if (!isRcdServiceRegister_) {
+            auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+            msgBus.RegisterTopic<uint32_t, uint32_t>(
+                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
+                &RoundCornerDisplay::UpdateDisplayParameter);
+            msgBus.RegisterTopic<ScreenRotation>(
+                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
+                &RoundCornerDisplay::UpdateOrientationStatus);
+            msgBus.RegisterTopic<int>(
+                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
+                &RoundCornerDisplay::UpdateNotchStatus);
+            isRcdServiceRegister_ = true;
+            RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
+            return;
+        }
+        RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice already.");
     }
 }
 
@@ -213,7 +240,7 @@ void RSRenderService::DumpNodesNotOnTheTree(std::string& dumpString) const
         if (node->IsInstanceOf<RSSurfaceRenderNode>() && !node->IsOnTheTree()) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
             dumpString += "\n node Id[" + std::to_string(node->GetId()) + "]:\n";
-            const auto& surfaceConsumer = surfaceNode->GetConsumer();
+            const auto& surfaceConsumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
             if (surfaceConsumer == nullptr) {
                 return;
             }
@@ -235,7 +262,7 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
         }
 
         const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
-        const auto& surfaceConsumer = surfaceNode->GetConsumer();
+        const auto& surfaceConsumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
         if (surfaceConsumer == nullptr) {
             return;
         }
@@ -427,7 +454,7 @@ void RSRenderService::DumpSurfaceNode(std::string& dumpString, NodeId id) const
                   "(include ContextAlpha: " + std::to_string(node->contextAlpha_) + ")\n";
     dumpString += "GlobalAlpha: " + std::to_string(node->GetGlobalAlpha()) + "\n";
     dumpString += node->GetVisibleRegion().GetRegionInfo() + "\n";
-    const auto& consumer = node->GetConsumer();
+    const auto consumer = node->GetRSSurfaceHandler()->GetConsumer();
     if (consumer == nullptr) {
         return;
     }
