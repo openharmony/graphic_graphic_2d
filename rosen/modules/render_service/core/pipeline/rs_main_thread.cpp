@@ -1304,8 +1304,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             });
         }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
-        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(
-            surfaceHandler, surfaceNode->GetName(), false, timestamp_)) {
+        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, timestamp_)) {
             if (!isUniRender_) {
                 this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                     static_cast<uint64_t>(surfaceHandler.GetTimestamp());
@@ -1376,7 +1375,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
 #endif
         // still have buffer(s) to consume.
-        if (surfaceHandler.GetAvailableBufferCount() > 0 || surfaceHandler.HasBufferCache()) {
+        if (surfaceHandler.GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
         }
         if (!hasHdrVideo) {

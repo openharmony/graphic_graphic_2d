@@ -31,6 +31,7 @@ public:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
     RSSurfaceHandler::SurfaceBufferEntry RequestAndFlushBuffer();
+    void ReleaseBuffer(RSSurfaceHandler::SurfaceBufferEntry& buffer);
     void SetUp() override;
     void TearDown() override;
     void OnBufferAvailable() override {}
@@ -82,6 +83,15 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandlerTest::RequestAndFlushBuffer
     ret = surfacePtr_->FlushBuffer(buffer.buffer, flushFence, flushConfig);
 
     return buffer;
+}
+
+void RSSurfaceHandlerTest::ReleaseBuffer(RSSurfaceHandler::SurfaceBufferEntry& buffer)
+{
+    auto consumer = rSSurfaceHandlerPtr_->GetConsumer();
+    if (consumer != nullptr && buffer.buffer != nullptr) {
+        consumer->ReleaseBuffer(buffer.buffer, SyncFence::INVALID_FENCE);
+    }
+    buffer.Reset();
 }
 
 /**
@@ -179,20 +189,6 @@ HWTEST_F(RSSurfaceHandlerTest, RegisterDeleteBufferListener001, TestSize.Level1)
 
 #ifndef ROSEN_CROSS_PLATFORM
 /**
- * @tc.name: ReleaseBuffer001
- * @tc.desc: test ReleaseBuffer
- * @tc.type: FUNC
- * @tc.require: issueI9LOXQ
- */
-HWTEST_F(RSSurfaceHandlerTest, ReleaseBuffer001, TestSize.Level2)
-{
-    RSSurfaceHandler::SurfaceBufferEntry buffer = RequestAndFlushBuffer();
-    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer);
-    ASSERT_EQ(buffer.buffer, nullptr);
-}
-
-/**
  * @tc.name: ConsumeAndUpdateBuffer001
  * @tc.desc: test ConsumeAndUpdateBuffer while buffer is empty
  * @tc.type: FUNC
@@ -204,7 +200,7 @@ HWTEST_F(RSSurfaceHandlerTest, ConsumeAndUpdateBuffer001, TestSize.Level2)
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
     rSSurfaceHandlerPtr_->ConsumeAndUpdateBuffer(buffer);
     ASSERT_FALSE(rSSurfaceHandlerPtr_->IsCurrentFrameBufferConsumed());
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer);
+    ReleaseBuffer(buffer);
 }
 
 /**
@@ -219,117 +215,21 @@ HWTEST_F(RSSurfaceHandlerTest, ConsumeAndUpdateBuffer002, TestSize.Level2)
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
     rSSurfaceHandlerPtr_->ConsumeAndUpdateBuffer(buffer);
     ASSERT_TRUE(rSSurfaceHandlerPtr_->IsCurrentFrameBufferConsumed());
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer);
+    ReleaseBuffer(buffer);
 }
 
 /**
- * @tc.name: CacheBuffer001
- * @tc.desc: test CacheBuffer for add cache
+ * @tc.name:  SetAvailableBufferCount001
+ * @tc.desc: test SetAvailableBufferCount
  * @tc.type: FUNC
- * @tc.require: issueI9LOXQ
+ * @tc.require: issueIAHZX4
  */
-HWTEST_F(RSSurfaceHandlerTest, CacheBuffer01, TestSize.Level2)
+HWTEST_F(RSSurfaceHandlerTest, SetAvailableBufferCount001, TestSize.Level2)
 {
-    RSSurfaceHandler::SurfaceBufferEntry buffer;
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer, "");
-    ASSERT_TRUE(rSSurfaceHandlerPtr_->HasBufferCache());
-}
-
-/**
- * @tc.name: CacheBuffer002
- * @tc.desc: test CacheBuffer for add cache which timestamp include in cache's key list
- * @tc.type: FUNC
- * @tc.require: issueIANDBE
- */
-HWTEST_F(RSSurfaceHandlerTest, CacheBuffer002, TestSize.Level2)
-{
-    RSSurfaceHandler::SurfaceBufferEntry buffer1 = RequestAndFlushBuffer();
-    RSSurfaceHandler::SurfaceBufferEntry buffer2 = RequestAndFlushBuffer();
-    buffer1.timestamp = 100; // make the timestamps of two buffers the same
-    buffer2.timestamp = 100;
-
-    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
-    rSSurfaceHandlerPtr_->bufferCache_.clear();
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer1, "");
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer2, "");
-
-    ASSERT_EQ(rSSurfaceHandlerPtr_->bufferCache_.size(), 1);
-}
-
-/**
- * @tc.name: GetBufferFromCache001
- * @tc.desc: test GetBufferFromCache while no cache satisfy render time
- * @tc.type:FUNC
- * @tc.require: issueI9LOXQ
- */
-HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache001, TestSize.Level2)
-{
-    RSSurfaceHandler::SurfaceBufferEntry buffer1 = RequestAndFlushBuffer();
-    RSSurfaceHandler::SurfaceBufferEntry buffer2 = RequestAndFlushBuffer();
-    buffer1.timestamp = 100; // timestamps of two buffers can be any different number
-    buffer2.timestamp = 200;
-
-    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
-    rSSurfaceHandlerPtr_->bufferCache_.clear();
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer1, "");
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer2, "");
-
-    uint64_t vsyncTimestamp = 50; // let vsyncTimestamp's timestamp smller than any buffer in cache
-    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp, "").buffer, nullptr);
-
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);
-}
-
-/**
- * @tc.name: GetBufferFromCache002
- * @tc.desc: test GetBufferFromCache while only one cache satisfy render time
- * @tc.type:FUNC
- * @tc.require: issueI9LOXQ
- */
-HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache002, TestSize.Level2)
-{
-    RSSurfaceHandler::SurfaceBufferEntry buffer1 = RequestAndFlushBuffer();
-    RSSurfaceHandler::SurfaceBufferEntry buffer2 = RequestAndFlushBuffer();
-    buffer1.timestamp = 100; // timestamps of two buffers can be any different number
-    buffer2.timestamp = 200;
-
-    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
-    rSSurfaceHandlerPtr_->bufferCache_.clear();
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer1, "");
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer2, "");
-
-    uint64_t vsyncTimestamp = 150; // let vsyncTimestamp's timestamp only bigger than one buffer in cache
-    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp, "").buffer, buffer1.buffer);
-
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);
-}
-
-/**
- * @tc.name: GetBufferFromCache003
- * @tc.desc: test GetBufferFromCache while more than one cache satisfy render time
- * @tc.type: FUNC
- * @tc.require: issueI9LOXQ
- */
-HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache003, TestSize.Level2)
-{
-    RSSurfaceHandler::SurfaceBufferEntry buffer1 = RequestAndFlushBuffer();
-    RSSurfaceHandler::SurfaceBufferEntry buffer2 = RequestAndFlushBuffer();
-    buffer1.timestamp = 100; // timestamps of two buffers can be any different number
-    buffer2.timestamp = 200;
-
-    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
-    rSSurfaceHandlerPtr_->bufferCache_.clear();
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer1, "");
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer2, "");
-
-    uint64_t vsyncTimestamp = 250; // let vsyncTimestamp's timestamp bigger than more than one buffer in cache
-    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp, "").buffer, buffer2.buffer);
-
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
-    rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);
+    int32_t bufferAvailableCount = 1;
+    rSSurfaceHandlerPtr_->SetAvailableBufferCount(bufferAvailableCount);
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetAvailableBufferCount(), bufferAvailableCount);
 }
 #endif
 } // namespace OHOS::Rosen

@@ -1869,7 +1869,6 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
     bufferEntry.timestamp = 0;
     ret = psurf->RequestBuffer(bufferEntry.buffer, requestFence, requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-    rsSurfaceHandlerPtr_->CacheBuffer(bufferEntry, rsSurfaceRenderNode->GetName());
     rsSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
     ASSERT_TRUE(rsSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
     mainThread->ConsumeAndUpdateAllNodes();
