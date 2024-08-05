@@ -37,6 +37,10 @@ ohos_unittest("bootanimation_test") {
     "boot_animation_operation_test.cpp",
     "boot_animation_utils_test.cpp",
     "boot_picture_player_test.cpp",
+    "boot_sound_player_test.cpp",
+    "boot_video_player_test.cpp",
+    "boot_animation_strategy_test.cpp",
+    "util_test.cpp",
   ]
 
   configs = [ ":bootanimation_test_config" ]
