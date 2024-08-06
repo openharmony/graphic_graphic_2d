@@ -67,7 +67,7 @@ static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
     stream.write(reinterpret_cast<const char*>(data + 1), size - 1);
     stream.seekg(0);
 
-    double writeStartTime = 0.0;
+    uint64_t writeStartTime = 0;
     stream.read(reinterpret_cast<char*>(&writeStartTime), sizeof(writeStartTime));
     file.SetWriteTime(writeStartTime);
 

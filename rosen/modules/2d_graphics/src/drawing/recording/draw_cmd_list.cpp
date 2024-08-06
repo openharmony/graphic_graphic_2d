@@ -556,6 +556,31 @@ size_t DrawCmdList::CountTextBlobNum()
     }
     return textBlobCnt;
 }
+
+void DrawCmdList::PatchTypefaceIds()
+{
+    constexpr int bitNumber = 30 + 32;
+    uint64_t replayMask = (uint64_t)1 << bitNumber;
+    uint32_t offset = offset_;
+    uint32_t maxOffset = opAllocator_.GetSize();
+    do {
+        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+        if (curOpItemPtr == nullptr) {
+            break;
+        }
+        uint32_t type = curOpItemPtr->GetType();
+        if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
+            DrawTextBlobOpItem::ConstructorHandle* handle =
+                static_cast<DrawTextBlobOpItem::ConstructorHandle*>(curOpItemPtr);
+            if (handle->globalUniqueId) {
+                handle->globalUniqueId |= replayMask;
+            }
+        }
+        offset = curOpItemPtr->GetNextOpItemOffset();
+    } while (offset != 0 && offset < maxOffset);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

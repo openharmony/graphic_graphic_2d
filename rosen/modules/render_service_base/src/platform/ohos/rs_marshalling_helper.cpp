@@ -1696,6 +1696,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetupSurfaceBuffer(surfaceBufferVec);
     }
 #endif
+
+    RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val);
     val->UnmarshallingDrawOps();
     return ret;
 }
