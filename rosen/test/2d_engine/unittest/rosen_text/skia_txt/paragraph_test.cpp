@@ -479,7 +479,7 @@ HWTEST_F(ParagraphTest, ParagraphTest035, TestSize.Level1) {
  */
 HWTEST_F(ParagraphTest, ParagraphTest036, TestSize.Level1) {
     EXPECT_EQ(paragraph_ != nullptr, true);
-    auot metrics = paragraph_->GetLineMetrics();
+    auto metrics = paragraph_->GetLineMetrics();
     for (const skia::textlayout::LineMetrics &skLineMetrics : metrics) {
         for (const auto& [index, styleMetrics] : skLineMetrics.fLineMetrics) {
             OHOS::Rosen::SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMetrics.text_style);
