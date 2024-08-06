@@ -96,6 +96,9 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
+        if (canvas.GetUICapture() && !drawBlurForCache_) {
+            GenerateCacheIfNeed(canvas, *params);
+        }
         CheckCacheTypeAndDraw(canvas, *params);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
