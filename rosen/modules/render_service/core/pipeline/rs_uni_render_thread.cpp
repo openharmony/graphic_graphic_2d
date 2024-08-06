@@ -335,8 +335,7 @@ void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
     std::vector<std::function<void()>> releaseTasks;
-    for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
-        auto drawable = surfaceNode->GetRenderDrawable();
+    for (const auto& drawable : renderThreadParams_->GetSelfDrawables()) {
         if (UNLIKELY(!drawable)) {
             continue;
         }
