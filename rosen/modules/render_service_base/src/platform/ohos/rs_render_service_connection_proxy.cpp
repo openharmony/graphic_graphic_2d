@@ -130,6 +130,9 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
     // 1. marshalling RSTransactionData
     RS_TRACE_BEGIN("MarshRSTransactionData cmdCount:" + std::to_string(transactionData->GetCommandCount()) +
         " transactionFlag:[" + std::to_string(pid_) + "," + std::to_string(transactionData->GetIndex()) + "]");
+    ROSEN_LOGI_IF(DEBUG_PIPELINE,
+        "MarshRSTransactionData cmdCount:%{public}lu transactionFlag:[pid:%{public}d index:%{public}" PRIu64 "]",
+        transactionData->GetCommandCount(), pid_, transactionData->GetIndex());
     bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
     if (!success) {
