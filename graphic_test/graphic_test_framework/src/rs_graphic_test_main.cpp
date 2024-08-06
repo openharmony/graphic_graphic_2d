@@ -25,6 +25,11 @@ using namespace OHOS;
 using namespace OHOS::Rosen;
 using namespace std;
 
+constexpr size_t ARGS_ONE = 1;
+constexpr size_t ARGS_TWO = 2;
+constexpr size_t ARGS_THREE = 3;
+constexpr size_t ARGS_FOUR = 4;
+
 typedef int (*ProcFunc)(int argc, char **argv);
 typedef struct {
     string oid;
@@ -72,8 +77,8 @@ static int DisplayAllCaseInfo(int argc, char **argv)
     vector<string> layerInfo {};
     vector<string> curlayerInfo {};
     string findPath = "graphic_test";
-    if (argc == 3) {
-        findPath = string(argv[2]);
+    if (argc == ARGS_THREE) {
+        findPath = string(argv[ARGS_TWO]);
     }
     cout << findPath << endl;
     findPath.append("/");
@@ -110,22 +115,22 @@ static int FilterTestUnit(int argc, char **argv)
     string unitName;
     string caseName = "*";
     switch (argc) {
-        case 3:
-            unitName = argv[2];
+        case ARGS_THREE:
+            unitName = argv[ARGS_TWO];
             break;
-        case 4:
-            unitName = argv[2];
-            caseName = argv[3];
+        case ARGS_FOUR:
+            unitName = argv[ARGS_TWO];
+            caseName = argv[ARGS_THREE];
             break;
         default:
             cout << "format fail [-unit unitName [caseName]]" << endl;
             return 0;
     }
 
-    int argcTemp = 2;
+    int argcTemp = ARGS_TWO;
     string filter = "--gtest_filter=";
     filter.append(unitName).append(".").append(caseName);
-    argv[1] = (char*)filter.c_str();
+    argv[ARGS_ONE] = (char*)filter.c_str();
     RSGraphicTestDirector::Instance().Run();
     testing::InitGoogleTest(&argcTemp, argv);
     return RUN_ALL_TESTS();
@@ -138,10 +143,10 @@ int main(int argc, char **argv)
         { "-unit", FilterTestUnit }
     };
 
-    if (argc >= 2) {
+    if (argc >= ARGS_TWO) {
         size_t tblCnt = sizeof(funcTbl) / sizeof(funcTbl[0]);
         for (uint32_t paraNo = 0; paraNo < tblCnt; paraNo++) {
-            if (funcTbl[paraNo].oid == string(argv[1])) {
+            if (funcTbl[paraNo].oid == string(argv[ARGS_ONE])) {
                 return funcTbl[paraNo].procFunc(argc, argv);
             }
         }
