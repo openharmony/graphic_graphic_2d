@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_CACHE_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_CACHE_H
 
+#include <list>
 #include <unordered_map>
 #include "image/image.h"
 
@@ -47,7 +48,8 @@ public:
 
     RSImageCache() = default;
     ~RSImageCache() = default;
-
+    void CollectUniqueId(uint64_t uniqueId);
+    void ReleaseUniqueIdList();
 private:
     RSImageCache(const RSImageCache&) = delete;
     RSImageCache(const RSImageCache&&) = delete;
@@ -64,6 +66,8 @@ private:
     mutable std::mutex mapMutex_;
     std::unordered_map<uint64_t, std::unordered_map<pid_t, std::shared_ptr<Drawing::Image>>>
         pixelMapIdRelatedDrawingImageCache_;
+    std::mutex uniqueIdListMutex_;
+    std::list<uint64_t> uniqueIdList_;
 };
 } // namespace Rosen
 } // namespace OHOS
