@@ -214,6 +214,7 @@ public:
 
     VkSemaphore RequireSemaphore();
     void SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd);
+    void DestroyAllSemaphoreFence();
 
 friend class RsVulkanContext;
 private:
