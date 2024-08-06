@@ -428,10 +428,10 @@ template<>
 void RSRenderProperty<Quaternion>::Dump(std::string& out) const
 {
     Quaternion q = Get();
-    out += "[x:" + std::to_string(q.x_) + " y:";
-    out += std::to_string(q.y_) + " z:";
-    out += std::to_string(q.z_) + " w:";
-    out += std::to_string(q.w_) + "]";    
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1);
+    ss << "[x:" << q.x_ << " y:" << q.y_ << " z:" << q.z_ << " w:" << q.w_ << + "]";
+    out += ss.str();
 }
 
 template<>
