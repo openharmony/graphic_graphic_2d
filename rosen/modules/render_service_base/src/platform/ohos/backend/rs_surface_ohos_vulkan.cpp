@@ -239,6 +239,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
         queue, 1, &semaphore, surface.image, &fenceFd);
     if (err != VK_SUCCESS) {
+        if (err == VK_ERROR_DEVICE_LOST) {
+            vkContext.DestroyAllSemaphoreFence();
+        }
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(callbackInfo);
         callbackInfo = nullptr;
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);
