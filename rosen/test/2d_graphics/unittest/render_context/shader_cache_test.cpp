@@ -316,5 +316,28 @@ HWTEST_F(ShaderCacheTest, querryShaderNum_test_001, TestSize.Level1)
     cache.InitShaderCache(identity, 0, false);
     cache.QuerryShaderNum();
 }
+
+/**
+ * @tc.name: storeShader_test_001
+ * @tc.desc: Imporve Coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ShaderCacheTest, storeShader_test_001, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    std::string testedFileDir = "testFilePath";
+    cache.SetFilePath(testedFileDir);
+    const char* identity = nullptr;
+    std::shared_ptr<Drawing::Data> fakeKey = std::make_shared<Drawing::Data>();
+    std::shared_ptr<Drawing::Data> fakeData = std::make_shared<Drawing::Data>();
+    cache.InitShaderCache(identity, 0, false);
+    cache.Store(*fakeKey, *fakeData);
+    EXPECT_EQ(nullptr, cache.Load(*fakeKey));
+    cache.cacheData_ = nullptr;
+    cache.Store(*fakeKey, *fakeData);
+    cache.Load(*fakeKey);
+}
 } // namespace Rosen
 } // namespace OHOS
