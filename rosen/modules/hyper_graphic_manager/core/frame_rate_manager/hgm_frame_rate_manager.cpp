@@ -44,7 +44,7 @@ namespace {
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 20;
     constexpr int32_t LAST_TOUCH_CNT = 1;
 
-    constexpr uint32_t FIRST_FRAME_TIME_OUT = 50; // 50ms
+    constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
     constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
@@ -194,11 +194,17 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t
     }
 }
 
-void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,  pid_t pid)
+void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
+    pid_t pid, UIFWKType uiFwkType)
 {
-    idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid);
+    idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid, uiFwkType);
 }
 
+void HgmFrameRateManager::ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
+{
+    idleDetector_.ProcessUnknownUIFwkIdleState(activeNodesInRoot, timestamp);
+}
 void HgmFrameRateManager::UpdateAppSupportedState()
 {
     bool appNeedHighRefresh = false;
@@ -240,18 +246,18 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     if (!idleDetector_.GetAppSupportedState()) {
         return;
     }
-    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AceAnimatorIdleState = [%d]",
+    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurfaceIdleState = [%d]  AceAnimatorIdleState = [%d]",
         touchManager_.GetState(), idleDetector_.GetSurfaceIdleState(timestamp),
         idleDetector_.GetAceAnimatorIdleState());
 
-    // Wait touch up FIRST_FRAME_TIME_OUT ms
+    // After touch up, wait FIRST_FRAME_TIME_OUT ms
     if (!startCheck_.load() || touchManager_.GetState() == TouchState::IDLE_STATE) {
         needHighRefresh_ = false;
         lastTouchUpExpectFps_ = 0;
         return;
     }
 
-    // Check if needed third frame need high refresh
+    // Check if third framework need high refresh
     if (!needHighRefresh_) {
         needHighRefresh_ = true;
         if (!idleDetector_.ThirdFrameNeedHighRefresh()) {

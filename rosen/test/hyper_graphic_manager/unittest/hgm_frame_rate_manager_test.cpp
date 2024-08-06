@@ -122,7 +122,9 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
     PART("CaseDescription") {
         STEP("1. init") {
             frameRateMgr.idleDetector_.SetAppSupportedState(true);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid);
+            std::vector<std::string> supportedAppBufferList = { otherSurface };
+            frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::FROM_SURFACE);
         }
         STEP("2. handle touch up event") {
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
@@ -130,8 +132,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            HgmErrCode res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig), EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
@@ -143,8 +144,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig), EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_90_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_90_HZ);
 
@@ -157,8 +157,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig), EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
         }
@@ -181,7 +180,9 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS002, Function | SmallTest | Level1
     PART("CaseDescription") {
         STEP("1. init") {
             frameRateMgr.idleDetector_.SetAppSupportedState(true);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid);
+            std::vector<std::string> supportedAppBufferList = { otherSurface };
+            frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::FROM_SURFACE);
         }
         STEP("2. handle touch up event") {
             std::vector<std::string> appBufferBlackList = { otherSurface };

@@ -34,6 +34,7 @@
 #include "hgm_vsync_generator_controller.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
+#include "pipeline/rs_render_node.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 
@@ -154,7 +155,10 @@ public:
     void ProcessPendingRefreshRate(uint64_t timestamp, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
-    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp, pid_t pid);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
+        pid_t pid, UIFWKType uiFwkType);
+    void ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
