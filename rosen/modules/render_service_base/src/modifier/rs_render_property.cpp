@@ -368,6 +368,29 @@ void RSRenderProperty<float>::Dump(std::string& out) const
 }
 
 template<>
+void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const
+{
+    Vector4 v4 = Get();
+    switch (modifierType_) {
+        case RSModifierType::BORDER_STYLE:
+        case RSModifierType::OUTLINE_STYLE: {
+            out += "[left:" + std::to_string(v4.x_);
+            out += " top:" + std::to_string(v4.y_);
+            out += " right:" + std::to_string(v4.z_);
+            out += " bottom:" + std::to_string(v4.w_) + "]";
+            break;
+        }
+        default: {
+            out += "[x:" + std::to_string(v4.x_) + " y:";
+            out += std::to_string(v4.y_) + " z:";
+            out += std::to_string(v4.z_) + " w:";
+            out += std::to_string(v4.w_) + "]";
+            break;
+        }
+    }
+}
+
+template<>
 void RSRenderProperty<Vector4f>::Dump(std::string& out) const
 {
     Vector4f v4f = Get();
@@ -640,6 +663,7 @@ bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
 
 template class RSRenderProperty<int>;
 template class RSRenderProperty<float>;
+template class RSRenderProperty<Vector4<uint32_t>>;
 template class RSRenderProperty<Vector4f>;
 template class RSRenderProperty<Quaternion>;
 template class RSRenderProperty<Vector2f>;

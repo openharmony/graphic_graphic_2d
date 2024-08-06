@@ -361,6 +361,8 @@ RSB_EXPORT void RSRenderProperty<int>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<float>::Dump(std::string& out) const;
 template<>
+RSB_EXPORT void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const;
+template<>
 RSB_EXPORT void RSRenderProperty<Vector4f>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Quaternion>::Dump(std::string& out) const;
@@ -417,6 +419,7 @@ RSB_EXPORT bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
 #if defined(_WIN32)
 extern template class RSRenderProperty<int>;
 extern template class RSRenderProperty<float>;
+extern template class RSRenderProperty<Vector4<uint32_t>>;
 extern template class RSRenderProperty<Vector4f>;
 extern template class RSRenderProperty<Quaternion>;
 extern template class RSRenderProperty<Vector2f>;
