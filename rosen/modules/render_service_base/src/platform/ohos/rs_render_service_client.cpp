@@ -108,6 +108,15 @@ bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemS
     return renderService->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
 }
 
+bool RSRenderServiceClient::CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return false;
+    }
+    return renderService->CreateNode(displayNodeConfig);
+}
+
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

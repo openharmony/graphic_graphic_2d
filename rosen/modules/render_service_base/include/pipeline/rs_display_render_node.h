@@ -429,6 +429,8 @@ protected:
 private:
     explicit RSDisplayRenderNode(
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
+    explicit RSDisplayRenderNode(
+        const RSDisplayRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
     void HandleCurMainAndLeashSurfaceNodes();
     // vector of sufacenodes will records dirtyregions by itself

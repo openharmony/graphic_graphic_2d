@@ -20,6 +20,7 @@
 #include "command/rs_display_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 namespace OHOS {
 namespace Rosen {
@@ -29,13 +30,32 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     SharedPtr node(new RSDisplayNode(displayNodeConfig));
     RSNodeMap::MutableInstance().RegisterNode(node);
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
+    if (displayNodeConfig.isSync) {
+        RSDisplayRenderNodeConfig config = {
+            .id = node->GetId(),
+            .mirrorNodeId = displayNodeConfig.mirrorNodeId,
+            .screenId = displayNodeConfig.screenId,
+            .isMirrored = displayNodeConfig.isMirrored
+        };
+        if (!node->CreateNode(config)) {
+            ROSEN_LOGE("RSDisplayNode::Create: CreateNode Failed.");
+            return nullptr;
+        }
+    } else {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, true);
+        }
     }
     ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64, node->GetId());
     return node;
+}
+
+bool RSDisplayNode::CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig)
+{
+    return std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())->
+        CreateNode(displayNodeConfig);
 }
 
 void RSDisplayNode::AddDisplayNodeToTree()

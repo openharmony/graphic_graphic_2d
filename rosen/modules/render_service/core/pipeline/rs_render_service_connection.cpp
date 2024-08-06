@@ -26,6 +26,7 @@
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
+#include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
@@ -307,6 +308,28 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
 bool RSRenderServiceConnection::GetUniRenderEnabled()
 {
     return RSUniRenderJudgement::IsUniRender();
+}
+
+bool RSRenderServiceConnection::CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig)
+{
+    if (!mainThread_) {
+        return false;
+    }
+    std::shared_ptr<RSDisplayRenderNode> node =
+        DisplayNodeCommandHelper::CreateWithConfigInRS(displayNodeConfig, mainThread_->GetContext());
+    if (node == nullptr) {
+        RS_LOGE("RSRenderService::CreateDisplayNode fail");
+        return false;
+    }
+    std::function<void()> registerNode = [node, weakThis = wptr<RSRenderServiceConnection>(this)]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            return;
+        }
+        connection->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+    };
+    mainThread_->PostSyncTask(registerNode);
+    return true;
 }
 
 bool RSRenderServiceConnection::CreateNode(const RSSurfaceRenderNodeConfig& config)

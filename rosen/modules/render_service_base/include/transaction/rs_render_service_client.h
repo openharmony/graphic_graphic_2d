@@ -120,6 +120,7 @@ public:
     bool GetUniRenderEnabled();
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
+    bool CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig);
 #ifdef NEW_RENDER_CONTEXT
     std::shared_ptr<RSRenderSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config);
 #else

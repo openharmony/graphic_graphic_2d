@@ -166,6 +166,38 @@ bool RSRenderServiceConnectionProxy::GetUniRenderEnabled()
     return reply.ReadBool();
 }
 
+bool RSRenderServiceConnectionProxy::CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteInterfaceToken err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(displayNodeConfig.id)) {
+        return false;
+    }
+    if (!data.WriteUint64(displayNodeConfig.mirrorNodeId)) {
+        return false;
+    }
+    if (!data.WriteUint64(displayNodeConfig.screenId)) {
+        return false;
+    }
+    if (!data.WriteBool(displayNodeConfig.isMirrored)) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+
+    return reply.ReadBool();
+}
+
 bool RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
     MessageParcel data;

@@ -142,7 +142,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE)
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -1718,6 +1719,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {
             bool flag = data.ReadBool();
             SetVmaCacheStatus(flag);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {
+            auto id = data.ReadUint64();
+            auto mirrorId = data.ReadUint64();
+            auto screenId = data.ReadUint64();
+            auto isMirrored = data.ReadBool();
+            RSDisplayRenderNodeConfig config = {
+                .id = id,
+                .mirrorNodeId = mirrorId,
+                .screenId = screenId,
+                .isMirrored = isMirrored
+            };
+            reply.WriteBool(CreateNode(config));
             break;
         }
         default: {
