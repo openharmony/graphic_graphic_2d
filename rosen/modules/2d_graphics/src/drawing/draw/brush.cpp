@@ -202,6 +202,29 @@ bool operator!=(const Brush& b1, const Brush& b2)
 {
     return !(b1 == b2);
 }
+
+void Brush::Dump(std::string& out)
+{
+    out += "color[";
+    color_.Dump(out);
+    out += "]";
+    out += " blendMode:" + std::to_string(static_cast<int>(blendMode_));
+    out += " filter[";
+    filter_.Dump(out);
+    out += "]";
+    if (colorSpace_ != nullptr) {
+        out += " colorSpaceType:" + std::to_string(static_cast<int>(colorSpace_->GetType()));
+    }
+    if (shaderEffect_ != nullptr) {
+        out += " shaderEffectType:" + std::to_string(static_cast<int>(shaderEffect_->GetType()));
+    }
+    out += " isAntiAlias:" + std::to_string(antiAlias_);
+    out += " blenderEnabled:" + std::to_string(blenderEnabled_);
+    out += " hasFilter:" + std::to_string(hasFilter_);
+    out += " forceBrightnessDisable:" + std::to_string(forceBrightnessDisable_);
+    out += " isHDR:" + std::to_string(isHdr_);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

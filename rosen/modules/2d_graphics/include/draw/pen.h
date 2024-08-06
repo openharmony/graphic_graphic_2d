@@ -324,6 +324,8 @@ public:
     friend DRAWING_API bool operator==(const Pen& p1, const Pen& p2);
     friend DRAWING_API bool operator!=(const Pen& p1, const Pen& p2);
 
+    void Dump(std::string& out);
+
 private:
     scalar width_;
     scalar miterLimit_;

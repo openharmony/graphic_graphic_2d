@@ -62,6 +62,19 @@ public:
         }
     }
     ~RSLinearGradientBlurPara() = default;
+
+    void Dump(std::string& out)
+    {
+        out += "blurRadius:" + std::to_string(blurRadius_);
+        out += " direction:" + std::to_string(static_cast<int>(direction_)) + " fractionStops[";
+        for (auto& val : fractionStops_) {
+            out += "[" + std::to_string(val.first) + " " + std::to_string(val.second) + "] ";
+        }
+        if (fractionStops_.size() > 0) {
+            out.pop_back();
+        }
+        out += "]";
+    }
 };
 } // namespace Rosen
 } // namespace OHOS

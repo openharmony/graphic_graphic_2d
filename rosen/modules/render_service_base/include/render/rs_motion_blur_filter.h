@@ -31,6 +31,8 @@ public:
 
     explicit MotionBlurParam(float r, Vector2f& s) : radius(r), scaleAnchor(s) {}
     ~MotionBlurParam() = default;
+
+    void Dump(std::string& out);
 };
 
 class RSB_EXPORT RSMotionBlurFilter : public RSDrawingFilterOriginal {
