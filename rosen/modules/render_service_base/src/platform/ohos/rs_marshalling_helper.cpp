@@ -682,21 +682,21 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMa
  
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnifierParams>& val)
 {
-    float factor;
-    float width;
-    float height;
-    float cornerRadius;
-    float borderWidth;
-    float offsetX;
-    float offsetY;
-    float shadowOffsetX;
-    float shadowOffsetY;
-    float shadowSize;
-    float shadowStrength;
-    uint32_t gradientMaskColor1;
-    uint32_t gradientMaskColor2;
-    uint32_t outerContourColor1;
-    uint32_t outerContourColor2;
+    float factor = 0.f;
+    float width = 0.f;
+    float height = 0.f;
+    float cornerRadius = 0.f;
+    float borderWidth = 0.f;
+    float offsetX = 0.f;
+    float offsetY = 0.f;
+    float shadowOffsetX = 0.f;
+    float shadowOffsetY = 0.f;
+    float shadowSize = 0.f;
+    float shadowStrength = 0.f;
+    uint32_t gradientMaskColor1 = 0x00000000;
+    uint32_t gradientMaskColor2 = 0x00000000;
+    uint32_t outerContourColor1 = 0x00000000;
+    uint32_t outerContourColor2 = 0x00000000;
 
     val = std::make_shared<RSMagnifierParams>();
     if (val == nullptr) { return false; }
