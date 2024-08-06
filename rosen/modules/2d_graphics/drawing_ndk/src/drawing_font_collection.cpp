@@ -107,6 +107,9 @@ void OH_Drawing_DisableFontCollectionFallback(OH_Drawing_FontCollection* fontCol
 
 void OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection* fontCollection)
 {
+    if (fontCollection == nullptr) {
+        return;
+    }
 #ifndef USE_GRAPHIC_TEXT_GINE
     ConvertToFontCollection<rosen::FontCollection>(fontCollection)->DisableSystemFont();
 #else

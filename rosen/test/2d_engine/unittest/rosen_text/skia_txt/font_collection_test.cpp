@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "font_collection.h"
+#include "platform.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -32,6 +33,9 @@ void FontCollectionTest::SetUpTestCase()
     fontCollection_ = std::make_shared<FontCollection>();
     if (!fontCollection_) {
         std::cout << "FontCollectionTest::SetUpTestCase error fontCollection_ is nullptr" << std::endl;
+    }
+    if (fontCollection_) {
+        fontCollection_->CreateSktFontCollection();
     }
 }
 
@@ -82,8 +86,8 @@ HWTEST_F(FontCollectionTest, FontCollectionTest003, TestSize.Level1)
 HWTEST_F(FontCollectionTest, FontCollectionTest004, TestSize.Level1)
 {
     EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->SetAssetFontManager(nullptr);
-    EXPECT_EQ(fontCollection_->assetFontManager_, nullptr);
+    fontCollection_->SetAssetFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
+    EXPECT_NE(fontCollection_->assetFontManager_, nullptr);
 }
 
 /*
@@ -106,8 +110,8 @@ HWTEST_F(FontCollectionTest, FontCollectionTest005, TestSize.Level1)
 HWTEST_F(FontCollectionTest, FontCollectionTest006, TestSize.Level1)
 {
     EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->SetTestFontManager(nullptr);
-    EXPECT_EQ(fontCollection_->testFontManager_, nullptr);
+    fontCollection_->SetTestFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
+    EXPECT_NE(fontCollection_->testFontManager_, nullptr);
 }
 
 
@@ -119,7 +123,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest006, TestSize.Level1)
 HWTEST_F(FontCollectionTest, FontCollectionTest007, TestSize.Level1)
 {
     EXPECT_EQ(fontCollection_ != nullptr, true);
-    EXPECT_EQ(fontCollection_->GetFontManagerOrder().size(), 0);
+    EXPECT_NE(fontCollection_->GetFontManagerOrder().size(), 0);
 }
 
 /*
