@@ -281,13 +281,9 @@ bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceI
         return false;
     }
 
-    if (info.params.empty()) {
-        return false;
-    }
-
     if (info.type == static_cast<int32_t>(ResourceType::STRING)) {
         std::string rPath;
-        if (info.resId < 0 && info.params[0].size() > 0) {
+        if (info.resId < 0 && !info.params.empty() && info.params[0].size() > 0) {
             rPath = info.params[0];
         } else {
             state = reSourceManager->GetStringById(info.resId, rPath);
@@ -301,6 +297,11 @@ bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceI
     } else if (info.type == static_cast<int32_t>(ResourceType::RAWFILE)) {
         size_t dataLen = 0;
         std::unique_ptr<uint8_t[]> rawData;
+
+        if (info.params.empty()) {
+            return false;
+        }
+
         state = reSourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData);
         if (state >= GLOBAL_ERROR || state < 0) {
             return false;
