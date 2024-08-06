@@ -2978,9 +2978,9 @@ void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
             continue;
         }
         if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
-            hwcNodeVector.push_back(hwcNodes[i].lock()->GetDstRect());
+            hwcNodeVector.push_back(hwcNodePtr->GetDstRect());
         } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
-                   hwcNodeVector.size() != 0 && IsNodeBelowInsideOfNodeAbove(hwcNodes[i].lock()->GetDstRect(), hwcRects)) {
+                   hwcNodeVector.size() != 0 && IsNodeAboveInsideOfNodeBelow(hwcNodePtr->GetDstRect(), hwcRects)) {
             return;
         } else {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
@@ -2988,7 +2988,7 @@ void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     }
 }
 
-bool RSUniRenderVisitor::IsNodeBelowInsideOfNodeAbove(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList)
+bool RSUniRenderVisitor::IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList)
 {
     for (auto rectBelow: hwcNodeRectList) {
         if (rectAbove.IsInsideOf(rectBelow)) {
