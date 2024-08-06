@@ -36,13 +36,11 @@ enum class PlaceholderVerticalAlignment {
 };
 
 struct PlaceholderSpan {
-    double width;
-    double height;
+    double width = 0.0;
+    double height = 0.0;
     PlaceholderVerticalAlignment alignment;
     TextBaseline baseline;
-    double baselineOffset;
-
-    PlaceholderSpan() : width(0.0), height(0.0), baselineOffset(0.0) {}
+    double baselineOffset = 0.0;
 };
 
 class RS_EXPORT TypographyCreate {
