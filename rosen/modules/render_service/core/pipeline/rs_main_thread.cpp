@@ -3613,11 +3613,6 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id)
             }
         }
     } else if (nodePtr->IsMainWindowType() && nodePtr->GetVisibleRegion().IsEmpty()) {
-        auto curNode = nodePtr;
-        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr->GetParent().lock());
-        if (parentNode && parentNode->IsLeashWindow()) {
-            curNode = parentNode;
-        }
         nodePtr->PrepareSelfNodeForApplyModifiers();
         needSync = true;
     }
