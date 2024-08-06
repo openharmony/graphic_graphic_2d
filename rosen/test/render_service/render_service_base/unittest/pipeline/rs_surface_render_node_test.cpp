@@ -2506,5 +2506,35 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRootIdOfCaptureWindow, TestSize.Level2)
     node->SetRootIdOfCaptureWindow(rootId);
     ASSERT_EQ(node->GetStagingRenderParams()->GetRootIdOfCaptureWindow(), rootId);
 }
+
+/**
+ * @tc.name: GetAncoForceDoDirect001
+ * @tc.desc: Test function GetAncoForceDoDirect
+ * @tc.type: FUNC
+ * @tc.require: issueIAIIEP
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetAncoForceDoDirect001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    RSSurfaceRenderNode::SetAncoForceDoDirect(false);
+    node->SetAncoFlags(1);
+    ASSERT_FALSE(node->GetAncoForceDoDirect());
+    ASSERT_EQ(node->GetAncoFlags(), 1);
+    node->SetAncoFlags(0);
+    ASSERT_FALSE(node->GetAncoForceDoDirect());
+    ASSERT_EQ(node->GetAncoFlags(), 0);
+
+    RSSurfaceRenderNode::SetAncoForceDoDirect(true);
+    node->SetAncoFlags(1);
+    ASSERT_TRUE(node->GetAncoForceDoDirect());
+    ASSERT_EQ(node->GetAncoFlags(), 1);
+    node->SetAncoFlags(0);
+    ASSERT_FALSE(node->GetAncoForceDoDirect());
+    ASSERT_EQ(node->GetAncoFlags(), 0);
+}
 } // namespace Rosen
 } // namespace OHOS

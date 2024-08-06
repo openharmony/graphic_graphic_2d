@@ -1808,5 +1808,12 @@ bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScree
         id, screenStatus);
     return screenManager_->SetVirtualScreenStatus(id, screenStatus);
 }
+bool RSRenderServiceConnection::SetAncoForceDoDirect(bool direct)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    mainThread_->SetAncoForceDoDirect(remotePid_, userId, callback);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
