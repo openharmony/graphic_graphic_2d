@@ -327,7 +327,6 @@ void RSUniRenderProcessor::ProcessDisplaySurfaceForRenderThread(
     for (const auto& drawable : displayParams->GetAllMainAndLeashSurfaceDrawables()) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
         if (!surfaceDrawable || !surfaceDrawable->GetRenderParams() ||
-            !surfaceDrawable->GetRenderParams()->GetOcclusionVisible() ||
             surfaceDrawable->GetRenderParams()->IsLeashWindow()) {
             continue;
         }
