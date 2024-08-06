@@ -18,13 +18,13 @@ module_out_path = "graphic_2d/rosen/modules/ressched"
 group("unittest") {
   testonly = true
 
-  deps = [ ":graphic_ressched_test", ]
+  deps = [ ":graphic_ressched_test" ]
 }
 
 ohos_unittest("graphic_ressched_test") {
   module_out_path = module_out_path
 
-  include_dirs = [ "../../include", ]
+  include_dirs = [ "../../include" ]
 
   sources = [
     "../../src/ressched_event_listener.cpp",
