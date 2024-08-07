@@ -27,7 +27,7 @@ ohos_unittest("graphic_ressched_test") {
 
   include_dirs = [
     "../../include",
-    "$graphic_2d_root/utils/log", 
+    "$graphic_2d_root/utils/log",
   ]
 
   sources = [
