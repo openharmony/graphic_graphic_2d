@@ -798,7 +798,7 @@ napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "JsPath::OnGetPositionAndTangent Cannot fill 'position' and 'tangent' Point type.");
     }
-    return CreateJsNumber(env, result);
+    return CreateJsValue(env, result);
 }
 
 napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
@@ -833,7 +833,7 @@ napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)
         distance,
         jsMatrix->GetMatrix().get(),
         static_cast<PathMeasureMatrixFlags>(flag));
-    return CreateJsNumber(env, result);
+    return CreateJsValue(env, result);
 }
 
 napi_value JsPath::OnBuildFromSvgString(napi_env env, napi_callback_info info)
@@ -853,7 +853,7 @@ napi_value JsPath::OnBuildFromSvgString(napi_env env, napi_callback_info info)
     }
 
     bool result = m_path->BuildFromSVGString(str);
-    return CreateJsNumber(env, result);
+    return CreateJsValue(env, result);
 }
 
 napi_value JsPath::OnAddOval(napi_env env, napi_callback_info info)
@@ -1117,7 +1117,7 @@ napi_value JsPath::OnIsClosed(napi_env env, napi_callback_info info)
     }
 
     bool result = m_path->IsClosed(false);
-    return CreateJsNumber(env, result);
+    return CreateJsValue(env, result);
 }
 
 Path* JsPath::GetPath()
