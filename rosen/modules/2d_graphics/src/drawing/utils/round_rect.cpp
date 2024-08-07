@@ -126,7 +126,7 @@ void RoundRect::Dump(std::string& out)
     out += " radiusXY[";
     for (int i = 0; i < CORNER_NUMBER; ++i) {
         radiusXY_[i].Dump(out);
-        if ( i < CORNER_NUMBER - 1) {
+        if (i < CORNER_NUMBER - 1) {
             out += " ";
         }
     }
