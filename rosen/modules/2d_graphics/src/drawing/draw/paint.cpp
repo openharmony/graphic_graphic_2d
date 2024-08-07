@@ -309,7 +309,8 @@ bool operator!=(const Paint& p1, const Paint& p2)
         p1.blurDrawLooper_ != p2.blurDrawLooper_;
 }
 
-void Paint::Dump(std::string& out) {
+void Paint::Dump(std::string& out)
+{
     out += "[";
     out += "antiAlias:" + std::to_string(antiAlias_);
     out += " color[";
