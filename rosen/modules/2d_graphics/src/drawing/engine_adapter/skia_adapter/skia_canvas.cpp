@@ -43,6 +43,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr int32_t MAX_PARA_LEN = 15;
 SkiaCanvas::SkiaCanvas() : skiaCanvas_(std::make_shared<SkCanvas>())
 {
     skCanvas_ = skiaCanvas_.get();
@@ -207,21 +208,24 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         uint64_t num1 = para1.size();
         uint64_t num = para.size();
         for (uint64_t i = 1; i <= num; i++) {
-            char buf[10] = {0}; // maximum length of string needed is 10.
-            (void)sprintf_s(buf, sizeof(buf), "para%lu", i);
-            builder.uniform(buf) = para[i-1];
+            char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 10.
+            if (sprintf_s(buf, sizeof(buf), "para%lu", i) != -1) {
+                builder.uniform(buf) = para[i-1];
+            }    
         }
         for (uint64_t i = 1; i <= num1; i++) {
-            char buf[15] = {0}; // maximum length of string needed is 15.
-            (void)sprintf_s(buf, sizeof(buf), "transpara%lu", i);
-            builder.uniform(buf) = para1[i-1];
+            char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 15.
+            if (sprintf_s(buf, sizeof(buf), "transpara%lu", i) != -1) {
+                builder.uniform(buf) = para1[i-1];
+            }
         }
         std::vector<float> color = shape.GetColorPara();
         builder.uniform("sdfalpha") = color[0]; // color_[0] is color alpha channel.
         for (uint64_t i = 1; i < color.size(); i++) {
-            char buf[15] = {0}; // maximum length of string needed is 15.
-            (void)sprintf_s(buf, sizeof(buf), "colpara%lu", i);
-            builder.uniform(buf) = color[i];
+            char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 15.
+            if (sprintf_s(buf, sizeof(buf), "colpara%lu", i) != -1) {
+                builder.uniform(buf) = color[i];
+            }
         }
         builder.uniform("sdfsize") = shape.GetSize();
         builder.uniform("filltype") = shape.GetFillType();
