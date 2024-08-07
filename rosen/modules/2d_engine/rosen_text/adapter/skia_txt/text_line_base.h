@@ -43,6 +43,7 @@ public:
     double GetOffsetForStringIndex(int32_t index) const override;
     std::map<int32_t, double> GetIndexAndOffsets(bool& isHardBreak) const override;
     double GetAlignmentOffset(double alignmentFactor, double alignmentWidth) const override;
+    void* GetSpTextLineBase() { return reinterpret_cast<void*>(textlinebase_.get()); }
 
 private:
     std::unique_ptr<SPText::TextLineBase> textlinebase_ = nullptr;

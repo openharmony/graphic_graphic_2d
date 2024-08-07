@@ -122,6 +122,22 @@ typedef struct OH_Drawing_FontParser OH_Drawing_FontParser;
  */
 typedef struct OH_Drawing_TextShadow OH_Drawing_TextShadow;
 
+/**
+ * @brief Defines an <b>OH_Drawing_TextLine</b>, which is used to manage text line.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct OH_Drawing_TextLine OH_Drawing_TextLine;
+
+/**
+ * @brief Defines an <b>OH_Drawing_Run</b>, which is used to manage run.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct OH_Drawing_Run OH_Drawing_Run;
+
 #ifdef __cplusplus
 }
 #endif

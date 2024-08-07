@@ -90,6 +90,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_surface.cpp",
       "$drawing_ndk_src_dir/drawing_text_blob.cpp",
       "$drawing_ndk_src_dir/drawing_text_font_descriptor.cpp",
+      "$drawing_ndk_src_dir/drawing_text_line.cpp",
       "$drawing_ndk_src_dir/drawing_text_typography.cpp",
       "$drawing_ndk_src_dir/drawing_typeface.cpp",
       "$drawing_utils_root/drawing_canvas_utils.cpp",

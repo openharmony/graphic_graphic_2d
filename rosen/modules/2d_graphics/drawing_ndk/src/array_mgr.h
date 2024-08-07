@@ -32,6 +32,11 @@ struct ObjectArray {
     size_t num = 0;
     ObjectType type = ObjectType::INVALID;
 };
+
+struct LineObject {
+    void* line = nullptr;
+    bool isArray = false;
+};
 } // namespace Rosen
 } // namespace OHOS
 #endif // ARRAY_MGR_H

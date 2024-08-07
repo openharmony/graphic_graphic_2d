@@ -23,6 +23,7 @@
 #include <unicode/brkiter.h>
 #include <vector>
 
+#include "array_mgr.h"
 #include "font_config.h"
 #include "font_parser.h"
 #include "rosen_text/font_collection.h"
@@ -3436,4 +3437,18 @@ void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle* style, const cha
     if (convertStyle) {
         convertStyle->fontVariations.SetAxisValue(axis, value);
     }
+}
+
+size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray)
+{
+    if (drawingArray == nullptr) {
+        return 0;
+    }
+
+    ObjectArray* array = ConvertToOriginalText<ObjectArray>(drawingArray);
+    if (array == nullptr) {
+        return 0;
+    }
+
+    return array->num;
 }
