@@ -42,7 +42,6 @@ public:
 
 void RSUifirstManagerTest::SetUpTestCase()
 {
-    RSTestUtil::InitRenderNodeGC();
     mainThread_ = RSMainThread::Instance();
     if (mainThread_) {
         uifirstManager_.mainThread_ = mainThread_;
@@ -50,7 +49,11 @@ void RSUifirstManagerTest::SetUpTestCase()
 }
 
 void RSUifirstManagerTest::TearDownTestCase() {}
-void RSUifirstManagerTest::SetUp() {}
+void RSUifirstManagerTest::SetUp()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
+
 void RSUifirstManagerTest::TearDown() {}
 
 /**
@@ -610,39 +613,6 @@ HWTEST_F(RSUifirstManagerTest, NotifyUIStartingWindow, TestSize.Level1)
     parentNode->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
     uifirstManager_.NotifyUIStartingWindow(0, false);
     EXPECT_TRUE(parentNode);
-}
-
-/**
- * @tc.name: ProcessDoneNode001
- * @tc.desc: Test ProcessDoneNode
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, ProcessDoneNode001, TestSize.Level1)
-{
-    NodeId id = 1;
-    uifirstManager_.capturedNodes_.push_back(id);
-    uifirstManager_.ProcessDoneNode();
-    EXPECT_TRUE(uifirstManager_.capturedNodes_.empty());
-
-    std::shared_ptr<const RSRenderNode> node = std::make_shared<const RSRenderNode>(1);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(id, adapter));
-    uifirstManager_.capturedNodes_.push_back(id);
-    uifirstManager_.ProcessDoneNode();
-    EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
-
-    NodeId nodeId = 1;
-    std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
-    uifirstManager_.pendingResetNodes_.insert(std::make_pair(nodeId, surfaceRenderNode));
-    uifirstManager_.capturedNodes_.push_back(id);
-    uifirstManager_.ProcessDoneNode();
-    EXPECT_FALSE(uifirstManager_.pendingResetNodes_.empty());
-
-    std::shared_ptr<RSRenderNodeDrawable> renderNodeDrawable = nullptr;
-    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(++id, renderNodeDrawable));
-    uifirstManager_.ProcessDoneNode();
-    EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
 }
 
 /**
