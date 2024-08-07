@@ -59,6 +59,7 @@ public:
         const char* filePath);
     const TestDefInfo* GetTestInfo(const char* testCaseName, const char* testName) const;
     std::vector<const TestDefInfo*> GetTestInfosByType(RSGraphicTestType type) const;
+    std::vector<const TestDefInfo*> GetAllTestInfos() const;
 };
 } // namespace Rosen
 } // namespace OHOS
