@@ -67,7 +67,7 @@ public:
     {
         frameCallback_ = {
             .userData_ = this,
-            .callback_ = std::bind(&VSyncWaiter::OnVSync, this),
+            .callback_ = [this](int64_t, void*) { this->OnVSync(); },
         };
         vsyncReceiver_ = RSInterfaces::GetInstance().CreateVSyncReceiver("RSGraphicTest", handler);
         vsyncReceiver_->Init();
