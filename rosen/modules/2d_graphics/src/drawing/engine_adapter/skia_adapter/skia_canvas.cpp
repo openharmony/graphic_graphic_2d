@@ -211,7 +211,7 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
             char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 10.
             if (sprintf_s(buf, sizeof(buf), "para%lu", i) != -1) {
                 builder.uniform(buf) = para[i-1];
-            }    
+            }
         }
         for (uint64_t i = 1; i <= num1; i++) {
             char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 15.
