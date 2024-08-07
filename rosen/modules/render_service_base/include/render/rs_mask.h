@@ -74,7 +74,7 @@ public:
     bool IsGradientMask() const;
     bool IsPathMask() const;
     bool IsPixelMapMask() const;
-    void Dump(std::string& out);
+    void Dump(std::string& out) const;
 
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const;

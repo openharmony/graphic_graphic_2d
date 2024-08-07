@@ -221,17 +221,15 @@ bool RSMask::IsPathMask() const
     return (type_ == MaskType::PATH);
 }
 
-void RSMask::Dump(std::string& out)
+void RSMask::Dump(std::string& out) const
 {
-    out += "maskType:" + std::to_string(static_cast<int>(type_));
+    out += "[maskType:" + std::to_string(static_cast<int>(type_));
     out += " x:" + std::to_string(svgX_) + " y:" + std::to_string(svgY_);
     out += " scaleX:" + std::to_string(scaleX_) + " scaleY:" + std::to_string(scaleY_);
-    out += " pen[";
+    out += " pen";
     maskPen_.Dump(out);
-    out += "]";
-    out += " brush[";
+    out += " brush";
     maskBrush_.Dump(out);
-    out += "]";
     if (maskPath_ != nullptr) {
         out += " path[isValid:" + std::to_string(maskPath_->IsValid());
         auto bounds = maskPath_->GetBounds();
@@ -240,9 +238,15 @@ void RSMask::Dump(std::string& out)
         out += " drawingType:" + std::to_string(static_cast<int>(maskPath_->GetDrawingType())) + "]";
     }
     if (pixelMap_ != nullptr) {
-        out += " width:" + std::to_string(pixelMap_->GetWidth()) + " height:" + std::to_string(pixelMap_->GetHeight());
-        out += " byteCount:" + std::to_string(pixelMap_->GetByteCount());
+        out += " pixelMap[width:" + std::to_string(pixelMap_->GetWidth());
+        out += " height:" + std::to_string(pixelMap_->GetHeight());
+        out += " byteCount:" + std::to_string(pixelMap_->GetByteCount()) + "]";
     }
+    if (image_ != nullptr) {
+        out += " image";
+        image_->Dump(out);
+    }
+    out += ']';
 }
 
 #ifdef ROSEN_OHOS

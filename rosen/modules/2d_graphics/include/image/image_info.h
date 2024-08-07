@@ -150,6 +150,17 @@ public:
         return RectI(0, 0, width_, height_);
     }
 
+    void Dump(std::string& out) const
+    {
+        out += "[width:" + std::to_string(width_) + " height:" + std::to_string(height_);
+        out += " colorType:" + std::to_string(static_cast<int>(colorType_));
+        out += " alphaType:" + std::to_string(static_cast<int>(alphaType_));
+        if (colorSpace_ != nullptr) {
+            out += " colorSpace:" + std::to_string(static_cast<int>(colorSpace_->GetType()));
+        }
+        out += ']';
+    }
+
 private:
     int width_ = 0;
     int height_ = 0;

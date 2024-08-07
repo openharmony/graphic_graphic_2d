@@ -125,13 +125,15 @@ Vector2f ParticleNoiseField::ApplyCurlNoise(const Vector2f& position)
     return Vector2f { 0.f, 0.f };
 }
 
-void ParticleNoiseFields::Dump(std::string& out)
+void ParticleNoiseFields::Dump(std::string& out) const
 {
+    out += '[';
     for (auto& field : fields_) {
         out += "field[fieldStrength:" + std::to_string(field->fieldStrength_);
         out += " fieldShape:"  + std::to_string(static_cast<int>(field->fieldShape_));
-        out += " fieldSize[" + std::to_string(field->fieldSize_.x_) + " " + std::to_string(field->fieldSize_.y_) + "]";
-        out += " fieldCenter[" + std::to_string(field->fieldCenter_.x_) + " ";
+        out += " fieldSize[x:" + std::to_string(field->fieldSize_.x_) + " y:";
+        out += std::to_string(field->fieldSize_.y_) + "]";
+        out += " fieldCenter[x:" + std::to_string(field->fieldCenter_.x_) + " y:";
         out += std::to_string(field->fieldCenter_.y_) + "] fieldFeather:" + std::to_string(field->fieldFeather_);
         out += " noiseScale:" + std::to_string(field->noiseScale_);
         out += " noiseFrequency:" + std::to_string(field->noiseFrequency_);
@@ -140,6 +142,7 @@ void ParticleNoiseFields::Dump(std::string& out)
     if (fields_.size() > 0) {
         out.pop_back();
     }
+    out += ']';
 }
 
 float PerlinNoise2D::Fade(float t)

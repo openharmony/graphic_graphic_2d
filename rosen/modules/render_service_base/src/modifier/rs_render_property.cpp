@@ -451,9 +451,7 @@ void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Color>::Dump(std::string& out) const
 {
-    out += "[";
     Get().Dump(out);
-    out += "]";
 }
 
 template<>
@@ -471,15 +469,15 @@ template<>
 void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const
 {
     Vector4<Color> v4Color = Get();
-    out += "[left:";
+    out += "[left";
     v4Color.x_.Dump(out);
-    out += " top:";
+    out += " top";
     v4Color.y_.Dump(out);
-    out += " right:";
+    out += " right";
     v4Color.z_.Dump(out);
     out += " bottom";
     v4Color.w_.Dump(out);
-    out += "]";
+    out += ']';
 }
 
 template<>
@@ -492,7 +490,7 @@ void RSRenderProperty<Drawing::DrawCmdListPtr>::Dump(std::string& out) const
 {
     out += "drawCmdList[";
     Get()->Dump(out);
-    out += "]";
+    out += ']';
 }
 
 template<>
@@ -500,7 +498,7 @@ void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
 {
     out += "ENV_FOREGROUND_COLOR_STRATEGY[";
     out += std::to_string(static_cast<int>(Get()));
-    out += "]";
+    out += ']';
 }
 
 template<>
@@ -508,55 +506,47 @@ void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
 {
     out += "GEOMETRYTRANS[";
     Get().dump(out, 0);
-    out += "]";
+    out += ']';
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>::Dump(std::string& out) const
 {
-    out += "[";
     Get()->Dump(out);
-    out += "]";
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) const
 {
-    out += "[";
     Get()->Dump(out);
-    out += "]";
 }
 
 template<>
 void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const
 {
     auto property = Get();
-    out += "[";
+    out += '[';
     for (auto& eu : property) {
-        out += "emitterUpdater[";
+        out += "emitterUpdater";
         eu->Dump(out);
-        out += "] ";
+        out += ' ';
     }
     if (property.size() > 0) {
         out.pop_back();
     }
-    out += "]";
+    out += ']';
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::Dump(std::string& out) const
 {
-    out += "[";
     Get()->Dump(out);
-    out += "]";
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const
 {
-    out += "[";
     Get()->Dump(out);
-    out += "]";
 }
 
 template<>

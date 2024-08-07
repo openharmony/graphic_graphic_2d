@@ -97,8 +97,9 @@ bool operator!=(const Filter& f1, const Filter& f2)
         f1.maskFilter_ != f2.maskFilter_ || f1.filterQuality_ != f2.filterQuality_;
 }
 
-void Filter::Dump(std::string& out) 
+void Filter::Dump(std::string& out) const
 {
+    out += '[';
     if (colorFilter_ != nullptr) {
         out += "colorFilter:" + std::to_string(static_cast<int>(colorFilter_->GetType())) + " ";
     }
@@ -109,6 +110,7 @@ void Filter::Dump(std::string& out)
         out += "maskFilter:" + std::to_string(static_cast<int>(maskFilter_->GetType())) + " ";
     }
     out += "filterQuality:" + std::to_string(static_cast<int>(filterQuality_));
+    out += ']';
 }
 } // namespace Drawing
 } // namespace Rosen

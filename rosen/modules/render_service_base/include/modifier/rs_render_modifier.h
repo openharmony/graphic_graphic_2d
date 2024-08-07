@@ -57,8 +57,8 @@ public:
     virtual void Apply(RSModifierContext& context) const = 0;
 
     virtual PropertyId GetPropertyId() = 0;
-    virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
-    void Dump(std::string& out)
+    virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() const = 0;
+    void Dump(std::string& out) const
     {
         GetProperty()->Dump(out);
     }
@@ -107,7 +107,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
@@ -143,7 +143,7 @@ public:
     }
 
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
@@ -193,7 +193,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }

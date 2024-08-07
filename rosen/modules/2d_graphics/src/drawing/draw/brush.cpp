@@ -203,28 +203,26 @@ bool operator!=(const Brush& b1, const Brush& b2)
     return !(b1 == b2);
 }
 
-void Brush::Dump(std::string& out)
+void Brush::Dump(std::string& out) const
 {
-    out += "color[";
+    out += "[color";
     color_.Dump(out);
-    out += "]";
     out += " blendMode:" + std::to_string(static_cast<int>(blendMode_));
-    out += " filter[";
+    out += " filter";
     filter_.Dump(out);
-    out += "]";
     if (colorSpace_ != nullptr) {
         out += " colorSpaceType:" + std::to_string(static_cast<int>(colorSpace_->GetType()));
     }
     if (shaderEffect_ != nullptr) {
         out += " shaderEffectType:" + std::to_string(static_cast<int>(shaderEffect_->GetType()));
     }
-    out += " isAntiAlias:" + std::to_string(antiAlias_);
-    out += " blenderEnabled:" + std::to_string(blenderEnabled_);
-    out += " hasFilter:" + std::to_string(hasFilter_);
-    out += " forceBrightnessDisable:" + std::to_string(forceBrightnessDisable_);
-    out += " isHDR:" + std::to_string(isHdr_);
+    out += " isAntiAlias:" + std::string(antiAlias_ ? "true" : "false");
+    out += " blenderEnabled:" + std::string(blenderEnabled_ ? "true" : "false");
+    out += " hasFilter:" + std::string(hasFilter_ ? "true" : "false");
+    out += " forceBrightnessDisable:" + std::string(forceBrightnessDisable_ ? "true" : "false");
+    out += " isHDR:" + std::string(isHdr_ ? "true" : "false");
+    out += ']';
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
