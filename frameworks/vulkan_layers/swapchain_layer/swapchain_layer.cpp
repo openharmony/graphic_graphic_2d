@@ -402,6 +402,15 @@ GraphicColorDataSpace GetColorDataspace(VkColorSpaceKHR colorspace)
     }
 }
 
+void SwapchainCloseFd(int &fd)
+{
+    if (fd < 0) {
+        return;
+    }
+    close(fd);
+    fd = -1;
+}
+
 static bool IsFencePending(int fd)
 {
     if (fd < 0) {
@@ -427,11 +436,7 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
         GetLayerDataPtr(GetDispatchKey(device))->deviceDispatchTable.get();
     if (image.requested) {
         if (releaseFence >= 0) {
-            if (image.requestFence >= 0) {
-                sptr<OHOS::SyncFence> requestFence = new OHOS::SyncFence(image.requestFence);
-                requestFence->Wait(-1);
-                close(image.requestFence);
-            }
+            SwapchainCloseFd(image.requestFence);
         } else {
             releaseFence = image.requestFence;
         }
@@ -439,11 +444,14 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
 
         if (window != nullptr) {
             NativeWindowCancelBuffer(window, image.buffer);
+            SwapchainCloseFd(releaseFence);
         } else {
             if (releaseFence >= 0) {
-                close(releaseFence);
+                sptr<OHOS::SyncFence> releaseSyncFence = new OHOS::SyncFence(releaseFence);
+                releaseSyncFence->Wait(-1);
             }
         }
+        releaseFence = -1;
         image.requested = false;
     }
 
@@ -451,10 +459,7 @@ void ReleaseSwapchainImage(VkDevice device, NativeWindow* window, int releaseFen
         return;
     }
 
-    if (image.releaseFence >= 0) {
-        close(image.releaseFence);
-        image.releaseFence = -1;
-    }
+    SwapchainCloseFd(image.releaseFence);
 
     if (image.image != VK_NULL_HANDLE) {
         NativeObjectUnreference(image.buffer);
@@ -791,7 +796,9 @@ VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, cons
     for (uint32_t i = 0; i < numImages; i++) {
         Swapchain::Image &img = swapchain->images[i];
         NativeWindowBuffer* buffer = nullptr;
-        int err = NativeWindowRequestBuffer(window, &buffer, &img.requestFence);
+        int fencefd = -1;
+        // if NativeWindowRequestBuffer success, should close fencefd
+        int err = NativeWindowRequestBuffer(window, &buffer, &fencefd);
         if (err != OHOS::GSERROR_OK) {
             SWLOGE("NativeWindow RequestBuffer[%{public}u] failed: (%{public}d)", i, err);
             result = VK_ERROR_SURFACE_LOST_KHR;
@@ -799,6 +806,7 @@ VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, cons
         }
         img.buffer = buffer;
         img.requested = true;
+        img.requestFence = fencefd;
         imageCreate.extent = VkExtent3D {static_cast<uint32_t>(img.buffer->sfbuffer->GetWidth()),
                                           static_cast<uint32_t>(img.buffer->sfbuffer->GetHeight()), 1};
         ((VkNativeBufferOHOS*)(imageCreate.pNext))->handle =
@@ -817,7 +825,7 @@ VKAPI_ATTR VkResult CreateImages(uint32_t &numImages, Swapchain* swapchain, cons
         if (img.requested) {
             if (!swapchain->shared) {
                 NativeWindowCancelBuffer(window, img.buffer);
-                img.requestFence = -1;
+                SwapchainCloseFd(img.requestFence);
                 img.requested = false;
             }
         }
@@ -978,6 +986,7 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         if (NativeWindowCancelBuffer(nativeWindow, nativeWindowBuffer) != OHOS::GSERROR_OK) {
             SWLOGE("NativeWindowCancelBuffer failed: (%{public}d)", ret);
         }
+        SwapchainCloseFd(fence);
         return VK_ERROR_OUT_OF_DATE_KHR;
     }
     int fenceDup = -1;
@@ -998,6 +1007,7 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         }
         swapchain.images[index].requested = false;
         swapchain.images[index].requestFence = -1;
+        SwapchainCloseFd(fence);
         return result;
     }
 
@@ -1068,10 +1078,7 @@ VkResult ReleaseImage(VkQueue queue, const VkPresentInfoKHR* presentInfo,
     LayerData* deviceLayerData = GetLayerDataPtr(GetDispatchKey(queue));
     VkResult result = deviceLayerData->deviceDispatchTable->QueueSignalReleaseImageOHOS(
         queue, presentInfo->waitSemaphoreCount, presentInfo->pWaitSemaphores, img.image, &fence);
-    if (img.releaseFence >= 0) {
-        close(img.releaseFence);
-        img.releaseFence = -1;
-    }
+    SwapchainCloseFd(img.releaseFence);
     if (fence >= 0) {
         img.releaseFence = dup(fence);
     }
@@ -1139,23 +1146,21 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
         SWLOGE("NativeWindow FlushBuffer failed: (%{public}d)", err);
         scResult = VK_ERROR_SURFACE_LOST_KHR;
     } else {
-        if (img.requestFence >= 0) {
-            close(img.requestFence);
-            img.requestFence = -1;
-        }
+        SwapchainCloseFd(img.requestFence);
         img.requested = false;
     }
 
     if (swapchain.shared && scResult == VK_SUCCESS) {
         NativeWindowBuffer* buffer = nullptr;
-        int releaseFence = -1;
-        err = NativeWindowRequestBuffer(window, &buffer, &releaseFence);
+        int fenceFd = -1;
+        err = NativeWindowRequestBuffer(window, &buffer, &fenceFd);
         if (err != OHOS::GSERROR_OK) {
             scResult = VK_ERROR_SURFACE_LOST_KHR;
         } else if (img.buffer != buffer) {
             scResult = VK_ERROR_SURFACE_LOST_KHR;
+            SwapchainCloseFd(fenceFd);
         } else {
-            img.requestFence = releaseFence;
+            img.requestFence = fenceFd;
             img.requested = true;
         }
     }
