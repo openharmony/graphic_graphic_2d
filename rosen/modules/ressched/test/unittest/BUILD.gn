@@ -24,7 +24,10 @@ group("unittest") {
 ohos_unittest("graphic_ressched_test") {
   module_out_path = module_out_path
 
-  include_dirs = [ "../../include" ]
+  include_dirs = [
+    "../../include",
+    "//foundation/graphic/graphic_2d/utils/log",
+  ]
 
   sources = [
     "../../src/ressched_event_listener.cpp",
@@ -34,6 +37,7 @@ ohos_unittest("graphic_ressched_test") {
   external_deps = [
     "c_utils:utils",
     "ipc:ipc_core",
+    "hitrace:hitrace_meter",
     "resource_schedule_service:ressched_client",
   ]
 }

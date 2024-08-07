@@ -61,8 +61,6 @@
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
-#include "res_sched_client.h"
-#include "res_type.h"
 #include "ressched_event_listener.h"
 #endif
 
