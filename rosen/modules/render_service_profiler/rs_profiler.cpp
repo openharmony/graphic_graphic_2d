@@ -678,12 +678,16 @@ void RSProfiler::HiddenSpaceTurnOff()
     AwakeRenderServiceThread();
 }
 
-std::string RSProfiler::FirstFrameMarshalling()
+std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
 {
+    if (!g_context) {
+        return "";
+    }
+
     std::stringstream stream;
     SetMode(Mode::WRITE_EMUL);
     DisableSharedMemory();
-    MarshalNodes(*g_context, stream);
+    MarshalNodes(*g_context, stream, fileVersion);
     EnableSharedMemory();
     SetMode(Mode::NONE);
 
@@ -1228,7 +1232,7 @@ void RSProfiler::CalcPerfNodeAllStep()
 
 void RSProfiler::TestSaveFrame(const ArgList& args)
 {
-    g_testDataFrame = FirstFrameMarshalling();
+    g_testDataFrame = FirstFrameMarshalling(RSFILE_VERSION_LATEST);
     Respond("Save Frame Size: " + std::to_string(g_testDataFrame.size()));
 }
 
@@ -1257,6 +1261,7 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_lastCacheImageCount = 0;
 
     if (!OpenBetaRecordFile(g_recordFile)) {
+        g_recordFile.SetVersion(RSFILE_VERSION_LATEST);
         g_recordFile.Create(RSFile::GetDefaultPath());
     }
 
@@ -1264,7 +1269,7 @@ void RSProfiler::RecordStart(const ArgList& args)
 
     FilterMockNode(*g_context);
 
-    g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling());
+    g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion()));
 
     const std::vector<pid_t> pids = GetConnectionsPids();
     for (pid_t pid : pids) {
@@ -1316,6 +1321,7 @@ void RSProfiler::RecordStop(const ArgList& args)
             stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
         }
 
+        // FIRST FRAME HEADER
         uint32_t sizeFirstFrame = static_cast<uint32_t>(g_recordFile.GetHeaderFirstFrame().size());
         stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
         stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
