@@ -26,6 +26,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
       "font_collection_test.cpp",
       "paint_record_test.cpp",
       "paragraph_builder_test.cpp",
+      "paragraph_style_test.cpp",
       "paragraph_test.cpp",
       "run_test.cpp",
       "text_line_base_test.cpp",

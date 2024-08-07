@@ -165,4 +165,31 @@ HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest008, TestSi
     typefaceFontStyleSet->unregisterTypefaces();
     EXPECT_EQ(typefaceFontStyleSet->count(), 0);
 }
+
+/*
+ * @tc.name: TypefaceFontAssetProviderTest009
+ * @tc.desc: test for RegisterTypefaces with empty familyNameAlias
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest009, TestSize.Level1)
+{
+    std::unique_ptr<TypefaceFontAssetProvider> fontProvider = std::make_unique<TypefaceFontAssetProvider>();
+    std::string familyName("test");
+    fontProvider->familyNames_.emplace_back(familyName);
+    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
+    fontProvider->RegisterTypeface(skTypeface, familyName);
+    EXPECT_NE(fontProvider->MatchFamily(familyName), nullptr);
+    fontProvider->RegisterTypeface(nullptr, familyName);
+}
+
+/*
+ * @tc.name: TypefaceFontAssetProviderTest010
+ * @tc.desc: test for createTypeface with invalid index
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest010, TestSize.Level1)
+{
+    TypefaceFontStyleSet fontStyleSet;
+    EXPECT_EQ(fontStyleSet.createTypeface(1), nullptr);
+}
 } // namespace txt

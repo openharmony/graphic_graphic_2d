@@ -21,7 +21,7 @@ hardware_manager_sources = []
 open_capability_sources = []
 rs_display_effect_sources = []
 rs_framework_sources = []
-rs_func_feature_sources = []
+rs_func_feature_sources = [ "rs_func_feature/component_capture/demo.cpp" ]
 rs_perform_feature_sources = []
 
 group("test") {
@@ -41,7 +41,9 @@ ohos_unittest("RSGraphicTest") {
   sources += rs_func_feature_sources
   sources += rs_perform_feature_sources
 
-  deps = [ "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main" ]
+  deps = [
+    "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
+  ]
 
   defines = []
   external_deps = [

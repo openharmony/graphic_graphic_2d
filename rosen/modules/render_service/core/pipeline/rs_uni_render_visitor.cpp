@@ -2064,6 +2064,10 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
     if (bgTransport) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by background color alpha < 1",
             node.GetName().c_str(), node.GetId());
+        // use in skip updating hardware state for hwcnode with background alpha in specific situation
+        if (!RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag()) {
+            node.SetHardwareForcedDisabledState(true);
+        }
         node.SetNodeHasBackgroundColorAlpha(true);
         hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node.GetName());
@@ -2144,7 +2148,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
         return;
     }
     for (auto rect : hwcRects) {
-        if (dst.Intersect(rect) && !RsCommonHook::Instance().GetHardwareEnabledByHwcnodeFlag()) {
+        if (dst.Intersect(rect) && !RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by hwc node above",
                 hwcNode->GetName().c_str(), hwcNode->GetId());
             hwcNode->SetHardwareForcedDisabledState(true);
@@ -2375,7 +2379,8 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         auto dirtyManager = surfaceNode->GetDirtyManager();
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
-        if (!hwcNodes.empty() && RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag()) {
+        if (!hwcNodes.empty() && RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag() &&
+            RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag()) {
             UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
         }
         // disable hwc node with corner radius if intersects with hwc node below
@@ -2973,32 +2978,31 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
 void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes)
 {
-    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodeVector;
+    std::list<RectI> hwcRects;
     for (int i = 0; i < hwcNodes.size(); i++) {
         auto hwcNodePtr = hwcNodes[i].lock();
         if (!hwcNodePtr) {
             continue;
         }
         if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
-            hwcNodeVector.push_back(hwcNodes[i]);
-        } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() &&
-                   !hwcNodePtr->IsHardwareForcedDisabled() && hwcNodeVector.size() != 0) {
-            UpdateHardwareStateByCoverage(hwcNodes[i], hwcNodeVector);
+            hwcRects.push_back(hwcNodePtr->GetDstRect());
+        } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
+            hwcRects.size() != 0 && IsNodeAboveInsideOfNodeBelow(hwcNodePtr->GetDstRect(), hwcRects)) {
+            continue;
+        } else {
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
         }
     }
 }
 
-void RSUniRenderVisitor::UpdateHardwareStateByCoverage(std::weak_ptr<RSSurfaceRenderNode> hwcNode,
-    std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodeVector)
+bool RSUniRenderVisitor::IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList)
 {
-    for (int i = hwcNodeVector.size() - 1; i >= 0; i--) {
-        if (hwcNode.lock()->GetDstRect().IsInsideOf(hwcNodeVector[i].lock()->GetDstRect())) {
-            hwcNode.lock()->SetHardwareForcedDisabledState(false);
-            break;
-        } else {
-            hwcNode.lock()->SetHardwareForcedDisabledState(true);
+    for (auto rectBelow: hwcNodeRectList) {
+        if (rectAbove.IsInsideOf(rectBelow)) {
+            return true;
         }
     }
+    return false;
 }
 
 void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(

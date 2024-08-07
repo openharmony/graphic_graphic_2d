@@ -34,6 +34,7 @@
 #include "hgm_vsync_generator_controller.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
+#include "pipeline/rs_render_node.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 
@@ -154,7 +155,10 @@ public:
     void ProcessPendingRefreshRate(uint64_t timestamp, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
-    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp, pid_t pid);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
+        pid_t pid, UIFWKType uiFwkType);
+    void ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
@@ -169,7 +173,6 @@ public:
     }
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
-    void CheckPackageInConfigList(std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -202,8 +205,8 @@ private:
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
     void UpdateEnergyConsumptionConfig();
-    void EnterEnergyConsumptionAssuranceMode();
-    void ExitEnergyConsumptionAssuranceMode();
+    static void EnterEnergyConsumptionAssuranceMode();
+    static void ExitEnergyConsumptionAssuranceMode();
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
 
     uint32_t currRefreshRate_ = 0;

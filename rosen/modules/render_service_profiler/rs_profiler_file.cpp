@@ -54,9 +54,7 @@ void RSFile::Create(const std::string& fname)
 
     uint32_t headerId = 'ROHR';
     Utils::FileWrite(&headerId, sizeof(headerId), 1, file_);
-
-    uint32_t versionId = RSFILE_VERSION_LATEST;
-    Utils::FileWrite(&versionId, sizeof(versionId), 1, file_);
+    Utils::FileWrite(&versionId_, sizeof(versionId_), 1, file_);
 
     headerOff_ = 0; // TEMP VALUE
     Utils::FileWrite(&headerOff_, sizeof(headerOff_), 1, file_);
@@ -83,24 +81,18 @@ bool RSFile::Open(const std::string& fname)
 
     uint32_t headerId;
     Utils::FileRead(&headerId, sizeof(headerId), 1, file_);
-    if (headerId == 'ROHR') {
-        Utils::FileRead(&versionId_, sizeof(versionId_), 1, file_);
-    } else if (headerId == 'RPLY') {
-        versionId_ = 0;
-    } else {
+    if (headerId != 'ROHR') { // Prohibit too old file versions
         Utils::FileClose(file_);
         file_ = nullptr;
         return false;
     }
 
+    Utils::FileRead(&versionId_, sizeof(versionId_), 1, file_);
     Utils::FileRead(&headerOff_, sizeof(headerOff_), 1, file_);
-
     Utils::FileSeek(file_, 0, SEEK_END);
     writeDataOff_ = Utils::FileTell(file_);
-
     Utils::FileSeek(file_, headerOff_, SEEK_SET);
     ReadHeaders();
-
     wasChanged_ = false;
 
     return true;
@@ -291,7 +283,9 @@ void RSFile::LayerWriteHeader(uint32_t layer)
     LayerWriteHeaderOfTrack(layerData.rsData);
     LayerWriteHeaderOfTrack(layerData.oglData);
     LayerWriteHeaderOfTrack(layerData.rsMetrics);
-    LayerWriteHeaderOfTrack(layerData.renderMetrics);
+    if (versionId_ >= RSFILE_VERSION_RENDER_METRICS_ADDED) {
+        LayerWriteHeaderOfTrack(layerData.renderMetrics);
+    }
     LayerWriteHeaderOfTrack(layerData.oglMetrics);
     LayerWriteHeaderOfTrack(layerData.gfxMetrics);
     layerData.layerHeader = { layerHeaderOff, Utils::FileTell(file_) - layerHeaderOff }; // position of layer table
@@ -327,15 +321,18 @@ void RSFile::LayerReadHeader(uint32_t layer)
     LayerReadHeaderOfTrack(layerData.gfxMetrics);
 }
 
-uint32_t RSFile::GetVersion()
+uint32_t RSFile::GetVersion() const
 {
     return versionId_;
 }
 
+void RSFile::SetVersion(uint32_t version)
+{
+    versionId_ = version;
+}
+
 // ***********************************
 // *** LAYER DATA - WRITE
-
-// XXX: static std::map<uint64_t, std::pair<std::shared_ptr<void>, int>> ImageMap;
 
 void RSFile::WriteRSData(double time, const void* data, size_t size)
 {

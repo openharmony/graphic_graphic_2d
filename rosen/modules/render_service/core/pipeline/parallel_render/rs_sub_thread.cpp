@@ -364,10 +364,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    bool optFenceWait = true;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
-        optFenceWait = false;
-    }
+    bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateBackendTexture();
 
@@ -414,10 +411,7 @@ void RSSubThread::DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRend
     nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rsCanvas);
-    bool optFenceWait = true;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
-        optFenceWait = false;
-    }
+    bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
     RS_TRACE_BEGIN("FlushFrame");
     RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get(), optFenceWait);
     renderFrame->Flush();

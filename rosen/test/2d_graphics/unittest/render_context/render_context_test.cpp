@@ -245,4 +245,115 @@ HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
     ASSERT_EQ(renderContext.GetPixelFormat(), GRAPHIC_PIXEL_FMT_RGBA_1010102);
 #endif
 }
+
+/**
+ * @tc.name: DiscodingTest001
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, DiscodingTest001, Level1)
+{
+    RenderContext* renderContext = new RenderContext();
+    delete renderContext;
+    renderContext = nullptr;
+}
+
+/**
+ * @tc.name: CreatePbufferSurfaceTest001
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, CreatePbufferSurfaceTest001, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->CreatePbufferSurface();
+}
+
+/**
+ * @tc.name: ClearRedundantTest
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, ClearRedundantTest, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->drGPUContext_ = nullptr;
+    renderContext->ClearRedundantResources();
+    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    renderContext->ClearRedundantResources();
+}
+
+/**
+ * @tc.name: DamageFrameTest003
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, DamageFrameTest003, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->eglDisplay_ = nullptr;
+    renderContext->DamageFrame({});
+}
+
+/**
+ * @tc.name: DamageFrameTest004
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, DamageFrameTest004, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->eglDisplay_ = nullptr;
+    renderContext->DamageFrame(1, 1, 1, 1);
+}
+
+/**
+ * @tc.name: RenderFrameTest
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, RenderFrameTest, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->surface_ = nullptr;
+    renderContext->RenderFrame();
+    renderContext->surface_ = std::make_shared<Drawing::Surface>();
+    renderContext->RenderFrame();
+}
+
+/**
+ * @tc.name: QueryEglBufferAgeTest
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, QueryEglBufferAgeTest, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->eglDisplay_ = nullptr;
+    EXPECT_EQ(EGL_UNKNOWN, renderContext->QueryEglBufferAge());
+}
+
+/**
+ * @tc.name: SetUpGpuContextTest
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, SetUpGpuContextTest, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    EXPECT_TRUE(renderContext->SetUpGpuContext());
+}
+
+/**
+ * @tc.name: CreateEGLSurfaceTest
+ * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextTest, CreateEGLSurfaceTest, Level1)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    EXPECT_TRUE(renderContext->SetUpGpuContext());
+}
 } // namespace OHOS::Rosen

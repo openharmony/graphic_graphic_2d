@@ -16,6 +16,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #include "src/core/SkOpts.h"
 
@@ -193,9 +194,16 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
     const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*tmpBlur, Drawing::TileMode::DECAL,
         Drawing::TileMode::DECAL, linear, blurMatrixInv);
     Drawing::Brush brush;
+
+    if (canvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+        if (paintFilterCanvas && paintFilterCanvas->GetHDRPresent()) {
+            paintFilterCanvas->PaintFilter(brush);
+        }
+    }
+
     brush.SetShaderEffect(blurShader);
     canvas.DrawBackground(brush);
-    canvas.DetachBrush();
 }
 
 void RSForegroundEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,

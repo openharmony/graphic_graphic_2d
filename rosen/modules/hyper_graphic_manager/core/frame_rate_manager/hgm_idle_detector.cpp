@@ -20,32 +20,81 @@ namespace OHOS {
 namespace Rosen {
 namespace {
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
-    constexpr uint64_t MAX_BUFFER_COUNT = 10;
-    constexpr uint32_t MAX_BUFFER_LENGTH = 10;
+    constexpr uint64_t MAX_CACHED_VALID_SURFACE_NAME_COUNT = 60;
+    constexpr uint32_t MAX_VALID_SURFACE_NAME_LENGTH = 10;
     constexpr uint32_t FPS_MAX = 120;
     const std::string ACE_ANIMATOR_NAME = "AceAnimato";
     const std::string OTHER_SURFACE = "Other_SF";
 }
 
-void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,  pid_t pid)
+void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
+    pid_t pid, UIFWKType uiFwkType)
 {
-    if (!GetAppSupportedState() || frameTimeMap_.size() > MAX_BUFFER_COUNT || surfaceName.empty()) {
+    if (surfaceName.empty()) {
+        return;
+    }
+
+    if (!GetAppSupportedState() || frameTimeMap_.size() > MAX_CACHED_VALID_SURFACE_NAME_COUNT) {
         if (!frameTimeMap_.empty()) {
             frameTimeMap_.clear();
         }
         return;
     }
+    auto validSurfaceName = surfaceName.size() > MAX_VALID_SURFACE_NAME_LENGTH ?
+        surfaceName.substr(0, MAX_VALID_SURFACE_NAME_LENGTH) : surfaceName;
 
-    auto validSurfaceName = surfaceName.size() > MAX_BUFFER_LENGTH ?
-        surfaceName.substr(0, MAX_BUFFER_LENGTH) : surfaceName;
-    if (!std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE) &&
-        !std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), validSurfaceName)) {
+    bool needHighRefresh = false;
+    switch (uiFwkType) {
+        case UIFWKType::FROM_UNKNOWN:
+            needHighRefresh = GetUnknownFrameworkState(validSurfaceName);
+            break;
+        case UIFWKType::FROM_SURFACE:
+            needHighRefresh = GetSurfaceFrameworkState(validSurfaceName);
+            break;
+        default:
+            break;
+    }
+    if (!needHighRefresh) {
         return;
     }
 
     RS_TRACE_NAME_FMT("UpdateSurfaceTime:: Not Idle SurFace Name = [%s]  From Pid = [%d]",
         surfaceName.c_str(), pid);
     frameTimeMap_[validSurfaceName] = timestamp;
+}
+
+bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName)
+{
+    if (!std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), surfaceName)) {
+        return false;
+    }
+    return true;
+}
+
+bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName)
+{
+    if (!std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE) &&
+        !std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), surfaceName)) {
+        return false;
+    }
+    return true;
+}
+
+void HgmIdleDetector::ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
+{
+    if (activeNodesInRoot.empty()) {
+        return;
+    }
+
+    for (const auto &[_, idToMap] : activeNodesInRoot) {
+        for (const auto &[_, weakPenderNode] : idToMap) {
+            auto renderNode = weakPenderNode.lock();
+            if (renderNode != nullptr) {
+                UpdateSurfaceTime(renderNode->GetNodeName(), timestamp, ExtractPid(renderNode->GetId()));
+            }
+        }
+    }
 }
 
 bool HgmIdleDetector::GetSurfaceIdleState(uint64_t timestamp)

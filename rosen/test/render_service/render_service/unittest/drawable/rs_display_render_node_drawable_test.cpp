@@ -994,50 +994,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
 }
 
 /**
- * @tc.name: AdjustZOrderAndDrawSurfaceNode
- * @tc.desc: Test AdjustZOrderAndDrawSurfaceNode
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, AdjustZOrderAndDrawSurfaceNode, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> drawables;
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
-    paintFilterCanvas.canvas_ = drawingCanvas.get();
-    paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-    auto rscanvas = static_cast<Drawing::Canvas*>(&paintFilterCanvas);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(drawables.empty());
-
-    std::shared_ptr<RSRenderNodeDrawableAdapter> firstAdapter = nullptr;
-    std::shared_ptr<RSRenderNodeDrawableAdapter> secondAdapter = nullptr;
-    drawables.push_back(firstAdapter);
-    drawables.push_back(secondAdapter);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(!firstAdapter);
-    ASSERT_TRUE(!secondAdapter);
-    drawables.clear();
-
-    NodeId id = 1;
-    auto rsSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(rsSurfaceNode);
-    ASSERT_TRUE(drawableAdapter->GetRenderParams());
-    id = 2;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawable = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    ASSERT_TRUE(drawable->GetRenderParams());
-    drawables.push_back(drawableAdapter);
-    drawables.push_back(drawable);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(drawableAdapter->GetRenderParams());
-}
-
-/**
  * @tc.name: FinishOffscreenRender
  * @tc.desc: Test FinishOffscreenRender
  * @tc.type: FUNC

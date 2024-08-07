@@ -407,7 +407,7 @@ NodeId RSProfiler::GetRandomSurfaceNode(const RSContext& context)
     return 0;
 }
 
-void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data)
+void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion)
 {
     const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
     const uint32_t count = map.renderNodeMap_.size();
@@ -417,85 +417,90 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data)
     nodes.emplace_back(context.GetGlobalRootRenderNode());
 
     for (const auto& item : map.renderNodeMap_) {
-        MarshalNode(item.second.get(), data);
-        std::shared_ptr<RSRenderNode> parent = item.second->GetParent().lock();
-        if (!parent && (item.second != context.GetGlobalRootRenderNode())) {
-            nodes.emplace_back(item.second);
+        if (const auto& node = item.second) {
+            MarshalNode(*node, data, fileVersion);
+            std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
+            if (!parent && (node != context.GetGlobalRootRenderNode())) {
+                nodes.emplace_back(node);
+            }
         }
     }
 
     const uint32_t nodeCount = nodes.size();
     data.write(reinterpret_cast<const char*>(&nodeCount), sizeof(nodeCount));
-    for (const auto& node : nodes) {
-        MarshalTree(node.get(), data);
+    for (const auto& node : nodes) { // no nullptr in nodes, omit check
+        MarshalTree(*node, data, fileVersion);
     }
 }
 
-void RSProfiler::MarshalTree(const RSRenderNode* node, std::stringstream& data)
+void RSProfiler::MarshalTree(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
-    const NodeId nodeId = node->GetId();
+    const NodeId nodeId = node.GetId();
     data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
 
-    const uint32_t count = node->children_.size();
+    const uint32_t count = node.children_.size();
     data.write(reinterpret_cast<const char*>(&count), sizeof(count));
 
-    for (const auto& child : node->children_) {
-        RSRenderNode* node = child.lock().get();
-        const NodeId nodeId = node->GetId();
-        data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
-        MarshalTree(node, data);
+    for (const auto& child : node.children_) {
+        if (auto node = child.lock().get()) {
+            const NodeId nodeId = node->GetId();
+            data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
+            MarshalTree(*node, data, fileVersion);
+        }
     }
 }
 
-void RSProfiler::MarshalNode(const RSRenderNode* node, std::stringstream& data)
+void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
-    const RSRenderNodeType nodeType = node->GetType();
+    const RSRenderNodeType nodeType = node.GetType();
     data.write(reinterpret_cast<const char*>(&nodeType), sizeof(nodeType));
 
-    const NodeId nodeId = node->GetId();
+    const NodeId nodeId = node.GetId();
     data.write(reinterpret_cast<const char*>(&nodeId), sizeof(nodeId));
 
-    const bool isTextureExportNode = node->GetIsTextureExportNode();
+    const bool isTextureExportNode = node.GetIsTextureExportNode();
     data.write(reinterpret_cast<const char*>(&isTextureExportNode), sizeof(isTextureExportNode));
 
-    if (node->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        auto surfaceNode = reinterpret_cast<const RSSurfaceRenderNode*>(node);
-        const std::string name = surfaceNode->GetName();
+    if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
+        const auto& surfaceNode = reinterpret_cast<const RSSurfaceRenderNode&>(node);
+        const std::string name = surfaceNode.GetName();
         uint32_t size = name.size();
         data.write(reinterpret_cast<const char*>(&size), sizeof(size));
         data.write(reinterpret_cast<const char*>(name.c_str()), size);
 
-        const std::string bundleName = surfaceNode->GetBundleName();
+        const std::string bundleName = surfaceNode.GetBundleName();
         size = bundleName.size();
         data.write(reinterpret_cast<const char*>(&size), sizeof(size));
         data.write(reinterpret_cast<const char*>(bundleName.c_str()), size);
 
-        const RSSurfaceNodeType type = surfaceNode->GetSurfaceNodeType();
+        const RSSurfaceNodeType type = surfaceNode.GetSurfaceNodeType();
         data.write(reinterpret_cast<const char*>(&type), sizeof(type));
 
-        const uint8_t backgroundAlpha = surfaceNode->GetAbilityBgAlpha();
+        const uint8_t backgroundAlpha = surfaceNode.GetAbilityBgAlpha();
         data.write(reinterpret_cast<const char*>(&backgroundAlpha), sizeof(backgroundAlpha));
 
-        const uint8_t globalAlpha = surfaceNode->GetGlobalAlpha();
+        const uint8_t globalAlpha = surfaceNode.GetGlobalAlpha();
         data.write(reinterpret_cast<const char*>(&globalAlpha), sizeof(globalAlpha));
     }
 
-    const float positionZ = node->GetRenderProperties().GetPositionZ();
+    const float positionZ = node.GetRenderProperties().GetPositionZ();
     data.write(reinterpret_cast<const char*>(&positionZ), sizeof(positionZ));
 
-    const float pivotZ = node->GetRenderProperties().GetPivotZ();
+    const float pivotZ = node.GetRenderProperties().GetPivotZ();
     data.write(reinterpret_cast<const char*>(&pivotZ), sizeof(pivotZ));
 
-    const NodePriorityType priority = const_cast<RSRenderNode*>(node)->GetPriority();
+    const NodePriorityType priority = const_cast<RSRenderNode&>(node).GetPriority();
     data.write(reinterpret_cast<const char*>(&priority), sizeof(priority));
 
-    const bool isOnTree = node->IsOnTheTree();
+    const bool isOnTree = node.IsOnTheTree();
     data.write(reinterpret_cast<const char*>(&isOnTree), sizeof(isOnTree));
 
-    const uint8_t nodeGroupType = node->nodeGroupType_;
-    data.write(reinterpret_cast<const char*>(&nodeGroupType), sizeof(nodeGroupType));
+    if (fileVersion >= RSFILE_VERSION_RENDER_METRICS_ADDED) {
+        const uint8_t nodeGroupType = node.nodeGroupType_;
+        data.write(reinterpret_cast<const char*>(&nodeGroupType), sizeof(nodeGroupType));
+    }
 
-    MarshalNode(*node, data);
+    MarshalNodeModifiers(node, data, fileVersion);
 }
 
 static void MarshalRenderModifier(const RSRenderModifier& modifier, std::stringstream& data)
@@ -529,7 +534,7 @@ static void MarshalRenderModifier(const RSRenderModifier& modifier, std::strings
     }
 }
 
-void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data)
+void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
     data.write(reinterpret_cast<const char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
     data.write(reinterpret_cast<const char*>(&node.firstLevelNodeId_), sizeof(node.firstLevelNodeId_));
@@ -676,7 +681,7 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, Node
         node->SetPriority(priority);
         node->SetIsOnTheTree(isOnTree);
         node->nodeGroupType_ = nodeGroupType;
-        UnmarshalNode(*node, data, fileVersion);
+        UnmarshalNodeModifiers(*node, data, fileVersion);
     }
 }
 
@@ -697,7 +702,7 @@ static RSRenderModifier* UnmarshalRenderModifier(std::stringstream& data)
     return RSRenderModifier::Unmarshalling(*parcel);
 }
 
-void RSProfiler::UnmarshalNode(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
+void RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion)
 {
     data.read(reinterpret_cast<char*>(&node.instanceRootNodeId_), sizeof(node.instanceRootNodeId_));
     node.instanceRootNodeId_ = Utils::PatchNodeId(node.instanceRootNodeId_);

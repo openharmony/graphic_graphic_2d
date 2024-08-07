@@ -130,6 +130,9 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
     // 1. marshalling RSTransactionData
     RS_TRACE_BEGIN("MarshRSTransactionData cmdCount:" + std::to_string(transactionData->GetCommandCount()) +
         " transactionFlag:[" + std::to_string(pid_) + "," + std::to_string(transactionData->GetIndex()) + "]");
+    ROSEN_LOGI_IF(DEBUG_PIPELINE,
+        "MarshRSTransactionData cmdCount:%{public}lu transactionFlag:[pid:%{public}d index:%{public}" PRIu64 "]",
+        transactionData->GetCommandCount(), pid_, transactionData->GetIndex());
     bool success = data->WriteParcelable(transactionData.get());
     RS_TRACE_END();
     if (!success) {
@@ -517,30 +520,6 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, spt
     int32_t status = reply.ReadInt32();
     return status;
 }
-
-#ifdef RS_ENABLE_VK
-bool RSRenderServiceConnectionProxy::Set2DRenderCtrl(bool enable)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return false;
-    }
-
-    option.SetFlags(MessageOption::TF_SYNC);
-    data.WriteBool(enable);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_2D_RENDER_CTRL);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::Set2DRenderCtrl: Send Request err.");
-        return false;
-    }
-    bool result = reply.ReadBool();
-    return result;
-}
-#endif
 
 void RSRenderServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
 {

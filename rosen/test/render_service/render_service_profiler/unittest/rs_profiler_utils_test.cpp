@@ -51,12 +51,16 @@ HWTEST_F(RSProfilerUtilsTest, UtilsTimeTest, testing::ext::TestSize.Level1)
  */
 HWTEST_F(RSProfilerUtilsTest, UtilsFileTest, testing::ext::TestSize.Level1)
 {
-    // open no existing file
+    // open not existing file
     auto fd = Utils::FileOpen(",,,,,,,,,,,,,", "rb");
+    EXPECT_FALSE(Utils::IsFileValid(fd));
+    EXPECT_EQ(fd, nullptr);
     EXPECT_EQ(Utils::FileSize(fd), 0);
     EXPECT_EQ(Utils::FileTell(fd), 0);
 
     fd = Utils::FileOpen("file.json", "invalid open options");
+    EXPECT_FALSE(Utils::IsFileValid(fd));
+    EXPECT_EQ(fd, nullptr);
     EXPECT_EQ(Utils::FileSize(fd), 0);
     EXPECT_EQ(Utils::FileTell(fd), 0);
 
