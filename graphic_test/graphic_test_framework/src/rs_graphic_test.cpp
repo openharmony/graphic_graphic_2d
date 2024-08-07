@@ -174,11 +174,10 @@ std::string RSGraphicTest::GetImageSavePath(const std::string path)
     } else {
         if (!fs::is_directory(imagePath)) {
             LOGE("RSGraphicTestDirector path is not dir");
-            return;
         }
     }
 
-    retrun imagePath;
+    return imagePath;
 }
 
 } // namespace Rosen
