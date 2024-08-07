@@ -19,7 +19,6 @@
 #include "common/rs_macros.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -97,7 +96,6 @@ public:
     float EstimateDuration() const
     {
         if (dampingRatio_ <= 0.0f || response_ <= 0.0f) {
-            ROSEN_LOGE("RSSpringModel::%{public}s, uninitialized spring model", __func__);
             return 0.0f;
         }
 
