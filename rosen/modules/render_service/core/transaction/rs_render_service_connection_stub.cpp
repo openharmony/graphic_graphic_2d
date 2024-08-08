@@ -133,9 +133,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
-#ifdef RS_ENABLE_VK
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_2D_RENDER_CTRL),
-#endif
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
@@ -396,18 +393,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
-#ifdef RS_ENABLE_VK
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_2D_RENDER_CTRL): {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access SET_2D_RENDER_CTRL");
-                return ERR_INVALID_STATE;
-            }
-            bool enable = data.ReadBool();
-            bool result = Set2DRenderCtrl(enable);
-            reply.WriteBool(result);
-            break;
-        }
-#endif
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {
             ScreenId id = data.ReadUint64();
             RemoveVirtualScreen(id);

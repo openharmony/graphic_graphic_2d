@@ -295,14 +295,6 @@ public:
     void SetFrameIsRender(bool isRender);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const;
-    bool GetMarkRenderFlag() const
-    {
-        return markRenderFlag_;
-    }
-    void ResetMarkRenderFlag()
-    {
-        markRenderFlag_ = false;
-    }
 
     bool IsOnVsync() const
     {
@@ -650,7 +642,6 @@ private:
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
-    bool markRenderFlag_ = false;
 
     bool forceUIFirstChanged_ = false;
 

@@ -55,7 +55,7 @@ protected:
 
 private:
     bool isCustom_ { false };
-    bool isTransitionIn_;
+    bool isTransitionIn_ { false };
     std::shared_ptr<const RSTransitionEffect> effect_;
     RSAnimationTimingCurve timingCurve_ { RSAnimationTimingCurve::DEFAULT };
 };

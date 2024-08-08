@@ -143,33 +143,53 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     }
     RS_LOGD("RSRenderServiceConnection::CleanAll() start.");
     mainThread_->ScheduleTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("CleanVirtualScreens %d", remotePid_);
-            CleanVirtualScreens();
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("CleanVirtualScreens %d", connection->remotePid_);
+            connection->CleanVirtualScreens();
         }).wait();
     mainThread_->ScheduleTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("CleanRenderNodes %d", remotePid_);
-            CleanRenderNodes();
-            CleanFrameRateLinkers();
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("CleanRenderNodes %d", connection->remotePid_);
+            connection->CleanRenderNodes();
+            connection->CleanFrameRateLinkers();
         }).wait();
     mainThread_->ScheduleTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", remotePid_);
-            mainThread_->ClearTransactionDataPidInfo(remotePid_);
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", connection->remotePid_);
+            connection->mainThread_->ClearTransactionDataPidInfo(connection->remotePid_);
         }).wait();
     mainThread_->ScheduleTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("CleanHgmEvent %d", remotePid_);
-            mainThread_->GetFrameRateMgr()->CleanVote(remotePid_);
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("CleanHgmEvent %d", connection->remotePid_);
+            connection->mainThread_->GetFrameRateMgr()->CleanVote(connection->remotePid_);
         }).wait();
     mainThread_->ScheduleTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("UnRegisterCallback %d", remotePid_);
-            HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(remotePid_);
-            mainThread_->UnRegisterOcclusionChangeCallback(remotePid_);
-            mainThread_->ClearSurfaceOcclusionChangeCallback(remotePid_);
-            mainThread_->UnRegisterUIExtensionCallback(remotePid_);
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("UnRegisterCallback %d", connection->remotePid_);
+            HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(connection->remotePid_);
+            connection->mainThread_->UnRegisterOcclusionChangeCallback(connection->remotePid_);
+            connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
+            connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
@@ -356,9 +376,13 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
-        mainThread_->ScheduleTask([=]() {
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
             auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
-            auto& context = mainThread_->GetContext();
+            auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
         }).wait();
@@ -478,16 +502,6 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Sur
     return screenManager_->SetVirtualScreenSurface(id, surface);
 }
 
-#ifdef RS_ENABLE_VK
-bool RSRenderServiceConnection::Set2DRenderCtrl(bool enable)
-{
-    if (RsVulkanContext::GetSingleton().GetRsVulkanInterface().vkSetFreqAdjustEnable != nullptr) {
-        RsVulkanContext::GetSingleton().GetRsVulkanInterface().vkSetFreqAdjustEnable(enable);
-    }
-    return true;
-}
-#endif
-
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
     float brightBuffer, int64_t interval, int32_t rangeSize)
@@ -605,17 +619,22 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
     if (!mainThread_) {
         return;
     }
-    mainThread_->ScheduleTask([=]() {
-        auto& context = mainThread_->GetContext();
-        auto& linkerMap = context.GetMutableFrameRateLinkerMap();
-        auto linker = linkerMap.GetFrameRateLinker(id);
-        if (linker == nullptr) {
-            RS_LOGW("SyncFrameRateRange there is no frameRateLinker for id %{public}" PRIu64, id);
-            return;
-        }
-        linker->SetExpectedRange(range);
-        linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
-    }).wait();
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), id, &range, animatorExpectedFrameRate]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            auto& context = connection->mainThread_->GetContext();
+            auto& linkerMap = context.GetMutableFrameRateLinkerMap();
+            auto linker = linkerMap.GetFrameRateLinker(id);
+            if (linker == nullptr) {
+                RS_LOGW("SyncFrameRateRange there is no frameRateLinker for id %{public}" PRIu64, id);
+                return;
+            }
+            linker->SetExpectedRange(range);
+            linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
+        }).wait();
 }
 
 uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
@@ -1533,8 +1552,12 @@ void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
     if (!mainThread_) {
         return;
     }
-    auto task = [this, num]() -> void {
-        mainThread_->SetAppWindowNum(num);
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), num]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection || !connection->mainThread_) {
+            return;
+        }
+        connection->mainThread_->SetAppWindowNum(num);
     };
     mainThread_->PostTask(task);
 }
@@ -1554,8 +1577,12 @@ void RSRenderServiceConnection::ShowWatermark(const std::shared_ptr<Media::Pixel
     if (!mainThread_) {
         return;
     }
-    auto task = [this, watermarkImg, isShow]() -> void {
-        mainThread_->ShowWatermark(watermarkImg, isShow);
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), watermarkImg, isShow]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            return;
+        }
+        connection->mainThread_->ShowWatermark(watermarkImg, isShow);
     };
     mainThread_->PostTask(task);
 }
@@ -1757,8 +1784,12 @@ void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreen
     if (!mainThread_) {
         return;
     }
-    auto task = [this, isCurtainScreenOn]() -> void {
-        mainThread_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), isCurtainScreenOn]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            return;
+        }
+        connection->mainThread_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     };
     mainThread_->PostTask(task);
 }

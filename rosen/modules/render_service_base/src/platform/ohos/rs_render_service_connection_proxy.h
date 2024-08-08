@@ -74,9 +74,6 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable) override;
-#endif
     void RemoveVirtualScreen(ScreenId id) override;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR

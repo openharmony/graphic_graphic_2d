@@ -52,6 +52,9 @@ void RSAnimationManager::DumpAnimations(std::string& out) const
 
 void RSAnimationManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
+    if (animation == nullptr) {
+        return;
+    }
     AnimationId key = animation->GetAnimationId();
     if (animations_.find(key) != animations_.end()) {
         ROSEN_LOGE("RSAnimationManager::AddAnimation, The animation already exists when is added");

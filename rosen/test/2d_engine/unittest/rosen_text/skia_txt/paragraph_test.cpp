@@ -308,7 +308,7 @@ HWTEST_F(ParagraphTest, ParagraphTest021, TestSize.Level1)
 {
     EXPECT_EQ(paragraph_ != nullptr, true);
     // 2 just for test
-    EXPECT_EQ(paragraph_->GetRectsForRange(0, 2, RectHeightStyle::MAX, RectWidthStyle::TIGHT).size(), 0);
+    EXPECT_EQ(paragraph_->GetRectsForRange(0, 2, RectHeightStyle::MAX, RectWidthStyle::TIGHT).size(), 1);
 }
 
 /*

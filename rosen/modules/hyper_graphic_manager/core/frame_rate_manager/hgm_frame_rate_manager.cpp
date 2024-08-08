@@ -44,7 +44,7 @@ namespace {
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 20;
     constexpr int32_t LAST_TOUCH_CNT = 1;
 
-    constexpr uint32_t FIRST_FRAME_TIME_OUT = 50; // 50ms
+    constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
     constexpr uint32_t SCENE_BEFORE_XML = 1;
     constexpr uint32_t SCENE_AFTER_TOUCH = 3;
     constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
@@ -95,7 +95,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         }
         multiAppStrategy_.UpdateXmlConfigCache();
         UpdateEnergyConsumptionConfig();
-        RsCommonHook::Instance().SetVideoSurfaceConfig(configData->sourceTuningConfig_);
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
     }
@@ -194,11 +193,17 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(uint64_t timestamp, uint32_t
     }
 }
 
-void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,  pid_t pid)
+void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
+    pid_t pid, UIFWKType uiFwkType)
 {
-    idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid);
+    idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid, uiFwkType);
 }
 
+void HgmFrameRateManager::ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
+{
+    idleDetector_.ProcessUnknownUIFwkIdleState(activeNodesInRoot, timestamp);
+}
 void HgmFrameRateManager::UpdateAppSupportedState()
 {
     bool appNeedHighRefresh = false;
@@ -240,18 +245,18 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     if (!idleDetector_.GetAppSupportedState()) {
         return;
     }
-    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleStatus = [%d]  AceAnimatorIdleState = [%d]",
+    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurfaceIdleState = [%d]  AceAnimatorIdleState = [%d]",
         touchManager_.GetState(), idleDetector_.GetSurfaceIdleState(timestamp),
         idleDetector_.GetAceAnimatorIdleState());
 
-    // Wait touch up FIRST_FRAME_TIME_OUT ms
+    // After touch up, wait FIRST_FRAME_TIME_OUT ms
     if (!startCheck_.load() || touchManager_.GetState() == TouchState::IDLE_STATE) {
         needHighRefresh_ = false;
         lastTouchUpExpectFps_ = 0;
         return;
     }
 
-    // Check if needed third frame need high refresh
+    // Check if third framework need high refresh
     if (!needHighRefresh_) {
         needHighRefresh_ = true;
         if (!idleDetector_.ThirdFrameNeedHighRefresh()) {
@@ -734,31 +739,8 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, uint32_t listSize, const
             std::lock_guard<std::mutex> locker(pkgSceneMutex_);
             sceneStack_.clear();
         }
-        CheckPackageInConfigList(multiAppStrategy_.GetForegroundPidApp());
         UpdateAppSupportedState();
     });
-}
-
-void HgmFrameRateManager::CheckPackageInConfigList(std::unordered_map<pid_t,
-    std::pair<int32_t, std::string>> foregroundPidAppMap)
-{
-    auto& rsCommonHook = RsCommonHook::Instance();
-    std::unordered_map<std::string, std::string> videoConfigFromHgm = rsCommonHook.GetVideoSurfaceConfig();
-    if (!videoConfigFromHgm.empty()) {
-        for (auto pair: foregroundPidAppMap) {
-            if (videoConfigFromHgm.find(pair.second.second) == videoConfigFromHgm.end()) {
-                continue;
-            }
-            // 1 means crop source tuning
-            if (videoConfigFromHgm[pair.second.second] == "1") {
-                rsCommonHook.SetVideoSurfaceFlag(true);
-            // 2 means skip hardware disabled by hwc node and background alpha
-            } else if (videoConfigFromHgm[pair.second.second] == "2") {
-                rsCommonHook.SetHardwareEnabledByHwcnodeFlag(true);
-                rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
-            }
-        }
-    }
 }
 
 void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
@@ -850,10 +832,6 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     multiAppStrategy_.UpdateXmlConfigCache();
     UpdateEnergyConsumptionConfig();
-    auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if (configData != nullptr) {
-        RsCommonHook::Instance().SetVideoSurfaceConfig(configData->sourceTuningConfig_);
-    }
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     schedulePreferredFpsChange_ = true;
@@ -902,7 +880,6 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         }
         multiAppStrategy_.UpdateXmlConfigCache();
         UpdateEnergyConsumptionConfig();
-        RsCommonHook::Instance().SetVideoSurfaceConfig(configData->sourceTuningConfig_);
     }
 
     multiAppStrategy_.CalcVote();

@@ -42,6 +42,8 @@ group("unittest") {
     ":RSUniRenderJudgementTest",
     ":RSUniRenderProcessorTest",
     ":RSUniRenderThreadTest",
+    ":RSUniRenderUtilDirtyRegionTest",
+    ":RSUniRenderUtilSecUIExtensionTest",
     ":RSUniRenderUtilTest",
     ":RSUniRenderVirtualProcessorTest",
     ":RSUniRenderVisitorTest",
@@ -476,6 +478,34 @@ ohos_unittest("RSUniRenderUtilTest") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
+  }
+}
+
+## Build RSUniRenderUtilDirtyRegionTest
+ohos_unittest("RSUniRenderUtilDirtyRegionTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_util_dirty_region_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSUniRenderUtilSecUIExtensionTest
+ohos_unittest("RSUniRenderUtilSecUIExtensionTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_uni_render_util_sec_uiextension_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
   }
 }
 

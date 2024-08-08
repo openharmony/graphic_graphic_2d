@@ -69,10 +69,6 @@ public:
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif
 
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable);
-#endif
-
     void RemoveVirtualScreen(ScreenId id);
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR

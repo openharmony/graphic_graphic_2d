@@ -230,6 +230,7 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
 {
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ = (partialRenderType_ != PartialRenderType::DISABLED);
+    isCompleteRenderEnabled_ = (partialRenderType_ == PartialRenderType::SET_DAMAGE_BUT_COMPLETE_RENDER);
     dirtyRegionDebugType_ = RSSystemProperties::GetDirtyRegionDebugType();
     surfaceRegionDebugType_ = RSSystemProperties::GetSurfaceRegionDfxType();
     isTargetDirtyRegionDfxEnabled_ = RSSystemProperties::GetTargetDirtyRegionDfxEnabled(dfxTargetSurfaceNames_) &&
@@ -1238,7 +1239,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     }
     bool ret = CheckScreenPowerChange() || CheckColorFilterChange() ||
         CheckCurtainScreenUsingStatusChange() || IsFirstFrameOfPartialRender() ||
-        IsWatermarkFlagChanged() || IsDisplayZoomIn();
+        IsWatermarkFlagChanged() || IsDisplayZoomIn() || isCompleteRenderEnabled_;
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -2064,6 +2065,10 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
     if (bgTransport) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by background color alpha < 1",
             node.GetName().c_str(), node.GetId());
+        // use in skip updating hardware state for hwcnode with background alpha in specific situation
+        if (!RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag()) {
+            node.SetHardwareForcedDisabledState(true);
+        }
         node.SetNodeHasBackgroundColorAlpha(true);
         hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node.GetName());
@@ -2144,7 +2149,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
         return;
     }
     for (auto rect : hwcRects) {
-        if (dst.Intersect(rect) && !RsCommonHook::Instance().GetHardwareEnabledByHwcnodeFlag()) {
+        if (dst.Intersect(rect) && !RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by hwc node above",
                 hwcNode->GetName().c_str(), hwcNode->GetId());
             hwcNode->SetHardwareForcedDisabledState(true);
@@ -2375,7 +2380,8 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         auto dirtyManager = surfaceNode->GetDirtyManager();
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
-        if (!hwcNodes.empty() && RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag()) {
+        if (!hwcNodes.empty() && RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag() &&
+            RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag()) {
             UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
         }
         // disable hwc node with corner radius if intersects with hwc node below
@@ -2387,6 +2393,11 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         surfaceNode->UpdatePartialRenderParams();
         if (dirtyManager && dirtyManager->IsCurrentFrameDirty()) {
             hasMainAndLeashSurfaceDirty = true;
+        }
+        if (surfaceNode->IsMainWindowType() && IfSkipInCalcGlobalDirty(*surfaceNode)) {
+            RS_LOGD("RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty surface:%{public}s "
+                "which is occluded don't need to process global dirty", surfaceNode->GetName().c_str());
+            return;
         }
         // 2. check surface node dirtyrect need merge into displayDirtyManager
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);
@@ -2476,9 +2487,9 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByZorderChanged(RSSurfaceRenderNo
     auto oldDirtyInSurface = surfaceNode.GetOldDirtyInSurface();
     if (surfaceNode.GetZorderChanged()) {
         RS_LOGD("CheckMergeDisplayDirtyByZorderChanged global merge GetZorderChanged "
-                "%{public}s: global dirty %{public}s, add rect %{public}s", surfaceNode.GetName().c_str(),
-                curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
-                oldDirtyInSurface.ToString().c_str());
+            "%{public}s: global dirty %{public}s, add rect %{public}s", surfaceNode.GetName().c_str(),
+            curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
+            oldDirtyInSurface.ToString().c_str());
         curDisplayNode_->GetDirtyManager()->MergeDirtyRect(oldDirtyInSurface);
     }
 }
@@ -2517,11 +2528,11 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByShadowChanged(RSSurfaceRenderNo
         // dirtyRect > surfaceNode.GetOldDirtyInSurface()
         // So we should always merge dirtyRect here.
         if (!shadowDirtyRect.IsEmpty()) {
-            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRect);
             RS_LOGD("CheckMergeDisplayDirtyByShadowChanged global merge ShadowValid %{public}s: "
                 "global dirty %{public}s, add rect %{public}s", surfaceNode.GetName().c_str(),
                 curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
                 dirtyRect.ToString().c_str());
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRect);
         }
         if (isShadowDisappear) {
             surfaceNode.SetShadowValidLastFrame(false);
@@ -2533,10 +2544,11 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyBySurfaceChanged() const
 {
     std::vector<RectI> surfaceChangedRects = curDisplayNode_->GetSurfaceChangedRects();
     for (auto& surfaceChangedRect : surfaceChangedRects) {
-        RS_LOGD("CheckMergeDisplayDirtyBySurfaceChanged global merge Surface closed, global dirty %{public}s,"
-            "add rect %{public}s", curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
-            surfaceChangedRect.ToString().c_str());
         if (!surfaceChangedRect.IsEmpty()) {
+            RS_LOGD("CheckMergeDisplayDirtyBySurfaceChanged global merge Surface closed, global dirty %{public}s,"
+                "add rect %{public}s",
+                curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
+                surfaceChangedRect.ToString().c_str());
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(surfaceChangedRect);
         }
     }
@@ -2650,11 +2662,6 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
     std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
     Occlusion::Region& accumulatedDirtyRegion)
 {
-    if (surfaceNode->IsMainWindowType() && IfSkipInCalcGlobalDirty(*surfaceNode)) {
-        RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter surface:%{public}s "
-            "which is occluded don't need to process filter", surfaceNode->GetName().c_str());
-        return;
-    }
     auto disappearedSurfaceRegionBelowCurrent =
         curDisplayNode_->GetDisappearedSurfaceRegionBelowCurrent(surfaceNode->GetId());
     accumulatedDirtyRegion.OrSelf(disappearedSurfaceRegionBelowCurrent);
@@ -2973,32 +2980,31 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
 void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes)
 {
-    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodeVector;
+    std::list<RectI> hwcRects;
     for (int i = 0; i < hwcNodes.size(); i++) {
         auto hwcNodePtr = hwcNodes[i].lock();
         if (!hwcNodePtr) {
             continue;
         }
         if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
-            hwcNodeVector.push_back(hwcNodes[i]);
-        } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() &&
-                   !hwcNodePtr->IsHardwareForcedDisabled() && hwcNodeVector.size() != 0) {
-            UpdateHardwareStateByCoverage(hwcNodes[i], hwcNodeVector);
+            hwcRects.push_back(hwcNodePtr->GetDstRect());
+        } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
+            hwcRects.size() != 0 && IsNodeAboveInsideOfNodeBelow(hwcNodePtr->GetDstRect(), hwcRects)) {
+            continue;
+        } else {
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
         }
     }
 }
 
-void RSUniRenderVisitor::UpdateHardwareStateByCoverage(std::weak_ptr<RSSurfaceRenderNode> hwcNode,
-    std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodeVector)
+bool RSUniRenderVisitor::IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList)
 {
-    for (int i = hwcNodeVector.size() - 1; i >= 0; i--) {
-        if (hwcNode.lock()->GetDstRect().IsInsideOf(hwcNodeVector[i].lock()->GetDstRect())) {
-            hwcNode.lock()->SetHardwareForcedDisabledState(false);
-            break;
-        } else {
-            hwcNode.lock()->SetHardwareForcedDisabledState(true);
+    for (auto rectBelow: hwcNodeRectList) {
+        if (rectAbove.IsInsideOf(rectBelow)) {
+            return true;
         }
     }
+    return false;
 }
 
 void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(
@@ -3205,11 +3211,11 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
             }
             if (isIntersect) {
                 transparentDirtyFilter_[curSurfaceNode_->GetId()].push_back({node.GetId(), globalFilterRect});
-                curDisplayDirtyManager_->MergeDirtyRect(globalFilterRect);
                 RS_LOGD("RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty global merge transparentDirtyFilter "
                     "%{public}s, global dirty %{public}s, add rect %{public}s", curSurfaceNode_->GetName().c_str(),
                     curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
                     globalFilterRect.ToString().c_str());
+                curDisplayDirtyManager_->MergeDirtyRect(globalFilterRect);
             }
         } else {
             // record surface nodes and nodes in surface which has clean filter

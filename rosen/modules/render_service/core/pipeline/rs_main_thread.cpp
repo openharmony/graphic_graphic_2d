@@ -90,6 +90,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
+#include "render/rs_image_cache.h"
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_typeface_cache.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -392,6 +393,10 @@ void RSMainThread::Init()
         SKResourceManager::Instance().ReleaseResource();
         // release node memory
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        static std::function<void ()> task = []() -> void {
+            RSImageCache::Instance().ReleaseUniqueIdList();
+        };
+        RSBackgroundThread::Instance().PostTask(task);
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
@@ -1223,7 +1228,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         auto& surfaceHandler = *surfaceNode->GetMutableRSSurfaceHandler();
         if (frameRateMgr_ != nullptr && surfaceHandler.GetAvailableBufferCount() > 0) {
             auto surfaceNodeName = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
-            frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_, ExtractPid(surfaceNode->GetId()));
+            frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_,
+                ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
         }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
@@ -1723,6 +1729,10 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (!frameRateMgr_ || !rsVSyncDistributor_) {
         return;
     }
+    std::unique_lock<std::mutex> lock(context_->activeNodesInRootMutex_);
+    auto activeNodesInRootMap = context_->activeNodesInRoot_;
+    lock.unlock();
+    frameRateMgr_->ProcessUnknownUIFwkIdleState(activeNodesInRootMap, timestamp);
     DvsyncInfo info;
     info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
     info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();
@@ -1748,7 +1758,6 @@ bool RSMainThread::GetParallelCompositionEnabled()
 void RSMainThread::SetFrameIsRender(bool isRender)
 {
     if (rsVSyncDistributor_ != nullptr) {
-        markRenderFlag_ = true;
         rsVSyncDistributor_->SetFrameIsRender(isRender);
     }
 }
@@ -1857,7 +1866,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_LOGD("RSMainThread::Render nothing to update");
             RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
             RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
-            RSMainThread::Instance()->SetFrameIsRender(false);
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
                     node->MarkCurrentFrameHardwareEnabled();
@@ -2084,10 +2092,6 @@ void RSMainThread::OnUniRenderDraw()
     }
 
     UpdateDisplayNodeScreenId();
-    if (!markRenderFlag_) {
-        SetFrameIsRender(true);
-    }
-    markRenderFlag_ = false;
     RsFrameReport& fr = RsFrameReport::GetInstance();
     if (fr.GetEnable()) {
         fr.RSRenderEnd();

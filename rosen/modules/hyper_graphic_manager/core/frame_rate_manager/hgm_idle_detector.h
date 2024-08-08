@@ -18,9 +18,15 @@
 
 #include <mutex>
 #include <unordered_map>
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
+
+enum class UIFWKType : int32_t {
+    FROM_UNKNOWN = 0,
+    FROM_SURFACE = 1,
+};
 
 class HgmIdleDetector {
 public:
@@ -49,7 +55,8 @@ public:
         return aceAnimatorIdleState_;
     }
 
-    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,  pid_t pid);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
+        pid_t pid, UIFWKType uiFwkType = UIFWKType::FROM_UNKNOWN);
     bool GetSurfaceIdleState(uint64_t timestamp);
     int32_t GetTouchUpExpectedFPS();
     bool ThirdFrameNeedHighRefresh();
@@ -77,7 +84,11 @@ public:
     {
         supportAppBufferList_ = supportAppBufferList;
     }
+    void ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
+        std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
 private:
+    bool GetUnknownFrameworkState(const std::string& surfaceName);
+    bool GetSurfaceFrameworkState(const std::string& surfaceName);
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
     std::mutex appSupportedMutex_;
