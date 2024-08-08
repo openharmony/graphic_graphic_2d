@@ -3413,9 +3413,9 @@ HWTEST_F(RSMainThreadTest, SetAncoForceDoDirect, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
 
     mainThread->SetAncoForceDoDirect(true);
-    ASSERT_EQ(mainThread->ancoForceDoDirect_.load(), true);
+    ASSERT_EQ(RSSurfaceRenderNode::ancoForceDoDirect_.load(), true);
 
     mainThread->SetAncoForceDoDirect(false);
-    ASSERT_EQ(mainThread->ancoForceDoDirect_.load(), false);
+    ASSERT_EQ(RSSurfaceRenderNode::ancoForceDoDirect_.load(), false);
 }
 } // namespace OHOS::Rosen
