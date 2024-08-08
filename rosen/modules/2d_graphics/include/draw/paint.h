@@ -108,7 +108,7 @@ public:
     friend bool operator==(const Paint& p1, const Paint& p2);
     friend bool operator!=(const Paint& p1, const Paint& p2);
 
-    void Dump(std::string& out);
+    void Dump(std::string& out) const;
 
 private:
     bool antiAlias_ = false;

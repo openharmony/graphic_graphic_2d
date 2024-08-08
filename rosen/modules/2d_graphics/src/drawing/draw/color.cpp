@@ -159,7 +159,7 @@ bool operator!=(const Color& c1, const Color& c2)
     return c1.alpha_ != c2.alpha_ || c1.red_ != c2.red_ || c1.green_ != c2.green_ || c1.blue_ != c2.blue_;
 }
 
-void Color::Dump(std::string& out)
+void Color::Dump(std::string& out) const
 {
     constexpr int32_t colorStrWidth = 8;
     std::stringstream ss;

@@ -67,7 +67,7 @@ public:
      */
     bool ScaleRadii();
 
-    void Dump(std::string& out);
+    void Dump(std::string& out) const;
 
 private:
     Rect rect_;

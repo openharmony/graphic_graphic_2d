@@ -118,7 +118,7 @@ bool RoundRect::ScaleRadii()
     return scale < 1.0;
 }
 
-void RoundRect::Dump(std::string& out)
+void RoundRect::Dump(std::string& out) const
 {
     out += "[";
     out += "rect";

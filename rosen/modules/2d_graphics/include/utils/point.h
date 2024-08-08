@@ -62,7 +62,7 @@ public:
     friend inline bool operator==(const PointF& p1, const PointF& p2);
     friend inline bool operator!=(const PointF& p1, const PointF& p2);
 
-    inline void Dump(std::string& out);
+    inline void Dump(std::string& out) const;
 
 private:
     scalar x_;
@@ -143,7 +143,7 @@ inline PointF& PointF::operator/=(scalar divisor)
     return *this;
 }
 
-inline void PointF::Dump(std::string& out)
+inline void PointF::Dump(std::string& out) const
 {
     out += "[";
     out += "x:" + std::to_string(x_);

@@ -304,7 +304,7 @@ public:
     friend inline bool operator==(const RectF& r1, const RectF& r2);
     friend inline bool operator!=(const RectF& r1, const RectF& r2);
 
-    inline void Dump(std::string& out);
+    inline void Dump(std::string& out) const;
 
     scalar left_;
     scalar top_;
@@ -450,7 +450,7 @@ inline std::string RectF::ToString() const
         std::to_string(right_ - left_) + ", " + std::to_string(bottom_ - top_) + ")";
 }
 
-inline void RectF::Dump(std::string& out)
+inline void RectF::Dump(std::string& out) const
 {
     out += "[";
     out += "left:" + std::to_string(left_);

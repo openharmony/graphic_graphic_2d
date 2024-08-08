@@ -143,7 +143,7 @@ public:
     friend DRAWING_API bool operator==(const Color& c1, const Color& c2);
     friend DRAWING_API bool operator!=(const Color& c1, const Color& c2);
 
-    void Dump(std::string& out);
+    void Dump(std::string& out) const;
 
 private:
     uint32_t alpha_;

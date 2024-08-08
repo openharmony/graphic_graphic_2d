@@ -285,7 +285,7 @@ std::string DrawOpItem::GetOpDesc()
     return typeOpDes[GetType()];
 }
 
-void DrawOpItem::Dump(std::string& out)
+void DrawOpItem::Dump(std::string& out) const
 {
     out += typeOpDes[GetType()];
 }
@@ -344,13 +344,14 @@ DrawWithPaintOpItem::DrawWithPaintOpItem(const DrawCmdList& cmdList, const Paint
     GeneratePaintFromHandle(paintHandle, cmdList, paint_);
 }
 
-void DrawWithPaintOpItem::Dump(std::string& out)
+void DrawWithPaintOpItem::Dump(std::string& out) const
 {
     DrawOpItem::Dump(out);
     out += "[";
     out += "paint";
     paint_.Dump(out);
-    out += " ";
+    DumpItems(out);
+    out += "]";
 }
 
 /* DrawPointOpItem */
@@ -377,12 +378,10 @@ void DrawPointOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPoint(point_);
 }
 
-void DrawPointOpItem::Dump(std::string& out)
+void DrawPointOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "point";
+    out += " point";
     point_.Dump(out);
-    out += "]";
 }
 
 /* DrawPointsOpItem */
@@ -438,14 +437,12 @@ void DrawLineOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawLine(startPt_, endPt_);
 }
 
-void DrawLineOpItem::Dump(std::string& out)
+void DrawLineOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "startPt";
+    out += " startPt";
     startPt_.Dump(out);
     out += " endPt";
     endPt_.Dump(out);
-    out += "]";
 }
 
 /* DrawRectOpItem */
@@ -472,12 +469,10 @@ void DrawRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawRect(rect_);
 }
 
-void DrawRectOpItem::Dump(std::string& out)
+void DrawRectOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "rect";
+    out += " rect";
     rect_.Dump(out);
-    out += "]";
 }
 
 /* DrawRoundRectOpItem */
@@ -504,12 +499,10 @@ void DrawRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawRoundRect(rrect_);
 }
 
-void DrawRoundRectOpItem::Dump(std::string& out)
+void DrawRoundRectOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "rrect";
+    out += " rrect";
     rrect_.Dump(out);
-    out += "]";
 }
 
 /* DrawNestedRoundRectOpItem */
@@ -540,14 +533,12 @@ void DrawNestedRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawNestedRoundRect(outerRRect_, innerRRect_);
 }
 
-void DrawNestedRoundRectOpItem::Dump(std::string& out)
+void DrawNestedRoundRectOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "outerRRect";
+    out += " outerRRect";
     outerRRect_.Dump(out);
     out += " innerRRect";
     innerRRect_.Dump(out);
-    out += "]";
 }
 
 /* DrawArcOpItem */
@@ -575,14 +566,12 @@ void DrawArcOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawArc(rect_, startAngle_, sweepAngle_);
 }
 
-void DrawArcOpItem::Dump(std::string& out)
+void DrawArcOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "rect";
+    out += " rect";
     rect_.Dump(out);
     out += " startAngle:" + std::to_string(startAngle_);
     out += " sweepAngle:" + std::to_string(sweepAngle_);
-    out += "]";
 }
 
 /* DrawPieOpItem */
@@ -610,14 +599,12 @@ void DrawPieOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPie(rect_, startAngle_, sweepAngle_);
 }
 
-void DrawPieOpItem::Dump(std::string& out)
+void DrawPieOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "rect";
+    out += " rect";
     rect_.Dump(out);
     out += " startAngle:" + std::to_string(startAngle_);
     out += " sweepAngle:" + std::to_string(sweepAngle_);
-    out += "]";
 }
 
 /* DrawOvalOpItem */
@@ -644,12 +631,10 @@ void DrawOvalOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawOval(rect_);
 }
 
-void DrawOvalOpItem::Dump(std::string& out)
+void DrawOvalOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "rect";
+    out += " rect";
     rect_.Dump(out);
-    out += "]";
 }
 
 /* DrawCircleOpItem */
@@ -677,13 +662,11 @@ void DrawCircleOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawCircle(centerPt_, radius_);
 }
 
-void DrawCircleOpItem::Dump(std::string& out)
+void DrawCircleOpItem::DumpItems(std::string& out) const
 {
-    DrawWithPaintOpItem::Dump(out);
-    out += "centerPt";
+    out += " centerPt";
     centerPt_.Dump(out);
     out += " radius:" + std::to_string(radius_);
-    out += "]";
 }
 
 /* DrawPathOpItem */

@@ -309,10 +309,10 @@ bool operator!=(const Paint& p1, const Paint& p2)
         p1.blurDrawLooper_ != p2.blurDrawLooper_;
 }
 
-void Paint::Dump(std::string& out)
+void Paint::Dump(std::string& out) const
 {
     out += "[";
-    out += "antiAlias:" + std::to_string(antiAlias_);
+    out += "antiAlias:" + std::string(antiAlias_ ? "true" : "false");
     out += " color[";
     color_.Dump(out);
     out += "]";
@@ -322,9 +322,9 @@ void Paint::Dump(std::string& out)
     out += " miterLimit:" + std::to_string(miterLimit_);
     out += " join:" + std::to_string(static_cast<int>(join_));
     out += " cap:" + std::to_string(static_cast<int>(cap_));
-    out += " blenderEnabled:" + std::to_string(blenderEnabled_);
-    out += " hasFilter:" + std::to_string(hasFilter_);
-    out += " hdrImage:" + std::to_string(hdrImage_);
+    out += " blenderEnabled:" + std::string(blenderEnabled_ ? "true" : "false");
+    out += " hasFilter:" + std::string(hasFilter_ ? "true" : "false");
+    out += " hdrImage:" + std::string(hdrImage_ ? "true" : "false");
     out += "]";
 }
 
