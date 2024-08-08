@@ -2818,6 +2818,18 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType001, TestSize.Level1)
     properties.illuminatedPtr_ = std::make_shared<RSIlluminated>();
     properties.SetIlluminatedType(0);
     EXPECT_EQ(properties.contentDirty_, true);
+
+    IlluminatedType illuminatedTypeBB = IlluminatedType::BLEND_BORDER;
+    properties.SetIlluminatedType(static_cast<int>(illuminatedTypeBB));
+    EXPECT_EQ(properties.contentDirty_, true);
+
+    IlluminatedType illuminatedTypeBC = IlluminatedType::BLEND_CONTENT;
+    properties.SetIlluminatedType(static_cast<int>(illuminatedTypeBC));
+    EXPECT_EQ(properties.contentDirty_, true);
+
+    IlluminatedType illuminatedTypeBBC = IlluminatedType::BLEND_BORDER_CONTENT;
+    properties.SetIlluminatedType(static_cast<int>(illuminatedTypeBBC));
+    EXPECT_EQ(properties.contentDirty_, true);
 }
 
 /**
