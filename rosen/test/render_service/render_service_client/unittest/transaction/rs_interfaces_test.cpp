@@ -298,6 +298,20 @@ HWTEST_F(RSInterfacesTest, GetHardwareComposeDisabledReasonInfo001, TestSize.Lev
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     instance.GetHwcDisabledReasonInfo();
+}
+
+/**
+ * @tc.name: SetVmaCacheStatus001
+ * @tc.desc: test results of SetVmaCacheStatus
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, SetVmaCacheStatus001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.SetVmaCacheStatus(true);
+    instance.SetVmaCacheStatus(false);
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 

@@ -268,6 +268,11 @@ public:
     }
 
     void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func);
+
+    /**
+     * @brief                   Defragment or clear Vma Cache if needed
+     */
+    void VmaDefragment();
 private:
     std::shared_ptr<GPUContextImpl> impl_;
 };

@@ -106,6 +106,7 @@ private:
     GraphicTransformType currentTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     float currentTransformMatrixV2_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
+    uint64_t uniqueId_ = 0;
 };
 
 class SurfaceImageListener : public IBufferConsumerListener {

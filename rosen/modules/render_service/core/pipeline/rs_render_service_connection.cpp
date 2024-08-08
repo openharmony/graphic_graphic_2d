@@ -176,21 +176,19 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             if (!connection) {
                 return;
             }
-            RS_TRACE_NAME_FMT("CleanHgmEvent %d", connection->remotePid_);
-            connection->mainThread_->GetFrameRateMgr()->CleanVote(connection->remotePid_);
-        }).wait();
-    mainThread_->ScheduleTask(
-        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
-            sptr<RSRenderServiceConnection> connection = weakThis.promote();
-            if (!connection) {
-                return;
-            }
             RS_TRACE_NAME_FMT("UnRegisterCallback %d", connection->remotePid_);
-            HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+    HgmTaskHandleThread::Instance().ScheduleTask([pid = remotePid_] () {
+        RS_TRACE_NAME_FMT("CleanHgmEvent %d", pid);
+        HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(pid);
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            frameRateMgr->CleanVote(pid);
+        }
+    }).wait();
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -376,9 +374,13 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
-        mainThread_->ScheduleTask([=]() {
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
             auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
-            auto& context = mainThread_->GetContext();
+            auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
         }).wait();
@@ -584,28 +586,27 @@ void RSRenderServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId
 void RSRenderServiceConnection::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::SetScreenRefreshRate");
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    int32_t setResult = hgmCore.SetScreenRefreshRate(id, sceneId, rate);
-    if (setResult != 0) {
-        RS_LOGW("SetScreenRefreshRate request of screen %{public}" PRIu64 " of rate %{public}d is refused",
-            id, rate);
-        return;
-    }
+    HgmTaskHandleThread::Instance().PostTask([id, sceneId, rate] () {
+        int32_t setResult = OHOS::Rosen::HgmCore::Instance().SetScreenRefreshRate(id, sceneId, rate);
+        if (setResult != 0) {
+            RS_LOGW("SetScreenRefreshRate request of screen %{public}" PRIu64 " of rate %{public}d is refused",
+                id, rate);
+            return;
+        }
+    });
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
 {
-    if (!mainThread_) {
-        return;
-    }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::SetRefreshRateMode");
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    int32_t setResult = hgmCore.SetRefreshRateMode(refreshRateMode);
-    RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
-    if (setResult != 0) {
-        RS_LOGW("SetRefreshRateMode mode %{public}d is not supported", refreshRateMode);
-    }
+    HgmTaskHandleThread::Instance().PostTask([refreshRateMode] () {
+        int32_t setResult = OHOS::Rosen::HgmCore::Instance().SetRefreshRateMode(refreshRateMode);
+        RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
+        if (setResult != 0) {
+            RS_LOGW("SetRefreshRateMode mode %{public}d is not supported", refreshRateMode);
+        }
+    });
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
@@ -615,23 +616,29 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
     if (!mainThread_) {
         return;
     }
-    mainThread_->ScheduleTask([=]() {
-        auto& context = mainThread_->GetContext();
-        auto& linkerMap = context.GetMutableFrameRateLinkerMap();
-        auto linker = linkerMap.GetFrameRateLinker(id);
-        if (linker == nullptr) {
-            RS_LOGW("SyncFrameRateRange there is no frameRateLinker for id %{public}" PRIu64, id);
-            return;
-        }
-        linker->SetExpectedRange(range);
-        linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
-    }).wait();
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), id, &range, animatorExpectedFrameRate]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            auto& context = connection->mainThread_->GetContext();
+            auto& linkerMap = context.GetMutableFrameRateLinkerMap();
+            auto linker = linkerMap.GetFrameRateLinker(id);
+            if (linker == nullptr) {
+                RS_LOGW("SyncFrameRateRange there is no frameRateLinker for id %{public}" PRIu64, id);
+                return;
+            }
+            linker->SetExpectedRange(range);
+            linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
+        }).wait();
 }
 
 uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
 {
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    uint32_t rate = hgmCore.GetScreenCurrentRefreshRate(id);
+    uint32_t rate = HgmTaskHandleThread::Instance().ScheduleTask([id] () -> uint32_t {
+        return OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(id);
+    }).get();
     if (rate == 0) {
         RS_LOGW("GetScreenCurrentRefreshRate failed to get current refreshrate of"
             " screen : %{public}" PRIu64 "", id);
@@ -641,9 +648,9 @@ uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
 
 std::vector<int32_t> RSRenderServiceConnection::GetScreenSupportedRefreshRates(ScreenId id)
 {
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    std::vector<int32_t> rates = hgmCore.GetScreenComponentRefreshRates(id);
-    return rates;
+    return HgmTaskHandleThread::Instance().ScheduleTask([id] () -> std::vector<int32_t> {
+        return OHOS::Rosen::HgmCore::Instance().GetScreenComponentRefreshRates(id);
+    }).get();
 }
 
 bool RSRenderServiceConnection::GetShowRefreshRateEnabled()
@@ -671,19 +678,31 @@ std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &surfaceName]() { return screenManager_->FpsDump(dumpString, surfaceName); }).wait();
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return;
+                }
+                return connection->screenManager_->FpsDump(dumpString, surfaceName);
+            }).wait();
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &surfaceName]() { return screenManager_->FpsDump(dumpString, surfaceName); }).wait();
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return;
+                }
+                return connection->screenManager_->FpsDump(dumpString, surfaceName);
+            }).wait();
     }
     return dumpString;
 }
 
 int32_t RSRenderServiceConnection::GetCurrentRefreshRateMode()
 {
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    int32_t refreshRateMode = hgmCore.GetCurrentRefreshRateMode();
-    return refreshRateMode;
+    return HgmTaskHandleThread::Instance().ScheduleTask([] () -> int32_t {
+        return OHOS::Rosen::HgmCore::Instance().GetCurrentRefreshRateMode();
+    }).get();
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -728,7 +747,9 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
         mainThread_->SetDiscardJankFrames(true);
         renderThread_.SetDiscardJankFrames(true);
-        OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
+        HgmTaskHandleThread::Instance().PostTask([id, status]() {
+            OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
+        });
     } else {
         mainThread_->ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
@@ -1512,7 +1533,9 @@ int32_t RSRenderServiceConnection::RegisterHgmConfigChangeCallback(sptr<RSIHgmCo
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    HgmConfigCallbackManager::GetInstance()->RegisterHgmConfigChangeCallback(remotePid_, callback);
+    HgmTaskHandleThread::Instance().PostSyncTask([this, &callback] () {
+        HgmConfigCallbackManager::GetInstance()->RegisterHgmConfigChangeCallback(remotePid_, callback);
+    });
     return StatusCode::SUCCESS;
 }
 
@@ -1525,7 +1548,9 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateModeChangeCallback(
         return StatusCode::INVALID_ARGUMENTS;
     }
 
-    HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateModeChangeCallback(remotePid_, callback);
+    HgmTaskHandleThread::Instance().PostSyncTask([this, &callback] () {
+        HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateModeChangeCallback(remotePid_, callback);
+    });
     return StatusCode::SUCCESS;
 }
 
@@ -1534,7 +1559,9 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
-    HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateUpdateCallback(remotePid_, callback);
+    HgmTaskHandleThread::Instance().PostSyncTask([this, &callback] () {
+        HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateUpdateCallback(remotePid_, callback);
+    });
     return StatusCode::SUCCESS;
 }
 
@@ -1601,49 +1628,42 @@ void RSRenderServiceConnection::ReportJankStats()
 
 void RSRenderServiceConnection::NotifyLightFactorStatus(bool isSafe)
 {
-    if (!mainThread_) {
-        return;
-    }
-    mainThread_->GetFrameRateMgr()->HandleLightFactorStatus(remotePid_, isSafe);
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, isSafe]() {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            frameRateMgr->HandleLightFactorStatus(pid, isSafe);
+        }
+    });
 }
 
 void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    if (!mainThread_) {
-        return;
-    }
-    if (mainThread_->GetFrameRateMgr() == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::NotifyPackageEvent: frameRateMgr is nullptr.");
-        return;
-    }
-    mainThread_->GetFrameRateMgr()->HandlePackageEvent(remotePid_, listSize, packageList);
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, listSize, packageList]() {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            frameRateMgr->HandlePackageEvent(pid, packageList);
+        }
+    });
 }
 
 void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
-    if (!mainThread_) {
-        return;
-    }
-    if (mainThread_->GetFrameRateMgr() == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::NotifyRefreshRateEvent: frameRateMgr is nullptr.");
-        return;
-    }
-    mainThread_->GetFrameRateMgr()->HandleRefreshRateEvent(remotePid_, eventInfo);
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfo]() {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
+        }
+    });
 }
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    if (!mainThread_) {
-        return;
-    }
-    if (mainThread_->GetFrameRateMgr() == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::NotifyTouchEvent: frameRateMgr is nullptr.");
-        return;
-    }
-    mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
-    if (touchStatus == TouchStatus::TOUCH_DOWN) {
-        GrDirectContext::setLastTouchDownTime();
-    }
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, touchStatus, touchCnt]() {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            frameRateMgr->HandleTouchEvent(pid, touchStatus, touchCnt);
+        }
+    });
 }
 
 void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
@@ -1742,6 +1762,11 @@ LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
 HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
 {
     return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
+}
+
+void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
+{
+    renderThread_.SetVmaCacheStatus(flag);
 }
 
 #ifdef TP_FEATURE_ENABLE

@@ -547,18 +547,23 @@ void RSMainThread::Init()
     delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
-    frameRateMgr_ = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
-    frameRateMgr_->SetForceUpdateCallback([this](bool idleTimerExpired, bool forceUpdate) {
-        RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
-            RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
-                idleTimerExpired? "True":"False", forceUpdate? "True": "False");
-            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
-            RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
-            RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
-            RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
+    HgmTaskHandleThread::Instance().PostSyncTask([this] () {
+        auto frameRateMgr = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr == nullptr) {
+            return;
+        }
+        frameRateMgr->SetForceUpdateCallback([this](bool idleTimerExpired, bool forceUpdate) {
+            RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
+                RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s forceUpdateFlag: %s",
+                    idleTimerExpired? "True":"False", forceUpdate? "True": "False");
+                RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
+                RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
+                RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
+                RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
+            });
         });
+        frameRateMgr->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
     });
-    frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
     SubscribeAppState();
     PrintCurrentStatus();
     RSLuminanceControl::Get().Init();
@@ -1226,10 +1231,14 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             return;
         }
         auto& surfaceHandler = *surfaceNode->GetMutableRSSurfaceHandler();
-        if (frameRateMgr_ != nullptr && surfaceHandler.GetAvailableBufferCount() > 0) {
-            auto surfaceNodeName = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
-            frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_,
-                ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
+        if (surfaceHandler.GetAvailableBufferCount() > 0) {
+            auto name = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
+            HgmTaskHandleThread::Instance().PostTask([name, timestamp = timestamp_, id = surfaceNode->GetId()]() {
+                auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+                if (frameRateMgr != nullptr) {
+                    frameRateMgr->UpdateSurfaceTime(name, timestamp, ExtractPid(id), UIFWKType::FROM_SURFACE);
+                }
+            });
         }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
@@ -1354,6 +1363,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
+                selfDrawables_.emplace_back(surfaceNode->GetRenderDrawable());
             }
 
             if (!surfaceNode->GetDoDirectComposition()) {
@@ -1718,35 +1728,44 @@ bool RSMainThread::IsRequestedNextVSync()
 
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
-    RS_TRACE_FUNC();
-    if (rsFrameRateLinker_ != nullptr) {
-        rsCurrRange_.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
-        HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsCurrRange_);
-        rsFrameRateLinker_->SetExpectedRange(rsCurrRange_);
-        RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange_.min_, rsCurrRange_.max_, rsCurrRange_.preferred_);
+    DvsyncInfo info;
+    if (rsVSyncDistributor_ != nullptr) {
+        info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
+        info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();
     }
-    if (!frameRateMgr_ || !rsVSyncDistributor_) {
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
         return;
     }
+    // Check and processing refresh rate task.
+    auto rsRate = rsVSyncDistributor_->GetRefreshRate();
+    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, info);
+    
     std::unique_lock<std::mutex> lock(context_->activeNodesInRootMutex_);
     auto activeNodesInRootMap = context_->activeNodesInRoot_;
     lock.unlock();
-    frameRateMgr_->ProcessUnknownUIFwkIdleState(activeNodesInRootMap, timestamp);
-    DvsyncInfo info;
-    info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
-    info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();
-    auto rsRate = rsVSyncDistributor_->GetRefreshRate();
-    // Check and processing refresh rate task.
-    frameRateMgr_->ProcessPendingRefreshRate(timestamp, rsRate, info);
-
-    // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
-    if (frameRateMgr_->GetCurScreenStrategyId().find("LTPO") == std::string::npos) {
-        frameRateMgr_->UniProcessDataForLtps(idleTimerExpiredFlag_);
-    } else {
-        auto appFrameLinkers = GetContext().GetFrameRateLinkerMap().Get();
-        frameRateMgr_->UniProcessDataForLtpo(timestamp, rsFrameRateLinker_, appFrameLinkers,
-            idleTimerExpiredFlag_, info);
-    }
+    HgmTaskHandleThread::Instance().PostTask([timestamp, info, activeNodesInRootMap, rsCurrRange = rsCurrRange_,
+                                            rsFrameRateLinker = rsFrameRateLinker_,
+                                            appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
+                                            idleTimerExpiredFlag = idleTimerExpiredFlag_] () mutable {
+        RS_TRACE_NAME("ProcessHgmFrameRate");
+        if (rsFrameRateLinker != nullptr) {
+            rsCurrRange.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
+            HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsCurrRange);
+            rsFrameRateLinker->SetExpectedRange(rsCurrRange);
+            RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange.min_, rsCurrRange.max_, rsCurrRange.preferred_);
+        }
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr == nullptr) {
+            return;
+        }
+        frameRateMgr->ProcessUnknownUIFwkIdleState(activeNodesInRootMap, timestamp);
+        // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
+        if (frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers,
+                idleTimerExpiredFlag, info);
+        }
+    });
 }
 
 bool RSMainThread::GetParallelCompositionEnabled()
@@ -1757,7 +1776,6 @@ bool RSMainThread::GetParallelCompositionEnabled()
 void RSMainThread::SetFrameIsRender(bool isRender)
 {
     if (rsVSyncDistributor_ != nullptr) {
-        markRenderFlag_ = true;
         rsVSyncDistributor_->SetFrameIsRender(isRender);
     }
 }
@@ -1866,7 +1884,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_LOGD("RSMainThread::Render nothing to update");
             RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
             RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
-            RSMainThread::Instance()->SetFrameIsRender(false);
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
                     node->MarkCurrentFrameHardwareEnabled();
@@ -1898,7 +1915,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         } else {
             rootNode->Prepare(uniVisitor);
         }
-        renderThreadParams_->selfDrawingNodes_ = std::move(selfDrawingNodes_);
+        renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
@@ -2093,10 +2110,6 @@ void RSMainThread::OnUniRenderDraw()
     }
 
     UpdateDisplayNodeScreenId();
-    if (!markRenderFlag_) {
-        SetFrameIsRender(true);
-    }
-    markRenderFlag_ = false;
     RsFrameReport& fr = RsFrameReport::GetInstance();
     if (fr.GetEnable()) {
         fr.RSRenderEnd();
@@ -2690,6 +2703,11 @@ const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& RSMainThread::GetSelfDr
     return selfDrawingNodes_;
 }
 
+const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& RSMainThread::GetSelfDrawables() const
+{
+    return selfDrawables_;
+}
+
 void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
                                          float onVsyncStartTimeSteadyFloat)
 {
@@ -2784,7 +2802,11 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity) -> int32_t {
-            return frameRateMgr_->GetExpectedFrameRate(unit, velocity);
+            auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+            if (frameRateMgr != nullptr) {
+                return frameRateMgr->GetExpectedFrameRate(unit, velocity);
+            }
+            return 0;
         };
         node->animationManager_.SetRateDeciderEnable(isRateDeciderEnabled, frameRateGetFunc);
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
@@ -2828,7 +2850,9 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
-        HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
+        HgmTaskHandleThread::Instance().PostTask([timestamp]() {
+            HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
+        });
         if (!rsVSyncDistributor_->IsDVsyncOn()) {
             RequestNextVSync("animate", timestamp_);
         } else {
@@ -3581,6 +3605,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hardwareEnabledNodes_.clear();
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
+        selfDrawables_.clear();
     }
 }
 

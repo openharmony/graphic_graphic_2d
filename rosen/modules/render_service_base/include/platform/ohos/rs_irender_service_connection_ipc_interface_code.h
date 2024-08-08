@@ -125,6 +125,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     REGISTER_UIEXTENSION_CALLBACK,
     SET_VIRTUAL_SCREEN_STATUS,
     SET_ANCO_FORCE_DO_DIRECT,
+    SET_VMA_CACHE_STATUS,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

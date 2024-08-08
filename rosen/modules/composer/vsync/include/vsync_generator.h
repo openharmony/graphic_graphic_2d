@@ -61,6 +61,7 @@ public:
     virtual VsyncError ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
                                                        const ListenerPhaseOffsetData &listenerPhaseOffset,
                                                        uint32_t generatorRefreshRate,
+                                                       int64_t &rsVsyncCount,
                                                        int64_t expectNextVsyncTime = 0) = 0;
     virtual int64_t GetVSyncPulse() = 0;
     virtual VsyncError SetVSyncMode(VSyncMode vsyncMode) = 0;
@@ -98,6 +99,7 @@ public:
     VsyncError ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
                                                const ListenerPhaseOffsetData &listenerPhaseOffset,
                                                uint32_t generatorRefreshRate,
+                                               int64_t &rsVsyncCount,
                                                int64_t expectNextVsyncTime = 0) override;
     int64_t GetVSyncPulse() override;
     VsyncError SetVSyncMode(VSyncMode vsyncMode) override;

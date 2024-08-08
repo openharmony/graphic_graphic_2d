@@ -144,13 +144,13 @@ public:
             return false;
         }
 
-        base = static_cast<uint8_t*>(malloc(size));
+        base = new uint8_t[size];
         if (!base) {
             return false;
         }
 
         if (!CopyImageData(image, base, size)) {
-            delete base;
+            delete[] base;
             base = nullptr;
             return false;
         }

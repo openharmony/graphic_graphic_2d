@@ -329,10 +329,10 @@ HWTEST_F(RSCanvasRenderNodeTest, InternalDrawContent, TestSize.Level1)
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.InternalDrawContent(*canvas_);
+    rsCanvasRenderNode.InternalDrawContent(*canvas_, false);
     RSProperties* properties = const_cast<RSProperties*>(&rsCanvasRenderNode.GetRenderProperties());
     properties->SetClipToFrame(true);
-    rsCanvasRenderNode.InternalDrawContent(*canvas_);
+    rsCanvasRenderNode.InternalDrawContent(*canvas_, false);
     EXPECT_TRUE(rsCanvasRenderNode.GetSortedChildren()->empty());
 
     auto rSCanvasRenderNodeChild = std::make_shared<RSCanvasRenderNode>(nodeId + 1);
@@ -340,7 +340,7 @@ HWTEST_F(RSCanvasRenderNodeTest, InternalDrawContent, TestSize.Level1)
     fullChildrenList->emplace_back(rSCanvasRenderNodeChild);
     rsCanvasRenderNode.fullChildrenList_ = std::move(fullChildrenList);
     EXPECT_TRUE(!rsCanvasRenderNode.GetSortedChildren()->empty());
-    rsCanvasRenderNode.InternalDrawContent(*canvas_);
+    rsCanvasRenderNode.InternalDrawContent(*canvas_, false);
 }
 
 /**

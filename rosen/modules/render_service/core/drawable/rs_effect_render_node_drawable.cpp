@@ -53,6 +53,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
+    canvas.ClipIRect(Drawing::RectI(0, 0, bounds.GetWidth(), bounds.GetHeight()));
 
     if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
         !effectParams->GetHasEffectChildren()) {
@@ -69,7 +70,6 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
         // extract clip bounds
-        canvas.ClipIRect(Drawing::RectI(0, 0, bounds.GetWidth(), bounds.GetHeight()));
         auto currentRect = canvas.GetDeviceClipBounds();
         // create offscreen surface
         auto offscreenSurface = surface->MakeSurface(currentRect.GetWidth(), currentRect.GetHeight());

@@ -216,6 +216,7 @@ bool RSProfiler::OpenBetaRecordFile(RSFile& file)
     }
 
     const auto path = "RECORD_IN_MEMORY";
+    file.SetVersion(RSFILE_VERSION_LATEST);
     file.Create(path);
 
     g_recordsTimestamp = Now();

@@ -185,6 +185,19 @@ HWTEST_F(RSImageTest, ApplyImageFitTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDstRectTest001
+ * @tc.desc: Verify function GetDstRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, GetDstRectTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<RSImage>();
+    RectF srcRf(0.f, 0.f, 0.f, 0.f);
+    image->dstRect_ = srcRf;
+    ASSERT_EQ(image->GetDstRect(), srcRf);
+}
+
+/**
  * @tc.name: GetAdaptiveImageInfoWithFrameRectTest001
  * @tc.desc: Verify function GetAdaptiveImageInfoWithFrameRect
  * @tc.type:FUNC

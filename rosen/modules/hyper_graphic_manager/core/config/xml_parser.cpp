@@ -178,8 +178,10 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         }
         mParsedData_->refreshRateForSettings_.clear();
         for (auto &[name, id]: refreshRateForSettings) {
-            mParsedData_->refreshRateForSettings_.emplace_back(
-                std::pair<int32_t, int32_t>(std::stoi(name), std::stoi(id)));
+            if (IsNumber(name) && IsNumber(id)) {
+                mParsedData_->refreshRateForSettings_.emplace_back(
+                    std::pair<int32_t, int32_t>(std::stoi(name), std::stoi(id)));
+            }
         }
         std::sort(mParsedData_->refreshRateForSettings_.begin(), mParsedData_->refreshRateForSettings_.end(),
             [=] (auto rateId0, auto rateId1) { return rateId0.first < rateId1.first; });

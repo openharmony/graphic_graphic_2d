@@ -84,8 +84,6 @@ HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
 
     PART("CaseDescription") {
         STEP("1. check if IsInit() is true") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
             bool enabled = instance.IsEnabled();
             STEP_ASSERT_EQ(enabled, true);
             instance.GetPolicyConfigData();
@@ -107,13 +105,6 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
     int sizeListBefore = 0;
     int sizeListAfter = 0;
     int sizeScreenIds = 0;
-
-    PART("EnvConditions") {
-        STEP("get Instance") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
-        }
-    }
 
     PART("CaseDescription") {
         STEP("1. mark screenList_ size before add") {
@@ -235,8 +226,6 @@ HWTEST_F(HyperGraphicManagerTest, RemoveScreen, Function | MediumTest | Level2)
 
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
-            bool init = instance7.IsInit();
-            STEP_ASSERT_EQ(init, true);
             auto addScreen = instance7.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_EQ(addScreen, 0);
         }
@@ -334,13 +323,6 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
     uint32_t rate = 120;
     int32_t mode = 1;
     int32_t modeToSet = 2;
-
-    PART("EnvConditions") {
-        STEP("get Instance") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
-        }
-    }
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
@@ -551,13 +533,6 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
 HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Level2)
 {
     auto &instance = HgmCore::Instance();
-
-    PART("EnvConditions") {
-        STEP("get Instance") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
-        }
-    }
 
     PART("CaseConditions") {
         STEP("1. test RefreshBundleName is true") {

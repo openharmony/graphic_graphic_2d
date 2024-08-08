@@ -285,7 +285,7 @@ std::string DrawOpItem::GetOpDesc()
     return typeOpDes[GetType()];
 }
 
-void DrawOpItem::Dump(std::string& out)
+void DrawOpItem::Dump(std::string& out) const
 {
     out += typeOpDes[GetType()];
 }
@@ -344,6 +344,16 @@ DrawWithPaintOpItem::DrawWithPaintOpItem(const DrawCmdList& cmdList, const Paint
     GeneratePaintFromHandle(paintHandle, cmdList, paint_);
 }
 
+void DrawWithPaintOpItem::Dump(std::string& out) const
+{
+    DrawOpItem::Dump(out);
+    out += "[";
+    out += "paint";
+    paint_.Dump(out);
+    DumpItems(out);
+    out += "]";
+}
+
 /* DrawPointOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawPoint, DrawOpItem::POINT_OPITEM, DrawPointOpItem::Unmarshalling);
 
@@ -366,6 +376,12 @@ void DrawPointOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawPoint(point_);
+}
+
+void DrawPointOpItem::DumpItems(std::string& out) const
+{
+    out += " point";
+    point_.Dump(out);
 }
 
 /* DrawPointsOpItem */
@@ -421,6 +437,14 @@ void DrawLineOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawLine(startPt_, endPt_);
 }
 
+void DrawLineOpItem::DumpItems(std::string& out) const
+{
+    out += " startPt";
+    startPt_.Dump(out);
+    out += " endPt";
+    endPt_.Dump(out);
+}
+
 /* DrawRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawRect, DrawOpItem::RECT_OPITEM, DrawRectOpItem::Unmarshalling);
 
@@ -445,6 +469,12 @@ void DrawRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawRect(rect_);
 }
 
+void DrawRectOpItem::DumpItems(std::string& out) const
+{
+    out += " rect";
+    rect_.Dump(out);
+}
+
 /* DrawRoundRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawRoundRect, DrawOpItem::ROUND_RECT_OPITEM, DrawRoundRectOpItem::Unmarshalling);
 
@@ -467,6 +497,12 @@ void DrawRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawRoundRect(rrect_);
+}
+
+void DrawRoundRectOpItem::DumpItems(std::string& out) const
+{
+    out += " rrect";
+    rrect_.Dump(out);
 }
 
 /* DrawNestedRoundRectOpItem */
@@ -497,6 +533,14 @@ void DrawNestedRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawNestedRoundRect(outerRRect_, innerRRect_);
 }
 
+void DrawNestedRoundRectOpItem::DumpItems(std::string& out) const
+{
+    out += " outerRRect";
+    outerRRect_.Dump(out);
+    out += " innerRRect";
+    innerRRect_.Dump(out);
+}
+
 /* DrawArcOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawArc, DrawOpItem::ARC_OPITEM, DrawArcOpItem::Unmarshalling);
 
@@ -520,6 +564,14 @@ void DrawArcOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawArc(rect_, startAngle_, sweepAngle_);
+}
+
+void DrawArcOpItem::DumpItems(std::string& out) const
+{
+    out += " rect";
+    rect_.Dump(out);
+    out += " startAngle:" + std::to_string(startAngle_);
+    out += " sweepAngle:" + std::to_string(sweepAngle_);
 }
 
 /* DrawPieOpItem */
@@ -547,6 +599,14 @@ void DrawPieOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPie(rect_, startAngle_, sweepAngle_);
 }
 
+void DrawPieOpItem::DumpItems(std::string& out) const
+{
+    out += " rect";
+    rect_.Dump(out);
+    out += " startAngle:" + std::to_string(startAngle_);
+    out += " sweepAngle:" + std::to_string(sweepAngle_);
+}
+
 /* DrawOvalOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawOval, DrawOpItem::OVAL_OPITEM, DrawOvalOpItem::Unmarshalling);
 
@@ -569,6 +629,12 @@ void DrawOvalOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawOval(rect_);
+}
+
+void DrawOvalOpItem::DumpItems(std::string& out) const
+{
+    out += " rect";
+    rect_.Dump(out);
 }
 
 /* DrawCircleOpItem */
@@ -594,6 +660,13 @@ void DrawCircleOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawCircle(centerPt_, radius_);
+}
+
+void DrawCircleOpItem::DumpItems(std::string& out) const
+{
+    out += " centerPt";
+    centerPt_.Dump(out);
+    out += " radius:" + std::to_string(radius_);
 }
 
 /* DrawPathOpItem */
