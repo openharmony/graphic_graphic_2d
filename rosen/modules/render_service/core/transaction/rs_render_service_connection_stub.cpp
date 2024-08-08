@@ -1337,7 +1337,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 return ERR_INVALID_STATE;
             }
             bool direct = data.ReadBool();
-            bool result = SetAncoForceDoDirect(id, screenStatus);
+            bool result = SetAncoForceDoDirect(direct);
             reply.WriteBool(result);
             break;
         }
