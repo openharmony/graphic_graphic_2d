@@ -1804,6 +1804,105 @@ HWTEST_F(RSScreenManagerTest, ForceRefreshOneFrameIfNoRNV_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenStatus_001
+ * @tc.desc: Test SetVirtualScreenStatus, input invalid id, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_FALSE(screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus_002
+ * @tc.desc: Test SetVirtualScreenStatus, input screens_ with nullptr, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    screenManagerImpl.screens_[screenId] = nullptr;
+    ASSERT_FALSE(screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
+}
+
+/*
+ * @tc.name: GetCanvasRotation_001
+ * @tc.desc: Test GetCanvasRotation, input invalid id, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, GetCanvasRotation_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_FALSE(screenManager->GetCanvasRotation(screenId));
+}
+
+/*
+ * @tc.name: GetCanvasRotation_002
+ * @tc.desc: Test GetCanvasRotation, input screens_ with nullptr, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, GetCanvasRotation_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    screenManagerImpl.screens_[screenId] = nullptr;
+    ASSERT_FALSE(screenManager->GetCanvasRotation(screenId));
+}
+
+/*
+ * @tc.name: GetScaleMode_001
+ * @tc.desc: Test GetScaleMode, input invalid id, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, GetScaleMode_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_EQ(screenManager->GetScaleMode(screenId), ScreenScaleMode::INVALID_MODE);
+}
+
+/*
+ * @tc.name: GetScaleMode_002
+ * @tc.desc: Test GetScaleMode, input screens_ with nullptr, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, GetScaleMode_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    screenManagerImpl.screens_[screenId] = nullptr;
+    ASSERT_EQ(screenManager->GetScaleMode(screenId), ScreenScaleMode::INVALID_MODE);
+}
+
+/*
  * @tc.name: SetVirtualMirrorScreenScaleMode_001
  * @tc.desc: Test SetVirtualMirrorScreenScaleMode false.
  * @tc.type: FUNC
