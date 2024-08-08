@@ -158,9 +158,6 @@ public:
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 #endif
 
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable);
-#endif
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
     
     void RemoveVirtualScreen(ScreenId id);
@@ -338,6 +335,8 @@ public:
     LayerComposeInfo GetLayerComposeInfo();
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
+
+    void SetVmaCacheStatus(bool flag);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 

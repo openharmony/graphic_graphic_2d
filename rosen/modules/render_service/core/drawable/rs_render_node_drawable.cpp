@@ -220,8 +220,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     }
 
     // RSPaintFilterCanvas::CacheType::OFFSCREEN case
-    if (curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN ||
-        curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::DISABLED) {
+    if (curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
         if (HasFilterOrEffect() && params.GetForegroundFilterCache() == nullptr) {
             // clip hole for filter/shadow
             DrawBackgroundWithoutFilterAndEffect(canvas, params);
@@ -301,6 +300,22 @@ void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
                 canvas, info.first, Drawing::Color::COLOR_BLUE, 0.2f, info.second); // alpha 0.2 by default
         }
     }
+}
+
+void RSRenderNodeDrawable::DumpDrawableTree(std::string& out) const
+{
+    std::function<void()> dumpDrawableTreeSyncTask = [&out, this]() -> void {
+        if (skipType_ != DrawableV2::SkipType::NONE) {
+            out += ", SkipType:" + std::to_string(static_cast<int>(skipType_));
+            out += ", SkipIndex:" + std::to_string(GetSkipIndex());
+        }
+        out += "\n";
+        auto& params = GetRenderParams();
+        if (params) {
+            out += ", params" + params->ToString();
+        }
+    };
+    RSUniRenderThread::Instance().PostSyncTask(dumpDrawableTreeSyncTask);
 }
 
 void RSRenderNodeDrawable::SetCacheType(DrawableCacheType cacheType)
@@ -593,6 +608,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     // So set isOpDropped_ = false here.
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
+    Drawing::AutoCanvasRestore arc(*cacheCanvas, true);
     cacheCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
     OpincCanvasUnionTranslate(*cacheCanvas);

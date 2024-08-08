@@ -68,7 +68,7 @@ public:
         return RSModifierType::INVALID;
     }
 
-    std::string GetModifierTypeString()
+    virtual std::string GetModifierTypeString()
     {
         auto iter = RS_MODIFIER_TYPE_TO_STRING.find(GetType());
         if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
@@ -309,6 +309,7 @@ public:
         void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;                   \
         bool Marshalling(Parcel& parcel) override;                                                               \
         RSModifierType GetType() override { return (RSModifierType::MODIFIER_TYPE); }                            \
+        virtual std::string GetModifierTypeString() override { return #MODIFIER_NAME; }                          \
     };
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \

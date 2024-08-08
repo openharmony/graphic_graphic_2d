@@ -162,7 +162,7 @@ private:
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
-    bool CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node);
+    bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -227,6 +227,7 @@ private:
     const std::vector<std::string> cardCanSkipFirstWaitScene_ = {
         { "INTO_HOME_ANI" }, // unlock to desktop
         { "FINGERPRINT_UNLOCK_ANI" }, // finger unlock to desktop
+        { "SCREEN_OFF_FINGERPRINT_UNLOCK_ANI" }, // aod finger unlock
         { "PASSWORD_UNLOCK_ANI" }, // password unlock to desktop
         { "FACIAL_FLING_UNLOCK_ANI" }, // facial unlock to desktop
         { "FACIAL_UNLOCK_ANI" }, // facial unlock to desktop

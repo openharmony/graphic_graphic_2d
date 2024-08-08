@@ -282,7 +282,7 @@ void RSFilterDrawable::ClearCacheIfNeeded()
         cacheUpdateInterval_ = 0;
     }
 
-    isSkipFrame_ = isLargeArea_ && canSkipFrame_;
+    isSkipFrame_ = isLargeArea_ && canSkipFrame_ && !filterRegionChanged_;
 
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {

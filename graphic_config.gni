@@ -72,7 +72,8 @@ if (graphic_2d_feature_product == "phone" ||
 }
 
 if (graphic_2d_feature_product == "phone" ||
-    graphic_2d_feature_product == "tablet") {
+    graphic_2d_feature_product == "tablet" ||
+    graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_opinc = true
 }
 

@@ -30,6 +30,7 @@
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_proxy_node.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -141,6 +142,12 @@ public:
         canvasNode_->SetFrame(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
         canvasNode_->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
 
+        canvasDrawingNode_ = RSCanvasDrawingNode::Create();
+        canvasDrawingNode_->SetBounds(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+        canvasDrawingNode_->SetFrame(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+        canvasDrawingNode_->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
+
+        canvasNode_->AddChild(canvasDrawingNode_, -1);
         surfaceNode_->AddChild(canvasNode_, -1);
         displayNode_->AddChild(surfaceNode_, -1);
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -174,6 +181,7 @@ public:
 
     std::shared_ptr<RSSurfaceNode> surfaceNode_;
     std::shared_ptr<RSCanvasNode> canvasNode_;
+    std::shared_ptr<RSCanvasDrawingNode> canvasDrawingNode_;
 };
 RSInterfaces* RSUiCaptureTaskParallelTest::rsInterfaces_ = nullptr;
 RenderContext* RSUiCaptureTaskParallelTest::renderContext_ = nullptr;
@@ -216,17 +224,55 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSurfaceNode, Functi
 }
 
 /*
- * @tc.name: TakeSurfaceCaptureForUiCanvasNode
+ * @tc.name: TakeSurfaceCaptureForUiCanvasNode001
  * @tc.desc: Test TakeSurfaceCaptureForUI with canvas node
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
 */
-HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode, Function | SmallTest | Level2)
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode001, Function | SmallTest | Level2)
 {
     SetUpSurface();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+    ASSERT_EQ(callback->captureSuccess_, true);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureForUiCanvasNode002
+ * @tc.desc: Test TakeSurfaceCaptureForUI with canvas node bounds inf
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode002, Function | SmallTest | Level2)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(0.0f, 0.0f, 10000, 10000);
+    canvasNode->SetFrame(0.0f, 0.0f, 10000, 10000);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+    ASSERT_EQ(callback->captureSuccess_, false);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureForUiCanvasDrawingNode
+ * @tc.desc: Test TakeSurfaceCaptureForUI with canvasdrawing node
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasDrawingNode, Function | SmallTest | Level2)
+{
+    SetUpSurface();
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasDrawingNode_, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
     ASSERT_EQ(callback->captureSuccess_, true);
@@ -253,20 +299,92 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiProxyNode, Function
 }
 
 /*
- * @tc.name: TakeSurfaceCaptureForUiSync
- * @tc.desc: Test TakeSurfaceCaptureForUI sync
+ * @tc.name: TakeSurfaceCaptureForUiSync001
+ * @tc.desc: Test TakeSurfaceCaptureForUI sync is false
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
 */
-HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync, Function | SmallTest | Level2)
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync001, Function | SmallTest | Level2)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+    canvasNode->SetFrame(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+    canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+    ASSERT_EQ(callback->captureSuccess_, false);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureForUiSync002
+ * @tc.desc: Test TakeSurfaceCaptureForUI sync is true
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync002, Function | SmallTest | Level2)
+{
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+    canvasNode->SetFrame(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+    canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback, 1.0, 1.0, true);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+    ASSERT_EQ(callback->captureSuccess_, true);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureForUiScale001
+ * @tc.desc: Test TakeSurfaceCaptureForUI scale
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale001, Function | SmallTest | Level2)
 {
     SetUpSurface();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.0, 1.0, true);
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 0, 0);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    ASSERT_EQ(callback->captureSuccess_, false);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureForUiScale002
+ * @tc.desc: Test TakeSurfaceCaptureForUI scale
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale002, Function | SmallTest | Level2)
+{
+    SetUpSurface();
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, -1, -1);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+    ASSERT_EQ(callback->captureSuccess_, false);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureForUiScale003
+ * @tc.desc: Test TakeSurfaceCaptureForUI scale
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale003, Function | SmallTest | Level2)
+{
+    SetUpSurface();
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 10000, 10000);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
+    ASSERT_EQ(callback->captureSuccess_, false);
 }
 
 /*

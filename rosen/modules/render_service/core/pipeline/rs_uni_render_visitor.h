@@ -172,8 +172,8 @@ public:
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
 
-    void UpdateHardwareStateByCoverage(std::weak_ptr<RSSurfaceRenderNode> hwcNode,
-        std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodeVector);
+    bool IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList);
+    // Use end
 
     void SurfaceOcclusionCallbackToWMS();
 
@@ -293,6 +293,7 @@ private:
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool hasCornerRadius);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateHwcNodeEnable();
     void PrevalidateHwcNode();
 
@@ -520,6 +521,7 @@ private:
     bool doAnimate_ = false;
     bool isSurfaceRotationChanged_ = false;
     bool isPartialRenderEnabled_ = false;
+    bool isCompleteRenderEnabled_ = false;
     bool isOpDropped_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;

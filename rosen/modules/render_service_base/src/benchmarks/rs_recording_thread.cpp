@@ -62,7 +62,7 @@ std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
         auto size = glesVersion ? strlen(glesVersion) : 0;
         handler->ConfigureContext(&options, glesVersion, size);
         if (!gpuContext->BuildFromGL(options)) {
-            RS_LOGE("nullptr gpuContext is null");
+            RS_LOGE("gpuContext is null");
             return nullptr;
         }
         return gpuContext;
@@ -76,7 +76,7 @@ std::shared_ptr<Drawing::GPUContext> RSRecordingThread::CreateShareGrContext()
         auto size = vulkanVersion.size();
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
         if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(), options)) {
-            RS_LOGE("nullptr gpuContext is null");
+            RS_LOGE("gpuContext is null");
             return nullptr;
         }
         return gpuContext;
@@ -167,10 +167,8 @@ void RSRecordingThread::FinishRecordingOneFrameTask(RecordingMode modeSubThread)
             RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
             RSMarshallingHelper::Marshalling(*messageParcel, drawCmdListVec_[curFrameIndex]);
             RSMarshallingHelper::EndNoSharedMem();
-            opsDescription = drawCmdListVec_[curFrameIndex]-> GetOpsWithDesc();
         } else if (modeSubThread == RecordingMode::LOW_SPEED_RECORDING) {
             messageParcel = messageParcelVec_[curFrameIndex];
-            opsDescription = opsDescriptionVec_[curFrameIndex];
         }
         OHOS::Rosen::Benchmarks::WriteMessageParcelToFile(messageParcel, opsDescription, curFrameIndex, fileDir_);
     }
@@ -196,11 +194,15 @@ void RSRecordingThread::FinishRecordingOneFrame()
     }
     auto modeSubThread = mode_;
     mode_ = RecordingMode::STOP_RECORDING;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    RSTaskMessage::RSTask task = [this, modeSubThread]() {
+#ifdef RS_ENABLE_GL
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        RSTaskMessage::RSTask task = [this, modeSubThread]() {
+            FinishRecordingOneFrameTask(modeSubThread);
+        };
+        PostTask(task);
+    } else {
         FinishRecordingOneFrameTask(modeSubThread);
-    };
-    PostTask(task);
+    }
 #else
     FinishRecordingOneFrameTask(modeSubThread);
 #endif
@@ -208,7 +210,7 @@ void RSRecordingThread::FinishRecordingOneFrame()
 
 void RSRecordingThread::RecordingToFile(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList)
 {
-    if (curDumpFrame_ < 0) {
+    if (curDumpFrame_ < 0 || drawCmdList == nullptr) {
         return;
     }
     if (mode_ == RecordingMode::HIGH_SPPED_RECORDING) {

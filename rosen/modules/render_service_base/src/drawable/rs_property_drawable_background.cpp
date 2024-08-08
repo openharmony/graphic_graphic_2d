@@ -464,12 +464,8 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
             RS_LOGE("MakeFromTextureForVK create native window buffer fail");
             return nullptr;
         }
-        pixelMapId_ = pixelMap->GetUniqueId();
-    }
-    bool isProtected = (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
-    if (!backendTexture_.IsValid() || isProtected) {
         backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
-            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), isProtected);
+            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
@@ -477,6 +473,7 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         } else {
             return nullptr;
         }
+        pixelMapId_ = pixelMap->GetUniqueId();
         tid_ = gettid();
     }
 
@@ -695,12 +692,15 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
             if (!drawable) {
                 return;
             }
-            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Generate effectData");
+            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Fallback");
+            RSAutoCanvasRestore arc(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kEnv);
             bool disableFilterCache = paintFilterCanvas->GetDisableFilterCache();
             paintFilterCanvas->SetDisableFilterCache(true);
             int8_t index = drawable->drawCmdIndex_.backgroundFilterIndex_;
             drawable->DrawImpl(*paintFilterCanvas, *rect, index);
             paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
+            RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas);
+            return;
         }
         RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas);
     };

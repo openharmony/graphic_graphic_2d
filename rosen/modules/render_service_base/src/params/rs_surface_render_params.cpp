@@ -369,6 +369,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->animateState_ = animateState_;
+    targetSurfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
@@ -412,13 +413,13 @@ std::string RSSurfaceRenderParams::ToString() const
     return ret;
 }
 
-bool RSSurfaceRenderParams::IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
+bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
 {
     if (IsMainWindowType()) {
         return curSurfaceDrawRegion.IsEmpty();
     }
     if (IsLeashWindow()) {
-        return GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE && GetLeashWindowVisibleRegionEmptyParam();
+        return GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;
 }

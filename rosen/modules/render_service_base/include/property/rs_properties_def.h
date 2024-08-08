@@ -155,6 +155,14 @@ struct RSWaterRipplePara {
     }
 };
 
+struct RSFlyOutPara {
+    uint32_t flyMode = 0;
+    bool operator==(const RSFlyOutPara& other) const
+    {
+        return (flyMode == other.flyMode);
+    }
+};
+
 class Decoration final {
 public:
     Decoration() {}
@@ -183,6 +191,9 @@ enum class IlluminatedType : uint32_t {
     BORDER_CONTENT,
     BLOOM_BORDER,
     BLOOM_BORDER_CONTENT,
+    BLEND_BORDER,
+    BLEND_CONTENT,
+    BLEND_BORDER_CONTENT,
 };
 
 class RSLightSource final {

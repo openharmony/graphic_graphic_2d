@@ -32,6 +32,7 @@ public:
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
+    static napi_value CreateJsMatrix(napi_env env, const std::shared_ptr<Matrix> matrix);
     static napi_value GetValue(napi_env env, napi_callback_info info);
     static napi_value PostRotate(napi_env env, napi_callback_info info);
     static napi_value PostTranslate(napi_env env, napi_callback_info info);

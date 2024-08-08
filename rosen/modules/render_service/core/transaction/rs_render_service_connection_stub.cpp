@@ -133,9 +133,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
-#ifdef RS_ENABLE_VK
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_2D_RENDER_CTRL),
-#endif
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
@@ -225,6 +222,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS)
     };
     if (std::find(std::cbegin(descriptorCheckList), std::cend(descriptorCheckList), code) !=
@@ -396,18 +394,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             reply.WriteInt32(status);
             break;
         }
-#ifdef RS_ENABLE_VK
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_2D_RENDER_CTRL): {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access SET_2D_RENDER_CTRL");
-                return ERR_INVALID_STATE;
-            }
-            bool enable = data.ReadBool();
-            bool result = Set2DRenderCtrl(enable);
-            reply.WriteBool(result);
-            break;
-        }
-#endif
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {
             ScreenId id = data.ReadUint64();
             RemoveVirtualScreen(id);
@@ -504,11 +490,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("OnRemoteRequest no permission to access GET_CURRENT_REFRESH_RATE_MODE");
+                return ERR_INVALID_STATE;
+            }
             int32_t refreshRateMode = GetCurrentRefreshRateMode();
             reply.WriteInt32(refreshRateMode);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("OnRemoteRequest no permission to access GET_SCREEN_SUPPORTED_REFRESH_RATES");
+                return ERR_INVALID_STATE;
+            }
             ScreenId id = data.ReadUint64();
             std::vector<int32_t> rates = GetScreenSupportedRefreshRates(id);
             reply.WriteUint64(static_cast<uint64_t>(rates.size()));
@@ -1171,7 +1165,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
             auto listSize = data.ReadUint32();
-            const uint32_t MAX_LIST_SIZE = 30;
+            const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
                 ret = ERR_INVALID_STATE;
                 break;
@@ -1343,6 +1337,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             VirtualScreenStatus screenStatus = static_cast<VirtualScreenStatus>(data.ReadUint8());
             bool result = SetVirtualScreenStatus(id, screenStatus);
             reply.WriteBool(result);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {
+            bool flag = data.ReadBool();
+            SetVmaCacheStatus(flag);
             break;
         }
         default: {

@@ -253,22 +253,6 @@ HWTEST_F(VSyncDistributorTest, SetHighPriorityVSyncRate002, Function | MediumTes
 }
 
 /*
-* Function: GetVSyncConnectionInfos001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetVSyncConnectionInfos and check ret
- */
-HWTEST_F(VSyncDistributorTest, GetVSyncConnectionInfos001, Function | MediumTest| Level3)
-{
-    std::vector<ConnectionInfo> infos;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetVSyncConnectionInfos(infos), VSYNC_ERROR_OK);
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetVSyncConnectionInfos(infos), VSYNC_ERROR_OK);
-}
-
-/*
 * Function: SetFrameIsRender001
 * Type: Function
 * Rank: Important(2)

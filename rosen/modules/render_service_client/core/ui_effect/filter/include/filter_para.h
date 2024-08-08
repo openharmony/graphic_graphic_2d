@@ -41,6 +41,7 @@ public:
         BLUR,
         PIXEL_STRETCH,
         WATER_RIPPLE,
+        FLY_OUT,
     };
 
     FilterPara()  = default;

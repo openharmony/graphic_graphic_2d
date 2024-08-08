@@ -241,6 +241,13 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
         EFFECT_LOG_I("FilterNapi Constructor falid");
         return nullptr;
     }
+
+    FilterNapi* filterNapi = new(std::nothrow) FilterNapi();
+    if (filterNapi == nullptr) {
+        EFFECT_LOG_E("FilterNapi filterNapi is nullptr");
+        return nullptr;
+    }
+
     napi_valuetype valueType = napi_undefined;
     if (argc == 1) {
         valueType = Media::ImageNapiUtils::getType(env, argv[0]);
@@ -248,7 +255,6 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     if (valueType == napi_undefined) {
         EFFECT_LOG_I("FilterNapi parse input PixelMapNapi faild the type is napi_undefined");
     }
-    FilterNapi* filterNapi = new FilterNapi();
     if (valueType == napi_object) {
         Media::PixelMapNapi* tempPixelMap = nullptr;
         napi_unwrap(env, argv[0], reinterpret_cast<void**>(&tempPixelMap));
@@ -260,12 +266,16 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
         }
     }
 
-    NAPI_CALL(env, napi_wrap(env,
+    size_t filterSize = sizeof(FilterNapi);
+    auto srcPixelMap = filterNapi->GetSrcPixelMap();
+    filterSize += srcPixelMap ? (srcPixelMap->GetCapacity()) * 2 : 0; // 2: srcPixelMap + dstPixelMap
+    NAPI_CALL(env, napi_wrap_with_size(env,
                             _this,
                             filterNapi,
                             FilterNapi::Destructor,
                             nullptr, /* finalize_hint */
-                            nullptr));
+                            nullptr,
+                            filterSize));
     return _this;
 }
 
@@ -288,6 +298,11 @@ void FilterNapi::AddNextFilter(sk_sp<SkImageFilter> filter)
 std::shared_ptr<Media::PixelMap> FilterNapi::GetDstPixelMap()
 {
     return dstPixelMap_;
+}
+
+std::shared_ptr<Media::PixelMap>  FilterNapi::GetSrcPixelMap()
+{
+    return srcPixelMap_;
 }
 
 napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
@@ -410,8 +425,15 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
             GetPixelMapAsyncComplete, ctx, ctx->work);
     }
 
-    IMG_NAPI_CHECK_RET_D(IMG_IS_OK(status), nullptr,
-        EFFECT_LOG_E("FilterNapi: GetPixelMapAsync fail to create async work"));
+    if (status != napi_ok) {
+        if (ctx->callback != nullptr) {
+            napi_delete_reference(env, ctx->callback);
+        }
+
+        EFFECT_LOG_E("FilterNapi: GetPixelMapAsync fail to create async work");
+        return nullptr;
+    }
+
     return result;
 }
 

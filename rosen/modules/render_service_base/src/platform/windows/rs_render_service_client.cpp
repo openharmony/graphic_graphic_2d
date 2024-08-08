@@ -143,13 +143,6 @@ std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
     return {0};
 }
 
-#ifdef RS_ENABLE_VK
-bool RSRenderServiceClient::Set2DRenderCtrl(bool enable)
-{
-    return false;
-}
-#endif
-
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
 }
@@ -549,6 +542,10 @@ LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
 HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
 {
     return {};
+}
+
+void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
+{
 }
 
 #ifdef TP_FEATURE_ENABLE

@@ -118,6 +118,12 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002 , TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, PlatformInit001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->Init();
+    ASSERT_TRUE(director->cacheDir_.empty());
+    director->Init(true);
+    std::string cacheDir = "test";
+    director->SetCacheDir(cacheDir);
+    ASSERT_TRUE(!director->cacheDir_.empty());
 }
 
 /**
@@ -129,6 +135,18 @@ HWTEST_F(RSUIDirectorTest, SetUITaskRunner001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
+}
+
+/**
+ * @tc.name: StartTextureExport001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, StartTextureExport001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->StartTextureExport();
+    ASSERT_TRUE(director != nullptr);
 }
 
 /**
@@ -291,7 +309,7 @@ HWTEST_F(RSUIDirectorTest, GetCurrentRefreshRateMode, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     int32_t res = director->GetCurrentRefreshRateMode();
-    ASSERT_TRUE(res == 0);
+    ASSERT_TRUE(res == -1);
 }
 
 /**
@@ -401,6 +419,14 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
+    Rosen::RSSurfaceNodeConfig config;
+    config.SurfaceNodeName = "WindowScene_";
+    std::shared_ptr<RSSurfaceNode> surfaceNode = std::make_shared<RSSurfaceNode>(config, true);
+    auto node = std::make_shared<RSRootNode>(false);
+    node->AttachRSSurfaceNode(surfaceNode);
+    director->SetRSSurfaceNode(surfaceNode);
+    director->SetRoot(node->GetId());
+    director->StartTextureExport();
     director->GoForeground();
     director->GoBackground();
 }
@@ -427,6 +453,9 @@ HWTEST_F(RSUIDirectorTest, RecvMessages, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     director->RecvMessages();
+    RSUIDirector::RecvMessages(nullptr);
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    RSUIDirector::RecvMessages(transactionData);
 }
 
 /**

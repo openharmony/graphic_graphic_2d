@@ -97,13 +97,6 @@ int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface
 }
 #endif
 
-#ifdef RS_ENABLE_VK
-bool RSInterfaces::Set2DRenderCtrl(bool enable)
-{
-    return renderServiceClient_->Set2DRenderCtrl(enable);
-}
-#endif
-
 void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 {
     renderServiceClient_->RemoveVirtualScreen(id);
@@ -397,7 +390,7 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
 
 void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    RS_LOGI("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
+    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
@@ -673,6 +666,11 @@ HwcDisabledReasonInfos RSInterfaces::GetHwcDisabledReasonInfo() const
     return hwcDisabledReasonInfo;
 }
 
+void RSInterfaces::SetVmaCacheStatus(bool flag)
+{
+    renderServiceClient_->SetVmaCacheStatus(flag);
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
 {
@@ -699,13 +697,6 @@ bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus scree
 {
     return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);
 }
-
-#ifdef RS_ENABLE_VK
-extern "C" RSC_EXPORT void Set2DRenderCtrl(bool enable)
-{
-    RSInterfaces::GetInstance().Set2DRenderCtrl(enable);
-}
-#endif
 
 } // namespace Rosen
 } // namespace OHOS

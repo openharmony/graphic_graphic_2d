@@ -30,7 +30,7 @@ RSAnimationTraceUtils::RSAnimationTraceUtils()
     isDebugOpen_ = RSSystemProperties::GetAnimationTraceEnabled();
 }
 
-std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
+std::string RSAnimationTraceUtils::ParseRenderPropertyVauleInner(
     const std::shared_ptr<RSRenderPropertyBase>& value, const RSRenderPropertyType type) const
 {
     std::string str;
@@ -58,9 +58,9 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Quaternion>>(value);
             if (property) {
                 str = "Quaternion:x:" + std::to_string(property->Get().x_) + "," +
-                    "y:" + std::to_string(property->Get().y_) + "," +
-                    "z:" + std::to_string(property->Get().z_) + "," +
-                    "w:" + std::to_string(property->Get().w_);
+                      "y:" + std::to_string(property->Get().y_) + "," +
+                      "z:" + std::to_string(property->Get().z_) + "," +
+                      "w:" + std::to_string(property->Get().w_);
             }
             break;
         }
@@ -77,7 +77,7 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(value);
             if (property) {
                 str = "Vector2f:x:" + std::to_string(property->Get().x_) + "," +
-                    "y:" + std::to_string(property->Get().y_);
+                      "y:" + std::to_string(property->Get().y_);
             }
             break;
         }
@@ -85,9 +85,9 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(value);
             if (property) {
                 str = "Vector4f:x:" + std::to_string(property->Get().x_) + "," +
-                    "y:" + std::to_string(property->Get().y_) + "," +
-                    "z:" + std::to_string(property->Get().z_) + "," +
-                    "w:" + std::to_string(property->Get().w_);
+                      "y:" + std::to_string(property->Get().y_) + "," +
+                      "z:" + std::to_string(property->Get().z_) + "," +
+                      "w:" + std::to_string(property->Get().w_);
             }
             break;
         }
@@ -102,10 +102,21 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
             break;
         }
         default: {
-            return "None";
+            str = "None";
+            break;
         }
     }
     return str;
+}
+
+std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
+    const std::shared_ptr<RSRenderPropertyBase>& value, const RSRenderPropertyType type) const
+{
+    if (value == nullptr) {
+        return std::string();
+    }
+    // Cyclomatic complexity exceeds 20
+    return ParseRenderPropertyVauleInner(value, type);
 }
 
 void RSAnimationTraceUtils::addAnimationNameTrace(const std::string str) const

@@ -272,6 +272,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+        propertyCallback();
         return {};
     }
     auto finishCallbackType =
@@ -1422,6 +1423,15 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto blurRadius = filterBlurPara->GetRadius();
             SetForegroundEffectRadius(blurRadius);
         }
+        if (filterPara->GetParaType() == FilterPara::FLY_OUT) {
+            auto flyOutPara = std::static_pointer_cast<FlyOutPara>(filterPara);
+            auto flyMode = flyOutPara->GetFlyMode();
+            auto degree = flyOutPara->GetDegree();
+            RSFlyOutPara rs_fly_out_param = {
+                flyMode,
+            };
+            SetFlyOutParams(rs_fly_out_param, degree);
+        }
     }
 }
 
@@ -1789,6 +1799,14 @@ void RSNode::SetWaterRippleParams(const RSWaterRipplePara& params, float progres
         RSProperty<RSWaterRipplePara>>(RSModifierType::WATER_RIPPLE_PARAMS, params);
     SetProperty<RSWaterRippleProgressModifier,
         RSAnimatableProperty<float>>(RSModifierType::WATER_RIPPLE_PROGRESS, progress);
+}
+
+void RSNode::SetFlyOutParams(const RSFlyOutPara& params, float degree)
+{
+    SetProperty<RSFlyOutParamsModifier,
+        RSProperty<RSFlyOutPara>>(RSModifierType::FLY_OUT_PARAMS, params);
+    SetProperty<RSFlyOutDegreeModifier,
+        RSAnimatableProperty<float>>(RSModifierType::FLY_OUT_DEGREE, degree);
 }
 
 void RSNode::SetFreeze(bool isFreeze)

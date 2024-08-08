@@ -200,4 +200,23 @@ HWTEST_F(AssetFontManagerTest, AssetFontManagerTest012, TestSize.Level1)
     EXPECT_EQ(testFontManager != nullptr, true);
     EXPECT_EQ(testFontManager->onMatchFamily(familyName.c_str()), nullptr);
 }
+
+/*
+ * @tc.name: AssetFontManagerTest013
+ * @tc.desc: test for match family and style
+ * @tc.type: FUNC
+ */
+HWTEST_F(AssetFontManagerTest, AssetFontManagerTest013, TestSize.Level1)
+{
+    std::unique_ptr<TypefaceFontAssetProvider> fontProvider = std::make_unique<TypefaceFontAssetProvider>();
+    std::string familyName("test");
+    fontProvider->familyNames_.emplace_back(familyName);
+    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
+    fontProvider->RegisterTypeface(skTypeface, familyName);
+    std::shared_ptr<AssetFontManager> assetFontManager =
+        std::make_shared<AssetFontManager>(std::move(fontProvider));
+
+    SkFontStyle fontStyle;
+    EXPECT_NE(assetFontManager->onMatchFamilyStyle(familyName.c_str(), fontStyle), nullptr);
+}
 } // namespace txt

@@ -69,10 +69,6 @@ public:
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif
 
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable);
-#endif
-
     void RemoveVirtualScreen(ScreenId id);
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -271,6 +267,8 @@ public:
     LayerComposeInfo GetLayerComposeInfo() const;
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
+
+    void SetVmaCacheStatus(bool flag);
 
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);

@@ -99,10 +99,6 @@ private:
     
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable) override;
-#endif
-
     void RemoveVirtualScreen(ScreenId id) override;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -276,6 +272,8 @@ private:
     LayerComposeInfo GetLayerComposeInfo() override;
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
+
+    void SetVmaCacheStatus(bool flag) override;
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 

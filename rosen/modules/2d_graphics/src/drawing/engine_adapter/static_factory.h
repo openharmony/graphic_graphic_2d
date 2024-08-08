@@ -84,6 +84,7 @@ public:
         DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static FontStyleSet* CreateEmpty();
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
+    static void SetVmaCacheStatus(bool flag);
 };
 } // namespace Drawing
 } // namespace Rosen

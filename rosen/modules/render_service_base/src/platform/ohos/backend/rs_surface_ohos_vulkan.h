@@ -94,6 +94,8 @@ private:
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
     int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
+    std::list<uint32_t> mSurfaceList2;
+    std::unordered_map<uint32_t, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap2;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
     std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer,

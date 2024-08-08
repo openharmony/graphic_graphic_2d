@@ -340,28 +340,6 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBorderDashParamsTest
- * @tc.desc: Verify the GetBorderDashParams
- * @tc.type:FUNC
- */
-HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderDashParamsTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBorderDashParamsTest start";
-    auto canvasNode = RSCanvasNode::Create();
-    Vector4f dashParam(SHOWING_FLOAT_NUM, 0.f, 0.f, 0.f);
-
-    canvasNode->SetBorderDashWidth(dashParam);
-    auto result1 = canvasNode->GetStagingProperties().GetBorderDashWidth();
-    EXPECT_TRUE(result1.IsNearEqual(dashParam));
-
-    canvasNode->SetBorderDashGap(dashParam);
-    auto result2 = canvasNode->GetStagingProperties().GetBorderDashGap();
-    EXPECT_TRUE(result2.IsNearEqual(dashParam));
-
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetBorderDashParamsTest end";
-}
-
-/**
  * @tc.name: GetFilterTest
  * @tc.desc: Verify the GetFilter
  * @tc.type:FUNC

@@ -98,8 +98,7 @@ sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::instance_ = nullptr;
 sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::GetInstance() noexcept
 {
     std::call_once(createFlag_, []() {
-        auto vsyncGenerator = new VSyncGenerator();
-        instance_ = vsyncGenerator;
+        instance_ = new VSyncGenerator();
     });
 
     return instance_;
@@ -111,11 +110,11 @@ void VSyncGenerator::DeleteInstance() noexcept
 }
 
 VSyncGenerator::VSyncGenerator()
-    : period_(DEFAULT_SOFT_VSYNC_PERIOD), phase_(0), referenceTime_(0), wakeupDelay_(0),
-      pulse_(0), currRefreshRate_(0), referenceTimeOffsetPulseNum_(0), defaultReferenceTimeOffsetPulseNum_(0)
 {
     if (IsPcType() && IsPCRefreshRateLock60()) {
         period_ = REFRESH_PERIOD;
+    } else {
+        period_ = DEFAULT_SOFT_VSYNC_PERIOD;
     }
     vsyncThreadRunning_ = true;
     thread_ = std::thread([this] { this->ThreadLoop(); });
@@ -156,7 +155,9 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         listeners.size(), periodRecord_, currRefreshRate_, vsyncMode_);
     for (uint32_t i = 0; i < listeners.size(); i++) {
         RS_TRACE_NAME_FMT("listener phase is %ld", listeners[i].phase_);
-        listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
+        if (listeners[i].callback_ != nullptr) {
+            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
+        }
     }
 }
 
@@ -256,7 +257,9 @@ bool VSyncGenerator::ChangeListenerOffsetInternal()
     if (it == listenersRecord_.end()) {
         return false;
     }
-    it->callback_->OnPhaseOffsetChanged(phaseOffset);
+    if (it->callback_ != nullptr) {
+        it->callback_->OnPhaseOffsetChanged(phaseOffset);
+    }
     changingPhaseOffset_ = {}; // reset
     return true;
 }
@@ -275,7 +278,9 @@ bool VSyncGenerator::ChangeListenerRefreshRatesInternal()
     if (it == listenersRecord_.end()) {
         return false;
     }
-    it->callback_->OnConnsRefreshRateChanged(changingRefreshRates_.refreshRates);
+    if (it->callback_ != nullptr) {
+        it->callback_->OnConnsRefreshRateChanged(changingRefreshRates_.refreshRates);
+    }
     // reset
     changingRefreshRates_.cb = nullptr;
     changingRefreshRates_.refreshRates.clear();

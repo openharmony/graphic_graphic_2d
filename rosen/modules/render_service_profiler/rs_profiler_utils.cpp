@@ -244,7 +244,7 @@ std::string Utils::GetRealPath(const std::string& path)
     std::string realPath;
     if (!PathToRealPath(path, realPath)) {
         RS_LOGE("PathToRealPath fails on %s !", path.data()); // NOLINT
-        return path;
+        realPath.clear();
     }
     return realPath;
 }

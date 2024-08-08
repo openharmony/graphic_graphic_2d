@@ -20,7 +20,6 @@
 
 #include "benchmark_config.h"
 #include "drawing_multithread.h"
-#include "drawing_sample_replayer.h"
 #include "drawing_singlethread.h"
 #include "drawing_api.h"
 #include "drawing_playback.h"
@@ -28,39 +27,13 @@
 using namespace OHOS;
 using namespace OHOS::Rosen;
 
-int32_t MainReplayer(int32_t argc, char *argv[])
-{
-    OHOS::Rosen::DrawingSampleReplayer replayer;
-    std::string replayType = "default";
-    if (argc > 1) {
-        replayType = std::string(argv[1]);
-        if (replayType == "skp") {
-            replayer.SetCaptureMode(OHOS::Rosen::CaptureMode::SKP);
-        } else if (replayType == "rdc") {
-            replayer.SetCaptureMode(OHOS::Rosen::CaptureMode::RDC);
-        }
-    }
-    std::cout << "Mode: " << replayType << std::endl;
-    if (!replayer.PrepareNativeEGLSetup()) {
-        return -1;
-    }
-    if (!replayer.RenderLoop()) {
-        return -1;
-    }
-    return 0;
-}
-
 int32_t main(int32_t argc, char *argv[])
 {
-    if (argc == 1 || std::string(argv[1]) != "drawing_engine_sample") {
-        return MainReplayer(argc, argv);
-    }
-
     DrawingEngineSample m;
-    
-    char* benchMarkName = argv[2]; // 2:index of benchmark name
-    std::cout << "benchmark name is " << benchMarkName << std::endl;
-    BenchmarkConfig::SetBenchMarkType(std::string(benchMarkName));
+
+    std::cout << "benchmark name is " << argv[1] << std::endl;
+
+    BenchmarkConfig::SetBenchMarkType(std::string(argv[1]));
 
     BenchMark* benchMark = nullptr;
 

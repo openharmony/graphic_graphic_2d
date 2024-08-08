@@ -1287,15 +1287,6 @@ napi_value JsCanvas::OnDrawNestedRoundRect(napi_env env, napi_callback_info info
     return nullptr;
 }
 
-static void DestructorMatrix(napi_env env, void *nativeObject, void *finalize)
-{
-    (void)finalize;
-    if (nativeObject != nullptr) {
-        JsMatrix *napi = reinterpret_cast<JsMatrix *>(nativeObject);
-        delete napi;
-    }
-}
-
 napi_value JsCanvas::GetTotalMatrix(napi_env env, napi_callback_info info)
 {
     JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
@@ -1311,26 +1302,8 @@ napi_value JsCanvas::OnGetTotalMatrix(napi_env env, napi_callback_info info)
 
     Matrix matrix = m_canvas->GetTotalMatrix();
     std::shared_ptr<Matrix> matrixPtr = std::make_shared<Matrix>(matrix);
-    JsMatrix *jsMatrix = new(std::nothrow) JsMatrix(matrixPtr);
-    if (jsMatrix == nullptr) {
-        ROSEN_LOGE("GetTotalMatrix jsMatrix is null!");
-        return nullptr;
-    }
 
-    napi_value resultValue = nullptr;
-    napi_create_object(env, &resultValue);
-    if (resultValue == nullptr) {
-        ROSEN_LOGE("GetTotalMatrix resultValue is NULL!");
-        return nullptr;
-    }
-
-    napi_wrap(env, resultValue, jsMatrix, DestructorMatrix, nullptr, nullptr);
-    if (resultValue == nullptr) {
-        ROSEN_LOGE("[NAPI]GetTotalMatrix resultValue is null!");
-        delete jsMatrix;
-        return nullptr;
-    }
-    return resultValue;
+    return JsMatrix::CreateJsMatrix(env, matrixPtr);
 }
 
 napi_value JsCanvas::AttachPen(napi_env env, napi_callback_info info)

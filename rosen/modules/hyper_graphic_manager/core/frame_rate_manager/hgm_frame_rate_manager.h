@@ -34,6 +34,7 @@
 #include "hgm_vsync_generator_controller.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
+#include "pipeline/rs_render_node.h"
 #include "screen_manager/screen_types.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 
@@ -119,7 +120,7 @@ public:
     ~HgmFrameRateManager() = default;
 
     void HandleLightFactorStatus(pid_t pid, bool isSafe);
-    void HandlePackageEvent(pid_t pid, uint32_t listSize, const std::vector<std::string>& packageList);
+    void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
     void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
     void HandleDynamicModeEvent(bool enableDynamicModeEvent);
@@ -154,7 +155,10 @@ public:
     void ProcessPendingRefreshRate(uint64_t timestamp, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
-    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp, pid_t pid);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
+        pid_t pid, UIFWKType uiFwkType);
+    void ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
@@ -168,8 +172,7 @@ public:
         isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
     }
 
-    static bool MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
-    void CheckPackageInConfigList(std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap);
+    static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -202,18 +205,21 @@ private:
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
     void UpdateEnergyConsumptionConfig();
-    void EnterEnergyConsumptionAssuranceMode();
-    void ExitEnergyConsumptionAssuranceMode();
+    static void EnterEnergyConsumptionAssuranceMode();
+    static void ExitEnergyConsumptionAssuranceMode();
+    static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
+    void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
+        sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
-    std::shared_ptr<uint32_t> pendingRefreshRate_;
+    std::shared_ptr<uint32_t> pendingRefreshRate_ = nullptr;
     uint64_t pendingConstraintRelativeTime_ = 0;
-    std::shared_ptr<HgmVSyncGeneratorController> controller_;
+    std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
     std::mutex appChangeDataMutex_;
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData_;
 
-    std::function<void(bool, bool)> forceUpdateCallback_;
+    std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
     std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> screenTimerMap_;
 
     std::mutex pkgSceneMutex_;

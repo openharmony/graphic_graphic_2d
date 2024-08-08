@@ -119,7 +119,7 @@ napi_value JsRoundRect ::OnSetCorner(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_THREE] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
     int32_t pos = 0;
-    GET_ENUM_PARAM(ARGC_ZERO, pos, 0, static_cast<int32_t>(RoundRect::CornerPos::CORNER_NUMBER));
+    GET_ENUM_PARAM(ARGC_ZERO, pos, 0, static_cast<int32_t>(RoundRect::CornerPos::BOTTOM_LEFT_POS));
     double x = 0;
     GET_DOUBLE_PARAM(ARGC_ONE, x);
     double y = 0;
@@ -141,7 +141,7 @@ napi_value JsRoundRect ::OnGetCorner(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_ONE] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
     int32_t pos = 0;
-    GET_ENUM_PARAM(ARGC_ZERO, pos, 0, static_cast<int32_t>(RoundRect::CornerPos::CORNER_NUMBER));
+    GET_ENUM_PARAM(ARGC_ZERO, pos, 0, static_cast<int32_t>(RoundRect::CornerPos::BOTTOM_LEFT_POS));
     auto point = m_roundRect.GetCornerRadius(static_cast<RoundRect::CornerPos>(pos));
     return ConvertPointToJsValue(env, point);
 }

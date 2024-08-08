@@ -616,6 +616,16 @@ void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas
     needDrawAnimateProperty_ = false;
 }
 
+void RSSurfaceRenderNode::SetNeedClearPreBuffer(bool needClear)
+{
+    isNeedClearPreBuffer_.store(needClear);
+}
+
+bool RSSurfaceRenderNode::GetNeedClearPreBuffer() const
+{
+    return isNeedClearPreBuffer_;
+}
+
 void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)
 {
     if (GetCacheType() != CacheType::ANIMATE_PROPERTY && !needDrawAnimateProperty_) {
@@ -815,6 +825,11 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
         protectedLayerIds_.erase(GetId());
     }
     SyncProtectedInfoToFirstLevelNode();
+}
+
+void RSSurfaceRenderNode::SetForceClientForDRMOnly(bool forceClient)
+{
+    forceClientForDRMOnly_ = forceClient;
 }
 
 bool RSSurfaceRenderNode::GetSecurityLayer() const
@@ -1034,11 +1049,11 @@ void RSSurfaceRenderNode::NeedClearBufferCache()
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     std::set<int32_t> bufferCacheSet;
-    if (surfaceHandler_->GetBuffer()) {
-        bufferCacheSet.insert(surfaceHandler_->GetBuffer()->GetSeqNum());
+    if (auto buffer = surfaceHandler_->GetBuffer()) {
+        bufferCacheSet.insert(buffer->GetSeqNum());
     }
-    if (surfaceHandler_->GetPreBuffer().buffer) {
-        bufferCacheSet.insert(surfaceHandler_->GetPreBuffer().buffer->GetSeqNum());
+    if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
+        bufferCacheSet.insert(preBuffer->GetSeqNum());
     }
     surfaceParams->SetBufferClearCacheSet(bufferCacheSet);
     AddToPendingSyncList();
@@ -2608,6 +2623,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isSkipLayer_ = isSkipLayer_;
     surfaceParams->isProtectedLayer_ = isProtectedLayer_;
     surfaceParams->animateState_ = animateState_;
+    surfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
     surfaceParams->protectedLayerIds_= protectedLayerIds_;

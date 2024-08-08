@@ -30,7 +30,6 @@
 #include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_color_picker_cache_task.h"
-#include "render/rs_aibar_filter.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
@@ -272,6 +271,12 @@ public:
     void SetWaterRippleProgress(const float& progress);
     float GetWaterRippleProgress() const;
 
+    void SetFlyOutParams(const std::optional<RSFlyOutPara>& params);
+    std::optional<RSFlyOutPara> GetFlyOutParams() const;
+    void SetFlyOutDegree(const float& degree);
+    float GetFlyOutDegree() const;
+    void CreateFlyOutShaderFilter();
+
     void SetBgBrightnessRates(const Vector4f& rates);
     Vector4f GetBgBrightnessRates() const;
     void SetBgBrightnessSaturation(const float& saturation);
@@ -463,6 +468,7 @@ public:
     bool IsFgBrightnessValid() const;
     bool IsBgBrightnessValid() const;
     bool IsWaterRippleValid() const;
+    bool IsFlyOutValid() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
 
@@ -596,6 +602,9 @@ private:
 
     std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
     float waterRippleProgress_ = 0.0f;
+
+    std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
+    float flyOutDegree_ = 0.0f;
 
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;

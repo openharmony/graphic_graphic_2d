@@ -142,7 +142,9 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
     }
 
     for (auto& callback : animDynamicCfgCallbacks_) {
-        callback.second->OnHgmConfigChanged(data);
+        if (callback.second) {
+            callback.second->OnHgmConfigChanged(data);
+        }
     }
 }
 

@@ -944,6 +944,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, PrepareRenderBeforeChildren, TestSize.Level1)
     Drawing::Canvas canvas;
     RSPaintFilterCanvas rsPaintFilterCanvas(&canvas);
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
     node->PrepareRenderBeforeChildren(rsPaintFilterCanvas);
     ASSERT_NE(node->GetRenderProperties().GetBoundsGeometry(), nullptr);
 }
@@ -1107,6 +1108,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyBeforeChildren, TestSize
     Drawing::Canvas canvasArgs;
     auto canvas = std::make_shared<RSPaintFilterCanvas>(&canvasArgs);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    surfaceNode->InitRenderParams();
     surfaceNode->ProcessAnimatePropertyBeforeChildren(*canvas, true);
     surfaceNode->cacheType_ = CacheType::ANIMATE_PROPERTY;
     surfaceNode->needDrawAnimateProperty_ = true;

@@ -82,6 +82,21 @@ int OH_NativeVSync_RequestFrame(OH_NativeVSync *ohNativeVSync, OH_NativeVSync_Fr
     return nativeVSync->receiver_->RequestNextVSync(frameCallback);
 }
 
+int OH_NativeVSync_RequestFrameWithMultiCallback(
+    OH_NativeVSync *ohNativeVSync, OH_NativeVSync_FrameCallback callback, void* data)
+{
+    NativeVSync* nativeVSync = OH_NativeVSync_OHNativeVSyncToNativeVSync(ohNativeVSync);
+    if (nativeVSync == nullptr || nativeVSync->receiver_ == nullptr || callback == nullptr) {
+        VLOGE("parameter is nullptr, please check");
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    OHOS::Rosen::VSyncReceiver::FrameCallback frameCallback = {
+        .userData_ = data,
+        .callback_ = callback,
+    };
+    return nativeVSync->receiver_->RequestNextVSyncWithMultiCallback(frameCallback);
+}
+
 int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period)
 {
     NativeVSync* nativeVSync = OH_NativeVSync_OHNativeVSyncToNativeVSync(nativeVsync);

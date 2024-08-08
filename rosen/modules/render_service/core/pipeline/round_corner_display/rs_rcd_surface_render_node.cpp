@@ -115,9 +115,11 @@ BufferRequestConfig RSRcdSurfaceRenderNode::GetHardenBufferRequestConfig() const
     RS_LOGD("RCD: Start GetHardenBufferRequestConfig");
     BufferRequestConfig config {};
     config.width = static_cast<int32_t>(GetRcdBufferWidth());
-    // need to plus 2 while calculating the bufferHeight in hardware dss way
-    config.height = static_cast<int32_t>(GetRcdBufferSize() / GetRcdBufferWidth() + GetRcdBufferHeight() + 2);
-    config .strideAlignment = 0x8; // default stride is 8 Bytes.  // output parameter, system components can ignore it
+    if (GetRcdBufferWidth() != 0) {
+        // need to plus 2 while calculating the bufferHeight in hardware dss way
+        config.height = static_cast<int32_t>(GetRcdBufferSize() / GetRcdBufferWidth() + GetRcdBufferHeight() + 2);
+    }
+    config.strideAlignment = 0x8; // default stride is 8 Bytes.  // output parameter, system components can ignore it
     config.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     config.usage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA
         | PRIV_USAGE_FBC_CLD_LAYER;

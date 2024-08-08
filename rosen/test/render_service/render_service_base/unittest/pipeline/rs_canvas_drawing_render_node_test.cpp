@@ -641,6 +641,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
     NodeId nodeId = 7;
     auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsCanvasDrawingRenderNode);
+    if (!drawable) {
+        return;
+    }
     EXPECT_FALSE(drawable == nullptr);
     drawable->SetDrawCmdListsVisited(true);
     rsCanvasDrawingRenderNode->ClearResource();

@@ -239,3 +239,25 @@ void DrawingSampleReplayer::SetCaptureMode(CaptureMode mode)
 }
 
 } // namespace OHOS::Rosen
+
+int32_t main(int32_t argc, char *argv[])
+{
+    OHOS::Rosen::DrawingSampleReplayer replayer;
+    std::string replayType = "default";
+    if (argc > 1) {
+        replayType = std::string(argv[1]);
+        if (replayType == "skp") {
+            replayer.SetCaptureMode(OHOS::Rosen::CaptureMode::SKP);
+        } else if (replayType == "rdc") {
+            replayer.SetCaptureMode(OHOS::Rosen::CaptureMode::RDC);
+        }
+    }
+    std::cout << "Mode: " << replayType << std::endl;
+    if (!replayer.PrepareNativeEGLSetup()) {
+        return -1;
+    }
+    if (!replayer.RenderLoop()) {
+        return -1;
+    }
+    return 0;
+}

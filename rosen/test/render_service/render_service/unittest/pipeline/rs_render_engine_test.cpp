@@ -271,6 +271,44 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawWithParams006
+ * @tc.desc: test DrawWithParams when param.useCPU are true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderEngineTest, DrawWithParams006, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    param.useCPU = true;
+    param.setColorFilter = true;
+    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
+    ASSERT_NE(canvas, nullptr);
+}
+
+/**
+ * @tc.name: DrawWithParams007
+ * @tc.desc: test DrawWithParams when param.useCPU are true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderEngineTest, DrawWithParams007, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    param.useCPU = true;
+    param.setColorFilter = false;
+    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
+    ASSERT_NE(canvas, nullptr);
+}
+
+/**
  * @tc.name: RSSurfaceNodeCommonPreProcess
  * @tc.desc: test RSSurfaceNodeCommonPreProcess without filter, expect no error
  * @tc.type: FUNC
@@ -334,6 +372,38 @@ HWTEST_F(RSRenderEngineTest, ClipHoleForLayer, TestSize.Level1)
  */
 HWTEST_F(RSRenderEngineTest, SetColorFilterModeToPaint, TestSize.Level1)
 {
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    std::unique_ptr<Drawing::Brush> brush = std::make_unique<Drawing::Brush>();
+    renderEngine->SetColorFilterModeToPaint(*brush);
+    ASSERT_NE(brush, nullptr);
+}
+
+/**
+ * @tc.name: SetColorFilterModeToPaint002
+ * @tc.desc: test SetColorFilterModeToPaint, expect no error
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSRenderEngineTest, SetColorFilterModeToPaint002, TestSize.Level1)
+{
+    RSRenderEngine::colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    std::unique_ptr<Drawing::Brush> brush = std::make_unique<Drawing::Brush>();
+    renderEngine->SetColorFilterModeToPaint(*brush);
+    ASSERT_NE(brush, nullptr);
+}
+
+/**
+ * @tc.name: SetColorFilterModeToPaint003
+ * @tc.desc: test SetColorFilterModeToPaint, expect no error
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSRenderEngineTest, SetColorFilterModeToPaint003, TestSize.Level1)
+{
+    RSRenderEngine::colorFilterMode_ = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
     auto renderEngine = std::make_shared<RSRenderEngine>();
     renderEngine->Init();
     std::unique_ptr<Drawing::Brush> brush = std::make_unique<Drawing::Brush>();

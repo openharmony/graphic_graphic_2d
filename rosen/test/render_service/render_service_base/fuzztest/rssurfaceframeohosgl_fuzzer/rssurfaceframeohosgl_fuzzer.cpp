@@ -54,34 +54,6 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoGetCanvas(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    g_rsSurfaceFrameOhosGl->GetCanvas();
-    return true;
-}
-bool DoGetSurface(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    g_rsSurfaceFrameOhosGl->GetSurface();
-    return true;
-}
 bool DoSetDamageRegion(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -148,20 +120,6 @@ bool DoSetReleaseFence(const uint8_t* data, size_t size)
     g_rsSurfaceFrameOhosGl->SetReleaseFence(fence);
     return true;
 }
-bool DoCreateSurface(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    g_rsSurfaceFrameOhosGl->CreateSurface();
-    return true;
-}
 void InitRenderContext()
 {
     g_context = std::make_shared<RenderContext>();
@@ -176,13 +134,12 @@ void InitRenderContext()
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         g_context->SetUpGpuContext(drawingContext);
-    }
-    else {
+    } else {
         g_context->SetUpGpuContext();
     }
 #else
     g_context->SetUpGpuContext();
-#endif    
+#endif
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
     g_rsSurfaceFrameOhosGl->SetRenderContext(g_context.get());
 }
@@ -208,13 +165,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::InitRenderContext();
 
     /* Run your code on data */
-    OHOS::Rosen::DoGetCanvas(data, size);       // GetCanvas
-    OHOS::Rosen::DoGetSurface(data, size);      // GetSurface
     OHOS::Rosen::DoSetDamageRegion(data, size); // SetDamageRegion
     OHOS::Rosen::DoGetBufferAge(data, size);    // GetBufferAge
     OHOS::Rosen::DoGetReleaseFence(data, size); // GetReleaseFence
     OHOS::Rosen::DoSetReleaseFence(data, size); // SetReleaseFence
-    OHOS::Rosen::DoCreateSurface(data, size);   // CreateSurface
 
     OHOS::Rosen::ReleaseRenderContext();
 

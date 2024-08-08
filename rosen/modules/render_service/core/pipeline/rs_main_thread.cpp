@@ -90,6 +90,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
+#include "render/rs_image_cache.h"
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_typeface_cache.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -392,6 +393,10 @@ void RSMainThread::Init()
         SKResourceManager::Instance().ReleaseResource();
         // release node memory
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        static std::function<void ()> task = []() -> void {
+            RSImageCache::Instance().ReleaseUniqueIdList();
+        };
+        RSBackgroundThread::Instance().PostTask(task);
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
@@ -1038,6 +1043,7 @@ void RSMainThread::ProcessCommandForUniRender()
         }
     });
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
+    transactionFlags_ = transactionFlags;
     for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
@@ -1222,7 +1228,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         auto& surfaceHandler = *surfaceNode->GetMutableRSSurfaceHandler();
         if (frameRateMgr_ != nullptr && surfaceHandler.GetAvailableBufferCount() > 0) {
             auto surfaceNodeName = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
-            frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_, ExtractPid(surfaceNode->GetId()));
+            frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_,
+                ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
         }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
@@ -1242,7 +1249,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
             if (isUniRender_ && surfaceHandler.IsCurrentFrameBufferConsumed()) {
                 auto buffer = surfaceHandler.GetBuffer();
-                auto preBuffer = surfaceHandler.GetPreBuffer().buffer;
+                auto preBuffer = surfaceHandler.GetPreBuffer();
                 surfaceNode->UpdateBufferInfo(buffer,
                     surfaceHandler.GetDamageRegion(), surfaceHandler.GetAcquireFence(), preBuffer);
                 if (surfaceHandler.GetBufferSizeChanged()) {
@@ -1268,6 +1275,14 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", pc uifirst on",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
+            }
+        }
+        if (surfaceNode->GetNeedClearPreBuffer()) {
+            surfaceNode->SetNeedClearPreBuffer(false);
+            if(!surfaceHandler.IsCurrentFrameBufferConsumed()) {
+                RS_LOGD("%{public}s, Clear prebuffer", surfaceNode->GetName().c_str());
+                surfaceNode->ResetPreBuffer();
+                surfaceNode->GetRSSurfaceHandler()->ResetPreBuffer();
             }
         }
 #ifdef RS_ENABLE_VK
@@ -1339,6 +1354,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
+                selfDrawables_.emplace_back(surfaceNode->GetRenderDrawable());
             }
 
             if (!surfaceNode->GetDoDirectComposition()) {
@@ -1498,16 +1514,16 @@ void RSMainThread::ReleaseAllNodesBuffer()
         if (surfaceNode->IsHardwareEnabledType()) {
             if (surfaceNode->IsLastFrameHardwareEnabled()) {
                 if (!surfaceNode->IsCurrentFrameHardwareEnabled()) {
-                    auto& preBuffer = surfaceHandler->GetPreBuffer();
-                    if (preBuffer.buffer != nullptr) {
-                        auto releaseTask = [buffer = preBuffer.buffer, consumer = surfaceHandler->GetConsumer(),
-                            fence = preBuffer.releaseFence]() mutable {
+                    auto preBuffer = surfaceHandler->GetPreBuffer();
+                    if (preBuffer != nullptr) {
+                        auto releaseTask = [buffer = preBuffer, consumer = surfaceHandler->GetConsumer(),
+                            fence = surfaceHandler->GetPreBufferReleaseFence()]() mutable {
                             auto ret = consumer->ReleaseBuffer(buffer, fence);
                             if (ret != OHOS::SURFACE_ERROR_OK) {
                                 RS_LOGD("surfaceHandler ReleaseBuffer failed(ret: %{public}d)!", ret);
                             }
                         };
-                        preBuffer.Reset();
+                        surfaceHandler->ResetPreBuffer();
                         RSHardwareThread::Instance().PostTask(releaseTask);
                     }
                 }
@@ -1713,6 +1729,10 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (!frameRateMgr_ || !rsVSyncDistributor_) {
         return;
     }
+    std::unique_lock<std::mutex> lock(context_->activeNodesInRootMutex_);
+    auto activeNodesInRootMap = context_->activeNodesInRoot_;
+    lock.unlock();
+    frameRateMgr_->ProcessUnknownUIFwkIdleState(activeNodesInRootMap, timestamp);
     DvsyncInfo info;
     info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
     info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();
@@ -1738,7 +1758,6 @@ bool RSMainThread::GetParallelCompositionEnabled()
 void RSMainThread::SetFrameIsRender(bool isRender)
 {
     if (rsVSyncDistributor_ != nullptr) {
-        markRenderFlag_ = true;
         rsVSyncDistributor_->SetFrameIsRender(isRender);
     }
 }
@@ -1847,7 +1866,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_LOGD("RSMainThread::Render nothing to update");
             RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
             RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
-            RSMainThread::Instance()->SetFrameIsRender(false);
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
                     node->MarkCurrentFrameHardwareEnabled();
@@ -1879,7 +1897,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         } else {
             rootNode->Prepare(uniVisitor);
         }
-        renderThreadParams_->selfDrawingNodes_ = std::move(selfDrawingNodes_);
+        renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
@@ -2074,10 +2092,6 @@ void RSMainThread::OnUniRenderDraw()
     }
 
     UpdateDisplayNodeScreenId();
-    if (!markRenderFlag_) {
-        SetFrameIsRender(true);
-    }
-    markRenderFlag_ = false;
     RsFrameReport& fr = RsFrameReport::GetInstance();
     if (fr.GetEnable()) {
         fr.RSRenderEnd();
@@ -2671,6 +2685,11 @@ const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& RSMainThread::GetSelfDr
     return selfDrawingNodes_;
 }
 
+const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& RSMainThread::GetSelfDrawables() const
+{
+    return selfDrawables_;
+}
+
 void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
                                          float onVsyncStartTimeSteadyFloat)
 {
@@ -3065,10 +3084,11 @@ void RSMainThread::SendCommands()
 
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame)
 {
-    dumpString.append("-- current timeStamp: " + std::to_string(timestamp_) + "\n");
-    dumpString.append("-- vsyncId: " + std::to_string(vsyncId_) + "\n");
     if (LIKELY(forceDumpSingleFrame)) {
         RS_TRACE_NAME("GetDumpTree");
+        dumpString.append("-- RS transactionFlags: " + transactionFlags_ + "\n");
+        dumpString.append("-- current timeStamp: " + std::to_string(timestamp_) + "\n");
+        dumpString.append("-- vsyncId: " + std::to_string(vsyncId_) + "\n");
         dumpString.append("Animating Node: [");
         for (auto& [nodeId, _]: context_->animatingNodeList_) {
             dumpString.append(std::to_string(nodeId) + ", ");
@@ -3561,6 +3581,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hardwareEnabledNodes_.clear();
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
+        selfDrawables_.clear();
     }
 }
 
@@ -3603,11 +3624,6 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id)
             }
         }
     } else if (nodePtr->IsMainWindowType() && nodePtr->GetVisibleRegion().IsEmpty()) {
-        auto curNode = nodePtr;
-        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr->GetParent().lock());
-        if (parentNode && parentNode->IsLeashWindow()) {
-            curNode = parentNode;
-        }
         nodePtr->PrepareSelfNodeForApplyModifiers();
         needSync = true;
     }
@@ -3876,6 +3892,11 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     SetDirtyFlag();
     RequestNextVSync();
     RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus %{public}d", isCurtainScreenOn);
+}
+
+void RSMainThread::RefreshEntireDisplay()
+{
+    isCurtainScreenUsingStatusChanged_ = true;
 }
 
 bool RSMainThread::IsCurtainScreenOn() const

@@ -56,6 +56,7 @@ HWTEST_F(RSCurveAnimationTest, GetTimingCurveTest001, TestSize.Level1)
     curveAnimation->Start(canvasNode);
     EXPECT_TRUE(curveAnimation->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    EXPECT_TRUE(curveAnimation->IsSupportInteractiveAnimator());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSCurveAnimationTest GetTimingCurveTest001 end" ;
 }
