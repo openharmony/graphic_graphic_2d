@@ -460,9 +460,23 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(boo
     return drawingContext;
 }
 
+
+void RsVulkanInterface::DestroyAllSemaphoreFence()
+{
+    std::lock_guard<std::mutex> lock(semaphoreLock_);
+    for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
+        vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
+    }
+    usedSemaphoreFenceList_.clear();
+}
+
 VkSemaphore RsVulkanInterface::RequireSemaphore()
 {
     std::unique_lock<std::mutex> lock(semaphoreLock_);
+    // 32 means too many used semaphore fences
+    if (usedSemaphoreFenceList_.size() >= 32) {
+        RS_LOGE("Too many used semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
+    }
     for (auto it = usedSemaphoreFenceList_.begin(); it != usedSemaphoreFenceList_.end();) {
         auto& fence = it->fence;
         if (fence == nullptr || fence->GetStatus() == FenceStatus::SIGNALED) {
