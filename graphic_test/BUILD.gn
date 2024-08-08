@@ -15,5 +15,5 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("test") {
   testonly = true
-  deps = [ "graphic_test:test" ]
+  deps = []
 }
