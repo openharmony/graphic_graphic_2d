@@ -233,16 +233,6 @@ bool Image::Deserialize(std::shared_ptr<Data> data)
 {
     return imageImplPtr->Deserialize(data);
 }
-
-void Image::Dump(std::string& out) const
-{
-    out += '[';
-    if (imageImplPtr != nullptr) {
-        out += "imageInfo";
-        imageImplPtr->GetImageInfo().Dump(out);
-    }
-    out += ']';
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

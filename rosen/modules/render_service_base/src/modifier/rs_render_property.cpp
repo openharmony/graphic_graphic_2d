@@ -522,6 +522,12 @@ void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) 
 }
 
 template<>
+void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const
+{
+    Get()->Dump(out);
+}
+
+template<>
 void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const
 {
     auto property = Get();
@@ -726,6 +732,7 @@ template class RSRenderProperty<ForegroundColorStrategyType>;
 template class RSRenderProperty<SkMatrix>;
 template class RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>;
 template class RSRenderProperty<std::shared_ptr<MotionBlurParam>>;
+template class RSRenderProperty<std::shared_ptr<RSMagnifierParams>>;
 template class RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>;
 template class RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>;
 template class RSRenderProperty<std::shared_ptr<RSMask>>;
