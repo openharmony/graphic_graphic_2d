@@ -280,8 +280,8 @@ public:
         }
     }
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
-    void CacheBuffer(SurfaceBufferEntry buffer);
-    RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
+    void CacheBuffer(const SurfaceBufferEntry& buffer, const std::string& surfaceName);
+    RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp, const std::string& surfaceName);
     bool HasBufferCache() const;
     void ClearBufferCache();
 #endif

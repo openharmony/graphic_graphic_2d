@@ -988,7 +988,7 @@ const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
     return whiteList_;
 }
 
-void RSScreen::SetBlackList(std::unordered_set<uint64_t>& blackList)
+void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
 {
     blackList_ = blackList;
 }

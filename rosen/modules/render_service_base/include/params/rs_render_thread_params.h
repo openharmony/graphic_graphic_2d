@@ -275,7 +275,7 @@ public:
         return hasCaptureImg_;
     }
 
-    void SetBlackList(std::unordered_set<NodeId> blackList)
+    void SetBlackList(const std::unordered_set<NodeId>& blackList)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         blackList_ = blackList;
