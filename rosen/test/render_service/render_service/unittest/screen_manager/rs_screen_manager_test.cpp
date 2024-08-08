@@ -1886,7 +1886,7 @@ HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest002, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenBlackList
+ * @tc.name: SetVirtualScreenBlackList001
  * @tc.desc: Test SetVirtualScreenBlackList, input invalid id
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -1902,7 +1902,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenBlackList
+ * @tc.name: SetVirtualScreenBlackList002
  * @tc.desc: Test SetVirtualScreenBlackList, input id  which not found in screens_
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -1918,7 +1918,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList002, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenBlackList
+ * @tc.name: SetVirtualScreenBlackList003
  * @tc.desc: Test SetVirtualScreenBlackList, input id in screens_, and screens_[id] = null,
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -1937,7 +1937,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList003, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenBlackList
+ * @tc.name: SetVirtualScreenBlackList004
  * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id==mainId
  * screens_[]!=null id==DefaultScreenId
  * @tc.type: FUNC
@@ -1961,7 +1961,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList004, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenBlackList
+ * @tc.name: SetVirtualScreenBlackList005
  * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, mainId is not one of key of screens_
  * screens_[]!=null id==DefaultScreenId
  * @tc.type: FUNC
@@ -1985,7 +1985,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList005, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenBlackList
+ * @tc.name: SetVirtualScreenBlackList006
  * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, mainId is one of key of screens_ but
  * screens_[mainId]==nullptr screens_[]!=null id==DefaultScreenId
  * @tc.type: FUNC
@@ -2010,7 +2010,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList006, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetVirtualScreenBlackList
+ * @tc.name: SetVirtualScreenBlackList007
  * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, mainId is one of key of screens_ but
  * screens_[mainId]!=nullptr screens_[]!=null id==DefaultScreenId
  * @tc.type: FUNC
@@ -2035,7 +2035,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList007, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetCastScreenEnableSkipWindow
+ * @tc.name: SetCastScreenEnableSkipWindow001
  * @tc.desc: Test SetCastScreenEnableSkipWindow, input id not in keys of screens_
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -2053,7 +2053,7 @@ HWTEST_F(RSScreenManagerTest, SetCastScreenEnableSkipWindow001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetCastScreenEnableSkipWindow
+ * @tc.name: SetCastScreenEnableSkipWindow002
  * @tc.desc: Test SetCastScreenEnableSkipWindow, input id in keys of screens_, and screens_[id] = nullptr
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -2072,7 +2072,7 @@ HWTEST_F(RSScreenManagerTest, SetCastScreenEnableSkipWindow002, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetCastScreenEnableSkipWindow
+ * @tc.name: SetCastScreenEnableSkipWindow003
  * @tc.desc: Test SetCastScreenEnableSkipWindow, input id in keys of screens_, and screens_[id] != nullptr
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -2091,7 +2091,7 @@ HWTEST_F(RSScreenManagerTest, SetCastScreenEnableSkipWindow003, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetCastScreenEnableSkipWindow
+ * @tc.name: GetCastScreenEnableSkipWindow001
  * @tc.desc: Test GetCastScreenEnableSkipWindow, input id not in keys of screens_
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -2108,7 +2108,7 @@ HWTEST_F(RSScreenManagerTest, GetCastScreenEnableSkipWindow001, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetCastScreenEnableSkipWindow
+ * @tc.name: GetCastScreenEnableSkipWindow002
  * @tc.desc: Test GetCastScreenEnableSkipWindow, input id in keys of screens_， and screens[id] ==null
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -2126,7 +2126,7 @@ HWTEST_F(RSScreenManagerTest, GetCastScreenEnableSkipWindow002, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetCastScreenEnableSkipWindow
+ * @tc.name: GetCastScreenEnableSkipWindow003
  * @tc.desc: Test GetCastScreenEnableSkipWindow, input id in keys of screens_， and screens[id] !=null
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -2146,7 +2146,7 @@ HWTEST_F(RSScreenManagerTest, GetCastScreenEnableSkipWindow003, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetVirtualScreenBlackList
+ * @tc.name: GetVirtualScreenBlackList001
  * @tc.desc: Test GetVirtualScreenBlackList, input id not in keys of screens_
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -2163,7 +2163,7 @@ HWTEST_F(RSScreenManagerTest, GetVirtualScreenBlackList001, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetVirtualScreenBlackList
+ * @tc.name: GetVirtualScreenBlackList002
  * @tc.desc: Test GetVirtualScreenBlackList, input id  in keys of screens_,screens_[id]=null
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
@@ -2181,7 +2181,7 @@ HWTEST_F(RSScreenManagerTest, GetVirtualScreenBlackList002, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetVirtualScreenBlackList
+ * @tc.name: GetVirtualScreenBlackList003
  * @tc.desc: Test GetVirtualScreenBlackList, input id in keys of screens_,screens_[id]!=null
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
