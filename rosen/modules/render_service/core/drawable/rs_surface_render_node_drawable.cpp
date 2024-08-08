@@ -298,15 +298,19 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     if (surfaceParams->GetSkipDraw()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw SkipDraw [%s] Id:%llu",
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw SkipDraw [%s] Id:%" PRIu64 "",
             name_.c_str(), surfaceParams->GetId());
         return;
     }
-    auto renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (!renderEngine) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw renderEngine is nullptr");
+        return;
+    }
     auto unmappedCache = surfaceParams->GetBufferClearCacheSet();
     if (unmappedCache.size() > 0) {
         // remove imagecahce when its bufferQueue gobackground
-        renderEngine_->ClearCacheSet(unmappedCache);
+        renderEngine->ClearCacheSet(unmappedCache);
     }
     if (autoCacheEnable_) {
         nodeCacheType_ = NodeStrategyType::CACHE_NONE;
@@ -356,7 +360,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    Drawing::GPUContext* gpuContext = renderEngine_->GetRenderContext()->GetDrGPUContext();
+    Drawing::GPUContext* gpuContext = renderEngine->GetRenderContext()->GetDrGPUContext();
     RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
 
     // Draw base pipeline start
@@ -412,8 +416,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     OnGeneralProcess(*curCanvas_, *surfaceParams, isSelfDrawingSurface);
 
-    if (needOffscreen) {
-        Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
+    if (needOffscreen && canvasBackup_) {
+        Drawing::AutoCanvasRestore acrBackUp(*canvasBackup_, true);
         if (surfaceParams->HasSandBox()) {
             canvasBackup_->SetMatrix(surfaceParams->GetParentSurfaceMatrix());
             canvasBackup_->ConcatMatrix(surfaceParams->GetMatrix());
@@ -798,7 +802,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) {
         return false;
     }
-    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lld, type %d",
+    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d",
         name_.c_str(), surfaceParams.GetId(), enableType);
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);

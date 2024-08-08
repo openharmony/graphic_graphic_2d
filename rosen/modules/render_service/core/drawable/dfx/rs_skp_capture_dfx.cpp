@@ -31,6 +31,7 @@ namespace OHOS::Rosen {
 void RSSkpCaptureDfx::TryCapture() const
 {
     if (!curCanvas_) {
+        RS_LOGE("TryCapture curCanvas_ is nullptr");
         return;
     }
     if (!RSSystemProperties::GetRecordingEnabled()) {
@@ -58,10 +59,6 @@ void RSSkpCaptureDfx::TryCapture() const
     }
     recordingCanvas_->SetGrRecordingContext(renderContext->GetSharedDrGPUContext());
 #endif
-    if (!curCanvas_) {
-        RS_LOGE("TryCapture curCanvas_ is nullptr");
-        return;
-    }
     curCanvas_->AddCanvas(recordingCanvas_.get());
     RSRecordingThread::Instance(renderContext.get()).CheckAndRecording();
 }

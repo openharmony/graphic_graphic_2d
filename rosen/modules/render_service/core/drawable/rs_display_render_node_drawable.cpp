@@ -417,21 +417,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
-    isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
-    if (isDrawingCacheDfxEnabled_) {
-        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
-        drawingCacheInfos_.clear();
-        cacheUpdatedNodeMap_.clear();
-    }
-
-#ifdef DDGR_ENABLE_FEATURE_OPINC
-    autoCacheEnable_ = RSSystemProperties::IsDdgrOpincEnable();
-    autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && autoCacheEnable_;
-    autoCacheRenderNodeInfos_.clear();
-    opincRootTotalCount_ = 0;
-    isOpincDropNodeExt_ = true;
-#endif
+    // dfx
+    RSRenderNodeDrawable::InitDfxForCacheInfo();
 
     // check rotation for point light
     constexpr int ROTATION_NUM = 4;

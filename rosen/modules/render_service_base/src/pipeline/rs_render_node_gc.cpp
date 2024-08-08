@@ -58,7 +58,7 @@ void RSRenderNodeGC::ReleaseNodeBucket()
         toDele.swap(nodeBucket_.front());
         nodeBucket_.pop();
     }
-    RS_TRACE_NAME_FMT("ReleaseNodeMemory %d", toDele.size());
+    RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu", toDele.size());
     for (auto ptr : toDele) {
         if (ptr) {
             delete ptr;
@@ -117,7 +117,7 @@ void RSRenderNodeGC::ReleaseDrawableBucket()
         toDele.swap(drawableBucket_.front());
         drawableBucket_.pop();
     }
-    RS_TRACE_NAME_FMT("ReleaseDrawableMemory %d", toDele.size());
+    RS_TRACE_NAME_FMT("ReleaseDrawableMemory %zu", toDele.size());
     for (auto ptr : toDele) {
         if (ptr) {
             delete ptr;
