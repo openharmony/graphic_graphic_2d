@@ -876,7 +876,7 @@ bool DoSetAncoForceDoDirect(const uint8_t* data, size_t size)
     g_pos = 0;
 
     FuzzedDataProvider fdp(data, size);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SetAncoForceDoDirect);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT);
     auto newPid = getpid();
 
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
