@@ -426,6 +426,87 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources001, Function | SmallTest |
 }
 
 /*
+ * @tc.name: CreateResources002
+ * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources002, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+
+    // RSSurfaceRenderNode
+    NodeId surfaceRenderNodeId = 101;
+    RSSurfaceCaptureConfig config1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(surfaceRenderNodeId, std::make_shared<RSContext>(), true);
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    auto surfaceRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(surfaceRenderNodeId, config1);
+    ASSERT_EQ(surfaceRenderNodeHandle->CreateResources(), false);
+
+    // RSCanvasRenderNode
+    NodeId canvasRenderNodeId = 102;
+    RSSurfaceCaptureConfig config2;
+    auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(canvasRenderNodeId, std::make_shared<RSContext>(), true);
+    nodeMap.RegisterRenderNode(canvasRenderNode);
+    auto canvasRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(canvasRenderNodeId, config2);
+    ASSERT_EQ(canvasRenderNodeHandle->CreateResources(), false);
+}
+
+/*
+ * @tc.name: CreateResources003
+ * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+
+    NodeId nodeId = 103;
+    NodeId parentNodeId = 1003;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderContent_->renderProperties_.SetBoundsWidth(1024.0f);
+    renderNode->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
+    nodeMap.RegisterRenderNode(renderNode);
+
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+
+    auto parent1 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
+    parent1->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parent1->hasSubNodeShouldPaint_ = false;
+    renderNode->parent_ = parent1;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+
+    auto parent2 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
+    parent2->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parent2->hasSubNodeShouldPaint_ = true;
+    renderNode->parent_ = parent2;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+
+    auto parent3 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
+    parent3->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parent3->hasSubNodeShouldPaint_ = true;
+    parent3->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    renderNode->parent_ = parent3;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(), false);
+
+    auto parent4 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
+    parent4->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parent4->hasSubNodeShouldPaint_ = true;
+    parent4->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
+    parent4->renderContent_->renderProperties_.SetBoundsWidth(1024.0f);
+    parent4->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
+    renderNode->parent_ = parent4;
+    renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+}
+
+/*
  * @tc.name: RSUiCaptureTaskParallel_CreatePixelMapByNode
  * @tc.desc: Test RSUiCaptureTaskParallel::CreatePixelMapByNode
  * @tc.type: FUNC
