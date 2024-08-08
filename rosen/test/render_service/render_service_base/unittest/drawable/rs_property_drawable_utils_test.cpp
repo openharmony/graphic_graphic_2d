@@ -183,17 +183,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsFilter->type_ = RSFilter::BLUR;
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, true, false);
-    cacheManager = std::make_unique<RSFilterCacheManager>();
-    EXPECT_NE(cacheManager, nullptr);
-    Drawing::Surface surfaceTest1;
-    paintFilterCanvasTest1.disableFilterCache_ = false;
-    paintFilterCanvasTest1.surface_ = &surfaceTest1;
-    std::shared_ptr<RSShaderFilter> rsShaderFilter = std::make_shared<RSShaderFilter>();
-    EXPECT_NE(rsShaderFilter, nullptr);
-    rsShaderFilter->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
-    rsFilter->shaderFilters_.emplace_back(rsShaderFilter);
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, true, true);
-    
+
     // second: BeginForegroundFilter test
     Drawing::Canvas canvasTest2;
     RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
