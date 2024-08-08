@@ -1765,6 +1765,11 @@ HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
     return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
 }
 
+void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
+{
+    renderThread_.SetVmaCacheStatus(flag);
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config)
 {

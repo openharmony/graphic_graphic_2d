@@ -150,6 +150,13 @@ public:
 
     void SetAcquireFence(sptr<SyncFence> acquireFence);
 
+    // vma cache
+    bool GetVmaOptimizeFlag() const
+    {
+        return vmaOptimizeFlag_; // global flag
+    }
+    void SetVmaCacheStatus(bool flag); // dynmic flag
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -201,6 +208,11 @@ private:
     int imageReleaseCount_ = 0;
 
     sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+
+    // vma cache
+    bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
+    uint32_t vmaCacheCount_ = 0;
+    std::mutex vmaCacheCountMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
