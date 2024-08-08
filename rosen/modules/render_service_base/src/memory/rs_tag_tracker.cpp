@@ -30,7 +30,7 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYP
         return;
     }
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(0, 0, 0, tagType);
+    Drawing::GPUResourceTag tag(0, 0, 0, tagType, TagType2String(tagType));
     gpuContext_->SetCurrentGpuResourceTag(tag);
 #endif
 }
@@ -81,7 +81,8 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
     return tagType;
 }
 
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType)
+RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
+    RSTagTracker::TAGTYPE tagType, const std::string& name)
     : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
@@ -91,7 +92,7 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId, RSTag
         return;
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(ExtractPid(nodeId), 0, nodeId, tagType);
+    Drawing::GPUResourceTag tag(ExtractPid(nodeId), 0, nodeId, tagType, name);
     gpuContext_->SetCurrentGpuResourceTag(tag);
 #endif
 }
@@ -119,7 +120,7 @@ void RSTagTracker::SetTagEnd()
     }
     isSetTagEnd_ = true;
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-    Drawing::GPUResourceTag tagEnd(0, 0, 0, 0);
+    Drawing::GPUResourceTag tagEnd(0, 0, 0, 0, "SetTagEnd");
     gpuContext_->SetCurrentGpuResourceTag(tagEnd);
 #endif
 }
@@ -132,7 +133,7 @@ RSTagTracker::~RSTagTracker()
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     // Set empty tag to notify skia that the tag is complete
     if (!isSetTagEnd_ && gpuContext_) {
-        Drawing::GPUResourceTag tagEnd(0, 0, 0, 0);
+        Drawing::GPUResourceTag tagEnd(0, 0, 0, 0, "~RSTagTracker");
         gpuContext_->SetCurrentGpuResourceTag(tagEnd);
     }
 #endif
