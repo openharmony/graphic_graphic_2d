@@ -2535,6 +2535,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetAncoForceDoDirect001, TestSize.Level2)
     node->SetAncoFlags(0);
     ASSERT_FALSE(node->GetAncoForceDoDirect());
     ASSERT_EQ(node->GetAncoFlags(), 0);
+}
 
 /**
  * @tc.name: RotateCorner001
