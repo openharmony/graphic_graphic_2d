@@ -489,15 +489,15 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    napi_value argv[ARGC_ONE] = { nullptr };
+    napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
-    uint32_t color;
+    ColorQuad color;
 
     bool isJsColor = false;
     napi_has_named_property(env, argv[ARGC_ZERO], JSPROPERTY[0], &isJsColor);
     if (isJsColor) {
-        int32_t argb[ARGC_FOUR] = { 0 };
+        int32_t argb[ARGC_FOUR] = {0};
         if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
             ROSEN_LOGE("JsCanvas::SetColor Argv[0] is invalid");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
