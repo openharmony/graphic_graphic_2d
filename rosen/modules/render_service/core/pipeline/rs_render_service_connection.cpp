@@ -680,10 +680,22 @@ std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &surfaceName]() { return screenManager_->FpsDump(dumpString, surfaceName); }).wait();
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return;
+                }
+                return connection->screenManager_->FpsDump(dumpString, surfaceName);
+            }).wait();
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &surfaceName]() { return screenManager_->FpsDump(dumpString, surfaceName); }).wait();
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return;
+                }
+                return connection->screenManager_->FpsDump(dumpString, surfaceName);
+            }).wait();
     }
     return dumpString;
 }
