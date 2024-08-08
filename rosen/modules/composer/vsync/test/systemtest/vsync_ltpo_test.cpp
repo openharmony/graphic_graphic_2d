@@ -172,7 +172,9 @@ void VSyncLTPOTest::Process1()
         .phaseByPulseNum = 0
     };
     uint32_t generatorRefreshRate = 120; // 120hz
-    vsyncGenerator->ChangeGeneratorRefreshRateModel(listenerRefreshRates, listenerPhaseOffset, generatorRefreshRate);
+    int64_t rsVsyncCount = 0;
+    vsyncGenerator->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, generatorRefreshRate, rsVsyncCount);
     // checkout 120hz
     read(pipeFd[0], &timeStamps, sizeof(timeStamps));
     int64_t appTimestampPrev = timeStamps.appTimestamps[(timeStamps.appIndex - 2) % MAX_SIZE]; // prev should minus 2
@@ -219,7 +221,8 @@ void VSyncLTPOTest::Process1()
         .phaseByPulseNum = 1 // phase is 1 pulse
     };
     generatorRefreshRate = 90; // 90hz
-    vsyncGenerator->ChangeGeneratorRefreshRateModel(listenerRefreshRates, listenerPhaseOffset, generatorRefreshRate);
+    vsyncGenerator->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, generatorRefreshRate, rsVsyncCount);
     // checkout 90hz
     read(pipeFd[0], &timeStamps, sizeof(timeStamps));
     appTimestampPrev = timeStamps.appTimestamps[(timeStamps.appIndex - 2) % MAX_SIZE]; // prev should minus 2
@@ -266,7 +269,8 @@ void VSyncLTPOTest::Process1()
         .phaseByPulseNum = 3 // phase is 3 pulse
     };
     generatorRefreshRate = 60; // 60hz
-    vsyncGenerator->ChangeGeneratorRefreshRateModel(listenerRefreshRates, listenerPhaseOffset, generatorRefreshRate);
+    vsyncGenerator->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, generatorRefreshRate, rsVsyncCount);
     // checkout 60hz
     read(pipeFd[0], &timeStamps, sizeof(timeStamps));
     appTimestampPrev = timeStamps.appTimestamps[(timeStamps.appIndex - 2) % MAX_SIZE]; // prev should minus 2
@@ -313,7 +317,8 @@ void VSyncLTPOTest::Process1()
         .phaseByPulseNum = 9 // phase is 9 pulse
     };
     generatorRefreshRate = 30; // 30hz
-    vsyncGenerator->ChangeGeneratorRefreshRateModel(listenerRefreshRates, listenerPhaseOffset, generatorRefreshRate);
+    vsyncGenerator->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, generatorRefreshRate, rsVsyncCount);
     // checkout 30hz
     read(pipeFd[0], &timeStamps, sizeof(timeStamps));
     appTimestampPrev = timeStamps.appTimestamps[(timeStamps.appIndex - 2) % MAX_SIZE]; // prev should minus 2

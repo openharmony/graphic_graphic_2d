@@ -15,6 +15,7 @@
 
 #include "hgm_idle_detector.h"
 #include "rs_trace.h"
+#include "hgm_task_handle_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -118,7 +119,6 @@ bool HgmIdleDetector::GetSurfaceIdleState(uint64_t timestamp)
 
 bool HgmIdleDetector::ThirdFrameNeedHighRefresh()
 {
-    std::lock_guard<std::mutex> lock(appBufferBlackListMutex_);
     if (appBufferBlackList_.empty() || (!aceAnimatorIdleState_ &&
         !std::count(appBufferBlackList_.begin(), appBufferBlackList_.end(), ACE_ANIMATOR_NAME))) {
         return true;
@@ -139,7 +139,6 @@ bool HgmIdleDetector::ThirdFrameNeedHighRefresh()
 
 int32_t HgmIdleDetector::GetTouchUpExpectedFPS()
 {
-    std::lock_guard<std::mutex> lock(appBufferListMutex_);
     if (appBufferList_.empty()) {
         return FPS_MAX;
     }

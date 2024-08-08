@@ -49,7 +49,6 @@ void HgmConfigCallbackManager::RegisterHgmConfigChangeCallback(
         HGM_LOGE("HgmConfigCallbackManager %{public}s : callback is null.", __func__);
         return;
     }
-    std::lock_guard<std::mutex> lock(mtx_);
     animDynamicCfgCallbacks_[pid] = callback;
     HGM_LOGD("HgmConfigCallbackManager %{public}s : add a remote callback succeed.", __func__);
 
@@ -85,7 +84,6 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
         HGM_LOGE("HgmRefreshRateModeCallbackManager %{public}s : callback is null.", __func__);
         return;
     }
-    std::lock_guard<std::mutex> lock(mtx_);
     refreshRateModeCallbacks_[pid] = callback;
     HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : add a remote callback succeed.", __func__);
 
@@ -96,7 +94,6 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback(
 void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
     pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback)
 {
-    std::lock_guard<std::mutex> lock(mtx_);
     if (callback == nullptr) {
         if (refreshRateUpdateCallbacks_.find(pid) != refreshRateUpdateCallbacks_.end()) {
             refreshRateUpdateCallbacks_.erase(pid);
@@ -113,7 +110,6 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
 
 void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 {
-    std::lock_guard<std::mutex> lock(mtx_);
     if (animDynamicCfgCallbacks_.empty()) {
         return;
     }
@@ -150,7 +146,6 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 
 void HgmConfigCallbackManager::SyncRefreshRateModeChangeCallback(int32_t refreshRateMode)
 {
-    std::lock_guard<std::mutex> lock(mtx_);
     for (const auto& [_, callback] : refreshRateModeCallbacks_) {
         if (callback) {
             callback->OnHgmRefreshRateModeChanged(refreshRateMode);
@@ -160,7 +155,6 @@ void HgmConfigCallbackManager::SyncRefreshRateModeChangeCallback(int32_t refresh
 
 void HgmConfigCallbackManager::SyncRefreshRateUpdateCallback(int32_t refreshRate)
 {
-    std::lock_guard<std::mutex> lock(mtx_);
     for (const auto& callback : refreshRateUpdateCallbacks_) {
         if (callback.second != nullptr) {
             callback.second->OnHgmRefreshRateUpdate(refreshRate);
@@ -170,7 +164,6 @@ void HgmConfigCallbackManager::SyncRefreshRateUpdateCallback(int32_t refreshRate
 
 void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
 {
-    std::lock_guard<std::mutex> lock(mtx_);
     if (animDynamicCfgCallbacks_.find(pid) != animDynamicCfgCallbacks_.end()) {
         animDynamicCfgCallbacks_.erase(pid);
         HGM_LOGD("HgmConfigCallbackManager %{public}s : remove a remote callback succeed.", __func__);

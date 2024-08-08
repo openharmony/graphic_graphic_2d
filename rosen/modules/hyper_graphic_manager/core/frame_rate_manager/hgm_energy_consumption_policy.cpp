@@ -43,8 +43,9 @@ static const std::string ENERGY_ASSURANCE_LOG_TASK_ID = "ENERGY_ASSURANCE_LOG_TA
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
-    RsCommonHook::Instance().RegisterStartNewAnimationListener(
-        std::bind(&HgmEnergyConsumptionPolicy::StartNewAnimation, this));
+    RsCommonHook::Instance().RegisterStartNewAnimationListener([this] () {
+        HgmTaskHandleThread::Instance().PostTask([this] () { StartNewAnimation(); });
+    });
 }
 
 HgmEnergyConsumptionPolicy& HgmEnergyConsumptionPolicy::Instance()
@@ -65,7 +66,6 @@ void HgmEnergyConsumptionPolicy::ConverStrToInt(int& targetNum, std::string sour
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig(
     std::unordered_map<std::string, std::string> animationPowerConfig)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (animationPowerConfig.count(IS_ANIMATION_ENERGY_ASSURANCE_ENABLE) == 0) {
         isAnimationEnergyAssuranceEnable_ = false;
     } else {
@@ -95,7 +95,6 @@ void HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig(
 void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
     std::unordered_map<std::string, std::string> uiPowerConfig)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     uiEnergyAssuranceMap_.clear();
     for (auto config : uiPowerConfig) {
         std::string rateTypeName = config.first;
@@ -112,7 +111,6 @@ void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
 
 void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ ||
         isAnimationEnergyConsumptionAssuranceMode_ == isEnergyConsumptionAssuranceMode) {
         return;
@@ -124,13 +122,11 @@ void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool
 
 void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     isUiEnergyConsumptionAssuranceMode_ = isEnergyConsumptionAssuranceMode;
 }
 
 void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
         return;
     }
@@ -139,7 +135,6 @@ void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
 
 void HgmEnergyConsumptionPolicy::StartNewAnimation()
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
         return;
     }
@@ -149,7 +144,6 @@ void HgmEnergyConsumptionPolicy::StartNewAnimation()
 
 void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     rsRange.isEnergyAssurance_ = false;
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
         PrintLog(rsRange, false, 0);
@@ -165,7 +159,6 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 
 void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     rsRange.isEnergyAssurance_ = false;
     if (!isUiEnergyConsumptionAssuranceMode_) {
         PrintLog(rsRange, false, 0);
@@ -199,7 +192,6 @@ void HgmEnergyConsumptionPolicy::SetEnergyConsumptionRateRange(FrameRateRange& r
 
 void HgmEnergyConsumptionPolicy::PrintLog(FrameRateRange &rsRange, bool state, int idleFps)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     const auto it = energyAssuranceState_.find(rsRange.type_);
     const auto taskId = ENERGY_ASSURANCE_LOG_TASK_ID + std::to_string(rsRange.type_);
     // Enter assurance solution
@@ -213,7 +205,6 @@ void HgmEnergyConsumptionPolicy::PrintLog(FrameRateRange &rsRange, bool state, i
 
         // Continued assurance status
         auto task = [this, rsRange]() {
-            std::lock_guard<std::recursive_mutex> lock(mutex_);
             energyAssuranceState_[rsRange.type_] = false;
             HGM_LOGI("HgmEnergyConsumptionPolicy exit the energy consumption assurance mode, rateType:%{public}s",
                 rsRange.GetExtInfo().c_str());

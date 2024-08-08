@@ -36,7 +36,6 @@ public:
     void GetUiIdleFps(FrameRateRange& rsRange);
 
 private:
-    std::recursive_mutex mutex_;
     // <rateType, <isEnable, idleFps>>
     std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     bool isAnimationEnergyAssuranceEnable_ = false;

@@ -131,6 +131,7 @@ public:
     int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
+    int64_t GetVsyncCount();
 
 private:
 

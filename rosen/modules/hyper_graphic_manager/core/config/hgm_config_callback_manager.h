@@ -43,7 +43,6 @@ public:
 private:
     HgmConfigCallbackManager();
     ~HgmConfigCallbackManager() noexcept override;
-    std::mutex mtx_;
     static std::once_flag createFlag_;
     static sptr<HgmConfigCallbackManager> instance_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;
