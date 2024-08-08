@@ -1354,6 +1354,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
+                selfDrawables_.emplace_back(surfaceNode->GetRenderDrawable());
             }
 
             if (!surfaceNode->GetDoDirectComposition()) {
@@ -1896,7 +1897,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         } else {
             rootNode->Prepare(uniVisitor);
         }
-        renderThreadParams_->selfDrawingNodes_ = std::move(selfDrawingNodes_);
+        renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
@@ -2682,6 +2683,11 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
 const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& RSMainThread::GetSelfDrawingNodes() const
 {
     return selfDrawingNodes_;
+}
+
+const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& RSMainThread::GetSelfDrawables() const
+{
+    return selfDrawables_;
 }
 
 void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
@@ -3575,6 +3581,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hardwareEnabledNodes_.clear();
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
+        selfDrawables_.clear();
     }
 }
 
