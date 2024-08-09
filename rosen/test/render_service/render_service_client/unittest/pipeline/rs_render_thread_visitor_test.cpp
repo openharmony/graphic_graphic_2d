@@ -755,9 +755,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1
 
     // Use non-default constructor only to trigger creation of clip rectangle for canvas,
     // because the test calls RSRenderThreadVisitor::ProcessSurfaceRenderNode method,
-    // which in turn tries to get clip boundaries via RSPaintFilterCanvas::GetLocalClipBounds. 
+    // which in turn tries to get clip boundaries via RSPaintFilterCanvas::GetLocalClipBounds.
     // This way the test won't exit the function under test early, and can do a deeper traversal of the code.
-    Drawing::Canvas canvas(10,10);
+    Drawing::Canvas canvas(10, 10);
     rsRenderThreadVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.canvas_ != nullptr);
