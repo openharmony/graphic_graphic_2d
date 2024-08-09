@@ -541,7 +541,9 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
     data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
 
     for (const auto& [id, modifier] : node.modifiers_) {
-        MarshalRenderModifier(*modifier.get(), data);
+        if (modifier) {
+            MarshalRenderModifier(*modifier, data);
+        }
     }
 
     const uint32_t drawModifierCount = node.renderContent_->drawCmdModifiers_.size();
@@ -551,10 +553,17 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
         const uint32_t modifierCount = modifiers.size();
         data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
         for (const auto& modifier : modifiers) {
-            if (auto commandList = reinterpret_cast<Drawing::DrawCmdList*>(modifier->GetDrawCmdListId())) {
-                commandList->MarshallingDrawOps();
+            if (!modifier) {
+                continue;
             }
-            MarshalRenderModifier(*modifier.get(), data);
+            if (auto commandList = reinterpret_cast<Drawing::DrawCmdList*>(modifier->GetDrawCmdListId())) {
+                std::string allocData = commandList->ProfilerPushAllocators();
+                commandList->MarshallingDrawOps();
+                MarshalRenderModifier(*modifier, data);
+                commandList->ProfilerPopAllocators(allocData);
+            } else {
+                MarshalRenderModifier(*modifier, data);
+            }
         }
     }
 }
