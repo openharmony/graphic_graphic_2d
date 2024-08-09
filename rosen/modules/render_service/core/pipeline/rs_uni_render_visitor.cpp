@@ -2218,7 +2218,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
 
             if (hwcNodePtr->GetAncoFlags() & static_cast<int32_t>(AncoFlags::IS_ANCO_NODE)) {
                 ancoNodes.emplace_back(hwcNodePtr);
-                ancoHasGpu = (ancoHasGpu || hwcNodePtr -> IsHardwareForcedDisabled());
+                ancoHasGpu = (ancoHasGpu || hwcNodePtr->IsHardwareForcedDisabled());
             }
         }
     });
