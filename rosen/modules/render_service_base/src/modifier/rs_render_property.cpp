@@ -488,43 +488,51 @@ void RSRenderProperty<RRect>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Drawing::DrawCmdListPtr>::Dump(std::string& out) const
 {
-    out += "drawCmdList[";
-    Get()->Dump(out);
-    out += ']';
+    auto propertyData = Get();
+    if (propertyData != nullptr) {
+        out += "drawCmdList[";
+        propertyData->Dump(out);
+        out += ']';
+    }
 }
 
 template<>
 void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
 {
-    out += "ENV_FOREGROUND_COLOR_STRATEGY[";
     out += std::to_string(static_cast<int>(Get()));
-    out += ']';
 }
 
 template<>
 void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
 {
-    out += "GEOMETRYTRANS[";
     Get().dump(out, 0);
-    out += ']';
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>::Dump(std::string& out) const
 {
-    Get()->Dump(out);
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) const
 {
-    Get()->Dump(out);
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const
 {
-    Get()->Dump(out);
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
 }
 
 template<>
@@ -532,12 +540,16 @@ void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::s
 {
     auto property = Get();
     out += '[';
+    bool found = false;
     for (auto& eu : property) {
-        out += "emitterUpdater";
-        eu->Dump(out);
-        out += ' ';
+        if (eu != nullptr) {
+            found = true;
+            out += "emitterUpdater";
+            eu->Dump(out);
+            out += ' ';
+        }
     }
-    if (property.size() > 0) {
+    if (found) {
         out.pop_back();
     }
     out += ']';
@@ -546,13 +558,19 @@ void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::s
 template<>
 void RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::Dump(std::string& out) const
 {
-    Get()->Dump(out);
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const
 {
-    Get()->Dump(out);
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
 }
 
 template<>

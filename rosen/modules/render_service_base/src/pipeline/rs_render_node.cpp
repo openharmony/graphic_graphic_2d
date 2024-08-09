@@ -788,11 +788,18 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         }
         modifierDesc += typeName + ":[";
         std::string propertyDesc = "";
+        bool found = false;
         for (auto& modifier : modifiers) {
-            modifier->Dump(propertyDesc);
-            propertyDesc += splitStr;
+            if (modifier != nullptr) {
+                found = true;
+                modifier->Dump(propertyDesc);
+                propertyDesc += splitStr;
+            }
         }
-        modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length()) + "]" + splitStr;
+        if (found) {
+            modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
+        }
+        modifierDesc += "]" + splitStr;
     }
     out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length()) + "]";
 }

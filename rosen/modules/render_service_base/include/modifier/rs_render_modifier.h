@@ -60,7 +60,10 @@ public:
     virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() const = 0;
     void Dump(std::string& out) const
     {
-        GetProperty()->Dump(out);
+        auto property = GetProperty();
+        if (property != nullptr) {
+            property->Dump(out);
+        }
     }
 
     virtual RSModifierType GetType()

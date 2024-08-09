@@ -128,18 +128,22 @@ Vector2f ParticleNoiseField::ApplyCurlNoise(const Vector2f& position)
 void ParticleNoiseFields::Dump(std::string& out) const
 {
     out += '[';
+    bool found = false;
     for (auto& field : fields_) {
-        out += "field[fieldStrength:" + std::to_string(field->fieldStrength_);
-        out += " fieldShape:"  + std::to_string(static_cast<int>(field->fieldShape_));
-        out += " fieldSize[x:" + std::to_string(field->fieldSize_.x_) + " y:";
-        out += std::to_string(field->fieldSize_.y_) + "]";
-        out += " fieldCenter[x:" + std::to_string(field->fieldCenter_.x_) + " y:";
-        out += std::to_string(field->fieldCenter_.y_) + "] fieldFeather:" + std::to_string(field->fieldFeather_);
-        out += " noiseScale:" + std::to_string(field->noiseScale_);
-        out += " noiseFrequency:" + std::to_string(field->noiseFrequency_);
-        out += " noiseAmplitude:" + std::to_string(field->noiseAmplitude_) + "] ";
+        if (field != nullptr) {
+            found = true;
+            out += "field[fieldStrength:" + std::to_string(field->fieldStrength_);
+            out += " fieldShape:"  + std::to_string(static_cast<int>(field->fieldShape_));
+            out += " fieldSize[x:" + std::to_string(field->fieldSize_.x_) + " y:";
+            out += std::to_string(field->fieldSize_.y_) + "]";
+            out += " fieldCenter[x:" + std::to_string(field->fieldCenter_.x_) + " y:";
+            out += std::to_string(field->fieldCenter_.y_) + "] fieldFeather:" + std::to_string(field->fieldFeather_);
+            out += " noiseScale:" + std::to_string(field->noiseScale_);
+            out += " noiseFrequency:" + std::to_string(field->noiseFrequency_);
+            out += " noiseAmplitude:" + std::to_string(field->noiseAmplitude_) + "] ";
+        }
     }
-    if (fields_.size() > 0) {
+    if (found) {
         out.pop_back();
     }
     out += ']';

@@ -452,12 +452,11 @@ inline std::string RectF::ToString() const
 
 inline void RectF::Dump(std::string& out) const
 {
-    out += "[";
-    out += "left:" + std::to_string(left_);
+    out += "[left:" + std::to_string(left_);
     out += " top:" + std::to_string(top_);
     out += " right:" + std::to_string(right_);
     out += " bottom:" + std::to_string(bottom_);
-    out += "]";
+    out += ']';
 }
 
 inline bool operator==(const RectF& r1, const RectF& r2)

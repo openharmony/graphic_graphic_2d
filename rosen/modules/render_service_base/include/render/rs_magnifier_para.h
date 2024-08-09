@@ -49,7 +49,7 @@ public:
 
     ~RSMagnifierParams() = default;
 
-    void Dump(std::string& out) const 
+    void Dump(std::string& out) const
     {
         out += "[factor:" + std::to_string(factor_) + " width:" + std::to_string(width_);
         out += " height:" + std::to_string(height_) + " cornerRadius:" + std::to_string(cornerRadius_);
