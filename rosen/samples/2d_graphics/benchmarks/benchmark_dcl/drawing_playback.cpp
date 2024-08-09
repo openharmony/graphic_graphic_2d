@@ -216,6 +216,9 @@ bool DrawingDCL::ReplayMSKP(SkCanvas* skiaCanvas)
 
 void DrawingDCL::ReplaySKP(SkCanvas *skiaCanvas)
 {
+    if (skiaCanvas == nullptr) {
+        return;
+    }
     static int frameNum = 0;
     std::cout << "repaly skp. the " << frameNum << "times" << std::endl;
     std::string tmp;
