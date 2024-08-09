@@ -55,7 +55,6 @@ namespace Drawing {
 enum class SrcRectConstraint;
 class SaveLayerOps;
 enum class PointMode;
-enum class QuadAAFlags;
 struct Lattice;
 class Canvas;
 struct HpsBlurParameter;
@@ -173,7 +172,7 @@ public:
 
     virtual bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) = 0;
 
-    virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParam) = 0;
+    virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
