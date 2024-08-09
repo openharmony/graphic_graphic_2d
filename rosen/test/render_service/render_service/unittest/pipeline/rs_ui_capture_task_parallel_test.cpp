@@ -504,6 +504,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest |
     ASSERT_EQ(renderNodeHandle->CreateResources(), true);
 }
 
+HWTEST_F()
+{
+}
+
 /*
  * @tc.name: RSUiCaptureTaskParallel_CreatePixelMapByNode
  * @tc.desc: Test RSUiCaptureTaskParallel::CreatePixelMapByNode
