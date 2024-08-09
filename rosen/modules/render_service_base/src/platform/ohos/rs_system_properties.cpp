@@ -602,14 +602,6 @@ bool RSSystemProperties::GetKawaseOriginalEnabled()
     return kawaseOriginalEnabled;
 }
 
-// this will migrate to rs_system_parameters.cpp
-bool RSSystemProperties::GetQuickPrepareEnabled()
-{
-    static bool quickPrepareEnabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.quickPrepareEnabled", "1")).c_str()) != 0;
-    return quickPrepareEnabled;
-}
-
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     static bool enable =
