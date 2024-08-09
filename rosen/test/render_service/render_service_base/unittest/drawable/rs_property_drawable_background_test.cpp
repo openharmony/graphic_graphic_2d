@@ -271,6 +271,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable003, TestSize.Le
     ASSERT_TRUE(true);
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: RSBackgroundImageDrawable004
  * @tc.desc: Test GetColorTypeFromVKFormat
@@ -288,7 +289,9 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable004, TestSize.Le
     EXPECT_EQ(Drawing::COLORTYPE_RGBA_8888,
         DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_R8_SRGB));
 }
+#endif
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: RSBackgroundImageDrawable005
  * @tc.desc: Test MakeFromTextureForVK
@@ -311,7 +314,9 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable005, TestSize.Le
     delete buffer;
     FreeBufferHandle(handle);
 }
+#endif
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: RSBackgroundImageDrawable006
  * @tc.desc: Test SetCompressedDataForASTC
@@ -334,6 +339,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable006, TestSize.Le
     drawable.SetCompressedDataForASTC();
     ASSERT_TRUE(true);
 }
+#endif
 
 /**
  * @tc.name: RSBackgroundFilterDrawable
