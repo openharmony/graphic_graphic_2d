@@ -15,6 +15,7 @@
 
 #include "recording/draw_cmd.h"
 #include <cstdint>
+#include <sstream>
 
 #include "platform/common/rs_system_properties.h"
 #include "recording/cmd_list_helper.h"
@@ -280,7 +281,7 @@ void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, P
     }
 }
 
-std::string DrawOpItem::GetOpDesc()
+std::string DrawOpItem::GetOpDesc() const
 {
     return typeOpDes[GetType()];
 }
@@ -701,6 +702,13 @@ void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPath(*path_);
 }
 
+void DrawPathOpItem::DumpItems(std::string& out) const
+{
+    out += "[Path";
+    path_->Dump(out);
+    out += "]";
+}
+
 /* DrawBackgroundOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawBackground, DrawOpItem::BACKGROUND_OPITEM, DrawBackgroundOpItem::Unmarshalling);
 
@@ -833,6 +841,13 @@ void DrawRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawRegion(*region_);
 }
 
+void DrawRegionOpItem::DumpItems(std::string& out) const
+{
+    out += "[Region";
+    region_->Dump(out);
+    out += "]";
+}
+
 /* DrawVerticesOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawVertices, DrawOpItem::VERTICES_OPITEM, DrawVerticesOpItem::Unmarshalling);
 
@@ -863,6 +878,16 @@ void DrawVerticesOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawVertices(*vertices_, mode_);
+}
+
+void DrawVerticesOpItem::DumpItems(std::string& out) const
+{
+    out += "[blend_mode:" + std::to_string(static_cast<int>(mode_));
+    out += " vertices:";
+    
+    std::stringstream stream;
+    stream << std::hex << vertices_.get() << "]";
+    out += std::string(stream.str());
 }
 
 /* DrawColorOpItem */
@@ -1013,6 +1038,46 @@ void DrawAtlasOpItem::Playback(Canvas* canvas, const Rect* rect)
         samplingOptions_, rectPtr);
 }
 
+void DrawAtlasOpItem::DumpItems(std::string& out) const
+{
+    out += "[Xform[";
+    for (auto& e: xform_) {
+        e.Dump(out);
+    }
+    if (xform_.size() > 0) {
+        out.pop_back();
+    }
+    out += "]";
+
+    out += " Tex[";
+    for (auto& e: tex_) {
+        e.Dump(out);
+    }
+    if (tex_.size() > 0) {
+        out.pop_back();
+    }
+    out += "]";
+
+    out += " Colors[";
+    for (auto e: colors_) {
+        out += std::to_string(e);
+    }
+    if (colors_.size() > 0) {
+        out.pop_back();
+    }
+    out += "]";
+
+    out += " mode:" + std::to_string(static_cast<int>(mode_));
+    out += " SamplingOption";
+    samplingOptions_.Dump(out);
+    out += " hasCullRect:" + std::string((hasCullRect_ ? "true" : "false"));
+    out += "CullRect";
+    cullRect_.Dump(out);
+    out += "Atlas";
+    atlas_->Dump(out);
+    out += "]";
+}
+
 /* DrawBitmapOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawBitmap, DrawOpItem::BITMAP_OPITEM, DrawBitmapOpItem::Unmarshalling);
 
@@ -1043,6 +1108,14 @@ void DrawBitmapOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawBitmap(*bitmap_, px_, py_);
+}
+
+void DrawBitmapOpItem::DumpItems(std::string& out) const
+{
+    out += "[px:" + std::to_string(px_) + " py:" + std::to_string(py_);
+    out += " Bitmap";
+    bitmap_->Dump(out);
+    out += "]";
 }
 
 /* DrawImageOpItem */
@@ -1079,6 +1152,16 @@ void DrawImageOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawImage(*image_, px_, py_, samplingOptions_);
+}
+
+void DrawImageOpItem::DumpItems(std::string& out) const
+{
+    out += "[px:" + std::to_string(px_) + " py:" + std::to_string(py_);
+    out += " SamplingOptions";
+    samplingOptions_.Dump(out);
+    out += " Image";
+    image_->Dump(out);
+    out += "]";
 }
 
 /* DrawImageRectOpItem */
@@ -1138,6 +1221,21 @@ void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+}
+
+void DrawImageRectOpItem::DumpItems(std::string& out) const
+{
+    out += "[Src";
+    src_.Dump(out);
+    out += " Dst";
+    src_.Dump(out);
+    out += " Sampling";
+    sampling_.Dump(out);
+    out += " constraint:" + std::to_string(static_cast<int>(constraint_));
+    out += " Image";
+    image_->Dump(out);
+    out += " isForegraund:" + std::string((isForeground_ ? "true" : "false"));
+    out += "]";
 }
 
 /* DrawPictureOpItem */

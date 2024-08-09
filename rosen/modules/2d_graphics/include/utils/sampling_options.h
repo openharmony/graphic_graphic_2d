@@ -16,6 +16,8 @@
 #ifndef SAMPLING_OPTIONS_H
 #define SAMPLING_OPTIONS_H
 
+#include <string>
+
 #include "utils/drawing_macros.h"
 
 namespace OHOS {
@@ -43,6 +45,13 @@ struct CubicResampler {
     {
         return { 0.0f, 1 / 2.0f };
     }
+
+    inline void Dump(std::string& out) const
+    {
+        out += "[cubicCoffB:" + std::to_string(cubicCoffB);
+        out += " cubicCoffC:" + std::to_string(cubicCoffB);
+        out += "]";
+    }
 };
 
 class DRAWING_API SamplingOptions {
@@ -62,6 +71,8 @@ public:
 
     friend inline bool operator==(const SamplingOptions& a, const SamplingOptions& b);
     friend inline bool operator!=(const SamplingOptions& a, const SamplingOptions& b);
+
+    inline void Dump(std::string& out) const;
 
 private:
     bool useCubic;
@@ -116,6 +127,16 @@ inline bool operator==(const SamplingOptions& a, const SamplingOptions& b)
 inline bool operator!=(const SamplingOptions& a, const SamplingOptions& b)
 {
     return !(a == b);
+}
+
+inline void SamplingOptions::Dump(std::string& out) const
+{
+    out += "[useCubic:" + std::string((useCubic ? "true" : "false"));
+    out += " cubic";
+    cubic.Dump(out);
+    out += " filterMode:" + std::to_string(static_cast<int>(filter));
+    out += " mipmapMode:" + std::to_string(static_cast<int>(mipmap));
+    out += "]";
 }
 } // namespace Drawing
 } // namespace Rosen
