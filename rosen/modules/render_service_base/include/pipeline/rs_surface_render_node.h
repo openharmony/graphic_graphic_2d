@@ -490,8 +490,10 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
-    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    static void SetAncoForceDoDirect(bool direct);
     bool GetAncoForceDoDirect() const;
+    void SetAncoFlags(int32_t flags);
+    int32_t GetAncoFlags() const;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -1453,7 +1455,9 @@ private:
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
 
-    bool ancoForceDoDirect_ = false;
+    std::atomic<int32_t> ancoFlags_ = 0;
+    static inline std::atomic<bool> ancoForceDoDirect_ = false;
+
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     Vector4f overDrawBufferNodeCornerRadius_;
 

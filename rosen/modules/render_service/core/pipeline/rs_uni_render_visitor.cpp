@@ -2192,9 +2192,12 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
 
 void RSUniRenderVisitor::UpdateHwcNodeEnable()
 {
+    bool ancoHasGpu = false;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
+
     auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
-        [this](RSBaseRenderNode::SharedPtr& nodePtr) {
+        [this, &ancoNodes, &ancoHasGpu](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
             return;
@@ -2213,8 +2216,20 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             }
             UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
+
+            if (hwcNodePtr->GetAncoFlags() & static_cast<int32_t>(AncoFlags::IS_ANCO_NODE)) {
+                ancoNodes.emplace_back(hwcNodePtr);
+                ancoHasGpu = (ancoHasGpu || hwcNodePtr->IsHardwareForcedDisabled());
+            }
         }
     });
+
+    if (ancoHasGpu) {
+        for (const auto& hwcNodePtr : ancoNodes) {
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
+        }
+    }
+
     PrevalidateHwcNode();
 }
 

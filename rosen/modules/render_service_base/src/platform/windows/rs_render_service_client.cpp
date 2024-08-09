@@ -571,5 +571,10 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
 {
     return false;
 }
+
+bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
