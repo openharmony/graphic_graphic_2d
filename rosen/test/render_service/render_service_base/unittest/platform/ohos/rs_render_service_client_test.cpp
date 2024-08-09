@@ -556,6 +556,17 @@ HWTEST_F(RSClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRefreshInfo Test
+ * @tc.desc: GetRefreshInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, GetRefreshInfo001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->GetRefreshInfo(-1), "");
+}
+
+/**
  * @tc.name: SetVirtualScreenResolution Test
  * @tc.desc: SetVirtualScreenResolution Test
  * @tc.type:FUNC
