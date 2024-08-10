@@ -554,39 +554,52 @@ HWTEST_F(RSScreenTest, PowerStatusDump_002, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetRogResolution_003
- * @tc.desc: SetRogResolution Test
+ * @tc.name: SetRogResolution_002
+ * @tc.desc: SetRogResolution Test, trigger branch -- hdiScreen_->SetScreenOverlayResolution(width, height) < 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, SetRogResolution_003, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetRogResolution_002, testing::ext::TestSize.Level1)
 {
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
     uint32_t width = 100;
     uint32_t height = 100;
-    ScreenId id = INVALID_SCREEN_ID;
-    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+
+    rsScreen->width_ = width + 1;
+    rsScreen->height_ = height + 1;
+
+    rsScreen->phyWidth_ = width + 1;
+    rsScreen->phyHeight_ = height + 1;
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
+
     rsScreen->SetRogResolution(width, height);
 }
 
 /*
  * @tc.name: ScreenCapabilityInit_001
- * @tc.desc: ScreenCapabilityInit
+ * @tc.desc: ScreenCapabilityInit Test, isVirtual_ = true
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
 HWTEST_F(RSScreenTest, ScreenCapabilityInit_001, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
-    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
     ASSERT_NE(nullptr, rsScreen);
 
-    rsScreen->isVirtual_ = true;
+    ASSERT_TRUE(rsScreen->IsVirtual());
     rsScreen->ScreenCapabilityInit();
 }
 
 /*
  * @tc.name: ScreenCapabilityInit_002
- * @tc.desc: ScreenCapabilityInit
+ * @tc.desc: ScreenCapabilityInit Test, isVirtual_ is false, hdiScreen_->GetScreenCapability return not
+ * GRAPHIC_DISPLAY_SUCCESS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -596,19 +609,27 @@ HWTEST_F(RSScreenTest, ScreenCapabilityInit_002, testing::ext::TestSize.Level1)
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(nullptr, rsScreen);
 
-    rsScreen->isVirtual_ = false;
+    ASSERT_FALSE(rsScreen->IsVirtual());
 
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     EXPECT_CALL(*hdiDeviceMock_, GetScreenCapability(id, _))
         .Times(1)
-        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
 
     rsScreen->ScreenCapabilityInit();
+    ASSERT_EQ(rsScreen->capability_.name, "test1");
+    ASSERT_EQ(rsScreen->capability_.type, GRAPHIC_DISP_INTF_HDMI);
+    ASSERT_EQ(rsScreen->capability_.phyWidth, 1921);
+    ASSERT_EQ(rsScreen->capability_.phyHeight, 1081);
+    ASSERT_EQ(rsScreen->capability_.supportLayers, 0);
+    ASSERT_EQ(rsScreen->capability_.virtualDispCount, 0);
+    ASSERT_EQ(rsScreen->capability_.supportWriteBack, true);
+    ASSERT_EQ(rsScreen->capability_.propertyCount, 0);
 }
 
 /*
  * @tc.name: IsEnable_002
- * @tc.desc: IsEnable
+ * @tc.desc: IsEnable Test, id is valid and 4 conditions of hdiOutput_ nad producerSurface_
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -622,6 +643,8 @@ HWTEST_F(RSScreenTest, IsEnable_002, testing::ext::TestSize.Level1)
 
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(nullptr, rsScreen);
+    ASSERT_NE(rsScreen->id_, INVALID_SCREEN_ID);
+
     ASSERT_FALSE(rsScreen->IsEnable());
 
     rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
@@ -635,12 +658,12 @@ HWTEST_F(RSScreenTest, IsEnable_002, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetActiveMode_006
- * @tc.desc: SetActiveMode, IsVirtual() is false, modeId >= supportedModes_.size()
+ * @tc.name: SetActiveMode_002
+ * @tc.desc: SetActiveMode Test, IsVirtual() is false, modeId >= supportedModes_.size()
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, SetActiveMode_006, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetActiveMode_002, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
@@ -655,13 +678,13 @@ HWTEST_F(RSScreenTest, SetActiveMode_006, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetActiveMode_002
- * @tc.desc: SetActiveMode, IsVirtual() is false, modeId < supportedModes_.size(),
+ * @tc.name: SetActiveMode_003
+ * @tc.desc: SetActiveMode Test, IsVirtual() is false, modeId < supportedModes_.size(),
  * hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) < 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, SetActiveMode_002, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetActiveMode_003, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
@@ -678,14 +701,14 @@ HWTEST_F(RSScreenTest, SetActiveMode_002, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetActiveMode_003
- * @tc.desc: SetActiveMode, IsVirtual() is false, modeId < supportedModes_.size(),
+ * @tc.name: SetActiveMode_004
+ * @tc.desc: SetActiveMode Test, IsVirtual() is false, modeId < supportedModes_.size(),
  * hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) > 0,
  * GetActiveMode() return {}
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, SetActiveMode_003, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetActiveMode_004, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
@@ -711,15 +734,15 @@ HWTEST_F(RSScreenTest, SetActiveMode_003, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetActiveMode_004
- * @tc.desc: SetActiveMode, IsVirtual() is false, modeId < supportedModes_.size(),
+ * @tc.name: SetActiveMode_005
+ * @tc.desc: SetActiveMode Test, IsVirtual() is false, modeId < supportedModes_.size(),
  * hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) > 0,
  * GetActiveMode() return not {}
  * only if one !=, into branch
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, SetActiveMode_004, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetActiveMode_005, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
@@ -746,15 +769,15 @@ HWTEST_F(RSScreenTest, SetActiveMode_004, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetActiveMode_005
- * @tc.desc: SetActiveMode, IsVirtual() is false, modeId < supportedModes_.size(),
+ * @tc.name: SetActiveMode_006
+ * @tc.desc: SetActiveMode Test, IsVirtual() is false, modeId < supportedModes_.size(),
  * hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId)) > 0,
  * GetActiveMode() return not {}
  * only if one !=, not into branch
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, SetActiveMode_005, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetActiveMode_006, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
@@ -781,35 +804,8 @@ HWTEST_F(RSScreenTest, SetActiveMode_005, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetRogResolution_002
- * @tc.desc: SetRogResolution， into branch 2 ,hdiScreen_->SetScreenOverlayResolution(width, height) < 0
- * @tc.type: FUNC
- * @tc.require: issueIAIRAN
- */
-HWTEST_F(RSScreenTest, SetRogResolution_002, testing::ext::TestSize.Level1)
-{
-    ScreenId id = 0;
-    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
-    ASSERT_NE(nullptr, rsScreen);
-
-    uint32_t width = 100;
-    uint32_t height = 100;
-
-    rsScreen->width_ = width + 1;
-    rsScreen->height_ = height + 1;
-
-    rsScreen->phyWidth_ = width + 1;
-    rsScreen->phyHeight_ = height + 1;
-
-    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(-1));
-
-    rsScreen->SetRogResolution(width, height);
-}
-
-/*
  * @tc.name: SetResolution_002
- * @tc.desc: SetRogResolution， IsVirtual() is false
+ * @tc.desc: SetResolution Test, IsVirtual() is false
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -825,7 +821,7 @@ HWTEST_F(RSScreenTest, SetResolution_002, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: GetActiveModePosByModeId_001
- * @tc.desc: GetActiveModePosByModeId
+ * @tc.desc: GetActiveModePosByModeId Test, trigger loop, return modeIndex
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -847,7 +843,7 @@ HWTEST_F(RSScreenTest, GetActiveModePosByModeId_001, testing::ext::TestSize.Leve
 
 /*
  * @tc.name: SetPowerStatus_005
- * @tc.desc: SetPowerStatus, hdiScreen_->SetScreenVsyncEnabled(true) != GRAPHIC_DISPLAY_SUCCESS,
+ * @tc.desc: SetPowerStatus Test, hdiScreen_->SetScreenVsyncEnabled(true) != GRAPHIC_DISPLAY_SUCCESS,
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -869,7 +865,7 @@ HWTEST_F(RSScreenTest, SetPowerStatus_005, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetPowerStatus_006
- * @tc.desc: SetPowerStatus, hdiScreen_->SetScreenVsyncEnabled(true) == GRAPHIC_DISPLAY_SUCCESS,
+ * @tc.desc: SetPowerStatus Test, hdiScreen_->SetScreenVsyncEnabled(true) == GRAPHIC_DISPLAY_SUCCESS,
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -891,7 +887,7 @@ HWTEST_F(RSScreenTest, SetPowerStatus_006, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: GetActiveMode_002
- * @tc.desc: GetActiveMode
+ * @tc.desc: GetActiveMode Test, trigger branch hdiScreen_ == nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -909,7 +905,7 @@ HWTEST_F(RSScreenTest, GetActiveMode_002, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: CapabilityTypeDump_001
- * @tc.desc: CapabilityTypeDump
+ * @tc.desc: CapabilityTypeDump Test, trigger all cases of switch
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -920,6 +916,7 @@ HWTEST_F(RSScreenTest, CapabilityTypeDump_001, testing::ext::TestSize.Level1)
     ASSERT_NE(nullptr, rsScreen);
 
     std::string dumpString = "";
+    rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_HDMI, dumpString);
     rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_LCD, dumpString);
     rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_BT1120, dumpString);
     rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_BT656, dumpString);
@@ -928,7 +925,7 @@ HWTEST_F(RSScreenTest, CapabilityTypeDump_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: PropDump_001
- * @tc.desc: PropDump
+ * @tc.desc: PropDump Test, trigger loop to AppendFormat
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -949,7 +946,7 @@ HWTEST_F(RSScreenTest, PropDump_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: PowerStatusDump_003
- * @tc.desc: PowerStatusDump
+ * @tc.desc: PowerStatusDump Test, trigger all cases of switch
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1001,7 +998,7 @@ HWTEST_F(RSScreenTest, PowerStatusDump_003, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: ScreenTypeDump_002
- * @tc.desc: ScreenTypeDump Test
+ * @tc.desc: ScreenTypeDump Test, trigger all cases of switch
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1028,7 +1025,7 @@ HWTEST_F(RSScreenTest, ScreenTypeDump_002, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: ResizeVirtualScreen_001
- * @tc.desc: ResizeVirtualScreen
+ * @tc.desc: ResizeVirtualScreen Test, not virtual, return directly
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1038,12 +1035,14 @@ HWTEST_F(RSScreenTest, ResizeVirtualScreen_001, testing::ext::TestSize.Level1)
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
     ASSERT_NE(nullptr, rsScreen);
 
+    ASSERT_FALSE(rsScreen->IsVirtual());
+
     rsScreen->ResizeVirtualScreen(100, 100);
 }
 
 /*
  * @tc.name: SetScreenBacklight_002
- * @tc.desc: SetScreenBacklight
+ * @tc.desc: SetScreenBacklight Test, trigger branch -- SetScreenBacklight(level) < 0, return directly
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1061,7 +1060,7 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_002, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: GetScreenBacklight_001
- * @tc.desc: GetScreenBacklight, hdiScreen_->GetScreenBacklight(level) < 0
+ * @tc.desc: GetScreenBacklight Test, hdiScreen_->GetScreenBacklight(level) < 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1080,7 +1079,7 @@ HWTEST_F(RSScreenTest, GetScreenBacklight_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: GetScreenSupportedColorGamuts_002
- * @tc.desc: GetScreenSupportedColorGamuts
+ * @tc.desc: GetScreenSupportedColorGamuts Test, cover conditions: mode.size() =? 0 when not virtual
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1102,7 +1101,7 @@ HWTEST_F(RSScreenTest, GetScreenSupportedColorGamuts_002, testing::ext::TestSize
 
 /*
  * @tc.name: GetScreenColorGamut_001
- * @tc.desc: GetScreenColorGamut, IsVirtual() return false and if (supportedPhysicalColorGamuts_.size() == 0)
+ * @tc.desc: GetScreenColorGamut Test, IsVirtual() return false and if (supportedPhysicalColorGamuts_.size() == 0)
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1120,7 +1119,7 @@ HWTEST_F(RSScreenTest, GetScreenColorGamut_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenColorGamut_002
- * @tc.desc: SetScreenColorGamut
+ * @tc.desc: SetScreenColorGamut Test, when modeIdx < 0, expect INVALID_ARGUMENTS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1136,7 +1135,7 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_002, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenColorGamut_003
- * @tc.desc: SetScreenColorGamut
+ * @tc.desc: SetScreenColorGamut Test, trigger branch: modeIdx >= hdiMode.size(), expect INVALID_ARGUMENTS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1166,7 +1165,7 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_003, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenColorGamut_004
- * @tc.desc: SetScreenColorGamut
+ * @tc.desc: SetScreenColorGamut Test, not virtual, expect SUCCESS.
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1198,7 +1197,7 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_004, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenColorGamut_005
- * @tc.desc: SetScreenColorGamut
+ * @tc.desc: SetScreenColorGamut Test, not virtual, expect HDI_ERROR.
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1232,7 +1231,7 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_005, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenGamutMap_003
- * @tc.desc: SetScreenGamutMap
+ * @tc.desc: SetScreenGamutMap Test, not virtual, expect SUCCESS.
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1251,7 +1250,7 @@ HWTEST_F(RSScreenTest, SetScreenGamutMap_003, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: GetScreenGamutMap_001
- * @tc.desc: GetScreenGamutMap， hdiScreen_->GetScreenGamutMap(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
+ * @tc.desc: GetScreenGamutMap Test, hdiScreen_->GetScreenGamutMap(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1274,7 +1273,7 @@ HWTEST_F(RSScreenTest, GetScreenGamutMap_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetVirtualMirrorScreenCanvasRotation_001
- * @tc.desc: SetVirtualMirrorScreenCanvasRotation
+ * @tc.desc: SetVirtualMirrorScreenCanvasRotation Test, not virtual, expect false.
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1289,7 +1288,7 @@ HWTEST_F(RSScreenTest, SetVirtualMirrorScreenCanvasRotation_001, testing::ext::T
 
 /*
  * @tc.name: GetScaleMode_001
- * @tc.desc: GetScaleMode
+ * @tc.desc: GetScaleMode Test, get scaleMode_
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1306,7 +1305,7 @@ HWTEST_F(RSScreenTest, GetScaleMode_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: GetScreenSupportedHDRFormats_002
- * @tc.desc: GetScreenSupportedHDRFormats, IsVirtual() return  false, hdrFormats.size() == 0
+ * @tc.desc: GetScreenSupportedHDRFormats Test, IsVirtual() return  false, hdrFormats.size() == 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1322,7 +1321,7 @@ HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_002, testing::ext::TestSize.
 }
 /*
  * @tc.name: GetScreenSupportedHDRFormats_003
- * @tc.desc: GetScreenSupportedHDRFormats, IsVirtual() return  false, hdrFormats.size() != 0
+ * @tc.desc: GetScreenSupportedHDRFormats Test, IsVirtual() return  false, hdrFormats.size() != 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1339,7 +1338,7 @@ HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_003, testing::ext::TestSize.
 
 /*
  * @tc.name: GetScreenHDRFormat_001
- * @tc.desc: GetScreenHDRFormat, IsVirtual() return false, supportedPhysicalHDRFormats_.size() == 0
+ * @tc.desc: GetScreenHDRFormat Test, IsVirtual() return false, supportedPhysicalHDRFormats_.size() == 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1356,7 +1355,7 @@ HWTEST_F(RSScreenTest, GetScreenHDRFormat_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenHDRFormat_002
- * @tc.desc: SetScreenHDRFormat, modeIdx < 0
+ * @tc.desc: SetScreenHDRFormat Test, modeIdx < 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1372,7 +1371,7 @@ HWTEST_F(RSScreenTest, SetScreenHDRFormat_002, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenHDRFormat_003
- * @tc.desc: SetScreenHDRFormat, modeIdx > 0, IsVirtual() return false,modeIdx <
+ * @tc.desc: SetScreenHDRFormat Test, modeIdx > 0, IsVirtual() return false,modeIdx <
  * static_cast<int32_t>(hdrCapability_.formats.size())
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
@@ -1392,7 +1391,7 @@ HWTEST_F(RSScreenTest, SetScreenHDRFormat_003, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: GetScreenSupportedColorSpaces_002
- * @tc.desc: GetScreenSupportedColorSpaces, IsVirtual() return false, colorSpaces.size() == 0
+ * @tc.desc: GetScreenSupportedColorSpaces Test, IsVirtual() return false, colorSpaces.size() == 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1414,7 +1413,7 @@ HWTEST_F(RSScreenTest, GetScreenSupportedColorSpaces_002, testing::ext::TestSize
 
 /*
  * @tc.name: GetScreenSupportedColorSpaces_003
- * @tc.desc: GetScreenSupportedColorSpaces, IsVirtual() return false, colorSpaces.size() != 0
+ * @tc.desc: GetScreenSupportedColorSpaces Test, IsVirtual() return false, colorSpaces.size() != 0
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1431,7 +1430,7 @@ HWTEST_F(RSScreenTest, GetScreenSupportedColorSpaces_003, testing::ext::TestSize
 }
 /*
  * @tc.name: SetScreenColorSpace_002
- * @tc.desc: SetScreenColorSpace, iter == COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end()
+ * @tc.desc: SetScreenColorSpace Test, iter == COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end()
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1447,7 +1446,7 @@ HWTEST_F(RSScreenTest, SetScreenColorSpace_002, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenColorSpace_003
- * @tc.desc: SetScreenColorSpace, iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual true,it ==
+ * @tc.desc: SetScreenColorSpace Test, iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual true,it ==
  * supportedVirtualColorGamuts_.end()
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
@@ -1466,7 +1465,7 @@ HWTEST_F(RSScreenTest, SetScreenColorSpace_003, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenColorSpace_004
- * @tc.desc: SetScreenColorSpace,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
+ * @tc.desc: SetScreenColorSpace Test,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
  * hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) != GRAPHIC_DISPLAY_SUCCESS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
@@ -1488,7 +1487,7 @@ HWTEST_F(RSScreenTest, SetScreenColorSpace_004, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenColorSpace_005
- * @tc.desc: SetScreenColorSpace,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
+ * @tc.desc: SetScreenColorSpace Test,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
  * hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
  * it == hdiMode.end()
  * @tc.type: FUNC
@@ -1513,15 +1512,15 @@ HWTEST_F(RSScreenTest, SetScreenColorSpace_005, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetScreenColorSpace_007
- * @tc.desc: SetScreenColorSpace,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
+ * @tc.name: SetScreenColorSpace_006
+ * @tc.desc: SetScreenColorSpace Test,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
  * hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
  * it != hdiMode.end()
  * result == GRAPHIC_DISPLAY_SUCCESS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, SetScreenColorSpace_007, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetScreenColorSpace_006, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
@@ -1543,15 +1542,15 @@ HWTEST_F(RSScreenTest, SetScreenColorSpace_007, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetScreenColorSpace_006
- * @tc.desc: SetScreenColorSpace,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
+ * @tc.name: SetScreenColorSpace_007
+ * @tc.desc: SetScreenColorSpace Test,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
  * hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
  * it != hdiMode.end()
  * result != GRAPHIC_DISPLAY_SUCCESS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, SetScreenColorSpace_006, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetScreenColorSpace_007, testing::ext::TestSize.Level1)
 {
     ScreenId id = 0;
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
@@ -1576,7 +1575,7 @@ HWTEST_F(RSScreenTest, SetScreenColorSpace_006, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetBlackList_001
- * @tc.desc: SetBlackList
+ * @tc.desc: SetBlackList Test
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1592,7 +1591,7 @@ HWTEST_F(RSScreenTest, SetBlackList_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetCastScreenEnableSkipWindow_001
- * @tc.desc: SetCastScreenEnableSkipWindow
+ * @tc.desc: SetCastScreenEnableSkipWindow Test
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1607,7 +1606,7 @@ HWTEST_F(RSScreenTest, SetCastScreenEnableSkipWindow_001, testing::ext::TestSize
 
 /*
  * @tc.name: GetCastScreenEnableSkipWindow_001
- * @tc.desc: GetCastScreenEnableSkipWindow
+ * @tc.desc: GetCastScreenEnableSkipWindow Test
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1623,7 +1622,7 @@ HWTEST_F(RSScreenTest, GetCastScreenEnableSkipWindow_001, testing::ext::TestSize
 
 /*
  * @tc.name: GetBlackList_001
- * @tc.desc: GetBlackList
+ * @tc.desc: GetBlackList Test
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1640,7 +1639,7 @@ HWTEST_F(RSScreenTest, GetBlackList_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenConstraint_001
- * @tc.desc: SetScreenConstraint, IsVirtual is true
+ * @tc.desc: SetScreenConstraint Test, IsVirtual is true
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1659,7 +1658,7 @@ HWTEST_F(RSScreenTest, SetScreenConstraint_001, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenConstraint_002
- * @tc.desc: SetScreenConstraint, IsVirtual is  fasle, hdiScreen_ == nullptr
+ * @tc.desc: SetScreenConstraint Test, IsVirtual is  fasle, hdiScreen_ == nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1679,7 +1678,7 @@ HWTEST_F(RSScreenTest, SetScreenConstraint_002, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenConstraint_003
- * @tc.desc: SetScreenConstraint, IsVirtual is  fasle, hdiScreen_ != nullptr
+ * @tc.desc: SetScreenConstraint Test, IsVirtual is  fasle, hdiScreen_ != nullptr
  * result == GRAPHIC_DISPLAY_SUCCESS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
@@ -1706,7 +1705,7 @@ HWTEST_F(RSScreenTest, SetScreenConstraint_003, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetScreenConstraint_004
- * @tc.desc: SetScreenConstraint, IsVirtual is  fasle, hdiScreen_ != nullptr
+ * @tc.desc: SetScreenConstraint Test, IsVirtual is  fasle, hdiScreen_ != nullptr
  * result != GRAPHIC_DISPLAY_SUCCESS
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
@@ -1733,7 +1732,7 @@ HWTEST_F(RSScreenTest, SetScreenConstraint_004, testing::ext::TestSize.Level1)
 
 /*
  * @tc.name: SetVirtualScreenStatus_001
- * @tc.desc: SetVirtualScreenStatus, IsVirtual false
+ * @tc.desc: SetVirtualScreenStatus Test, IsVirtual false
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1748,7 +1747,7 @@ HWTEST_F(RSScreenTest, SetVirtualScreenStatus_001, testing::ext::TestSize.Level1
 
 /*
  * @tc.name: SetVirtualScreenStatus_002
- * @tc.desc: SetVirtualScreenStatus, IsVirtual false
+ * @tc.desc: SetVirtualScreenStatus Test, IsVirtual false
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
@@ -1763,7 +1762,7 @@ HWTEST_F(RSScreenTest, SetVirtualScreenStatus_002, testing::ext::TestSize.Level1
 
 /*
  * @tc.name: GetVirtualScreenStatus_001
- * @tc.desc: GetVirtualScreenStatus
+ * @tc.desc: GetVirtualScreenStatus Test
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
