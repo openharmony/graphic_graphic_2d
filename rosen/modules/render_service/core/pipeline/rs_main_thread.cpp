@@ -1738,7 +1738,7 @@ void RSMainThread::SetUiFrameworkTypeList()
 
 void RSMainThread::UpdateUiFrameworkTypeIdleState(uint64_t timestamp)
 {
-    if (frameRateMgr_ == nullptr && context_ == nullptr) {
+    if (frameRateMgr_ == nullptr || context_ == nullptr) {
         return;
     }
     frameRateMgr_->GetIdleDetector().ProcessUnknownUIFwkIdleState(context_->GetNeededDirtyNodes(), timestamp)
@@ -1766,7 +1766,6 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
                                             appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                             idleTimerExpiredFlag = idleTimerExpiredFlag_] () mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
-        UpdateUiFrameworkTypeIdleState(timestamp);
         if (rsFrameRateLinker != nullptr) {
             rsCurrRange.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
             HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsCurrRange);
@@ -1777,7 +1776,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         if (frameRateMgr == nullptr) {
             return;
         }
-        frameRateMgr->ProcessUnknownUIFwkIdleState(activeNodesInRootMap, timestamp);
+        UpdateUiFrameworkTypeIdleState(timestamp);
         // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
         if (frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
             frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers,
