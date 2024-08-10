@@ -65,6 +65,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsAncoCalling(codeEnumTypeName_ + "::SET_ANCO_FORCE_DO_DIRECT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_GAMESTATE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_GAMESTATE");
+            break;
+        }
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_COLOR_INVERSION_CONFIG): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POINTER_COLOR_INVERSION_CONFIG");

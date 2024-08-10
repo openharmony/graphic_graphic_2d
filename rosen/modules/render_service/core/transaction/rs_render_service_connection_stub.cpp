@@ -1309,6 +1309,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    " REPORT_EVENT_GAMESTATE");
+                return ERR_INVALID_STATE;
+            }
             GameStateData info;
             ReadGameStateDataRs(info, data);
             ReportGameStateData(info);
