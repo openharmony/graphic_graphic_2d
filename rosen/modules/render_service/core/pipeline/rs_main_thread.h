@@ -679,7 +679,7 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
-    bool initUiFwkTable_ = fasle;
+    bool initUiFwkTable_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

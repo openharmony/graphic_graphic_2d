@@ -1780,7 +1780,8 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     HgmTaskHandleThread::Instance().PostTask([timestamp, info, activeNodesInRootMap, rsCurrRange = rsCurrRange_,
                                             rsFrameRateLinker = rsFrameRateLinker_,
                                             appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
-                                            idleTimerExpiredFlag = idleTimerExpiredFlag_] () mutable {
+                                            idleTimerExpiredFlag = idleTimerExpiredFlag_,
+                                            uiFrameworkDirtyNodeName = uiFrameworkDirtyNodeName] () mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
         if (rsFrameRateLinker != nullptr) {
             rsCurrRange.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
@@ -1794,7 +1795,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         }
         if (!uiFrameworkDirtyNodeName.empty()) {
             for (auto [uiFwkDirtyNodeName, pid] : uiFrameworkDirtyNodeName) {
-                UpdateSurfaceTime(uiFwkDirtyNodeName, timestamp, pid, UIFWKType::FROM_UNKNOWN);
+                frameRateMgr->UpdateSurfaceTime(uiFwkDirtyNodeName, timestamp, pid, UIFWKType::FROM_UNKNOWN);
             }
         }
         // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready

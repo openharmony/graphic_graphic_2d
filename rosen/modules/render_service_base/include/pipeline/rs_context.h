@@ -167,7 +167,7 @@ public:
 
     void UpdateUiFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
     {
-        uiFrameworkDirtyNodes_.emplace_back(dirtyNode);
+        uiFrameworkDirtyNodes_.emplace_back(uiFwkDirtyNode);
     }
 
     std::vector<std::weak_ptr<RSRenderNode>>& GetUiFrameworkDirtyNodes()
