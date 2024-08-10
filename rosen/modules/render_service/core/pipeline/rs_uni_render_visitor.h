@@ -202,6 +202,7 @@ private:
     bool CheckScreenPowerChange() const;
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
+    bool CheckLuminanceStatusChange() const;
     bool IsFirstFrameOfPartialRender() const;
     bool IsWatermarkFlagChanged() const;
     bool IsDisplayZoomIn() const;

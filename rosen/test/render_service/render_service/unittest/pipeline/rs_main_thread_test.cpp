@@ -2853,20 +2853,6 @@ HWTEST_F(RSMainThreadTest, ReleaseSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: RefreshEntireDisplay
- * @tc.desc: RefreshEntireDisplay Test
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSMainThreadTest, RefreshEntireDisplay, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->RefreshEntireDisplay();
-    ASSERT_EQ(mainThread->IsCurtainScreenUsingStatusChanged(), true);
-}
-
-/**
  * @tc.name: SetCurtainScreenUsingStatus
  * @tc.desc: SetCurtainScreenUsingStatus Test
  * @tc.type: FUNC
@@ -2881,6 +2867,21 @@ HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus, TestSize.Level2)
 
     // restore curtain screen status
     mainThread->SetCurtainScreenUsingStatus(false);
+}
+
+/**
+ * @tc.name: SetLuminanceChangingStatus
+ * @tc.desc: SetLuminanceChangingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, SetLuminanceChangingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_EQ(mainThread->IsLuminanceChanged(), false);
+    mainThread->SetLuminanceChangingStatus(true);
+    ASSERT_EQ(mainThread->IsLuminanceChanged(), true);
 }
 
 /**
