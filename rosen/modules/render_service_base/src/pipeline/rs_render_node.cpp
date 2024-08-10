@@ -3568,10 +3568,10 @@ void RSRenderNode::SetNodeName(const std::string& nodeName)
     if (!context) {
         return;
     }
-    auto& uiFrameworkTypeList = context->GetUiFrameworkTypeList();
+    auto& uiFrameworkTypeTable = context->GetUiFrameworkTypeTable();
     auto validNodeName = nodeName.size() > MAX_NODE_NAME_LEN ?
         nodeName.substr(0, MAX_NODE_NAME_LEN) : nodeName;
-    if (std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), validNodeName)) {
+    if (std::count(uiFrameworkTypeTable.begin(), uiFrameworkTypeTable.end(), validNodeName)) {
         context->UpdateUiFrameworkDirtyNodes(weak_from_this());
     }
 }

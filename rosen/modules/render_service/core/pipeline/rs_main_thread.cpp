@@ -1727,23 +1727,23 @@ bool RSMainThread::IsRequestedNextVSync()
     return false;
 }
 
-void RSMainThread::SetUiFrameworkTypeList()
+void RSMainThread::SetUiFrameworkTypeTable()
 {
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-    if (!initState_ && frameRateMgr != nullptr && context_ != nullptr) {
-        initState_ = true;
-        context_->SetUiFrameworkTypeList(frameRateMgr_->GetIdleDetector().GetUiFrameworkTypeList());
+    if (!initUiFwkTable_ && frameRateMgr != nullptr && context_ != nullptr) {
+        initUiFwkTable_ = true;
+        context_->SetUiFrameworkTypeTable(frameRateMgr->GetIdleDetector().GetUiFrameworkTypeTable());
     }
 }
 
 std::unordered_map<std::string, pid_t> RSMainThread::GetUiFrameworkDirtyNodes()
 {
     if (context_ == nullptr) {
-        return "";
+        return {};
     }
     auto& neededDirtyNodes = context_->GetUiFrameworkDirtyNodes();
     if(neededDirtyNodes.empty()) {
-        return "";
+        return {};
     }
     std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeName;
     for (auto iter = neededDirtyNodes.begin(); iter != neededDirtyNodes.end();) {
@@ -1771,7 +1771,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
         return;
     }
-    SetUiFrameworkTypeList();
+    SetUiFrameworkTypeTable();
     auto uiFrameworkDirtyNodeName = GetUiFrameworkDirtyNodes();
     // Check and processing refresh rate task.
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();

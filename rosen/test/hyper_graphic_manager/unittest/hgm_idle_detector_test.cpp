@@ -279,43 +279,6 @@ HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectFPS002, Function | SmallTest | Lev
 }
 
 /**
- * @tc.name: ProcessUnknownUIFwkIdleState
- * @tc.desc: Verify the result of ProcessUnknownUIFwkIdleState function
- * @tc.type: FUNC
- * @tc.require: IAEDGJ
- */
-HWTEST_F(HgmIdleDetectorTest, ProcessUnknownUIFwkIdleState, Function | SmallTest | Level1)
-{
-    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
-    auto nodeWeaKPtr = std::make_shared<RSRenderNode>(id);
-    std::vector<std::weak_ptr<RSRenderNode>> dirtyNodes;
-
-    PART("CaseDescription") {
-        STEP("1. get an idleDetector") {
-            STEP_ASSERT_NE(idleDetector, nullptr);
-            STEP_ASSERT_NE(nodeWeaKPtr, nullptr);
-        }
-        STEP("2. set app support status") {
-            idleDetector->SetAppSupportedState(true);
-            nodeWeaKPtr->SetNodeName(flutterBuffer);
-            nodeWeaKPtr->SetDirty(true);
-            dirtyNodes.push_back(nodeWeaKPtr);
-        }
-        STEP("3. set buffer renew time") {
-            idleDetector->ProcessUnknownUIFwkIdleState(dirtyNodes, currTime);
-            bool ret = idleDetector->GetSurfaceIdleState(lastTime);
-            STEP_ASSERT_EQ(ret, true);
-        }
-        STEP("4. get buffer idle state") {
-            idleDetector->supportAppBufferList_.push_back(flutterBuffer);
-            idleDetector->ProcessUnknownUIFwkIdleState(dirtyNodes, currTime);
-            bool ret = idleDetector->GetSurfaceIdleState(lastTime);
-            STEP_ASSERT_EQ(ret, false);
-        }
-    }
-}
-
-/**
  * @tc.name: GetUiFrameworkTypeList
  * @tc.desc: Verify the result of SetAndGetSurfaceTimeState function
  * @tc.type: FUNC

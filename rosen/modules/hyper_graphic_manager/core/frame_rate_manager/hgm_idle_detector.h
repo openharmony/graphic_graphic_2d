@@ -79,7 +79,7 @@ public:
     {
         supportAppBufferList_ = supportAppBufferList;
     }
-    std::vector<std::string>& GetUiFrameworkTypeList()
+    std::vector<std::string>& GetUiFrameworkTypeTable()
     {
         return supportAppBufferList_;
     }

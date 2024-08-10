@@ -155,19 +155,19 @@ public:
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
 
-    void SetUiFrameworkTypeList(const std::vector<std::string>& list)
+    void SetUiFrameworkTypeTable(const std::vector<std::string>& table)
     {
-        uiFrameworkTypeList_ = list;
+        uiFrameworkTypeTable_ = table;
     }
 
-    const std::vector<std::string>& GetUiFrameworkTypeList() const
+    const std::vector<std::string>& GetUiFrameworkTypeTable() const
     {
-        return uiFrameworkTypeList_;
+        return uiFrameworkTypeTable_;
     }
 
     void UpdateUiFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
     {
-        uiFrameworkDirtyNodes_.push_back(dirtyNode);
+        uiFrameworkDirtyNodes_.emplace_back(dirtyNode);
     }
 
     std::vector<std::weak_ptr<RSRenderNode>>& GetUiFrameworkDirtyNodes()
@@ -179,7 +179,7 @@ private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
     RSRenderNodeMap nodeMap;
-    std::vector<std::string> uiFrameworkTypeList_;
+    std::vector<std::string> uiFrameworkTypeTable_;
     std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
     RSRenderInteractiveImplictAnimatorMap interactiveImplictAnimatorMap_;
