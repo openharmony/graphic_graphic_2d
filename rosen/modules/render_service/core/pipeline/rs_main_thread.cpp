@@ -362,7 +362,6 @@ void RSMainThread::Init()
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
-        RS_LOGI("DoComposition start time:%{public}" PRIu64, curTime_);
         ConsumeAndUpdateAllNodes();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
@@ -404,7 +403,6 @@ void RSMainThread::Init()
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
         ConnectChipsetVsyncSer();
 #endif
-        RS_LOGI("DoComposition end time:%{public}" PRIu64, curTime_);
         RS_PROFILER_ON_FRAME_END();
     };
     static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc =
@@ -1267,7 +1265,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode buffer size changed",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                    RS_LOGI("ConsumeAndUpdateAllNodes name:%{public}s id:%{public}" PRIu64" buffer size changed, "
+                    RS_LOGD("ConsumeAndUpdateAllNodes name:%{public}s id:%{public}" PRIu64" buffer size changed, "
                         "buffer:[%{public}d, %{public}d], preBuffer:[%{public}d, %{public}d]",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId(),
                         buffer ? buffer->GetSurfaceBufferWidth() : 0, buffer ? buffer->GetSurfaceBufferHeight() : 0,
@@ -1950,7 +1948,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
     RS_TRACE_NAME("DoDirectComposition");
-    RS_LOGI("DoDirectComposition time:%{public}" PRIu64, curTime_);
     auto displayNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(children->front());
     if (!displayNode ||
         displayNode->GetCompositeType() != RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {

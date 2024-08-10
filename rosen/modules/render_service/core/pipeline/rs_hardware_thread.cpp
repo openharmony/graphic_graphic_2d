@@ -183,7 +183,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu, size: %lu",
             param.rate, param.frameTimestamp, layers.size());
-        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers rate:%{public}d, now:%{public}" PRIu64 ", size:%{public}zu",
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers rate:%{public}d, now:%{public}" PRIu64 ", size:%{public}zu",
             param.rate, param.frameTimestamp, layers.size());
         ExecuteSwitchRefreshRate(param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
@@ -314,7 +314,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
-        RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
         lastScreenId = id;
         int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
