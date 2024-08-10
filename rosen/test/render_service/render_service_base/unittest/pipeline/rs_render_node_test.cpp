@@ -22,7 +22,9 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
@@ -1318,6 +1320,50 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
     std::string outTest3 = "";
     nodeTest->DumpSubClassNode(outTest3);
     EXPECT_EQ(outTest3, "");
+}
+
+/**
+ * @tc.name: RSSurfaceRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
+	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0");
+}
+
+/**
+ * @tc.name: RSDisplayRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", skipLayer: 0");
+}
+
+/**
+ * @tc.name: RSRootRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSRootRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto renderNode = std::make_shared<RSRootRenderNode>(0);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", Visible: 1, Size: [-inf, -inf], EnableRender: 1");
 }
 
 /**
