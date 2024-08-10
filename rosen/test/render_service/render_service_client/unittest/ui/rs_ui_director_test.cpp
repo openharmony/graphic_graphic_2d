@@ -454,6 +454,14 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
     bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
     director->GoForeground();
     director->GoBackground();
+    bool flag = false;
+    if (director->isUniRenderEnabled_) {
+        flag = true;
+        director->isUniRenderEnabled_ = false;
+    }
+    director->GoForeground();
+    director->GoBackground();
+    director->isUniRenderEnabled_ = flag;
     ASSERT_TRUE(res);
 }
 
