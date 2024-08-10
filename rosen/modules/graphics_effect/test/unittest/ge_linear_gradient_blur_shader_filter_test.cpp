@@ -537,7 +537,7 @@ HWTEST_F(GELinearGradientBlurShaderFilterTest, DrawMaskLinearGradientBlur001, Te
 
     // image is null
     EXPECT_EQ(filter->DrawMaskLinearGradientBlur(nullptr, canvas_,
-        filter->linearGradientBlurPara_->LinearGradientBlurFilter_, nullptr, dst_), nullptr);
+        filter->linearGradientBlurPara_->linearGradientBlurFilter_, nullptr, dst_), nullptr);
 }
 
 } // namespace GraphicsEffectEngine
