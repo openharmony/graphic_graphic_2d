@@ -21,43 +21,43 @@ namespace Rosen {
 
 namespace {
 constexpr static uint8_t COLOR_CHANNEL = 4; // 4 len of rgba
-
-static std::shared_ptr<GEMagnifierParams> GetMagnifierParams()
-{
-    std::shared_ptr<GEMagnifierParams> para = std::make_shared<GEMagnifierParams>();
-    if (!para) {
-        return nullptr;
-    }
-    para->factor_ = 1.4f;           // 1.4 magnifier
-    para->width_ = 364.0f;          // 364.0 width
-    para->height_ = 234.0f;         // 234.0 height
-    para->borderWidth_ = 6.5f;      // 6.5 borderWidth
-    para->cornerRadius_ = 117.0f;   // 117.0 cornerRadius
-    para->shadowOffsetX_ = 0.0f;    // 0.0 shadowOffsetX
-    para->shadowOffsetY_ = 26.0f;   // 26.0 shadowOffsetY
-    para->shadowSize_ = 32.5f;      // 32.5 shadowSize
-    para->shadowStrength_ = 0.08f;  // 0.08 shadowStrength
-    para->gradientMaskColor1_ = 0x80808000; // 0x80808000 gradientMaskColor1
-    para->gradientMaskColor2_ = 0x80808026; // 0x80808026 gradientMaskColor2
-    para->outerContourColor1_ = 0xF0F0F0CC; // 0xF0F0F0CC outerContourColor1
-    para->outerContourColor2_ = 0xFFFFFFCC; // 0xFFFFFFCC outerContourColor2
-    return para;
-}
 } // namespace
 
 std::shared_ptr<Drawing::RuntimeEffect> GEMagnifierShaderFilter::g_magnifierShaderEffect = nullptr;
 
-GEMagnifierShaderFilter::GEMagnifierShaderFilter() {}
+GEMagnifierShaderFilter::GEMagnifierShaderFilter(const Drawing::GEMagnifierShaderFilterParams& params)
+{
+    magnifierPara_ = std::make_shared<GEMagnifierParams>();
+    if (!magnifierPara_) {
+        return;
+    }
+    magnifierPara_->factor_ = params.factor;
+    magnifierPara_->width_ = params.width;
+    magnifierPara_->height_ = params.height;
+    magnifierPara_->cornerRadius_ = params.cornerRadius;
+    magnifierPara_->borderWidth_ = params.borderWidth;
+    magnifierPara_->shadowOffsetX_ = params.shadowOffsetX;
+    magnifierPara_->shadowOffsetY_ = params.shadowOffsetY;
+    magnifierPara_->shadowSize_ = params.shadowSize;
+    magnifierPara_->shadowStrength_ = params.shadowStrength;
+    magnifierPara_->gradientMaskColor1_ = params.gradientMaskColor1;
+    magnifierPara_->gradientMaskColor2_ = params.gradientMaskColor2;
+    magnifierPara_->outerContourColor1_ = params.outerContourColor1;
+    magnifierPara_->outerContourColor2_ = params.outerContourColor2;
+    magnifierPara_->rotateDegree_ = params.rotateDegree;
+}
 
 std::shared_ptr<Drawing::Image> GEMagnifierShaderFilter::ProcessImage(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
 {
-    if (image == nullptr) {
+    if (image == nullptr || magnifierPara_ == nullptr) {
         LOGE("GEMagnifierShaderFilter::ProcessImage image or para is null");
         return image;
     }
 
     Drawing::Matrix matrix;
+    matrix.Rotate(magnifierPara_->rotateDegree_, src.GetLeft() + src.GetWidth() / 2.0f,
+        src.GetTop() + src.GetHeight() / 2.0f); // 2.0 center of rect
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
     float imageWidth = image->GetWidth();
@@ -68,7 +68,10 @@ std::shared_ptr<Drawing::Image> GEMagnifierShaderFilter::ProcessImage(Drawing::C
         return image;
     }
 
-    auto resultImage = builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
+    Drawing::Matrix invMatrix;
+    invMatrix.Rotate(-magnifierPara_->rotateDegree_, src.GetLeft() + src.GetWidth() / 2.0f,
+        src.GetTop() + src.GetHeight() / 2.0f); // 2.0 center of rect
+    auto resultImage = builder->MakeImage(canvas.GetGPUContext().get(), &invMatrix, image->GetImageInfo(), false);
     if (resultImage == nullptr) {
         LOGE("GEMagnifierShaderFilter::ProcessImage resultImage is null");
         return image;
@@ -87,8 +90,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> GEMagnifierShaderFilter::MakeMagn
         }
     }
 
-    auto magnifierPara = GetMagnifierParams();
-    if (magnifierPara == nullptr) {
+    if (magnifierPara_ == nullptr) {
         return nullptr;
     }
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder =
@@ -96,23 +98,23 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> GEMagnifierShaderFilter::MakeMagn
     builder->SetChild("imageShader", imageShader);
     builder->SetUniform("iResolution", imageWidth, imageHeight);
 
-    builder->SetUniform("factor", magnifierPara->factor_);
-    builder->SetUniform("borderWidth", magnifierPara->borderWidth_);
-    builder->SetUniform("cornerRadius", magnifierPara->cornerRadius_);
-    builder->SetUniform("size", magnifierPara->width_, magnifierPara->height_);
+    builder->SetUniform("factor", magnifierPara_->factor_);
+    builder->SetUniform("size", magnifierPara_->width_, magnifierPara_->height_);
+    builder->SetUniform("cornerRadius", magnifierPara_->cornerRadius_);
+    builder->SetUniform("borderWidth", magnifierPara_->borderWidth_);
 
-    builder->SetUniform("shadowOffset", magnifierPara->shadowOffsetX_, magnifierPara->shadowOffsetY_);
-    builder->SetUniform("shadowSize", magnifierPara->shadowSize_);
-    builder->SetUniform("shadowStrength", magnifierPara->shadowStrength_);
+    builder->SetUniform("shadowOffset", magnifierPara_->shadowOffsetX_, magnifierPara_->shadowOffsetY_);
+    builder->SetUniform("shadowSize", magnifierPara_->shadowSize_);
+    builder->SetUniform("shadowStrength", magnifierPara_->shadowStrength_);
 
     float maskColor1[COLOR_CHANNEL] = { 0.0f };
     float maskColor2[COLOR_CHANNEL] = { 0.0f };
     float outColor1[COLOR_CHANNEL] = { 0.0f };
     float outColor2[COLOR_CHANNEL] = { 0.0f };
-    ConvertToRgba(magnifierPara->gradientMaskColor1_, maskColor1, COLOR_CHANNEL);
-    ConvertToRgba(magnifierPara->gradientMaskColor2_, maskColor2, COLOR_CHANNEL);
-    ConvertToRgba(magnifierPara->outerContourColor1_, outColor1, COLOR_CHANNEL);
-    ConvertToRgba(magnifierPara->outerContourColor2_, outColor2, COLOR_CHANNEL);
+    ConvertToRgba(magnifierPara_->gradientMaskColor1_, maskColor1, COLOR_CHANNEL);
+    ConvertToRgba(magnifierPara_->gradientMaskColor2_, maskColor2, COLOR_CHANNEL);
+    ConvertToRgba(magnifierPara_->outerContourColor1_, outColor1, COLOR_CHANNEL);
+    ConvertToRgba(magnifierPara_->outerContourColor2_, outColor2, COLOR_CHANNEL);
     builder->SetUniform("gradientMaskColor1", maskColor1, COLOR_CHANNEL);
     builder->SetUniform("gradientMaskColor2", maskColor2, COLOR_CHANNEL);
     builder->SetUniform("outerContourColor1", outColor1, COLOR_CHANNEL);

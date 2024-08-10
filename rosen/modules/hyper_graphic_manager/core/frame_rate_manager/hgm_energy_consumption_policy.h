@@ -36,7 +36,6 @@ public:
     void GetUiIdleFps(FrameRateRange& rsRange);
 
 private:
-    std::recursive_mutex mutex_;
     // <rateType, <isEnable, idleFps>>
     std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     bool isAnimationEnergyAssuranceEnable_ = false;
@@ -47,6 +46,7 @@ private:
     // Unit: ms
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;
+    std::unordered_map<int32_t, bool> energyAssuranceState_;
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;
@@ -54,8 +54,9 @@ private:
     HgmEnergyConsumptionPolicy(const HgmEnergyConsumptionPolicy&&) = delete;
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&) = delete;
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&&) = delete;
-    void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
+    static void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
     void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
+    void PrintLog(FrameRateRange &rsRange, bool state, int idleFps);
 };
 } // namespace OHOS::Rosen
 

@@ -68,7 +68,7 @@ public:
 
     void SetParentPid(const int32_t parentPid);
 
-    bool IsRemoteCommandEmpty();
+    uint32_t GetTransactionDataIndex();
 
 private:
     RSTransactionProxy();
@@ -104,6 +104,7 @@ private:
     bool needSync_ { false };
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
+    uint32_t transactionDataIndex_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

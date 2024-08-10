@@ -16,6 +16,8 @@
 #include "hgm_one_shot_timer.h"
 #include <sstream>
 #include "hgm_log.h"
+#include "hgm_task_handle_thread.h"
+
 namespace OHOS::Rosen {
 namespace {
 using namespace std::chrono_literals;
@@ -75,7 +77,7 @@ void HgmOneShotTimer::Start()
 
 void HgmOneShotTimer::Stop()
 {
-    if (handler_ == nullptr || handler_->IsIdle()) {
+    if (handler_ == nullptr) {
         return;
     }
     stopFlag_.store(true);
@@ -129,7 +131,7 @@ void HgmOneShotTimer::Loop()
             }
         }
         if (expiredFlag && expiredCallback_) {
-            expiredCallback_();
+            HgmTaskHandleThread::Instance().PostTask(expiredCallback_);
         }
     }
 }
@@ -162,5 +164,62 @@ std::string HgmOneShotTimer::Dump() const
     std::ostringstream stream;
     stream << interval_.count() << "ms";
     return stream.str();
+}
+
+// ===== HgmSimpleTimer =====
+HgmSimpleTimer::HgmSimpleTimer(std::string name, const Interval& interval,
+    const ResetCallback& resetCallback, const ExpiredCallback& expiredCallback,
+    std::unique_ptr<ChronoSteadyClock> clock)
+    : name_(std::move(name)),
+      interval_(interval),
+      expiredCallback_(expiredCallback),
+      clock_(std::move(clock))
+{
+    handler_ = HgmTaskHandleThread::Instance().CreateHandler();
+}
+
+void HgmSimpleTimer::Start()
+{
+    if (handler_ == nullptr) {
+        return;
+    }
+    if (running_.exchange(true)) {
+        Reset();
+    } else {
+        handler_->PostTask([this] () { Loop(); }, name_, interval_.count());
+    }
+}
+
+void HgmSimpleTimer::Stop()
+{
+    if (running_.exchange(false) && handler_ != nullptr) {
+        handler_->RemoveTask(name_);
+    }
+}
+
+void HgmSimpleTimer::Reset()
+{
+    if (running_.load() && clock_ != nullptr) {
+        resetTimePoint_.store(clock_->Now());
+    }
+}
+
+void HgmSimpleTimer::Loop()
+{
+    auto delay = std::chrono::duration_cast<std::chrono::milliseconds>(
+        resetTimePoint_.load() + interval_ - clock_->Now());
+    if (delay > ZERO) {
+        // reset
+        if (running_.load() && handler_ != nullptr) {
+            handler_->PostTask([this] () { Loop(); }, name_, delay.count());
+            return;
+        }
+    } else {
+        // cb
+        if (expiredCallback_ != nullptr) {
+            handler_->PostTask(expiredCallback_);
+        }
+    }
+    running_.store(false);
 }
 } // namespace OHOS::Rosen

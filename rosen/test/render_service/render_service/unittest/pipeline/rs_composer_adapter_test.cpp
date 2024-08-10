@@ -58,8 +58,6 @@ void RSComposerAdapterTest::SetUpTestCase()
     screenManager_ = CreateOrGetScreenManager();
     screenManager_->MockHdiScreenConnected(rsScreen_);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
-    std::vector<uint32_t> layersId = {0};
-    EXPECT_CALL(*hdiDeviceMock_, GetScreenReleaseFence(_, layersId, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
 }
@@ -438,17 +436,18 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     RSDisplayNodeConfig config;
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSDisplayRenderNode node(nodeId, config);
+    auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
-        node.GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetConsumer(consumer);
+        node->GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
-        node.GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
-    composerAdapter_->CreateLayer(node);
+        node->GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
+    composerAdapter_->CreateLayer(*node);
 }
 
 /**

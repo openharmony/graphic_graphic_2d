@@ -98,9 +98,8 @@ void RSUniRenderComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& l
 
 void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const
 {
-    auto& preBuffer = surfaceHandler.GetPreBuffer();
-    info.preBuffer = preBuffer.buffer;
-    preBuffer.Reset();
+    info.preBuffer = surfaceHandler.GetPreBuffer();
+    surfaceHandler.ResetPreBuffer();
 }
 
 // private func, for RSDisplayRenderNode
@@ -149,8 +148,10 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
         matrix.Get(Drawing::Matrix::Index::PERSP_1), matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     info.gravity = static_cast<int32_t>(Gravity::RESIZE);
 
-    info.displayNit = DEFAULT_BRIGHTNESS;
-    info.brightnessRatio = NO_RATIO;
+    const auto curDisplayParam = static_cast<RSDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
+    if (curDisplayParam) {
+        info.brightnessRatio = curDisplayParam->GetBrightnessRatio();
+    }
     return info;
 }
 
@@ -1190,7 +1191,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
             return nullptr;
         }
     }
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true) ||
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer RSDisplayRenderNodeDrawable consume buffer failed. %{public}d",
             !surfaceHandler->GetBuffer());
@@ -1232,7 +1233,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     }
     RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " available buffer:%{public}d",
         node.GetId(), surfaceHandler->GetAvailableBufferCount());
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true) ||
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;

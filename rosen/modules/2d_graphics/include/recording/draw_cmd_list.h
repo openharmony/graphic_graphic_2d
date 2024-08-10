@@ -84,7 +84,11 @@ public:
 
         uint32_t offset = opAllocator_.AddrToOffset(op);
         if (lastOpItemOffset_.has_value()) {
+#ifdef CROSS_PLATFORM
+            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.__get()));
+#else
             auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+#endif
             if (lastOpItem != nullptr) {
                 lastOpItem->SetNextOpItemOffset(offset);
             }
@@ -183,6 +187,8 @@ public:
     void UpdateNodeIdToPicture(NodeId nodeId);
 
     size_t CountTextBlobNum();
+
+    void Dump(std::string& out);
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);

@@ -622,6 +622,24 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSFlyOutParamsModifier : public RSForegroundModifier {
+public:
+    explicit RSFlyOutParamsModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSFlyOutParamsModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+ 
+class RSC_EXPORT RSFlyOutDegreeModifier : public RSForegroundModifier {
+public:
+    explicit RSFlyOutDegreeModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSFlyOutDegreeModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSFgBrightnessRatesModifier : public RSForegroundModifier {
 public:
     explicit RSFgBrightnessRatesModifier(const std::shared_ptr<RSPropertyBase>& property);

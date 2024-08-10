@@ -76,7 +76,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .bundleName = node->bundleName_,
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
-        .isSync = isWindow,
+        .isSync = isWindow && surfaceNodeConfig.isSync,
         .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
     };
     config.nodeType = type;
@@ -791,10 +791,10 @@ void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
     }
 }
 
-void RSSurfaceNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
+void RSSurfaceNode::SetAncoFlags(int32_t flags)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetAncoForceDoDirect>(GetId(), ancoForceDoDirect);
+        std::make_unique<RSSurfaceNodeSetAncoFlags>(GetId(), flags);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);

@@ -127,7 +127,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetAiInvertCoef();
     RSSystemProperties::GetSkipForAlphaZeroEnabled();
     RSSystemProperties::GetSkipGeometryNotChangeEnabled();
-    RSSystemProperties::GetQuickPrepareEnabled();
     RSSystemProperties::GetRenderParallelEnabled();
     RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled();
     RSSystemProperties::GetBlurExtraFilterEnabled();

@@ -93,6 +93,16 @@ public:
         return isUIFirstDebugEnable_;
     }
 
+    void SetUIFirstCurrentFrameCanSkipFirstWait(bool canSkip)
+    {
+        isUIFirstCurrentFrameCanSkipFirstWait_ = canSkip;
+    }
+
+    bool GetUIFirstCurrentFrameCanSkipFirstWait() const
+    {
+        return isUIFirstCurrentFrameCanSkipFirstWait_;
+    }
+
     void SetTimestamp(uint64_t timestamp)
     {
         timestamp_ = timestamp;
@@ -103,9 +113,9 @@ public:
         return timestamp_;
     }
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
-        return selfDrawingNodes_;
+        return selfDrawables_;
     }
 
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
@@ -265,7 +275,7 @@ public:
         return hasCaptureImg_;
     }
 
-    void SetBlackList(std::unordered_set<NodeId> blackList)
+    void SetBlackList(const std::unordered_set<NodeId>& blackList)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         blackList_ = blackList;
@@ -380,12 +390,13 @@ private:
     bool isOpDropped_ = false;
     bool isOcclusionEnabled_ = false;
     bool isUIFirstDebugEnable_ = false;
+    bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;

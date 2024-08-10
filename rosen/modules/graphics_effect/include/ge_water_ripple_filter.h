@@ -39,13 +39,15 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst) override;
  
 private:
-    bool InitWaterRippleEffect();
-    bool InitWaterRipplePcEffect();
+    std::shared_ptr<Drawing::RuntimeEffect> GetWaterRippleEffectSM(const int rippleMode);
+    std::shared_ptr<Drawing::RuntimeEffect> GetWaterRippleEffectSS();
     float progress_ = 0.0f;
-    float waveCount_ = 2.0f;
+    uint32_t waveCount_ = 2;
     float rippleCenterX_ = 0.5f;
     float rippleCenterY_ = 0.7f;
-    inline static std::string shaderString = R"(
+    uint32_t rippleMode_ = 1;
+
+    inline static const std::string shaderStringSMsend = R"(
         uniform shader image;
         uniform half2 iResolution;
         uniform half progress;
@@ -106,8 +108,130 @@ private:
             return half4(color, 1.0);
         }
     )";
+    
+    inline static const std::string shaderStringSSmutual = R"(
+        uniform shader image;
+        uniform vec2 iResolution;
+        uniform float progress;
+        uniform float waveCount;
+        uniform vec2 rippleCenter;
+        // small
+        const float s_basicSlope = 0.5;
+        const float s_ampSupress = 0.04;
+        const float s_waveFreq = 31.0;
+        float s_wavePropRatio = 2.;
+        const float s_ampSupArea = 0.3;
+        const float s_intensity = 0.15;
+        const float s_decayExp = 4. ;
+        const float s_luminance = 60.;
+        const vec3 s_lightDirect = vec3(0., -4., -0.2);
+        // big
+        const float b_ampSupress = 0.01;
+        const float b_waveFreq = 7.0;
+        float b_wavePropRatio = 6.9;
+        const float b_intensity = 0.15;
+        const float b_decayExp = 4.;
+        const float b_luminance = 30.;
 
-    inline static std::string shaderPcString = R"(
+        const vec3 waveAxis = vec3(2., 3., 5.);
+
+        vec3 lightBlend(vec3 colorA, vec3 colorB)
+        {
+            vec3 oneVec = vec3(1.);
+            return oneVec - ((oneVec - colorA) * (oneVec - colorB));
+        }
+
+        float calcWave(float count, float freq, float dis)
+        {
+            float axisVal = (count == 1.) ? waveAxis.x : (count == 2.) ? waveAxis.y : waveAxis.z;
+            float axisPoint = -(axisVal * 3.1416) / freq;
+            float waveForm = smoothstep(axisPoint * 2., axisPoint, dis) * smoothstep(0., axisPoint, dis);
+            float downCond = (count == 3.) ? -1. : 1.;
+            return sin(freq * dis) * waveForm * downCond;
+        }
+
+        float calcBLight(float dis, float freq)
+        {
+            float currentX = pow(dis + (6.2832 / freq), 2.);
+            return 1.2 * exp(-55. * currentX);
+        }
+
+        float calcSLight(float dis, float freq, float yShift)
+        {
+            float pivot1 = pow(dis + (9.4248 / freq) - 0.14, 2.);
+            float pivot2 = pow(dis + (9.4248 / freq) + 0.01, 2.);
+            return 2. * yShift * (exp(-1000. * pivot2) + exp(-1000. * pivot1));
+        }
+
+        vec2 waveGenerator(float propDis, float t, float count, float freq, float prop, float yShift)
+        {
+            float dis = propDis - prop * t;
+            float h = 1e-3;
+            float d1 = dis - h;
+            float d2 = dis + h;
+            float waveVal = (calcWave(count, freq, d2) - calcWave(count, freq, d1)) / (2. * h);
+            float lightAdjust = (freq < 10.) ? calcBLight(dis, freq) : calcSLight(dis, freq, yShift);
+            return vec2(waveVal, lightAdjust);
+        }
+
+        vec4 main(vec2 fragCoord)
+        {
+            float s_waveCount = waveCount;
+            vec2 b_rippleCenter = rippleCenter;
+            float shortEdge = min(iResolution.x, iResolution.y);
+            vec2 uv = fragCoord.xy / iResolution.xy;
+            vec2 uvHomo = fragCoord.xy / shortEdge;
+            vec2 resRatio = iResolution.xy / shortEdge;
+
+            float b_progSlope = 0.4;
+            float s_progSlope = s_basicSlope + 0.1 * s_waveCount;
+            float b_t = b_progSlope * (progress + 0.4);
+            // float s_t = fract(s_progSlope * progress);
+            float s_t =  s_progSlope * (progress + 0.11);
+
+            float veloDecay = 1. - 0.04 * (smoothstep(0.2, 0.16, progress) + smoothstep(0.2, 1.2, progress));
+            b_wavePropRatio *= veloDecay;
+            s_wavePropRatio *= veloDecay;
+
+            vec2 b_waveCenter = b_rippleCenter * resRatio;
+            vec2 s_waveCenter = vec2(0.5, 0.) * resRatio;
+            float b_propDis = distance(uvHomo, b_waveCenter);
+            float s_propDis = distance(uvHomo, s_waveCenter);
+            vec2 b_vec = uvHomo - b_waveCenter;
+            vec2 s_vec = uvHomo - s_waveCenter;
+            float b_ampDecayByDis = (b_propDis < 1.9) ? clamp(pow((1.9 - b_propDis), b_decayExp), 0., 1.): 0.;
+            float s_ampDecayByDis = (s_propDis < 0.7) ? clamp(pow((0.7 - s_propDis), s_decayExp), 0., 1.): 0.;
+
+            float s_ampSupCenter = smoothstep(0., s_ampSupArea, s_propDis);
+            vec2 b_waveRes = waveGenerator(b_propDis, b_t, 1., b_waveFreq, b_wavePropRatio, 1.);
+            vec2 s_waveRes = waveGenerator(
+                s_propDis, s_t, s_waveCount, s_waveFreq, s_wavePropRatio, abs(normalize(s_vec)[1]));
+            float b_intense = b_waveRes[0] * b_ampDecayByDis * b_ampSupress;
+            float s_intense = s_waveRes[0] * s_ampDecayByDis * s_ampSupCenter * s_ampSupress;
+            float b_Prime = b_waveRes[1] * b_ampDecayByDis * b_ampSupress;
+            float s_Prime = s_waveRes[1] * s_ampDecayByDis * s_ampSupCenter * s_ampSupress;
+            vec2 b_circles = normalize(b_vec) * b_intense;
+            vec2 s_circles = normalize(s_vec) * s_intense;
+
+            vec3 b_norm = vec3(b_circles, b_intense);
+            vec3 s_norm = vec3(s_circles, s_intense);
+
+            vec2 warp = (b_intensity * b_norm.xy + s_intensity * s_norm.xy) * smoothstep(0., 0.07, progress);
+            vec2 expandUV = (uv - warp) * iResolution.xy;
+            vec3 color = image.eval(expandUV).rgb;
+
+            float b_light = b_luminance * clamp(b_Prime, 0., 1.) * smoothstep(0., 0.125, progress);;
+            float s_light = s_luminance * clamp(s_Prime, 0., 1.);
+
+            color += s_light;
+            color = lightBlend(color, vec3(b_light));
+            // color = lightBlend(color, vec3(s_light));
+
+            return vec4(color, 1.0);
+        }
+    )";
+
+    inline static const std::string shaderStringSMrecv = R"(
         uniform shader image;
         uniform vec2 iResolution;
         uniform float progress;

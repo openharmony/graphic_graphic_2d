@@ -43,6 +43,7 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::WATER_RIPPLE, "RSWaterRippleFilter" },
     { RSFilter::COMPOUND_EFFECT, "CompoundEffect" },
     { RSFilter::MAGNIFIER, "RSMagnifierFilter" },
+    { RSFilter::FLY_OUT, "FlyOut" },
 };
 }
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash)
@@ -307,8 +308,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     if (kawaseShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
         auto radius = tmpFilter->GetRadius();
-        Drawing::HpsBlurParameter hpsParam = Drawing::HpsBlurParameter(src, dst, radius,
-            saturationForHPS_, brightnessForHPS_);
+        auto hpsParam = Drawing::HpsBlurParameter(src, dst, radius, saturationForHPS_, brightnessForHPS_);
         if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
             HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam, brush.GetColor().GetAlphaF())) {
             RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
@@ -321,6 +321,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
             canvas.AttachBrush(brush);
             canvas.DrawImageRect(*blurImage, src, dst, Drawing::SamplingOptions());
             canvas.DetachBrush();
+            RS_OPTIONAL_TRACE_NAME("ApplyKawaseBlur " + std::to_string(radius));
         }
         return;
     }

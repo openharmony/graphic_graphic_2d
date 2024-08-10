@@ -69,7 +69,9 @@ enum RSNodeCommandType : uint16_t {
 
     SET_NODE_NAME,
     UPDATE_MODIFIER_MOTION_BLUR_PTR,
+    UPDATE_MODIFIER_MAGNIFIER_PTR,
     UPDATE_MODIFIER_WATER_RIPPLE,
+    UPDATE_MODIFIER_FLY_OUT,
     REMOVE_ALL_MODIFIERS,
 };
 
@@ -189,6 +191,10 @@ ADD_COMMAND(RSUpdatePropertyWaterRipple,
     ARG(RS_NODE, UPDATE_MODIFIER_WATER_RIPPLE,
         RSNodeCommandHelper::UpdateModifier<RSWaterRipplePara>,
         NodeId, RSWaterRipplePara, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyFlyOut,
+    ARG(RS_NODE, UPDATE_MODIFIER_FLY_OUT,
+        RSNodeCommandHelper::UpdateModifier<RSFlyOutPara>,
+        NodeId, RSFlyOutPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyLinearGradientBlurPara,
     ARG(RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSLinearGradientBlurPara>>,
@@ -197,6 +203,10 @@ ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
     ARG(RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyMagnifierPara,
+    ARG(RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMagnifierParams>>,
+        NodeId, std::shared_ptr<RSMagnifierParams>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateModifier<std::vector<std::shared_ptr<EmitterUpdater>>>,

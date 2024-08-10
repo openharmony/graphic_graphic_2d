@@ -17,6 +17,7 @@
 #define RS_HARDWARE_COMPOSE_DISABLED_REASON_COLLECTION_H
 
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 
@@ -35,7 +36,8 @@ enum HwcDisabledReasons {
     DISABLED_BY_INVALID_PARAM = 7,
     DISABLED_BY_PREVALIDATE = 8,
     DISABLED_BY_SRC_PIXEL = 9,
-    DISABLED_REASON_LENGTH = 10,
+    DISABLED_BY_BUFFER_NONMATCH = 10,
+    DISABLED_REASON_LENGTH = 11,
 };
 
 struct HwcDisabledReasonInfo {

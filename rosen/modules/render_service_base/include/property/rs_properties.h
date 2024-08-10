@@ -30,11 +30,11 @@
 #include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_color_picker_cache_task.h"
-#include "render/rs_aibar_filter.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
+#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_particles_drawable.h"
@@ -271,6 +271,12 @@ public:
     void SetWaterRippleProgress(const float& progress);
     float GetWaterRippleProgress() const;
 
+    void SetFlyOutParams(const std::optional<RSFlyOutPara>& params);
+    std::optional<RSFlyOutPara> GetFlyOutParams() const;
+    void SetFlyOutDegree(const float& degree);
+    float GetFlyOutDegree() const;
+    void CreateFlyOutShaderFilter();
+
     void SetBgBrightnessRates(const Vector4f& rates);
     Vector4f GetBgBrightnessRates() const;
     void SetBgBrightnessSaturation(const float& saturation);
@@ -286,7 +292,7 @@ public:
 
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
-    void SetMagnifierParams(const std::optional<Vector2f>& para);
+    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
     const std::shared_ptr<RSLinearGradientBlurPara>& GetLinearGradientBlurPara() const;
     const std::vector<std::shared_ptr<EmitterUpdater>>& GetEmitterUpdater() const;
@@ -294,7 +300,7 @@ public:
     void IfLinearGradientBlurInvalid();
     const std::shared_ptr<RSFilter>& GetFilter() const;
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
-    const std::optional<Vector2f>& GetMagnifierPara() const;
+    const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool NeedFilter() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
@@ -462,6 +468,7 @@ public:
     bool IsFgBrightnessValid() const;
     bool IsBgBrightnessValid() const;
     bool IsWaterRippleValid() const;
+    bool IsFlyOutValid() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
 
@@ -596,6 +603,9 @@ private:
     std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
     float waterRippleProgress_ = 0.0f;
 
+    std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
+    float flyOutDegree_ = 0.0f;
+
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
 
@@ -616,6 +626,7 @@ private:
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
+    std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
     std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdater_;
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
@@ -678,7 +689,6 @@ private:
     std::optional<Color> colorBlend_;
     std::optional<RectI> lastRect_;
     std::optional<Vector2f> greyCoef_;
-    std::optional<Vector2f> magnifierPara_;
 
     // OnApplyModifiers hooks
     void CheckEmptyBounds();

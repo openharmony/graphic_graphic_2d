@@ -37,7 +37,7 @@ public:
         return *instance_;
     }
     bool SendFrameRates(const std::unordered_map<int, uint32_t>& rates);
-    void SendFrameRatesToRss(const std::unordered_map<int, uint32_t>& rates);
+    void SendFrameRatesToRss(const std::unordered_map<int, uint32_t> rates);
 private:
     FrameRateReport() = default;
     static FrameRateReport* instance_;

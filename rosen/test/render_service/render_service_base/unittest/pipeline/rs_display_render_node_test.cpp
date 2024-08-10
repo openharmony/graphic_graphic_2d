@@ -253,23 +253,6 @@ HWTEST_F(RSDisplayRenderNodeTest, GetBootAnimationTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRootIdOfCaptureWindow
- * @tc.desc:  test results of SetRootIdOfCaptureWindow
- * @tc.type:FUNC
- * @tc.require:issueI981R9
- */
-HWTEST_F(RSDisplayRenderNodeTest, SetRootIdOfCaptureWindow, TestSize.Level2)
-{
-    auto childNode = std::make_shared<RSRenderNode>(id, context);
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
-    ASSERT_NE(childNode, nullptr);
-    ASSERT_NE(displayNode, nullptr);
-
-    displayNode->SetRootIdOfCaptureWindow(childNode->GetId());
-    ASSERT_EQ(displayNode->GetRootIdOfCaptureWindow(), childNode->GetId());
-}
-
-/**
  * @tc.name: CollectSurface
  * @tc.desc:  test results of CollectSurface
  * @tc.type:FUNC
@@ -415,5 +398,49 @@ HWTEST_F(RSDisplayRenderNodeTest, GetSortedChildren, TestSize.Level1)
     displayNode->isNeedWaitNewScbPid_ = true;
     displayNode->GetSortedChildren();
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetDisappearedSurfaceRegionBelowCurrent001
+ * @tc.desc: test results of GetDisappearedSurfaceRegionBelowCurrent
+ * @tc.type:FUNC
+ * @tc.require: issuesIA8LNR
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto region = displayNode->GetDisappearedSurfaceRegionBelowCurrent(INVALID_NODEID);
+    EXPECT_TRUE(region.IsEmpty());
+}
+
+/**
+ * @tc.name: GetDisappearedSurfaceRegionBelowCurrent002
+ * @tc.desc: test results of GetDisappearedSurfaceRegionBelowCurrent
+ * @tc.type:FUNC
+ * @tc.require: issuesIA8LNR
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+
+    constexpr NodeId bottomSurfaceNodeId = 1;
+    const RectI bottomSurfacePos(0, 0, 1, 1);
+    const std::pair<NodeId, RectI> bottomSurface{ bottomSurfaceNodeId, bottomSurfacePos };
+    constexpr NodeId topSurfaceNodeId = 2;
+    const RectI topSurfacePos(0, 0, 2, 2);
+    const std::pair<NodeId, RectI> topSurface{ topSurfaceNodeId, topSurfacePos };
+
+    displayNode->UpdateSurfaceNodePos(topSurface.first, topSurface.second);
+    displayNode->AddSurfaceNodePosByDescZOrder(topSurface.first, topSurface.second);
+    displayNode->UpdateSurfaceNodePos(bottomSurface.first, bottomSurface.second);
+    displayNode->AddSurfaceNodePosByDescZOrder(bottomSurface.first, bottomSurface.second);
+    displayNode->ClearCurrentSurfacePos();
+    displayNode->UpdateSurfaceNodePos(topSurface.first, topSurface.second);
+    displayNode->AddSurfaceNodePosByDescZOrder(topSurface.first, topSurface.second);
+
+    auto region = displayNode->GetDisappearedSurfaceRegionBelowCurrent(topSurface.first);
+    EXPECT_TRUE(region.GetBound() == bottomSurface.second);
 }
 } // namespace OHOS::Rosen

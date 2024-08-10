@@ -927,13 +927,14 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
 }
 
 bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
-    RSSurfaceHandler& surfaceHandler, bool isDisplaySurface, uint64_t vsyncTimestamp)
+    RSSurfaceHandler& surfaceHandler, const ControlBufferConsumeParam& param)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         // this node has no new buffer, try use cache.
         // if don't have cache, will not update and use old buffer.
         // display surface don't have cache, always use old buffer.
-        surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
+        surfaceHandler.ConsumeAndUpdateBuffer(
+            surfaceHandler.GetBufferFromCache(param.vsyncTimestamp, param.surfaceName));
         return true;
     }
     auto consumer = surfaceHandler.GetConsumer();
@@ -983,20 +984,24 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") no buffer to consume", surfaceHandler.GetNodeId());
         return false;
     }
-    if (isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
-        !RSSystemParameters::GetControlBufferConsumeEnabled()) {
-        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control disable), "
-            "buffer timestamp = %{public}" PRId64 " .", surfaceHandler.GetNodeId(), surfaceBuffer->timestamp);
+    bool directConsume = param.isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
+        !RSSystemParameters::GetControlBufferConsumeEnabled();
+    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
+            "directConsume[%{public}d], vysnc[%{public}" PRIu64 "], "
+            "buffer[timestamp:%{public}" PRId64 ", seq:%{public}" PRIu32 "].",
+            surfaceHandler.GetNodeId(), directConsume, param.vsyncTimestamp,
+            surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
+    RS_TRACE_NAME_FMT("surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, "
+            "directConsume[%d], vysnc[%" PRIu64 "], "
+            "buffer[timestamp:%" PRId64 ", seq:%" PRIu32 "].",
+            surfaceHandler.GetNodeId(), directConsume, param.vsyncTimestamp,
+            surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
+    if (directConsume) {
         surfaceHandler.ConsumeAndUpdateBuffer(*(surfaceBuffer.get()));
     } else {
-        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success(buffer control enable), "
-            "vysnc timestamp = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
-            surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
-        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success(buffer control enable), "
-            "vysnc timestamp = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
-            surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
-        surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
-        surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
+        surfaceHandler.CacheBuffer(*(surfaceBuffer.get()), param.surfaceName);
+        surfaceHandler.ConsumeAndUpdateBuffer(
+            surfaceHandler.GetBufferFromCache(param.vsyncTimestamp, param.surfaceName));
     }
     surfaceHandler.ReduceAvailableBuffer();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
@@ -1017,9 +1022,9 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
         return false;
     }
 
-    auto& preBuffer = surfaceHandler.GetPreBuffer();
-    if (preBuffer.buffer != nullptr) {
-        auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
+    auto preBuffer = surfaceHandler.GetPreBuffer();
+    if (preBuffer != nullptr) {
+        auto ret = consumer->ReleaseBuffer(preBuffer, surfaceHandler.GetPreBufferReleaseFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
@@ -1027,7 +1032,7 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
         }
         // reset prevBuffer if we release it successfully,
         // to avoid releasing the same buffer next frame in some situations.
-        preBuffer.Reset();
+        surfaceHandler.ResetPreBuffer();
     }
 
     return true;

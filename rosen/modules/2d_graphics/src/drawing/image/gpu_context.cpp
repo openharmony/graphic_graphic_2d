@@ -51,7 +51,9 @@ bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContext
 
 void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const
 {
-    impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
+    if (impl_ != nullptr) {
+        impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
+    }
 }
 
 void GPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
@@ -179,6 +181,11 @@ void GPUContext::RegisterPostFunc(const std::function<void(const std::function<v
 GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() const
 {
     return persistentCache_;
+}
+
+void GPUContext::VmaDefragment()
+{
+    impl_->VmaDefragment();
 }
 
 } // namespace Drawing

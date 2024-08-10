@@ -93,6 +93,16 @@ do {                                                                            
 } while (0)
 
 namespace Drawing {
+static void GetLooperPaint(const Paint& paint, Paint& looperPaint)
+{
+    looperPaint = paint;
+    std::shared_ptr looper = paint.GetLooper();
+    looperPaint.SetColor(looper->GetColor());
+    Filter filter = looperPaint.GetFilter();
+    filter.SetMaskFilter(looper->GetMaskFilter());
+    looperPaint.SetFilter(filter);
+}
+
 CoreCanvas::CoreCanvas() : impl_(ImplFactory::CreateCoreCanvasImpl())
 {
     defaultPaint_.SetAntiAlias(true);
@@ -571,19 +581,9 @@ bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurP
     return impl_->DrawBlurImage(image, blurParams);
 }
 
-std::array<int, 2> CoreCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParam)
+std::array<int, 2> CoreCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
 {
-    return impl_->CalcHpsBluredImageDimension(blurParam);
-}
-
-void CoreCanvas::GetLooperPaint(const Paint& paint, Paint& looperPaint)
-{
-    looperPaint = paint;
-    std::shared_ptr looper = paint.GetLooper();
-    looperPaint.SetColor(looper->GetColor());
-    Filter filter = looperPaint.GetFilter();
-    filter.SetMaskFilter(looper->GetMaskFilter());
-    looperPaint.SetFilter(filter);
+    return impl_->CalcHpsBluredImageDimension(blurParams);
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -26,6 +26,7 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "include/core/SkGraphics.h"
 #include "include/gpu/GrDirectContext.h"
+#include "static_factory.h"
 #include "surface.h"
 #include "sync_fence.h"
 #include "drawable/rs_display_render_node_drawable.h"
@@ -53,6 +54,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_uifirst_manager.h"
+#include "system/rs_system_parameters.h"
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
@@ -66,7 +68,6 @@ constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
 constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES = "AsyncFreeVMAMemoryBetweenFrames";
-constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES_DELAY = "AsyncFreeVMAMemoryBetweenFramesDelay";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -131,6 +132,7 @@ void RSUniRenderThread::InitGrContext()
     uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     if (!uniRenderEngine_) {
         RS_LOGE("uniRenderEngine_ is nullptr");
+        return;
     }
     uniRenderEngine_->Init();
 #ifdef RS_ENABLE_VK
@@ -140,12 +142,17 @@ void RSUniRenderThread::InitGrContext()
             RSUniRenderThread::Instance().PostImageReleaseTask(task);
         });
     }
+    if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        if (RSSystemProperties::IsFoldScreenFlag()) {
+            vmaOptimizeFlag_ = true;
+        }
+    }
 #endif
 }
 
 void RSUniRenderThread::Inittcache()
 {
-    if (system::GetBoolParameter("persist.sys.graphic.tcache.enable", true)) {
+    if (RSSystemParameters::GetTcacheEnabled()) {
         // enable cache
         mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
     }
@@ -154,10 +161,11 @@ void RSUniRenderThread::Inittcache()
 void RSUniRenderThread::Start()
 {
     runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     if (!runner_) {
         RS_LOGE("RSUniRenderThread Start runner null");
+        return;
     }
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
@@ -293,16 +301,20 @@ void RSUniRenderThread::Render()
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
+    if (vmaOptimizeFlag_) { // render this frame with vma cache on/off
+        std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
+        if (vmaCacheCount_ > 0) {
+            vmaCacheCount_--;
+            Drawing::StaticFactory::SetVmaCacheStatus(true);
+        } else {
+            Drawing::StaticFactory::SetVmaCacheStatus(false);
+        }
+    }
     Drawing::Canvas canvas;
     RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(canvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     PerfForBlurIfNeeded();
-
-    if (RSMainThread::Instance()->GetMarkRenderFlag() == false) {
-        RSMainThread::Instance()->SetFrameIsRender(true);
-    }
-    RSMainThread::Instance()->ResetMarkRenderFlag();
 }
 
 void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
@@ -333,8 +345,7 @@ void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
     std::vector<std::function<void()>> releaseTasks;
-    for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
-        auto drawable = surfaceNode->GetRenderDrawable();
+    for (const auto& drawable : renderThreadParams_->GetSelfDrawables()) {
         if (UNLIKELY(!drawable)) {
             continue;
         }
@@ -691,6 +702,9 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         auto screenManager_ = CreateOrGetScreenManager();
         screenManager_->ClearFrameBufferIfNeed();
         grContext->FlushAndSubmit(true);
+        if (this->vmaOptimizeFlag_) {
+            MemoryManager::VmaDefragment(grContext);
+        }
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         }
@@ -759,19 +773,11 @@ void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
     PostTask(
         [this]() {
             RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames");
-            GrDirectContext::asyncFreeVMAMemoryBetweenFrames(false);
+            GrDirectContext::asyncFreeVMAMemoryBetweenFrames([this]() -> bool {
+                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+            });
         },
         ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
-
-    RemoveTask(ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES_DELAY);
-    PostTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames after delaytime");
-            GrDirectContext::asyncFreeVMAMemoryBetweenFrames(true);
-        },
-        ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES_DELAY,
-        (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
-        AppExecFwk::EventQueue::Priority::LOW);
 }
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
@@ -825,6 +831,17 @@ uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
 void RSUniRenderThread::SetAcquireFence(sptr<SyncFence> acquireFence)
 {
     acquireFence_ = acquireFence;
+}
+
+void RSUniRenderThread::SetVmaCacheStatus(bool flag)
+{
+    static constexpr int MAX_VMA_CACHE_COUNT = 600;
+    RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
+    if (!vmaOptimizeFlag_) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
+    vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
 }
 } // namespace Rosen
 } // namespace OHOS

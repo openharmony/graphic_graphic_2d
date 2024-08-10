@@ -34,7 +34,6 @@
 #include "render/rs_grey_shader_filter.h"
 #include "render/rs_hps_blur_shader_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_linear_gradient_blur_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
@@ -42,6 +41,7 @@
 #include "render/rs_attraction_effect_filter.h"
 #include "src/core/SkOpts.h"
 #include "render/rs_water_ripple_shader_filter.h"
+#include "render/rs_fly_out_shader_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -177,6 +177,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetParticleNoiseFields({}); },         // PARTICLE_NOISE_FIELD
     [](RSProperties* prop) { prop->SetForegroundEffectRadius(0.f); },    // FOREGROUND_EFFECT_RADIUS
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
+    [](RSProperties* prop) { prop->SetFlyOutDegree(0.0f); },              // FLY_OUT_DEGREE
+    [](RSProperties* prop) { prop->SetFlyOutParams({}); },               // FLY_OUT_PARAMS
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
     [](RSProperties* prop) { prop->SetMagnifierParams({}); },            // MAGNIFIER_PARA
     [](RSProperties* prop) { prop->SetBackgroundBlurRadius(0.f); },      // BACKGROUND_BLUR_RADIUS
@@ -1378,12 +1380,12 @@ void RSProperties::SetWaterRippleProgress(const float& progress)
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 float RSProperties::GetWaterRippleProgress() const
 {
     return waterRippleProgress_;
 }
- 
+
 void RSProperties::SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params)
 {
     waterRippleParams_ = params;
@@ -1394,17 +1396,54 @@ void RSProperties::SetWaterRippleParams(const std::optional<RSWaterRipplePara>& 
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 std::optional<RSWaterRipplePara> RSProperties::GetWaterRippleParams() const
 {
     return waterRippleParams_;
 }
- 
+
 bool RSProperties::IsWaterRippleValid() const
 {
+    uint32_t WAVE_COUNT_MAX = 3;
+    uint32_t WAVE_COUNT_MIN = 1;
     return ROSEN_GE(waterRippleProgress_, 0.0f) && ROSEN_LE(waterRippleProgress_, 1.0f) &&
-           waterRippleParams_.has_value() && ROSEN_GE(waterRippleParams_->waveCount, 1.0f) &&
-           ROSEN_LE(waterRippleParams_->waveCount, 3.0f);
+           waterRippleParams_.has_value() && waterRippleParams_->waveCount >= WAVE_COUNT_MIN &&
+           waterRippleParams_->waveCount <= WAVE_COUNT_MAX;
+}
+
+void RSProperties::SetFlyOutDegree(const float& degree)
+{
+    flyOutDegree_ = degree;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetFlyOutDegree() const
+{
+    return flyOutDegree_;
+}
+
+void RSProperties::SetFlyOutParams(const std::optional<RSFlyOutPara>& params)
+{
+    flyOutParams_ = params;
+    if (params.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<RSFlyOutPara> RSProperties::GetFlyOutParams() const
+{
+    return flyOutParams_;
+}
+
+bool RSProperties::IsFlyOutValid() const
+{
+    return ROSEN_GE(flyOutDegree_, 0.0f) && ROSEN_LE(flyOutDegree_, 1.0f) && flyOutParams_.has_value();
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
@@ -1691,11 +1730,11 @@ void RSProperties::SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& par
     contentDirty_ = true;
 }
 
-void RSProperties::SetMagnifierParams(const std::optional<Vector2f>& para)
+void RSProperties::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
 {
     magnifierPara_ = para;
 
-    if (para.has_value()) {
+    if (para) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -1703,7 +1742,7 @@ void RSProperties::SetMagnifierParams(const std::optional<Vector2f>& para)
     contentDirty_ = true;
 }
 
-const std::optional<Vector2f>& RSProperties::GetMagnifierPara() const
+const std::shared_ptr<RSMagnifierParams>& RSProperties::GetMagnifierPara() const
 {
     return magnifierPara_;
 }
@@ -2326,6 +2365,13 @@ void RSProperties::CreateSphereEffectFilter()
     }
 }
 
+void RSProperties::CreateFlyOutShaderFilter()
+{
+    uint32_t flyMode = flyOutParams_->flyMode;
+    auto flyOutShaderFilter = std::make_shared<RSFlyOutShaderFilter>(flyOutDegree_, flyMode);
+    foregroundFilter_ = flyOutShaderFilter;
+}
+
 void RSProperties::CreateAttractionEffectFilter()
 {
     float canvasWidth = GetBoundsRect().GetWidth();
@@ -2914,7 +2960,7 @@ void RSProperties::GenerateLinearGradientBlurFilter()
 
 void RSProperties::GenerateMagnifierFilter()
 {
-    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara_->x_, magnifierPara_->y_);
+    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara_);
 
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(magnifierFilter);
     backgroundFilter_ = originalFilter;
@@ -2923,11 +2969,13 @@ void RSProperties::GenerateMagnifierFilter()
 
 void RSProperties::GenerateWaterRippleFilter()
 {
-    float waveCount = waterRippleParams_->waveCount;
+    uint32_t waveCount = waterRippleParams_->waveCount;
     float rippleCenterX = waterRippleParams_->rippleCenterX;
     float rippleCenterY = waterRippleParams_->rippleCenterY;
+    uint32_t rippleMode = waterRippleParams_->rippleMode;
     std::shared_ptr<RSWaterRippleShaderFilter> waterRippleFilter =
-        std::make_shared<RSWaterRippleShaderFilter>(waterRippleProgress_, waveCount, rippleCenterX, rippleCenterY);
+        std::make_shared<RSWaterRippleShaderFilter>(waterRippleProgress_, waveCount, rippleCenterX, rippleCenterY,
+            rippleMode);
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(waterRippleFilter);
     if (!backgroundFilter_) {
         backgroundFilter_ = originalFilter;
@@ -2944,7 +2992,7 @@ void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
         GenerateAIBarFilter();
-    } else if (magnifierPara_.has_value()) {
+    } else if (magnifierPara_ && ROSEN_GNE(magnifierPara_->factor_, 0.f)) {
         GenerateMagnifierFilter();
     } else if (IsBackgroundMaterialFilterValid()) {
         GenerateBackgroundMaterialBlurFilter();
@@ -4129,8 +4177,7 @@ void RSProperties::UpdateFilter()
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
-                  magnifierPara_.has_value();
+                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid();
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -4153,6 +4200,8 @@ void RSProperties::UpdateForegroundFilter()
         CreateSphereEffectFilter();
     } else if (IsAttractionValid()) {
         CreateAttractionEffectFilter();
+    } else if (IsFlyOutValid()) {
+        CreateFlyOutShaderFilter();
     } else if (GetShadowMask()) {
         float elevation = GetShadowElevation();
         Drawing::scalar n1 = 0.25f * elevation * (1 + elevation / 128.0f);  // 0.25f 128.0f

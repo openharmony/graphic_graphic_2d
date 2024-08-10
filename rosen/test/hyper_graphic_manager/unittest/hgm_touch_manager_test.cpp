@@ -46,15 +46,9 @@ HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level1)
 {
     int32_t clickNum = 100;
     auto touchManager = HgmTouchManager();
-    std::vector<std::thread> testThreads;
     for (int i = 0; i < clickNum; i++) {
-        testThreads.push_back(std::thread([&] () { touchManager.ChangeState(TouchState::DOWN_STATE); }));
-        testThreads.push_back(std::thread([&] () { touchManager.ChangeState(TouchState::UP_STATE); }));
-    }
-    for (auto &testThread : testThreads) {
-        if (testThread.joinable()) {
-            testThread.join();
-        }
+        touchManager.ChangeState(TouchState::DOWN_STATE);
+        touchManager.ChangeState(TouchState::UP_STATE);
     }
     touchManager.ChangeState(TouchState::IDLE_STATE);
     sleep(1); // wait for 1s for the async task to complete

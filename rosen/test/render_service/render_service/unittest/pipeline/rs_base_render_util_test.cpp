@@ -100,6 +100,7 @@ void RSBaseRenderUtilTest::SetUpTestCase()
 {
     RSSurfaceRenderNodeConfig config;
     node_ = std::make_shared<RSSurfaceRenderNode>(config);
+    RSTestUtil::InitRenderNodeGC();
 }
 
 void RSBaseRenderUtilTest::TearDownTestCase()
@@ -212,7 +213,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
-    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, true));
+    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, {"", true, 0}));
 }
 
 /*
@@ -249,7 +250,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
     if (RSUniRenderJudgement::IsUniRender()) {
         auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
         uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, {"", false, vsyncTimestamp});
         ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
     }
 }
@@ -287,7 +288,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
 
     auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
     uint64_t vsyncTimestamp = 200; // let vync's timestamp bigger than buffer timestamp
-    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, vsyncTimestamp);
+    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, {"", false, vsyncTimestamp});
     ASSERT_EQ(surfaceHandler.bufferCache_.size(), 0);
 }
 

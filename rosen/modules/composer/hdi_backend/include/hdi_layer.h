@@ -47,7 +47,7 @@ public:
     void MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence);
     void UpdateCompositionType(GraphicCompositionType type);
 
-    const LayerInfoPtr& GetLayerInfo();
+    const LayerInfoPtr GetLayerInfo();
     void SetLayerStatus(bool inUsing);
     bool GetLayerStatus() const;
     void UpdateLayerInfo(const LayerInfoPtr &layerInfo);
@@ -78,10 +78,10 @@ private:
         sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     };
 
-    std::array<FPSInfo, FRAME_RECORDS_NUM> presentTimeRecords {};
-    uint32_t count = 0;
-    std::array<int64_t, FRAME_RECORDS_NUM> mergedPresentTimeRecords {}; // used for uni render layer
-    uint32_t mergedCount = 0; // used for uni render layer
+    std::array<FPSInfo, FRAME_RECORDS_NUM> presentTimeRecords_ {};
+    uint32_t count_ = 0;
+    std::array<int64_t, FRAME_RECORDS_NUM> mergedPresentTimeRecords_ {}; // used for uni render layer
+    uint32_t mergedCount_ = 0; // used for uni render layer
     uint32_t screenId_ = INT_MAX;
     uint32_t layerId_ = INT_MAX;
     bool isInUsing_ = false;
@@ -95,6 +95,7 @@ private:
 
     std::vector<uint32_t> bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
+    mutable std::mutex mutex_;
 
     int32_t CreateLayer(const LayerInfoPtr &layerInfo);
     void CloseLayer();

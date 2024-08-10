@@ -194,7 +194,7 @@ public:
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY);
 
     /**
-     * @brief Adds quad from last point towards Point ctrlPt, to Point endPt.
+     * @brief Adds quad from last point towards control Point, to end Point.
      *
      * @param ctrlPt control Point of added quad
      * @param endPt end Point of added quad
@@ -497,8 +497,10 @@ public:
      */
     bool IsClosed(bool forceClosed) const;
 
-    bool GetMatrix(bool forceClosed, scalar distance, Matrix* matrix,
+    bool GetMatrix(bool forceClosed, float distance, Matrix* matrix,
         PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX);
+
+    inline void Dump(std::string& out) const;
 
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
@@ -512,6 +514,16 @@ public:
 private:
     std::shared_ptr<PathImpl> impl_;
 };
+
+inline void Path::Dump(std::string& out) const
+{
+    auto bounds = impl_->GetBounds();
+    out += "[length:" + std::to_string(impl_->GetLength(false));
+    out += " Bounds";
+    bounds.Dump(out);
+    out += " valid:" + std::string(impl_->IsValid() ? "true" : "false");
+    out += "]";
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

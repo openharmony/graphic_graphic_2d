@@ -33,6 +33,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemApp();
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_CURRENT_REFRESH_RATE_MODE): {
+            hasPermission = IsSystemApp();
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
+            hasPermission = IsSystemApp();
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED): {
             hasPermission = IsSystemApp();
             break;
@@ -53,6 +61,11 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_POWER_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ANCO_FORCE_DO_DIRECT): {
+            hasPermission = IsAncoCalling(codeEnumTypeName_ + "::SET_ANCO_FORCE_DO_DIRECT");
+            break;
+        }
+#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_COLOR_INVERSION_CONFIG): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POINTER_COLOR_INVERSION_CONFIG");
             break;
@@ -69,16 +82,15 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UNREGISTER_POINTER_LUMINANCE_CALLBACK");
             break;
         }
+#endif
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_STATUS");
             break;
         }
-#ifdef RS_ENABLE_VK
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_2D_RENDER_CTRL): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_2D_RENDER_CTRL");
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VMA_CACHE_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VMA_CACHE_STATUS");
             break;
         }
-#endif
         default: {
             break;
         }

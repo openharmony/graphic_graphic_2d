@@ -227,6 +227,16 @@ public:
         isHardwareForcedDisabledByVisibility_ = forcesDisabled;
     }
 
+    void SetNodeHasBackgroundColorAlpha(bool forcesDisabled)
+    {
+        isHardwareForcedByBackgroundAlpha_ = forcesDisabled;
+    }
+
+    bool IsNodeHasBackgroundColorAlpha() const
+    {
+        return isHardwareForcedByBackgroundAlpha_;
+    }
+
     void SetHardwareDisabledByCache(bool disabledByCache)
     {
         isHardwareDisabledByCache_ = disabledByCache;
@@ -249,7 +259,7 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isForceHardware_ && !isHardwareForcedDisabledByVisibility_) {
+        if ((isForceHardware_ && !isHardwareForcedDisabledByVisibility_) || isProtectedLayer_) {
             return false;
         }
         return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
@@ -434,6 +444,7 @@ public:
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
+    void SetForceClientForDRMOnly(bool forceClient);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
@@ -479,8 +490,10 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
-    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    static void SetAncoForceDoDirect(bool direct);
     bool GetAncoForceDoDirect() const;
+    void SetAncoFlags(int32_t flags);
+    int32_t GetAncoFlags() const;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -614,6 +627,7 @@ public:
             return;
         }
         isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+        SetLeashWindowVisibleRegionEmptyParam();
     }
 
     bool GetLeashWindowVisibleRegionEmpty() const
@@ -887,6 +901,16 @@ public:
         return submittedSubThreadIndex_;
     }
 
+    bool IsWaitUifirstFirstFrame() const
+    {
+        return isWaitUifirstFirstFrame_;
+    }
+
+    void SetWaitUifirstFirstFrame(bool wait)
+    {
+        isWaitUifirstFirstFrame_ = wait;
+    }
+
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
     CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
 
@@ -986,6 +1010,9 @@ public:
     {
         return false;
     }
+
+    void SetNeedClearPreBuffer(bool needClear);
+    bool GetNeedClearPreBuffer() const;
 
     void UpdateSurfaceCacheContentStaticFlag();
 
@@ -1173,11 +1200,25 @@ public:
 
     void CheckContainerDirtyStatusAndUpdateDirty(bool containerDirty)
     {
+        if (!IsLeashWindow()) {
+            return;
+        }
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
+
+    NodeId GetRootIdOfCaptureWindow() const
+    {
+        return rootIdOfCaptureWindow_;
+    }
+    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow);
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
+
+    // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
+    // of corner radius loops one element to the right
+    void RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const;
 
 private:
     explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
@@ -1214,6 +1255,7 @@ private:
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
+    bool forceClientForDRMOnly_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
@@ -1242,6 +1284,7 @@ private:
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
     std::atomic_bool isBufferAvailable_ = false;
+    std::atomic_bool isNeedClearPreBuffer_ = false;
     sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
     sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
     sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;
@@ -1405,6 +1448,8 @@ private:
 #endif
     bool isForeground_ = false;
     bool UIFirstIsPurge_ = false;
+    // whether to wait uifirst first frame finished when buffer available callback invoked.
+    std::atomic<bool> isWaitUifirstFirstFrame_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
@@ -1422,7 +1467,9 @@ private:
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
 
-    bool ancoForceDoDirect_ = false;
+    std::atomic<int32_t> ancoFlags_ = 0;
+    static inline std::atomic<bool> ancoForceDoDirect_ = false;
+
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     Vector4f overDrawBufferNodeCornerRadius_;
 
@@ -1432,6 +1479,10 @@ private:
 
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
+
+    bool isHardwareForcedByBackgroundAlpha_ = false;
+
+    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

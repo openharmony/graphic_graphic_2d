@@ -16,6 +16,8 @@
 #include "common/rs_color.h"
 
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
 
 #include "common/rs_common_def.h"
 
@@ -175,6 +177,15 @@ void RSColor::SetAlpha(int16_t alpha)
 void RSColor::MultiplyAlpha(float alpha)
 {
     alpha_ = static_cast<int16_t>(alpha_ * std::clamp(alpha, 0.0f, 1.0f));
+}
+
+void RSColor::Dump(std::string& out) const
+{
+    constexpr int32_t colorStrWidth = 8;
+    std::stringstream ss;
+    ss << "[RGBA-0x" << std::hex << std::setfill('0') << std::setw(colorStrWidth) << std::uppercase;
+    ss << AsRgbaInt() << ']';
+    out += ss.str();
 }
 } // namespace Rosen
 } // namespace OHOS

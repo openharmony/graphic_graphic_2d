@@ -110,7 +110,7 @@ let normalMatrix = new Matrix4();
 let angle = 0;
 let lastTime = Date.now();
 
-export async function cube_demo(gl) {
+export async function cubeDemo(gl) {
     let program = createProgram(gl, vSource, fSource, ['a_Position', 'a_TexCoord', 'a_Normal'], ['a_Matrix', 'u_NormalMatrix', 'u_Sampler']);
     let buffer = gl.createBuffer();
     if (buffer === null) {

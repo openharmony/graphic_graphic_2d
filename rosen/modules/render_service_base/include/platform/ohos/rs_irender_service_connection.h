@@ -95,14 +95,11 @@ public:
     
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
-#ifdef RS_ENABLE_VK
-    virtual bool Set2DRenderCtrl(bool enable) = 0;
-#endif
-
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    virtual int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) = 0;
+    virtual int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+        int64_t interval, int32_t rangeSize) = 0;
  
     virtual int32_t SetPointerColorInversionEnabled(bool enable) = 0;
  
@@ -266,8 +263,6 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
-    virtual void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) = 0;
-
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 
     virtual void RunOnRemoteDiedCallback() = 0;
@@ -284,9 +279,13 @@ public:
 
     virtual HwcDisabledReasonInfos GetHwcDisabledReasonInfo() = 0;
 
+    virtual void SetVmaCacheStatus(bool flag) = 0;
+
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
+
+    virtual bool SetAncoForceDoDirect(bool direct) = 0;
 
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;

@@ -111,7 +111,7 @@ napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Type
             ROSEN_LOGE("JsTypeface::MakeFromFile Create Typeface failed!");
             return nullptr;
         }
-        napi_status status = napi_wrap(env, result, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
+        status = napi_wrap(env, result, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsTypeface;
             ROSEN_LOGE("JsTypeface::MakeFromFile failed to wrap native instance");
@@ -121,12 +121,7 @@ napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Type
             DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
         };
         napi_define_properties(env, result, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
-        if (status == napi_ok) {
-            return result;
-        } else {
-            delete jsTypeface;
-            ROSEN_LOGE("Drawing_napi: New instance could not be obtained");
-        }
+        return result;
     }
     return result;
 }

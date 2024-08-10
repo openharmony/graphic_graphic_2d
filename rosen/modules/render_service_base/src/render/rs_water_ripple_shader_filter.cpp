@@ -25,17 +25,20 @@
 namespace OHOS {
 namespace Rosen {
 RSWaterRippleShaderFilter::RSWaterRippleShaderFilter(
-    const float progress, const float waveCount, const float rippleCenterX, const float rippleCenterY)
+    const float progress, const uint32_t waveCount, const float rippleCenterX, const float rippleCenterY,
+    const uint32_t rippleMode)
 {
     type_ = ShaderFilterType::WATER_RIPPLE;
     progress_ = progress;
     waveCount_ = waveCount;
     rippleCenterX_ = rippleCenterX;
     rippleCenterY_ = rippleCenterY;
+    rippleMode_ = rippleMode;
     hash_ = SkOpts::hash(&progress_, sizeof(progress_), hash_);
     hash_ = SkOpts::hash(&waveCount_, sizeof(waveCount_), hash_);
     hash_ = SkOpts::hash(&rippleCenterX_, sizeof(rippleCenterX_), hash_);
     hash_ = SkOpts::hash(&rippleCenterY_, sizeof(rippleCenterY_), hash_);
+    hash_ = SkOpts::hash(&rippleMode_, sizeof(rippleMode_), hash_);
 }
  
 RSWaterRippleShaderFilter::~RSWaterRippleShaderFilter() = default;
@@ -45,7 +48,7 @@ float RSWaterRippleShaderFilter::GetProgress() const
     return progress_;
 }
  
-float RSWaterRippleShaderFilter::GetwaveCount() const
+uint32_t RSWaterRippleShaderFilter::GetwaveCount() const
 {
     return waveCount_;
 }
@@ -59,6 +62,11 @@ float RSWaterRippleShaderFilter::GetRippleCenterY() const
 {
     return rippleCenterY_;
 }
+
+uint32_t RSWaterRippleShaderFilter::GetRippleMode() const
+{
+    return rippleMode_;
+}
  
 void RSWaterRippleShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
@@ -69,6 +77,7 @@ void RSWaterRippleShaderFilter::GenerateGEVisualEffect(
     waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_WAVE_NUM, waveCount_);
     waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X, rippleCenterX_);
     waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y, rippleCenterY_);
+    waterRippleFilter->SetParam(RS_FILTER_WATER_RIPPLE_RIPPLE_MODE, rippleMode_);
     visualEffectContainer->AddToChainedFilter(waterRippleFilter);
 }
 } // namespace Rosen

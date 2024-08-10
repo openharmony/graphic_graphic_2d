@@ -168,9 +168,6 @@ namespace OHOS {
         device->GetScreenCompChange(screenId, layersId, types);
         device->SetScreenClientBuffer(screenId, nullptr, cacheIndex, fence);
         device->SetScreenClientDamage(screenId, damageRects);
-        std::vector<uint32_t> layers;
-        std::vector<sptr<SyncFence>> fences;
-        device->GetScreenReleaseFence(screenId, layers, fences);
         std::vector<GraphicColorGamut> gamuts;
         device->GetScreenSupportedColorGamuts(screenId, gamuts);
         device->SetScreenGamutMap(screenId, gamutMap);

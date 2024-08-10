@@ -59,19 +59,6 @@ HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, CheckPermissionTest001, testing:
 }
 
 /**
- * @tc.name: IsPermissionAuthenticatedTest001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsPermissionAuthenticatedTest001, testing::ext::TestSize.Level1)
-{
-    auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
-    CodeUnderlyingType code = 0;
-    ASSERT_EQ(verifier->IsPermissionAuthenticated(code), true);
-}
-
-/**
  * @tc.name: IsCommonVerificationPassedTest
  * @tc.desc: test
  * @tc.type: FUNC
@@ -156,19 +143,6 @@ HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, CheckPermissionTest002, testing:
     CodeUnderlyingType code = 0;
     auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
     ASSERT_EQ(verifier->CheckPermission(code), true);
-}
-
-/**
- * @tc.name: IsPermissionAuthenticatedTest002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsPermissionAuthenticatedTest002, testing::ext::TestSize.Level1)
-{
-    CodeUnderlyingType code = 0;
-    auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
-    ASSERT_EQ(verifier->IsPermissionAuthenticated(code), true);
 }
 
 /**

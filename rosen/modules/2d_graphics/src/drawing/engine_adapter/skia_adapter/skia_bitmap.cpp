@@ -253,9 +253,13 @@ std::shared_ptr<Data> SkiaBitmap::Serialize() const
     if (skiaBitmap_.colorSpace() == nullptr) {
         writer.writeUInt(0);
     } else {
-        auto data = skiaBitmap_.colorSpace()->serialize();
-        writer.writeUInt(data->size());
-        writer.writeByteArray(data->data(), data->size());
+        auto skBitmapData = skiaBitmap_.colorSpace()->serialize();
+        if (skBitmapData == nullptr) {
+            writer.writeUInt(0);
+        } else {
+            writer.writeUInt(skBitmapData->size());
+            writer.writeByteArray(skBitmapData->data(), skBitmapData->size());
+        }
     }
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();

@@ -138,8 +138,6 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
             std::lock_guard<std::mutex> lock(shadowCacheMapMutex);
             shadowDrawableCache.erase(ptr->nodeId_); // Remove from cache before deleting
         }
-        // tell associated RenderNodeDrawable not to skip shadow
-        static_cast<RSRenderNodeShadowDrawable*>(ptr)->OnDetach();
         RSRenderNodeGC::DrawableDestructor(ptr);
     };
 
@@ -175,7 +173,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         return;
     }
 
-    if (end > drawCmdList_.size()) {
+    if (end > static_cast<int8_t>(drawCmdList_.size())) {
         ROSEN_LOGE("RSRenderNodeDrawableAdapter::DrawRangeImpl, end is invalid");
         return;
     }

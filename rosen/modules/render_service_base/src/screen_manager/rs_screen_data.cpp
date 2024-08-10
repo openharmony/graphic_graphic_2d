@@ -14,6 +14,7 @@
  */
 
 #include "screen_manager/rs_screen_data.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -77,6 +78,13 @@ bool RSScreenData::WriteVector(const std::vector<RSScreenModeInfo> &supportModes
 
 bool RSScreenData::ReadVector(std::vector<RSScreenModeInfo> &unmarsupportModes, uint32_t unmarModeCount, Parcel &parcel)
 {
+    size_t readableSize = parcel.GetReadableBytes() / sizeof(sptr<RSScreenModeInfo>);
+    size_t len = static_cast<size_t>(unmarModeCount);
+    if (len > readableSize || len > unmarsupportModes.max_size()) {
+        RS_LOGE("RSScreenData::ReadVector Failed to read vector, size:%{public}zu,"
+            " readableSize:%{public}zu", len, readableSize);
+        return false;
+    }
     for (uint32_t modeIndex = 0; modeIndex < unmarModeCount; modeIndex++) {
         sptr<RSScreenModeInfo> itemMode = parcel.ReadParcelable<RSScreenModeInfo>();
         if (itemMode == nullptr) {

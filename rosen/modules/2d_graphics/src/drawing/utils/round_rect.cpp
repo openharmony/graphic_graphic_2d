@@ -117,6 +117,21 @@ bool RoundRect::ScaleRadii()
 
     return scale < 1.0;
 }
+
+void RoundRect::Dump(std::string& out) const
+{
+    out += "[";
+    out += "rect";
+    rect_.Dump(out);
+    out += " radiusXY[";
+    for (int i = 0; i < CORNER_NUMBER; ++i) {
+        radiusXY_[i].Dump(out);
+        if (i < CORNER_NUMBER - 1) {
+            out += " ";
+        }
+    }
+    out += "]]";
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

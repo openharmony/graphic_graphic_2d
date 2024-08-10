@@ -89,6 +89,9 @@ HWTEST_F(RSValueEstimatorTest, EstimateFraction001, TestSize.Level1)
     auto result = curveValueEstimator->EstimateFraction(interpolator);
     EXPECT_TRUE(result != 0.0f);
 
+    std::shared_ptr<RSStepsInterpolator> interpolator2;
+    result = curveValueEstimator->EstimateFraction(interpolator2);
+    EXPECT_TRUE(result == FRACTION_MIN);
     GTEST_LOG_(INFO) << "RSValueEstimatorTest EstimateFraction001 end";
 }
 

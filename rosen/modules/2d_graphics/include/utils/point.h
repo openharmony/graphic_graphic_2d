@@ -17,6 +17,7 @@
 #define POINT_H
 
 #include <cfloat>
+#include <string>
 #include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
@@ -60,6 +61,8 @@ public:
     friend inline const PointF operator-(const PointF& p);
     friend inline bool operator==(const PointF& p1, const PointF& p2);
     friend inline bool operator!=(const PointF& p1, const PointF& p2);
+
+    inline void Dump(std::string& out) const;
 
 private:
     scalar x_;
@@ -138,6 +141,14 @@ inline PointF& PointF::operator/=(scalar divisor)
     x_ /= divisor;
     y_ /= divisor;
     return *this;
+}
+
+inline void PointF::Dump(std::string& out) const
+{
+    out += "[";
+    out += "x:" + std::to_string(x_);
+    out += " y:" + std::to_string(y_);
+    out += "]";
 }
 
 inline const PointF operator+(const PointF& p1, const PointF& p2)

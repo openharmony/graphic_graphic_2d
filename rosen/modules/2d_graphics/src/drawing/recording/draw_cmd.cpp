@@ -15,6 +15,7 @@
 
 #include "recording/draw_cmd.h"
 #include <cstdint>
+#include <sstream>
 
 #include "platform/common/rs_system_properties.h"
 #include "recording/cmd_list_helper.h"
@@ -23,6 +24,7 @@
 #include "recording/op_item.h"
 
 #include "draw/brush.h"
+#include "draw/color.h"
 #include "draw/path.h"
 #include "draw/surface.h"
 #include "effect/color_filter.h"
@@ -39,6 +41,63 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+std::unordered_map<uint32_t, std::string> typeOpDes = {
+    { DrawOpItem::OPITEM_HEAD,              "OPITEM_HEAD"},
+    { DrawOpItem::POINT_OPITEM,             "POINT_OPITEM" },
+    { DrawOpItem::POINTS_OPITEM,            "POINTS_OPITEM" },
+    { DrawOpItem::LINE_OPITEM,              "LINE_OPITEM" },
+    { DrawOpItem::RECT_OPITEM,              "RECT_OPITEM" },
+    { DrawOpItem::ROUND_RECT_OPITEM,        "ROUND_RECT_OPITEM" },
+    { DrawOpItem::NESTED_ROUND_RECT_OPITEM, "NESTED_ROUND_RECT_OPITEM" },
+    { DrawOpItem::ARC_OPITEM,               "ARC_OPITEM" },
+    { DrawOpItem::PIE_OPITEM,               "PIE_OPITEM" },
+    { DrawOpItem::OVAL_OPITEM,              "OVAL_OPITEM" },
+    { DrawOpItem::CIRCLE_OPITEM,            "CIRCLE_OPITEM" },
+    { DrawOpItem::PATH_OPITEM,              "PATH_OPITEM" },
+    { DrawOpItem::BACKGROUND_OPITEM,        "BACKGROUND_OPITEM" },
+    { DrawOpItem::SHADOW_OPITEM,            "SHADOW_OPITEM" },
+    { DrawOpItem::SHADOW_STYLE_OPITEM,      "SHADOW_STYLE_OPITEM" },
+    { DrawOpItem::COLOR_OPITEM,             "COLOR_OPITEM" },
+    { DrawOpItem::IMAGE_NINE_OPITEM,        "IMAGE_NINE_OPITEM" },
+    { DrawOpItem::IMAGE_LATTICE_OPITEM,     "IMAGE_LATTICE_OPITEM" },
+    { DrawOpItem::ATLAS_OPITEM,             "ATLAS_OPITEM" },
+    { DrawOpItem::BITMAP_OPITEM,            "BITMAP_OPITEM" },
+    { DrawOpItem::IMAGE_OPITEM,             "IMAGE_OPITEM" },
+    { DrawOpItem::IMAGE_RECT_OPITEM,        "IMAGE_RECT_OPITEM" },
+    { DrawOpItem::PICTURE_OPITEM,           "PICTURE_OPITEM" },
+    { DrawOpItem::TEXT_BLOB_OPITEM,         "TEXT_BLOB_OPITEM" },
+    { DrawOpItem::SYMBOL_OPITEM,            "SYMBOL_OPITEM" },
+    { DrawOpItem::CLIP_RECT_OPITEM,         "CLIP_RECT_OPITEM" },
+    { DrawOpItem::CLIP_IRECT_OPITEM,        "CLIP_IRECT_OPITEM" },
+    { DrawOpItem::CLIP_ROUND_RECT_OPITEM,   "CLIP_ROUND_RECT_OPITEM" },
+    { DrawOpItem::CLIP_PATH_OPITEM,         "CLIP_PATH_OPITEM" },
+    { DrawOpItem::CLIP_REGION_OPITEM,       "CLIP_REGION_OPITEM" },
+    { DrawOpItem::SET_MATRIX_OPITEM,        "SET_MATRIX_OPITEM" },
+    { DrawOpItem::RESET_MATRIX_OPITEM,      "RESET_MATRIX_OPITEM" },
+    { DrawOpItem::CONCAT_MATRIX_OPITEM,     "CONCAT_MATRIX_OPITEM" },
+    { DrawOpItem::TRANSLATE_OPITEM,         "TRANSLATE_OPITEM" },
+    { DrawOpItem::SCALE_OPITEM,             "SCALE_OPITEM" },
+    { DrawOpItem::ROTATE_OPITEM,            "ROTATE_OPITEM" },
+    { DrawOpItem::SHEAR_OPITEM,             "SHEAR_OPITEM" },
+    { DrawOpItem::FLUSH_OPITEM,             "FLUSH_OPITEM" },
+    { DrawOpItem::CLEAR_OPITEM,             "CLEAR_OPITEM" },
+    { DrawOpItem::SAVE_OPITEM,              "SAVE_OPITEM" },
+    { DrawOpItem::SAVE_LAYER_OPITEM,        "SAVE_LAYER_OPITEM" },
+    { DrawOpItem::RESTORE_OPITEM,           "RESTORE_OPITEM" },
+    { DrawOpItem::DISCARD_OPITEM,           "DISCARD_OPITEM" },
+    { DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM,  "CLIP_ADAPTIVE_ROUND_RECT_OPITEM" },
+    { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   "IMAGE_WITH_PARM_OPITEM" },
+    { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, "PIXELMAP_WITH_PARM_OPITEM" },
+    { DrawOpItem::PIXELMAP_RECT_OPITEM,     "PIXELMAP_RECT_OPITEM" },
+    { DrawOpItem::REGION_OPITEM,            "REGION_OPITEM" },
+    { DrawOpItem::PATCH_OPITEM,             "PATCH_OPITEM" },
+    { DrawOpItem::EDGEAAQUAD_OPITEM,        "EDGEAAQUAD_OPITEM" },
+    { DrawOpItem::VERTICES_OPITEM,          "VERTICES_OPITEM" },
+    { DrawOpItem::IMAGE_SNAPSHOT_OPITEM,    "IMAGE_SNAPSHOT_OPITEM" },
+    { DrawOpItem::SURFACEBUFFER_OPITEM,     "SURFACEBUFFER_OPITEM"},
+    { DrawOpItem::DRAW_FUNC_OPITEM,         "DRAW_FUNC_OPITEM"},
+};
+
 namespace {
 constexpr int TEXT_BLOB_CACHE_MARGIN = 10;
 constexpr float HIGH_CONTRAST_OFFSCREEN_THREASHOLD = 0.99f;
@@ -223,6 +282,16 @@ void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, P
     }
 }
 
+std::string DrawOpItem::GetOpDesc() const
+{
+    return typeOpDes[GetType()];
+}
+
+void DrawOpItem::Dump(std::string& out) const
+{
+    out += typeOpDes[GetType()];
+}
+
 GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas, const Rect* rect)
     : canvas_(canvas), rect_(rect), cmdList_(cmdList) {}
 
@@ -277,6 +346,15 @@ DrawWithPaintOpItem::DrawWithPaintOpItem(const DrawCmdList& cmdList, const Paint
     GeneratePaintFromHandle(paintHandle, cmdList, paint_);
 }
 
+void DrawWithPaintOpItem::Dump(std::string& out) const
+{
+    DrawOpItem::Dump(out);
+    out += "[paint";
+    paint_.Dump(out);
+    DumpItems(out);
+    out += ']';
+}
+
 /* DrawPointOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawPoint, DrawOpItem::POINT_OPITEM, DrawPointOpItem::Unmarshalling);
 
@@ -299,6 +377,12 @@ void DrawPointOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawPoint(point_);
+}
+
+void DrawPointOpItem::DumpItems(std::string& out) const
+{
+    out += " point";
+    point_.Dump(out);
 }
 
 /* DrawPointsOpItem */
@@ -354,6 +438,14 @@ void DrawLineOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawLine(startPt_, endPt_);
 }
 
+void DrawLineOpItem::DumpItems(std::string& out) const
+{
+    out += " startPt";
+    startPt_.Dump(out);
+    out += " endPt";
+    endPt_.Dump(out);
+}
+
 /* DrawRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawRect, DrawOpItem::RECT_OPITEM, DrawRectOpItem::Unmarshalling);
 
@@ -378,6 +470,12 @@ void DrawRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawRect(rect_);
 }
 
+void DrawRectOpItem::DumpItems(std::string& out) const
+{
+    out += " rect";
+    rect_.Dump(out);
+}
+
 /* DrawRoundRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawRoundRect, DrawOpItem::ROUND_RECT_OPITEM, DrawRoundRectOpItem::Unmarshalling);
 
@@ -400,6 +498,12 @@ void DrawRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawRoundRect(rrect_);
+}
+
+void DrawRoundRectOpItem::DumpItems(std::string& out) const
+{
+    out += " rrect";
+    rrect_.Dump(out);
 }
 
 /* DrawNestedRoundRectOpItem */
@@ -430,6 +534,14 @@ void DrawNestedRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawNestedRoundRect(outerRRect_, innerRRect_);
 }
 
+void DrawNestedRoundRectOpItem::DumpItems(std::string& out) const
+{
+    out += " outerRRect";
+    outerRRect_.Dump(out);
+    out += " innerRRect";
+    innerRRect_.Dump(out);
+}
+
 /* DrawArcOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawArc, DrawOpItem::ARC_OPITEM, DrawArcOpItem::Unmarshalling);
 
@@ -453,6 +565,14 @@ void DrawArcOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawArc(rect_, startAngle_, sweepAngle_);
+}
+
+void DrawArcOpItem::DumpItems(std::string& out) const
+{
+    out += " rect";
+    rect_.Dump(out);
+    out += " startAngle:" + std::to_string(startAngle_);
+    out += " sweepAngle:" + std::to_string(sweepAngle_);
 }
 
 /* DrawPieOpItem */
@@ -480,6 +600,14 @@ void DrawPieOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPie(rect_, startAngle_, sweepAngle_);
 }
 
+void DrawPieOpItem::DumpItems(std::string& out) const
+{
+    out += " rect";
+    rect_.Dump(out);
+    out += " startAngle:" + std::to_string(startAngle_);
+    out += " sweepAngle:" + std::to_string(sweepAngle_);
+}
+
 /* DrawOvalOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawOval, DrawOpItem::OVAL_OPITEM, DrawOvalOpItem::Unmarshalling);
 
@@ -502,6 +630,12 @@ void DrawOvalOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawOval(rect_);
+}
+
+void DrawOvalOpItem::DumpItems(std::string& out) const
+{
+    out += " rect";
+    rect_.Dump(out);
 }
 
 /* DrawCircleOpItem */
@@ -527,6 +661,13 @@ void DrawCircleOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->AttachPaint(paint_);
     canvas->DrawCircle(centerPt_, radius_);
+}
+
+void DrawCircleOpItem::DumpItems(std::string& out) const
+{
+    out += " centerPt";
+    centerPt_.Dump(out);
+    out += " radius:" + std::to_string(radius_);
 }
 
 /* DrawPathOpItem */
@@ -559,6 +700,14 @@ void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawPath(*path_);
+}
+
+void DrawPathOpItem::DumpItems(std::string& out) const
+{
+    if (path_ != nullptr) {
+        out += " Path";
+        path_->Dump(out);
+    }
 }
 
 /* DrawBackgroundOpItem */
@@ -693,6 +842,14 @@ void DrawRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawRegion(*region_);
 }
 
+void DrawRegionOpItem::DumpItems(std::string& out) const
+{
+    if (region_ != nullptr) {
+        out += " Region";
+        region_->Dump(out);
+    }
+}
+
 /* DrawVerticesOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawVertices, DrawOpItem::VERTICES_OPITEM, DrawVerticesOpItem::Unmarshalling);
 
@@ -723,6 +880,15 @@ void DrawVerticesOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawVertices(*vertices_, mode_);
+}
+
+void DrawVerticesOpItem::DumpItems(std::string& out) const
+{
+    out += " blend_mode:" + std::to_string(static_cast<int>(mode_));
+    out += " vertices:";
+    std::stringstream stream;
+    stream << std::hex << vertices_.get();
+    out += std::string(stream.str());
 }
 
 /* DrawColorOpItem */
@@ -873,6 +1039,51 @@ void DrawAtlasOpItem::Playback(Canvas* canvas, const Rect* rect)
         samplingOptions_, rectPtr);
 }
 
+void DrawAtlasOpItem::DumpItems(std::string& out) const
+{
+    out += " Xform[";
+    for (auto& e: xform_) {
+        e.Dump(out);
+        out += ' ';
+    }
+    if (xform_.size() > 0) {
+        out.pop_back();
+    }
+    out += ']';
+
+    out += " Tex[";
+    for (auto& e: tex_) {
+        e.Dump(out);
+        out += ' ';
+    }
+    if (tex_.size() > 0) {
+        out.pop_back();
+    }
+    out += ']';
+
+    out += " Colors[";
+    for (auto e: colors_) {
+        Color color(e);
+        color.Dump(out);
+        out += ' ';
+    }
+    if (colors_.size() > 0) {
+        out.pop_back();
+    }
+    out += ']';
+
+    out += " mode:" + std::to_string(static_cast<int>(mode_));
+    out += " SamplingOption";
+    samplingOptions_.Dump(out);
+    out += " hasCullRect:" + std::string(hasCullRect_ ? "true" : "false");
+    out += " CullRect";
+    cullRect_.Dump(out);
+    if (atlas_ != nullptr) {
+        out += " Atlas";
+        atlas_->Dump(out);
+    }
+}
+
 /* DrawBitmapOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawBitmap, DrawOpItem::BITMAP_OPITEM, DrawBitmapOpItem::Unmarshalling);
 
@@ -903,6 +1114,15 @@ void DrawBitmapOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawBitmap(*bitmap_, px_, py_);
+}
+
+void DrawBitmapOpItem::DumpItems(std::string& out) const
+{
+    out += " px:" + std::to_string(px_) + " py:" + std::to_string(py_);
+    if (bitmap_ != nullptr) {
+        out += " Bitmap";
+        bitmap_->Dump(out);
+    }
 }
 
 /* DrawImageOpItem */
@@ -939,6 +1159,17 @@ void DrawImageOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawImage(*image_, px_, py_, samplingOptions_);
+}
+
+void DrawImageOpItem::DumpItems(std::string& out) const
+{
+    out += " px:" + std::to_string(px_) + " py:" + std::to_string(py_);
+    out += " SamplingOptions";
+    samplingOptions_.Dump(out);
+    if (image_ != nullptr) {
+        out += " Image";
+        image_->Dump(out);
+    }
 }
 
 /* DrawImageRectOpItem */
@@ -998,6 +1229,22 @@ void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawImageRect(*image_, src_, dst_, sampling_, constraint_);
+}
+
+void DrawImageRectOpItem::DumpItems(std::string& out) const
+{
+    out += " Src";
+    src_.Dump(out);
+    out += " Dst";
+    src_.Dump(out);
+    out += " Sampling";
+    sampling_.Dump(out);
+    out += " constraint:" + std::to_string(static_cast<int>(constraint_));
+    if (image_ != nullptr) {
+        out += " Image";
+        image_->Dump(out);
+    }
+    out += " isForeground:" + std::string(isForeground_ ? "true" : "false");
 }
 
 /* DrawPictureOpItem */
@@ -1329,6 +1576,22 @@ std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
         SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, fakePaint);
 }
 
+void DrawTextBlobOpItem::DumpItems(std::string& out) const
+{
+    out += " scalarX:" + std::to_string(x_) + " scalarY:" + std::to_string(y_);
+    if (textBlob_) {
+        out += " TextBlob[";
+        out += "UniqueID:" + std::to_string(textBlob_->UniqueID());
+        auto bounds = textBlob_->Bounds();
+        if (bounds) {
+            out += " Bounds";
+            bounds->Dump(out);
+        }
+        out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
+        out += "]";
+    }
+}
+
 /* DrawSymbolOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawSymbol, DrawOpItem::SYMBOL_OPITEM, DrawSymbolOpItem::Unmarshalling);
 
@@ -1416,6 +1679,19 @@ void DrawSymbolOpItem::MergeDrawingPath(
         }
         multPath.AddPath(pathTemp);
     }
+}
+
+void DrawSymbolOpItem::DumpItems(std::string& out) const
+{
+    out += " symbol[symbolId:" + std::to_string(symbol_.symbolId);
+    out += " DrawingType:" + std::to_string(static_cast<int>(symbol_.path_.GetDrawingType()));
+    auto rect = symbol_.path_.GetBounds();
+    out += " path";
+    rect.Dump(out);
+    out += " symbolGlyphId:" + std::to_string(symbol_.symbolInfo_.symbolGlyphId);
+    out += "]";
+    out += " locate";
+    locate_.Dump(out);
 }
 
 /* ClipRectOpItem */

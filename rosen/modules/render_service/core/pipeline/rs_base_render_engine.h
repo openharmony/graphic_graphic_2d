@@ -60,8 +60,9 @@ public:
         this->independentContext = independentContext;
     }
     bool isProtected = false;
-    bool isMirror = false;
     bool independentContext = false;
+    bool isVirtual = false;
+    int32_t timeOut = 3000; // ms
 };
 // The RenderFrame can do auto flush
 class RSRenderFrame {

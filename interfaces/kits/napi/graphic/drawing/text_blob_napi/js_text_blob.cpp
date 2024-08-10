@@ -304,26 +304,42 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     uint32_t len = 0;
     GET_UINT32_PARAM(ARGC_ONE, len);
 
+    size_t bufferLen = static_cast<size_t>(len);
+    char* buffer = new(std::nothrow) char[bufferLen + 1];
+    if (!buffer) {
+        ROSEN_LOGE("JsTextBlob::MakeFromPosText: failed to create buffer");
+        return nullptr;
+    }
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], buffer, bufferLen + 1, &bufferLen) != napi_ok) {
+        delete[] buffer;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect Argv[0] type.");
+    }
+
     napi_value array = argv[ARGC_TWO];
     uint32_t pointsSize = 0;
     if (napi_get_array_length(env, array, &pointsSize) != napi_ok) {
+        delete[] buffer;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect Argv[2].");
     }
-    if (pointsSize == 0) {
-        ROSEN_LOGE("JsTextBlob::MakeFromPosText: points array is empty");
-        return nullptr;
+    if (pointsSize == 0 || bufferLen == 0) {
+        delete[] buffer;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Argv[0] is empty.");
     }
-    if (len != pointsSize) {
-        ROSEN_LOGE("JsTextBlob::MakeFromPosText: string length does not match points array length");
-        return nullptr;
+    if (len != pointsSize || len != bufferLen) {
+        delete[] buffer;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "string length does not match points array length.");
     }
 
     Point* points = new(std::nothrow) Point[pointsSize];
     if (!points) {
+        delete[] buffer;
         ROSEN_LOGE("JsTextBlob::MakeFromPosText: failed to create Point");
         return nullptr;
     }
     if (!MakePoints(env, points, pointsSize, array)) {
+        delete[] buffer;
+        delete[] points;
         ROSEN_LOGE("JsTextBlob::MakeFromPosText: Argv[2] is invalid");
         return nullptr;
     }
@@ -332,18 +348,10 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     GET_UNWRAP_PARAM(ARGC_THREE, jsFont);
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
+        delete[] buffer;
+        delete[] points;
         ROSEN_LOGE("JsTextBlob::MakeFromPosText: font is nullptr");
         return nullptr;
-    }
-
-    size_t bufferLen = static_cast<size_t>(len);
-    char* buffer = new(std::nothrow) char[bufferLen + 1];
-    if (!buffer) {
-        ROSEN_LOGE("JsTextBlob::MakeFromPosText: failed to create buffer");
-        return nullptr;
-    }
-    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], buffer, bufferLen + 1, &bufferLen) != napi_ok) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect Argv[0] type.");
     }
     return getJsTextBlob(buffer, bufferLen, points, font, env);
 }

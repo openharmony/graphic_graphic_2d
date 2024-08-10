@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
 
 namespace OHOS::Rosen {
@@ -42,7 +43,7 @@ void HgmTaskHandleThread::PostTask(const std::function<void()>& task, int64_t de
 bool HgmTaskHandleThread::PostSyncTask(const std::function<void()>& task)
 {
     if (handler_) {
-        return handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        return handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::VIP);
     }
     return false;
 }

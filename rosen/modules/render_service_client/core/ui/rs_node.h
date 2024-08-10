@@ -40,6 +40,7 @@
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
+#include "ui_effect/filter/include/filter_fly_out_para.h"
 
 #include "recording/recording_canvas.h"
 
@@ -292,7 +293,7 @@ public:
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
-    void SetMagnifierParams(const Vector2f& para);
+    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
     void SetDynamicDimDegree(const float dimDegree);
@@ -345,6 +346,7 @@ public:
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     
     void SetWaterRippleParams(const RSWaterRipplePara& params, float progress);
+    void SetFlyOutParams(const RSFlyOutPara& params, float degree);
 
     void SetPaintOrder(bool drawContentLast);
 

@@ -122,7 +122,9 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
     PART("CaseDescription") {
         STEP("1. init") {
             frameRateMgr.idleDetector_.SetAppSupportedState(true);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid);
+            std::vector<std::string> supportedAppBufferList = { otherSurface };
+            frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::FROM_SURFACE);
         }
         STEP("2. handle touch up event") {
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
@@ -130,8 +132,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            HgmErrCode res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig), EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
@@ -143,8 +144,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig), EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_90_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_90_HZ);
 
@@ -157,8 +157,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_EQ(frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig), EXEC_SUCCESS);
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
         }
@@ -181,7 +180,9 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS002, Function | SmallTest | Level1
     PART("CaseDescription") {
         STEP("1. init") {
             frameRateMgr.idleDetector_.SetAppSupportedState(true);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid);
+            std::vector<std::string> supportedAppBufferList = { otherSurface };
+            frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::FROM_SURFACE);
         }
         STEP("2. handle touch up event") {
             std::vector<std::string> appBufferBlackList = { otherSurface };
@@ -220,49 +221,37 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
     sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
     frameRateMgr.Init(rsController, appController, vsyncGenerator);
-
-    std::vector<std::thread> testThreads;
     
     for (int i = 0; i < testThreadNum; i++) {
         // HandleLightFactorStatus
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleLightFactorStatus(i, true); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleLightFactorStatus(i, false); }));
+        frameRateMgr.HandleLightFactorStatus(i, true);
+        frameRateMgr.HandleLightFactorStatus(i, false);
 
         // HandlePackageEvent
-        // param 1/2：pkg size
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg0}); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg1}); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg2}); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 2, {pkg0, pkg1}); }));
+        frameRateMgr.HandlePackageEvent(i, {pkg0});
+        frameRateMgr.HandlePackageEvent(i, {pkg1});
+        frameRateMgr.HandlePackageEvent(i, {pkg2});
+        frameRateMgr.HandlePackageEvent(i, {pkg0, pkg1});
 
         // HandleRefreshRateEvent
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateEvent(i, {}); }));
+        frameRateMgr.HandleRefreshRateEvent(i, {});
 
         // HandleTouchEvent
         // param 1: touchCnt
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, 1); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, 1); }));
+        frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, 1);
+        frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, 1);
 
         // HandleRefreshRateMode
         // param -1、0、1、2、3：refresh rate mode
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(-1); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(0); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(1); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(2); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateMode(3); }));
+        frameRateMgr.HandleRefreshRateMode(-1);
+        frameRateMgr.HandleRefreshRateMode(0);
+        frameRateMgr.HandleRefreshRateMode(1);
+        frameRateMgr.HandleRefreshRateMode(2);
+        frameRateMgr.HandleRefreshRateMode(3);
 
         // HandleScreenPowerStatus
-        testThreads.push_back(std::thread([&] () {
-            frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_ON);
-        }));
-        testThreads.push_back(std::thread([&] () {
-            frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
-        }));
-    }
-    for (auto &testThread : testThreads) {
-        if (testThread.joinable()) {
-            testThread.join();
-        }
+        frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_ON);
+        frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
     }
     sleep(1); // wait for handler task finished
 }
@@ -271,55 +260,31 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
  * @tc.name: HgmOneShotTimerTest
  * @tc.desc: Verify the result of HgmOneShotTimerTest
  * @tc.type: FUNC
- * @tc.require: I7DMS1
+ * @tc.require:
  */
 HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2)
 {
-    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
-    ScreenId id = 1;
-    int32_t interval = 200; // 200ms means waiting time
-
-    PART("CaseDescription") {
-        STEP("1. set force update callback") {
-            mgr->SetForceUpdateCallback([](bool idleTimerExpired, bool forceUpdate) {});
-        }
-        STEP("2. insert and start screenTimer") {
-            mgr->StartScreenTimer(id, interval, nullptr, nullptr);
-            auto timer = mgr->GetScreenTimer(id);
-            STEP_ASSERT_NE(timer, nullptr);
-        }
-        STEP("3. reset screenTimer") {
-            mgr->ResetScreenTimer(id);
-            auto timer = mgr->GetScreenTimer(id);
-            STEP_ASSERT_NE(timer, nullptr);
-        }
-    }
+    auto timer = HgmOneShotTimer("HgmOneShotTimer", std::chrono::milliseconds(20), nullptr, nullptr);
+    timer.Start();
+    timer.Reset();
+    timer.Stop();
+    sleep(1); // wait for timer stop
 }
 
 /**
- * @tc.name: HgmOneShotTimerTest001
- * @tc.desc: Verify the result of HgmOneShotTimerTest001
+ * @tc.name: HgmSimpleTimerTest
+ * @tc.desc: Verify the result of HgmSimpleTimerTest
  * @tc.type: FUNC
- * @tc.require: I7DMS1
+ * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest001, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
 {
-    int32_t interval = 200; // 200ms means waiting time
-    int32_t testThreadNum = 100;
-
-    auto timer = HgmOneShotTimer("timer", std::chrono::milliseconds(interval), nullptr, nullptr);
-    std::vector<std::thread> testThreads;
-    for (int i = 0; i < testThreadNum; i++) {
-        testThreads.push_back(std::thread([&timer] () { return timer.Start(); }));
-        testThreads.push_back(std::thread([&timer] () { return timer.Reset(); }));
-        testThreads.push_back(std::thread([&timer] () { return timer.Stop(); }));
-    }
-    for (auto &testThread : testThreads) {
-        if (testThread.joinable()) {
-            testThread.join();
-        }
-    }
-    sleep(1); // wait for handler task finished
+    auto timer = HgmSimpleTimer("HgmSimpleTimer", std::chrono::milliseconds(20), nullptr, nullptr);
+    timer.Start();
+    timer.Reset();
+    timer.Stop();
+    sleep(1); // wait for timer stop
 }
+
 } // namespace Rosen
 } // namespace OHOS

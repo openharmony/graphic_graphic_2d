@@ -617,6 +617,12 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
         std::to_string(GetInstanceRootNodeId()) + "]";
     if (auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>()) {
+#if defined(ROSEN_OHOS)
+        if (surfaceNode->GetRSSurfaceHandler() && surfaceNode->GetRSSurfaceHandler()->GetConsumer()) {
+            out +=
+                ", uniqueId[" + std::to_string(surfaceNode->GetRSSurfaceHandler()->GetConsumer()->GetUniqueId()) + "]";
+        }
+#endif
         if (surfaceNode->HasSubSurfaceNodes()) {
             out += surfaceNode->SubSurfaceNodesDump();
         }
@@ -653,7 +659,28 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (IsPureContainer()) {
         out += ", IsPureContainer: true";
     }
+    if (!oldDirty_.IsEmpty()) {
+        out += ", oldDirty: " + oldDirty_.ToString();
+    }
+    if (!localShadowRect_.IsEmpty()) {
+        out += ", localShadowRect: " + localShadowRect_.ToString();
+    }
+    if (!localOutlineRect_.IsEmpty()) {
+        out += ", localOutlineRect: " + localOutlineRect_.ToString();
+    }
+    if (!localPixelStretchRect_.IsEmpty()) {
+        out += ", localPixelStretchRect: " + localPixelStretchRect_.ToString();
+    }
+    if (!localForegroundEffectRect_.IsEmpty()) {
+        out += ", localForegroundEffectRect: " + localForegroundEffectRect_.ToString();
+    }
+    if (auto drawRegion = GetRenderProperties().GetDrawRegion()) {
+        if (!drawRegion->IsEmpty()) {
+            out += ", drawRegion: " + drawRegion->ToString();
+        }
+    }
     DumpDrawCmdModifiers(out);
+    DumpModifiers(out);
     animationManager_.DumpAnimations(out);
 
     if (!isFullChildrenListValid_) {
@@ -752,50 +779,45 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         return;
     }
     std::string splitStr = ", ";
-    std::string modifierDesc = ", DrawCmdModifiers:[";
+    std::string modifierDesc = ", DrawCmdModifiers2:[";
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
-        modifierDesc += "type:" + std::to_string(static_cast<int>(type)) + ", modifiers: ";
-        std::string propertyDesc = "Property_";
-        for (auto& modifier : modifiers) {
-            DumpDrawCmdModifier(propertyDesc, type, modifier);
-            propertyDesc += "], ";
+        std::string typeName = "UNKNOWN";
+        auto iter = RS_MODIFIER_TYPE_TO_STRING.find(type);
+        if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
+            typeName = iter->second;
         }
-        modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
-        modifierDesc += splitStr;
+        modifierDesc += typeName + ":[";
+        std::string propertyDesc = "";
+        bool found = false;
+        for (auto& modifier : modifiers) {
+            if (modifier != nullptr) {
+                found = true;
+                modifier->Dump(propertyDesc);
+                propertyDesc += splitStr;
+            }
+        }
+        if (found) {
+            modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
+        }
+        modifierDesc += "]" + splitStr;
     }
-    out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length());
-    out += "]";
+    out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length()) + "]";
 }
 
-void RSRenderNode::DumpDrawCmdModifier(std::string& propertyDesc, RSModifierType type,
-    std::shared_ptr<RSRenderModifier>& modifier) const
+void RSRenderNode::DumpModifiers(std::string& out) const
 {
-    if (type < RSModifierType::ENV_FOREGROUND_COLOR) {
-        propertyDesc += "drawCmdList:[";
-        auto propertyValue = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>
-            (modifier->GetProperty())->Get();
-        propertyDesc += propertyValue->GetOpsWithDesc();
-        std::string::size_type pos = 0;
-        while ((pos = propertyDesc.find("\n", pos)) != std::string::npos) {
-            propertyDesc.replace(pos, 1, ",");
-        }
-        propertyDesc.pop_back();
-    } else if (type == RSModifierType::ENV_FOREGROUND_COLOR) {
-        propertyDesc += "ENV_FOREGROUND_COLOR:[Rgba-";
-        auto propertyValue = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>
-            (modifier->GetProperty())->Get();
-        propertyDesc += std::to_string(propertyValue.AsRgbaInt());
-    } else if (type == RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY) {
-        propertyDesc += "ENV_FOREGROUND_COLOR_STRATEGY:[";
-        auto propertyValue = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType>>
-            (modifier->GetProperty())->Get();
-        propertyDesc += std::to_string(static_cast<int>(propertyValue));
-    } else if (type == RSModifierType::GEOMETRYTRANS) {
-        propertyDesc += "GEOMETRYTRANS:[";
-        auto propertyValue = std::static_pointer_cast<RSRenderProperty<SkMatrix>>
-            (modifier->GetProperty())->Get();
-        propertyValue.dump(propertyDesc, 0);
+    if (modifiers_.empty()) {
+        return;
     }
+    std::string splitStr = ", ";
+    out += ", OtherModifiers:[";
+    std::string propertyDesc = "";
+    for (auto& [type, modifier] : modifiers_) {
+        propertyDesc += modifier->GetModifierTypeString();
+        modifier->Dump(propertyDesc);
+        propertyDesc += splitStr;
+    }
+    out += propertyDesc.substr(0, propertyDesc.length() - splitStr.length()) + "]";
 }
 
 void RSRenderNode::ResetIsOnlyBasicGeoTransform()
@@ -814,7 +836,8 @@ void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManag
     if (geoUpdateDelay_) {
         if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             auto absChildrenRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
-            dirtyManager.MergeDirtyRect(absChildrenRect.IntersectRect(oldClipRect_));
+            subTreeDirtyRegion_ = absChildrenRect.IntersectRect(oldClipRect_);
+            dirtyManager.MergeDirtyRect(subTreeDirtyRegion_);
         }
     }
     lastFrameSubTreeSkipped_ = false;
@@ -833,8 +856,9 @@ void RSRenderNode::SubTreeSkipPrepare(
         auto oldDirtyRectClip = oldDirtyRect.IntersectRect(oldClipRect_);
         auto dirtyRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
         auto dirtyRectClip = dirtyRect.IntersectRect(clipRect);
-        dirtyRectClip = dirtyRect.JoinRect(oldDirtyRectClip);
+        dirtyRectClip = dirtyRectClip.JoinRect(oldDirtyRectClip);
         dirtyManager.MergeDirtyRect(dirtyRectClip);
+        UpdateSubTreeSkipDirtyForDFX(dirtyManager, dirtyRectClip);
     }
     SetGeoUpdateDelay(accumGeoDirty);
     UpdateSubTreeInfo(clipRect);
@@ -953,6 +977,8 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
     ApplyModifiers();
     PrepareChildrenForApplyModifiers();
 
+    stagingRenderParams_->SetAlpha(GetRenderProperties().GetAlpha());
+
     UpdateRenderParams();
     AddToPendingSyncList();
 }
@@ -1061,9 +1087,7 @@ RSRenderNode::~RSRenderNode()
     if (appPid_ != 0) {
         RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, appPid_);
     }
-    if (fallbackAnimationOnDestroy_) {
-        FallbackAnimationsToRoot();
-    }
+    FallbackAnimationsToRoot();
     if (clearCacheSurfaceFunc_ && (cacheSurface_ || cacheCompletedSurface_)) {
         clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
             completedSurfaceThreadIndex_);
@@ -1415,6 +1439,15 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
         dirtyManager.UpdateDirtyRegionInfoForDfx(
             GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, GetAbsDrawRect());
     }
+}
+
+void RSRenderNode::UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect)
+{
+    if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
+        return;
+    }
+    dirtyManager.UpdateDirtyRegionInfoForDfx(
+        GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_OUT_OF_PARENT_RECT, rect);
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,
@@ -4099,17 +4132,8 @@ void RSRenderNode::DumpDrawableTree(int32_t depth, std::string& out) const
     DumpSubClassNode(out);
 
     if (renderDrawable_) {
-        // [dfx] use drawable in main thread
         out += ", DrawableVec:[" + DumpDrawableVec() + "]";
-        if (renderDrawable_->skipType_ != DrawableV2::SkipType::NONE) {
-            out += ", SkipType:" + std::to_string(static_cast<int>(renderDrawable_->skipType_));
-            out += ", SkipIndex:" + std::to_string(renderDrawable_->GetSkipIndex());
-        }
-        out += "\n";
-        auto& params = renderDrawable_->GetRenderParams();
-        if (params) {
-            out += ", params" + params->ToString();
-        }
+        renderDrawable_->DumpDrawableTree(out);
     } else {
         out += ", drawable null";
     }

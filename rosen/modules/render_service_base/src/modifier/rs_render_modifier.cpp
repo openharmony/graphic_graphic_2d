@@ -83,9 +83,6 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 return nullptr;
             }
             auto modifier = new RSEnvForegroundColorRenderModifier(prop);
-            if (!modifier) {
-                return nullptr;
-            }
             return modifier;
         },
     },
@@ -95,9 +92,6 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 return nullptr;
             }
             auto modifier = new RSEnvForegroundColorStrategyRenderModifier(prop);
-            if (!modifier) {
-                return nullptr;
-            }
             return modifier;
         },
     },

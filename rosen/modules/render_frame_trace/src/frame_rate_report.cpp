@@ -40,7 +40,7 @@ bool FrameRateReport::SendFrameRates(const std::unordered_map<int, uint32_t>& ra
     #endif
 }
 
-void FrameRateReport::SendFrameRatesToRss(const std::unordered_map<int, uint32_t>& rates)
+void FrameRateReport::SendFrameRatesToRss(const std::unordered_map<int, uint32_t> rates)
 {
     if (rates.empty()) {
         return;

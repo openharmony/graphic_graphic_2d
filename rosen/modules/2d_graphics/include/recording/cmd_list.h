@@ -92,7 +92,11 @@ public:
 
         uint32_t offset = opAllocator_.AddrToOffset(op);
         if (lastOpItemOffset_.has_value()) {
+#ifdef CROSS_PLATFORM
+            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.__get()));
+#else
             auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+#endif
             if (lastOpItem != nullptr) {
                 lastOpItem->SetNextOpItemOffset(offset);
             }
@@ -213,6 +217,9 @@ public:
     CmdList(const CmdList&) = delete;
     CmdList& operator=(CmdList&&) = delete;
     CmdList& operator=(const CmdList&) = delete;
+
+    std::string ProfilerPushAllocators();
+    void ProfilerPopAllocators(const std::string& data);
 
 #ifdef ROSEN_OHOS
     /*

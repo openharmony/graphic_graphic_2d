@@ -111,6 +111,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    static bool CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
 
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
@@ -228,7 +229,7 @@ public:
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
 
-    bool IsFirstOrLastFrameOfWatermark() const
+    bool IsWatermarkFlagChanged() const
     {
         return lastWatermarkFlag_ != watermarkFlag_;
     }
@@ -283,23 +284,16 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    void RefreshEntireDisplay();
     bool IsCurtainScreenOn() const;
     void NotifySurfaceCapProcFinish();
     void WaitUntilSurfaceCapProcFinished();
     void SetSurfaceCapProcFinished(bool flag);
 
     bool GetParallelCompositionEnabled();
-    std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return frameRateMgr_; };
     void SetFrameIsRender(bool isRender);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
-    bool GetMarkRenderFlag() const
-    {
-        return markRenderFlag_;
-    }
-    void ResetMarkRenderFlag()
-    {
-        markRenderFlag_ = false;
-    }
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const;
 
     bool IsOnVsync() const
     {
@@ -334,18 +328,21 @@ public:
     {
         return needRequestNextVsyncAnimate_;
     }
-    
-    void ProcessEmptySyncTransactionCount(uint64_t syncId, int32_t parentPid, int32_t childPid);
 
     bool IsFirstFrameOfPartialRender() const
     {
         return isFirstFrameOfPartialRender_;
     }
 
+    bool IsHardwareEnabledNodesNeedSync();
+    bool IsOcclusionNodesNeedSync(NodeId id);
+
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
     void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback);
     void UnRegisterUIExtensionCallback(pid_t pid);
+
+    void SetAncoForceDoDirect(bool direct);
 
     bool IsSystemAnimatedScenesListEmpty() const
     {
@@ -496,6 +493,7 @@ private:
     uint64_t lastCleanCacheTimestamp_ = 0;
     pid_t lastCleanCachePid_ = -1;
     int hardwareTid_ = -1;
+    std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     std::shared_ptr<RSContext> context_;
@@ -584,6 +582,7 @@ private:
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
 
@@ -595,8 +594,7 @@ private:
     bool doParallelComposition_ = false;
     bool hasProtectedLayer_ = false;
 
-    std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
-    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
+    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
     pid_t desktopPidForRotationScene_ = 0;
     FrameRateRange rsCurrRange_;
 
@@ -644,7 +642,6 @@ private:
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
-    bool markRenderFlag_ = false;
 
     bool forceUIFirstChanged_ = false;
 

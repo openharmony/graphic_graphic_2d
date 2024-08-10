@@ -16,11 +16,18 @@
 #ifndef HGM_IDLE_DETECTOR_H
 #define HGM_IDLE_DETECTOR_H
 
-#include <mutex>
+#include <string>
 #include <unordered_map>
+#include <vector>
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
+
+enum class UIFWKType : int32_t {
+    FROM_UNKNOWN = 0,
+    FROM_SURFACE = 1,
+};
 
 class HgmIdleDetector {
 public:
@@ -29,13 +36,11 @@ public:
 
     void SetAppSupportedState(bool appSupported)
     {
-        std::lock_guard<std::mutex> lock(appSupportedMutex_);
         appSupported_ = appSupported;
     }
 
     bool GetAppSupportedState()
     {
-        std::lock_guard<std::mutex> lock(appSupportedMutex_);
         return appSupported_;
     }
 
@@ -49,40 +54,38 @@ public:
         return aceAnimatorIdleState_;
     }
 
-    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,  pid_t pid);
+    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
+        pid_t pid, UIFWKType uiFwkType = UIFWKType::FROM_UNKNOWN);
     bool GetSurfaceIdleState(uint64_t timestamp);
     int32_t GetTouchUpExpectedFPS();
     bool ThirdFrameNeedHighRefresh();
     void ClearAppBufferList()
     {
-        std::lock_guard<std::mutex> lock(appBufferListMutex_);
         appBufferList_.clear();
     }
     void ClearAppBufferBlackList()
     {
-        std::lock_guard<std::mutex> lock(appBufferBlackListMutex_);
         appBufferBlackList_.clear();
     }
     void UpdateAppBufferList(std::vector<std::pair<std::string, int32_t>> &appBufferList)
     {
-        std::lock_guard<std::mutex> lock(appBufferListMutex_);
         appBufferList_ = appBufferList;
     }
     void UpdateAppBufferBlackList(std::vector<std::string> &appBufferBlackList)
     {
-        std::lock_guard<std::mutex> lock(appBufferBlackListMutex_);
         appBufferBlackList_ = appBufferBlackList;
     }
     void UpdateSupportAppBufferList(std::vector<std::string> &supportAppBufferList)
     {
         supportAppBufferList_ = supportAppBufferList;
     }
+    void ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
+        std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
 private:
+    bool GetUnknownFrameworkState(const std::string& surfaceName);
+    bool GetSurfaceFrameworkState(const std::string& surfaceName);
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
-    std::mutex appSupportedMutex_;
-    std::mutex appBufferListMutex_;
-    std::mutex appBufferBlackListMutex_;
     // FORMAT: <buffername>
     std::vector<std::string> appBufferBlackList_;
     std::vector<std::string> supportAppBufferList_;

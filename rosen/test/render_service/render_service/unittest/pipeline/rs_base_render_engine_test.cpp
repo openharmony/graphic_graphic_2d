@@ -31,7 +31,10 @@ public:
     void TearDown() override;
 };
 
-void RSBaseRenderEngineUnitTest::SetUpTestCase() {}
+void RSBaseRenderEngineUnitTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSBaseRenderEngineUnitTest::TearDownTestCase() {}
 void RSBaseRenderEngineUnitTest::SetUp() {}
 void RSBaseRenderEngineUnitTest::TearDown() {}

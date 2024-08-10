@@ -39,6 +39,9 @@
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "system/rs_system_parameters.h"
+
+#include "text/font_mgr.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "touch_screen/touch_screen.h"
@@ -56,7 +59,12 @@ RSRenderService::~RSRenderService() noexcept {}
 
 bool RSRenderService::Init()
 {
-    if (system::GetBoolParameter("persist.sys.graphic.tcache.enable", true)) {
+    std::thread preLoadSysTTFThread([]() {
+        Drawing::FontMgr::CreateDefaultFontMgr();
+    });
+    preLoadSysTTFThread.detach();
+
+    if (RSSystemParameters::GetTcacheEnabled()) {
         // enable cache
         mallopt(M_OHOS_CONFIG, M_TCACHE_NORMAL_MODE);
         mallopt(M_OHOS_CONFIG, M_ENABLE_OPT_TCACHE);

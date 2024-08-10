@@ -48,6 +48,9 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
                 continue;
             }
             if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
+                if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
+                    childDrawable->SetSkip(SkipType::NONE);
+                }
                 stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
             }
         }

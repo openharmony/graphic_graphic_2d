@@ -77,6 +77,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     bool hasContainerWindow = GetData<bool>();
     float density = GetData<float>();
     bool flag = GetData<bool>();
+    int32_t ancoFlags = GetData<int32_t>();
 
     // test
     RSContext context;
@@ -94,6 +95,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, static_cast<NodeId>(id), static_cast<uint8_t>(type));
     SurfaceNodeCommandHelper::SetContainerWindow(context, static_cast<NodeId>(id), hasContainerWindow, density);
     SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation(context, static_cast<NodeId>(id), flag);
+    SurfaceNodeCommandHelper::SetAncoFlags(context, static_cast<NodeId>(id), ancoFlags);
 
     return true;
 }

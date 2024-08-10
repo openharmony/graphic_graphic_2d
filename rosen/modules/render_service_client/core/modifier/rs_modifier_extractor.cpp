@@ -34,13 +34,6 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
             return defaultValue;                                                                                    \
         }                                                                                                           \
         std::unique_lock<std::recursive_mutex> lock(node_->GetPropertyMutex());                                      \
-        auto iter = node_->propertyModifiers_.find(RSModifierType::propertyType);                                    \
-        if (iter != node_->propertyModifiers_.end()) {                                                               \
-            if (!iter->second || !iter->second->GetProperty()) {                                                    \
-                return defaultValue;                                                                                \
-            }                                                                                                       \
-            return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                     \
-        }                                                                                                           \
         T value = defaultValue;                                                                                     \
         if (node_->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
             ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node_->modifiers_.size());                \
@@ -59,14 +52,6 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
             return defaultValue;                                                                                    \
         }                                                                                                           \
         std::unique_lock<std::recursive_mutex> lock(node_->GetPropertyMutex());                                     \
-        auto iter = node_->propertyModifiers_.find(RSModifierType::propertyType);                                   \
-        if (iter != node_->propertyModifiers_.end()) {                                                              \
-            if (!iter->second || !iter->second->GetProperty()) {                                                    \
-                return defaultValue;                                                                                \
-            }                                                                                                       \
-            return std::static_pointer_cast<RSProperty<T>>(iter->second->GetProperty())->Get();                   \
-        }                                                                                                           \
-                                                                                                                    \
         auto typeIter = node_->modifiersTypeMap_.find((int16_t)RSModifierType::propertyType);                        \
         if (typeIter != node_->modifiersTypeMap_.end()) {                                                            \
             auto modifier = typeIter->second;                                                                         \

@@ -151,14 +151,14 @@ const Rect& SkiaStaticFactory::ComputeFastBounds(const Brush& brush, const Rect&
     return SkiaPaint::ComputeFastBounds(brush, orig, storage);
 }
 
-bool SkiaStaticFactory::AsBlendMode(const Brush& brush)
-{
-    return SkiaPaint::AsBlendMode(brush);
-}
-
 std::shared_ptr<Data> SkiaStaticFactory::MakeDataFromFileName(const char path[])
 {
     return SkiaData::MakeFromFileName(path);
+}
+
+bool SkiaStaticFactory::AsBlendMode(const Brush& brush)
+{
+    return SkiaPaint::AsBlendMode(brush);
 }
 
 void SkiaStaticFactory::PathOutlineDecompose(const Path& path, std::vector<Path>& paths)
@@ -195,7 +195,11 @@ DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint16_t glyp
 std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
+#if !defined(CROSS_PLATFORM)
     return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode, commonSubType);
+#endif
+    std::vector<std::vector<DrawingPiecewiseParameter>> parameters;
+    return parameters;
 }
 
 FontStyleSet* SkiaStaticFactory::CreateEmpty()

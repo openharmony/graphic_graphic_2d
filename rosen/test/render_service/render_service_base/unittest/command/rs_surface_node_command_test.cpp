@@ -503,17 +503,17 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetForceUIFirstTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAncoForceDoDirectTest
- * @tc.desc: Verify function SetAncoForceDoDirect
+ * @tc.name: SetAncoFlagsTest
+ * @tc.desc: Verify function SetAncoFlags
  * @tc.type:FUNC
- * @tc.require: issueI9P2KH
+ * @tc.require: issueIAIIEP
  */
-HWTEST_F(RSSurfaceNodeCommandTest, SetAncoForceDoDirectTest, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeCommandTest, SetAncoFlagsTest, TestSize.Level1)
 {
     RSContext context;
-    SurfaceNodeCommandHelper::SetAncoForceDoDirect(context, 0, false);
+    SurfaceNodeCommandHelper::SetAncoFlags(context, 0, 0);
     SurfaceNodeCommandHelper::Create(context, 1);
-    SurfaceNodeCommandHelper::SetAncoForceDoDirect(context, 1, false);
+    SurfaceNodeCommandHelper::SetAncoFlags(context, 1, 1);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
 }
 

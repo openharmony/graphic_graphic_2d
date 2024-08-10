@@ -139,6 +139,8 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_NOISE_FIELD
     RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
     RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
+    RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_DEGREE
+    RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_PARAMS
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::BACKGROUND_FILTER,             // MAGNIFIER_PARA,
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS

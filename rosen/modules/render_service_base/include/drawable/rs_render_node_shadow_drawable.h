@@ -27,8 +27,6 @@ public:
 
     void Draw(Drawing::Canvas& canvas) override;
 
-    void OnDetach();
-
 private:
     RSRenderNodeDrawableAdapter::SharedPtr nodeDrawable_;
 };

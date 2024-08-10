@@ -16,6 +16,8 @@
 #ifndef ROSEN_MODULES_SPTEXT_PARAGRAPH_BUILDER_IMPL_H
 #define ROSEN_MODULES_SPTEXT_PARAGRAPH_BUILDER_IMPL_H
 
+#include <pthread.h>
+
 #include "modules/skparagraph/include/ParagraphBuilder.h"
 #include "paragraph_impl.h"
 #include "txt/paragraph_builder.h"
@@ -38,6 +40,7 @@ public:
     static skia::textlayout::TextStyle ConvertTextStyleToSkStyle(const TextStyle& txt);
 
 private:
+    void RecordDifferentPthreadCall(const char* caller) const;
     skia::textlayout::ParagraphPainter::PaintID AllocPaintID(const PaintRecord& paint);
     skia::textlayout::ParagraphStyle TextStyleToSkStyle(const ParagraphStyle& txt);
     skia::textlayout::TextStyle TextStyleToSkStyle(const TextStyle& txt);
@@ -47,6 +50,7 @@ private:
     TextStyle baseStyle_;
 
     std::vector<PaintRecord> paints_;
+    mutable pthread_t threadId_;
 };
 } // namespace SPText
 } // namespace Rosen

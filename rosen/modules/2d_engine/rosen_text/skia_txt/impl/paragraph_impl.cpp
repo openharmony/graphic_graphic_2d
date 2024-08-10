@@ -24,6 +24,7 @@
 #include "text/font_metrics.h"
 #include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
+#include "utils/txt_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -59,60 +60,73 @@ std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
 
 ParagraphImpl::ParagraphImpl(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints)
     : paragraph_(std::move(paragraph)), paints_(std::move(paints))
-{}
+{
+    threadId_ = pthread_self();
+}
 
 double ParagraphImpl::GetMaxWidth()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getMaxWidth();
 }
 
 double ParagraphImpl::GetHeight()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->lineNumber() == 0 ? 0 : paragraph_->getHeight();
 }
 
 double ParagraphImpl::GetLongestLine()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getLongestLine();
 }
 
 double ParagraphImpl::GetLongestLineWithIndent()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getLongestLineWithIndent();
 }
 
 double ParagraphImpl::GetMinIntrinsicWidth()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getMinIntrinsicWidth();
 }
 
 double ParagraphImpl::GetMaxIntrinsicWidth()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getMaxIntrinsicWidth();
 }
 
 double ParagraphImpl::GetAlphabeticBaseline()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getAlphabeticBaseline();
 }
 
 double ParagraphImpl::GetIdeographicBaseline()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getIdeographicBaseline();
 }
 
 bool ParagraphImpl::DidExceedMaxLines()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->didExceedMaxLines();
 }
 
 size_t ParagraphImpl::GetLineCount() const
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->lineNumber();
 }
 
 void ParagraphImpl::MarkDirty()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return;
     }
@@ -121,6 +135,7 @@ void ParagraphImpl::MarkDirty()
 
 int32_t ParagraphImpl::GetUnresolvedGlyphsCount()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return 0;
     }
@@ -129,6 +144,7 @@ int32_t ParagraphImpl::GetUnresolvedGlyphsCount()
 
 void ParagraphImpl::UpdateFontSize(size_t from, size_t to, float fontSize)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     if (paragraph_ == nullptr) {
         return;
     }
@@ -137,16 +153,19 @@ void ParagraphImpl::UpdateFontSize(size_t from, size_t to, float fontSize)
 
 void ParagraphImpl::SetIndents(const std::vector<float>& indents)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     paragraph_->setIndents(indents);
 }
 
 float ParagraphImpl::DetectIndents(size_t index)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->detectIndents(index);
 }
 
 void ParagraphImpl::Layout(double width)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
     paragraph_->layout(width);
@@ -154,36 +173,43 @@ void ParagraphImpl::Layout(double width)
 
 double ParagraphImpl::GetGlyphsBoundsTop()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getGlyphsBoundsTop();
 }
 
 double ParagraphImpl::GetGlyphsBoundsBottom()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getGlyphsBoundsBottom();
 }
 
 double ParagraphImpl::GetGlyphsBoundsLeft()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getGlyphsBoundsLeft();
 }
 
 double ParagraphImpl::GetGlyphsBoundsRight()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getGlyphsBoundsRight();
 }
 
 OHOS::Rosen::Drawing::FontMetrics ParagraphImpl::MeasureText()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->measureText();
 }
 
 void ParagraphImpl::Paint(SkCanvas* canvas, double x, double y)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     paragraph_->paint(canvas, x, y);
 }
 
 void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
     painter.SetParagraphId(id_);
@@ -192,6 +218,7 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
 
 void ParagraphImpl::Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
     painter.SetParagraphId(id_);
@@ -201,6 +228,7 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, Drawing::Path* path, double h
 std::vector<TextBox> ParagraphImpl::GetRectsForRange(size_t start, size_t end,
     RectHeightStyle rectHeightStyle, RectWidthStyle rectWidthStyle)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     std::vector<skt::TextBox> boxes =
         paragraph_->getRectsForRange(start, end, static_cast<skt::RectHeightStyle>(rectHeightStyle),
             static_cast<skt::RectWidthStyle>(rectWidthStyle));
@@ -209,23 +237,27 @@ std::vector<TextBox> ParagraphImpl::GetRectsForRange(size_t start, size_t end,
 
 std::vector<TextBox> ParagraphImpl::GetRectsForPlaceholders()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return GetTxtTextBoxes(paragraph_->getRectsForPlaceholders());
 }
 
 PositionWithAffinity ParagraphImpl::GetGlyphPositionAtCoordinate(double dx, double dy)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     skt::PositionWithAffinity pos = paragraph_->getGlyphPositionAtCoordinate(dx, dy);
     return PositionWithAffinity(pos.position, static_cast<Affinity>(pos.affinity));
 }
 
 Range<size_t> ParagraphImpl::GetWordBoundary(size_t offset)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     skt::SkRange<size_t> range = paragraph_->getWordBoundary(offset);
     return Range<size_t>(range.start, range.end);
 }
 
 Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpaces)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     if (lineNumber >=0 && lineNumber <= static_cast<int>(paragraph_->lineNumber())) {
         skt::SkRange<size_t> range = paragraph_->getActualTextRange(lineNumber, includeSpaces);
         return Range<size_t>(range.start, range.end);
@@ -236,6 +268,7 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
 
 std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     std::vector<skt::LineMetrics> metrics;
     if (!lineMetrics_) {
         paragraph_->getLineMetrics(metrics);
@@ -245,13 +278,15 @@ std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()
 
 bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetrics) const
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
+    
     TextStyle txt;
-
     txt.color = skStyle.getColor();
     txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
     txt.decorationColor = skStyle.getDecorationColor();
@@ -295,6 +330,8 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 
 Drawing::FontMetrics ParagraphImpl::GetFontMetricsResult(const SPText::TextStyle& textStyle)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
+
     auto skTextStyle = ParagraphBuilderImpl::ConvertTextStyleToSkStyle(textStyle);
     OHOS::Rosen::Drawing::FontMetrics fontMetrics;
     skTextStyle.getFontMetrics(&fontMetrics);
@@ -312,6 +349,7 @@ bool ParagraphImpl::GetLineFontMetrics(const size_t lineNumber, size_t& charNumb
 
 std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines() const
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     if (!paragraph_) {
         return {};
     }
@@ -327,6 +365,7 @@ std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines()
 
 std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     if (!paragraph_) {
         return nullptr;
     }
@@ -339,6 +378,7 @@ std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
 
 void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color)
 {
+    RecordDifferentPthreadCall(__FUNCTION__);
     if (!paragraph_) {
         return;
     }
@@ -349,6 +389,15 @@ void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color)
     }
 }
 
+void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
+{
+    pthread_t currenetThreadId = pthread_self();
+    if (threadId_ != currenetThreadId) {
+        TXT_LOGD("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
+            threadId_, caller);
+        threadId_ = currenetThreadId;
+    }
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

@@ -66,8 +66,8 @@ protected:
     bool IsSystemApp() const;
 #endif
     bool IsSystemCalling(const std::string& callingCode) const;
+    bool IsAncoCalling(const std::string& callingCode) const;
     bool CheckPermission(CodeUnderlyingType code) const;
-    bool IsPermissionAuthenticated(CodeUnderlyingType code) const;
 
 private:
     DISALLOW_COPY_AND_MOVE(RSInterfaceCodeAccessVerifierBase);

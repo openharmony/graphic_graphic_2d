@@ -405,23 +405,6 @@ HWTEST_F(RSClientTest, SetVirtualScreenSurface001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Set2DRenderCtrl Test
- * @tc.desc: Set2DRenderCtrl Test
- * @tc.type:FUNC
- * @tc.require: issuesI9NA1T
- */
-#ifdef RS_ENABLE_VK
-HWTEST_F(RSClientTest, Set2DRenderCtrl, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->Set2DRenderCtrl(false);
-    ASSERT_EQ(ret, true);
-    ret = rsClient->Set2DRenderCtrl(true);
-    ASSERT_EQ(ret, true);
-}
-#endif
-
-/**
  * @tc.name: SetScreenChangeCallback Test
  * @tc.desc: SetScreenChangeCallback Test
  * @tc.type:FUNC
@@ -453,7 +436,9 @@ HWTEST_F(RSClientTest, SetPointerColorInversionConfig001, TestSize.Level1)
     float darkBuffer = 0.5f;
     float brightBuffer = 0.5f;
     int64_t interval = 50;
-    EXPECT_EQ(rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval), StatusCode::SUCCESS);
+    int32_t rangeSize = 20;
+    EXPECT_EQ(rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize),
+        StatusCode::SUCCESS);
 }
 
 /**
@@ -568,6 +553,17 @@ HWTEST_F(RSClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
 
     rsClient->SetShowRefreshRateEnabled(true);
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), true);
+}
+
+/**
+ * @tc.name: GetRefreshInfo Test
+ * @tc.desc: GetRefreshInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, GetRefreshInfo001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->GetRefreshInfo(-1), "");
 }
 
 /**

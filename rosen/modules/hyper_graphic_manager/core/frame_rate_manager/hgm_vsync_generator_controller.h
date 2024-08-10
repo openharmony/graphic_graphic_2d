@@ -33,10 +33,10 @@ public:
 
     static int32_t GetAppOffset(const uint32_t controllerRate);
     uint64_t CalcVSyncQuickTriggerTime(uint64_t lastVSyncTime, uint32_t lastRate);
-    void ChangeGeneratorRate(const uint32_t controllerRate,
-                             const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData,
-                             uint64_t targetTime = 0,
-                             bool isNeedUpdateAppOffset = false);
+    int64_t ChangeGeneratorRate(const uint32_t controllerRate,
+                                const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData,
+                                uint64_t targetTime = 0,
+                                bool isNeedUpdateAppOffset = false);
     uint32_t GetCurrentRate() const;
     int64_t GetCurrentOffset() const;
 private:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -162,7 +162,7 @@ private:
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
-    bool CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node);
+    bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -175,12 +175,15 @@ private:
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
     NodeId LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node);
-    void NotifyUIStartingWindow(NodeId id, bool hasCachedTexture);
+    void NotifyUIStartingWindow(NodeId id, bool wait);
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
     bool EventsCanSkipFirstWait(std::vector<EventInfo>& events);
     bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
     void EventDisableLeashWindowCache(NodeId id, EventInfo& info);
     void ConvertPendingNodeToDrawable();
+    void CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node);
+    void ResetCurrentFrameDeletedCardNodes();
+
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
@@ -224,6 +227,7 @@ private:
     const std::vector<std::string> cardCanSkipFirstWaitScene_ = {
         { "INTO_HOME_ANI" }, // unlock to desktop
         { "FINGERPRINT_UNLOCK_ANI" }, // finger unlock to desktop
+        { "SCREEN_OFF_FINGERPRINT_UNLOCK_ANI" }, // aod finger unlock
         { "PASSWORD_UNLOCK_ANI" }, // password unlock to desktop
         { "FACIAL_FLING_UNLOCK_ANI" }, // facial unlock to desktop
         { "FACIAL_UNLOCK_ANI" }, // facial unlock to desktop
@@ -243,6 +247,8 @@ private:
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
     std::vector<NodeId> capturedNodes_;
+    std::vector<NodeId> currentFrameDeletedCardNodes_;
+    std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H

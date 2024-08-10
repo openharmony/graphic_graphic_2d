@@ -77,7 +77,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RsFrameReport::GetInstance().SetFrameParam(requestId, load, schedFrameNum, value);
     RsFrameReport::GetInstance().LoadLibrary();
     RsFrameReport::GetInstance().RenderEnd();
-    RsFrameReport::GetInstance().CloseLibrary();
     return true;
 }
 } // namespace Rosen

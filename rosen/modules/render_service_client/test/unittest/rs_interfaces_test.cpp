@@ -432,7 +432,8 @@ HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, TestSize.Level1)
     float darkBuffer = 0.5f;
     float brightBuffer = 0.5f;
     int64_t interval = 50;
-    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    int32_t rangeSize = 20;
+    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
@@ -1052,23 +1053,6 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSurface_Test, Function | SmallTest | 
     int32_t ret = rsInterfaces->SetVirtualScreenSurface(123, psurface);
     ASSERT_EQ(ret, 0);
 }
-
-/*
- * @tc.name: Set2DRenderCtrl Test
- * @tc.desc: Set2DRenderCtrl Test
- * @tc.type: FUNC
- * @tc.require:I9NA1T
- */
-#ifdef RS_ENABLE_VK
-HWTEST_F(RSInterfacesTest, Set2DRenderCtrl_Test, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    bool ret = rsInterfaces->Set2DRenderCtrl(false);
-    ASSERT_EQ(ret, true);
-    ret = rsInterfaces->Set2DRenderCtrl(true);
-    ASSERT_EQ(ret, true);
-}
-#endif
 
 /*
  * @tc.name: GetScreenCurrentRefreshRate001

@@ -225,22 +225,6 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualScreenSurface, TestSize.L
 }
 
 /**
- * @tc.name: Set2DRenderCtrl Test
- * @tc.desc: Set2DRenderCtrl Test
- * @tc.type:FUNC
- * @tc.require: issueI9NA1T
- */
-#ifdef RS_ENABLE_VK
-HWTEST_F(RSRenderServiceConnectionProxyTest, Set2DRenderCtrl, TestSize.Level1)
-{
-    proxy->Set2DRenderCtrl(false);
-    ASSERT_TRUE(true);
-    proxy->Set2DRenderCtrl(true);
-    ASSERT_TRUE(true);
-}
-#endif
-
-/**
  * @tc.name: RemoveVirtualScreen Test
  * @tc.desc: RemoveVirtualScreen Test
  * @tc.type:FUNC
@@ -265,7 +249,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetPointerColorInversionConfig, Tes
     float darkBuffer = 0.5f;
     float brightBuffer = 0.5f;
     int64_t interval = 50;
-    proxy->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval);
+    int32_t rangeSize = 20;
+    proxy->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     ASSERT_TRUE(true);
 }
 

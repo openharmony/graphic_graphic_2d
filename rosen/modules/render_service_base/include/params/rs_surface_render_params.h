@@ -139,6 +139,10 @@ public:
     {
         return animateState_;
     }
+    bool GetForceClientForDRMOnly() const
+    {
+        return forceClientForDRMOnly_;
+    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
@@ -318,7 +322,7 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
 
-    bool IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
+    bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
 
     void SetPreScalingMode(ScalingMode scalingMode) override
     {
@@ -410,6 +414,8 @@ public:
         return false;
     }
 
+    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) override;
+    NodeId GetRootIdOfCaptureWindow() const override;
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -464,6 +470,7 @@ private:
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     bool animateState_ = false;
+    bool forceClientForDRMOnly_ = false;
     bool isSubSurfaceNode_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
@@ -483,6 +490,7 @@ private:
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
+    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

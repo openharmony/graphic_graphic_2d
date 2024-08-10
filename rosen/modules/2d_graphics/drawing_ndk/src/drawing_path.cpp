@@ -53,15 +53,14 @@ static const RoundRect& CastToRoundRect(const OH_Drawing_RoundRect& cRoundRect)
     return reinterpret_cast<const RoundRect&>(cRoundRect);
 }
 
+static Point* CastToPoint(OH_Drawing_Point2D* cPoint)
+{
+    return reinterpret_cast<Point*>(cPoint);
+}
 
 static const Point* CastToPoint(const OH_Drawing_Point2D* cPoint)
 {
     return reinterpret_cast<const Point*>(cPoint);
-}
-
-static Point* CastToPoint(OH_Drawing_Point2D* cPoint)
-{
-    return reinterpret_cast<Point*>(cPoint);
 }
 
 OH_Drawing_Path* OH_Drawing_PathCreate()

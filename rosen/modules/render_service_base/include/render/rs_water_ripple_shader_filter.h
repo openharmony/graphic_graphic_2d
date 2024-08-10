@@ -22,13 +22,14 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSWaterRippleShaderFilter : public RSShaderFilter {
 public:
-    RSWaterRippleShaderFilter(const float progress, const float waveCount, const float rippleCenterX,
-        const float rippleCenterY);
+    RSWaterRippleShaderFilter(const float progress, const uint32_t waveCount, const float rippleCenterX,
+        const float rippleCenterY, const uint32_t rippleMode);
     ~RSWaterRippleShaderFilter() override;
     float GetProgress() const;
-    float GetwaveCount() const;
+    uint32_t GetwaveCount() const;
     float GetRippleCenterX() const;
     float GetRippleCenterY() const;
+    uint32_t GetRippleMode() const;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
  
 private:
@@ -36,10 +37,12 @@ private:
     static constexpr char RS_FILTER_WATER_RIPPLE_WAVE_NUM[] = "WAVE_NUM";
     static constexpr char RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_X[] = "RIPPLE_CENTER_X";
     static constexpr char RS_FILTER_WATER_RIPPLE_RIPPLE_CENTER_Y[] = "RIPPLE_CENTER_Y";
+    static constexpr char RS_FILTER_WATER_RIPPLE_RIPPLE_MODE[] = "RIPPLE_MODE";
     float progress_ = 0.0f;
-    float waveCount_ = 0.0f;
+    uint32_t waveCount_ = 0.0f;
     float rippleCenterX_ = 0.0f;
     float rippleCenterY_ = 0.0f;
+    uint32_t rippleMode_ = 0.0f;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

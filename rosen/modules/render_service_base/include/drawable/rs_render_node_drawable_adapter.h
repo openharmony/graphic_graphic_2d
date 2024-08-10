@@ -80,7 +80,7 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
 
     virtual void Draw(Drawing::Canvas& canvas) = 0;
-
+    virtual void DumpDrawableTree(std::string& out) const {};
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
     static SharedPtr OnGenerateShadowDrawable(
@@ -123,6 +123,8 @@ public:
         return true;
     }
     virtual void SetDrawCmdListsVisited(bool flag) {}
+    void SetSkip(SkipType type) { skipType_ = type; }
+    SkipType GetSkipType() { return skipType_; }
 protected:
     // Util functions
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
@@ -150,7 +152,6 @@ protected:
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
     void DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const;
-    void SetSkip(SkipType type) { skipType_ = type; }
 
     // Register utils
     using Generator = Ptr (*)(std::shared_ptr<const RSRenderNode>);
@@ -195,6 +196,7 @@ private:
     friend class OHOS::Rosen::RSSurfaceRenderNode;
     friend class RSRenderNodeShadowDrawable;
     friend class RSUseEffectDrawable;
+    friend class RSRenderNodeDrawable;
 };
 
 } // namespace DrawableV2

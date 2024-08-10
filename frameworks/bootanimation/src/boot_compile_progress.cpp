@@ -199,6 +199,10 @@ void BootCompileProgress::DrawCompileProgress()
 
     auto canvas = static_cast<Rosen::Drawing::RecordingCanvas*>(
         rsCanvasNode_->BeginRecording(windowWidth_, windowHeight_ * HEIGHT_PERCENT));
+    if (canvas == nullptr) {
+        LOGE("DrawCompileProgress canvas is null");
+        return;
+    }
 
     Rosen::Drawing::Font font;
     font.SetTypeface(tf_);

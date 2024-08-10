@@ -369,6 +369,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->animateState_ = animateState_;
+    targetSurfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
@@ -391,6 +392,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
+    targetSurfaceParams->rootIdOfCaptureWindow_ = rootIdOfCaptureWindow_;
     RSRenderParams::OnSync(target);
 }
 
@@ -411,13 +413,13 @@ std::string RSSurfaceRenderParams::ToString() const
     return ret;
 }
 
-bool RSSurfaceRenderParams::IsVisibleRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
+bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const
 {
     if (IsMainWindowType()) {
         return curSurfaceDrawRegion.IsEmpty();
     }
     if (IsLeashWindow()) {
-        return GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE && GetLeashWindowVisibleRegionEmptyParam();
+        return GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;
 }
@@ -430,5 +432,19 @@ void RSSurfaceRenderParams::SetOpaqueRegion(const Occlusion::Region& opaqueRegio
 const Occlusion::Region& RSSurfaceRenderParams::GetOpaqueRegion() const
 {
     return opaqueRegion_;
+}
+
+void RSSurfaceRenderParams::SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
+{
+    if (rootIdOfCaptureWindow_ == rootIdOfCaptureWindow) {
+        return;
+    }
+    needSync_ = true;
+    rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
+}
+
+NodeId RSSurfaceRenderParams::GetRootIdOfCaptureWindow() const
+{
+    return rootIdOfCaptureWindow_;
 }
 } // namespace OHOS::Rosen

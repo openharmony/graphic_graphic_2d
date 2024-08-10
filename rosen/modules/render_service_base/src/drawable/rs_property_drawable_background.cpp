@@ -389,21 +389,7 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (nativeWindowBuffer_ == nullptr && cleanUpHelper_ == nullptr) {
-            return;
-        }
-        RSTaskDispatcher::GetInstance().PostTask(
-            tid_, [nativeWindowBuffer = nativeWindowBuffer_, cleanUpHelper = cleanUpHelper_]() {
-                if (nativeWindowBuffer != nullptr) {
-                    DestroyNativeWindowBuffer(nativeWindowBuffer);
-                }
-                if (cleanUpHelper != nullptr) {
-                    NativeBufferUtils::DeleteVkImage(cleanUpHelper);
-                }
-            });
-    }
+    ReleaseNativeWindowBuffer();
 #endif
 }
 
@@ -416,7 +402,7 @@ RSDrawable::Ptr RSBackgroundImageDrawable::OnGenerate(const RSRenderNode& node)
 };
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
+Drawing::ColorType RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
@@ -436,6 +422,27 @@ Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSBackgroundImageDrawable::ReleaseNativeWindowBuffer()
+{
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (nativeWindowBuffer_ == nullptr && cleanUpHelper_ == nullptr) {
+            return;
+        }
+        RSTaskDispatcher::GetInstance().PostTask(
+            tid_, [nativeWindowBuffer = nativeWindowBuffer_, cleanUpHelper = cleanUpHelper_]() {
+                if (nativeWindowBuffer != nullptr) {
+                    DestroyNativeWindowBuffer(nativeWindowBuffer);
+                }
+                if (cleanUpHelper != nullptr) {
+                    NativeBufferUtils::DeleteVkImage(cleanUpHelper);
+                }
+            });
+        nativeWindowBuffer_ = nullptr;
+        cleanUpHelper_ = nullptr;
+    }
+}
+
 std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
 {
@@ -447,18 +454,18 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         RS_LOGE("MakeFromTextureForVK surfaceBuffer is nullptr or buffer handle is nullptr");
         return nullptr;
     }
-    if (nativeWindowBuffer_ == nullptr) {
+    std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
+    if (pixelMapId_ != pixelMap->GetUniqueId()) {
+        backendTexture_ = {};
+        ReleaseNativeWindowBuffer();
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
         nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
         if (!nativeWindowBuffer_) {
             RS_LOGE("MakeFromTextureForVK create native window buffer fail");
             return nullptr;
         }
-    }
-    bool isProtected = (surfaceBuffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
-    if (!backendTexture_.IsValid() || isProtected) {
         backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
-            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), isProtected);
+            nativeWindowBuffer_, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
             cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
@@ -466,6 +473,7 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         } else {
             return nullptr;
         }
+        pixelMapId_ = pixelMap->GetUniqueId();
         tid_ = gettid();
     }
 
@@ -684,12 +692,15 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
             if (!drawable) {
                 return;
             }
-            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Generate effectData");
+            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Fallback");
+            RSAutoCanvasRestore arc(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kEnv);
             bool disableFilterCache = paintFilterCanvas->GetDisableFilterCache();
             paintFilterCanvas->SetDisableFilterCache(true);
             int8_t index = drawable->drawCmdIndex_.backgroundFilterIndex_;
             drawable->DrawImpl(*paintFilterCanvas, *rect, index);
             paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
+            RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas);
+            return;
         }
         RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas);
     };

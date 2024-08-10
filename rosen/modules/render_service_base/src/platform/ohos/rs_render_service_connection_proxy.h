@@ -74,13 +74,11 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable) override;
-#endif
     void RemoveVirtualScreen(ScreenId id) override;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval) override;
+    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+        int64_t interval, int32_t rangeSize) override;
  
     int32_t SetPointerColorInversionEnabled(bool enable) override;
  
@@ -240,8 +238,6 @@ public:
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
-    void ChangeSyncCount(uint64_t syncId, int32_t parentPid, int32_t childPid) override;
-
     void RunOnRemoteDiedCallback() override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
@@ -251,6 +247,8 @@ public:
     LayerComposeInfo GetLayerComposeInfo() override;
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
+
+    void SetVmaCacheStatus(bool flag) override;
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 
@@ -268,6 +266,8 @@ private:
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
 
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
+
+    bool SetAncoForceDoDirect(bool direct) override;
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

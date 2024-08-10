@@ -351,7 +351,7 @@ void RSPropertiesPainter::DrawColorfulShadowInner(
     // draw node content as shadow
     // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(properties.backref_.lock())) {
-        node->InternalDrawContent(canvas);
+        node->InternalDrawContent(canvas, false);
     }
 }
 
@@ -685,6 +685,17 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         canvas.SetAlpha(1.0);
     }
 
+    auto clipIBounds = canvas.GetDeviceClipBounds();
+    auto imageClipIBounds = clipIBounds;
+    std::shared_ptr<RSShaderFilter> magnifierShaderFilter =
+        filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
+    if (magnifierShaderFilter != nullptr) {
+        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
+        auto canvasMatrix = canvas.GetTotalMatrix();
+        tmpFilter->SetMagnifierOffset(canvasMatrix);
+        imageClipIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
+    }
+
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
@@ -710,14 +721,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         tmpFilter->IsOffscreenCanvas(true);
         tmpFilter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
     }
-    auto clipIBounds = canvas.GetDeviceClipBounds();
-    auto imageClipIBounds = clipIBounds;
 
-    std::shared_ptr<RSShaderFilter> magnifierShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
-    if (magnifierShaderFilter != nullptr) {
-        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
-        imageClipIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
-    }
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGD("RSPropertiesPainter::DrawFilter image null");

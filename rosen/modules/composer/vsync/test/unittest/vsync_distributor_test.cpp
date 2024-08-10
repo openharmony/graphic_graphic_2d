@@ -253,22 +253,6 @@ HWTEST_F(VSyncDistributorTest, SetHighPriorityVSyncRate002, Function | MediumTes
 }
 
 /*
-* Function: GetVSyncConnectionInfos001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetVSyncConnectionInfos and check ret
- */
-HWTEST_F(VSyncDistributorTest, GetVSyncConnectionInfos001, Function | MediumTest| Level3)
-{
-    std::vector<ConnectionInfo> infos;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetVSyncConnectionInfos(infos), VSYNC_ERROR_OK);
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetVSyncConnectionInfos(infos), VSYNC_ERROR_OK);
-}
-
-/*
 * Function: SetFrameIsRender001
 * Type: Function
 * Rank: Important(2)
@@ -356,6 +340,31 @@ HWTEST_F(VSyncDistributorTest, SetHardwareTaskNum001, Function | MediumTest| Lev
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
     VSyncDistributorTest::vsyncDistributor->SetHardwareTaskNum(num);
+}
+
+/*
+* Function: GetUiCommandDelayTime001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetUiCommandDelayTime
+ */
+HWTEST_F(VSyncDistributorTest, GetUiCommandDelayTime001, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetUiCommandDelayTime(), 0);
+}
+
+/*
+* Function: SetUiDvsyncConfig001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncConfig
+ */
+HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfig001, Function | MediumTest| Level3)
+{
+    uint32_t bufferCount = 2;
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount), VSYNC_ERROR_OK);
 }
 } // namespace
 } // namespace Rosen

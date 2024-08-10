@@ -58,8 +58,6 @@ private:
     float radiusByPasses_{};
     float unit_{};
 
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> blurBuilder_ = nullptr;
-
     static constexpr float BASE_BLUR_SCALE = 0.5f; // base downSample radio
     static constexpr uint32_t MAX_PASSES_LARGE_RADIUS = 7;
     static constexpr float DILATED_CONVOLUTION_LARGE_RADIUS = 4.6f;
@@ -67,7 +65,7 @@ private:
     static constexpr int MOVE_UNIT_NUM = 2;
     static constexpr float BLUR_RADIUS_LIMIT = 10000.0f;
 
-    void MakeForegroundEffect();
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeForegroundEffect();
     void ComputeParamter(int radius);
     void AdjustRadiusAndScale();
     void ComputePassesAndUnit();
