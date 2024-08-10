@@ -403,6 +403,7 @@ void RSUniRenderVisitor::UpdateSecuritySkipAndProtectedLayersRecord(RSSurfaceRen
 {
     if (node.GetHasSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
+        curDisplayNode_->AddSecurityLayer(node.GetId());
     }
     if (node.GetHasSkipLayer() && node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
         displayHasSkipSurface_[currentVisitDisplay_] = true;
@@ -513,6 +514,33 @@ bool RSUniRenderVisitor::IsDisplayZoomIn() const
     return scale.x_ > 1.f || scale.y_ > 1.f;
 }
 
+void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node)
+{
+    // only for virtual screen
+    if (!(node.IsMirrorDisplay())) {
+        return;
+    }
+    auto mirrorNode = node.GetMirrorSource().lock();
+    if (mirrorNode != nullptr) {
+        auto securityLayerList = mirrorNode->GetSecurityLayerList();
+        auto securityExemptionList = screenManager_->GetVirtualScreenSecurityExemptionList(node.GetScreenId());
+        bool isSecurityExemption = false;
+        if (securityExemptionList.size() == 0 || securityExemptionList.size() != securityLayerList.size()) {
+            isSecurityExemption = false;
+        } else {
+            std::sort(securityLayerList.begin(), securityLayerList.end());
+            std::sort(securityExemptionList.begin(), securityExemptionList.end());
+            if (securityExemptionList == securityLayerList) {
+                isSecurityExemption = true;
+            }
+        }
+        RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:%{public}d",
+            node.GetId(), isSecurityExemption);
+        node.SetSecurityExemption(isSecurityExemption);
+        mirrorNode->ClearSecurityLayerList();
+    }
+}
+
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
     // 0. init display info
@@ -521,6 +549,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         return;
     }
     SendRcdMessage(node);
+    UpdateVirtualScreenSecurityExemption(node);
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_;

@@ -366,6 +366,16 @@ public:
         return hasMirrorDisplay_;
     }
 
+    void SetSecExemption(bool isSecurityExemption)
+    {
+        isSecurityExemption_ = isSecurityExemption;
+    }
+
+    bool GetSecExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
 private:
     mutable std::mutex mutex_;
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
@@ -417,6 +427,8 @@ private:
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
+
+    bool isSecurityExemption_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
