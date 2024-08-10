@@ -1729,11 +1729,35 @@ bool RSMainThread::IsRequestedNextVSync()
 
 void RSMainThread::SetUiFrameworkTypeList()
 {
-    if (!initState_ && frameRateMgr_ != nullptr && context_ != nullptr &&
-        !frameRateMgr_->GetIdleDetector().GetUiFrameworkTypeList().empty()) {
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (!initState_ && frameRateMgr != nullptr && context_ != nullptr) {
         initState_ = true;
         context_->SetUiFrameworkTypeList(frameRateMgr_->GetIdleDetector().GetUiFrameworkTypeList());
     }
+}
+
+std::unordered_map<std::string, pid_t> RSMainThread::GetUiFrameworkDirtyNodes()
+{
+    if (context_ == nullptr) {
+        return "";
+    }
+    auto& neededDirtyNodes = context_->GetUiFrameworkDirtyNodes();
+    if(neededDirtyNodes.empty()) {
+        return "";
+    }
+    std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeName;
+    for (auto iter = dirtyNodes.begin(); iter != dirtyNodes.end();) {
+        auto renderNode = iter->lock();
+        if (renderNode == nullptr) {
+            iter = dirtyNodes.erase(iter);
+        } else {
+            if (renderNode->IsDirty()) {
+                uiFrameworkDirtyNodeName[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
+            }
+            ++iter;
+        }
+    }
+    return uiFrameworkDirtyNodeName;
 }
 
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
@@ -1748,6 +1772,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         return;
     }
     SetUiFrameworkTypeList();
+    auto uiFrameworkDirtyNodeName = GetUiFrameworkDirtyNodes();
     // Check and processing refresh rate task.
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();
     frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, info);
@@ -1767,9 +1792,10 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         if (frameRateMgr == nullptr) {
             return;
         }
-        if (context_ != nullptr) {
-            auto& neededDirtyNodes = context_->GetNeededDirtyNodes();
-            frameRateMgr_->GetIdleDetector().ProcessUnknownUIFwkIdleState(neededDirtyNodes, timestamp);
+        if (!uiFrameworkDirtyNodeName.empty()) {
+            for (auto [uiFwkDirtyNodeName, pid] : uiFrameworkDirtyNodeName) {
+                UpdateSurfaceTime(uiFwkDirtyNodeName, timestamp, pid, UIFWKType::FROM_UNKNOWN);
+            }
         }
         // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
         if (frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {

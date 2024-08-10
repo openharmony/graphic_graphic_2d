@@ -165,14 +165,14 @@ public:
         return uiFrameworkTypeList_;
     }
 
-    void UpdateNeededDirtyNodes(std::weak_ptr<RSRenderNode> dirtyNode)
+    void UpdateUiFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
     {
-        neededDirtyNodes_.push_back(dirtyNode);
+        uiFrameworkDirtyNodes_.push_back(dirtyNode);
     }
 
-    std::vector<std::weak_ptr<RSRenderNode>>& GetNeededDirtyNodes()
+    std::vector<std::weak_ptr<RSRenderNode>>& GetUiFrameworkDirtyNodes()
     {
-        return neededDirtyNodes_;
+        return uiFrameworkDirtyNodes_;
     }
 
 private:
@@ -180,7 +180,7 @@ private:
     void Initialize();
     RSRenderNodeMap nodeMap;
     std::vector<std::string> uiFrameworkTypeList_;
-    std::vector<std::weak_ptr<RSRenderNode>> neededDirtyNodes_;
+    std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
     RSRenderInteractiveImplictAnimatorMap interactiveImplictAnimatorMap_;
     // The root of render node tree, Note: this node is not the animation fallback node.

@@ -79,8 +79,6 @@ public:
     {
         supportAppBufferList_ = supportAppBufferList;
     }
-    void ProcessUnknownUIFwkIdleState(std::vector<std::weak_ptr<RSRenderNode>>& dirtyNodes,
-        uint64_t timestamp);
     std::vector<std::string>& GetUiFrameworkTypeList()
     {
         return supportAppBufferList_;
