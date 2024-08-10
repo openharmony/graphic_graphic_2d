@@ -489,7 +489,6 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
     if (!screenManager_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    std::lock_guard<std::mutex> lock(mutex_);
     return screenManager_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
 }
 

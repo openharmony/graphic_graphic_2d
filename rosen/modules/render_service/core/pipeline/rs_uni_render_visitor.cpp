@@ -521,24 +521,23 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
         return;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
-    if (mirrorNode != nullptr) {
-        auto securityLayerList = mirrorNode->GetSecurityLayerList();
-        auto securityExemptionList = screenManager_->GetVirtualScreenSecurityExemptionList(node.GetScreenId());
-        bool isSecurityExemption = false;
-        if (securityExemptionList.size() == 0 || securityExemptionList.size() != securityLayerList.size()) {
-            isSecurityExemption = false;
-        } else {
-            std::sort(securityLayerList.begin(), securityLayerList.end());
-            std::sort(securityExemptionList.begin(), securityExemptionList.end());
-            if (securityExemptionList == securityLayerList) {
-                isSecurityExemption = true;
-            }
-        }
-        RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:%{public}d",
-            node.GetId(), isSecurityExemption);
-        node.SetSecurityExemption(isSecurityExemption);
-        mirrorNode->ClearSecurityLayerList();
+    if (mirrorNode == nullptr || screenManager_ == nullptr) {
+        return;
     }
+    auto securityLayerList = mirrorNode->GetSecurityLayerList();
+    auto securityExemptionList = screenManager_->GetVirtualScreenSecurityExemptionList(node.GetScreenId());
+    bool isSecurityExemption = false;
+    if (securityExemptionList.size() != 0 && securityExemptionList.size() == securityLayerList.size()) {
+        std::sort(securityLayerList.begin(), securityLayerList.end());
+        std::sort(securityExemptionList.begin(), securityExemptionList.end());
+        if (securityExemptionList == securityLayerList) {
+            isSecurityExemption = true;
+        }
+    }
+    RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:%{public}d",
+        node.GetId(), isSecurityExemption);
+    node.SetSecurityExemption(isSecurityExemption);
+    mirrorNode->ClearSecurityLayerList();
 }
 
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)
