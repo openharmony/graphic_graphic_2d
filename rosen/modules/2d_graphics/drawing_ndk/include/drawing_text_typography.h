@@ -2344,7 +2344,8 @@ double OH_Drawing_TypographyTextlineStyleGetHeightScale(OH_Drawing_TypographySty
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
- * @return Whether or not to enable the font height for line styles in text layout only, true means enable, false means disable.
+ * @return Whether or not to enable the font height for line styles in text layout only,
+ * true means enable, false means disable.
  * @since 12
  * @version 1.0
  */

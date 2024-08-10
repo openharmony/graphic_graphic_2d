@@ -1932,10 +1932,7 @@ napi_value JsCanvas::OnGetLocalClipBounds(napi_env env, napi_callback_info info)
     Rect rect = m_canvas->GetLocalClipBounds();
     std::shared_ptr<Rect> rectPtr = std::make_shared<Rect>(rect.GetLeft(),
         rect.GetTop(), rect.GetRight(), rect.GetBottom());
-    if (!rectPtr) {
-        ROSEN_LOGE("JsTextBlob::OnGetLocalClipBounds rect is nullptr");
-        return nullptr;
-    }
+
     return GetRectAndConvertToJsValue(env, rectPtr);
 }
 

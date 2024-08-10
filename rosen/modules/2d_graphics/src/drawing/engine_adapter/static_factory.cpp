@@ -346,16 +346,6 @@ std::vector<std::vector<DrawingPiecewiseParameter>> StaticFactory::GetGroupParam
     return EngineStaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
 }
 
-FontStyleSet* StaticFactory::CreateEmpty()
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::CreateEmpty();
-    }
-#endif
-    return EngineStaticFactory::CreateEmpty();
-}
-
 std::shared_ptr<Blender> StaticFactory::CreateWithBlendMode(BlendMode mode)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

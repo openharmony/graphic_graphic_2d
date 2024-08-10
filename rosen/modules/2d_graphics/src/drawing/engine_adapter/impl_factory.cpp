@@ -330,26 +330,6 @@ std::unique_ptr<RegionImpl> ImplFactory::CreateRegionImpl()
     return EngineImplFactory::CreateRegion();
 }
 
-std::unique_ptr<VerticesImpl> ImplFactory::CreateVerticesImpl()
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRImplFactory::CreateVertices();
-    }
-#endif
-    return EngineImplFactory::CreateVertices();
-}
-
-std::unique_ptr<VerticesImpl::BuilderImpl> ImplFactory::CreateVerticesBuilderImpl()
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRImplFactory::CreateVerticesBuilder();
-    }
-#endif
-    return EngineImplFactory::CreateVerticesBuilder();
-}
-
 std::unique_ptr<FontImpl> ImplFactory::CreateFontImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -412,6 +392,26 @@ std::shared_ptr<FontMgrImpl> ImplFactory::CreateDynamicFontMgrImpl()
     return EngineImplFactory::CreateDynamicFontMgr();
 }
 #endif
+
+std::unique_ptr<VerticesImpl> ImplFactory::CreateVerticesImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateVertices();
+    }
+#endif
+    return EngineImplFactory::CreateVertices();
+}
+
+std::unique_ptr<VerticesImpl::BuilderImpl> ImplFactory::CreateVerticesBuilderImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateVerticesBuilder();
+    }
+#endif
+    return EngineImplFactory::CreateVerticesBuilder();
+}
 
 std::shared_ptr<MemoryStreamImpl> ImplFactory::CreateMemoryStreamImpl()
 {

@@ -2277,7 +2277,7 @@ char** OH_Drawing_TypographyTextlineStyleGetFontFamilies(OH_Drawing_TypographySt
     const std::vector<std::string> &systemFontFamilies =
         ConvertToOriginalText<TypographyStyle>(style)-> lineStyleFontFamilies;
     if (systemFontFamilies.empty()) {
-        num = 0;
+        *num = 0;
         return nullptr;
     }
     fontFamilie = new char* [systemFontFamilies.size()];
@@ -2398,7 +2398,7 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle* style)
     const char16_t* buffer = ellipsis.c_str();
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string str = convert.to_bytes(buffer);
-    char* result = new char[str.size()+1];
+    char* result = new char[str.size() + 1];
     if (strcpy_s(result, str.size() + 1, str.c_str()) != 0) {
         delete[] result;
         return nullptr;
@@ -2417,7 +2417,7 @@ void OH_Drawing_TypographyDestroyEllipsis(char* ellipsis)
 
 bool OH_Drawing_TypographyStyleEquals(OH_Drawing_TypographyStyle* from, OH_Drawing_TypographyStyle* to)
 {
-    if(from  == to ) {
+    if (from == to) {
         return true;
     }
     if (from == nullptr || to == nullptr) {
@@ -3062,6 +3062,77 @@ void OH_Drawing_DestroySystemFontConfigInfo(OH_Drawing_FontConfigInfo* drawFontC
     delete drawFontCfgInfo;
 }
 
+bool OH_Drawing_TextStyleIsEqual(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* comparedStyle)
+{
+    auto convertStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
+    auto convertComparedStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(comparedStyle);
+    if ((convertStyle == nullptr && convertComparedStyle != nullptr) ||
+        (convertStyle != nullptr && convertComparedStyle == nullptr)) {
+        return false;
+    }
+    if (convertStyle == nullptr && convertComparedStyle == nullptr) {
+        return true;
+    }
+    return convertStyle == convertComparedStyle || *convertStyle == *convertComparedStyle;
+}
+
+bool OH_Drawing_TextStyleIsEqualByFont(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* comparedStyle)
+{
+    auto convertStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
+    auto convertComparedStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(comparedStyle);
+    if (convertStyle == nullptr || convertComparedStyle == nullptr) {
+        return false;
+    }
+    return convertStyle->EqualByFonts(*convertComparedStyle);
+}
+
+bool OH_Drawing_TextStyleIsAttributeMatched(const OH_Drawing_TextStyle* style,
+    const OH_Drawing_TextStyle* comparedStyle, OH_Drawing_TextStyleType textStyleType)
+{
+    auto convertStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
+    auto convertComparedStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(comparedStyle);
+    if (convertStyle == nullptr || convertComparedStyle == nullptr) {
+        return false;
+    }
+    return convertStyle->MatchOneAttribute(static_cast<StyleType>(textStyleType), *convertComparedStyle);
+}
+
+void OH_Drawing_TextStyleSetPlaceholder(OH_Drawing_TextStyle* style)
+{
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return;
+    }
+    textStyle->isPlaceholder = true;
+}
+
+bool OH_Drawing_TextStyleIsPlaceholder(OH_Drawing_TextStyle* style)
+{
+    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
+    if (textStyle == nullptr) {
+        return false;
+    }
+    return textStyle->isPlaceholder;
+}
+
+OH_Drawing_TextAlign OH_Drawing_TypographyStyleGetEffectiveAlignment(OH_Drawing_TypographyStyle* style)
+{
+    TypographyStyle* typographyStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (typographyStyle == nullptr) {
+        return TEXT_ALIGN_START;
+    }
+    return static_cast<OH_Drawing_TextAlign>(typographyStyle->GetEffectiveAlign());
+}
+
+bool OH_Drawing_TypographyStyleIsHintEnabled(OH_Drawing_TypographyStyle* style)
+{
+    TypographyStyle* typographyStyle = ConvertToOriginalText<TypographyStyle>(style);
+    if (typographyStyle == nullptr) {
+        return false;
+    }
+    return typographyStyle->hintingIsOn;
+}
+
 void OH_Drawing_SetTypographyStyleTextStrutStyle(OH_Drawing_TypographyStyle* style, OH_Drawing_StrutStyle* strutstyle)
 {
     if (style == nullptr || strutstyle == nullptr) {
@@ -3385,77 +3456,6 @@ OH_Drawing_FontStyleStruct OH_Drawing_TypographyStyleGetFontStyleStruct(OH_Drawi
     fontStyle.width = static_cast<OH_Drawing_FontWidth>(style->fontWidth);
     fontStyle.slant = static_cast<OH_Drawing_FontStyle>(style->fontStyle);
     return fontStyle;
-}
-
-bool OH_Drawing_TextStyleIsEqual(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* comparedStyle)
-{
-    auto convertStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
-    auto convertComparedStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(comparedStyle);
-    if ((convertStyle == nullptr && convertComparedStyle != nullptr) ||
-        (convertStyle != nullptr && convertComparedStyle == nullptr)) {
-        return false;
-    }
-    if (convertStyle == nullptr && convertComparedStyle == nullptr) {
-        return true;
-    }
-    return convertStyle == convertComparedStyle || *convertStyle == *convertComparedStyle;
-}
-
-bool OH_Drawing_TextStyleIsEqualByFont(const OH_Drawing_TextStyle* style, const OH_Drawing_TextStyle* comparedStyle)
-{
-    auto convertStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
-    auto convertComparedStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(comparedStyle);
-    if (convertStyle == nullptr || convertComparedStyle == nullptr) {
-        return false;
-    }
-    return convertStyle->EqualByFonts(*convertComparedStyle);
-}
-
-bool OH_Drawing_TextStyleIsAttributeMatched(const OH_Drawing_TextStyle* style,
-    const OH_Drawing_TextStyle* comparedStyle, OH_Drawing_TextStyleType textStyleType)
-{
-    auto convertStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(style);
-    auto convertComparedStyle = ConvertToOriginalText<const OHOS::Rosen::TextStyle>(comparedStyle);
-    if (convertStyle == nullptr || convertComparedStyle == nullptr) {
-        return false;
-    }
-    return convertStyle->MatchOneAttribute(static_cast<StyleType>(textStyleType), *convertComparedStyle);
-}
-
-void OH_Drawing_TextStyleSetPlaceholder(OH_Drawing_TextStyle* style)
-{
-    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
-    if (textStyle == nullptr) {
-        return;
-    }
-    textStyle->isPlaceholder = true;
-}
-
-bool OH_Drawing_TextStyleIsPlaceholder(OH_Drawing_TextStyle* style)
-{
-    TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
-    if (textStyle == nullptr) {
-        return false;
-    }
-    return textStyle->isPlaceholder;
-}
-
-OH_Drawing_TextAlign OH_Drawing_TypographyStyleGetEffectiveAlignment(OH_Drawing_TypographyStyle* style)
-{
-    TypographyStyle* typographyStyle = ConvertToOriginalText<TypographyStyle>(style);
-    if (typographyStyle == nullptr) {
-        return TEXT_ALIGN_START;
-    }
-    return static_cast<OH_Drawing_TextAlign>(typographyStyle->GetEffectiveAlign());
-}
-
-bool OH_Drawing_TypographyStyleIsHintEnabled(OH_Drawing_TypographyStyle* style)
-{
-    TypographyStyle* typographyStyle = ConvertToOriginalText<TypographyStyle>(style);
-    if (typographyStyle == nullptr) {
-        return false;
-    }
-    return typographyStyle->hintingIsOn;
 }
 
 void OH_Drawing_TypographyDestroyTextBox(OH_Drawing_TextBox* textBox)

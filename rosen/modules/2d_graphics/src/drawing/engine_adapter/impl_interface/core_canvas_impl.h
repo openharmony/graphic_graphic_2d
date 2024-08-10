@@ -25,8 +25,8 @@
 #include "draw/paint.h"
 #include "draw/shadow.h"
 #include "draw/sdf_shaper_base.h"
-#include "draw/OpListHandle.h"
 #include "effect/filter.h"
+#include "draw/OpListHandle.h"
 #include "image/bitmap.h"
 #include "image/image_info.h"
 #ifdef ACE_ENABLE_GPU
@@ -58,6 +58,7 @@ enum class PointMode;
 struct Lattice;
 class Canvas;
 struct HpsBlurParameter;
+enum class QuadAAFlags;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
