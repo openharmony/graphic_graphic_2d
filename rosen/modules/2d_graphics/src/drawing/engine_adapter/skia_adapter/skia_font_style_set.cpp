@@ -87,6 +87,7 @@ FontStyleSet* SkiaFontStyleSet::CreateEmpty()
 {
     SkFontStyleSet* skFontStyleSetPtr = SkFontStyleSet::CreateEmpty();
     if (!skFontStyleSetPtr) {
+        LOGD("SkiaFontStyleSet::CreateEmpty, skFontStyleSet nullptr");
         return nullptr;
     }
     sk_sp<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};

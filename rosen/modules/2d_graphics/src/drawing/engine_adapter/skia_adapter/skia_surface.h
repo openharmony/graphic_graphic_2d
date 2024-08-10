@@ -17,6 +17,7 @@
 #define SKIA_SURFACE_H
 
 #include "include/core/SkSurface.h"
+#include "include/core/SkImage.h"
 
 #include "draw/surface.h"
 #include "impl_interface/surface_impl.h"

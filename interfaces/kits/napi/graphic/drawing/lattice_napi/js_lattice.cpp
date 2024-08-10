@@ -204,8 +204,8 @@ napi_value JsLattice::CreateImageLattice(napi_env env, napi_callback_info info)
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "Incorrect CreateImageLattice parameter5 type.");
         }
-        int32_t ltrb[ARGC_FOUR] = {0};
         if (valueType == napi_object) {
+            int32_t ltrb[ARGC_FOUR] = {0};
             if (!ConvertFromJsIRect(env, argv[ARGC_FOUR], ltrb, ARGC_FOUR)) {
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                     "Incorrect parameter5 type. The type of left, top, right and bottom must be number.");

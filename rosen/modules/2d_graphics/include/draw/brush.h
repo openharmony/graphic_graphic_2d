@@ -54,7 +54,7 @@ public:
     /**
      * @brief Sets alpha and RGB used when stroking and filling. The color is a 32-bit value,
      *        unpremultiplied, packing 8-bit components for alpha, red, blue, and green.
-     * @param c    unsigned 32-bit value as ARGB
+     * @param color    unpremultiplied ARGB
      */
     void SetColor(uint32_t c);
 
