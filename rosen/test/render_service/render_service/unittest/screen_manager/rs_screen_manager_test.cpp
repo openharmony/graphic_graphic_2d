@@ -1849,7 +1849,7 @@ HWTEST_F(RSScreenManagerTest, SetVirtualMirrorScreenScaleMode_002, TestSize.Leve
 
 /*
  * @tc.name: IsScreenPowerOffTest001
- * @tc.desc: Test IsScreenPowerOff, input invalid id, expect false.
+ * @tc.desc: Test IsScreenPowerOff, input invalid id, expect correctly get power status.
  * @tc.type: FUNC
  * @tc.require: issueI9UNQP
  */
