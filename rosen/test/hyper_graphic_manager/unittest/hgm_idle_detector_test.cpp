@@ -288,9 +288,7 @@ HWTEST_F(HgmIdleDetectorTest, ProcessUnknownUIFwkIdleState, Function | SmallTest
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
     auto nodeWeaKPtr = std::make_shared<RSRenderNode>(id);
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> rsRSRenderNodeMap;
-    std::unordered_map<NodeId,
-        std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot;
+    std::vector<std::weak_ptr<RSRenderNode>> dirtyNodes;
 
     PART("CaseDescription") {
         STEP("1. get an idleDetector") {
@@ -300,19 +298,45 @@ HWTEST_F(HgmIdleDetectorTest, ProcessUnknownUIFwkIdleState, Function | SmallTest
         STEP("2. set app support status") {
             idleDetector->SetAppSupportedState(true);
             nodeWeaKPtr->SetNodeName(flutterBuffer);
-            rsRSRenderNodeMap[id] = nodeWeaKPtr;
-            activeNodesInRoot[id] = rsRSRenderNodeMap;
+            nodeWeaKPtr->SetDirty(true);
+            dirtyNodes.push_back(nodeWeaKPtr);
         }
         STEP("3. set buffer renew time") {
-            idleDetector->ProcessUnknownUIFwkIdleState(activeNodesInRoot, Pid);
+            idleDetector->ProcessUnknownUIFwkIdleState(dirtyNodes, currTime);
             bool ret = idleDetector->GetSurfaceIdleState(lastTime);
             STEP_ASSERT_EQ(ret, true);
         }
         STEP("4. get buffer idle state") {
-            idleDetector->supportAppBufferList_.insert(idleDetector->supportAppBufferList_.begin(), flutterBuffer);
-            idleDetector->ProcessUnknownUIFwkIdleState(activeNodesInRoot, Pid);
+            idleDetector->supportAppBufferList_.push_back(flutterBuffer);
+            idleDetector->ProcessUnknownUIFwkIdleState(dirtyNodes, currTime);
             bool ret = idleDetector->GetSurfaceIdleState(lastTime);
             STEP_ASSERT_EQ(ret, false);
+        }
+    }
+}
+
+/**
+ * @tc.name: GetUiFrameworkTypeList
+ * @tc.desc: Verify the result of SetAndGetSurfaceTimeState function
+ * @tc.type: FUNC
+ * @tc.require: IAFG2V
+ */
+HWTEST_F(HgmIdleDetectorTest, GetUiFrameworkTypeList, Function | SmallTest | Level1)
+{
+    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
+
+    PART("CaseDescription") {
+        STEP("1. get an idleDetector") {
+            STEP_ASSERT_NE(idleDetector, nullptr);
+        }
+        STEP("2. set app support status") {
+            idleDetector->SetAppSupportedState(true);
+            idleDetector->supportAppBufferList_.push_back(otherSurface);
+            auto uiFrameworkTypeList = idleDetector->GetUiFrameworkTypeList();
+            auto ret = std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), otherSurface)
+            STEP_ASSERT_GT(ret, 0);
+            ret = std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), flutterBuffer)
+            STEP_ASSERT_EQ(ret, 0);
         }
     }
 }

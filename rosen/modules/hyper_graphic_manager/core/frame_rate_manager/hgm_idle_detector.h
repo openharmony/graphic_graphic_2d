@@ -79,8 +79,12 @@ public:
     {
         supportAppBufferList_ = supportAppBufferList;
     }
-    void ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
-        std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
+    void HgmIdleDetector::ProcessUnknownUIFwkIdleState(std::vector<std::weak_ptr<RSRenderNode>>& dirtyNodes,
+        uint64_t timestamp)
+    std::vector<std::string>& GetUiFrameworkTypeList()
+    {
+        return supportAppBufferList_;
+    }
 private:
     bool GetUnknownFrameworkState(const std::string& surfaceName);
     bool GetSurfaceFrameworkState(const std::string& surfaceName);

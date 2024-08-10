@@ -81,19 +81,22 @@ bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName)
     return true;
 }
 
-void HgmIdleDetector::ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
+void HgmIdleDetector::ProcessUnknownUIFwkIdleState(std::vector<std::weak_ptr<RSRenderNode>>& dirtyNodes,
+    uint64_t timestamp)
 {
-    if (activeNodesInRoot.empty()) {
+    if (dirtyNodes.empty()) {
         return;
     }
 
-    for (const auto &[_, idToMap] : activeNodesInRoot) {
-        for (const auto &[_, weakPenderNode] : idToMap) {
-            auto renderNode = weakPenderNode.lock();
-            if (renderNode != nullptr) {
+    for (auto iter = dirtyNodes.begin(); iter != dirtyNodes.end();) {
+        auto renderNode = iter->lock();
+        if (renderNode == nullptr) {
+            iter = dirtyNodes.erase(iter);
+        } else {
+            if (renderNode->IsDirty()) {
                 UpdateSurfaceTime(renderNode->GetNodeName(), timestamp, ExtractPid(renderNode->GetId()));
             }
+            ++iter;
         }
     }
 }

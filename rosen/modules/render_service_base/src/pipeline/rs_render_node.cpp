@@ -172,6 +172,9 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    constexpr const int MAX_NODE_NAME_LEN = 10;
+};
 void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
     context_ = context;
@@ -3561,6 +3564,16 @@ bool RSRenderNode::IsStaticCached() const
 void RSRenderNode::SetNodeName(const std::string& nodeName)
 {
     nodeName_ = nodeName;
+    auto context = GetContext().lock();
+    if (!context) {
+        return;
+    }
+    auto& uiFrameworkTypeList = context->GetUiFrameworkTypeList();
+    auto validNodeName = nodeName.size() > MAX_NODE_NAME_LEN ?
+    nodeName.substr(0, MAX_NODE_NAME_LEN) : nodeName;
+    if (std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), validNodeName)) {
+        context->UpdateNeededDirtyNodes(weak_from_this());
+    }
 }
 const std::string& RSRenderNode::GetNodeName() const
 {

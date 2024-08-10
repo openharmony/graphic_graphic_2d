@@ -1727,6 +1727,23 @@ bool RSMainThread::IsRequestedNextVSync()
     return false;
 }
 
+void RSMainThread::SetUiFrameworkTypeList()
+{
+    if (!initState_ && frameRateMgr_ != nullptr && context_ != nullptr &&
+        !frameRateMgr_->GetIdleDetector().GetUiFrameworkTypeList().empty()) {
+        initState_ = ture;
+        context_->SetUiFrameworkTypeList(frameRateMgr_->GetIdleDetector().GetUiFrameworkTypeList());
+    }
+}
+
+void RSMainThread::UpdateUiFrameworkTypeIdleState(uint64_t timestamp)
+{
+    if (frameRateMgr_ == nullptr && context_ == nullptr) {
+        return;
+    }
+    frameRateMgr_->GetIdleDetector().ProcessUnknownUIFwkIdleState(context_->GetNeededDirtyNodes(), timestamp)
+}
+
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
     DvsyncInfo info;
@@ -1738,18 +1755,18 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
         return;
     }
+    SetUiFrameworkTypeList();
     // Check and processing refresh rate task.
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();
     frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, info);
     
-    std::unique_lock<std::mutex> lock(context_->activeNodesInRootMutex_);
-    auto activeNodesInRootMap = context_->activeNodesInRoot_;
-    lock.unlock();
+
     HgmTaskHandleThread::Instance().PostTask([timestamp, info, activeNodesInRootMap, rsCurrRange = rsCurrRange_,
                                             rsFrameRateLinker = rsFrameRateLinker_,
                                             appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                             idleTimerExpiredFlag = idleTimerExpiredFlag_] () mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
+        UpdateUiFrameworkTypeIdleState(timestamp);
         if (rsFrameRateLinker != nullptr) {
             rsCurrRange.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
             HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsCurrRange);
