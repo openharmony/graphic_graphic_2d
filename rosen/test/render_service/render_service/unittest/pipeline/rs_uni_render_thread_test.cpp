@@ -513,15 +513,14 @@ HWTEST_F(RSUniRenderThreadTest, GetRefreshRate001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    std::shared_ptr<const RSRenderNode> node = std::make_shared<const RSRenderNode>(0);
-    surfaceRenderNode->renderDrawable_ = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    surfaceRenderNode->renderDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
-    auto surfaceDrawable =
-        std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceRenderNode->renderDrawable_);
-    surfaceDrawable->consumerOnDraw_ = IConsumerSurface::Create();
-    instance.renderThreadParams_->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
-    auto params = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->GetRenderParams().get());
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+
+    adapter->consumerOnDraw_ = IConsumerSurface::Create();
+    instance.renderThreadParams_->selfDrawables_.push_back(adapter);
+    auto params = static_cast<RSSurfaceRenderParams*>(adapter->GetRenderParams().get());
     instance.ReleaseSelfDrawingNodeBuffer();
     EXPECT_FALSE(params->GetPreBuffer());
 

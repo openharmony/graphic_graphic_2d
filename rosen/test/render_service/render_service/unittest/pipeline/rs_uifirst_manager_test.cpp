@@ -295,8 +295,6 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNode001, TestSize.Level1)
     uifirstManager_.ProcessDoneNode();
     EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
 
-    // NodeId nodeId = 1;
-    // std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
     uifirstManager_.pendingResetNodes_.insert(std::make_pair(id, surfaceRenderNode));
     uifirstManager_.capturedNodes_.push_back(id);
     uifirstManager_.ProcessDoneNode();
@@ -1338,5 +1336,39 @@ HWTEST_F(RSUifirstManagerTest, UpdateUIFirstNodeUseDma001, TestSize.Level1)
     std::vector<RectI> rects;
     uifirstManager_.UpdateUIFirstNodeUseDma(node, rects);
     EXPECT_FALSE(uifirstManager_.GetUseDmaBuffer(node.GetName()));
+}
+
+/**
+ * @tc.name: DoPurgePendingPostNodes001
+ * @tc.desc: Test DoPurgePendingPostNodes
+ * @tc.type: FUNC
+ * @tc.require: issueIADDL3
+ */
+HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
+{
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
+    NodeId nodeId = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
+    uifirstManager_.subthreadProcessingNode_.clear();
+    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
+    EXPECT_FALSE(pendingNode.empty());
+
+    auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    adapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
+    surfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
+    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
+    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
+    EXPECT_FALSE(pendingNode.empty());
+
+    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
+    EXPECT_FALSE(pendingNode.empty());
+
+    adapter->hasHdrPresent_ = true;
+    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
+    uifirstManager_.DoPurgePendingPostNodes(pendingNode);
+    EXPECT_FALSE(pendingNode.empty());
 }
 }
