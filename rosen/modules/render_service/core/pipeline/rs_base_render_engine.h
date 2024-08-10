@@ -182,7 +182,7 @@ public:
     std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
         const FrameContextConfig& frameContextConfig = {false, false});
-    
+
     void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
         BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
 
