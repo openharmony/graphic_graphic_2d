@@ -101,6 +101,21 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
 namespace {
 constexpr int TEXT_BLOB_CACHE_MARGIN = 10;
 constexpr float HIGH_CONTRAST_OFFSCREEN_THREASHOLD = 0.99f;
+
+template<class A, class F>
+void DumpArray(std::string& out, const A& array, F func)
+{
+    out += "[";
+    auto end = std::end(array);
+    for (auto begin = std::begin(array); begin != end; begin++) {
+        func(out, *begin);
+        out += " ";
+    }
+    if (std::begin(array) != end) {
+        out.pop_back();
+    }
+    out += "]";
+}
 }
 
 std::function<void (std::shared_ptr<Drawing::Image> image)> DrawOpItem::holdDrawingImagefunc_ = nullptr;
@@ -777,6 +792,22 @@ void DrawShadowStyleOpItem::Playback(Canvas* canvas, const Rect* rect)
         *path_, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isLimitElevation_);
 }
 
+void DrawShadowStyleOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[plane";
+    planeParams_.Dump(out);
+    out += " lightPos";
+    devLightPos_.Dump(out);
+    out += " lightRadius:" + std::to_string(lightRadius_);
+    out += " ambientColor";
+    ambientColor_.Dump(out);
+    out += " spotColor_";
+    spotColor_.Dump(out);
+    out += " shadowFlags:" + std::to_string(static_cast<int>(flag_));
+    out += " isLimitElevation:" + std::string(isLimitElevation_ ? "true" : "false");
+    out += "]";
+}
+
 /* DrawShadowOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawShadow, DrawOpItem::SHADOW_OPITEM, DrawShadowOpItem::Unmarshalling);
 
@@ -808,6 +839,27 @@ void DrawShadowOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->DrawShadow(*path_, planeParams_, devLightPos_, lightRadius_,
                        ambientColor_, spotColor_, flag_);
+}
+
+void DrawShadowOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[plane";
+    planeParams_.Dump(out);
+    out += " lightPos";
+    devLightPos_.Dump(out);
+    out += " lightRadius:" + std::to_string(lightRadius_);
+    out += " ambientColor";
+    ambientColor_.Dump(out);
+    out += " spotColor_";
+    spotColor_.Dump(out);
+    out += " shadowFlags:" + std::to_string(static_cast<int>(flag_));
+    out += " path";
+    if (path_) {
+        path_->Dump(out);
+    } else {
+        out += "[null]";
+    }
+    out += "]";
 }
 
 /* DrawRegionOpItem */
@@ -912,6 +964,14 @@ void DrawColorOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawColor(color_, mode_);
 }
 
+void DrawColorOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[color";
+    Color(color_).Dump(out);
+    out += " blendMode:" + std::to_string(static_cast<int>(mode_));
+    out += "]";
+}
+
 /* DrawImageNineOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawImageNine, DrawOpItem::IMAGE_NINE_OPITEM, DrawImageNineOpItem::Unmarshalling);
 
@@ -954,6 +1014,28 @@ void DrawImageNineOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawImageNine(image_.get(), center_, dst_, filter_, brushPtr);
 }
 
+void DrawImageNineOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[center";
+    center_.Dump(out);
+    out += " dst";
+    dst_.Dump(out);
+    out += " filterMode:" + std::to_string(static_cast<int>(filter_));
+    out += " brush";
+    if (hasBrush_) {
+        brush_.Dump(out);
+    } else {
+        out += "[null]";
+    }
+    out += " image";
+    if (image_) {
+        image_->Dump(out);
+    } else {
+        out += "[null]";
+    }
+    out += "]";
+}
+
 /* DrawImageLatticeOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawImageLattice, DrawOpItem::IMAGE_LATTICE_OPITEM, DrawImageLatticeOpItem::Unmarshalling);
 
@@ -992,6 +1074,43 @@ void DrawImageLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->AttachPaint(paint_);
     canvas->DrawImageLattice(image_.get(), lattice_, dst_, filter_);
+}
+
+void DrawImageLatticeOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[lattice[";
+    out += "xCount:" + std::to_string(lattice_.fXCount);
+    out += " yCount:" + std::to_string(lattice_.fYCount);
+    out += " xDivs";
+    DumpArray(out, lattice_.fXDivs, [](std::string& out, int n) {
+        out += std::to_string(n);
+    });
+    out += " yDivs";
+    DumpArray(out, lattice_.fYDivs, [](std::string& out, int n) {
+        out += std::to_string(n);
+    });
+    out += " rectTypes";
+    DumpArray(out, lattice_.fRectTypes, [](std::string& out, Lattice::RectType n) {
+        out += std::to_string(static_cast<int>(n));
+    });
+    out += " bounds";
+    DumpArray(out, lattice_.fBounds, [](std::string& out, const RectI& n) {
+        n.Dump(out);
+    });
+    out += " colors";
+    DumpArray(out, lattice_.fColors, [](std::string& out, const Color& c) {
+        c.Dump(out);
+    });
+    out += " dst";
+    dst_.Dump(out);
+    out += " filterMode:" + std::to_string(static_cast<int>(filter_));
+    out += " image";
+    if (image_) {
+        image_->Dump(out);
+    } else {
+        out += "[null]";
+    }
+    out += "]";
 }
 
 /* DrawAtlasOpItem */
@@ -1715,6 +1834,15 @@ void ClipRectOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->ClipRect(rect_, clipOp_, doAntiAlias_);
 }
 
+void ClipRectOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[rect";
+    rect_.Dump(out);
+    out += " clipOp:" + std::to_string(static_cast<int>(clipOp_));
+    out += " antiAlias:" + std::string(doAntiAlias_ ? "true" : "false");
+    out += "]";
+}
+
 /* ClipIRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(ClipIRect, DrawOpItem::CLIP_IRECT_OPITEM, ClipIRectOpItem::Unmarshalling);
 
@@ -1734,6 +1862,14 @@ void ClipIRectOpItem::Marshalling(DrawCmdList& cmdList)
 void ClipIRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->ClipIRect(rect_, clipOp_);
+}
+
+void ClipIRectOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[rect";
+    rect_.Dump(out);
+    out += " clipOp:" + std::to_string(static_cast<int>(clipOp_));
+    out += "]";
 }
 
 /* ClipRoundRectOpItem */
@@ -1756,6 +1892,15 @@ void ClipRoundRectOpItem::Marshalling(DrawCmdList& cmdList)
 void ClipRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->ClipRoundRect(rrect_, clipOp_, doAntiAlias_);
+}
+
+void ClipRoundRectOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[rrect";
+    rrect_.Dump(out);
+    out += " clipOp:" + std::to_string(static_cast<int>(clipOp_));
+    out += " antiAlias:" + std::string(doAntiAlias_ ? "true" : "false");
+    out += "]";
 }
 
 /* ClipPathOpItem */
@@ -1816,6 +1961,18 @@ void ClipRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->ClipRegion(*region_, clipOp_);
 }
 
+void ClipRegionOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[clipOp:";
+    out += std::to_string(static_cast<int>(clipOp_)) + " region";
+    if (region_) {
+        region_->Dump(out);
+    } else {
+        out += "[null]";
+    }
+    out += "]";
+}
+
 /* SetMatrixOpItem */
 REGISTER_UNMARSHALLING_FUNC(SetMatrix, DrawOpItem::SET_MATRIX_OPITEM, SetMatrixOpItem::Unmarshalling);
 
@@ -1839,6 +1996,17 @@ void SetMatrixOpItem::Marshalling(DrawCmdList& cmdList)
 void SetMatrixOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->SetMatrix(matrix_);
+}
+
+void SetMatrixOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[matrix";
+    Matrix::Buffer buffer;
+    matrix_.GetAll(buffer);
+    DumpArray(out, buffer, [](std::string& out, float v) {
+        out += std::to_string(v);
+    });
+    out += "]";
 }
 
 /* ResetMatrixOpItem */
@@ -1886,6 +2054,17 @@ void ConcatMatrixOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->ConcatMatrix(matrix_);
 }
 
+void ConcatMatrixOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[matrix";
+    Matrix::Buffer buffer;
+    matrix_.GetAll(buffer);
+    DumpArray(out, buffer, [](std::string& out, float v) {
+        out += std::to_string(v);
+    });
+    out += "]";
+}
+
 /* TranslateOpItem */
 REGISTER_UNMARSHALLING_FUNC(Translate, DrawOpItem::TRANSLATE_OPITEM, TranslateOpItem::Unmarshalling);
 
@@ -1905,6 +2084,14 @@ void TranslateOpItem::Marshalling(DrawCmdList& cmdList)
 void TranslateOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->Translate(dx_, dy_);
+}
+
+void TranslateOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[x:";
+    out += std::to_string(dx_) + " y:";
+    out += std::to_string(dy_);
+    out += "]";
 }
 
 /* ScaleOpItem */
@@ -1928,6 +2115,14 @@ void ScaleOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->Scale(sx_, sy_);
 }
 
+void ScaleOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[x:";
+    out += std::to_string(sx_) + " y:";
+    out += std::to_string(sy_);
+    out += "]";
+}
+
 /* RotateOpItem */
 REGISTER_UNMARSHALLING_FUNC(Rotate, DrawOpItem::ROTATE_OPITEM, RotateOpItem::Unmarshalling);
 
@@ -1949,6 +2144,15 @@ void RotateOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->Rotate(deg_, sx_, sy_);
 }
 
+void RotateOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[degree:";
+    out += std::to_string(deg_) + " x:";
+    out += std::to_string(sx_) + " y:";
+    out += std::to_string(sy_);
+    out += "]";
+}
+
 /* ShearOpItem */
 REGISTER_UNMARSHALLING_FUNC(Shear, DrawOpItem::SHEAR_OPITEM, ShearOpItem::Unmarshalling);
 
@@ -1968,6 +2172,14 @@ void ShearOpItem::Marshalling(DrawCmdList& cmdList)
 void ShearOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->Shear(sx_, sy_);
+}
+
+void ShearOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[x:";
+    out += std::to_string(sx_) + " y:";
+    out += std::to_string(sy_);
+    out += "]";
 }
 
 /* FlushOpItem */
@@ -2009,6 +2221,12 @@ void ClearOpItem::Marshalling(DrawCmdList& cmdList)
 void ClearOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->Clear(color_);
+}
+
+void ClearOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc();
+    Color(color_).Dump(out);
 }
 
 /* SaveOpItem */
@@ -2066,6 +2284,20 @@ void SaveLayerOpItem::Playback(Canvas* canvas, const Rect* rect)
     Brush* brushPtr = hasBrush_ ? &brush_ : nullptr;
     SaveLayerOps slo(rectPtr, brushPtr, saveLayerFlags_);
     canvas->SaveLayer(slo);
+}
+
+void SaveLayerOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[flags:";
+    out += std::to_string(saveLayerFlags_) + " rect";
+    rect_.Dump(out);
+    out += " brush";
+    if (hasBrush_) {
+        brush_.Dump(out);
+    } else {
+        out += "[null]";
+    }
+    out += "]";
 }
 
 /* RestoreOpItem */
@@ -2134,6 +2366,18 @@ void ClipAdaptiveRoundRectOpItem::Marshalling(DrawCmdList& cmdList)
 void ClipAdaptiveRoundRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     canvas->ClipRoundRect(*rect, radiusData_, true);
+}
+
+void ClipAdaptiveRoundRectOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc() + "[radius";
+    DumpArray(out, radiusData_, [](std::string& out, const Point& p) {
+        out += "[";
+        out += std::to_string(p.GetX()) + " ";
+        out += std::to_string(p.GetY());
+        out += "]";
+    });
+    out += "]";
 }
 } // namespace Drawing
 } // namespace Rosen
