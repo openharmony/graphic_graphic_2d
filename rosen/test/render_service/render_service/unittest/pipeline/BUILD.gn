@@ -62,6 +62,7 @@ group("unittest") {
       ":RSFilterSubThreadTest",
       ":RSRenderTaskTest",
       ":RSSubThreadManagerTest",
+      ":RSSubThreadTest",
       ":RSUIFirstRenderListenerTest",
     ]
   }
@@ -183,7 +184,11 @@ ohos_unittest("RSUniRenderProcessorTest") {
 ## Build RSUniRenderThreadTest
 ohos_unittest("RSUniRenderThreadTest") {
   module_out_path = module_output_path
-  sources = [ "rs_uni_render_thread_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
+    "rs_uni_render_thread_test.cpp",
+  ]
+
   deps = [
     ":rs_test_common",
     "../../../../../modules/render_service_base/src/platform:platform",
@@ -323,7 +328,10 @@ ohos_unittest("RSProcessorFactoryTest") {
 ## Build RSPhysicalScreenProcessorTest
 ohos_unittest("RSPhysicalScreenProcessorTest") {
   module_out_path = module_output_path
-  sources = [ "rs_physical_screen_processor_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
+    "rs_physical_screen_processor_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -699,7 +707,10 @@ ohos_unittest("RSMainThreadTest") {
 ## Build RSEglImageManagerTest
 ohos_unittest("RSEglImageManagerTest") {
   module_out_path = module_output_path
-  sources = [ "rs_egl_image_manager_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
+    "rs_egl_image_manager_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -803,7 +814,10 @@ ohos_unittest("RSSubThreadManagerTest") {
 ## Build RSSubThreadTest
 ohos_unittest("RSSubThreadTest") {
   module_out_path = module_output_path
-  sources = [ "parallel_render/rs_sub_thread_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
+    "parallel_render/rs_sub_thread_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -881,7 +895,10 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
 ## Build RSBaseRenderEngineUnitTest
 ohos_unittest("RSBaseRenderEngineUnitTest") {
   module_out_path = module_output_path
-  sources = [ "rs_base_render_engine_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
+    "rs_base_render_engine_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -967,7 +984,10 @@ ohos_unittest("RSRealtimeRefreshRateManagerTest") {
 ## Build RSRenderEngineTest
 ohos_unittest("RSRenderEngineTest") {
   module_out_path = module_output_path
-  sources = [ "rs_render_engine_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
+    "rs_render_engine_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -1019,7 +1039,10 @@ ohos_unittest("RSDividedRenderUtilTest") {
 ## Build RSUniRenderEngineTest
 ohos_unittest("RSUniRenderEngineTest") {
   module_out_path = module_output_path
-  sources = [ "rs_uni_render_engine_test.cpp" ]
+  sources = [
+    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
+    "rs_uni_render_engine_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
