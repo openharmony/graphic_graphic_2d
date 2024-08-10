@@ -1854,10 +1854,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     UpdateUIFirstSwitch();
     UpdateRogSizeIfNeeded();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
-    uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
-    uniVisitor->SetForceUpdateFlag(forceUpdateUniRenderFlag_);
 
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
@@ -1908,14 +1906,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             uniVisitor->GetIsPartialRenderEnabled() && !uniVisitor->GetIsRegionDebugEnabled();
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
-        if (RSSystemProperties::GetQuickPrepareEnabled()) {
-            //planning:the QuickPrepare will be replaced by Prepare
-            rootNode->QuickPrepare(uniVisitor);
-            uniVisitor->SurfaceOcclusionCallbackToWMS();
-            SetUniVSyncRateByVisibleLevel(uniVisitor);
-        } else {
-            rootNode->Prepare(uniVisitor);
-        }
+        rootNode->QuickPrepare(uniVisitor);
+        uniVisitor->SurfaceOcclusionCallbackToWMS();
+        SetUniVSyncRateByVisibleLevel(uniVisitor);
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         isAccessibilityConfigChanged_ = false;
@@ -1923,9 +1916,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RSPointLightManager::Instance()->PrepareLight();
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
-        if (!RSSystemProperties::GetQuickPrepareEnabled()) {
-            CalcOcclusion();
-        }
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
@@ -3997,6 +3987,12 @@ void RSMainThread::UnRegisterUIExtensionCallback(pid_t pid)
     std::lock_guard<std::mutex> lock(uiExtensionMutex_);
     RS_LOGI("RSMainThread::UnRegisterUIExtensionCallback for PID: %{public}d.", pid);
     uiExtensionListenners_.erase(pid);
+}
+
+void RSMainThread::SetAncoForceDoDirect(bool direct)
+{
+    RS_LOGI("RSMainThread::SetAncoForceDoDirect %{public}d.", direct);
+    RSSurfaceRenderNode::SetAncoForceDoDirect(direct);
 }
 
 void RSMainThread::UIExtensionNodesTraverseAndCallback()

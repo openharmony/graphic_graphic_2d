@@ -208,8 +208,6 @@ void RSRenderNodeMap::MoveRenderNodeMap(
             ++iter;
             continue;
         }
-        // update node flag to avoid animation fallback
-        iter->second->fallbackAnimationOnDestroy_ = false;
         // remove node from tree
         iter->second->RemoveFromTree(false);
         subRenderNodeMap->emplace(iter->first, iter->second);
@@ -233,13 +231,9 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (parent) {
             parent->RemoveChildFromFulllist(pair.second->GetId());
         }
-        // Fix the loss of animation callbacks for the host when uiextension exits abnormally
-        if (pair.second->GetType() != RSRenderNodeType::SURFACE_NODE) {
-            // update node flag to avoid animation fallback
-            pair.second->fallbackAnimationOnDestroy_ = false;
-        }
         // remove node from tree
         pair.second->RemoveFromTree(false);
+        pair.second->GetAnimationManager().FilterAnimationByPid(pid);
         return true;
     });
 

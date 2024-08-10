@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <sstream>
+
 #include "common/rs_common_tools.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
@@ -489,6 +491,17 @@ void DrawImageWithParmOpItem::SetNodeId(NodeId id)
         return;
     }
     objectHandle_->SetNodeId(id);
+}
+
+void DrawImageWithParmOpItem::Dump(std::string& out) const
+{
+    out += "[sampling:";
+    sampling_.Dump(out);
+    out += " objectHandle:";
+    
+    std::stringstream stream;
+    stream << std::hex << objectHandle_.get() << "]";
+    out += std::string(stream.str());
 }
 
 /* DrawPixelMapWithParmOpItem */

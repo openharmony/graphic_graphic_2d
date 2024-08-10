@@ -112,6 +112,8 @@ public:
      */
     virtual bool QuickReject(const RectI& rectI) const;
 
+    inline void Dump(std::string& out) const;
+
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
 
@@ -128,6 +130,17 @@ public:
 private:
     std::shared_ptr<RegionImpl> impl_;
 };
+
+inline void Region::Dump(std::string& out) const
+{
+    out += "[empty:" + std::string(impl_->IsEmpty() ? "true" : "false");
+    out += " isRect:" + std::string(impl_->IsRect() ? "true" : "false");
+    out += " BoundaryPath";
+    Path path;
+    impl_->GetBoundaryPath(&path);
+    path.Dump(out);
+    out += "]";
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -16,6 +16,7 @@
 #include "recording/cmd_list.h"
 
 #include <algorithm>
+#include <sstream>
 
 #include "utils/log.h"
 
@@ -341,6 +342,112 @@ std::shared_ptr<ExtendDrawFuncObj> CmdList::GetDrawFuncObj(uint32_t id)
     }
     return drawFuncObjVec_[id];
 }
+
+std::string CmdList::ProfilerPushAllocators()
+{
+    std::stringstream stream;
+    size_t size;
+
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        size = opAllocator_.GetSize();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        stream.write(reinterpret_cast<const char*>(opAllocator_.GetData()), opAllocator_.GetSize());
+
+        size = imageAllocator_.GetSize();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        stream.write(reinterpret_cast<const char*>(imageAllocator_.GetData()), imageAllocator_.GetSize());
+
+        size = bitmapAllocator_.GetSize();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+        stream.write(reinterpret_cast<const char*>(bitmapAllocator_.GetData()), bitmapAllocator_.GetSize());
+
+        size = imageHandleVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageObjectMutex_);
+        size = imageObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+        size = imageBaseObjVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(extendObjectMutex_);
+        size = extendObjectVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
+        size = drawFuncObjVec_.size();
+        stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
+    }
+
+    return stream.str();
+}
+
+void CmdList::ProfilerPopAllocators(const std::string& data)
+{
+    std::vector<uint8_t> buffer;
+    size_t bufferSize;
+    std::stringstream stream(data);
+    size_t size;
+
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+
+        stream.read(reinterpret_cast<char*>(&bufferSize), sizeof(bufferSize));
+        buffer.resize(bufferSize);
+        stream.read(reinterpret_cast<char*>(buffer.data()), bufferSize);
+        opAllocator_.BuildFromDataWithCopy(buffer.data(), bufferSize);
+
+        stream.read(reinterpret_cast<char*>(&bufferSize), sizeof(bufferSize));
+        buffer.resize(bufferSize);
+        stream.read(reinterpret_cast<char*>(buffer.data()), bufferSize);
+        imageAllocator_.BuildFromDataWithCopy(buffer.data(), bufferSize);
+
+        stream.read(reinterpret_cast<char*>(&bufferSize), sizeof(bufferSize));
+        buffer.resize(bufferSize);
+        stream.read(reinterpret_cast<char*>(buffer.data()), bufferSize);
+        bitmapAllocator_.BuildFromDataWithCopy(buffer.data(), bufferSize);
+
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        imageHandleVec_.resize(size);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageObjectMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        imageObjectVec_.resize(size);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        imageBaseObjVec_.resize(size);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(extendObjectMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        extendObjectVec_.resize(size);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(drawFuncObjMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        drawFuncObjVec_.resize(size);
+    }
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

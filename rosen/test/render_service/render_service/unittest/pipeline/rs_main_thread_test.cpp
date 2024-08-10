@@ -3400,4 +3400,22 @@ HWTEST_F(RSMainThreadTest, CheckUIExtensionCallbackDataChanged002, TestSize.Leve
     mainThread->uiExtensionCallbackData_.clear();
     ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
 }
+
+/**
+ * @tc.name: SetAncoForceDoDirect
+ * @tc.desc: test SetAncoForceDoDirect
+ * @tc.type: FUNC
+ * @tc.require: issueIAIIEP
+ */
+HWTEST_F(RSMainThreadTest, SetAncoForceDoDirect, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->SetAncoForceDoDirect(true);
+    ASSERT_EQ(RSSurfaceRenderNode::ancoForceDoDirect_.load(), true);
+
+    mainThread->SetAncoForceDoDirect(false);
+    ASSERT_EQ(RSSurfaceRenderNode::ancoForceDoDirect_.load(), false);
+}
 } // namespace OHOS::Rosen

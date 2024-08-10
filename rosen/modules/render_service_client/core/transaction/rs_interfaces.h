@@ -279,6 +279,8 @@ public:
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
+    bool SetAncoForceDoDirect(bool direct);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

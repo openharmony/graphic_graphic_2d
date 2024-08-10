@@ -285,6 +285,8 @@ public:
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
 
+    virtual bool SetAncoForceDoDirect(bool direct) = 0;
+
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
 #endif

@@ -27,7 +27,6 @@ import {PerformanceCanvasDrawRect, PerformanceCanvasDrawCircle, PerformanceCanva
 import { RoundRectSetCornerTest, RoundRectGetCornerTest, RoundRectOffsetTest } from '../testcase/interface/roundrecttest';
 import { PenGetFillPath } from '../testcase/interface/pentest'
 import { ColorFilterCreateMatrix } from '../testcase/interface/colorfiltertests';
-import { JoinRect } from '../testcase/interface/utilstests';
 
 const TAG = '[DrawingTest]';
 
@@ -94,8 +93,6 @@ export class CaseFactory {
       ['matrix_maprect', () => { return new MatrixMapRect(); }],
       ['matrixmappoints', () => { return new MatrixMapPoints(); }],
       ['colorfilter_creatematrix', () => { return new ColorFilterCreateMatrix(); }],
-
-      ['joinRect', () => { return new JoinRect(); }],
     ]
   );
   static PerformanceMap: Map<string, Function> = new Map(
@@ -176,8 +173,6 @@ export class CaseFactory {
       ['matrix_maprect', () => { return new MatrixMapRect(); }],
       ['matrix_mappoints', () => { return new MatrixMapPoints(); }],
       ['color_filter_create_matrix', () => { return new ColorFilterCreateMatrix(); }],
-
-      ['join_Rect', () => { return new JoinRect(); }],
     ]
   );
   

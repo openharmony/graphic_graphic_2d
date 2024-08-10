@@ -71,6 +71,14 @@ public:
     void TearDown() override;
 };
 
+class ConcreteRSRenderNodeDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit ConcreteRSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node))
+    {}
+    void Draw(Drawing::Canvas& canvas) {}
+};
+
 void RSRenderNodeDrawableAdapterTest::SetUpTestCase() {}
 void RSRenderNodeDrawableAdapterTest::TearDownTestCase() {}
 void RSRenderNodeDrawableAdapterTest::SetUp() {}
@@ -273,8 +281,8 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawRangeImplAndRelatedTest, TestSize.Le
     auto skipIndex = adapter->GetSkipIndex();
     EXPECT_LE(start, skipIndex);
     EXPECT_GT(end, skipIndex);
+    adapter->DrawRangeImpl(drawingCanvas, rect, start, end + 1);
     adapter->DrawRangeImpl(drawingCanvas, rect, start, end);
-
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList;
     adapter->drawCmdList_.swap(drawCmdList);
 }
@@ -461,5 +469,43 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetSkipIndexTest, TestSize.Level1)
     adapter->skipType_ = SkipType::SKIP_SHADOW;
     ret = adapter->GetSkipIndex();
     EXPECT_EQ(ret, adapter->drawCmdIndex_.shadowIndex_);
+}
+
+/**
+ * @tc.name: DrawBackgroundWithoutFilterAndEffectTest
+ * @tc.desc: Test DrawBackgroundWithoutFilterAndEffect
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest, TestSize.Level1)
+{
+    NodeId id = 15;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    adapter->drawCmdIndex_.backgroundColorIndex_ = 1;
+    adapter->drawCmdIndex_.shadowIndex_ = 2;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRenderParams params(id);
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    EXPECT_TRUE(adapter->drawCmdList_.empty());
+    Drawing::RecordingCanvas::DrawFunc drawFuncCallBack = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        printf("DrawBackgroundWithoutFilterAndEffectTest drawFuncCallBack\n");
+    };
+    adapter->drawCmdList_.emplace_back(drawFuncCallBack);
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundEndIndex_ = 1;
+    adapter->drawCmdIndex_.shadowIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.backgroundEndIndex_ = 1;
+    adapter->drawCmdIndex_.shadowIndex_ = 0;
+    params.SetShadowRect({0, 0, 10, 10});
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.shadowIndex_ = 2;
+    adapter->drawCmdIndex_.useEffectIndex_ = 1;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.useEffectIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    EXPECT_FALSE(adapter->drawCmdList_.empty());
 }
 } // namespace OHOS::Rosen

@@ -349,10 +349,15 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetFilterTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFilterTest start";
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBackgroundFilter(filter);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == 1.0f);
-    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == 1.0f);
-
+    canvasNode->SetFilter(filter);
+    auto result1 = canvasNode->GetShowingProperties().GetFilter();
+    EXPECT_NE(result1, nullptr);
+ 
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
+    canvasNode->SetBackgroundFilter(backgroundFilter);
+    auto result2 = canvasNode->GetShowingProperties().GetBackgroundFilter();
+    EXPECT_NE(result2, nullptr);
+ 
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFilterTest end";
 }
 
