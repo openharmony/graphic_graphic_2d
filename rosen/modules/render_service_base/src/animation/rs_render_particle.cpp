@@ -775,5 +775,21 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
     return Vector2f { positionX, positionY };
 }
 
+void EmitterUpdater::Dump(std::string& out) const
+{
+    out += "[emitterIndex:" + std::to_string(emitterIndex_);
+    if (position_) {
+        out += " position[" + std::to_string(position_->x_) + " ";
+        out += std::to_string(position_->y_) + "]";
+    }
+    if (emitSize_) {
+        out += " emitSize[" + std::to_string(emitSize_->x_) + " ";
+        out += std::to_string(emitSize_->y_) + "]";
+    }
+    if (emitRate_) {
+        out += " emitRate:" + std::to_string(emitRate_.value());
+    }
+    out += ']';
+}
 } // namespace Rosen
 } // namespace OHOS

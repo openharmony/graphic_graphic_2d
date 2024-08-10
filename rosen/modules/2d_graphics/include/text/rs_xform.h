@@ -38,7 +38,7 @@ struct RSXform {
         out += " sin:" + std::to_string(sin_);
         out += " tx:" + std::to_string(tx_);
         out += " ty:" + std::to_string(ty_);
-        out += "]";
+        out += ']';
     }
 
     scalar cos_;

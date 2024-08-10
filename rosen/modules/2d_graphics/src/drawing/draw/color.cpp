@@ -163,11 +163,10 @@ void Color::Dump(std::string& out) const
 {
     constexpr int32_t colorStrWidth = 8;
     std::stringstream ss;
-    ss << "ARGB-0x" << std::hex << std::setfill('0') << std::setw(colorStrWidth) << std::uppercase
-        << CastToColorQuad();
+    ss << "[ARGB-0x" << std::hex << std::setfill('0') << std::setw(colorStrWidth) << std::uppercase;
+    ss << CastToColorQuad() << ']';
     out += ss.str();
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

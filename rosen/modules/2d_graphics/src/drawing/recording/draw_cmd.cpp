@@ -24,6 +24,7 @@
 #include "recording/op_item.h"
 
 #include "draw/brush.h"
+#include "draw/color.h"
 #include "draw/path.h"
 #include "draw/surface.h"
 #include "effect/color_filter.h"
@@ -363,11 +364,10 @@ DrawWithPaintOpItem::DrawWithPaintOpItem(const DrawCmdList& cmdList, const Paint
 void DrawWithPaintOpItem::Dump(std::string& out) const
 {
     DrawOpItem::Dump(out);
-    out += "[";
-    out += "paint";
+    out += "[paint";
     paint_.Dump(out);
     DumpItems(out);
-    out += "]";
+    out += ']';
 }
 
 /* DrawPointOpItem */
@@ -719,9 +719,10 @@ void DrawPathOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 void DrawPathOpItem::DumpItems(std::string& out) const
 {
-    out += "[Path";
-    path_->Dump(out);
-    out += "]";
+    if (path_ != nullptr) {
+        out += " Path";
+        path_->Dump(out);
+    }
 }
 
 /* DrawBackgroundOpItem */
@@ -895,9 +896,10 @@ void DrawRegionOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 void DrawRegionOpItem::DumpItems(std::string& out) const
 {
-    out += "[Region";
-    region_->Dump(out);
-    out += "]";
+    if (region_ != nullptr) {
+        out += " Region";
+        region_->Dump(out);
+    }
 }
 
 /* DrawVerticesOpItem */
@@ -934,11 +936,10 @@ void DrawVerticesOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 void DrawVerticesOpItem::DumpItems(std::string& out) const
 {
-    out += "[blend_mode:" + std::to_string(static_cast<int>(mode_));
+    out += " blend_mode:" + std::to_string(static_cast<int>(mode_));
     out += " vertices:";
-    
     std::stringstream stream;
-    stream << std::hex << vertices_.get() << "]";
+    stream << std::hex << vertices_.get();
     out += std::string(stream.str());
 }
 
@@ -1159,42 +1160,47 @@ void DrawAtlasOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 void DrawAtlasOpItem::DumpItems(std::string& out) const
 {
-    out += "[Xform[";
+    out += " Xform[";
     for (auto& e: xform_) {
         e.Dump(out);
+        out += ' ';
     }
     if (xform_.size() > 0) {
         out.pop_back();
     }
-    out += "]";
+    out += ']';
 
     out += " Tex[";
     for (auto& e: tex_) {
         e.Dump(out);
+        out += ' ';
     }
     if (tex_.size() > 0) {
         out.pop_back();
     }
-    out += "]";
+    out += ']';
 
     out += " Colors[";
     for (auto e: colors_) {
-        out += std::to_string(e);
+        Color color(e);
+        color.Dump(out);
+        out += ' ';
     }
     if (colors_.size() > 0) {
         out.pop_back();
     }
-    out += "]";
+    out += ']';
 
     out += " mode:" + std::to_string(static_cast<int>(mode_));
     out += " SamplingOption";
     samplingOptions_.Dump(out);
-    out += " hasCullRect:" + std::string((hasCullRect_ ? "true" : "false"));
-    out += "CullRect";
+    out += " hasCullRect:" + std::string(hasCullRect_ ? "true" : "false");
+    out += " CullRect";
     cullRect_.Dump(out);
-    out += "Atlas";
-    atlas_->Dump(out);
-    out += "]";
+    if (atlas_ != nullptr) {
+        out += " Atlas";
+        atlas_->Dump(out);
+    }
 }
 
 /* DrawBitmapOpItem */
@@ -1231,10 +1237,11 @@ void DrawBitmapOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 void DrawBitmapOpItem::DumpItems(std::string& out) const
 {
-    out += "[px:" + std::to_string(px_) + " py:" + std::to_string(py_);
-    out += " Bitmap";
-    bitmap_->Dump(out);
-    out += "]";
+    out += " px:" + std::to_string(px_) + " py:" + std::to_string(py_);
+    if (bitmap_ != nullptr) {
+        out += " Bitmap";
+        bitmap_->Dump(out);
+    }
 }
 
 /* DrawImageOpItem */
@@ -1275,12 +1282,13 @@ void DrawImageOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 void DrawImageOpItem::DumpItems(std::string& out) const
 {
-    out += "[px:" + std::to_string(px_) + " py:" + std::to_string(py_);
+    out += " px:" + std::to_string(px_) + " py:" + std::to_string(py_);
     out += " SamplingOptions";
     samplingOptions_.Dump(out);
-    out += " Image";
-    image_->Dump(out);
-    out += "]";
+    if (image_ != nullptr) {
+        out += " Image";
+        image_->Dump(out);
+    }
 }
 
 /* DrawImageRectOpItem */
@@ -1344,17 +1352,18 @@ void DrawImageRectOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 void DrawImageRectOpItem::DumpItems(std::string& out) const
 {
-    out += "[Src";
+    out += " Src";
     src_.Dump(out);
     out += " Dst";
     src_.Dump(out);
     out += " Sampling";
     sampling_.Dump(out);
     out += " constraint:" + std::to_string(static_cast<int>(constraint_));
-    out += " Image";
-    image_->Dump(out);
-    out += " isForegraund:" + std::string((isForeground_ ? "true" : "false"));
-    out += "]";
+    if (image_ != nullptr) {
+        out += " Image";
+        image_->Dump(out);
+    }
+    out += " isForeground:" + std::string(isForeground_ ? "true" : "false");
 }
 
 /* DrawPictureOpItem */
@@ -1385,8 +1394,6 @@ void DrawPictureOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     canvas->DrawPicture(*picture_);
 }
-
-void DrawPictureOpItem::Dump(std::string& out) const {}
 
 /* DrawTextBlobOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawTextBlob, DrawOpItem::TEXT_BLOB_OPITEM, DrawTextBlobOpItem::Unmarshalling);
@@ -1688,6 +1695,22 @@ std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
         SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, fakePaint);
 }
 
+void DrawTextBlobOpItem::DumpItems(std::string& out) const
+{
+    out += " scalarX:" + std::to_string(x_) + " scalarY:" + std::to_string(y_);
+    if (textBlob_) {
+        out += " TextBlob[";
+        out += "UniqueID:" + std::to_string(textBlob_->UniqueID());
+        auto bounds = textBlob_->Bounds();
+        if (bounds) {
+            out += " Bounds";
+            bounds->Dump(out);
+        }
+        out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
+        out += "]";
+    }
+}
+
 /* DrawSymbolOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawSymbol, DrawOpItem::SYMBOL_OPITEM, DrawSymbolOpItem::Unmarshalling);
 
@@ -1775,6 +1798,19 @@ void DrawSymbolOpItem::MergeDrawingPath(
         }
         multPath.AddPath(pathTemp);
     }
+}
+
+void DrawSymbolOpItem::DumpItems(std::string& out) const
+{
+    out += " symbol[symbolId:" + std::to_string(symbol_.symbolId);
+    out += " DrawingType:" + std::to_string(static_cast<int>(symbol_.path_.GetDrawingType()));
+    auto rect = symbol_.path_.GetBounds();
+    out += " path";
+    rect.Dump(out);
+    out += " symbolGlyphId:" + std::to_string(symbol_.symbolInfo_.symbolGlyphId);
+    out += "]";
+    out += " locate";
+    locate_.Dump(out);
 }
 
 /* ClipRectOpItem */

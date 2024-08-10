@@ -396,6 +396,18 @@ template<>
 RSB_EXPORT void RSRenderProperty<Gravity>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Drawing::Matrix>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const;
 
 template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -449,6 +461,12 @@ extern template class RSRenderProperty<std::shared_ptr<RSImage>>;
 extern template class RSRenderProperty<std::shared_ptr<RSPath>>;
 extern template class RSRenderProperty<Gravity>;
 extern template class RSRenderProperty<Drawing::Matrix>;
+extern template class RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>;
+extern template class RSRenderProperty<std::shared_ptr<MotionBlurParam>>;
+extern template class RSRenderProperty<std::shared_ptr<RSMagnifierParams>>;
+extern template class RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>;
+extern template class RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>;
+extern template class RSRenderProperty<std::shared_ptr<RSMask>>;
 
 extern template class RSRenderAnimatableProperty<float>;
 extern template class RSRenderAnimatableProperty<Vector4f>;
