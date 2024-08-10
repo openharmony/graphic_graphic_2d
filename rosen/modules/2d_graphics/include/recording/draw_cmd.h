@@ -205,6 +205,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Point3 planeParams_;
     Point3 devLightPos_;
@@ -524,6 +525,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Point3 planeParams_;
     Point3 devLightPos_;
@@ -598,6 +600,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     ColorQuad color_;
     BlendMode mode_;
@@ -634,6 +637,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     RectI center_;
     Rect dst_;
@@ -665,6 +669,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Lattice lattice_;
     Rect dst_;
@@ -913,6 +918,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Rect rect_;
     ClipOp clipOp_;
@@ -936,6 +942,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     RectI rect_;
     ClipOp clipOp_;
@@ -959,6 +966,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     RoundRect rrect_;
     ClipOp clipOp_;
@@ -1007,6 +1015,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     ClipOp clipOp_;
     std::shared_ptr<Region> region_;
@@ -1027,6 +1036,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Matrix matrix_;
 };
@@ -1060,6 +1070,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Matrix matrix_;
 };
@@ -1079,6 +1090,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     scalar dx_;
     scalar dy_;
@@ -1099,6 +1111,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     scalar sx_;
     scalar sy_;
@@ -1122,6 +1135,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     scalar deg_;
     scalar sx_;
@@ -1143,6 +1157,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     scalar sx_;
     scalar sy_;
@@ -1174,6 +1189,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     ColorQuad color_;
 };
@@ -1221,6 +1237,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     uint32_t saveLayerFlags_;
     Rect rect_;
@@ -1269,6 +1286,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     std::vector<Point> radiusData_;
 };

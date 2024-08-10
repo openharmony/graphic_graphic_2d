@@ -354,6 +354,12 @@ bool operator!=(
 }
 
 template<>
+void RSRenderProperty<bool>::Dump(std::string& out) const
+{
+    out += "[" + std::string(Get() ? "true" : "false") + "]";
+}
+
+template<>
 void RSRenderProperty<int>::Dump(std::string& out) const
 {
     out += "[" + std::to_string(Get()) + "]";
@@ -485,6 +491,18 @@ void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<RRect>::Dump(std::string& out) const
 {
+    const auto& rrect = stagingValue_;
+    out += "[rect:[x:";
+    out += std::to_string(rrect.rect_.left_) + " y:";
+    out += std::to_string(rrect.rect_.top_) + " width:";
+    out += std::to_string(rrect.rect_.width_) + " height:";
+    out += std::to_string(rrect.rect_.height_) + "]";
+    out += " radius:[[";
+    out += std::to_string(rrect.radius_[0][0]) + " " + std::to_string(rrect.radius_[0][1]) + "] [";
+    out += std::to_string(rrect.radius_[1][0]) + " " + std::to_string(rrect.radius_[1][1]) + "] [";
+    out += std::to_string(rrect.radius_[2][0]) + " " + std::to_string(rrect.radius_[2][1]) + "] [";
+    out += std::to_string(rrect.radius_[3][0]) + " " + std::to_string(rrect.radius_[3][1]) + "]";
+    out += "]";
 }
 
 template<>
@@ -508,6 +526,61 @@ void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
 {
     out += "GEOMETRYTRANS[";
     Get().dump(out, 0);
+    out += "]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSShader>>::Dump(std::string& out) const
+{
+    if (!Get() || !Get()->GetDrawingShader()) {
+        out += "[null]";
+        return;
+    }
+    Get()->GetDrawingShader()->Dump(out);
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
+{
+    if (!Get()) {
+        out += "[null]";
+        return;
+    }
+    std::string info;
+    Get()->dump(info, 0);
+    info.erase(std::remove_if(info.begin(), info.end(), [](auto c) { return c == '\t' || c == '\n'; }),
+        info.end());
+    out += "[\"" + info + "\"]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSPath>>::Dump(std::string& out) const
+{
+    if (!Get()) {
+        out += "[null]";
+        return;
+    }
+    out += Get()->GetDrawingPath().Dump(out);
+}
+
+template<>
+void RSRenderProperty<Gravity>::Dump(std::string& out) const
+{
+    out += "[";
+    out += std::to_string(static_cast<int>(Get()));
+    out += "]";
+}
+
+template<>
+void RSRenderProperty<Drawing::Matrix>::Dump(std::string& out) const
+{
+    out += "[";
+    Drawing::Matrix::Buffer buffer;
+    Get().GetAll(buffer);
+    for (auto v: buffer) {
+        out += std::to_string(v) + " ";
+    }
+    out.pop_back();
     out += "]";
 }
 
@@ -672,6 +745,7 @@ bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
     }
 }
 
+template class RSRenderProperty<bool>;
 template class RSRenderProperty<int>;
 template class RSRenderProperty<float>;
 template class RSRenderProperty<Vector4<uint32_t>>;
@@ -686,6 +760,11 @@ template class RSRenderProperty<RRect>;
 template class RSRenderProperty<Drawing::DrawCmdListPtr>;
 template class RSRenderProperty<ForegroundColorStrategyType>;
 template class RSRenderProperty<SkMatrix>;
+template class RSRenderProperty<std::shared_ptr<RSShader>>;
+template class RSRenderProperty<std::shared_ptr<RSImage>>;
+template class RSRenderProperty<std::shared_ptr<RSPath>>;
+template class RSRenderProperty<Gravity>;
+template class RSRenderProperty<Drawing::Matrix>;
 
 template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;

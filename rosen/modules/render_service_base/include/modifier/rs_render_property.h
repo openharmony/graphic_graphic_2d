@@ -357,6 +357,8 @@ template<>
 RSB_EXPORT float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
 
 template<>
+RSB_EXPORT void RSRenderProperty<bool>::Dump(std::string& out) const;
+template<>
 RSB_EXPORT void RSRenderProperty<int>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<float>::Dump(std::string& out) const;
@@ -384,6 +386,16 @@ template<>
 RSB_EXPORT void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<SkMatrix>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSShader>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSPath>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Gravity>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Drawing::Matrix>::Dump(std::string& out) const;
 
 template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -417,6 +429,7 @@ RSB_EXPORT bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
     const std::shared_ptr<const RSRenderPropertyBase>& value) const;
 
 #if defined(_WIN32)
+extern template class RSRenderProperty<bool>;
 extern template class RSRenderProperty<int>;
 extern template class RSRenderProperty<float>;
 extern template class RSRenderProperty<Vector4<uint32_t>>;
@@ -431,6 +444,11 @@ extern template class RSRenderProperty<RRect>;
 extern template class RSRenderProperty<Drawing::DrawCmdListPtr>;
 extern template class RSRenderProperty<ForegroundColorStrategyType>;
 extern template class RSRenderProperty<SkMatrix>;
+extern template class RSRenderProperty<std::shared_ptr<RSShader>>;
+extern template class RSRenderProperty<std::shared_ptr<RSImage>>;
+extern template class RSRenderProperty<std::shared_ptr<RSPath>>;
+extern template class RSRenderProperty<Gravity>;
+extern template class RSRenderProperty<Drawing::Matrix>;
 
 extern template class RSRenderAnimatableProperty<float>;
 extern template class RSRenderAnimatableProperty<Vector4f>;
