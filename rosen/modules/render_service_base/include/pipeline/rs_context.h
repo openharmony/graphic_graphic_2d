@@ -166,7 +166,7 @@ public:
     {
         neededDirtyNodes_.push_back(dirtyNode);
     }
-    std::weak_ptr<RSRenderNode>& GetNeededDirtyNodes()
+    std::vector<std::weak_ptr<RSRenderNode>>& GetNeededDirtyNodes()
     {
         return neededDirtyNodes_;
     }

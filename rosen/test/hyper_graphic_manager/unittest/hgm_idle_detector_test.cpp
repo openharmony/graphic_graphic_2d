@@ -333,9 +333,9 @@ HWTEST_F(HgmIdleDetectorTest, GetUiFrameworkTypeList, Function | SmallTest | Lev
             idleDetector->SetAppSupportedState(true);
             idleDetector->supportAppBufferList_.push_back(otherSurface);
             auto uiFrameworkTypeList = idleDetector->GetUiFrameworkTypeList();
-            auto ret = std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), otherSurface)
+            auto ret = std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), otherSurface);
             STEP_ASSERT_GT(ret, 0);
-            ret = std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), flutterBuffer)
+            ret = std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), flutterBuffer);
             STEP_ASSERT_EQ(ret, 0);
         }
     }

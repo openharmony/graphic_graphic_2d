@@ -1731,7 +1731,7 @@ void RSMainThread::SetUiFrameworkTypeList()
 {
     if (!initState_ && frameRateMgr_ != nullptr && context_ != nullptr &&
         !frameRateMgr_->GetIdleDetector().GetUiFrameworkTypeList().empty()) {
-        initState_ = ture;
+        initState_ = true;
         context_->SetUiFrameworkTypeList(frameRateMgr_->GetIdleDetector().GetUiFrameworkTypeList());
     }
 }
