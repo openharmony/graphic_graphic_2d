@@ -140,6 +140,24 @@ HWTEST_F(RSUIDirectorTest, SetUITaskRunner001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUITaskRunner002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetUITaskRunner002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->isHgmConfigChangeCallbackReg_ = true;
+    director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
+    ASSERT_TRUE(director != nullptr);
+
+    director->isHgmConfigChangeCallbackReg_ = false;
+    director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
+    ASSERT_TRUE(director != nullptr);
+}
+
+
+/**
  * @tc.name: StartTextureExport001
  * @tc.desc:
  * @tc.type:FUNC
@@ -508,6 +526,24 @@ HWTEST_F(RSUIDirectorTest, PostTask, TestSize.Level1)
         std::cout << "for test" << std::endl;
     };
     director->PostTask(task);
+}
+
+/**
+ * @tc.name: PostDelayTask001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, PostDelayTask001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
+    director->PostDelayTask(task, 0, 0);
+    director->PostDelayTask(task, 0, -1);
+    director->PostDelayTask(task, 0, 1);
+    ASSERT_TRUE(director != nullptr);
 }
 
 /**
