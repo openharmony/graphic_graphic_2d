@@ -1576,6 +1576,22 @@ std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
         SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, fakePaint);
 }
 
+void DrawTextBlobOpItem::DumpItems(std::string& out) const
+{
+    out += " scalarX:" + std::to_string(x_) + " scalarY:" + std::to_string(y_);
+    if (textBlob_) {
+        out += " TextBlob[";
+        out += "UniqueID:" + std::to_string(textBlob_->UniqueID());
+        auto bounds = textBlob_->Bounds();
+        if (bounds) {
+            out += " Bounds";
+            bounds->Dump(out);
+        }
+        out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
+        out += "]";
+    }
+}
+
 /* DrawSymbolOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawSymbol, DrawOpItem::SYMBOL_OPITEM, DrawSymbolOpItem::Unmarshalling);
 
@@ -1663,6 +1679,19 @@ void DrawSymbolOpItem::MergeDrawingPath(
         }
         multPath.AddPath(pathTemp);
     }
+}
+
+void DrawSymbolOpItem::DumpItems(std::string& out) const
+{
+    out += " symbol[symbolId:" + std::to_string(symbol_.symbolId);
+    out += " DrawingType:" + std::to_string(static_cast<int>(symbol_.path_.GetDrawingType()));
+    auto rect = symbol_.path_.GetBounds();
+    out += " path";
+    rect.Dump(out);
+    out += " symbolGlyphId:" + std::to_string(symbol_.symbolInfo_.symbolGlyphId);
+    out += "]";
+    out += " locate";
+    locate_.Dump(out);
 }
 
 /* ClipRectOpItem */
