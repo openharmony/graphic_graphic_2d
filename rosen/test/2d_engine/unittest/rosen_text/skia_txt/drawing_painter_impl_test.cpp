@@ -55,7 +55,7 @@ void RSCanvasParagraphPainterTest::SetUpTestCase()
     rsPen.SetColor(color);
     std::optional<RSBrush> brush(rsBrush);
     std::optional<RSPen> pen(rsPen);
-    PaintRecord_ paintRecord(brush, pen);
+    paintRecord_ = PaintRecord(brush, pen);
     paintRecords_.push_back(paintRecord_);
 
     int32_t width = 200; // 200 just for test
