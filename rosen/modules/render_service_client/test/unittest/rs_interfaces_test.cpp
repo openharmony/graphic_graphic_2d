@@ -1723,6 +1723,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenStatus, Function | SmallTest | Level2
  * @tc.name: SetVirtualScreenSecurityExemptionList_001
  * @tc.desc: Test SetVirtualScreenSecurityExemptionList with abnormal params, screenId is INVALID_SCREEN_ID.
  * @tc.type: FUNC
+ * @tc.require: issueIAJ2YU
  */
 HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_001, Function | SmallTest | Level2)
 {
@@ -1736,6 +1737,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_001, Function |
  * @tc.name: SetVirtualScreenSecurityExemptionList_002
  * @tc.desc: Test SetVirtualScreenSecurityExemptionList with normal params.
  * @tc.type: FUNC
+ * @tc.require: issueIAJ2YU
  */
 HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_002, Function | SmallTest | Level2)
 {
@@ -1759,6 +1761,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_002, Function |
  * @tc.name: SetVirtualScreenSecurityExemptionList_003
  * @tc.desc: Test SetVirtualScreenSecurityExemptionList with normal params, list is empty.
  * @tc.type: FUNC
+ * @tc.require: issueIAJ2YU
  */
 HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_003, Function | SmallTest | Level2)
 {

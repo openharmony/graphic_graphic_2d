@@ -399,9 +399,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // read the parcel data.
             ScreenId id = data.ReadUint64();
             std::vector<NodeId> securityExemptionList;
-            data.ReadUInt64Vector(&securityExemptionList);
+            if (!data.ReadUInt64Vector(&securityExemptionList)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             int32_t status = SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW): {

@@ -988,6 +988,10 @@ int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(
         RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
         return SCREEN_NOT_FOUND;
     }
+    if (!(virtualScreen->second->IsVirtual())) {
+        RS_LOGW("RSScreenManager %{public}s: not virtual screen for id %{public}" PRIu64 ".", __func__, id);
+        return INVALID_ARGUMENTS;
+    }
     virtualScreen->second->SetSecurityExemptionList(securityExemptionList);
     return SUCCESS;
 }

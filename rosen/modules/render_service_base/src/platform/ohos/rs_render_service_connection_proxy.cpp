@@ -484,8 +484,12 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
-    data.WriteUint64(id);
-    data.WriteUInt64Vector(securityExemptionList);
+    if(!data.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUInt64Vector(securityExemptionList)) {
+        return WRITE_PARCEL_ERR;
+    }
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
