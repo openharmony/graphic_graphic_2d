@@ -396,6 +396,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission"
+                    "SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
+                return ERR_INVALID_STATE;
+            }
             // read the parcel data.
             ScreenId id = data.ReadUint64();
             std::vector<NodeId> securityExemptionList;

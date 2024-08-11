@@ -545,10 +545,10 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
     if (securityExemptionList.size() >= securityLayerList.size()) {
         isSecurityExemption = true;
         for (auto secLayer : securityLayerList) {
-            if (std::find(securityExemptionList.begin(), securityExemptionList.end(), secLayer) !=
+            if (std::find(securityExemptionList.begin(), securityExemptionList.end(), secLayer) ==
                 securityExemptionList.end()) {
                 isSecurityExemption = false;
-                continue;
+                break;
             }
         }
     }
