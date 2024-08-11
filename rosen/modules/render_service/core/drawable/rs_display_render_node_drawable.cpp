@@ -499,6 +499,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             uniParam->SetBlackList(currentBlackList_);
             uniParam->SetWhiteList(screenInfo.whiteList);
+            uniParam->SetSecExemption(params->GetSecurityExemption());
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
             DrawMirrorScreen(*params, processor);
             lastBlackList_ = currentBlackList_;
@@ -817,7 +818,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->SetDisableFilterCache(true);
     auto mirroedDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
     auto hasSecSurface = mirroedDisplayParams->GetDisplayHasSecSurface();
-    if (hasSecSurface[mirroredParams->GetScreenId()]) {
+    if (!(uniParam.GetSecExemption()) && hasSecSurface[mirroredParams->GetScreenId()]) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         SetCanvasBlack(*virtualProcesser);
@@ -875,6 +876,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     uniParam.SetStartVisit(false);
     uniParam.SetBlackList({});
     uniParam.SetWhiteList({});
+    uniParam.SetSecExemption(false);
 }
 
 void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
