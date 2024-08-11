@@ -383,7 +383,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSu
         .height = srcRect.h,
     };
     std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
-    RSBackgroundThread::Instance().PostSyncTask([this, surface, rect, &pixelmap]() {
+    RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelmap]() {
         pixelmap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
     });
     return pixelmap;
