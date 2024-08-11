@@ -31,8 +31,18 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     static bool AnimationFunc(const std::shared_ptr<SymbolAnimationConfig>& symbolAnimationConfig);
-    static inline std::shared_ptr<RSCanvasParagraphPainter> canvasParagraphPainter_ = nullptr;
     static inline std::vector<PaintRecord> paintRecords_;
+    static inline std::vector<PaintRecord> paintRecordsWithoutPen_;
+    static inline std::vector<PaintRecord> paintRecordsWithoutBrush_;
+    static inline std::vector<PaintRecord> paintRecordsWithoutPenBrush_;
+    static inline PaintRecord paintRecord_;
+    static inline PaintRecord paintRecordWithoutPen_;
+    static inline PaintRecord paintRecordWithoutBrush_;
+    static inline PaintRecord paintRecordWithoutPenBrush_;
+    static inline std::shared_ptr<RSCanvasParagraphPainter> canvasParagraphPainter_ = nullptr;
+    static inline std::shared_ptr<RSCanvasParagraphPainter> canvasParagraphPainterWithoutPen_ = nullptr;
+    static inline std::shared_ptr<RSCanvasParagraphPainter> canvasParagraphPainterWithoutBrush_ = nullptr;
+    static inline std::shared_ptr<RSCanvasParagraphPainter> canvasParagraphPainterWithoutPenBrush_ = nullptr;
     static inline std::shared_ptr<RecordingCanvas> recordingCanvas_ = nullptr;
 };
 
@@ -45,8 +55,8 @@ void RSCanvasParagraphPainterTest::SetUpTestCase()
     rsPen.SetColor(color);
     std::optional<RSBrush> brush(rsBrush);
     std::optional<RSPen> pen(rsPen);
-    PaintRecord paintRecord(brush, pen);
-    paintRecords_.push_back(paintRecord);
+    paintRecord_ = PaintRecord(brush, pen);
+    paintRecords_.push_back(paintRecord_);
 
     int32_t width = 200; // 200 just for test
     int32_t height = 100; // 100 just for test
@@ -61,6 +71,28 @@ void RSCanvasParagraphPainterTest::SetUpTestCase()
         std::cout << "RSCanvasParagraphPainterTest::SetUpTestCase error canvasParagraphPainter_ is nullptr"
             << std::endl;
     }
+
+    // without pen
+    pen.reset();
+    paintRecordWithoutPen_ = PaintRecord(brush, pen);
+    paintRecordsWithoutPen_.push_back(paintRecordWithoutPen_);
+    canvasParagraphPainterWithoutPen_ =
+        std::make_shared<RSCanvasParagraphPainter>(recordingCanvas_.get(), paintRecordsWithoutPen_);
+
+    // without brush
+    brush.reset();
+    pen = std::optional<RSPen>(rsPen);
+    paintRecordWithoutBrush_ = PaintRecord(brush, pen);
+    paintRecordsWithoutBrush_.push_back(paintRecordWithoutBrush_);
+    canvasParagraphPainterWithoutBrush_ =
+        std::make_shared<RSCanvasParagraphPainter>(recordingCanvas_.get(), paintRecordsWithoutBrush_);
+
+    // without pen and brush
+    pen.reset();
+    paintRecordWithoutPenBrush_ = PaintRecord(brush, pen);
+    paintRecordsWithoutPenBrush_.push_back(paintRecordWithoutPenBrush_);
+    canvasParagraphPainterWithoutPenBrush_ =
+        std::make_shared<RSCanvasParagraphPainter>(recordingCanvas_.get(), paintRecordsWithoutPenBrush_);
 }
 
 void RSCanvasParagraphPainterTest::TearDownTestCase()
@@ -287,4 +319,160 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest015, TestSize
     canvasParagraphPainter_->SetParagraphId(1);
     EXPECT_EQ(canvasParagraphPainter_->paragraphId_, 1);
 }
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest016
+ * @tc.desc: test for drawTextBlob
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest016, TestSize.Level1)
+{
+    std::string str("TextBlob");
+    Font font;
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
+    EXPECT_EQ(textBlob != nullptr, true);
+    ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPen_.size()) - 1;
+    ParagraphPainter::SkPaintOrID paint;
+    paint.emplace<ParagraphPainter::PaintID>(paintID);
+    canvasParagraphPainterWithoutPen_->drawTextBlob(textBlob, 0.0, 0.0, paint);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest017
+ * @tc.desc: test for drawTextBlob
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest017, TestSize.Level1)
+{
+    std::string str("TextBlob");
+    Font font;
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
+    EXPECT_EQ(textBlob != nullptr, true);
+    ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutBrush_.size()) - 1;
+    ParagraphPainter::SkPaintOrID paint;
+    paint.emplace<ParagraphPainter::PaintID>(paintID);
+    canvasParagraphPainterWithoutBrush_->drawTextBlob(textBlob, 0.0, 0.0, paint);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest018
+ * @tc.desc: test for drawTextBlob
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest018, TestSize.Level1)
+{
+    std::string str("TextBlob");
+    Font font;
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
+    EXPECT_EQ(textBlob != nullptr, true);
+    ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPenBrush_.size()) - 1;
+    ParagraphPainter::SkPaintOrID paint;
+    paint.emplace<ParagraphPainter::PaintID>(paintID);
+    canvasParagraphPainterWithoutPenBrush_->drawTextBlob(textBlob, 0.0, 0.0, paint);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest019
+ * @tc.desc: test for drawTextBlob
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest019, TestSize.Level1)
+{
+    std::string str(u8"\U0001F60A");
+    Font font;
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
+    EXPECT_EQ(textBlob != nullptr, true);
+    ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPenBrush_.size()) - 1;
+    ParagraphPainter::SkPaintOrID paint;
+    paint.emplace<ParagraphPainter::PaintID>(paintID);
+    canvasParagraphPainterWithoutPenBrush_->drawTextBlob(textBlob, 0.0, 0.0, paint);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest020
+ * @tc.desc: test for DrawSymbolSkiaTxt
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest020, TestSize.Level1)
+{
+    Point offset;
+    std::string str("DrawSymbolSkiaTxt");
+    Font font;
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
+    EXPECT_EQ(textBlob != nullptr, true);
+    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecord_);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest021
+ * @tc.desc: test for DrawSymbolSkiaTxt
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest021, TestSize.Level1)
+{
+    Point offset;
+    std::string str("DrawSymbolSkiaTxt");
+    Font font;
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
+    EXPECT_EQ(textBlob != nullptr, true);
+    canvasParagraphPainterWithoutPen_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecordWithoutPen_);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest022
+ * @tc.desc: test for DrawSymbolSkiaTxt
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest022, TestSize.Level1)
+{
+    Point offset;
+    std::string str("DrawSymbolSkiaTxt");
+    Font font;
+    std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
+    EXPECT_EQ(textBlob != nullptr, true);
+    canvasParagraphPainterWithoutBrush_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecordWithoutBrush_);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest023
+ * @tc.desc: test for drawRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest023, TestSize.Level1)
+{
+    ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPen_.size()) - 1;
+    ParagraphPainter::SkPaintOrID paint;
+    paint.emplace<ParagraphPainter::PaintID>(paintID);
+    SkRect rect = SkRect::MakeEmpty();
+    canvasParagraphPainterWithoutPen_->drawRect(rect, paint);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest024
+ * @tc.desc: test for drawRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest024, TestSize.Level1)
+{
+    ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutBrush_.size()) - 1;
+    ParagraphPainter::SkPaintOrID paint;
+    paint.emplace<ParagraphPainter::PaintID>(paintID);
+    SkRect rect = SkRect::MakeEmpty();
+    canvasParagraphPainterWithoutBrush_->drawRect(rect, paint);
+}
+
+/*
+ * @tc.name: RSCanvasParagraphPainterTest025
+ * @tc.desc: test for drawRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest025, TestSize.Level1)
+{
+    ParagraphPainter::PaintID paintID = static_cast<int>(paintRecordsWithoutPenBrush_.size()) - 1;
+    ParagraphPainter::SkPaintOrID paint;
+    paint.emplace<ParagraphPainter::PaintID>(paintID);
+    SkRect rect = SkRect::MakeEmpty();
+    canvasParagraphPainterWithoutPenBrush_->drawRect(rect, paint);
+}
+
 } // namespace txt
