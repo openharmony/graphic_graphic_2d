@@ -561,10 +561,17 @@ HWTEST_F(RSAnimationTest, AnimationStatus003, TestSize.Level1)
  */
 HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus004 start";
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::LINEAR, [&property]() {
-        property->set(ANIMATION_END_BOUNDS);    
+    protocol.SetDuration(ANIMATION_DURATION);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
+    auto animations = RSNode::Animate(protocol, curve, [&property]() {
+        property->Set(ANIMATION_END_BOUNDS);    
     });
     auto animation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
 
@@ -586,6 +593,7 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     animation->OnFinish();
     animation->OnReverse();
     animation->OnSetFraction(0.5);
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus004 end";
 }
 
 /**
