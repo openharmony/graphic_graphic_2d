@@ -75,7 +75,7 @@ void OH_NativeVSync_Destroy(OH_NativeVSync* nativeVsync);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
  * @param nativeVsync Indicates the pointer to a NativeVsync.
  * @param callback Indicates the OH_NativeVSync_FrameCallback which will be called when next vsync coming.
- * @param data Indicates data whick will be used in callback.
+ * @param data Indicates data which will be used in callback.
  * @return {@link NATIVE_ERROR_OK} 0 - Success.
  *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter nativeVsync is NULL or callback is NULL.
  *     {@link NATIVE_ERROR_BINDER_ERROR} 50401000 - ipc send failed.
@@ -91,7 +91,7 @@ int OH_NativeVSync_RequestFrame(OH_NativeVSync* nativeVsync, OH_NativeVSync_Fram
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
  * @param nativeVsync Indicates the pointer to a NativeVsync.
  * @param callback Indicates the OH_NativeVSync_FrameCallback which will be called when next vsync coming.
- * @param data Indicates data whick will be used in callback.
+ * @param data Indicates data which will be used in callback.
  * @return {@link NATIVE_ERROR_OK} 0 - Success.
  *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter nativeVsync is NULL or callback is NULL.
  *     {@link NATIVE_ERROR_BINDER_ERROR} 50401000 - ipc send failed.
