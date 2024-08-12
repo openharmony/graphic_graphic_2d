@@ -21,7 +21,6 @@
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 
-
 namespace OHOS {
 namespace Rosen {
 namespace UIEffect {
