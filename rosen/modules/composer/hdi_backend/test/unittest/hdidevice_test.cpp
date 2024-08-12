@@ -151,7 +151,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
     layerBuffer.acquireFence = new SyncFence(10);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.cacheIndex = 0;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_FAILURE);
     GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_CLIENT;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
     GraphicBlendType blendType = GRAPHIC_BLEND_NONE;

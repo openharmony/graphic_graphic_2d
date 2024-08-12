@@ -409,7 +409,7 @@ bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint
     return false;
 }
 
-void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer> buffer, const std::vector<LayerPtr>& layers)
+void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers)
 {
     if (buffer == nullptr) {
         HLOGE("HdiOutput::SetBufferColorSpace null buffer");
