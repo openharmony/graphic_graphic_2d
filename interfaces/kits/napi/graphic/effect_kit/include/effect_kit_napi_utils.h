@@ -58,13 +58,13 @@ do \
 #define EFFECT_JS_ARGS(env, info, status, argc, argv, thisVar) \
 do \
 { \
-    (status = napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr)); \
+    status = napi_get_cb_info(env, info, &(argc), argv, &(thisVar), nullptr); \
 } while (0)
 
 #define EFFECT_JS_NO_ARGS(env, info, status, thisVar) \
 do \
 { \
-    (status = napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr)); \
+    status = napi_get_cb_info(env, info, nullptr, nullptr, &(thisVar), nullptr); \
 } while (0)
 
 #define EFFECT_CREATE_CREATE_ASYNC_WORK(env, status, workName, exec, complete, aContext, work) \
