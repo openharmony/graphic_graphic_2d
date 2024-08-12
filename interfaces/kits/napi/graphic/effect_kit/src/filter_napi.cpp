@@ -45,7 +45,7 @@ struct FilterAsyncContext {
     napi_async_work work;
     napi_deferred deferred; // promise
     napi_ref callback;      // callback
-    uint32_t status;
+    uint32_t status = SUCCESS;
     napi_value this_;
 
     // build error msg
