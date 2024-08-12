@@ -185,9 +185,7 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     if (UIEffectNapiUtils::getType(env, argv[0]) == napi_number) {
         double tmp = 0.0f;
         if (UIEFFECT_IS_OK(napi_get_value_double(env, argv[0], &tmp))) {
-            if (tmp >= 0) {
-                radius = static_cast<float>(tmp);
-            }
+            radius = static_cast<float>(tmp);
         }
     }
     Filter* filterObj = nullptr;
