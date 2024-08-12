@@ -14,10 +14,9 @@
  */
 #include "fontcollection_napi/js_fontcollection.h"
 #include "js_paragraph_builder.h"
-#include "log_wrapper.h"
-#include "paragraph_napi/js_paragraph.h"
 #include "napi_common.h"
-#include "utils/log.h"
+#include "paragraph_napi/js_paragraph.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 std::unique_ptr<Typography> drawingTypography;

@@ -16,18 +16,19 @@
 #ifndef OHOS_JS_TEXT_UTILS_H
 #define OHOS_JS_TEXT_UTILS_H
 
+#include <codecvt>
 #include <map>
-#include "native_engine/native_engine.h"
-#include "native_engine/native_value.h"
-#include "utils/point.h"
 
 #include "draw/color.h"
-#include "log_wrapper.h"
+#include "native_engine/native_engine.h"
+#include "native_engine/native_value.h"
 #include "text_style.h"
 #include "typography.h"
 #include "typography_create.h"
 #include "typography_style.h"
-#include <codecvt>
+#include "utils/point.h"
+#include "utils/text_log.h"
+
 
 namespace OHOS::Rosen {
 constexpr size_t ARGC_ONE = 1;
@@ -75,6 +76,24 @@ enum class TextErrorCode : int32_t {
             return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,                                          \
                 std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
         }                                                                                                              \
+    } while (0)
+
+
+#define NAPI_CHECK_AND_THROW_ERROR(ret, errorCode, errorMessage)   \
+    do {                                                           \
+        if (!(ret)) {                                              \
+            TEXT_LOGE("%{public}s", #errorMessage);                \
+            return NapiThrowError(env, errorCode, errorMessage);   \
+        }                                                          \
+    } while (0)
+
+#define NAPI_CHECK_AND_CLOSE_SCOPE(env, statement, scope, ret)     \
+    do {                                                           \
+        if ((statement) != napi_ok) {                              \
+            TEXT_LOGE("%{public}s failed", #statement);            \
+            napi_close_handle_scope(env, scope);                   \
+            return ret;                                            \
+        }                                                          \
     } while (0)
 
 template<class T>
