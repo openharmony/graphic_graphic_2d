@@ -64,7 +64,8 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenMode(screenId, screenModeId), GRAPHIC_DISPLAY_SUCCESS);
     uint32_t width = 1080;
     uint32_t height = 1920;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenOverlayResolution(screenId, width, height), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenOverlayResolution(screenId, width, height),
+        GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicDispPowerStatus dstatus = GRAPHIC_POWER_STATUS_ON;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenPowerStatus(screenId, dstatus), GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenPowerStatus(screenId, dstatus), GRAPHIC_DISPLAY_SUCCESS);
