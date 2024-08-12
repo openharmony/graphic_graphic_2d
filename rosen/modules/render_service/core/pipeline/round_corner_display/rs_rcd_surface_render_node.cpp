@@ -23,6 +23,8 @@ namespace OHOS {
 namespace Rosen {
 
 const unsigned long long PRIV_USAGE_FBC_CLD_LAYER = 1ULL << 56; // 56 means the buffer usage is hardware
+const float RCD_LAYER_Z_TOP1 = static_cast<float>(0x7FFFFFFF); // toppest
+const float RCD_LAYER_Z_TOP2 = static_cast<float>(0x7FFFFEFF); // not set toppest - 1, float only 6 significant digits
 
 RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
     NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context)
@@ -32,7 +34,6 @@ RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
     rcdExtInfo_.surfaceType = type;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
-    rcdGlobalZOrder_ = static_cast<float>(0x7FFFFFFF); // make at toppest layer
 }
 
 RSRcdSurfaceRenderNode::~RSRcdSurfaceRenderNode()
@@ -162,11 +163,11 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLa
     if (IsTopSurface()) {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
         rcdExtInfo_.dstRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
-        SetGlobalZOrder(rcdGlobalZOrder_);
+        SetGlobalZOrder(RCD_LAYER_Z_TOP1);
     } else {
         rcdExtInfo_.srcRect_ = RectI(0, 0, bitmapWidth, bitmapHeight);
         rcdExtInfo_.dstRect_ = RectI(0, layerInfo->layerHeight - bitmapHeight, bitmapWidth, bitmapHeight);
-        SetGlobalZOrder(rcdGlobalZOrder_ - 1);
+        SetGlobalZOrder(RCD_LAYER_Z_TOP2);
     }
     return true;
 }
@@ -254,8 +255,10 @@ sptr<IBufferConsumerListener> RSRcdSurfaceRenderNode::GetConsumerListener() cons
 
 void RSRcdSurfaceRenderNode::ClearBufferCache()
 {
-    if (surface_ != nullptr && consumer_ != nullptr) {
+    if (surface_ != nullptr) {
         surface_->ClearBuffer();
+    }
+    if (consumer_ != nullptr) {
         consumer_->GoBackground();
     }
 }
