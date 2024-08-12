@@ -26,7 +26,7 @@ public:
     ~ResourceHolder() = default;
     void HoldResource(const std::shared_ptr<Drawing::Image>& img);
     void ReleaseResource();
-    bool IsEmpty();
+    bool IsEmpty() const;
 private:
     std::shared_ptr<ResourceHolderImpl> impl_;
 };

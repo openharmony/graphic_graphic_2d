@@ -37,9 +37,9 @@ public:
 
     virtual void LogTotals(OHOS::Rosen::DfxString& log) = 0;
 
-    virtual float GetGpuMemorySizeInMB() = 0;
+    virtual float GetGpuMemorySizeInMB() const = 0;
 
-    virtual float GetGLMemorySize() = 0;
+    virtual float GetGLMemorySize() const = 0;
 };
 }
 }

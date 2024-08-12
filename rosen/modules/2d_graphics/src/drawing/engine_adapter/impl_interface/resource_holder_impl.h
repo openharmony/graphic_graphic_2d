@@ -28,7 +28,7 @@ public:
     ~ResourceHolderImpl() override {}
     virtual void HoldResource(const std::shared_ptr<Drawing::Image>& img) = 0;
     virtual void ReleaseResource() = 0;
-    virtual bool IsEmpty() = 0;
+    virtual bool IsEmpty() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
