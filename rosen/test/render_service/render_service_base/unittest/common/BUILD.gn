@@ -35,6 +35,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_thread_looper_impl_test.cpp",
     "rs_vector3_test.cpp",
     "rs_vector4_test.cpp",
+    "rs_xcollie_test.cpp",
   ]
 
   cflags = [
