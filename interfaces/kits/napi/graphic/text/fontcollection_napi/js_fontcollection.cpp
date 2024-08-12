@@ -15,8 +15,9 @@
 
 #include <fstream>
 #include "js_fontcollection.h"
-#include "log_wrapper.h"
+
 #include "napi_async_work.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 namespace {

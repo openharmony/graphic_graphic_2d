@@ -15,14 +15,13 @@
 #include "canvas_napi/js_canvas.h"
 #include "draw/canvas.h"
 #include "recording/recording_canvas.h"
-#include "log_wrapper.h"
 #include "js_paragraph.h"
 #include "napi_async_work.h"
 #include "napi_common.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "path_napi/js_path.h"
-#include "utils/log.h"
 #include "text_line_napi/js_text_line.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 std::unique_ptr<Typography> g_Typography = nullptr;
