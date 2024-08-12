@@ -3024,6 +3024,7 @@ void RSMainThread::SendCommands()
         RSMessageProcessor::Instance().GetAllTransactions());
     RSMessageProcessor::Instance().ReInitializeMovedMap();
     PostTask([this, transactionMapPtr]() {
+        std::string dfxString;
         for (const auto& transactionIter : *transactionMapPtr) {
             auto pid = transactionIter.first;
             auto appIter = applicationAgentMap_.find(pid);
@@ -3034,8 +3035,14 @@ void RSMainThread::SendCommands()
             }
             auto& app = appIter->second;
             auto transactionPtr = transactionIter.second;
+            if (transactionPtr != nullptr) {
+                dfxString += "[pid:" + std::to_string(pid) + ",cmdIndex:" + std::to_string(transactionPtr->GetIndex())
+                    + ",cmdCount:" + std::to_string(transactionPtr->GetCommandCount()) + "]";
+            }
             app->OnTransaction(transactionPtr);
         }
+        RS_LOGI("RSMainThread::SendCommand to %{public}s", dfxString.c_str());
+        RS_TRACE_NAME_FMT("RSMainThread::SendCommand to %s", dfxString.c_str());
     });
 }
 
