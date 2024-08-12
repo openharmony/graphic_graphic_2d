@@ -82,7 +82,7 @@ bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName,
             return true;
         }
     }
-   if (std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE)) {
+    if (std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE)) {
         validSurfaceName = OTHER_SURFACE;
         return true;
     }
