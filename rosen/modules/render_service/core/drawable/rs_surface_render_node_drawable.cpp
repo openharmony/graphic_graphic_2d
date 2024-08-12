@@ -489,6 +489,10 @@ void RSSurfaceRenderNodeDrawable::MergeDirtyRegionBelowCurSurface(
 
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    if (!ShouldPaint()) {
+        return;
+    }
+
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfaceParams is nullptr");
