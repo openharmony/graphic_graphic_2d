@@ -141,6 +141,7 @@ uint32_t RSHardwareThread::GetunExecuteTaskNum()
 void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {
+        RS_LOGE("RSHardwareThread::RefreshData fail, refreshRateCounts_ is empty");
         return;
     }
     std::map<uint32_t, uint64_t>::iterator iter;
@@ -154,6 +155,7 @@ void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
 void RSHardwareThread::ClearRefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {
+        RS_LOGE("RSHardwareThread::ClearRefreshData fail, refreshRateCounts_ is empty");
         return;
     }
     refreshRateCounts_.clear();
@@ -177,6 +179,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
         bool hasGameScene = FrameReport::GetInstance().HasGameScene();
+        RS_LOGI_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseData hasGameScene is %{public}d", hasGameScene);
         if (hasGameScene) {
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -203,6 +206,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
 
         unExecuteTaskNum_--;
+        RS_LOGD("RSHardwareThread::CommitAndReleaseData unExecuteTaskNum_:%{public}d,"
+            " HARDWARE_THREAD_TASK_NUM:%{public}d", unExecuteTaskNum_.load(), HARDWARE_THREAD_TASK_NUM);
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
         }
@@ -211,6 +216,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    RS_LOGI_IF(DEBUG_COMPOSER,
+        "RSHardwareThread::CommitAndReleaseData hgmCore's LtpoEnabled is %{public}d", hgmCore.GetLtpoEnabled());
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
@@ -225,6 +232,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers " \
             "expectCommitTime: %lu, currTime: %lu, delayTime: %ld, pipelineOffset: %ld, period: %ld",
             expectCommitTime, currTime, delayTime_, pipelineOffset, period);
+        RS_LOGD("RSHardwareThread::CommitAndReleaseData period:%{public}" PRIu64 " delayTime:%{public}" PRIu64,
+            period, delayTime_);
         if (period == 0 || delayTime_ <= 0) {
             PostTask(task);
         } else {
@@ -275,6 +284,7 @@ RefreshRateParam RSHardwareThread::GetRefreshRateParam()
     // Temporary sync the timestamp to fix the duplicate time stamp issue.
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     bool directComposition = hgmCore.GetDirectCompositionFlag();
+    RS_LOGI_IF(DEBUG_COMPOSER, "RSHardwareThread::GetRefreshRateData period is %{public}d", directComposition);
     if (directComposition) {
         hgmCore.SetDirectCompositionFlag(false);
     }
@@ -343,6 +353,7 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
 
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore.GetModesToApply());
     if (modeMap == nullptr) {
+        RS_LOGE("RSHardwareThread::PerformSetData fail, modeMap is nullptr");
         return;
     }
 
@@ -373,6 +384,7 @@ void RSHardwareThread::OnPrepareComplete(sptr<Surface>& surface,
     (void)(data);
 
     if (!param.needFlushFramebuffer) {
+        RS_LOGE("RSHardwareThread::OnPreComplete fail, needFlushFramebuffer is nullptr");
         return;
     }
 
@@ -464,6 +476,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     renderFrameConfig.width = static_cast<int32_t>(screenInfo.phyWidth);
     renderFrameConfig.height = static_cast<int32_t>(screenInfo.phyHeight);
     if (frameBufferSurfaceOhos_ == nullptr) {
+        RS_LOGE("RSHardwareThread::Redraw fail, frameBufferSurfaceOhos_ is nullptr");
         frameBufferSurfaceOhos_ = CreateFrameBufferSurfaceOhos(surface);
     }
     FrameContextConfig frameContextConfig = {isProtected, false};
@@ -506,6 +519,7 @@ void RSHardwareThread::AddRefreshRateCount()
     HgmTaskHandleThread::Instance().PostTask([] () {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr == nullptr) {
+            RS_LOGE("RSHardwareThread::AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
             return;
         }
         frameRateMgr->GetTouchManager().HandleRsFrame();
@@ -553,6 +567,8 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
         }
 
         if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
+            RS_LOGD("RSHardwareThread::ComputeTargetColorData fail, primaries is %{public}d",
+                colorSpaceInfo.primaries);
             colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
             break;
         }
