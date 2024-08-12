@@ -504,4 +504,33 @@ HWTEST_F(ParagraphTest, ParagraphTest037, TestSize.Level1)
     std::u16string text(u"text");
     paragraph_->UpdateColor(0, text.length(), color);
 }
+
+/*
+ * @tc.name: ParagraphTest038
+ * @tc.desc: test for UpdateColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest038, TestSize.Level1) {
+    EXPECT_EQ(paragraph_ != nullptr, true);
+    RSColor rsColor(10, 10, 10, 10);
+    paragraph_->UpdateColor(0, 10, rsColor);
+}
+
+/*
+ * @tc.name: ParagraphTest039
+ * @tc.desc: test for SkStyleToTextStyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest039, TestSize.Level1) {
+    EXPECT_EQ(paragraph_ != nullptr, true);
+    auto metrics = paragraph_->GetLineMetrics();
+    for (const skia::textlayout::LineMetrics &skLineMetrics : metrics) {
+        for (const auto& [index, styleMetrics] : skLineMetrics.fLineMetrics) {
+            OHOS::Rosen::SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMetrics.text_style);
+        }
+    }
+
+    EXPECT_EQ(paragraph_->GetLongestLine() <= 50, true);
+    EXPECT_EQ(paragraph_->GetLongestLineWithIndent() <= 50, true);
+}
 } // namespace txt
