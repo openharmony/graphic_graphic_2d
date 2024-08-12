@@ -61,7 +61,7 @@ public:
     void SetAlpha(int16_t alpha);
     void MultiplyAlpha(float alpha);
 
-    void Dump(std::string& out);
+    void Dump(std::string& out) const;
 
     static constexpr size_t GetBytesPerPixelInt()
     {

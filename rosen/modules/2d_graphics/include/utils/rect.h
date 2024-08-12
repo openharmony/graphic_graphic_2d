@@ -112,6 +112,8 @@ public:
     friend inline bool operator==(const RectI& r1, const RectI& r2);
     friend inline bool operator!=(const RectI& r1, const RectI& r2);
 
+    inline void Dump(std::string& out) const;
+
     int32_t left_;
     int32_t top_;
     int32_t right_;
@@ -246,6 +248,15 @@ inline std::string RectI::ToString() const
         std::to_string(right_ - left_) + ", " + std::to_string(bottom_ - top_) + ")";
 }
 
+inline void RectI::Dump(std::string& out) const
+{
+    out += "[left:" + std::to_string(left_);
+    out += " top:" + std::to_string(top_);
+    out += " right:" + std::to_string(right_);
+    out += " bottom:" + std::to_string(bottom_);
+    out += "]";
+}
+
 inline bool operator==(const RectI& r1, const RectI& r2)
 {
     return r1.left_ == r2.left_ && r1.right_ == r2.right_ && r1.top_ == r2.top_ && r1.bottom_ == r2.bottom_;
@@ -303,6 +314,8 @@ public:
 
     friend inline bool operator==(const RectF& r1, const RectF& r2);
     friend inline bool operator!=(const RectF& r1, const RectF& r2);
+
+    inline void Dump(std::string& out) const;
 
     scalar left_;
     scalar top_;
@@ -446,6 +459,15 @@ inline std::string RectF::ToString() const
 {
     return std::string("(") + std::to_string(left_) + ", " + std::to_string(top_) + ", " +
         std::to_string(right_ - left_) + ", " + std::to_string(bottom_ - top_) + ")";
+}
+
+inline void RectF::Dump(std::string& out) const
+{
+    out += "[left:" + std::to_string(left_);
+    out += " top:" + std::to_string(top_);
+    out += " right:" + std::to_string(right_);
+    out += " bottom:" + std::to_string(bottom_);
+    out += ']';
 }
 
 inline bool operator==(const RectF& r1, const RectF& r2)

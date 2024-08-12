@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "EGL/egl_bundle_mgr_helper.h"
+#include "EGL/egl_system_layers_manager.h"
 
 #include "egl_defs.h"
 
@@ -23,7 +23,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class EglBundleMgrHelperTest : public testing::Test {
+class EglSystemLayersManagerTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
@@ -32,18 +32,39 @@ public:
 };
 
 /**
- * @tc.name: Init001
+ * @tc.name: getJsonConfigtTest001
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(EglBundleMgrHelperTest, GetBundleInfoForSelf001, Level1)
+HWTEST_F(EglSystemLayersManagerTest, getJsonConfigtTest001, Level1)
 {
-    AppExecFwk::BundleInfo bundleInfo;
-    auto eglBundleMgrHelper = DelayedSingleton<AppExecFwk::EGLBundleMgrHelper>::GetInstance();
-    ASSERT_TRUE(eglBundleMgrHelper != nullptr);
-    auto result = eglBundleMgrHelper->GetBundleInfoForSelf(
-        AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION, bundleInfo);
-    ASSERT_TRUE(result != ERR_OK);
+    EglSystemLayersManager manager;
+    Json::Value val{Json::nullValue};
+    manager.GetJsonConfig(val);
 }
 
+/**
+ * @tc.name: getSystemLayersFromConfigTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglSystemLayersManagerTest, getSystemLayersFromConfigTest, Level1)
+{
+    EglSystemLayersManager manager;
+    Json::Value val{Json::nullValue};
+    manager.GetSystemLayersFromConfig(val, "testName");
+}
+
+/**
+ * @tc.name: getSystemLayersTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglSystemLayersManagerTest, getSystemLayersTest, Level1)
+{
+    EglSystemLayersManager manager;
+    manager.GetSystemLayers();
+    Json::Value val{true};
+    manager.GetStringVectorFromJson(val);
+}
 } // OHOS::Rosen

@@ -104,7 +104,6 @@ HWTEST_F(RSFrameRateVoteTest, ReleaseSurfaceMap001, Function | SmallTest | Level
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ = nullptr;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.insert(
         std::pair<uint64_t, std::shared_ptr<RSVideoFrameRateVote>>(1001, rsVideoFrameRateVote));
     DelayedSingleton<RSFrameRateVote>::GetInstance()->ReleaseSurfaceMap(1000);
@@ -126,7 +125,6 @@ HWTEST_F(RSFrameRateVoteTest, SurfaceVideoVote001, Function | SmallTest | Level1
 {
     std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
         nullptr, nullptr);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ = nullptr;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->SurfaceVideoVote(1000, 30);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoRate_.size(), 1);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoRate_[1000], 30);
@@ -159,7 +157,6 @@ HWTEST_F(RSFrameRateVoteTest, SurfaceVideoVote001, Function | SmallTest | Level1
  */
 HWTEST_F(RSFrameRateVoteTest, VoteRate001, Function | SmallTest | Level1)
 {
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ = nullptr;
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VoteRate(DEFAULT_PID, "VOTER_VIDEO", 30);
     ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
@@ -173,7 +170,6 @@ HWTEST_F(RSFrameRateVoteTest, VoteRate001, Function | SmallTest | Level1)
  */
 HWTEST_F(RSFrameRateVoteTest, CancelVoteRate001, Function | SmallTest | Level1)
 {
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ = nullptr;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_ = true;
     ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CancelVoteRate(DEFAULT_PID, "VOTER_VIDEO");
@@ -188,9 +184,6 @@ HWTEST_F(RSFrameRateVoteTest, CancelVoteRate001, Function | SmallTest | Level1)
  */
 HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | Level1)
 {
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ =
-        OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
-    ASSERT_NE(DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_, nullptr);
     EventInfo eventInfo1 = {
         .eventName = "VOTER_VIDEO",
         .eventStatus = true,
@@ -203,9 +196,7 @@ HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | 
         .eventStatus = false,
     };
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_ = nullptr;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->frameRateMgr_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

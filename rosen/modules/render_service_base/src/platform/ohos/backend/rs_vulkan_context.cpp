@@ -371,7 +371,7 @@ bool RsVulkanInterface::OpenLibraryHandle()
 {
     ROSEN_LOGI("VulkanProcTable OpenLibararyHandle: dlopen libvulkan.so.");
     dlerror();
-    handle_ = dlopen("/system/lib64/platformsdk/libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+    handle_ = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
     if (handle_ == nullptr) {
         ROSEN_LOGE("Could not open the vulkan library: %{public}s", dlerror());
         return false;

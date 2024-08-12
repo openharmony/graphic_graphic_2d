@@ -36,8 +36,8 @@ const sk_sp<SkVertices> SkiaVertices::GetVertices() const
     return skiaVertices_;
 }
 
-bool SkiaVertices::MakeCopy(VertexMode mode,
-    int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[],
+bool SkiaVertices::MakeCopy(VertexMode mode, int vertexCount,
+    const Point positions[], const Point texs[], const ColorQuad colors[],
     int indexCount, const uint16_t indices[])
 {
     std::vector<SkPoint> skPts = {};
@@ -79,7 +79,7 @@ bool SkiaVertices::MakeCopy(VertexMode mode,
     int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[])
 {
     std::vector<SkPoint> skPts = {};
-    if (texs != nullptr) {
+    if (positions != nullptr) {
         skPts.resize(vertexCount);
         if (memcpy_s(skPts.data(), skPts.size() * sizeof(SkPoint),
             positions, vertexCount * sizeof(Point)) != EOK) {
@@ -88,7 +88,7 @@ bool SkiaVertices::MakeCopy(VertexMode mode,
     }
 
     std::vector<SkPoint> skTexs = {};
-    if (positions != nullptr) {
+    if (texs != nullptr) {
         skTexs.resize(vertexCount);
         if (memcpy_s(skTexs.data(), skTexs.size() * sizeof(SkPoint),
             texs, vertexCount * sizeof(Point)) != EOK) {

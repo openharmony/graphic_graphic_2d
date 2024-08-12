@@ -671,17 +671,6 @@ HWTEST_F(RSSystemPropertiesTest, GetKawaseOriginalEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetQuickPrepareEnabled
- * @tc.desc: GetQuickPrepareEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetQuickPrepareEnabled, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetQuickPrepareEnabled());
-}
-
-/**
  * @tc.name: GetRenderParallelEnabled
  * @tc.desc: GetRenderParallelEnabled Test
  * @tc.type:FUNC

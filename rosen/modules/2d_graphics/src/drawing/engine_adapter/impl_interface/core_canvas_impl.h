@@ -25,8 +25,8 @@
 #include "draw/paint.h"
 #include "draw/shadow.h"
 #include "draw/sdf_shaper_base.h"
-#include "draw/OpListHandle.h"
 #include "effect/filter.h"
+#include "draw/OpListHandle.h"
 #include "image/bitmap.h"
 #include "image/image_info.h"
 #ifdef ACE_ENABLE_GPU
@@ -55,10 +55,10 @@ namespace Drawing {
 enum class SrcRectConstraint;
 class SaveLayerOps;
 enum class PointMode;
-enum class QuadAAFlags;
 struct Lattice;
 class Canvas;
 struct HpsBlurParameter;
+enum class QuadAAFlags;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -173,7 +173,7 @@ public:
 
     virtual bool DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams) = 0;
 
-    virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParam) = 0;
+    virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

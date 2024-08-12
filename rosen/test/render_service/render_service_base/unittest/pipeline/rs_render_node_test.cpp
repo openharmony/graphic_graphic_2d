@@ -22,7 +22,9 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
@@ -1321,6 +1323,50 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSSurfaceRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
+	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0");
+}
+
+/**
+ * @tc.name: RSDisplayRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", skipLayer: 0");
+}
+
+/**
+ * @tc.name: RSRootRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSRootRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto renderNode = std::make_shared<RSRootRenderNode>(0);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", Visible: 1, Size: [-inf, -inf], EnableRender: 1");
+}
+
+/**
  * @tc.name: IsContentNodeTest003
  * @tc.desc: IsContentNode test
  * @tc.type: FUNC
@@ -2382,8 +2428,8 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->forceClearCache_ = true;
-    filterDrawable->forceUseCache_ = true;
+    filterDrawable->stagingForceClearCache_ = true;
+    filterDrawable->stagingForceUseCache_ = true;
     filterDrawable->pendingPurge_ = true;
     auto& properties = node.GetMutableRenderProperties();
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
@@ -2404,9 +2450,9 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->forceClearCache_ = true;
-    filterDrawable->forceUseCache_ = true;
-    filterDrawable->filterInteractWithDirty_ = true;
+    filterDrawable->stagingForceClearCache_ = true;
+    filterDrawable->stagingForceUseCache_ = true;
+    filterDrawable->stagingFilterInteractWithDirty_ = true;
     filterDrawable->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
@@ -2431,18 +2477,18 @@ HWTEST_F(RSRenderNodeTest, CheckFilterCacheAndUpdateDirtySlots, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkForceClearFilterCacheWhenWithInvisible
+ * @tc.name: MarkForceClearFilterCacheWithInvisible
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require: issueI9T3XY
  */
-HWTEST_F(RSRenderNodeTest, MarkForceClearFilterCacheWhenWithInvisible, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, MarkForceClearFilterCacheWithInvisible, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     auto& properties = node.GetMutableRenderProperties();
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.filter_ = std::make_shared<RSFilter>();
-    node.MarkForceClearFilterCacheWhenWithInvisible();
+    node.MarkForceClearFilterCacheWithInvisible();
     ASSERT_TRUE(true);
 }
 

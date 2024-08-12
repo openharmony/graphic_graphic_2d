@@ -151,14 +151,16 @@ std::string DrawCmdList::GetOpsWithDesc() const
 
 void DrawCmdList::Dump(std::string& out)
 {
+    bool found = false;
     for (auto& item : drawOpItems_) {
         if (item == nullptr) {
             continue;
         }
+        found = true;
         item->Dump(out);
-        out += " ";
+        out += ' ';
     }
-    if (drawOpItems_.size() > 0) {
+    if (found) {
         out.pop_back();
     }
 }

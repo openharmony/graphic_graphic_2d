@@ -571,5 +571,44 @@ HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest
     multiAppStrategy_->CheckPackageInConfigList(pkgs);
     ASSERT_EQ(pkgs[0], "com.app10");
 }
+
+/**
+ * @tc.name: SpecialBranch
+ * @tc.desc: Verify the result of SpecialBranch
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
+{
+    std::vector<std::string> pkgs0 = {"com.app10", "com.app15"};
+    std::vector<std::string> pkgs1 = {"com.app10"};
+    MultiAppStrategyType undefineType = static_cast<MultiAppStrategyType>(100);
+    auto multiAppStrategy = std::make_shared<HgmMultiAppStrategy>();
+
+    STEP("HandlePkgsEvent") {
+        multiAppStrategy->HandlePkgsEvent(pkgs0);
+        multiAppStrategy->HandlePkgsEvent(pkgs1);
+        multiAppStrategy->screenSettingCache_.multiAppStrategyType = undefineType;
+        multiAppStrategy->CalcVote();
+    }
+    STEP("HandlePkgsEvent") {
+        multiAppStrategy->HandlePkgsEvent(pkgs0);
+        multiAppStrategy->HandlePkgsEvent(pkgs1);
+        multiAppStrategy->screenSettingCache_.multiAppStrategyType = undefineType;
+        multiAppStrategy->CalcVote();
+    }
+    STEP("AnalyzePkgParam") {
+        multiAppStrategy->AnalyzePkgParam("com.app10");
+        multiAppStrategy->AnalyzePkgParam("com.app10:0");
+        multiAppStrategy->AnalyzePkgParam("com.app10:a"); // err pid
+        multiAppStrategy->AnalyzePkgParam("com.app10:0:0");
+        multiAppStrategy->AnalyzePkgParam("com.app10:0:a"); // err appType
+    }
+    STEP("OnStrategyChange") {
+        multiAppStrategy->RegisterStrategyChangeCallback([] (const PolicyConfigData::StrategyConfig&) {});
+        multiAppStrategy->RegisterStrategyChangeCallback(nullptr);
+        multiAppStrategy->OnStrategyChange();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -752,10 +752,8 @@ void HdiOutput::SetPendingMode(int64_t period, int64_t timestamp)
 void HdiOutput::Dump(std::string &result) const
 {
     std::vector<LayerDumpInfo> dumpLayerInfos;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        ReorderLayerInfoLocked(dumpLayerInfos);
-    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    ReorderLayerInfoLocked(dumpLayerInfos);
 
     result.append("\n");
     result.append("-- LayerInfo\n");
@@ -785,19 +783,17 @@ void HdiOutput::Dump(std::string &result) const
 void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
 {
     std::vector<LayerDumpInfo> dumpLayerInfos;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        ReorderLayerInfoLocked(dumpLayerInfos);
-        result.append("\n");
-        if (arg == "composer") {
-            result += "The fps of screen [Id:" + std::to_string(screenId_) + "] is:\n";
-            const int32_t offset = compTimeRcdIndex_;
-            for (uint32_t i = 0; i < COMPOSITION_RECORDS_NUM; i++) {
-                uint32_t order = (offset + i) % COMPOSITION_RECORDS_NUM;
-                result += std::to_string(compositionTimeRecords_[order]) + "\n";
-            }
-            return;
+    std::unique_lock<std::mutex> lock(mutex_);
+    ReorderLayerInfoLocked(dumpLayerInfos);
+    result.append("\n");
+    if (arg == "composer") {
+        result += "The fps of screen [Id:" + std::to_string(screenId_) + "] is:\n";
+        const int32_t offset = compTimeRcdIndex_;
+        for (uint32_t i = 0; i < COMPOSITION_RECORDS_NUM; i++) {
+            uint32_t order = (offset + i) % COMPOSITION_RECORDS_NUM;
+            result += std::to_string(compositionTimeRecords_[order]) + "\n";
         }
+        return;
     }
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
@@ -835,10 +831,8 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
 void HdiOutput::DumpHitchs(std::string &result, const std::string &arg) const
 {
     std::vector<LayerDumpInfo> dumpLayerInfos;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        ReorderLayerInfoLocked(dumpLayerInfos);
-    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    ReorderLayerInfoLocked(dumpLayerInfos);
     result.append("\n");
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
@@ -852,16 +846,14 @@ void HdiOutput::DumpHitchs(std::string &result, const std::string &arg) const
 void HdiOutput::ClearFpsDump(std::string &result, const std::string &arg)
 {
     std::vector<LayerDumpInfo> dumpLayerInfos;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        ReorderLayerInfoLocked(dumpLayerInfos);
+    std::unique_lock<std::mutex> lock(mutex_);
+    ReorderLayerInfoLocked(dumpLayerInfos);
 
-        result.append("\n");
-        if (arg == "composer") {
-            result += "The fps info of screen [Id:" + std::to_string(screenId_) + "] is cleared.\n";
-            compositionTimeRecords_.fill(0);
-            return;
-        }
+    result.append("\n");
+    if (arg == "composer") {
+        result += "The fps info of screen [Id:" + std::to_string(screenId_) + "] is cleared.\n";
+        compositionTimeRecords_.fill(0);
+        return;
     }
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {

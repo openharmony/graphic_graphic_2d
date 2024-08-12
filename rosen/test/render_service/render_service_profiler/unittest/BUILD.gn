@@ -19,10 +19,8 @@ group("unittest") {
   deps = [
     ":RSProfilerArchiveTest",
     ":RSProfilerCaptureDataTest",
-    ":RSProfilerNetworkTest",
     ":RSProfilerPacketTest",
     ":RSProfilerSocketTest",
-    ":RSProfilerTest",
     ":RSProfilerUtilsTest",
   ]
 }

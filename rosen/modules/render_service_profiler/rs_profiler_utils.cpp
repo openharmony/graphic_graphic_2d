@@ -419,8 +419,8 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
             g_recordInMemory.str("");
             g_recordInMemory.clear();
         }
-        g_recordInMemory.seekg(0);
-        g_recordInMemory.seekp(0);
+        g_recordInMemory.seekg(0, std::ios_base::beg);
+        g_recordInMemory.seekp(0, std::ios_base::beg);
         return g_recordInMemoryFile;
     }
 
@@ -540,8 +540,10 @@ void Utils::FileRead(FILE* file, void* data, size_t size)
 
 void Utils::FileWrite(FILE* file, const void* data, size_t size)
 {
-    if (!data || (size == 0)) {
-        RS_LOGE("FileWrite: data or size is invalid"); // NOLINT
+    const size_t maxDataSize = 300'000'000; // To make sure size is a valid value
+    if (!data || (size == 0) || (size > maxDataSize)) {
+        RS_LOGE("FileWrite: data or size is invalid, size %s",
+                std::to_string(size).c_str()); // NOLINT
         return;
     }
 

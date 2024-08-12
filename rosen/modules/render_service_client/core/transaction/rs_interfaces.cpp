@@ -86,6 +86,13 @@ int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>
     return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
+    ScreenId id,
+    const std::vector<NodeId>& securityExemptionList)
+{
+    return renderServiceClient_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+}
+
 int32_t RSInterfaces::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     return renderServiceClient_->SetCastScreenEnableSkipWindow(id, enable);
@@ -666,6 +673,11 @@ HwcDisabledReasonInfos RSInterfaces::GetHwcDisabledReasonInfo() const
     return hwcDisabledReasonInfo;
 }
 
+void RSInterfaces::SetVmaCacheStatus(bool flag)
+{
+    renderServiceClient_->SetVmaCacheStatus(flag);
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
 {
@@ -691,6 +703,11 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
 bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);
+}
+
+bool RSInterfaces::SetAncoForceDoDirect(bool direct)
+{
+    return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
 
 } // namespace Rosen

@@ -27,7 +27,6 @@ RSSurfaceHandler::~RSSurfaceHandler() noexcept
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceHandler::SetConsumer(sptr<IConsumerSurface> consumer)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     consumer_ = consumer;
 }
 #endif
@@ -78,10 +77,11 @@ void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
     SetBufferSizeChanged(buffer.buffer);
     SetCurrentFrameBufferConsumed();
     RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "\
-        "buffer timestamp = %{public}" PRId64 " .", GetNodeId(), buffer.timestamp);
+        "buffer[timestamp:%{public}" PRId64 ", seq:%{public}" PRIu32 "]",
+        GetNodeId(), buffer.timestamp, buffer.buffer->GetSeqNum());
 }
 
-void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
+void RSSurfaceHandler::CacheBuffer(const SurfaceBufferEntry& buffer, const std::string& surfaceName)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     uint64_t bufferTimestamp = static_cast<uint64_t>(buffer.timestamp);
@@ -90,7 +90,9 @@ void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
         ReleaseBuffer(found->second);
     }
     bufferCache_[bufferTimestamp] = buffer;
-    RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
+    // attention: don't delete or change follow trace
+    std::string traceDescription = "RSSurfaceHandler buffer cache " + surfaceName + "[" + std::to_string(id_) + "]";
+    RS_TRACE_INT(traceDescription, static_cast<int>(bufferCache_.size()));
 }
 
 bool RSSurfaceHandler::HasBufferCache() const
@@ -99,7 +101,8 @@ bool RSSurfaceHandler::HasBufferCache() const
     return bufferCache_.size() != 0;
 }
 
-RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64_t vsyncTimestamp)
+RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(
+    uint64_t vsyncTimestamp, const std::string& surfaceName)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RSSurfaceHandler::SurfaceBufferEntry buffer;
@@ -113,10 +116,13 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
         }
     }
     if (buffer.buffer != nullptr) {
-        RS_TRACE_NAME_FMT("RSSurfaceHandler: get buffer from cache success, "
-            "id = %" PRIu64 ", timestamp = %" PRId64 ",cacheCount = %zu .",
-            GetNodeId(), buffer.timestamp, bufferCache_.size());
-        RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
+        RS_TRACE_NAME_FMT("surfaceHandler(id: %" PRIu64 ") get buffer success, "
+            "buffer[timestamp:%" PRId64 ", seq:%" PRIu32 "]",
+            GetNodeId(), buffer.timestamp, buffer.buffer->GetSeqNum());
+        // attention: don't delete or change follow trace
+        std::string traceDescription =
+            "RSSurfaceHandler buffer cache " + surfaceName + "[" + std::to_string(id_) + "]";
+        RS_TRACE_INT(traceDescription, static_cast<int>(bufferCache_.size()));
     }
     return buffer;
 }

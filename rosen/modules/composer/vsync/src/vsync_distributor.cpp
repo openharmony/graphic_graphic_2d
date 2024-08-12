@@ -1200,5 +1200,11 @@ void VSyncDistributor::SetHardwareTaskNum(uint32_t num)
     }
 #endif
 }
+
+int64_t VSyncDistributor::GetVsyncCount()
+{
+    std::unique_lock<std::mutex> locker(mutex_);
+    return event_.vsyncCount;
+}
 }
 }

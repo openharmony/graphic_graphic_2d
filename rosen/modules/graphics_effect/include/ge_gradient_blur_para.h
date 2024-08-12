@@ -55,7 +55,7 @@ public:
         if (maskLinearBlurEnabled && useMaskAlgorithm_) {
             auto kawaseParams = std::make_shared<Drawing::GEKawaseBlurShaderFilterParams>();
             kawaseParams->radius = blurRadius_ / 2; // 2: experience factor
-            LinearGradientBlurFilter_ = std::make_shared<GEKawaseBlurShaderFilter>(*kawaseParams);
+            linearGradientBlurFilter_ = std::make_shared<GEKawaseBlurShaderFilter>(*kawaseParams);
         }
     }
 
@@ -65,7 +65,7 @@ public:
     // Each pair in fractionStops_ represents <blur degree, position scale>
     std::vector<std::pair<float, float>> fractionStops_;
     GEGradientDirection direction_;
-    std::shared_ptr<GEShaderFilter> LinearGradientBlurFilter_;
+    std::shared_ptr<GEShaderFilter> linearGradientBlurFilter_;
     bool useMaskAlgorithm_;
 };
 

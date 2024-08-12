@@ -36,6 +36,8 @@ public:
     static constexpr NodeId NODE_ID = 10002;
     static constexpr AnimationId ANIMATION_ID = 10003;
     static constexpr uint64_t PROPERTY_ID = 10004;
+    static constexpr NodeId INVALID_NODE_ID = std::numeric_limits<uint64_t>::max();
+    static constexpr AnimationId INVALID_ANIMATION_ID = std::numeric_limits<uint64_t>::max();
 };
 
 void RSRenderInteractiveImplictAnimatorTest::SetUpTestCase() {}
@@ -95,6 +97,29 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, AddAnimations002, TestSize.Leve
 }
 
 /**
+ * @tc.name: AddAnimations003
+ * @tc.desc: Cover branch: 1.node is nullptr 2.animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, AddAnimations003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest AddAnimations003 start";
+    auto context = std::make_shared<RSContext>();
+    EXPECT_TRUE(context != nullptr);
+    auto animator = std::make_shared<RSRenderInteractiveImplictAnimator>(ANIMATOR_ID, context);
+    EXPECT_TRUE(animator != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    std::vector<std::pair<NodeId, AnimationId>> animations;
+    animations.emplace_back(INVALID_NODE_ID, INVALID_ANIMATION_ID);
+    animations.emplace_back(NODE_ID, INVALID_ANIMATION_ID);
+    animator->AddAnimations(animations);
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest AddAnimations003 end";
+}
+
+/**
  * @tc.name: PauseAnimator001
  * @tc.desc: Verify the PauseAnimator
  * @tc.type:FUNC
@@ -135,6 +160,30 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, PauseAnimator002, TestSize.Leve
     context = nullptr;
     animator->PauseAnimator();
     GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest PauseAnimator002 end";
+}
+
+/**
+ * @tc.name: PauseAnimator003
+ * @tc.desc: Cover branch: 1.node is nullptr 2.animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, PauseAnimator003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest PauseAnimator003 start";
+    auto context = std::make_shared<RSContext>();
+    EXPECT_TRUE(context != nullptr);
+    auto animator = std::make_shared<RSRenderInteractiveImplictAnimator>(ANIMATOR_ID, context);
+    EXPECT_TRUE(animator != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    animator->animations_.emplace_back(INVALID_NODE_ID, INVALID_ANIMATION_ID);
+    animator->PauseAnimator();
+    animator->animations_.clear();
+    animator->animations_.emplace_back(NODE_ID, INVALID_ANIMATION_ID);
+    animator->PauseAnimator();
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest PauseAnimator003 end";
 }
 
 /**
@@ -181,6 +230,30 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, ContinueAnimator002, TestSize.L
 }
 
 /**
+ * @tc.name: ContinueAnimator003
+ * @tc.desc: Cover branch: 1.node is nullptr 2.animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, ContinueAnimator003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest ContinueAnimator003 start";
+    auto context = std::make_shared<RSContext>();
+    EXPECT_TRUE(context != nullptr);
+    auto animator = std::make_shared<RSRenderInteractiveImplictAnimator>(ANIMATOR_ID, context);
+    EXPECT_TRUE(animator != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    animator->animations_.emplace_back(INVALID_NODE_ID, INVALID_ANIMATION_ID);
+    animator->ContinueAnimator();
+    animator->animations_.clear();
+    animator->animations_.emplace_back(NODE_ID, INVALID_ANIMATION_ID);
+    animator->ContinueAnimator();
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest ContinueAnimator003 end";
+}
+
+/**
  * @tc.name: FinishAnimator001
  * @tc.desc: Verify the FinishAnimator
  * @tc.type:FUNC
@@ -221,6 +294,30 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, FinishAnimator002, TestSize.Lev
     context = nullptr;
     animator->FinishAnimator(RSInteractiveAnimationPosition::CURRENT);
     GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest FinishAnimator002 end";
+}
+
+/**
+ * @tc.name: FinishAnimator003
+ * @tc.desc: Cover branch: 1.node is nullptr 2.animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, FinishAnimator003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest FinishAnimator003 start";
+    auto context = std::make_shared<RSContext>();
+    EXPECT_TRUE(context != nullptr);
+    auto animator = std::make_shared<RSRenderInteractiveImplictAnimator>(ANIMATOR_ID, context);
+    EXPECT_TRUE(animator != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    animator->animations_.emplace_back(INVALID_NODE_ID, INVALID_ANIMATION_ID);
+    animator->FinishAnimator(RSInteractiveAnimationPosition::CURRENT);
+    animator->animations_.clear();
+    animator->animations_.emplace_back(NODE_ID, INVALID_ANIMATION_ID);
+    animator->FinishAnimator(RSInteractiveAnimationPosition::CURRENT);
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest FinishAnimator003 end";
 }
 
 /**
@@ -267,6 +364,30 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, ReverseAnimator002, TestSize.Le
 }
 
 /**
+ * @tc.name: ReverseAnimator003
+ * @tc.desc: Cover branch: 1.node is nullptr 2.animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, ReverseAnimator003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest ReverseAnimator003 start";
+    auto context = std::make_shared<RSContext>();
+    EXPECT_TRUE(context != nullptr);
+    auto animator = std::make_shared<RSRenderInteractiveImplictAnimator>(ANIMATOR_ID, context);
+    EXPECT_TRUE(animator != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    animator->animations_.emplace_back(INVALID_NODE_ID, INVALID_ANIMATION_ID);
+    animator->ReverseAnimator();
+    animator->animations_.clear();
+    animator->animations_.emplace_back(NODE_ID, INVALID_ANIMATION_ID);
+    animator->ReverseAnimator();
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest ReverseAnimator003 end";
+}
+
+/**
  * @tc.name: SetFractionAnimator001
  * @tc.desc: Verify the SetFractionAnimator
  * @tc.type:FUNC
@@ -307,6 +428,30 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, SetFractionAnimator002, TestSiz
     context = nullptr;
     animator->SetFractionAnimator(1.0f);
     GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest SetFractionAnimator002 end";
+}
+
+/**
+ * @tc.name: SetFractionAnimator003
+ * @tc.desc: Cover branch: 1.node is nullptr 2.animation is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, SetFractionAnimator003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest SetFractionAnimator003 start";
+    auto context = std::make_shared<RSContext>();
+    EXPECT_TRUE(context != nullptr);
+    auto animator = std::make_shared<RSRenderInteractiveImplictAnimator>(ANIMATOR_ID, context);
+    EXPECT_TRUE(animator != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    animator->animations_.emplace_back(INVALID_NODE_ID, INVALID_ANIMATION_ID);
+    animator->SetFractionAnimator(1.0f);
+    animator->animations_.clear();
+    animator->animations_.emplace_back(NODE_ID, INVALID_ANIMATION_ID);
+    animator->SetFractionAnimator(1.0f);
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest SetFractionAnimator003 end";
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -502,7 +502,7 @@ public:
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
     bool IsFilterCacheValid() const;
     bool IsAIBarFilterCacheValid() const;
-    void MarkForceClearFilterCacheWhenWithInvisible();
+    void MarkForceClearFilterCacheWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
@@ -889,7 +889,6 @@ private:
     bool isDirtyRegionUpdated_ = false;
     bool isContainBootAnimation_ = false;
     bool isLastVisible_ = false;
-    bool fallbackAnimationOnDestroy_ = true;
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;

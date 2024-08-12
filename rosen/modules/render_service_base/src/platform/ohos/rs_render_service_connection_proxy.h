@@ -72,6 +72,9 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    int32_t SetVirtualScreenSecurityExemptionList(
+        ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
@@ -248,6 +251,8 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
 
+    void SetVmaCacheStatus(bool flag) override;
+
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 
 #ifdef TP_FEATURE_ENABLE
@@ -264,6 +269,8 @@ private:
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
 
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
+
+    bool SetAncoForceDoDirect(bool direct) override;
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

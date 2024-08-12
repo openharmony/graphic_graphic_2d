@@ -94,6 +94,30 @@ HWTEST_F(ContrastFilterUnittest, SetValue003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetValue004
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ContrastFilterUnittest, SetValue004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ContrastFilterUnittest SetValue004 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto contrast = std::make_shared<ContrastFilter>();
+    bool testResult = contrast != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call SetValue to set the exception values
+     */
+    std::shared_ptr<float> sContrast = std::make_shared<float>(1.0f);
+    std::weak_ptr<void> vContrast = sContrast;
+    contrast->SetValue("", vContrast.lock(), 1);
+}
+
+/**
  * @tc.name: GetVertexShader001
  * @tc.desc: Get a string used to compile the program
  * @tc.type: FUNC

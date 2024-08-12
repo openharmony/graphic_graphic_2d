@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,21 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef OP_LIST_HANDLE_IMPL_H
-#define OP_LIST_HANDLE_IMPL_H
+#include <cstdio>
 
-#include "base_impl.h"
+#include "gtest/gtest.h"
 
-namespace OHOS {
-namespace Rosen {
-namespace Drawing {
-
-class OpListHandleImpl : public BaseImpl {
-public:
-    OpListHandleImpl() {};
-    ~OpListHandleImpl() override {}
-};
-} // namespace Drawing
-} // namespace Rosen
-} // namespace OHOS
-#endif
+GTEST_API_ int main(int argc, char **argv)
+{
+    printf("Running main() from %s\n", __FILE__);
+    testing::GTEST_FLAG(output) = "xml:./";
+    testing::InitGoogleTest(&argc, argv);
+    int res = RUN_ALL_TESTS();
+    std::quick_exit(EXIT_SUCCESS);
+    return res;
+}

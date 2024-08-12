@@ -75,6 +75,11 @@ ohos_unittest("vsync_generator_test") {
   sources = [ "vsync_generator_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
+
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "ipc:ipc_core",
+  ]
 }
 
 ## UnitTest vsync_generator_test }}}

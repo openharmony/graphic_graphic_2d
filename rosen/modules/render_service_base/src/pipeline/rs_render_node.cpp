@@ -779,7 +779,7 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         return;
     }
     std::string splitStr = ", ";
-    std::string modifierDesc = ", DrawCmdModifiers:[";
+    std::string modifierDesc = ", DrawCmdModifiers2:[";
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
         std::string typeName = "UNKNOWN";
         auto iter = RS_MODIFIER_TYPE_TO_STRING.find(type);
@@ -788,11 +788,18 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
         }
         modifierDesc += typeName + ":[";
         std::string propertyDesc = "";
+        bool found = false;
         for (auto& modifier : modifiers) {
-            modifier->Dump(propertyDesc);
-            propertyDesc += splitStr;
+            if (modifier != nullptr) {
+                found = true;
+                modifier->Dump(propertyDesc);
+                propertyDesc += splitStr;
+            }
         }
-        modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length()) + "]" + splitStr;
+        if (found) {
+            modifierDesc += propertyDesc.substr(0, propertyDesc.length() - splitStr.length());
+        }
+        modifierDesc += "]" + splitStr;
     }
     out += modifierDesc.substr(0, modifierDesc.length() - splitStr.length()) + "]";
 }
@@ -1080,9 +1087,7 @@ RSRenderNode::~RSRenderNode()
     if (appPid_ != 0) {
         RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, appPid_);
     }
-    if (fallbackAnimationOnDestroy_) {
-        FallbackAnimationsToRoot();
-    }
+    FallbackAnimationsToRoot();
     if (clearCacheSurfaceFunc_ && (cacheSurface_ || cacheCompletedSurface_)) {
         clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
             completedSurfaceThreadIndex_);
@@ -2038,17 +2043,17 @@ void RSRenderNode::CheckFilterCacheAndUpdateDirtySlots(
     if (filterDrawable == nullptr) {
         return;
     }
-    filterDrawable->ClearCacheIfNeeded();
+    filterDrawable->MarkNeedClearFilterCache();
     UpdateDirtySlotsAndPendingNodes(slot);
 }
 
-void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
+void RSRenderNode::MarkForceClearFilterCacheWithInvisible()
 {
     if (GetRenderProperties().GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->ClearCacheIfNeeded();
+            filterDrawable->MarkNeedClearFilterCache();
             UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
         }
     }
@@ -2056,7 +2061,7 @@ void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
         auto filterDrawable = GetFilterDrawable(true);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->ClearCacheIfNeeded();
+            filterDrawable->MarkNeedClearFilterCache();
             UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COMPOSITING_FILTER);
         }
     }
@@ -2607,7 +2612,7 @@ void RSRenderNode::UpdateShouldPaint()
                    (GetRenderProperties().GetVisible() || HasDisappearingTransition(false));
     if (!shouldPaint_ && HasBlurFilter()) { // force clear blur cache
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] is invisible", GetId());
-        MarkForceClearFilterCacheWhenWithInvisible();
+        MarkForceClearFilterCacheWithInvisible();
     }
 }
 
@@ -3270,7 +3275,7 @@ void RSRenderNode::OnTreeStateChanged()
     }
     if (!isOnTheTree_ && HasBlurFilter()) { // force clear blur cache
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] off the tree", GetId());
-        MarkForceClearFilterCacheWhenWithInvisible();
+        MarkForceClearFilterCacheWithInvisible();
     }
 }
 

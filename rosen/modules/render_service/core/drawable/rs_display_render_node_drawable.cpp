@@ -52,6 +52,7 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "static_factory.h"
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
@@ -498,6 +499,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             uniParam->SetBlackList(currentBlackList_);
             uniParam->SetWhiteList(screenInfo.whiteList);
+            uniParam->SetSecExemption(params->GetSecurityExemption());
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
             DrawMirrorScreen(*params, processor);
             lastBlackList_ = currentBlackList_;
@@ -816,7 +818,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->SetDisableFilterCache(true);
     auto mirroedDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
     auto hasSecSurface = mirroedDisplayParams->GetDisplayHasSecSurface();
-    if (hasSecSurface[mirroredParams->GetScreenId()]) {
+    if (!(uniParam.GetSecExemption()) && hasSecSurface[mirroredParams->GetScreenId()]) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         SetCanvasBlack(*virtualProcesser);
@@ -874,6 +876,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     uniParam.SetStartVisit(false);
     uniParam.SetBlackList({});
     uniParam.SetWhiteList({});
+    uniParam.SetSecExemption(false);
 }
 
 void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
@@ -1453,6 +1456,11 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
             static_cast<int32_t>(std::max(params->GetScreenInfo().width, params->GetScreenInfo().height));
         offscreenWidth = maxRenderSize;
         offscreenHeight = maxRenderSize;
+    }
+    if (params->IsRotationChanged()) {
+        if (RSUniRenderThread::Instance().GetVmaOptimizeFlag()) {
+            Drawing::StaticFactory::SetVmaCacheStatus(true); // render this frame with vma cache on
+        }
     }
 
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {

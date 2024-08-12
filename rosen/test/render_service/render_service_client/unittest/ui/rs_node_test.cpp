@@ -3836,6 +3836,28 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetVisualEffect
+ * @tc.desc: test results of SetVisualEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffect, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    VisualEffect* effectObj = new(std::nothrow) VisualEffect();
+    std::shared_ptr<BrightnessBlender> blender = std::make_shared<BrightnessBlender>();
+    blender->SetFraction(floatData[0]);
+    std::shared_ptr<BackgroundColorEffectPara> para = std::make_shared<BackgroundColorEffectPara>();
+    para->SetBlender(blender);
+    effectObj->AddPara(para);
+    rsNode->SetVisualEffect(effectObj);
+    EXPECT_NE(floatData[0], 1.f);
+    if (effectObj != nullptr) {
+        delete effectObj;
+        effectObj = nullptr;
+    }
+}
+
+/**
  * @tc.name: SetandGetTranslateVector001
  * @tc.desc:
  * @tc.type:FUNC
@@ -5551,6 +5573,20 @@ HWTEST_F(RSNodeTest, SetNGetFgBrightnessNegCoeff, TestSize.Level1)
     Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
     rsNode->SetFgBrightnessNegCoeff(value);
     EXPECT_NE(value.x_, 0.f);
+}
+
+/**
+ * @tc.name: SetFgBrightnessFract
+ * @tc.desc: test results of SetFgBrightnessFract
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetFgBrightnessFract, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float value = 0.0;
+    rsNode->SetFgBrightnessFract(value);
+    EXPECT_NE(value, 1.f);
 }
 
 /**

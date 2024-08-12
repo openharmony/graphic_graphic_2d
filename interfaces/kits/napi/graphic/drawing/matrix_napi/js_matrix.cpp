@@ -124,7 +124,7 @@ napi_value JsMatrix::CreateJsMatrix(napi_env env, const std::shared_ptr<Matrix> 
             ROSEN_LOGE("JsMatrix::CreateJsMatrix Create matrix object failed!");
             return nullptr;
         }
-        napi_status status = napi_wrap(env, result, jsMatrix, JsMatrix::Destructor, nullptr, nullptr);
+        status = napi_wrap(env, result, jsMatrix, JsMatrix::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsMatrix;
             ROSEN_LOGE("JsMatrix::CreateJsMatrix failed to wrap native instance");

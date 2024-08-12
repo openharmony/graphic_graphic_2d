@@ -49,9 +49,6 @@ group("graphic_common_test") {
     "utils/rs_frame_report_ext:test",
     "utils/socketpair:test",
   ]
-  if (graphic_2d_feature_enable_vulkan) {
-    public_deps -= [ "frameworks/opengl_wrapper/test:test" ]
-  }
 }
 
 ## Install graphic.rc to /system/etc/init/graphic.rc {{{

@@ -2275,7 +2275,8 @@ bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle*);
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
- * @return Return the font weight of line style for text typography. For details, see the enum <b>OH_Drawing_FontWeight</b>.
+ * @return Return the font weight of line style for text typography. For details,
+ * see the enum <b>OH_Drawing_FontWeight</b>.
  * @since 12
  * @version 1.0
  */
@@ -2286,7 +2287,8 @@ OH_Drawing_FontWeight OH_Drawing_TypographyTextlineStyleGetFontWeight(OH_Drawing
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
- * @return Return the font style of line style for text typography. For details, see the enum <b>OH_Drawing_FontStyle</b>.
+ * @return Return the font style of line style for text typography. For details,
+ * see the enum <b>OH_Drawing_FontStyle</b>.
  * @since 12
  * @version 1.0
  */
@@ -2342,7 +2344,8 @@ double OH_Drawing_TypographyTextlineStyleGetHeightScale(OH_Drawing_TypographySty
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param OH_Drawing_TypographyStyle Indicates the pointer to a typography style object <b>OH_Drawing_TypographyStyle</b>.
- * @return Whether or not to enable the font height for line styles in text layout only, true means enable, false means disable.
+ * @return Whether or not to enable the font height for line styles in text layout only,
+ * true means enable, false means disable.
  * @since 12
  * @version 1.0
  */

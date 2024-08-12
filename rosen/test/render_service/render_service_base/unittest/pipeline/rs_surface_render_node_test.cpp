@@ -2506,5 +2506,71 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetRootIdOfCaptureWindow, TestSize.Level2)
     node->SetRootIdOfCaptureWindow(rootId);
     ASSERT_EQ(node->GetStagingRenderParams()->GetRootIdOfCaptureWindow(), rootId);
 }
+
+/**
+ * @tc.name: GetAncoForceDoDirect001
+ * @tc.desc: Test function GetAncoForceDoDirect
+ * @tc.type: FUNC
+ * @tc.require: issueIAIIEP
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetAncoForceDoDirect001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    RSSurfaceRenderNode::SetAncoForceDoDirect(false);
+    node->SetAncoFlags(1);
+    ASSERT_FALSE(node->GetAncoForceDoDirect());
+    ASSERT_EQ(node->GetAncoFlags(), 1);
+    node->SetAncoFlags(0);
+    ASSERT_FALSE(node->GetAncoForceDoDirect());
+    ASSERT_EQ(node->GetAncoFlags(), 0);
+
+    RSSurfaceRenderNode::SetAncoForceDoDirect(true);
+    node->SetAncoFlags(1);
+    ASSERT_TRUE(node->GetAncoForceDoDirect());
+    ASSERT_EQ(node->GetAncoFlags(), 1);
+    node->SetAncoFlags(0);
+    ASSERT_FALSE(node->GetAncoForceDoDirect());
+    ASSERT_EQ(node->GetAncoFlags(), 0);
+}
+
+/**
+ * @tc.name: RotateCorner001
+ * @tc.desc: test results of RotateCorner
+ * @tc.type:FUNC
+ * @tc.require:issueIAIAQ0
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, RotateCorner001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    constexpr int firstCornerRadius{1};
+    constexpr int secondCornerRadius{2};
+    constexpr int thirdCornerRadius{3};
+    constexpr int fourthCornerRadius{4};
+
+    Vector4<int> cornerRadius1{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
+    node->RotateCorner(RS_ROTATION_0, cornerRadius1);
+    EXPECT_TRUE(cornerRadius1 == Vector4<int>(
+        firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius));
+    
+    Vector4<int> cornerRadius2{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
+    node->RotateCorner(RS_ROTATION_90, cornerRadius2);
+    EXPECT_TRUE(cornerRadius2 == Vector4<int>(
+        fourthCornerRadius, firstCornerRadius, secondCornerRadius, thirdCornerRadius));
+    
+    Vector4<int> cornerRadius3{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
+    node->RotateCorner(RS_ROTATION_180, cornerRadius3);
+    EXPECT_TRUE(cornerRadius3 == Vector4<int>(
+        thirdCornerRadius, fourthCornerRadius, firstCornerRadius, secondCornerRadius));
+    
+    Vector4<int> cornerRadius4{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
+    node->RotateCorner(RS_ROTATION_270, cornerRadius4);
+    EXPECT_TRUE(cornerRadius4 == Vector4<int>(
+        secondCornerRadius, thirdCornerRadius, fourthCornerRadius, firstCornerRadius));
+}
 } // namespace Rosen
 } // namespace OHOS

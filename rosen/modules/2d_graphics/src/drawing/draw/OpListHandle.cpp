@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,7 @@ namespace Rosen {
 namespace Drawing {
 
 OpListHandle::OpListHandle() : opImpl_(ImplFactory::CreateOplistHandleImpl()) {}
-OpListHandle::OpListHandle(OpInfo opinfo) : opImpl_(ImplFactory::CreateOplistHandleImpl()), opInfo_(opinfo) {}
+OpListHandle::OpListHandle(OpInfo info) : opImpl_(ImplFactory::CreateOplistHandleImpl()), opInfo_(info) {}
 
 } // namespace Drawing
 } // namespace Rosen

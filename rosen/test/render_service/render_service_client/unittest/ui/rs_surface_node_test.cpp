@@ -1319,7 +1319,7 @@ HWTEST_F(RSSurfaceNodeTest, ResetContextAlpha, TestSize.Level1)
 
 /**
  * @tc.name: SetForeground Test
- * @tc.desc: SetForeground and SetForceUIFirst and SetAncoForceDoDirect and SetHDRPresent
+ * @tc.desc: SetForeground and SetForceUIFirst and SetAncoFlags and SetHDRPresent
  * @tc.type: FUNC
  * @tc.require:issueI9MWJR
  */
@@ -1329,7 +1329,7 @@ HWTEST_F(RSSurfaceNodeTest, SetForeground, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetForeground(true);
     surfaceNode->SetForceUIFirst(true);
-    surfaceNode->SetAncoForceDoDirect(true);
+    surfaceNode->SetAncoFlags(1);
     surfaceNode->SetHDRPresent(true, 0);
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
     //for test

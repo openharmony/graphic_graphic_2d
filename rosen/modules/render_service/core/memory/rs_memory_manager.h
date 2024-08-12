@@ -46,6 +46,7 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
     static float GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext);
+    static void VmaDefragment(Drawing::GPUContext* gpuContext);
 
 private:
     // rs memory = rs + skia cpu + skia gpu

@@ -208,37 +208,23 @@ void RSUifirstManager::ProcessForceUpdateNode()
     pendingForceUpdateNode_.clear();
 }
 
-void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool hasCachedTexture)
+void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool wait)
 {
-    if (hasCachedTexture) {
-        return;
-    }
     auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
         mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
-    if (node != nullptr && node->IsLeashWindow()) {
-        std::shared_ptr<RSSurfaceRenderNode> startingWindow = nullptr;
-        bool uifirstFirstFrameComplete = false;
-        for (auto& child : *node->GetChildren()) {
-            if (!child) {
-                continue;
-            }
-            auto canvasChild = child->ReinterpretCastTo<RSCanvasRenderNode>();
-            if (canvasChild && canvasChild->GetStartingWindowFlag()) {
-                uifirstFirstFrameComplete = true;
-                continue;
-            }
-            auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceChild && surfaceChild->IsMainWindowType()) {
-                startingWindow = surfaceChild;
-                continue;
-            }
+    if (node == nullptr || !node->IsLeashWindow()) {
+        return;
+    }
+    for (auto& child : *node->GetChildren()) {
+        if (!child) {
+            continue;
         }
-        if (uifirstFirstFrameComplete && startingWindow) {
-            uifirstFirstFrameComplete = false;
-            startingWindow->SetIsNotifyUIBufferAvailable(false);
-            uifirstFirstFrameComplete = true;
-            RS_TRACE_NAME_FMT("NotifyUIBufferAvailable by uifirst %lld", startingWindow->GetId());
-            RS_LOGD("uifirst NotifyUIBufferAvailable by uifirst");
+        auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceChild && surfaceChild->IsMainWindowType()) {
+            surfaceChild->SetWaitUifirstFirstFrame(wait);
+            RS_TRACE_NAME_FMT("uifirst NotifyUIStartingWindow id:%llu, wait:%d", surfaceChild->GetId(), wait);
+            RS_LOGI("uifirst NotifyUIStartingWindow id:%{public}" PRIu64 ", wait:%{public}d",
+                surfaceChild->GetId(), wait);
         }
     }
 }
@@ -259,12 +245,12 @@ void RSUifirstManager::ProcessDoneNodeInner()
         auto drawable = GetSurfaceDrawableByID(id);
         if (drawable && drawable->GetCacheSurfaceNeedUpdated() &&
             drawable->CheckCacheSurface()) {
-            NotifyUIStartingWindow(id, drawable->HasCachedTexture());
             drawable->UpdateCompletedCacheSurface();
             RenderGroupUpdate(drawable);
             SetHasDoneNodeFlag(true);
             pendingForceUpdateNode_.push_back(id);
         }
+        NotifyUIStartingWindow(id, false);
         subthreadProcessingNode_.erase(id);
     }
 }
@@ -767,7 +753,6 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
     // process for uifirst node
     UpdateChildrenDirtyRect(*node);
     node->SetHwcChildrenDisabledStateByUifirst();
-    node->SetLeashWindowVisibleRegionEmptyParam();
     node->AddToPendingSyncList();
 
     if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW ||
@@ -1197,6 +1182,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             }
             if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW) {
                 node.SetUifirstUseStarting(LeashWindowContainMainWindowAndStarting(*surfaceNode));
+                NotifyUIStartingWindow(node.GetId(), true);
             }
             auto func = &RSUifirstManager::ProcessTreeStateChange;
             node.RegisterTreeStateChangeCallback(func);
@@ -1215,6 +1201,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
         } else { // switch: enable -> disable
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch enable -> disable %lld", node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
+            NotifyUIStartingWindow(node.GetId(), false);
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
             RemoveCardNodes(node.GetId());
         }

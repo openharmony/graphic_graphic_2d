@@ -490,8 +490,10 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
-    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    static void SetAncoForceDoDirect(bool direct);
     bool GetAncoForceDoDirect() const;
+    void SetAncoFlags(int32_t flags);
+    int32_t GetAncoFlags() const;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -625,6 +627,7 @@ public:
             return;
         }
         isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+        SetLeashWindowVisibleRegionEmptyParam();
     }
 
     bool GetLeashWindowVisibleRegionEmpty() const
@@ -896,6 +899,16 @@ public:
     uint32_t GetSubmittedSubThreadIndex() const
     {
         return submittedSubThreadIndex_;
+    }
+
+    bool IsWaitUifirstFirstFrame() const
+    {
+        return isWaitUifirstFirstFrame_;
+    }
+
+    void SetWaitUifirstFirstFrame(bool wait)
+    {
+        isWaitUifirstFirstFrame_ = wait;
     }
 
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
@@ -1203,6 +1216,10 @@ protected:
     void OnSync() override;
     void OnSkipSync() override;
 
+    // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
+    // of corner radius loops one element to the right
+    void RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const;
+
 private:
     explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
@@ -1431,6 +1448,8 @@ private:
 #endif
     bool isForeground_ = false;
     bool UIFirstIsPurge_ = false;
+    // whether to wait uifirst first frame finished when buffer available callback invoked.
+    std::atomic<bool> isWaitUifirstFirstFrame_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
@@ -1448,7 +1467,9 @@ private:
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
 
-    bool ancoForceDoDirect_ = false;
+    std::atomic<int32_t> ancoFlags_ = 0;
+    static inline std::atomic<bool> ancoForceDoDirect_ = false;
+
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     Vector4f overDrawBufferNodeCornerRadius_;
 
