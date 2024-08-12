@@ -48,6 +48,7 @@ ohos_shared_library("effectkit") {
     "./src/color_picker_napi.cpp",
     "./src/filter_napi.cpp",
     "./src/native_module_ohos_effect.cpp",
+    "./src/effect_kit_napi_utils.cpp",
   ]
 
   deps = [
