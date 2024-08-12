@@ -111,7 +111,9 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
 
 bool RSSurfaceCaptureTaskParallel::CreateResources()
 {
-    RS_LOGD("RSSurfaceCaptureTaskParallel capture nodeId:[%{public}" PRIu64 "]", nodeId_);
+    RS_LOGD("RSSurfaceCaptureTaskParallel capture nodeId:[%{public}" PRIu64 "] scaleX:%{public}f"
+        " scaleY:%{public}f useCurWindow:%{public}d", nodeId_, captureConfig_.scaleX,
+        captureConfig_.scaleY,  captureConfig_.useCurWindow);
     if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
         captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
