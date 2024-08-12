@@ -1776,7 +1776,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();
     frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, info);
     
-    HgmTaskHandleThread::Instance().PostTask([timestamp, info, activeNodesInRootMap, rsCurrRange = rsCurrRange_,
+    HgmTaskHandleThread::Instance().PostTask([timestamp, info, rsCurrRange = rsCurrRange_,
                                             rsFrameRateLinker = rsFrameRateLinker_,
                                             appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                             idleTimerExpiredFlag = idleTimerExpiredFlag_,
