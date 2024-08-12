@@ -1741,15 +1741,15 @@ std::unordered_map<std::string, pid_t> RSMainThread::GetUiFrameworkDirtyNodes()
     if (context_ == nullptr) {
         return {};
     }
-    auto& neededDirtyNodes = context_->GetUiFrameworkDirtyNodes();
-    if(neededDirtyNodes.empty()) {
+    auto& uiFwkDirtyNodes = context_->GetUiFrameworkDirtyNodes();
+    if (uiFwkDirtyNodes.empty()) {
         return {};
     }
     std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeName;
-    for (auto iter = neededDirtyNodes.begin(); iter != neededDirtyNodes.end();) {
+    for (auto iter = uiFwkDirtyNodes.begin(); iter != uiFwkDirtyNodes.end();) {
         auto renderNode = iter->lock();
         if (renderNode == nullptr) {
-            iter = neededDirtyNodes.erase(iter);
+            iter = uiFwkDirtyNodes.erase(iter);
         } else {
             if (renderNode->IsDirty()) {
                 uiFrameworkDirtyNodeName[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
