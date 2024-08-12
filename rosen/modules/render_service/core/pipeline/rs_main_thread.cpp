@@ -1772,7 +1772,6 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         return;
     }
     SetUiFrameworkTypeTable();
-    auto uiFrameworkDirtyNodeName = GetUiFrameworkDirtyNodes();
     // Check and processing refresh rate task.
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();
     frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, info);
@@ -1781,7 +1780,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
                                             rsFrameRateLinker = rsFrameRateLinker_,
                                             appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
                                             idleTimerExpiredFlag = idleTimerExpiredFlag_,
-                                            uiFrameworkDirtyNodeName = uiFrameworkDirtyNodeName] () mutable {
+                                            uiFrameworkDirtyNodeName = GetUiFrameworkDirtyNodes()] () mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
         if (rsFrameRateLinker != nullptr) {
             rsCurrRange.type_ = RS_ANIMATION_FRAME_RATE_TYPE;

@@ -2589,5 +2589,25 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX002, TestSize.Level1)
     }
 }
 
+/**
+ * @tc.name: SetNodeName
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: IAJ46S
+ */
+HWTEST_F(RSRenderNodeTest, SetNodeName, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    std::string nodeName = "";
+    node.SetNodeName(nodeName);
+    auto name = GetNodeName();
+    ASSERT_EQ(name, "");
+
+    nodeName = "0";
+    node.SetNodeName(nodeName);
+    auto name = GetNodeName();
+    ASSERT_EQ(name, "0");
+}
 } // namespace Rosen
 } // namespace OHOS

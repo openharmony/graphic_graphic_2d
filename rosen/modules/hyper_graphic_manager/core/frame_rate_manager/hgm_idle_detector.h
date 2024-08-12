@@ -84,8 +84,10 @@ public:
         return supportAppBufferList_;
     }
 private:
-    bool GetUnknownFrameworkState(const std::string& surfaceName);
-    bool GetSurfaceFrameworkState(const std::string& surfaceName);
+    bool GetUnknownFrameworkState(const std::string& surfaceName,
+        std::string& validSurfaceName);
+    bool GetSurfaceFrameworkState(const std::string& surfaceName,
+        std::string& validSurfaceName);
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
     // FORMAT: <buffername>

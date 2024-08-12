@@ -135,4 +135,26 @@ HWTEST_F(RSContextTest, InitializeTest005, TestSize.Level1)
     RSContext rSContext;
     rSContext.Initialize();
 }
+
+/**
+ * @tc.name: UiFrameworkTest
+ * @tc.desc: UiFramework test.
+ * @tc.type: FUNC
+ * @tc.require: IAJ46S
+ */
+HWTEST_F(RSContextTest, UiFrameworkTest, TestSize.Level1)
+{
+    RSContext rSContext;
+    std::vector<std::string> uiFrameworkTypeTable = { "0" };
+    rSContext.SetUiFrameworkTypeTable(uiFrameworkTypeTable);
+    auto uiFwkTypeTable = rSContext.GetUiFrameworkTypeTable();
+    auto ret = uiFwkTypeTable.size();
+    EXPECT_GT(ret, 0);
+
+    auto dirtyNode = std::make_shared<RSRenderNode>(0);
+    rSContext.UpdateUiFrameworkDirtyNodes(dirtyNode);
+    auto dirtyNodes = rSContext.GetUiFrameworkDirtyNodes();
+    ret = dirtyNodes.size();
+    EXPECT_GT(ret, 0);
+}
 } // namespace OHOS::Rosen
