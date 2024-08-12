@@ -327,6 +327,7 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
 
     if (argCount != NUM_5) {
         FILTER_LOG_E("Args number less than 5");
+        return thisVar;
     }
 
     progress = GetSpecialValue(env, argValue[NUM_0]);
@@ -371,6 +372,7 @@ napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
 
     if (argCount != NUM_2) {
         FILTER_LOG_E("Args number less than 2");
+        return thisVar;
     }
 
     float degree = GetSpecialValue(env, argValue[NUM_0]);
