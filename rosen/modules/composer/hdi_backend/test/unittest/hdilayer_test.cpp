@@ -194,11 +194,7 @@ HWTEST_F(HdiLayerTest, GetLayerStatus001, Function | MediumTest| Level3)
     hdiLayer_->MergeWithFramebufferFence(fbAcquireFence);
     hdiLayer_->MergeWithLayerFence(fbAcquireFence);
     hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-<<<<<<< HEAD
     hdiLayer_->SetLayerPresentTimestamp();
-=======
-    hdiLayer_->SetPresentTimestamp();
->>>>>>> d63029e6965c63c6851a407ec1f4b6d9d3242d40
     sptr<SyncFence> releaseFence = new SyncFence(-1);
     hdiLayer_->SetReleaseFence(releaseFence);
     hdiLayer_->SetReleaseFence(nullptr);
@@ -222,11 +218,7 @@ HWTEST_F(HdiLayerTest, CreateLayer001, Function | MediumTest| Level1)
     uint32_t layerId = 1;
     EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, layerId)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->Init(HdiLayerTest::layerInfo_), true);
-<<<<<<< HEAD
     auto tmpSurface = HdiLayerTest::hdiLayer_->GetLayerInfo()->GetSurface();
-=======
-    auto tmpSurface = HdiLayerTest::hdiLayer_->GetSurface();
->>>>>>> d63029e6965c63c6851a407ec1f4b6d9d3242d40
     HdiLayerTest::layerInfo_->SetSurface(nullptr);
     EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, layerId)).WillRepeatedly(testing::Return(0));
     HdiLayerTest::layerInfo_->SetSurface(tmpSurface);

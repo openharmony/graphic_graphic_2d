@@ -284,12 +284,7 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Leve
 */
 HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce001, Function | MediumTest | Level1)
 {
-<<<<<<< HEAD
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-=======
-    // Arrange
-    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl;
->>>>>>> d63029e6965c63c6851a407ec1f4b6d9d3242d40
     uint32_t index;
     auto &hdiOutput = HdiOutputTest::hdiOutput_;
     hdiOutput->bufferCache_.push_back(buffer);
@@ -309,11 +304,7 @@ HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce001, Function | MediumTes
 */
 HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce002, Function | MediumTest | Level1)
 {
-<<<<<<< HEAD
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-=======
-    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl;
->>>>>>> d63029e6965c63c6851a407ec1f4b6d9d3242d40
     uint32_t index;
     auto &hdiOutput = HdiOutputTest::hdiOutput_;
     bool result = hdiOutput->CheckAndUpdateClientBufferCahce(buffer, index);
@@ -333,19 +324,11 @@ HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce002, Function | MediumTes
 */
 HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce003, Function | MediumTest | Level1)
 {
-<<<<<<< HEAD
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
     uint32_t index;
     auto &hdiOutput = HdiOutputTest::hdiOutput_;
     hdiOutput->bufferCacheCountMax_ = 1;
     hdiOutput->bufferCache_.push_back(new SurfaceBufferImpl());
-=======
-    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl;
-    uint32_t index;
-    auto &hdiOutput = HdiOutputTest::hdiOutput_;
-    hdiOutput->bufferCacheCountMax_ = 1;
-    hdiOutput->bufferCache_.push_back(new SurfaceBufferImpl);
->>>>>>> d63029e6965c63c6851a407ec1f4b6d9d3242d40
     bool result = hdiOutput->CheckAndUpdateClientBufferCahce(buffer, index);
     ASSERT_FALSE(result);
     ASSERT_EQ(index, 0);
@@ -365,17 +348,10 @@ HWTEST_F(HdiOutputTest, SetBufferColorSpace, Function | MediumTest | Level1)
 {
     std::vector<LayerPtr> layers;
     for (size_t i = 0; i < 3; i++) {
-<<<<<<< HEAD
         layers.emplace_back(std::make_shared<HdiLayer>(i));
     }
     HdiOutputTest::hdiOutput_->SetBufferColorSpace(nullptr, layers);
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-=======
-        layers.emplace_back(make_shared<HdiLayer>());
-    }
-    HdiOutputTest::hdiOutput_->SetBufferColorSpace(nullptr, layers);
-    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl;
->>>>>>> d63029e6965c63c6851a407ec1f4b6d9d3242d40
     HdiOutputTest::hdiOutput_->SetBufferColorSpace(buffer, layers);
 }
 /*
@@ -388,15 +364,9 @@ HWTEST_F(HdiOutputTest, SetBufferColorSpace, Function | MediumTest | Level1)
 */
 HWTEST_F(HdiOutputTest, ReleaseLayers, Function | MediumTest | Level1)
 {
-<<<<<<< HEAD
     auto &map = HdiOutputTest::hdiOutput_->layerIdMap_;
     for (auto &layer : map) {
         layer.second->GetLayerInfo()->SetIsSupportedPresentTimestamp(true);
-=======
-    autp &map = HdiOutputTest::hdiOutput_->layerIdMap_;
-    for (auto &layer : map) {
-        layer.second->SetIsSupportedPresentTimestamp(true);
->>>>>>> d63029e6965c63c6851a407ec1f4b6d9d3242d40
     }
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     HdiOutputTest::hdiOutput_->ReleaseLayers(fbFence);
@@ -413,19 +383,11 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
 {
     std::vector<LayerInfoPtr> layerInfos;
     for (size_t i = 0; i < 3; i++) {
-<<<<<<< HEAD
         layerInfos.emplace_back(std::make_shared<HdiLayerInfo>());
     }
     HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
     std::string ret = "";
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
-=======
-        layerInfos.emplace_back(make_shared<HdiLayerInfo>());
-    }
-    HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
-    HdiOutputTest::hdiOutput_->DumpHitchs();
-    std::string ret = "";
->>>>>>> d63029e6965c63c6851a407ec1f4b6d9d3242d40
     HdiOutputTest::hdiOutput_->DumpFps(ret, "UniRender");
 }
 } // namespace
