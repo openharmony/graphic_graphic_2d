@@ -313,8 +313,6 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
         if (canBeRemoved(pair.first, pid) == false) {
             return false;
         }
-        // update node flag to avoid animation fallback
-        pair.second->fallbackAnimationOnDestroy_ = false;
         // remove node from tree
         pair.second->RemoveFromTree(false);
         return true;
