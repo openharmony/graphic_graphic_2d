@@ -243,6 +243,26 @@ HWTEST_F(RSUifirstManagerTest, ProcessForceUpdateNode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessForceUpdateNode002
+ * @tc.desc: Test ProcessForceUpdateNode, when parent node is surface node
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSUifirstManagerTest, ProcessForceUpdateNode002, TestSize.Level1)
+{
+    ASSERT_NE(mainThread_, nullptr);
+    auto parentNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parentNode, nullptr);
+    auto childNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(childNode, nullptr);
+    parentNode->AddChild(childNode);
+    parentNode->GenerateFullChildrenList();
+    mainThread_->context_->nodeMap.RegisterRenderNode(parentNode);
+    uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
+    uifirstManager_.ProcessForceUpdateNode();
+}
+
+/**
  * @tc.name: ProcessDoneNode
  * @tc.desc: Test ProcessDoneNode, subthreadProcessDoneNode_ is expected to be empty
  * @tc.type: FUNC
@@ -824,6 +844,29 @@ HWTEST_F(RSUifirstManagerTest, ClearSubthreadRes001, TestSize.Level1)
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
     uifirstManager_.ClearSubthreadRes();
     EXPECT_EQ(uifirstManager_.subthreadProcessingNode_.size(), 1);
+}
+
+/**
+ * @tc.name: SetNodePriorty001
+ * @tc.desc: Test SetNodePriorty
+ * @tc.type: FUNC
+ * @tc.require: issueIADDL3
+ */
+HWTEST_F(RSUifirstManagerTest, SetNodePriorty001, TestSize.Level1)
+{
+    uifirstManager_.subthreadProcessingNode_.clear();
+    std::list<NodeId> result;
+    NodeId nodeId = 1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode);
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
+    pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
+    uifirstManager_.SetNodePriorty(result, pendingNode);
+    EXPECT_EQ(pendingNode.size(), 1);
+
+    RSMainThread::Instance()->focusLeashWindowId_ = 1;
+    uifirstManager_.SetNodePriorty(result, pendingNode);
+    EXPECT_TRUE(RSMainThread::Instance()->GetFocusLeashWindowId());
 }
 
 /**

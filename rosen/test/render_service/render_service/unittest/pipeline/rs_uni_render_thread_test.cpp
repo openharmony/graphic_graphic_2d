@@ -481,6 +481,10 @@ HWTEST_F(RSUniRenderThreadTest, WaitUntilDisplayNodeBufferReleased001, TestSize.
     bool res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
     EXPECT_TRUE(res);
 
+    displayNodeDrawable->surfaceCreated_ = false;
+    res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
+    EXPECT_FALSE(res);
+    
     displayNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
     displayNodeDrawable->surfaceHandler_->consumer_ = IConsumerSurface::Create();
     res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
@@ -533,5 +537,33 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     params->layerCreated_ = true;
     instance.ReleaseSelfDrawingNodeBuffer();
     EXPECT_TRUE(params->isHardwareEnabled_);
+}
+
+/**
+ * @tc.name: PostClearMemoryTask001
+ * @tc.desc: Test PostClearMemoryTask
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPYS
+ */
+HWTEST_F(RSUniRenderThreadTest, PostClearMemoryTask001, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    ClearMemoryMoment moment = ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE;
+    bool deeply = true;
+    bool isDefaultClean = true;
+    instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
+    EXPECT_TRUE(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+
+    isDefaultClean = false;
+    instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
+    EXPECT_FALSE(instance.exitedPidSet_.size());
+
+    instance.deviceType_ = DeviceType::PC;
+    instance.PostClearMemoryTask(ClearMemoryMoment::FILTER_INVALID, true, true);
+    EXPECT_FALSE(instance.exitedPidSet_.size());
+
+    instance.GetRenderEngine()->GetRenderContext()->drGPUContext_ = nullptr;
+    instance.PostClearMemoryTask(moment, deeply, isDefaultClean);
+    EXPECT_FALSE(instance.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
 }
 }

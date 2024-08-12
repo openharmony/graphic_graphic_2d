@@ -288,7 +288,7 @@ HWTEST_F(RsSubThreadTest, RenderCache001, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
     RSRenderTask::RenderNodeStage stage;
     auto task = std::make_unique<RSRenderTask>(*node, stage);
-    task->node_ = std::make_shared<RSRenderNode>(1);
+    task->node_ = node;
     task->SetIdx(1);
     threadTask->AddTask(std::move(task));
     curThread->RenderCache(threadTask);
