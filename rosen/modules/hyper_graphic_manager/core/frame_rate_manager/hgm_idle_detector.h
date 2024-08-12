@@ -85,7 +85,7 @@ public:
     }
 private:
     bool GetUnknownFrameworkState(const std::string& surfaceName,
-        std::string& validSurfaceName);
+        std::string& uiFwkType);
     bool GetSurfaceFrameworkState(const std::string& surfaceName,
         std::string& validSurfaceName);
     bool appSupported_ = false;

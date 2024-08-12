@@ -62,11 +62,11 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
 }
 
 bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName
-    std::string& validSurfaceName)
+    std::string& uiFwkType)
 {
     for (auto supportedAppBuffer : supportAppBufferList_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
-            validSurfaceName = supportedAppBuffer;
+            uiFwkType = supportedAppBuffer;
             return true;
         }
     }
