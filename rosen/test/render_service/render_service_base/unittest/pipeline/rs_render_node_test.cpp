@@ -2601,12 +2601,12 @@ HWTEST_F(RSRenderNodeTest, SetNodeName, TestSize.Level1)
 
     std::string nodeName = "";
     node.SetNodeName(nodeName);
-    auto name = GetNodeName();
+    auto name = node.GetNodeName();
     ASSERT_EQ(name, "");
 
     nodeName = "0";
     node.SetNodeName(nodeName);
-    auto name = GetNodeName();
+    name = node.GetNodeName();
     ASSERT_EQ(name, "0");
 }
 } // namespace Rosen

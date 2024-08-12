@@ -295,7 +295,7 @@ HWTEST_F(HgmIdleDetectorTest, GetUiFrameworkTypeList, Function | SmallTest | Lev
         STEP("2. set app support status") {
             idleDetector->SetAppSupportedState(true);
             idleDetector->supportAppBufferList_.push_back(otherSurface);
-            auto uiFrameworkTypeList = idleDetector->GetUiFrameworkTypeList();
+            auto uiFrameworkTypeList = idleDetector->GetUiFrameworkTypeTable();
             auto ret = std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), otherSurface);
             STEP_ASSERT_GT(ret, 0);
             ret = std::count(uiFrameworkTypeList.begin(), uiFrameworkTypeList.end(), flutterBuffer);

@@ -61,7 +61,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
     frameTimeMap_[validSurfaceName] = timestamp;
 }
 
-bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName
+bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
     std::string& uiFwkType)
 {
     for (auto supportedAppBuffer : supportAppBufferList_) {
