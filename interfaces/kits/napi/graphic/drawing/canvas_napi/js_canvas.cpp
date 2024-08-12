@@ -693,7 +693,8 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
     PixelMapNapi* pixelMapNapi = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
 
-    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+    auto pixel = pixelMapNapi->GetPixelNapiInner();
+    if (pixel == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImage pixelmap GetPixelNapiInner is nullptr");
         return nullptr;
     }
@@ -702,13 +703,12 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
         if (m_canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
             ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(m_canvas);
-            auto pixel = pixelMapNapi->GetPixelNapiInner();
             Drawing::Rect src(0, 0, pixel->GetWidth(), pixel->GetHeight());
             Drawing::Rect dst(px, py, px + pixel->GetWidth(), py + pixel->GetHeight());
             canvas_->DrawPixelMapRect(pixel, src, dst, Drawing::SamplingOptions());
             return nullptr;
         }
-        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
         if (image == nullptr) {
             ROSEN_LOGE("JsCanvas::OnDrawImage image is nullptr");
             return nullptr;
@@ -725,14 +725,13 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
         }
         if (m_canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
             ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(m_canvas);
-            auto pixel = pixelMapNapi->GetPixelNapiInner();
             Drawing::Rect src(0, 0, pixel->GetWidth(), pixel->GetHeight());
             Drawing::Rect dst(px, py, px + pixel->GetWidth(), py + pixel->GetHeight());
             canvas_->DrawPixelMapRect(pixel, src, dst, *samplingOptions.get());
             return nullptr;
         }
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
         if (image == nullptr) {
             ROSEN_LOGE("JsCanvas::OnDrawImage image is nullptr");
             return nullptr;
