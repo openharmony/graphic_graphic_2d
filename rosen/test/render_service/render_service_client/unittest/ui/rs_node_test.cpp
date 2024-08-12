@@ -3774,6 +3774,90 @@ HWTEST_F(RSNodeTest, SetandGetRotationVector001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUIBackgroundFilter
+ * @tc.desc: test results of SetUIBackgroundFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Filter* filterObj = new(std::nothrow) Filter();
+    std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
+    para->SetRadius(floatData[1]);
+    filterObj->AddPara(para);
+    rsNode->SetUIBackgroundFilter(filterObj);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
+    if (filterObj != nullptr) {
+        delete filterObj;
+        filterObj = nullptr;
+    }
+}
+
+/**
+ * @tc.name: SetUICompositingFilter
+ * @tc.desc: test results of SetUICompositingFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUICompositingFilter, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Filter* filterObj = new(std::nothrow) Filter();
+    std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
+    para->SetRadius(floatData[1]);
+    filterObj->AddPara(para);
+    rsNode->SetUICompositingFilter(filterObj);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[1]);
+    if (filterObj != nullptr) {
+        delete filterObj;
+        filterObj = nullptr;
+    }
+}
+
+/**
+ * @tc.name: SetUIForegroundFilter
+ * @tc.desc: test results of SetUIForegroundFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUIForegroundFilter, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Filter* filterObj = new(std::nothrow) Filter();
+    std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
+    para->SetRadius(floatData[1]);
+    filterObj->AddPara(para);
+    rsNode->SetUIForegroundFilter(filterObj);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == floatData[1]);
+    if (filterObj != nullptr) {
+        delete filterObj;
+        filterObj = nullptr;
+    }
+}
+
+/**
+ * @tc.name: SetVisualEffect
+ * @tc.desc: test results of SetVisualEffect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffect, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    VisualEffect* effectObj = new(std::nothrow) VisualEffect();
+    std::shared_ptr<BrightnessBlender> blender = std::make_shared<BrightnessBlender>();
+    blender->SetFraction(floatData[0]);
+    std::shared_ptr<BackgroundColorEffectPara> para = std::make_shared<BackgroundColorEffectPara>();
+    para->SetBlender(blender);
+    effectObj->AddPara(para);
+    rsNode->SetVisualEffect(effectObj);
+    EXPECT_NE(floatData[0], 1.f);
+    if (effectObj != nullptr) {
+        delete effectObj;
+        effectObj = nullptr;
+    }
+}
+
+/**
  * @tc.name: SetandGetTranslateVector001
  * @tc.desc:
  * @tc.type:FUNC
@@ -4098,6 +4182,21 @@ HWTEST_F(RSNodeTest, SetandGetSpherizeDegree001, TestSize.Level1)
     float spherizeDegree = 1.0f;
     rsNode->SetSpherizeDegree(spherizeDegree);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetSpherizeDegree(), spherizeDegree));
+}
+
+/**
+ * @tc.name: SetAttractionEffect
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetAttractionEffect, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float attractionFraction = 1.0f;
+    Vector2f attractionDstPoint = { 100.0, 100.0 };
+    rsNode->SetAttractionEffect(attractionFraction, attractionDstPoint);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetAttractionFractionValue(), attractionFraction));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetAttractionDstPointValue(), attractionDstPoint));
 }
 
 /**
@@ -5477,6 +5576,20 @@ HWTEST_F(RSNodeTest, SetNGetFgBrightnessNegCoeff, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetFgBrightnessFract
+ * @tc.desc: test results of SetFgBrightnessFract
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetFgBrightnessFract, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float value = 0.0;
+    rsNode->SetFgBrightnessFract(value);
+    EXPECT_NE(value, 1.f);
+}
+
+/**
  * @tc.name: SetBgBrightnessParams
  * @tc.desc: test results of SetBgBrightnessParams
  * @tc.type: FUNC
@@ -5750,6 +5863,24 @@ HWTEST_F(RSNodeTest, SetPixelStretchPercent, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetPixelStretchPercent(stretchPercent);
     EXPECT_EQ(stretchPercent[0], 1.f);
+}
+
+/**
+ * @tc.name: SetFlyOutParams
+ * @tc.desc: test results of SetFlyOutParams
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSNodeTest, SetFlyOutParams, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    // for test
+    uint32_t flyMode = 0;
+    RSFlyOutPara rs_fly_out_param = {
+        flyMode
+    };
+    rsNode->SetFlyOutParams(rs_fly_out_param, 0.2f);
+    EXPECT_EQ(rs_fly_out_param.flyMode, 0);
 }
 
 /**

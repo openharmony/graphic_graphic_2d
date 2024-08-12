@@ -56,8 +56,8 @@ class RSB_EXPORT ChangeInOverLife {
 public:
     T fromValue_;
     T toValue_;
-    int startMillis_;
-    int endMillis_;
+    int startMillis_ { 0 };
+    int endMillis_ { 0 };
     std::shared_ptr<RSInterpolator> interpolator_ = nullptr;
     ChangeInOverLife() : fromValue_(), toValue_(), startMillis_(), endMillis_(), interpolator_() {}
     ChangeInOverLife(const T& fromValue, const T& toValue, const int& startMillis, const int& endMillis,
@@ -89,14 +89,14 @@ public:
 
 class RSB_EXPORT EmitterConfig {
 public:
-    int emitRate_;
+    int emitRate_ { 0 };
     ShapeType emitShape_;
     Vector2f position_;
     Vector2f emitSize_;
-    int32_t particleCount_;
+    int32_t particleCount_ { 0 };
     Range<int64_t> lifeTime_;
     ParticleType type_;
-    float radius_;
+    float radius_ { 0.0 };
     std::shared_ptr<RSImage> image_;
     Vector2f imageSize_;
 
@@ -125,7 +125,7 @@ public:
 
 class RSB_EXPORT EmitterUpdater {
 public:
-    uint32_t emitterIndex_;
+    uint32_t emitterIndex_ { 0 };
     std::optional<Vector2f> position_;
     std::optional<Vector2f> emitSize_;
     std::optional<int> emitRate_;
@@ -140,6 +140,8 @@ public:
     EmitterUpdater(const EmitterUpdater& config) = default;
     EmitterUpdater& operator=(const EmitterUpdater& config) = default;
     ~EmitterUpdater() = default;
+    
+    void Dump(std::string& out) const;
 };
 
 class RSB_EXPORT ParticleVelocity {

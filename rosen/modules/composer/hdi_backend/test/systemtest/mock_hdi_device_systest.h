@@ -52,7 +52,6 @@ public:
     MOCK_METHOD2(SetScreenClientBufferCacheCount, int32_t(uint32_t, uint32_t));
     MOCK_METHOD2(SetScreenClientDamage, int32_t(uint32_t, const std::vector<GraphicIRect> &damageRect));
     MOCK_METHOD2(SetScreenVsyncEnabled, int32_t(uint32_t, bool));
-    MOCK_METHOD3(GetScreenReleaseFence, int32_t(uint32_t, std::vector<uint32_t>&, std::vector<sptr<SyncFence>>&));
     MOCK_METHOD2(GetScreenSupportedColorGamuts, int32_t(uint32_t, std::vector<GraphicColorGamut>&));
     MOCK_METHOD2(SetScreenColorGamut, int32_t(uint32_t, GraphicColorGamut));
     MOCK_METHOD2(GetScreenColorGamut, int32_t(uint32_t, GraphicColorGamut&));

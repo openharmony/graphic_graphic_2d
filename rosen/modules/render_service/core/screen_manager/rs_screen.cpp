@@ -988,7 +988,7 @@ const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
     return whiteList_;
 }
 
-void RSScreen::SetBlackList(std::unordered_set<uint64_t>& blackList)
+void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
 {
     blackList_ = blackList;
 }
@@ -1034,6 +1034,16 @@ bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
 VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
 {
     return screenStatus_;
+}
+
+void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList)
+{
+    securityExemptionList_ = securityExemptionList;
+}
+
+const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
+{
+    return securityExemptionList_;
 }
 } // namespace impl
 } // namespace Rosen

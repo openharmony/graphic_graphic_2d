@@ -65,6 +65,7 @@ HWTEST_F(MemoryHandlerTest, QuerryShaderTest001, TestSize.Level1)
  */
 HWTEST_F(MemoryHandlerTest, QuerryShaderTest002, TestSize.Level1)
 {
+    ShaderCache::Instance().SetFilePath("test");
     ShaderCache::Instance().InitShaderCache();
     MemoryHandler::QuerryShader();
 }

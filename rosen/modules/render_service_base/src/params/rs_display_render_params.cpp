@@ -95,9 +95,9 @@ bool RSDisplayRenderParams::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
-void RSDisplayRenderParams::SetBrightnessRatio (bool brightnessRatio)
+void RSDisplayRenderParams::SetBrightnessRatio (float brightnessRatio)
 {
-    if (brightnessRatio_ == brightnessRatio) {
+    if (ROSEN_EQ(brightnessRatio_, brightnessRatio)) {
         return;
     }
     brightnessRatio_ = brightnessRatio;
@@ -164,6 +164,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->screenRotation_ = screenRotation_;
     targetDisplayParams->screenId_ = screenId_;
     targetDisplayParams->isSecurityDisplay_ = isSecurityDisplay_;
+    targetDisplayParams->isSecurityExemption_ = isSecurityExemption_;
     targetDisplayParams->mirroredId_ = mirroredId_;
     targetDisplayParams->compositeType_ = compositeType_;
     targetDisplayParams->mirrorSourceDrawable_ = mirrorSourceDrawable_;

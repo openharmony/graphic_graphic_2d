@@ -113,9 +113,9 @@ public:
         return timestamp_;
     }
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
-        return selfDrawingNodes_;
+        return selfDrawables_;
     }
 
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
@@ -275,7 +275,7 @@ public:
         return hasCaptureImg_;
     }
 
-    void SetBlackList(std::unordered_set<NodeId> blackList)
+    void SetBlackList(const std::unordered_set<NodeId>& blackList)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         blackList_ = blackList;
@@ -366,6 +366,16 @@ public:
         return hasMirrorDisplay_;
     }
 
+    void SetSecExemption(bool isSecurityExemption)
+    {
+        isSecurityExemption_ = isSecurityExemption;
+    }
+
+    bool GetSecExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
 private:
     mutable std::mutex mutex_;
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
@@ -396,7 +406,7 @@ private:
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
@@ -417,6 +427,8 @@ private:
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
+
+    bool isSecurityExemption_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

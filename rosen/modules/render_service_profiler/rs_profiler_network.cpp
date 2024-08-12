@@ -52,6 +52,7 @@ static void AwakeRenderServiceThread()
 
 static uint32_t OnBinaryPrepare(RSFile& file, const char* data, size_t size)
 {
+    file.SetVersion(RSFILE_VERSION_LATEST);
     file.Create(RSFile::GetDefaultPath());
     return BinaryHelper::BinaryCount(data);
 }

@@ -514,46 +514,48 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
         return;
     }
     RS_LOGI("RSScreenManager AddScreenToHgm");
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    ScreenId thisId = ToScreenId(output->GetScreenId());
-    auto screensIt = screens_.find(thisId);
-    if (screensIt == screens_.end()) {
-        RS_LOGE("RSScreenManager invalid screen id, screen not found : %{public}" PRIu64 "", thisId);
-        return;
-    }
-
-    int32_t initModeId = 0;
-    if (screensIt->second == nullptr) {
-        RS_LOGW("AddScreenToHgm:screen %{public}" PRIu64 " not found", thisId);
-        return;
-    }
-    const auto &screen = screensIt->second;
-    auto initMode = screen->GetActiveMode();
-    if (!initMode) {
-        RS_LOGE("RSScreenManager failed to get initial mode");
-    } else {
-        initModeId = initMode->id;
-    }
-    const auto &capability = screen->GetCapability();
-    ScreenSize screenSize = {screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight};
-    RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManager add screen: w * h: [%{public}u * %{public}u], capability w * h: "
-        "[%{public}u * %{public}u]", screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight);
-    if (hgmCore.AddScreen(thisId, initModeId, screenSize)) {
-        RS_LOGW("RSScreenManager failed to add screen : %{public}" PRIu64 "", thisId);
-        return;
-    }
-    hgmCore.SetActiveScreenId(thisId);
-
-    // for each supported mode, use the index as modeId to add the detailed mode to hgm
-    int32_t modeId = 0;
-    auto supportedModes = screen->GetSupportedModes();
-    for (auto mode = supportedModes.begin(); mode != supportedModes.end(); ++mode) {
-        if (hgmCore.AddScreenInfo(thisId, (*mode).width, (*mode).height,
-            (*mode).freshRate, modeId)) {
-            RS_LOGW("RSScreenManager failed to add a screen profile to the screen : %{public}" PRIu64 "", thisId);
+    HgmTaskHandleThread::Instance().PostSyncTask([this, &output] () {
+        auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+        ScreenId thisId = ToScreenId(output->GetScreenId());
+        auto screensIt = screens_.find(thisId);
+        if (screensIt == screens_.end()) {
+            RS_LOGE("RSScreenManager invalid screen id, screen not found : %{public}" PRIu64 "", thisId);
+            return;
         }
-        modeId++;
-    }
+
+        int32_t initModeId = 0;
+        if (screensIt->second == nullptr) {
+            RS_LOGW("AddScreenToHgm:screen %{public}" PRIu64 " not found", thisId);
+            return;
+        }
+        const auto &screen = screensIt->second;
+        auto initMode = screen->GetActiveMode();
+        if (!initMode) {
+            RS_LOGE("RSScreenManager failed to get initial mode");
+        } else {
+            initModeId = initMode->id;
+        }
+        const auto &capability = screen->GetCapability();
+        ScreenSize screenSize = {screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight};
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManager add screen: w * h: [%{public}u * %{public}u], capability w * h: "
+            "[%{public}u * %{public}u]", screen->Width(), screen->Height(), capability.phyWidth, capability.phyHeight);
+        if (hgmCore.AddScreen(thisId, initModeId, screenSize)) {
+            RS_LOGW("RSScreenManager failed to add screen : %{public}" PRIu64 "", thisId);
+            return;
+        }
+        hgmCore.SetActiveScreenId(thisId);
+
+        // for each supported mode, use the index as modeId to add the detailed mode to hgm
+        int32_t modeId = 0;
+        auto supportedModes = screen->GetSupportedModes();
+        for (auto mode = supportedModes.begin(); mode != supportedModes.end(); ++mode) {
+            if (hgmCore.AddScreenInfo(thisId, (*mode).width, (*mode).height,
+                (*mode).freshRate, modeId)) {
+                RS_LOGW("RSScreenManager failed to add a screen profile to the screen : %{public}" PRIu64 "", thisId);
+            }
+            modeId++;
+        }
+    });
 }
 
 void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
@@ -564,12 +566,13 @@ void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
     }
 
     RS_LOGI("RSScreenManager RemoveScreenFromHgm");
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    ScreenId id = ToScreenId(output->GetScreenId());
-    RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManager remove screen, id: %{public}" PRIu64 "", id);
-    if (hgmCore.RemoveScreen(id)) {
-        RS_LOGW("RSScreenManager failed to remove screen : %{public}" PRIu64 "", id);
-    }
+    HgmTaskHandleThread::Instance().PostTask([id = ToScreenId(output->GetScreenId())] () {
+        auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManager remove screen, id: %{public}" PRIu64 "", id);
+        if (hgmCore.RemoveScreen(id)) {
+            RS_LOGW("RSScreenManager failed to remove screen : %{public}" PRIu64 "", id);
+        }
+    });
 }
 
 void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &output)
@@ -964,6 +967,53 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
         }
     }
     return SUCCESS;
+}
+
+int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(
+    ScreenId id,
+    const std::vector<uint64_t>& securityExemptionList)
+{
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGD("RSScreenManager %{public}s: INVALID_SCREEN_ID.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+
+    if (virtualScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!(virtualScreen->second->IsVirtual())) {
+        RS_LOGW("RSScreenManager %{public}s: not virtual screen for id %{public}" PRIu64 ".", __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+    virtualScreen->second->SetSecurityExemptionList(securityExemptionList);
+    for (auto exemption : securityExemptionList) {
+        RS_LOGD("RSScreenManager %{public}s: virtual screen(id %{public}" PRIu64 "), nodeId %{public}" PRIu64 ".",
+            __func__, id, exemption);
+    }
+    return SUCCESS;
+}
+
+const std::vector<uint64_t> RSScreenManager::GetVirtualScreenSecurityExemptionList(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return {};
+    }
+
+    if (virtualScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return {};
+    }
+    return virtualScreen->second->GetSecurityExemptionList();
 }
 
 int32_t RSScreenManager::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)

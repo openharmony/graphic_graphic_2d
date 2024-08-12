@@ -467,37 +467,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest002, TestSize.Le
 }
 
 /**
- * @tc.name: ResetSurfaceForVK
- * @tc.desc: Test If ResetSurfaceForVK Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAFX7M
- */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceForVKTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    int width = 1;
-    int height = 1;
-    canvas.recordingState_ = true;
-    bool result = drawable->ResetSurfaceForVK(width, height, canvas);
-    ASSERT_TRUE(result);
-#ifdef RS_ENABLE_VK
-    canvas.recordingState_ = false;
-    auto drawCanvas = std::make_shared<Drawing::Canvas>();
-    canvas.canvas_ = drawCanvas.get();
-    result = drawable->ResetSurfaceForVK(width, height, canvas);
-    ASSERT_TRUE(result);
-    canvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-    ASSERT_TRUE(canvas.GetGPUContext());
-    drawable->backendTexture_.isValid_ = true;
-    result = drawable->ResetSurfaceForVK(width, height, canvas);
-    ASSERT_TRUE(result);
-#endif
-}
-
-/**
  * @tc.name: ResetSurfaceForGL
  * @tc.desc: Test If ResetSurfaceForGL Can Run
  * @tc.type: FUNC

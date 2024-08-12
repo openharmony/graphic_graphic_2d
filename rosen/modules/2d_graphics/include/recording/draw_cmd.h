@@ -107,9 +107,9 @@ public:
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 
     virtual void SetNodeId(NodeId id) {}
-    virtual void Dump(std::string& out);
+    virtual void Dump(std::string& out) const;
 
-    std::string GetOpDesc();
+    std::string GetOpDesc() const;
 
     static void SetBaseCallback(
         std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc);
@@ -156,6 +156,8 @@ public:
     ~DrawWithPaintOpItem() override = default;
     void Marshalling(DrawCmdList& cmdList) override {}
     void Playback(Canvas* canvas, const Rect* rect) override {}
+    virtual void Dump(std::string& out) const override;
+    virtual void DumpItems(std::string& out) const {}
 protected:
     Paint paint_;
 };
@@ -203,6 +205,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Point3 planeParams_;
     Point3 devLightPos_;
@@ -231,6 +234,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     Point point_;
 };
@@ -276,6 +280,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     Point startPt_;
     Point endPt_;
@@ -298,6 +303,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     Rect rect_;
 };
@@ -319,6 +325,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     RoundRect rrect_;
 };
@@ -342,6 +349,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     RoundRect outerRRect_;
     RoundRect innerRRect_;
@@ -368,6 +376,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     Rect rect_;
     scalar startAngle_;
@@ -395,6 +404,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     Rect rect_;
     scalar startAngle_;
@@ -418,6 +428,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     Rect rect_;
 };
@@ -440,6 +451,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     Point centerPt_;
     scalar radius_;
@@ -462,6 +474,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void DumpItems(std::string& out) const override;
 private:
     std::shared_ptr<Path> path_;
 };
@@ -512,6 +525,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Point3 planeParams_;
     Point3 devLightPos_;
@@ -539,6 +553,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void DumpItems(std::string& out) const override;
 private:
     std::shared_ptr<Region> region_;
 };
@@ -562,6 +577,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void DumpItems(std::string& out) const override;
 private:
     BlendMode mode_;
     std::shared_ptr<Vertices> vertices_;
@@ -584,6 +600,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     ColorQuad color_;
     BlendMode mode_;
@@ -620,6 +637,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     RectI center_;
     Rect dst_;
@@ -651,6 +669,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Lattice lattice_;
     Rect dst_;
@@ -691,6 +710,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void DumpItems(std::string& out) const override;
 
 private:
     std::vector<RSXform> xform_;
@@ -723,6 +743,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void DumpItems(std::string& out) const override;
 
 private:
     scalar px_;
@@ -753,6 +774,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void DumpItems(std::string& out) const override;
 
 private:
     scalar px_;
@@ -785,6 +807,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void DumpItems(std::string& out) const override;
 private:
     Rect src_;
     Rect dst_;
@@ -838,6 +861,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
 protected:
@@ -869,6 +893,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 
 private:
     static void MergeDrawingPath(
@@ -895,6 +920,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Rect rect_;
     ClipOp clipOp_;
@@ -918,6 +944,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     RectI rect_;
     ClipOp clipOp_;
@@ -941,6 +968,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     RoundRect rrect_;
     ClipOp clipOp_;
@@ -989,6 +1017,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     ClipOp clipOp_;
     std::shared_ptr<Region> region_;
@@ -1009,6 +1038,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Matrix matrix_;
 };
@@ -1042,6 +1072,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     Matrix matrix_;
 };
@@ -1061,6 +1092,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     scalar dx_;
     scalar dy_;
@@ -1081,6 +1113,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     scalar sx_;
     scalar sy_;
@@ -1104,6 +1137,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     scalar deg_;
     scalar sx_;
@@ -1125,6 +1159,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     scalar sx_;
     scalar sy_;
@@ -1156,6 +1191,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     ColorQuad color_;
 };
@@ -1203,6 +1239,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     uint32_t saveLayerFlags_;
     Rect rect_;
@@ -1251,6 +1288,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
 private:
     std::vector<Point> radiusData_;
 };

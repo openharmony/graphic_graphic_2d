@@ -22,6 +22,7 @@
 #include "sandbox_utils.h"
 #include "surface_utils.h"
 
+#include <cinttypes>
 #include <atomic>
 #include <sync_fence.h>
 #include <unistd.h>
@@ -59,14 +60,8 @@ SurfaceImage::SurfaceImage(uint32_t textureId, uint32_t textureTarget)
 SurfaceImage::~SurfaceImage()
 {
     for (auto it = imageCacheSeqs_.begin(); it != imageCacheSeqs_.end(); it++) {
-        if (it->second.eglImage_ != EGL_NO_IMAGE_KHR) {
-            eglDestroyImageKHR(eglDisplay_, it->second.eglImage_);
-            it->second.eglImage_ = EGL_NO_IMAGE_KHR;
-        }
-        if (it->second.eglSync_ != EGL_NO_SYNC_KHR) {
-            eglDestroySyncKHR(eglDisplay_, it->second.eglSync_);
-            it->second.eglSync_ = EGL_NO_SYNC_KHR;
-        }
+        DestroyEGLImage(it->second.eglImage_);
+        DestroyEGLSync(it->second.eglSync_);
     }
 }
 
@@ -74,16 +69,9 @@ void SurfaceImage::InitSurfaceImage()
 {
     std::string name = "SurfaceImage-" + std::to_string(GetRealPid()) + "-" + std::to_string(GetProcessUniqueId());
     auto ret = ConsumerSurface::Init();
-    BLOGI("surfaceimage init");
-    if (ret != SURFACE_ERROR_OK) {
-        BLOGE("init surfaceimage failed");
-    }
+    uniqueId_ = GetUniqueId();
+    BLOGI("InitSurfaceImage Init ret: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
     surfaceImageName_ = name;
-}
-
-SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
-{
-    return ConsumerSurface::SetDefaultWidthAndHeight(width, height);
 }
 
 void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
@@ -105,10 +93,10 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_,
-        currentTransformType_, currentCrop_);
-    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, currentSurfaceBuffer_,
-        currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrix(currentTransformMatrix_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
 
     // wait on this acquireFence.
     if (acquireFence != nullptr) {
@@ -136,7 +124,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
         return ret;
     }
 
-    ret = UpdateEGLImageAndTexture(eglDisplay_, buffer);
+    ret = UpdateEGLImageAndTexture(buffer);
     if (ret != SURFACE_ERROR_OK) {
         ReleaseBuffer(buffer, -1);
         return ret;
@@ -162,15 +150,15 @@ SurfaceError SurfaceImage::AttachContext(uint32_t textureId)
         glBindTexture(textureTarget_, textureId);
         GLenum error = glGetError();
         if (error != GL_NO_ERROR) {
-            BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
-                textureTarget_, textureId_, error);
+            BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d,"
+                "uniqueId: %{public}" PRIu64 ".", textureTarget_, textureId_, error, uniqueId_);
             return SURFACE_ERROR_EGL_API_FAILED;
         }
         glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(iter->second.eglImage_));
         error = glGetError();
         if (error != GL_NO_ERROR) {
-            BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d",
-                textureTarget_, error);
+            BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d"
+                "uniqueId: %{public}" PRIu64 ".", textureTarget_, error, uniqueId_);
             return SURFACE_ERROR_EGL_API_FAILED;
         }
     }
@@ -193,8 +181,8 @@ SurfaceError SurfaceImage::DetachContext()
     glBindTexture(textureTarget_, 0);
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
-        BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId:%{public}d, error:%{public}d",
-            textureTarget_, textureId_, error);
+        BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId:%{public}d, error:%{public}d"
+            "uniqueId: %{public}" PRIu64 ".", textureTarget_, textureId_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
     }
     return SURFACE_ERROR_OK;
@@ -209,10 +197,10 @@ int64_t SurfaceImage::GetTimeStamp()
 SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrix_),
+    auto ret = memcpy_s(matrix, sizeof(float) * 16,  // 16 is the length of array
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
-        BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
+        BLOGE("memcpy_s failed ret: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return SURFACE_ERROR_UNKOWN;
     }
     return SURFACE_ERROR_OK;
@@ -221,10 +209,10 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 SurfaceError SurfaceImage::GetTransformMatrixV2(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrixV2_),
+    auto ret = memcpy_s(matrix, sizeof(float) * 16, // 16 is the length of array
                         currentTransformMatrixV2_, sizeof(currentTransformMatrixV2_));
     if (ret != EOK) {
-        BLOGE("GetTransformMatrixV2: currentTransformMatrixV2_ memcpy_s failed");
+        BLOGE("memcpy_s failed ret: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return SURFACE_ERROR_UNKOWN;
     }
     return SURFACE_ERROR_OK;
@@ -236,11 +224,13 @@ SurfaceError SurfaceImage::ValidateEglState()
     EGLContext context = eglGetCurrentContext();
 
     if ((eglDisplay_ != disp && eglDisplay_ != EGL_NO_DISPLAY) || (disp == EGL_NO_DISPLAY)) {
-        BLOGE("EGLDisplay is invalid, errno : 0x%{public}x", eglGetError());
+        BLOGE("EGLDisplay is invalid, errno : 0x%{public}x, uniqueId: %{public}" PRIu64 ".",
+            eglGetError(), uniqueId_);
         return SURFACE_ERROR_EGL_STATE_UNKONW;
     }
     if ((eglContext_ != context && eglContext_ != EGL_NO_CONTEXT) || (context == EGL_NO_CONTEXT)) {
-        BLOGE("EGLContext is invalid, errno : 0x%{public}x", eglGetError());
+        BLOGE("EGLContext is invalid, errno : 0x%{public}x, uniqueId: %{public}" PRIu64 ".",
+            eglGetError(), uniqueId_);
         return SURFACE_ERROR_EGL_STATE_UNKONW;
     }
 
@@ -262,7 +252,7 @@ EGLImageKHR SurfaceImage::CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuff
     EGLImageKHR img = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nBuffer, attrs);
     if (img == EGL_NO_IMAGE_KHR) {
         EGLint error = eglGetError();
-        BLOGE("failed, error %{public}d", error);
+        BLOGE("failed, error %{public}d, uniqueId: %{public}" PRIu64 ".", error, uniqueId_);
         eglTerminate(disp);
     }
     DestroyNativeWindowBuffer(nBuffer);
@@ -278,14 +268,8 @@ void SurfaceImage::CheckImageCacheNeedClean(uint32_t seqNum)
             continue;
         }
         if (IsSurfaceBufferInCache(it->first, result) == SURFACE_ERROR_OK && !result) {
-            if (it->second.eglImage_ != EGL_NO_IMAGE_KHR) {
-                eglDestroyImageKHR(eglDisplay_, it->second.eglImage_);
-                it->second.eglImage_ = EGL_NO_IMAGE_KHR;
-            }
-            if (it->second.eglSync_ != EGL_NO_SYNC_KHR) {
-                eglDestroySyncKHR(eglDisplay_, it->second.eglSync_);
-                it->second.eglSync_ = EGL_NO_SYNC_KHR;
-            }
+            DestroyEGLImage(it->second.eglImage_);
+            DestroyEGLSync(it->second.eglSync_);
             it = imageCacheSeqs_.erase(it);
         } else {
             it++;
@@ -293,16 +277,39 @@ void SurfaceImage::CheckImageCacheNeedClean(uint32_t seqNum)
     }
 }
 
-void SurfaceImage::DestroyEGLImage(uint32_t seqNum)
+void SurfaceImage::DestroyEGLImage(EGLImageKHR &eglImage)
+{
+    if (eglImage != EGL_NO_IMAGE_KHR) {
+        eglDestroyImageKHR(eglDisplay_, eglImage);
+        eglImage = EGL_NO_IMAGE_KHR;
+    }
+}
+
+void SurfaceImage::DestroyEGLSync(EGLSyncKHR &eglSync)
+{
+    if (eglSync != EGL_NO_SYNC_KHR) {
+        eglDestroySyncKHR(eglDisplay_, eglSync);
+        eglSync = EGL_NO_SYNC_KHR;
+    }
+}
+
+void SurfaceImage::DestroyEGLImageBySeq(uint32_t seqNum)
 {
     auto iter = imageCacheSeqs_.find(seqNum);
-    if (iter != imageCacheSeqs_.end() && iter->second.eglImage_ != EGL_NO_IMAGE_KHR) {
-        eglDestroyImageKHR(eglDisplay_, iter->second.eglImage_);
+    if (iter != imageCacheSeqs_.end()) {
+        DestroyEGLImage(iter->second.eglImage_);
     }
     imageCacheSeqs_.erase(seqNum);
 }
 
-SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer)
+void SurfaceImage::NewBufferDestroyEGLImage(bool isNewBuffer, uint32_t seqNum)
+{
+    if (isNewBuffer) {
+        DestroyEGLImageBySeq(seqNum);
+    }
+}
+
+SurfaceError SurfaceImage::UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& buffer)
 {
     bool isNewBuffer = false;
     // private function, buffer is always valid.
@@ -321,29 +328,25 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
     glBindTexture(textureTarget_, textureId_);
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
-        if (isNewBuffer) {
-            DestroyEGLImage(seqNum);
-        }
-        BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d",
-            textureTarget_, textureId_, error);
+        NewBufferDestroyEGLImage(isNewBuffer, seqNum);
+        BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d"
+            "uniqueId: %{public}" PRIu64 ".", textureTarget_, textureId_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
     }
     glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(image.eglImage_));
     error = glGetError();
     if (error != GL_NO_ERROR) {
-        if (isNewBuffer) {
-            DestroyEGLImage(seqNum);
-        }
-        BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d",
-            textureTarget_, error);
+        NewBufferDestroyEGLImage(isNewBuffer, seqNum);
+        BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d"
+            "uniqueId: %{public}" PRIu64 ".", textureTarget_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
     }
 
     auto sync = image.eglSync_;
     if (sync != EGL_NO_SYNC_KHR) {
-        eglDestroySyncKHR(disp, sync);
+        eglDestroySyncKHR(eglDisplay_, sync);
     }
-    sync = eglCreateSyncKHR(disp, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
+    sync = eglCreateSyncKHR(eglDisplay_, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
     image.eglSync_ = sync;
     if (isNewBuffer) {
         CheckImageCacheNeedClean(seqNum);
@@ -355,7 +358,7 @@ SurfaceError SurfaceImage::SetOnBufferAvailableListener(void *context, OnBufferA
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     if (listener == nullptr) {
-        BLOGE("listener is nullptr");
+        BLOGE("listener is nullptr, uniqueId: %{public}" PRIu64 ".", uniqueId_);
         return SURFACE_ERROR_INVALID_PARAM;
     }
 
@@ -380,7 +383,7 @@ SurfaceImageListener::~SurfaceImageListener()
 
 void SurfaceImageListener::OnBufferAvailable()
 {
-    BLOGD("SurfaceImageListener::OnBufferAvailable");
+    BLOGD("enter OnBufferAvailable");
     auto surfaceImage = surfaceImage_.promote();
     if (surfaceImage == nullptr) {
         BLOGE("surfaceImage promote failed");
@@ -403,7 +406,7 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     Rect damage;
     SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGE("AcquireBuffer failed: %d", ret);
+        BLOGE("AcquireBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return ret;
     }
     currentSurfaceBuffer_ = buffer;
@@ -411,11 +414,14 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, currentSurfaceBuffer_,
-        currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
 
     *fenceFd = acquireFence->Dup();
-    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
+    OHNativeWindowBuffer *nwBuffer = new(std::nothrow) OHNativeWindowBuffer();
+    if (nwBuffer == nullptr) {
+        return SURFACE_ERROR_NOMEM;
+    }
     nwBuffer->sfbuffer = buffer;
     NativeObjectReference(nwBuffer);
     *nativeWindowBuffer = nwBuffer;
@@ -429,7 +435,7 @@ SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativ
     // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
     SurfaceError ret = ReleaseBuffer(nativeWindowBuffer->sfbuffer, fenceFd);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGE("ReleaseBuffer failed: %d", ret);
+        BLOGE("ReleaseBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return ret;
     }
     NativeObjectUnreference(nativeWindowBuffer);

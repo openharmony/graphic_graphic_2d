@@ -159,7 +159,7 @@ bool RSRenderPathAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
-    int32_t rotationMode;
+    int32_t rotationMode = 0;
     bool isNeedPath = true;
     if (!(parcel.ReadFloat(originRotation_) && parcel.ReadFloat(beginFraction_) &&
             parcel.ReadFloat(endFraction_) && RSMarshallingHelper::Unmarshalling(parcel, animationPath_) &&
@@ -194,7 +194,7 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
     }
 
     Vector2f position;
-    float tangent = 0;
+    float tangent = 0.0;
     GetPosTanValue(fraction, position, tangent);
     auto valueVector2f = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetOriginValue());
     if (GetOriginValue()->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR2F) {

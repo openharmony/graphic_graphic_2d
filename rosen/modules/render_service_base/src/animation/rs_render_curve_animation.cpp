@@ -119,7 +119,7 @@ void RSRenderCurveAnimation::OnAnimateInner(float fraction, const std::shared_pt
         return;
     }
 
-    if (valueEstimator_ == nullptr) {
+    if (valueEstimator_ == nullptr || interpolator == nullptr) {
         return;
     }
     auto interpolatorValue = interpolator->Interpolate(fraction);

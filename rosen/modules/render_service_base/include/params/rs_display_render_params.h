@@ -130,7 +130,7 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
-    void SetBrightnessRatio (bool brightnessRatio);
+    void SetBrightnessRatio (float brightnessRatio);
     float GetBrightnessRatio() const;
 
     void SetNewColorSpace(const GraphicColorGamut& newColorSpace);
@@ -142,6 +142,11 @@ public:
     {
         auto iter = displaySpecailSurfaceChanged_.find(screenId_);
         return iter == displaySpecailSurfaceChanged_.end() ? false : iter->second;
+    }
+
+    bool GetSecurityExemption() const
+    {
+        return isSecurityExemption_;
     }
 
     // dfx
@@ -162,6 +167,7 @@ private:
     ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     uint64_t screenId_ = 0;
     bool isSecurityDisplay_ = false;
+    bool isSecurityExemption_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
     NodeId mirrorSourceId_ = INVALID_NODEID;
@@ -172,7 +178,7 @@ private:
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasHdrPresent_ = false;
-    bool brightnessRatio_ = 1.0f;
+    float brightnessRatio_ = 1.0f;
     bool isMouseDirty_ = false;
     float zOrder_ = 0.0f;
     friend class RSUniRenderVisitor;

@@ -122,19 +122,19 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
-    RS_LOGI("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "dst:[%{public}d, %{public}d, %{public}d, %{public}d] buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
         node.GetName().c_str(), layerInfo.zOrder,
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
-    auto& preBuffer = surfaceHandler->GetPreBuffer();
+    auto preBuffer = surfaceHandler->GetPreBuffer();
     ScalingMode scalingMode = params.GetPreScalingMode();
     if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
         params.SetPreScalingMode(scalingMode);
     }
     LayerInfoPtr layer = GetLayerInfo(
-        params, buffer, preBuffer.buffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
+        params, buffer, preBuffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     DealWithHdr(node, layer, buffer);
 #endif
@@ -185,19 +185,22 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
     RSSurfaceRenderParams& params)
 {
     auto surfaceHandler = drawable.GetMutableRSSurfaceHandlerUiFirstOnDraw();
+    if (!surfaceHandler) {
+        return;
+    }
     auto buffer = surfaceHandler->GetBuffer();
     if (buffer == nullptr && surfaceHandler->GetAvailableBufferCount() <= 0) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", params.GetId());
         RSSubThreadManager::Instance()->WaitNodeTask(params.GetId());
     }
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true) || !surfaceHandler->GetBuffer()) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) || !surfaceHandler->GetBuffer()) {
         RS_LOGE("CreateUIFirstLayer ConsumeAndUpdateBuffer or GetBuffer return  false");
         return;
     }
     buffer = surfaceHandler->GetBuffer();
     auto preBuffer = surfaceHandler->GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(
-        params, buffer, preBuffer.buffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
+        params, buffer, preBuffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     layers_.emplace_back(layer);
     auto& layerInfo = params.layerInfo_;
@@ -235,7 +238,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetLayerSize(dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
     bool forceClient = RSSystemProperties::IsForceClient() ||
-        (params.GetIsProtectedLayer() && params.GetAnimateState());
+        (params.GetIsProtectedLayer() && (params.GetAnimateState() || params.GetForceClientForDRMOnly()));
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
@@ -327,7 +330,6 @@ void RSUniRenderProcessor::ProcessDisplaySurfaceForRenderThread(
     for (const auto& drawable : displayParams->GetAllMainAndLeashSurfaceDrawables()) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
         if (!surfaceDrawable || !surfaceDrawable->GetRenderParams() ||
-            !surfaceDrawable->GetRenderParams()->GetOcclusionVisible() ||
             surfaceDrawable->GetRenderParams()->IsLeashWindow()) {
             continue;
         }

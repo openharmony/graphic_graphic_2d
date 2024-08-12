@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include <parameters.h>
 #include "boot_animation_operation.h"
 
 using namespace testing;
@@ -121,5 +122,89 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_007, TestSize.Le
     BootAnimationConfig config;
     config.videoDefaultPath = "abc";
     EXPECT_EQ(true, operation.IsBootVideoEnabled(config));
+}
+
+/**
+ * @tc.name: BootAnimationOperationTest_008
+ * @tc.desc: Verify the StartEventHandler
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_008, TestSize.Level1)
+{
+    BootAnimationOperation operation;
+    BootAnimationConfig config1;
+    config1.videoDefaultPath = "abc";
+    EXPECT_EQ(true, operation.IsBootVideoEnabled(config1));
+    operation.StartEventHandler(config1);
+
+    BootAnimationConfig config2;
+    config2.picZipPath = "abc";
+    EXPECT_EQ(false, operation.IsBootVideoEnabled(config2));
+    operation.StartEventHandler(config2);
+}
+
+/**
+ * @tc.name: BootAnimationOperationTest_009
+ * @tc.desc: Verify the InitRsSurfaceNode
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_009, TestSize.Level1)
+{
+    BootAnimationOperation operation;
+    int32_t degree = 0;
+    system::SetParameter(BOOT_ANIMATION_READY, "true");
+    operation.InitRsSurfaceNode(degree);
+}
+
+/**
+ * @tc.name: BootAnimationOperationTest_010
+ * @tc.desc: Verify the PlayPicture
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_010, TestSize.Level1)
+{
+    BootAnimationOperation operation;
+    std::string path = "abc";
+    system::SetParameter(BOOT_ANIMATION_STARTED, "false");
+    operation.PlayPicture(path);
+    
+    system::SetParameter(BOOT_ANIMATION_STARTED, "true");
+    operation.PlayPicture(path);
+}
+
+/**
+ * @tc.name: BootAnimationOperationTest_011
+ * @tc.desc: Verify the IsBootVideoEnabled
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_011, TestSize.Level1)
+{
+    BootAnimationOperation operation;
+    BootAnimationConfig config;
+    EXPECT_EQ(true, operation.IsBootVideoEnabled(config));
+    
+    config.videoDefaultPath = "abc";
+    config.picZipPath = "abc";
+    EXPECT_EQ(true, operation.IsBootVideoEnabled(config));
+}
+
+/**
+ * @tc.name: BootAnimationOperationTest_012
+ * @tc.desc: Verify the StopBootAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_012, TestSize.Level1)
+{
+    BootAnimationOperation operation;
+    operation.runner_ = AppExecFwk::EventRunner::Create(false);
+    operation.mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(operation.runner_);
+    system::SetParameter(BOOT_ANIMATION_STARTED, "false");
+    operation.mainHandler_->PostTask([&operation] { operation.StopBootAnimation(); });
+    operation.runner_->Run();
+
+    operation.mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(operation.runner_);
+    system::SetParameter(BOOT_ANIMATION_STARTED, "true");
+    operation.mainHandler_->PostTask([&operation] { operation.StopBootAnimation(); });
+    operation.runner_->Run();
 }
 }

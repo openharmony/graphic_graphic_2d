@@ -654,7 +654,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest003, TestSize.L
     pid_t pid = 1;
     transactionData->SetSendingPid(pid);
     RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
-    
+
     NodeId id = 1;
     auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
     mainThread->context_->RegisterAnimatingRenderNode(node);
@@ -675,7 +675,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest004, TestSize.L
     pid_t pid = 1;
     transactionData->SetSendingPid(pid);
     RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
-    
+
     NodeId firstWindowNodeId = 2;
     auto firstWindowNode = std::make_shared<RSSurfaceRenderNode>(firstWindowNodeId, mainThread->context_);
     firstWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
@@ -685,7 +685,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest004, TestSize.L
     firstWindowNode->AddChild(firstWindowChildNode);
     firstWindowNode->GenerateFullChildrenList();
     mainThread->context_->nodeMap.RegisterRenderNode(firstWindowNode);
-    
+
     NodeId secondWindowNodeId = 2;
     auto secondWindowNode = std::make_shared<RSSurfaceRenderNode>(secondWindowNodeId, mainThread->context_);
     secondWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
@@ -2853,6 +2853,20 @@ HWTEST_F(RSMainThreadTest, ReleaseSurface, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RefreshEntireDisplay
+ * @tc.desc: RefreshEntireDisplay Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, RefreshEntireDisplay, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->RefreshEntireDisplay();
+    ASSERT_EQ(mainThread->IsCurtainScreenUsingStatusChanged(), true);
+}
+
+/**
  * @tc.name: SetCurtainScreenUsingStatus
  * @tc.desc: SetCurtainScreenUsingStatus Test
  * @tc.type: FUNC
@@ -2896,7 +2910,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation001, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -2935,7 +2949,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation002, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -2974,7 +2988,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation003, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -3014,7 +3028,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation004, TestSize.Level1)
     nodeTop->SetDstRect(rectTop);
     // The top node is transparent
     nodeTop->SetGlobalAlpha(0.0f);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -3056,7 +3070,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
     // The top node is transparent
     nodeTop->SetGlobalAlpha(0.0f);
     nodeTop->isFilterCacheValidForOcclusion_ = true;
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -3385,5 +3399,146 @@ HWTEST_F(RSMainThreadTest, CheckUIExtensionCallbackDataChanged002, TestSize.Leve
     mainThread->lastFrameUIExtensionDataEmpty_ = false;
     mainThread->uiExtensionCallbackData_.clear();
     ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
+}
+
+/**
+ * @tc.name: GetDynamicRefreshRate002
+ * @tc.desc: test GetDynamicRefreshRate, refreshRate = 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, GetDynamicRefreshRate002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_EQ(mainThread->GetDynamicRefreshRate(), OHOS::Rosen::STANDARD_REFRESH_RATE);
+}
+
+/**
+ * @tc.name: WaitUntilSurfaceCapProcFinished
+ * @tc.desc: test WaitUntilSurfaceCapProcFinished, surfaceCapProcFinished_ = true & false
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, WaitUntilSurfaceCapProcFinished, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetSurfaceCapProcFinished(true);
+    mainThread->WaitUntilSurfaceCapProcFinished();
+    mainThread->SetSurfaceCapProcFinished(false);
+    mainThread->WaitUntilSurfaceCapProcFinished();
+}
+
+/**
+ * @tc.name: SetFrameIsRender
+ * @tc.desc: test SetFrameIsRender001, rsVSyncDistributor_ = nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, SetFrameIsRender001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->rsVSyncDistributor_ = nullptr;
+    mainThread->SetFrameIsRender(true);
+}
+
+/**
+ * @tc.name: SetFrameIsRender
+ * @tc.desc: test SetFrameIsRender002, rsVSyncDistributor_ != nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, SetFrameIsRender002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto vsyncGenerator = CreateVSyncGenerator();
+    auto vsyncController = new VSyncController(vsyncGenerator, 0);
+    mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    mainThread->SetFrameIsRender(true);
+}
+
+/**
+ * @tc.name: ColorPickerRequestVsyncIfNeed
+ * @tc.desc: test ColorPickerRequestVsyncIfNeed001, colorPickerForceRequestVsync_ = true
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->colorPickerForceRequestVsync_ = true;
+    mainThread->ColorPickerRequestVsyncIfNeed();
+}
+
+/**
+ * @tc.name: ColorPickerRequestVsyncIfNeed
+ * @tc.desc: test ColorPickerRequestVsyncIfNeed002, colorPickerRequestFrameNum_ > 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->colorPickerForceRequestVsync_ = true;
+    mainThread->colorPickerRequestFrameNum_ = 15;
+    mainThread->ColorPickerRequestVsyncIfNeed();
+}
+
+/**
+ * @tc.name: ColorPickerRequestVsyncIfNeed
+ * @tc.desc: test ColorPickerRequestVsyncIfNeed003, colorPickerRequestFrameNum_ <= 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->colorPickerForceRequestVsync_ = true;
+    mainThread->colorPickerRequestFrameNum_ = 0;
+    mainThread->ColorPickerRequestVsyncIfNeed();
+}
+
+/**
+ * @tc.name: OnUniRenderDraw
+ * @tc.desc: test OnUniRenderDraw001, test isUniRender_ & doDirectComposition_ = false
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, OnUniRenderDraw001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    mainThread->OnUniRenderDraw();
+    mainThread->isUniRender_ = true;
+    mainThread->doDirectComposition_ = false;
+    mainThread->drawFrame_.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SYNC;
+    mainThread->OnUniRenderDraw();
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: OnUniRenderDraw
+ * @tc.desc: test OnUniRenderDraw002, doDirectComposition_ = true
+ * @tc.type: FUNC
+ * @tc.require: issueIAIPI3
+ */
+HWTEST_F(RSMainThreadTest, OnUniRenderDraw002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->doDirectComposition_ = true;
+    mainThread->OnUniRenderDraw();
+    mainThread->isUniRender_ = isUniRender;
 }
 } // namespace OHOS::Rosen

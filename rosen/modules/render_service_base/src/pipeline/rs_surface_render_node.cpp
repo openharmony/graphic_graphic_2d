@@ -616,6 +616,16 @@ void RSSurfaceRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas
     needDrawAnimateProperty_ = false;
 }
 
+void RSSurfaceRenderNode::SetNeedClearPreBuffer(bool needClear)
+{
+    isNeedClearPreBuffer_.store(needClear);
+}
+
+bool RSSurfaceRenderNode::GetNeedClearPreBuffer() const
+{
+    return isNeedClearPreBuffer_;
+}
+
 void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas)
 {
     if (GetCacheType() != CacheType::ANIMATE_PROPERTY && !needDrawAnimateProperty_) {
@@ -817,6 +827,11 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
     SyncProtectedInfoToFirstLevelNode();
 }
 
+void RSSurfaceRenderNode::SetForceClientForDRMOnly(bool forceClient)
+{
+    forceClientForDRMOnly_ = forceClient;
+}
+
 bool RSSurfaceRenderNode::GetSecurityLayer() const
 {
     return isSecurityLayer_;
@@ -937,13 +952,24 @@ bool RSSurfaceRenderNode::GetForceUIFirstChanged()
     return forceUIFirstChanged_;
 }
 
-void RSSurfaceRenderNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
+void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
 {
-    ancoForceDoDirect_ = ancoForceDoDirect;
+    ancoForceDoDirect_.store(direct);
 }
+
 bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
 {
-    return ancoForceDoDirect_;
+    return (ancoForceDoDirect_.load() && (GetAncoFlags() & static_cast<int32_t>(AncoFlags::IS_ANCO_NODE)));
+}
+
+void RSSurfaceRenderNode::SetAncoFlags(int32_t flags)
+{
+    ancoFlags_.store(flags);
+}
+
+int32_t RSSurfaceRenderNode::GetAncoFlags() const
+{
+    return ancoFlags_.load();
 }
 
 void RSSurfaceRenderNode::RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)
@@ -1034,11 +1060,11 @@ void RSSurfaceRenderNode::NeedClearBufferCache()
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     std::set<int32_t> bufferCacheSet;
-    if (surfaceHandler_->GetBuffer()) {
-        bufferCacheSet.insert(surfaceHandler_->GetBuffer()->GetSeqNum());
+    if (auto buffer = surfaceHandler_->GetBuffer()) {
+        bufferCacheSet.insert(buffer->GetSeqNum());
     }
-    if (surfaceHandler_->GetPreBuffer().buffer) {
-        bufferCacheSet.insert(surfaceHandler_->GetPreBuffer().buffer->GetSeqNum());
+    if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
+        bufferCacheSet.insert(preBuffer->GetSeqNum());
     }
     surfaceParams->SetBufferClearCacheSet(bufferCacheSet);
     AddToPendingSyncList();
@@ -1150,14 +1176,17 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
 
 void RSSurfaceRenderNode::NotifyUIBufferAvailable()
 {
-    if (isNotifyUIBufferAvailable_) {
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNode::NotifyUIBufferAvailable id:%llu bufferAvailable:%d waitUifirst:%d",
+        GetId(), IsNotifyUIBufferAvailable(), IsWaitUifirstFirstFrame());
+    if (isNotifyUIBufferAvailable_ || isWaitUifirstFirstFrame_) {
         return;
     }
     isNotifyUIBufferAvailable_ = true;
     {
         std::lock_guard<std::mutex> lock(mutexUI_);
         if (callbackFromUI_) {
-            ROSEN_LOGD("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %{public}" PRIu64, GetId());
+            RS_TRACE_NAME_FMT("NotifyUIBufferAvailable done. id:%llu", GetId());
+            ROSEN_LOGI("RSSurfaceRenderNode::NotifyUIBufferAvailable nodeId = %{public}" PRIu64, GetId());
             callbackFromUI_->OnBufferAvailable();
 #ifdef OHOS_PLATFORM
             if (IsAppWindow()) {
@@ -1962,6 +1991,31 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
     return true;
 }
 
+void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const
+{
+    auto begin = cornerRadius.GetData();
+    auto end = begin + Vector4<int>::V4SIZE;
+    switch (rotationDegree) {
+        case RS_ROTATION_90: {
+            constexpr int moveTime = 1;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        case RS_ROTATION_180: {
+            constexpr int moveTime = 2;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        case RS_ROTATION_270: {
+            constexpr int moveTime = 3;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
     const bool isFocusWindow)
 {
@@ -1972,6 +2026,16 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
                                 static_cast<int>(std::round(tmpCornerRadius.y_)),
                                 static_cast<int>(std::round(tmpCornerRadius.z_)),
                                 static_cast<int>(std::round(tmpCornerRadius.w_)));
+    auto boundsGeometry = GetRenderProperties().GetBoundsGeometry();
+    if (boundsGeometry) {
+        const auto& absMatrix = boundsGeometry->GetAbsMatrix();
+        auto rotationDegree = static_cast<int>(-round(atan2(absMatrix.Get(Drawing::Matrix::SKEW_X),
+            absMatrix.Get(Drawing::Matrix::SCALE_X)) * (RS_ROTATION_180 / PI)));
+        if (rotationDegree < 0) {
+            rotationDegree += RS_ROTATION_360;
+        }
+        RotateCorner(rotationDegree, cornerRadius);
+    }
 
     bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.absRect_ == absRect &&
@@ -2608,6 +2672,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isSkipLayer_ = isSkipLayer_;
     surfaceParams->isProtectedLayer_ = isProtectedLayer_;
     surfaceParams->animateState_ = animateState_;
+    surfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
     surfaceParams->protectedLayerIds_= protectedLayerIds_;

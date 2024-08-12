@@ -54,7 +54,7 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
 private:
-    float alpha_;
+    float alpha_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<float>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };
@@ -70,9 +70,9 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
 private:
-    float scaleX_;
-    float scaleY_;
-    float scaleZ_;
+    float scaleX_ { 0.0 };
+    float scaleY_ { 0.0 };
+    float scaleZ_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Vector2<float>>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };
@@ -88,9 +88,9 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
 private:
-    float translateX_;
-    float translateY_;
-    float translateZ_;
+    float translateX_ { 0.0 };
+    float translateY_ { 0.0 };
+    float translateZ_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Vector2<float>>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };
@@ -105,10 +105,10 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
 private:
-    float dx_;
-    float dy_;
-    float dz_;
-    float radian_;
+    float dx_ { 0.0 };
+    float dy_ { 0.0 };
+    float dz_ { 0.0 };
+    float radian_ { 0.0 };
     std::shared_ptr<RSRenderAnimatableProperty<Quaternion>> property_;
     const std::shared_ptr<RSRenderModifier> CreateModifier() override;
 };

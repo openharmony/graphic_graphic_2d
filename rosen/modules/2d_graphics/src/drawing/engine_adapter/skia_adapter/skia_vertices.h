@@ -35,12 +35,12 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
-    bool MakeCopy(VertexMode mode,
-        int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[],
+    bool MakeCopy(VertexMode mode, int vertexCount,
+        const Point positions[], const Point texs[], const ColorQuad colors[],
         int indexCount, const uint16_t indices[]) override;
 
-    bool MakeCopy(VertexMode mode,
-        int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[]) override;
+    bool MakeCopy(VertexMode mode, int vertexCount,
+        const Point positions[], const Point texs[], const ColorQuad colors[]) override;
 
     const sk_sp<SkVertices> GetVertices() const;
 

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <sstream>
+
 #include "common/rs_common_tools.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
@@ -491,6 +493,17 @@ void DrawImageWithParmOpItem::SetNodeId(NodeId id)
     objectHandle_->SetNodeId(id);
 }
 
+void DrawImageWithParmOpItem::Dump(std::string& out) const
+{
+    out += "[sampling:";
+    sampling_.Dump(out);
+    out += " objectHandle:";
+    
+    std::stringstream stream;
+    stream << std::hex << objectHandle_.get() << "]";
+    out += std::string(stream.str());
+}
+
 /* DrawPixelMapWithParmOpItem */
 REGISTER_UNMARSHALLING_FUNC(
     DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling);
@@ -543,6 +556,12 @@ void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
     objectHandle_->SetNodeId(id);
 }
 
+void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
+{
+    out += " sampling";
+    sampling_.Dump(out);
+}
+
 /* DrawPixelMapRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
 
@@ -591,6 +610,12 @@ void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
         return;
     }
     objectHandle_->SetNodeId(id);
+}
+
+void DrawPixelMapRectOpItem::DumpItems(std::string& out) const
+{
+    out += " sampling";
+    sampling_.Dump(out);
 }
 
 /* DrawFuncOpItem */
@@ -832,6 +857,18 @@ bool DrawSurfaceBufferOpItem::CreateEglTextureId()
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, wrapT);
 
     return true;
+}
+
+void DrawSurfaceBufferOpItem::DumpItems(std::string& out) const
+{
+    out += " surfaceBufferInfo[width:" + std::to_string(surfaceBufferInfo_.width_);
+    out += " height:" + std::to_string(surfaceBufferInfo_.height_);
+    out += " offSetX:" + std::to_string(surfaceBufferInfo_.offSetX_);
+    out += " offSetY:" + std::to_string(surfaceBufferInfo_.offSetY_);
+    out += "]";
+#ifdef RS_ENABLE_GL
+    out += " texId:" + std::to_string(texId_);
+#endif
 }
 #endif
 }

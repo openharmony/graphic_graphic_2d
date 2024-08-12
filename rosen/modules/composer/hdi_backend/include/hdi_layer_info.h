@@ -21,6 +21,7 @@
 #include "iconsumer_surface.h"
 #include <surface.h>
 #include <sync_fence.h>
+#include "graphic_error.h"
 #include "hdi_log.h"
 #include "hdi_display_type.h"
 

@@ -284,23 +284,16 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    void RefreshEntireDisplay();
     bool IsCurtainScreenOn() const;
     void NotifySurfaceCapProcFinish();
     void WaitUntilSurfaceCapProcFinished();
     void SetSurfaceCapProcFinished(bool flag);
 
     bool GetParallelCompositionEnabled();
-    std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return frameRateMgr_; };
     void SetFrameIsRender(bool isRender);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
-    bool GetMarkRenderFlag() const
-    {
-        return markRenderFlag_;
-    }
-    void ResetMarkRenderFlag()
-    {
-        markRenderFlag_ = false;
-    }
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const;
 
     bool IsOnVsync() const
     {
@@ -348,6 +341,8 @@ public:
     void SetHardwareTaskNum(uint32_t num);
     void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback);
     void UnRegisterUIExtensionCallback(pid_t pid);
+
+    void SetAncoForceDoDirect(bool direct);
 
     bool IsSystemAnimatedScenesListEmpty() const
     {
@@ -587,6 +582,7 @@ private:
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
 
@@ -598,8 +594,7 @@ private:
     bool doParallelComposition_ = false;
     bool hasProtectedLayer_ = false;
 
-    std::shared_ptr<HgmFrameRateManager> frameRateMgr_ = nullptr;
-    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
+    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
     pid_t desktopPidForRotationScene_ = 0;
     FrameRateRange rsCurrRange_;
 
@@ -647,7 +642,6 @@ private:
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
-    bool markRenderFlag_ = false;
 
     bool forceUIFirstChanged_ = false;
 

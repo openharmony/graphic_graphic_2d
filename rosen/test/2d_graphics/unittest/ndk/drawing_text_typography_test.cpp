@@ -538,6 +538,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
 
     EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography) != 0.0, true);
     EXPECT_EQ(OH_Drawing_TypographyGetLongestLine(typography) != 0.0, true);
+    EXPECT_EQ(OH_Drawing_TypographyGetLongestLine(typography) <= maxWidth, true);
     EXPECT_EQ(OH_Drawing_TypographyGetMinIntrinsicWidth(typography) <=
         OH_Drawing_TypographyGetMaxIntrinsicWidth(typography), true);
     EXPECT_EQ(OH_Drawing_TypographyGetAlphabeticBaseline(typography) != 0.0, true);

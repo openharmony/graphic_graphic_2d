@@ -113,6 +113,8 @@ public:
     void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) override;
 
     static std::function<void(const std::function<void()>& task)> GetPostFunc(sk_sp<GrDirectContext> grContext);
+
+    void VmaDefragment() override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

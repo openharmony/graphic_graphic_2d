@@ -52,6 +52,7 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction001, TestSize.Level1)
     bool isFinished = false;
     bool isRepeatFinished = false;
     float result = 0.0f;
+    float resultNegative = 0.0f;
     RSAnimationFraction fraction;
     fraction.SetDuration(0);
     std::tie(result, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(0);
@@ -71,6 +72,10 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction001, TestSize.Level1)
     fraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
     std::tie(result, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(100);
     EXPECT_TRUE(result != 0.0f);
+
+    fraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    std::tie(resultNegative, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(90);
+    EXPECT_TRUE(resultNegative < result);
 
     GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFraction001 end";
 }

@@ -53,40 +53,6 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoGetCanvas(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    RenderContext context;
-    context.InitializeEglContext();
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-    rsSurfaceFrameOhosGl->GetCanvas();
-    return true;
-}
-bool DoGetSurface(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    RenderContext context;
-    context.InitializeEglContext();
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-    rsSurfaceFrameOhosGl->GetSurface();
-    return true;
-}
 bool DoSetDamageRegion(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -162,23 +128,6 @@ bool DoSetReleaseFence(const uint8_t* data, size_t size)
     rsSurfaceFrameOhosGl->SetReleaseFence(fence);
     return true;
 }
-bool DoCreateSurface(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    RenderContext context;
-    context.InitializeEglContext();
-    rsSurfaceFrameOhosGl->SetRenderContext(&context);
-    rsSurfaceFrameOhosGl->CreateSurface();
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -186,12 +135,9 @@ bool DoCreateSurface(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoGetCanvas(data, size);       // GetCanvas
-    OHOS::Rosen::DoGetSurface(data, size);      // GetSurface
     OHOS::Rosen::DoSetDamageRegion(data, size); // SetDamageRegion
     OHOS::Rosen::DoGetBufferAge(data, size);    // GetBufferAge
     OHOS::Rosen::DoGetReleaseFence(data, size); // GetReleaseFence
     OHOS::Rosen::DoSetReleaseFence(data, size); // SetReleaseFence
-    OHOS::Rosen::DoCreateSurface(data, size);   // CreateSurface
     return 0;
 }

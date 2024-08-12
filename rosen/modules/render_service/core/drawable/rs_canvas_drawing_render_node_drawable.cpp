@@ -518,6 +518,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
+    bool isNewCreate = false;
 #ifdef RS_ENABLE_VK
     auto gpuContext = canvas.GetRecordingState() ? nullptr : canvas.GetGPUContext();
     isGpuSurface_ = true;
@@ -545,7 +546,6 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
             }
         }
         auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
-        bool isNewCreate = false;
         if (vulkanCleanupHelper_ == nullptr) {
             vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
             RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
@@ -575,6 +575,9 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
     }
     recordingCanvas_ = nullptr;
     canvas_ = std::make_shared<RSPaintFilterCanvas>(surface_.get());
+    if (isNewCreate) {
+        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    }
     return true;
 }
 

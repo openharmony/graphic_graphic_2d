@@ -28,6 +28,7 @@ ohos_fuzztest("RSSurfaceOhosVulkanFuzzTest") {
     "../../../../../modules/render_service_base/include",
     "//third_party/skia/include/third_party/vulkan",
     "//third_party/vulkan-headers/include",
+    "../../../../../modules/render_service_client",
   ]
   deps = [
     "$graphic_2d_root:libvulkan",
@@ -40,6 +41,7 @@ ohos_fuzztest("RSSurfaceOhosVulkanFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
   cflags = [
     "-g",

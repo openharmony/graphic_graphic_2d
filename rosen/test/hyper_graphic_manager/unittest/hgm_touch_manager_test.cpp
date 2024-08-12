@@ -46,15 +46,9 @@ HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level1)
 {
     int32_t clickNum = 100;
     auto touchManager = HgmTouchManager();
-    std::vector<std::thread> testThreads;
     for (int i = 0; i < clickNum; i++) {
-        testThreads.push_back(std::thread([&] () { touchManager.ChangeState(TouchState::DOWN_STATE); }));
-        testThreads.push_back(std::thread([&] () { touchManager.ChangeState(TouchState::UP_STATE); }));
-    }
-    for (auto &testThread : testThreads) {
-        if (testThread.joinable()) {
-            testThread.join();
-        }
+        touchManager.ChangeState(TouchState::DOWN_STATE);
+        touchManager.ChangeState(TouchState::UP_STATE);
     }
     touchManager.ChangeState(TouchState::IDLE_STATE);
     sleep(1); // wait for 1s for the async task to complete
@@ -138,6 +132,48 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level1)
             ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
         }
     }
+}
+
+/**
+ * @tc.name: Up2IdleState001
+ * @tc.desc: Verify the result of Up2IdleState001 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level1)
+{
+    PART("CaseDescription") {
+        auto touchManager = HgmTouchManager();
+        const int32_t rsTimeoutUs = 610000;
+        const int32_t handleRsFrameTimeUs = 510000;
+        const int32_t handleRsFrameNum = 5;
+        const TouchState undefinedState = static_cast<TouchState>(100);
+
+        STEP("3s timeout") {
+            touchManager.ChangeState(TouchState::DOWN_STATE);
+            touchManager.ChangeState(TouchState::UP_STATE);
+            usleep(waitTaskFinishNs);
+            ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+
+            touchManager.OnEvent(TouchEvent::UP_TIMEOUT_EVENT);
+            usleep(rsTimeoutUs);
+            ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+        }
+        STEP("State2String") {
+            touchManager.State2String(undefinedState);
+        }
+        STEP("CheckChangeStateValid") {
+            touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, TouchState::UP_STATE);
+            touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, undefinedState);
+            touchManager.CheckChangeStateValid(undefinedState, TouchState::IDLE_STATE);
+        }
+        STEP("ExecuteCallback") {
+            touchManager.ExecuteCallback(nullptr);
+            touchManager.ExecuteCallback([] () { usleep(1); });
+            touchManager.ExecuteCallback(nullptr);
+        }
+    }
+    sleep(1); // wait for task finished
 }
 } // namespace Rosen
 } // namespace OHOS

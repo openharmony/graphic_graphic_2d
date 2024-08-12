@@ -85,7 +85,7 @@ bool RSModifierManager::HasUIRunningAnimation()
 
 bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
 {
-    RS_TRACE_NAME("RunningCustomAnimation num:[" + std::to_string(animations_.size()) + "]");
+    RS_TRACE_NAME_FMT("RunningCustomAnimation num:[%d] time:[%lld]", animations_.size(), time);
     // process animation
     bool hasRunningAnimation = false;
     rateDecider_.Reset();

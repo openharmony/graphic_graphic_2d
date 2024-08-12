@@ -22,7 +22,9 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
@@ -220,24 +222,6 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest002, TestSize.Level1)
     node.SetCacheType(type);
     node.DrawCacheSurface(*canvas_, isSubThreadNode);
     ASSERT_EQ(node.GetCompletedCacheSurface(), NULL);
-}
-
-/**
- * @tc.name: MarkNodeGroupTest
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, MarkNodeGroupTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    bool isNodeGruop = true;
-    auto nodeGruopType = node.GetNodeGroupType();
-    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
-    if (type >= nodeGruopType) {
-        node.MarkNodeGroup(type, isNodeGruop, false);
-        ASSERT_EQ(node.GetNodeGroupType(), type);
-    }
 }
 
 /**
@@ -1339,6 +1323,50 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSSurfaceRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
+	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0");
+}
+
+/**
+ * @tc.name: RSDisplayRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", skipLayer: 0");
+}
+
+/**
+ * @tc.name: RSRootRenderNodeDumpTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6BA
+ */
+HWTEST_F(RSRenderNodeTest, RSRootRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto renderNode = std::make_shared<RSRootRenderNode>(0);
+    renderNode->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", Visible: 1, Size: [-inf, -inf], EnableRender: 1");
+}
+
+/**
  * @tc.name: IsContentNodeTest003
  * @tc.desc: IsContentNode test
  * @tc.type: FUNC
@@ -2065,7 +2093,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
-
+    nodeTest->InitRenderParams();
     // SetGlobalAlpha test
     nodeTest->SetGlobalAlpha(1.0f);
     EXPECT_EQ(nodeTest->globalAlpha_, 1.0f);
@@ -2301,6 +2329,7 @@ HWTEST_F(RSRenderNodeTest, ManageCachingTest027, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
     // GetCompletedCacheSurface test
     nodeTest->cacheCompletedSurface_ = nullptr;
     EXPECT_EQ(nodeTest->GetCompletedCacheSurface(0, true, true), nullptr);

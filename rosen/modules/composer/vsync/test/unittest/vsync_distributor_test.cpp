@@ -71,6 +71,7 @@ HWTEST_F(VSyncDistributorTest, AddConnection002, Function | MediumTest| Level3)
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->AddConnection(conn), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
 }
 
 /*
@@ -149,6 +150,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync003, Function | MediumTest| Level
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
 }
 
 /*
@@ -163,6 +165,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync004, Function | MediumTest| Level
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn, "unknown", 0), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
 }
 
 /*
@@ -202,6 +205,7 @@ HWTEST_F(VSyncDistributorTest, SetVSyncRate003, Function | MediumTest| Level3)
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetVSyncRate(1, conn), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
 }
 
 /*
@@ -217,6 +221,7 @@ HWTEST_F(VSyncDistributorTest, SetVSyncRate004, Function | MediumTest| Level3)
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetVSyncRate(1, conn), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetVSyncRate(1, conn), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
 }
 
 /*
@@ -250,22 +255,7 @@ HWTEST_F(VSyncDistributorTest, SetHighPriorityVSyncRate002, Function | MediumTes
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetHighPriorityVSyncRate(1, conn), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetHighPriorityVSyncRate(1, conn), VSYNC_ERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetHighPriorityVSyncRate(2, conn), VSYNC_ERROR_OK);
-}
-
-/*
-* Function: GetVSyncConnectionInfos001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetVSyncConnectionInfos and check ret
- */
-HWTEST_F(VSyncDistributorTest, GetVSyncConnectionInfos001, Function | MediumTest| Level3)
-{
-    std::vector<ConnectionInfo> infos;
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetVSyncConnectionInfos(infos), VSYNC_ERROR_OK);
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetVSyncConnectionInfos(infos), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
 }
 
 /*
@@ -381,6 +371,334 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfig001, Function | MediumTest| Leve
 {
     uint32_t bufferCount = 2;
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetUiDvsyncConfig(bufferCount), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetUiDvsyncSwitchTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncSwitch
+ */
+HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(true), VSYNC_ERROR_OK);
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(false), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetUiDvsyncConfigTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetUiDvsyncConfig
+ */
+HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: AddConnectionOverFlowTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddConnection over 256 times
+ */
+HWTEST_F(VSyncDistributorTest, AddConnectionOverFlowTest, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 257; i++) { // add 257 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_1234");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_API_FAILED);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: OnVSyncTriggerTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test OnVSyncTrigger
+ */
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest001, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPO);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: OnVSyncTriggerTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test OnVSyncTrigger
+ */
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest002, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    vsyncDistributor->OnVSyncTrigger(1000000000, -8333333, 120, VSYNC_MODE_LTPO);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: OnVSyncTriggerTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test OnVSyncTrigger
+ */
+HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest003, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPS);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateByPidTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRateByPid
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidTest001, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPid(0, 2, false), VSYNC_ERROR_OK);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateByPidTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRateByPid
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidTest002, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPid(0, 1, false), VSYNC_ERROR_INVALID_ARGUMENTS);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateByPidTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRateByPid
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidTest003, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPid(0, 2, true), VSYNC_ERROR_INVALID_ARGUMENTS);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateByPidTest004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRateByPid
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidTest004, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPid(0, 1, true), VSYNC_ERROR_INVALID_ARGUMENTS);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateByPidTest005
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRateByPid
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidTest005, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPid(1, 1, true), VSYNC_ERROR_OK);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateByPidTest006
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRateByPid
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidTest006, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+        ASSERT_EQ(vsyncDistributor->SetHighPriorityVSyncRate(1, conn), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPid(1, 1, true), VSYNC_ERROR_OK);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRate
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateTest001, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+        ASSERT_EQ(vsyncDistributor->SetHighPriorityVSyncRate(1, conn), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRate(0xffffffffff, 1, true), VSYNC_ERROR_INVALID_ARGUMENTS);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRate
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateTest002, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        ASSERT_EQ(vsyncDistributor->SetHighPriorityVSyncRate(1, conn), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRate(0x1ffffffff, 1, true), VSYNC_ERROR_OK);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRate
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateTest003, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
+    conns.emplace_back(conn);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRate(0x1ffffffff, 1, true), VSYNC_ERROR_OK);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
 }
 } // namespace
 } // namespace Rosen
