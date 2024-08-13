@@ -55,7 +55,6 @@ public:
     bool CheckIfSurfaceSkipInMirror(const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParams);
     void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
     void ResetVirtualScreenWhiteListRootId(NodeId id);
-    bool EnableRecordingOptimization(const RSSurfaceRenderParams& surfaceParams);
 
     void SubDraw(Drawing::Canvas& canvas);
     void ClipRoundRect(Drawing::Canvas& canvas);
@@ -270,7 +269,6 @@ public:
     }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
-    void CacheImgForCapture(RSPaintFilterCanvas& canvas, RSDisplayRenderNodeDrawable& curDisplayNode);
     bool DealWithUIFirstCache(
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
     void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface);
@@ -285,9 +283,6 @@ private:
 
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id);
-    // To be deleted after captureWindow being deleted
-    bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
-    NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     void DealWithHdr(const RSSurfaceRenderParams& surfaceParams);
 #endif
