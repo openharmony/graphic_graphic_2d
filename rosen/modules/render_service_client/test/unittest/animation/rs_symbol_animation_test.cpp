@@ -1039,6 +1039,7 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest001, TestSize.Level1)
      * @tc.steps: step1. init data if scale center equals the center of a node
      */
     auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.CalcOneTimePercent(std::vector<float>(), 0, 0);
     symbolAnimation.SetNodePivot(canvasNode);
     /**
      * @tc.steps: step2. start SetNodePivot test
