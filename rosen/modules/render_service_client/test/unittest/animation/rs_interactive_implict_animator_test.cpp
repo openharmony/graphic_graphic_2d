@@ -412,7 +412,7 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SetFinishCallBack001, TestSize.Level1
     EXPECT_TRUE(res == 0);
     // protocol
     res = 1;
-    res = animator2->AddImplictAnimation( [&]() {
+    res = animator2->AddImplictAnimation([&]() {
         RSNode::Animate(protocol, curve, [&]() {
             property->Set(ANIMATION_END_BOUNDS);
         });
