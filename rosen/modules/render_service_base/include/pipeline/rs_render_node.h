@@ -247,10 +247,12 @@ public:
         return firstLevelNodeId_;
     }
     const std::shared_ptr<RSRenderNode> GetFirstLevelNode() const;
+    // only use for ARKTS_CARD
     inline NodeId GetUifirstRootNodeId() const
     {
         return uifirstRootNodeId_;
     }
+    const std::shared_ptr<RSRenderNode> GetUifirstRootNode() const;
     void UpdateTreeUifirstRootNodeId(NodeId id);
 
     // reset accumulated vals before traverses children

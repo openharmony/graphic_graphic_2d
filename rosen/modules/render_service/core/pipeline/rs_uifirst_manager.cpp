@@ -546,15 +546,22 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
         pendingPostCardNodes_.find(node->GetId()) != pendingPostCardNodes_.end()) {
         node->SetUifirstSyncFlag(true);
     }
-    auto instanceRootNode = node->GetInstanceRootNode();
-    if (instanceRootNode != nullptr && instanceRootNode->IsInstanceOf<RSSurfaceRenderNode>()) {
-        using SurfaceDrawable = DrawableV2::RSSurfaceRenderNodeDrawable;
-        if (auto drawableNode = std::static_pointer_cast<SurfaceDrawable>(
-            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(instanceRootNode))) {
-            if (drawableNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
-                pendingSyncForSkipBefore_[node->GetInstanceRootNodeId()].push_back(node);
-                return true;
+    // if node's UifirstRootNodeId is valid (e.g. ArkTsCard), use it first
+    auto uifirstRootNode = node->GetUifirstRootNodeId() != INVALID_NODEID ?
+        node->GetUifirstRootNode() : node->GetFirstLevelNode();
+    if (uifirstRootNode && uifirstRootNode->IsInstanceOf<RSSurfaceRenderNode>()) {
+        auto drawableNode = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(uifirstRootNode));
+        if (drawableNode && drawableNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+            pendingSyncForSkipBefore_[uifirstRootNode->GetId()].push_back(node);
+            if (uifirstRootNode->GetId() == node->GetId()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("set partial_sync %lld root%lld", node->GetId(), uifirstRootNode->GetId());
+                node->SetUifirstSkipPartialSync(true);
+                return false;
             }
+            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %lld, node %lld",
+                uifirstRootNode->GetId(), node->GetId());
+            return true;
         }
     }
     if (NodeIsInCardWhiteList(*node) && processingCardNodeSkipSync_.count(node->GetUifirstRootNodeId())) {
