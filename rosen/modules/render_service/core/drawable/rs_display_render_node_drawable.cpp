@@ -605,7 +605,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 uniParam->SetOpDropped(false);
                 // draw black background in rotation for camera
                 curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-                ClearTransparentBeforeSaveLayer();
                 PrepareOffscreenRender(*this);
             }
 
@@ -627,6 +626,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 if (canvasBackup_ != nullptr) {
                     Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
                     canvasBackup_->ConcatMatrix(params->GetMatrix());
+                    ClearTransparentBeforeSaveLayer();
                     FinishOffscreenRender(
                         Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE));
                     uniParam->SetOpDropped(isOpDropped);
@@ -1410,25 +1410,25 @@ void RSDisplayRenderNodeDrawable::DrawCurtainScreen() const
 
 void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
 {
+    if (!canvasBackup_) {
+        return;
+    }
     RS_TRACE_NAME("ClearTransparentBeforeSaveLayer");
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     for (const auto& drawable : hardwareDrawables) {
-        if (!drawable || !drawable->GetRenderParams()) {
+        auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable.get());
+        if (!surfaceDrawable) {
             continue;
         }
-        if (!drawable->GetRenderParams()->GetHardwareEnabled()) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+        if (!surfaceParams || !surfaceParams->GetHardwareEnabled()) {
             continue;
         }
-        auto& layerInfo = drawable->GetRenderParams()->GetLayerInfo();
-        auto& dstRect = layerInfo.boundRect;
-        curCanvas_->Save();
-        curCanvas_->ConcatMatrix(layerInfo.matrix);
-        curCanvas_->ClipRect({ static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
-            static_cast<float>(dstRect.x + dstRect.w), static_cast<float>(dstRect.y + dstRect.h) },
-            Drawing::ClipOp::INTERSECT, false);
-        curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-        curCanvas_->Restore();
+        RSAutoCanvasRestore arc(canvasBackup_.get());
+        canvasBackup_->SetMatrix(surfaceParams->GetLayerInfo().matrix);
+        canvasBackup_->ClipRect(surfaceParams->GetBounds());
+        canvasBackup_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
 }
 
