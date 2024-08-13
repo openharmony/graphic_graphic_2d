@@ -571,7 +571,7 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
     auto animations = RSNode::Animate(protocol, curve, [&property]() {
-        property->Set(ANIMATION_END_BOUNDS);    
+        property->Set(ANIMATION_END_BOUNDS);
     });
     auto animation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
 
