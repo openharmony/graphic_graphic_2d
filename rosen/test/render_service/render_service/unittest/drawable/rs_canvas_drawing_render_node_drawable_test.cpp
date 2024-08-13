@@ -506,8 +506,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceForGLTest, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReuseBackendTextureTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     int width = 1;

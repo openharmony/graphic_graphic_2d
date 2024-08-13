@@ -18,6 +18,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "params/rs_render_thread_params.h"
@@ -912,5 +913,70 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetAndGetTest002, TestSize.Level1)
     surfaceDrawable_->SetDirtyRegionAlignedEnable(true);
     surfaceDrawable_->SetDirtyRegionBelowCurrentLayer(OccRegion);
     ASSERT_NE(surfaceDrawable_->GetSyncDirtyManager(), nullptr);
+}
+
+/**
+ * @tc.name: DrawSelfDrawingNodeBuffer
+ * @tc.desc: Test DrawSelfDrawingNodeBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueIAJM4Z
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSelfDrawingNodeBufferTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    BufferDrawParam params;
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+
+    Color color(255, 255, 255);
+    surfaceParams->backgroundColor_ = color;
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    surfaceParams->rrect_.radius_[0].x_ = 1.f;
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    surfaceParams->selfDrawingType_ = SelfDrawingNodeType::VIDEO;
+    surfaceDrawable_->DrawSelfDrawingNodeBuffer(canvas, *surfaceParams, params);
+    ASSERT_FALSE(surfaceParams->GetHardwareEnabled());
+}
+
+/**
+ * @tc.name: DealWithSelfDrawingNodeBuffer
+ * @tc.desc: Test DealWithSelfDrawingNodeBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueIAJM4Z
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    ASSERT_FALSE(surfaceParams->GetHardwareEnabled());
+
+    surfaceParams->isHardwareEnabled_ = true;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    ASSERT_TRUE(surfaceParams->GetHardwareEnabled());
+    ASSERT_FALSE(surfaceParams->GetForceHardwareByUser());
+
+    surfaceParams->isForceHardwareByUser_ = true;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    ASSERT_TRUE(surfaceParams->GetForceHardwareByUser());
+
+    surfaceDrawable_->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceDrawable_->name_ = "pointer window";
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    ASSERT_TRUE(surfaceDrawable_->IsHardwareEnabledTopSurface());
+
+    RSUniRenderThread::captureParam_.isSnapshot_ = true;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
+    RSUniRenderThread::captureParam_.isSnapshot_ = false;
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 }

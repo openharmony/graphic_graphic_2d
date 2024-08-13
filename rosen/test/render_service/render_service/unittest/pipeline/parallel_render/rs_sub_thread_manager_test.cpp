@@ -17,9 +17,15 @@
 
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Rosen::DrawableV2;
+
+namespace OHOS::Rosen {
+constexpr NodeId DEFAULT_ID = 0xFFFF;
+}
 
 namespace OHOS::Rosen {
 class RsSubThreadManagerTest : public testing::Test {
@@ -388,6 +394,36 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleRenderNodeDrawableTest, TestSize.Level1
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable = nullptr;
     rsSubThreadManager->ScheduleRenderNodeDrawable(drawable);
     EXPECT_FALSE(drawable);
+
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
+    auto nodeDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(std::move(surfaceRenderNode));
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_FALSE(nodeDrawable->GetRenderParams());
+
+    nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+    uint32_t index = 1;
+    auto context = std::make_shared<RenderContext>();
+    auto threadPtr = std::make_shared<RSSubThread>(context.get(), index);
+    rsSubThreadManager->threadList_[rsSubThreadManager->defaultThreadIndex_] = threadPtr;
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_TRUE(nodeDrawable->GetRenderParams());
+    EXPECT_TRUE(rsSubThreadManager->defaultThreadIndex_ == 1);
+
+    auto threadSharedPtr = std::make_shared<RSSubThread>(context.get(), index);
+    threadSharedPtr->DoingCacheProcessNumInc();
+    rsSubThreadManager->threadList_[rsSubThreadManager->defaultThreadIndex_] = threadSharedPtr;
+    auto threadShared = std::make_shared<RSSubThread>(context.get(), index);
+    rsSubThreadManager->threadList_[2] = threadShared;
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_TRUE(rsSubThreadManager->defaultThreadIndex_ == 2);
+
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_FALSE(rsSubThreadManager->defaultThreadIndex_);
+    pid_t tid = 1;
+    nodeDrawable->SetLastFrameUsedThreadIndex(tid);
+    rsSubThreadManager->threadIndexMap_.insert(std::make_pair(tid, index));
+    rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
+    EXPECT_FALSE(rsSubThreadManager->defaultThreadIndex_);
 }
 
 /**
@@ -402,5 +438,24 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleReleaseCacheSurfaceOnlyTest, TestSize.L
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable = nullptr;
     rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(drawable);
     EXPECT_FALSE(drawable);
+
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
+    auto surfaceDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(std::move(surfaceRenderNode));
+    rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(surfaceDrawable);
+    EXPECT_FALSE(surfaceDrawable->GetRenderParams());
+
+    surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+    rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(surfaceDrawable);
+    EXPECT_TRUE(surfaceDrawable->GetLastFrameUsedThreadIndex());
+
+    pid_t id = 2;
+    uint32_t index = 1;
+    rsSubThreadManager->threadIndexMap_.insert(std::make_pair(id, index));
+    surfaceDrawable->lastFrameUsedThreadIndex_ = 2;
+    auto context = std::make_shared<RenderContext>();
+    auto threadPtr = std::make_shared<RSSubThread>(context.get(), index);
+    rsSubThreadManager->threadList_[1] = threadPtr;
+    rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(surfaceDrawable);
+    EXPECT_FALSE(rsSubThreadManager->threadList_.size());
 }
 } // namespace OHOS::Rosen
