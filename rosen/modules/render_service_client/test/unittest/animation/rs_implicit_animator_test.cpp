@@ -313,13 +313,13 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateImplicitAnimation001
- * @tc.desc: Verify the CreateImplicitAnimationWithInitialVelocity
+ * @tc.name: RSImplicitAnimationParamTest001
+ * @tc.desc: Verify the RSImplicitAnimationParamTest001
  * @tc.type:FUNC
  */
-HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimation001, TestSize.Level1)
+HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CreateImplicitAnimation001 start";
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest RSImplicitAnimationParamTest001 start";
     RSAnimationTimingProtocol timingProtocol;
     auto timingCurve = RSAnimationTimingCurve::SPRING;
     auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
@@ -343,6 +343,9 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimation001, TestSize.Level1)
     para = std::make_shared<RSImplicitCancelAnimationParam>(timingProtocol);
     implicitAnimator->implicitAnimationParams_.push(para);
     implicitAnimator->CreateImplicitAnimation(node, prop, prop_start, prop_end);
+
+    std::static_pointer_cast<RSImplicitCancelAnimationParam>(para)->AddPropertyToPendingSyncList(prop);
+    std::static_pointer_cast<RSImplicitCancelAnimationParam>(para)->SyncProperties();
 
     prop->isCustom_ = true;
     prop->id_ = 1;
@@ -372,7 +375,7 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimation001, TestSize.Level1)
     implicitAnimator->ExecuteWithoutAnimation(nullptr);
 
     EXPECT_TRUE(implicitAnimator != nullptr);
-    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CreateImplicitAnimation001 end";
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest RSImplicitAnimationParamTest001 end";
 }
 } // namespace Rosen
 } // namespace OHOS
