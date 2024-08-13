@@ -175,6 +175,38 @@ HWTEST(RSRenderNodeDrawableAdapterTest, OnGenerateShadowDrawableTest, TestSize.L
 }
 
 /**
+ * @tc.name: DumpDrawableTreeTest
+ * @tc.desc: Test DumpDrawableTree
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
+{
+    NodeId id = 3;
+    int32_t depth = 3;
+    std::string out;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(node);
+    auto context = RSContext();
+    context.GetMutableNodeMap().RegisterRenderNode(node);
+    adapter->DumpDrawableTree(depth, out, context);
+    EXPECT_NE(adapter->renderNode_.lock(), nullptr);
+    EXPECT_TRUE(!out.empty());
+    out.clear();
+    auto renderNode = std::make_shared<RSRenderNode>(id + 1);
+    adapter->skipType_ = SkipType::SKIP_BACKGROUND_COLOR;
+    auto childDrawable = std::make_shared<RSChildrenDrawableBrotherAdapter>();
+    auto childNode = std::make_shared<RSRenderNode>(id + 2);
+    auto childAdapter = std::make_shared<RSRenderNodeDrawable>(std::move(childNode));
+    childDrawable->childrenDrawableVec_.emplace_back(childAdapter);
+    renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = childDrawable;
+    adapter->renderNode_ = renderNode;
+    context.GetMutableNodeMap().RegisterRenderNode(renderNode);
+    adapter->DumpDrawableTree(depth, out, context);
+    EXPECT_TRUE(out.size() > depth);
+}
+
+/**
  * @tc.name: GetRenderParamsAndGetUifirstRenderParamsTest
  * @tc.desc: Test GetRenderParamsAndGetUifirstRenderParams
  * @tc.type: FUNC
@@ -189,6 +221,29 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetRenderParamsAndGetUifirstRenderParams
     EXPECT_EQ(retParams, nullptr);
     const auto& retUifirstParams = adapter->GetUifirstRenderParams();
     EXPECT_EQ(retUifirstParams, nullptr);
+}
+
+/**
+ * @tc.name: DumpDrawableVecTest
+ * @tc.desc: Test DumpDrawableVec
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
+{
+    NodeId id = 5;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(node);
+    auto retStr = adapter->DumpDrawableVec(node);
+    EXPECT_TRUE(retStr.empty());
+    auto renderNode = std::make_shared<RSRenderNode>(id + 1);
+    auto rSChildrenDrawableBrother = std::make_shared<RSChildrenDrawableBrotherAdapter>();
+    renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = std::move(rSChildrenDrawableBrother);
+    auto foregroundStyle = std::make_shared<RSChildrenDrawableBrotherAdapter>();
+    renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_STYLE)] = std::move(foregroundStyle);
+    adapter->renderNode_ = renderNode;
+    retStr = adapter->DumpDrawableVec(node);
+    EXPECT_GT(retStr.length(), 2);
 }
 
 /**

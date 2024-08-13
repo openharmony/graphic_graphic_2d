@@ -46,6 +46,10 @@ using OHOS::HiviewDFX::HiLog;
 std::shared_ptr<Media::PixelMap> ColorPicker::CreateScaledPixelMap(const std::shared_ptr<Media::PixelMap>& pixmap)
 {
     // Create scaled pixelmap
+    if (pixmap == nullptr) {
+        EFFECT_LOG_I("[ColorPicker]failed to create ScaledPixelMap with null pixmap.");
+        return nullptr;
+    }
     OHOS::Media::InitializationOptions options;
     options.alphaType = pixmap->GetAlphaType();
     options.pixelFormat = pixmap->GetPixelFormat();

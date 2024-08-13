@@ -79,11 +79,15 @@ public:
     {
         supportAppBufferList_ = supportAppBufferList;
     }
-    void ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
-        std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
+    std::vector<std::string>& GetUiFrameworkTypeTable()
+    {
+        return supportAppBufferList_;
+    }
 private:
-    bool GetUnknownFrameworkState(const std::string& surfaceName);
-    bool GetSurfaceFrameworkState(const std::string& surfaceName);
+    bool GetUnknownFrameworkState(const std::string& surfaceName,
+        std::string& uiFwkType);
+    bool GetSurfaceFrameworkState(const std::string& surfaceName,
+        std::string& validSurfaceName);
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
     // FORMAT: <buffername>

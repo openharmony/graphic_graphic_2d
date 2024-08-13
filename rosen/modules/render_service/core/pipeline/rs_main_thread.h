@@ -436,6 +436,8 @@ private:
 
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
+    void SetUiFrameworkTypeTable();
+    std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes();
     bool IsLastFrameUIFirstEnabled(NodeId appNodeId) const;
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
@@ -677,6 +679,7 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
+    bool initUiFwkTable_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

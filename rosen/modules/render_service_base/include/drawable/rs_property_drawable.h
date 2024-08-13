@@ -128,7 +128,7 @@ public:
     void ForceClearCacheWithLastFrame();
     void MarkRotationChanged();
     void MarkNodeIsOccluded(bool isOccluded);
-    void ClearCacheIfNeeded();
+    void MarkNeedClearFilterCache();
 
     bool IsFilterCacheValid() const;
     bool IsForceClearFilterCache() const;
@@ -153,16 +153,16 @@ protected:
     std::shared_ptr<RSFilter> stagingFilter_;
 
     // flags for clearing filter cache
-    bool forceUseCache_ = false;
-    bool forceClearCache_ = false;
+    bool stagingForceUseCache_ = false;
+    bool stagingForceClearCache_ = false;
     uint32_t cachedFilterHash_ = 0;
-    bool filterHashChanged_ = false;
-    bool filterRegionChanged_ = false;
-    bool filterInteractWithDirty_ = false;
-    bool rotationChanged_ = false;
-    bool forceClearCacheForLastFrame_ = false;
+    bool stagingFilterHashChanged_ = false;
+    bool stagingFilterRegionChanged_ = false;
+    bool stagingFilterInteractWithDirty_ = false;
+    bool stagingRotationChanged_ = false;
+    bool stagingForceClearCacheForLastFrame_ = false;
     bool isAIBarInteractWithHWC_ = false;
-    bool isEffectNode_ = false;
+    bool stagingIsEffectNode_ = false;
     bool renderIsSkipFrame_ = false;
  
     // clear one of snapshot cache and filtered cache after drawing
@@ -174,12 +174,12 @@ protected:
     // the type cache needed clear before drawing
     FilterCacheType clearType_ = FilterCacheType::NONE;
     FilterCacheType lastCacheType_ = FilterCacheType::NONE;
-    bool isOccluded_ = false;
+    bool stagingIsOccluded_ = false;
  
     // force cache with cacheUpdateInterval_
-    bool isLargeArea_ = false;
+    bool stagingIsLargeArea_ = false;
     bool canSkipFrame_ = false;
-    bool isSkipFrame_  = false;
+    bool stagingIsSkipFrame_  = false;
     RSFilter::FilterType filterType_ = RSFilter::NONE;
     int cacheUpdateInterval_ = 0;
     bool isFilterCacheValid_ = false; // catch status in current frame
