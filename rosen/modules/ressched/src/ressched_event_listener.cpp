@@ -49,9 +49,9 @@ void ResschedEventListener::OnReceiveEvent(uint32_t eventType, uint32_t eventVal
 void ResschedEventListener::ReportFrameToRSS()
 {
     if (GetIsNeedReport()) {
-            uint64_t currTime = static_cast<uint64_t>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    std::chrono::steady_clock::now().time_since_epoch()).count());
+        uint64_t currTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
         if (GetIsFirstReport() ||
             lastReportTime_ == 0 || currTime - lastReportTime_ >= SAMPLE_TIME) {
             RS_TRACE_BEGIN("ReportFrameToRSS");
