@@ -3415,22 +3415,6 @@ HWTEST_F(RSMainThreadTest, GetDynamicRefreshRate002, TestSize.Level2)
 }
 
 /**
- * @tc.name: WaitUntilSurfaceCapProcFinished
- * @tc.desc: test WaitUntilSurfaceCapProcFinished, surfaceCapProcFinished_ = true & false
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, WaitUntilSurfaceCapProcFinished, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetSurfaceCapProcFinished(true);
-    mainThread->WaitUntilSurfaceCapProcFinished();
-    mainThread->SetSurfaceCapProcFinished(false);
-    mainThread->WaitUntilSurfaceCapProcFinished();
-}
-
-/**
  * @tc.name: SetFrameIsRender
  * @tc.desc: test SetFrameIsRender001, rsVSyncDistributor_ = nullptr
  * @tc.type: FUNC

@@ -447,22 +447,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreateSurface002, Function | SmallTest | Leve
 }
 
 /*
- * @tc.name: FindSecurityOrSkipOrProtectedLayer001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CreateSurface002
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipOrProtectedLayer001, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = 0.f;
-    captureConfig.scaleY = 0.f;
-    RSSurfaceCaptureTask task(id, captureConfig);
-    EXPECT_EQ(false, task.FindSecurityOrSkipOrProtectedLayer());
-}
-
-/*
  * @tc.name: SetSurface
  * @tc.desc: Test RSSurfaceCaptureTaskTest.SetSurface
  * @tc.type: FUNC
@@ -620,20 +604,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNode005, Function | Small
 }
 
 /*
- * @tc.name: AdjustZOrderAndDrawSurfaceNode001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.AdjustZOrderAndDrawSurfaceNode
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, AdjustZOrderAndDrawSurfaceNode001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    RSSurfaceRenderNodeConfig config;
-    auto node = std::make_shared<RSSurfaceRenderNode>(config);
-    visitor_->AdjustZOrderAndDrawSurfaceNode(visitor_->hardwareEnabledNodes_);
-}
-
-/*
  * @tc.name: ProcessRootRenderNode002
  * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessRootRenderNode
  * @tc.type: FUNC
@@ -734,23 +704,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithoutUni003, Functio
 }
 
 /*
- * @tc.name: CaptureSurfaceInDisplayWithUni003
- * @tc.desc: Test RSSurfaceCaptureTaskTest.CaptureSurfaceInDisplayWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSSurfaceCaptureTaskTest, CaptureSurfaceInDisplayWithUni001, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    surfaceNode->SetSecurityLayer(false);
-    if (!isUnirender) {
-        visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);
-    }
-}
-
-/*
  * @tc.name: ProcessSurfaceRenderNodeWithoutUni001
  * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessSurfaceRenderNodeWithoutUni
  * @tc.type: FUNC
@@ -777,7 +730,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessSurfaceRenderNodeWithoutUni001, Functi
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessEffectRenderNode, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
-    NodeId id = 0;
+    NodeId id = DEFAULT_NODEID;
     RSEffectRenderNode node(id);
     Drawing::Canvas drawingCanvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     visitor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
@@ -793,133 +746,11 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessEffectRenderNode, Function | SmallTest
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
-    NodeId id = 0;
+    NodeId id = DEFAULT_NODEID;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    (visitor_->hardwareEnabledNodes_).emplace_back(surfaceNode);
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(id, config);
     visitor_->ProcessDisplayRenderNode(node);
-}
-
-/*
- * @tc.name: DrawBlurInCache001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.DrawBlurInCache001
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, DrawBlurInCache001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    NodeId id = 1;
-    visitor_->curCacheFilterRects_.insert(id);
-    auto node = std::make_shared<RSRenderNode>(id);
-    node->InitRenderParams();
-    ASSERT_TRUE(visitor_->DrawBlurInCache(*node));
-    visitor_->curCacheFilterRects_.clear();
-}
-
-/*
- * @tc.name: DrawBlurInCache002
- * @tc.desc: Test RSSurfaceCaptureTaskTest.DrawBlurInCache002
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, DrawBlurInCache002, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    NodeId id = 1;
-    visitor_->curCacheFilterRects_.insert(id);
-    auto node = std::make_shared<RSRenderNode>(id+1);
-    node->InitRenderParams();
-    node->SetChildHasVisibleFilter(false);
-    ASSERT_TRUE(visitor_->DrawBlurInCache(*node));
-    visitor_->curCacheFilterRects_.clear();
-}
-
-/*
- * @tc.name: DrawBlurInCache003
- * @tc.desc: Test RSSurfaceCaptureTaskTest.DrawBlurInCache003
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, DrawBlurInCache003, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    NodeId id = 1;
-    visitor_->curCacheFilterRects_.insert(id);
-    visitor_->curCacheFilterRects_.insert(id+1);
-    auto node = std::make_shared<RSRenderNode>(id);
-    node->InitRenderParams();
-    node->SetChildHasVisibleFilter(false);
-    ASSERT_TRUE(visitor_->DrawBlurInCache(*node));
-    visitor_->curCacheFilterRects_.clear();
-}
-
-/*
- * @tc.name: ProcessCacheFilterRects001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessCacheFilterRects001
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCacheFilterRects001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    NodeId id = 1;
-    auto node = std::make_shared<RSRenderNode>(id);
-    visitor_->ProcessCacheFilterRects(*node);
-}
-
-/*
- * @tc.name: ProcessCacheFilterRects002
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessCacheFilterRects002
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCacheFilterRects002, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    NodeId id = 1;
-    auto node = std::make_shared<RSRenderNode>(id);
-    visitor_->curCacheFilterRects_.insert(id);
-    visitor_->ProcessCacheFilterRects(*node);
-    visitor_->curCacheFilterRects_.clear();
-}
-
-/*
- * @tc.name: DrawChildRenderNode001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.DrawChildRenderNode001
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, DrawChildRenderNode001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    NodeId id = 1;
-    auto node1 = std::make_shared<RSRenderNode>(id);
-    node1->SetCacheType(CacheType::NONE);
-    visitor_->DrawChildRenderNode(*node1);
-    id = 2;
-    auto node2 = std::make_shared<RSRenderNode>(id);
-    node2->SetCacheType(CacheType::CONTENT);
-    visitor_->DrawChildRenderNode(*node2);
-    id = 3;
-    auto node3 = std::make_shared<RSRenderNode>(id);
-    node3->SetCacheType(CacheType::ANIMATE_PROPERTY);
-    visitor_->DrawChildRenderNode(*node3);
-}
-
-/*
- * @tc.name: DrawSpherize001
- * @tc.desc: Test RSSurfaceCaptureTaskTest.DrawSpherize001
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, DrawSpherize001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    NodeId id = 1;
-    auto node = std::make_shared<RSRenderNode>(id);
-    visitor_->DrawSpherize(*node);
 }
 
 /*
@@ -952,34 +783,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode, Function | SmallTest
 }
 
 /*
- * @tc.name: FindHardwareEnabledNodes
- * @tc.desc: Test RSSurfaceCaptureTaskTest.FindHardwareEnabledNodes
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, FindHardwareEnabledNodes, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    nodeMap.surfaceNodeMap_[0] = nullptr;
-    NodeId id = 1;
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(id);
-    nodeMap.surfaceNodeMap_[1] = node1;
-    id = 2;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(id);
-    node2->SetIsOnTheTree(true);
-    nodeMap.surfaceNodeMap_[2] = node2;
-    id = 3;
-    auto node3 = std::make_shared<RSSurfaceRenderNode>(id);
-    node3->SetIsOnTheTree(true);
-    node3->isLastFrameHardwareEnabled_ = true;
-    nodeMap.surfaceNodeMap_[3] = node3;
-    visitor_->FindHardwareEnabledNodes();
-    visitor_->hardwareEnabledNodes_.clear();
-    nodeMap.surfaceNodeMap_.clear();
-}
-
-/*
  * @tc.name: ProcessDisplayRenderNode002
  * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessDisplayRenderNode002
  * @tc.type: FUNC
@@ -1004,13 +807,10 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode002, Function | Small
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode003, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
-    auto hasSecurityOrSkipOrProtectedLayer = visitor_->hasSecurityOrSkipOrProtectedLayer_;
-    visitor_->hasSecurityOrSkipOrProtectedLayer_ = true;
     NodeId id = 1;
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(id, config);
     visitor_->ProcessDisplayRenderNode(node);
-    visitor_->hasSecurityOrSkipOrProtectedLayer_ = hasSecurityOrSkipOrProtectedLayer;
 }
 
 /*
@@ -1022,8 +822,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode003, Function | Small
 HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode004, Function | SmallTest | Level2)
 {
     ASSERT_NE(nullptr, visitor_);
-    auto hasSecurityOrSkipOrProtectedLayer = visitor_->hasSecurityOrSkipOrProtectedLayer_;
-    visitor_->hasSecurityOrSkipOrProtectedLayer_ = true;
     NodeId id = 1;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -1039,7 +837,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode004, Function | Small
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
     visitor_->ProcessDisplayRenderNode(*node);
-    visitor_->hasSecurityOrSkipOrProtectedLayer_ = hasSecurityOrSkipOrProtectedLayer;
 }
 
 /*
@@ -1054,75 +851,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessChildren001, Function | SmallTest | Le
     NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     visitor_->ProcessChildren(*node);
-}
-
-/*
- * @tc.name: ProcessChildren002
- * @tc.desc: Test RSSurfaceCaptureTaskTest.ProcessChildren002
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, ProcessChildren002, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    NodeId id = 1;
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(id);
-    visitor_->curCacheFilterRects_.insert(id);
-    id = 2;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(id);
-    node1->AddChild(node2);
-    visitor_->ProcessChildren(*node1);
-    visitor_->curCacheFilterRects_.clear();
-}
-
-/*
- * @tc.name: AdjustZOrderAndDrawSurfaceNode
- * @tc.desc: Test RSSurfaceCaptureTaskTest.AdjustZOrderAndDrawSurfaceNode
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, AdjustZOrderAndDrawSurfaceNode, Function | SmallTest | Level2)
-{
-    ASSERT_NE(nullptr, visitor_);
-    auto node1 = RSTestUtil::CreateSurfaceNode();
-    auto node2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto node3 = RSTestUtil::CreateSurfaceNode();
-    node3->isLastFrameHardwareEnabled_ = true;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> nodes;
-    nodes.push_back(node1);
-    nodes.push_back(node2);
-    nodes.push_back(node3);
-    visitor_->AdjustZOrderAndDrawSurfaceNode(nodes);
-}
-
-/*
- * @tc.name: FindSecurityOrSkipOrProtectedLayer
- * @tc.desc: Test RSSurfaceCaptureTaskTest.FindSecurityOrSkipOrProtectedLayer
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSSurfaceCaptureTaskTest, FindSecurityOrSkipOrProtectedLayer, Function | SmallTest | Level2)
-{
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = 0.f;
-    captureConfig.scaleY = 0.f;
-    RSSurfaceCaptureTask task(DEFAULT_NODEID, captureConfig);
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    nodeMap.surfaceNodeMap_[0] = nullptr;
-    NodeId id = 1;
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(id);
-    nodeMap.surfaceNodeMap_[1] = node1;
-    id = 2;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(id);
-    node2->SetIsOnTheTree(true);
-    nodeMap.surfaceNodeMap_[2] = node2;
-    id = 3;
-    auto node3 = std::make_shared<RSSurfaceRenderNode>(id);
-    node3->SetIsOnTheTree(true);
-    node3->isSecurityLayer_ = true;
-    nodeMap.surfaceNodeMap_[3] = node3;
-    ASSERT_TRUE(task.FindSecurityOrSkipOrProtectedLayer());
-    nodeMap.surfaceNodeMap_.clear();
 }
 
 /*

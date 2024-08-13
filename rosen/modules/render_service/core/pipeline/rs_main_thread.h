@@ -286,9 +286,6 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     void RefreshEntireDisplay();
     bool IsCurtainScreenOn() const;
-    void NotifySurfaceCapProcFinish();
-    void WaitUntilSurfaceCapProcFinished();
-    void SetSurfaceCapProcFinished(bool flag);
 
     bool GetParallelCompositionEnabled();
     void SetFrameIsRender(bool isRender);
@@ -511,10 +508,6 @@ private:
     int32_t unmarshalFinishedCount_ = 0;
     bool needWaitUnmarshalFinished_ = true;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
-
-    std::condition_variable surfaceCapProcTaskCond_;
-    std::mutex surfaceCapProcMutex_;
-    bool surfaceCapProcFinished_ = true;
 
 #if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
     RSTaskMessage::RSTask uploadTextureBarrierTask_;

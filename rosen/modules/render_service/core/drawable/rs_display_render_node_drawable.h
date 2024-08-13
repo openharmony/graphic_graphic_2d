@@ -140,7 +140,7 @@ private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     std::unique_ptr<RSRenderFrame> RequestFrame(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    void FindHardwareEnabledNodes();
+    void FindHardwareEnabledNodes(RSDisplayRenderParams& params);
     void AdjustZOrderAndDrawSurfaceNode(std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void WiredScreenProjection(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
