@@ -46,6 +46,7 @@ ohos_shared_library("effectkit") {
 
   sources = [
     "./src/color_picker_napi.cpp",
+    "./src/effect_kit_napi_utils.cpp",
     "./src/filter_napi.cpp",
     "./src/native_module_ohos_effect.cpp",
   ]
