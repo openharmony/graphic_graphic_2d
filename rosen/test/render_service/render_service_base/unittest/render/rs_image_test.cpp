@@ -543,6 +543,8 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     EXPECT_EQ(RSImageCache::Instance().GetDrawingImageCache(0), nullptr);
 
     RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(0);
+    RSImageCache::Instance().pixelMapCache_.clear();
+    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
 /**
