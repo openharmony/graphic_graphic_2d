@@ -1082,6 +1082,11 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
     EXPECT_FALSE(node->drawCmdListNeedSync_);
     EXPECT_FALSE(node->uifirstNeedSync_);
     EXPECT_FALSE(node->needClearSurface_);
+
+    node->uifirstSkipPartialSync_ = true;
+    node->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
+    node->OnSync();
+    EXPECT_TRUE(node->dirtySlots_.empty());
 }
 
 /**
@@ -2654,6 +2659,19 @@ HWTEST_F(RSRenderNodeTest, SetNodeName, TestSize.Level1)
     node.SetNodeName(nodeName);
     name = node.GetNodeName();
     ASSERT_EQ(name, "0");
+}
+
+/**
+ * @tc.name: SetAccumulatedClipFlagTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: IAJ46S
+ */
+HWTEST_F(RSRenderNodeTest, SetAccumulatedClipFlagTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    ASSERT_TRUE(nodeTest->SetAccumulatedClipFlag(true));
+    ASSERT_FALSE(nodeTest->SetAccumulatedClipFlag(false));
 }
 } // namespace Rosen
 } // namespace OHOS
