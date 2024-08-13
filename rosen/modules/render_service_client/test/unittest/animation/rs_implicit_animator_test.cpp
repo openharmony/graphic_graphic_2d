@@ -350,7 +350,8 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     prop->isCustom_ = true;
     prop->id_ = 1;
     timingProtocol.duration_ = 400;
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(finishCallback), std::move(repeatCallBack));
+    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve,
+        std::move(finishCallback), std::move(repeatCallBack));
     para = std::make_shared<RSImplicitSpringAnimationParam>(timingProtocol, timingCurve);
     implicitAnimator->implicitAnimationParams_.push(para);
     implicitAnimator->CreateImplicitAnimation(node, prop, prop_start, prop_end);
