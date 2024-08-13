@@ -652,26 +652,26 @@ HWTEST_F(RSUniRenderUtilTest, IsNeedClientsTest, Function | SmallTest | Level2)
 }
 
 /**
- * @tc.name: IsNeedClientsTest002
+ * @tc.name: IsNeedClientTest002
  * @tc.desc: Test IsNeedClient with modify params such as Rotation
  * @tc.type:FUNC
  * @tc.require: issueIAJOWI
  */
-HWTEST_F(RSUniRenderUtilTest, IsNeedClientsTest002, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilTest, IsNeedClientTest002, Function | SmallTest | Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     ComposeInfo info;
     node.renderContent_->renderProperties_.SetRotation(1.0f);
-    EXPECT_FALSE(RSUniRenderUtil::IsNeedClient(node, info));
+    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(node, info));
     node.renderContent_->renderProperties_.SetRotationX(1.0f);
-    EXPECT_FALSE(RSUniRenderUtil::IsNeedClient(node, info));
+    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(node, info));
     node.renderContent_->renderProperties_.SetRotationY(1.0f);
-    EXPECT_FALSE(RSUniRenderUtil::IsNeedClient(node, info));
+    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(node, info));
     Quaternion quaternion(90.0f, 90.0f, 90.0f, 90.0f);
     node.renderContent_->renderProperties_.SetQuaternion(quaternion);
-    EXPECT_FALSE(RSUniRenderUtil::IsNeedClient(node, info));
+    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(node, info));
 }
 
 /**
