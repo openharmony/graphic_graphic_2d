@@ -24,7 +24,6 @@
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_virtual_processor.h"
@@ -42,10 +41,10 @@ class RSDisplayRenderNodeDrawableTest : public testing::Test {
 public:
     std::shared_ptr<RSDisplayRenderNode> renderNode_;
     std::shared_ptr<RSDisplayRenderNode> mirroredNode_;
-    std::shared_ptr<RSRenderNodeDrawableAdapter> drawable_ = nullptr;
-    std::shared_ptr<RSRenderNodeDrawableAdapter> mirroredDrawable_ = nullptr;
-    std::shared_ptr<RSDisplayRenderNodeDrawable> displayDrawable_ = nullptr;
-    std::shared_ptr<RSDisplayRenderNodeDrawable> mirroredDisplayDrawable_ = nullptr;
+    RSRenderNodeDrawableAdapter* drawable_ = nullptr;
+    RSRenderNodeDrawableAdapter* mirroredDrawable_ = nullptr;
+    RSDisplayRenderNodeDrawable* displayDrawable_ = nullptr;
+    RSDisplayRenderNodeDrawable* mirroredDisplayDrawable_ = nullptr;
 
     std::shared_ptr<Drawing::Canvas> drawingCanvas_;
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
@@ -68,11 +67,12 @@ void RSDisplayRenderNodeDrawableTest::SetUp()
     if (!renderNode_ || !mirroredNode_) {
         RS_LOGE("RSDisplayRenderNodeDrawableTest: failed to create display node.");
     }
-    drawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode_);
-    mirroredDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
+    drawable_ = RSDisplayRenderNodeDrawable::OnGenerate(renderNode_);
+    mirroredDrawable_ = RSDisplayRenderNodeDrawable::OnGenerate(mirroredNode_);
     if (drawable_ && mirroredDrawable_) {
-        displayDrawable_ = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(drawable_);
-        mirroredDisplayDrawable_ = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(mirroredDrawable_);
+        displayDrawable_ = static_cast<RSDisplayRenderNodeDrawable*>(drawable_);
+        displayDrawable_->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
+        mirroredDisplayDrawable_ = static_cast<RSDisplayRenderNodeDrawable*>(mirroredDrawable_);
         if (!drawable_->renderParams_ || !mirroredDrawable_->renderParams_) {
             RS_LOGE("RSDisplayRenderNodeDrawableTest: failed to init render params.");
         }
@@ -85,14 +85,6 @@ void RSDisplayRenderNodeDrawableTest::SetUp()
         }
     } else {
         RS_LOGE("RSDisplayRenderNodeDrawableTest: failed to create drawable.");
-    }
-
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    }
-    if (!rtThread.uniRenderEngine_) {
-        rtThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     }
 }
 void RSDisplayRenderNodeDrawableTest::TearDown() {}
@@ -168,27 +160,18 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
 {
     ASSERT_NE(displayDrawable_, nullptr);
     auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.renderThreadParams_) {
+        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
     NodeId id = 1;
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(id);
     auto drawable1 = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode1);
     id = 2;
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawable2 = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode2);
-    auto surfaceRenderParams2 = static_cast<RSSurfaceRenderParams*>(drawable2->renderParams_.get());
-    surfaceRenderParams2->isHardwareEnabled_ = true;
-    RSLayerInfo layerInfo;
-    Drawing::Matrix mat;
-    layerInfo.matrix = mat;
-    surfaceRenderParams2->SetLayerInfo(layerInfo);
-    Drawing::Canvas canvas;
-    displayDrawable_->canvasBackup_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    id = 3;
-    RSDisplayNodeConfig config;
-    auto Node3 = std::make_shared<RSDisplayRenderNode>(id, config);
-    auto drawable3 = RSRenderNodeDrawableAdapter::OnGenerate(Node3);
+    auto drawable2 = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode2);
+    surfaceNode2->InitRenderParams();
     rtThread.renderThreadParams_->hardwareEnabledTypeDrawables_.push_back(drawable1);
     rtThread.renderThreadParams_->hardwareEnabledTypeDrawables_.push_back(drawable2);
-    rtThread.renderThreadParams_->hardwareEnabledTypeDrawables_.push_back(drawable3);
     ASSERT_NE(renderNode_, nullptr);
     renderNode_->GetMutableRenderProperties().SetFrameWidth(DEFAULT_CANVAS_SIZE);
     renderNode_->GetMutableRenderProperties().SetFrameHeight(DEFAULT_CANVAS_SIZE);
@@ -409,33 +392,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen006
 }
 
 /**
- * @tc.name: RequestFrame
- * @tc.desc: Test RequestFrame
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    auto result = displayDrawable_->RequestFrame(*params, processor);
-    ASSERT_EQ(result, nullptr);
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    result = displayDrawable_->RequestFrame(*params, processor);
-    ASSERT_EQ(result, nullptr);
-
-    displayDrawable_->surfaceCreated_ = true;
-    result = displayDrawable_->RequestFrame(*params, processor);
-    ASSERT_EQ(result, nullptr);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-}
-
-/**
  * @tc.name: CheckDisplayNodeSkip
  * @tc.desc: Test CheckDisplayNodeSkip
  * @tc.type: FUNC
@@ -523,21 +479,12 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorScreenTest, TestSize.Level1)
     rtThread.SetCaptureParam(param);
 
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto mirroredParams = static_cast<RSDisplayRenderParams*>(mirroredDrawable_->GetRenderParams().get());
     if (mirroredNode_->GetRenderDrawable() == nullptr) {
         mirroredNode_->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
     }
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     displayDrawable_->DrawMirrorScreen(*params, processor);
-
-    auto processor1 = RSProcessorFactory::CreateProcessor(
-        RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
-    displayDrawable_->DrawMirrorScreen(*params, processor1);
-
-    params->isSecurityDisplay_ = true;
-    mirroredParams->isSecurityDisplay_ = false;
-    displayDrawable_->DrawMirrorScreen(*params, processor1);
     sleep(1);
 }
 
@@ -605,9 +552,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
 
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    Drawing::Canvas drawingCanvas;
-    virtualProcesser->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
+    auto virtualProcesser = new RSUniRenderVirtualProcessor();
     displayDrawable_->DrawExpandScreen(*virtualProcesser);
 }
 
@@ -819,9 +764,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen, Te
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDrawable);
     mirroredDrawable->renderParams_ = nullptr;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDrawable);
-    displayDrawable_->renderParams_ = nullptr;
-    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDrawable);
-    displayDrawable_->renderParams_ = std::make_unique<RSDisplayRenderParams>(displayDrawable_->nodeId_);;
     ASSERT_FALSE(mirroredDrawable->renderParams_);
 }
 
@@ -873,38 +815,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorCopy, TestSize.Level1)
     displayDrawable_->DrawMirrorCopy(*mirrorDrawable, *params, virtualProcesser, *uniParam);
     ASSERT_FALSE(virtualProcesser->GetCanvas());
     uniParam->isVirtualDirtyEnabled_ = true;
-    virtualProcesser->canvas_ = nullptr;
-    displayDrawable_->DrawMirrorCopy(*mirrorDrawable, *params, virtualProcesser, *uniParam);
     sleep(1);
-}
-
-/**
- * @tc.name: OnCapture
- * @tc.desc: Test OnCapture
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, OnCapture, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    Drawing::Canvas canvas;
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    displayDrawable_->OnCapture(canvas);
-
-    params->compositeType_ = RSDisplayRenderNode::CompositeType::UNKNOWN;
-    displayDrawable_->OnCapture(canvas);
-
-    RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    displayDrawable_->OnCapture(canvas);
-
-    params->hasCaptureWindow_.insert(std::make_pair(params->screenId_, true));
-    displayDrawable_->OnCapture(canvas);
-
-    RSUniRenderThread::GetCaptureParam().isMirror_ = false;
-    displayDrawable_->OnCapture(canvas);
-    ASSERT_FALSE(RSUniRenderThread::GetCaptureParam().isMirror_);
-    params->hasCaptureWindow_.clear();
 }
 
 /**
@@ -917,12 +828,13 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodes001, TestSize.
 {
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    Drawing::Canvas canvas;
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    displayDrawable_->DrawHardwareEnabledNodes(*canvas_, *params);
+    displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
     ASSERT_FALSE(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer());
 
     displayDrawable_->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
-    displayDrawable_->DrawHardwareEnabledNodes(*canvas_, *params);
+    displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
     ASSERT_TRUE(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer());
 
     NodeId id = 1;
@@ -935,16 +847,16 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodes001, TestSize.
     params->hardwareEnabledTopDrawables_.push_back(drawable);
     ASSERT_TRUE(params->GetHardwareEnabledDrawables().size());
     ASSERT_TRUE(params->GetHardwareEnabledTopDrawables().size());
-    displayDrawable_->DrawHardwareEnabledNodes(*canvas_, *params);
+    displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
     ASSERT_FALSE(params->GetHardwareEnabledDrawables().size());
     ASSERT_FALSE(params->GetHardwareEnabledTopDrawables().size());
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
-    displayDrawable_->DrawHardwareEnabledNodes(*canvas_, *params);
+    displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
 
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE;
-    displayDrawable_->DrawHardwareEnabledNodes(*canvas_, *params);
+    displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
@@ -959,23 +871,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodes002, TestSize.
 {
     ASSERT_NE(displayDrawable_, nullptr);
     Drawing::Canvas canvas;
-    displayDrawable_->DrawHardwareEnabledNodes(*canvas_);
+    displayDrawable_->DrawHardwareEnabledNodes(canvas);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    Drawing::Canvas* canvas2 = nullptr;
-    auto displayParams = static_cast<RSDisplayRenderParams*>(displayDrawable_->renderParams_.get());
-    displayDrawable_->DrawHardwareEnabledNodes(*canvas2, *displayParams);
-
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    }
-    auto& vec = rtThread.renderThreadParams_->hardwareEnabledTypeDrawables_;
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-2);
-    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
-    static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get())->isHardwareEnabled_ = true;
-    vec.push_back(surfaceDrawable);
-    displayDrawable_->DrawHardwareEnabledNodes(*canvas_);
 }
 
 /**
@@ -988,8 +885,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesMissedInCacheI
 {
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Canvas canvas;
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     displayDrawable_->DrawHardwareEnabledNodesMissedInCacheImage(canvas);
     ASSERT_FALSE(params->GetHardwareEnabledDrawables().size() != 0);
@@ -1001,23 +897,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesMissedInCacheI
     ASSERT_TRUE(params->GetHardwareEnabledDrawables().size() != 0);
     displayDrawable_->DrawHardwareEnabledNodesMissedInCacheImage(canvas);
     ASSERT_FALSE(params->GetHardwareEnabledDrawables().size() != 0);
-
-    RSDisplayNodeConfig config;
-    auto renderNode = std::make_shared<RSDisplayRenderNode>(DEFAULT_ID-1, config);
-    auto drawable = std::make_shared<RSDisplayRenderNodeDrawable>(renderNode);
-    drawable->DrawHardwareEnabledNodesMissedInCacheImage(canvas);
-
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    }
-    auto& vec = rtThread.renderThreadParams_->hardwareEnabledTypeDrawables_;
-    auto renderNode2 = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-2);
-    auto drawable2 = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode2));
-    static_cast<RSSurfaceRenderParams*>(drawable2->renderParams_.get())->isHardwareEnabled_ = true;
-    vec.push_back(drawable2);
-    displayDrawable_->DrawHardwareEnabledNodesMissedInCacheImage(canvas);
 }
 
 /**
@@ -1082,72 +961,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
     ASSERT_NE(params, nullptr);
     displayDrawable_->FindHardwareEnabledNodes(*params);
     ASSERT_EQ(RSUniRenderThread::Instance().renderThreadParams_->hardwareEnabledTypeDrawables_.size(), 2);
-
-    auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    }
-    auto& vec = rtThread.renderThreadParams_->hardwareEnabledTypeDrawables_;
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID-2);
-    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
-    static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get())->isHardwareEnabled_ = true;
-    vec.push_back(surfaceDrawable);
-    displayDrawable_->FindHardwareEnabledNodes();
-
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSDisplayNodeConfig config;
-    auto renderNode2 = std::make_shared<RSDisplayRenderNode>(DEFAULT_ID-1, config);
-    auto drawable2 = std::make_shared<RSDisplayRenderNodeDrawable>(renderNode2);
-    drawable2->FindHardwareEnabledNodes();
-}
-
-/**
- * @tc.name: AdjustZOrderAndDrawSurfaceNode
- * @tc.desc: Test AdjustZOrderAndDrawSurfaceNode
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, AdjustZOrderAndDrawSurfaceNode, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    if (RSUniRenderThread::Instance().uniRenderEngine_ == nullptr) {
-        RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    }
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> drawables;
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
-    paintFilterCanvas.canvas_ = drawingCanvas.get();
-    paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-    auto rscanvas = static_cast<Drawing::Canvas*>(&paintFilterCanvas);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(drawables.empty());
-
-    std::shared_ptr<RSRenderNodeDrawableAdapter> firstAdapter = nullptr;
-    std::shared_ptr<RSRenderNodeDrawableAdapter> secondAdapter = nullptr;
-    drawables.push_back(firstAdapter);
-    drawables.push_back(secondAdapter);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(!firstAdapter);
-    ASSERT_TRUE(!secondAdapter);
-    drawables.clear();
-
-    NodeId id = 1;
-    auto rsSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(rsSurfaceNode);
-    ASSERT_TRUE(drawableAdapter->GetRenderParams());
-    id = 2;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawable = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    ASSERT_TRUE(drawable->GetRenderParams());
-    drawables.push_back(drawableAdapter);
-    drawables.push_back(drawable);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(drawableAdapter->GetRenderParams());
 }
 
 /**

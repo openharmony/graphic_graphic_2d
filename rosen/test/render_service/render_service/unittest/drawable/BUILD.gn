@@ -72,10 +72,7 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
 ## Build RSDisplayRenderNodeDrawableTest
 ohos_unittest("RSDisplayRenderNodeDrawableTest") {
   module_out_path = module_output_path
-  sources = [
-    "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
-    "rs_display_render_node_drawable_test.cpp",
-  ]
+  sources = [ "rs_display_render_node_drawable_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
