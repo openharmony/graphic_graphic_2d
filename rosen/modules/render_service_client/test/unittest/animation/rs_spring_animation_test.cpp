@@ -286,6 +286,8 @@ HWTEST_F(RSSpringAnimationTest, SetZeroThreshold001, TestSize.Level1)
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
     auto springAnimation = std::make_shared<RSSpringAnimation>(property, startProperty, endProperty);
     springAnimation->SetZeroThreshold(0.1f);
+    springAnimation->SetZeroThreshold(-0.1f);
+    springAnimation->SetInitialVelocity(nullptr);
     /**
      * @tc.steps: step2. start SetIsCustom test
      */
