@@ -28,8 +28,8 @@ public:
     static sptr<ResschedEventListener> GetInstance() noexcept;
     void OnReceiveEvent(uint32_t eventType, uint32_t eventValue,
         std::unordered_map<std::string, std::string> extInfo) override;
-    bool GetIsNeedReport();
-    bool GetIsFirstReport();
+    bool GetIsNeedReport() const;
+    bool GetIsFirstReport() const;
     void SetIsFirstReport(bool value);
     void ReportFrameToRSS();
 private:
