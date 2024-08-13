@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_divided_ui_capture.h"
+#include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 
 using namespace testing;
@@ -38,12 +39,12 @@ void RSDividedUICaptureTest::SetUp() {}
 void RSDividedUICaptureTest::TearDown() {}
 
 /**
- * @tc.name: TakeLocalCapture
+ * @tc.name: TakeLocalCapture001
  * @tc.desc: test results of RegisterNode
  * @tc.type:FUNC
  * @tc.require: issueI5HRIF
  */
-HWTEST_F(RSDividedUICaptureTest, TakeLocalCapture, TestSize.Level1)
+HWTEST_F(RSDividedUICaptureTest, TakeLocalCapture001, TestSize.Level1)
 {
     RSDividedUICapture rsDividedUICapture(1, 1.0, 1.0);
     auto pixelmap = rsDividedUICapture.TakeLocalCapture();
@@ -92,6 +93,23 @@ HWTEST_F(RSDividedUICaptureTest, TakeLocalCapture, TestSize.Level1)
     rsDividedUICapture.nodeId_ = 0;
     pixelmap = rsDividedUICapture.TakeLocalCapture();
     EXPECT_EQ(nullptr, pixelmap);
+}
+
+/**
+ * @tc.name: TakeLocalCapture002
+ * @tc.desc: test results of TakeLocalCapture
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ76O
+ */
+HWTEST_F(RSDividedUICaptureTest, TakeLocalCapture002, TestSize.Level1)
+{
+    RSDividedUICapture rsDividedUICapture(1, 1.0, 1.0);
+    auto rsNode = std::make_shared<RSCanvasRenderNode> (0);
+    rsNode->GetMutableRenderProperties().SetBoundsSize({1.0, 1.0});
+    RSRenderThread::Instance().GetContext().GetMutableNodeMap().RegisterRenderNode(rsNode);
+    rsDividedUICapture.nodeId_ = 0;
+    auto pixelmap = rsDividedUICapture.TakeLocalCapture();
+    EXPECT_TRUE(pixelmap == nullptr);
 }
 
 /**
