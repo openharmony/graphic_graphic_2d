@@ -47,7 +47,7 @@ static inline SkTileMode ConvertToSkTileMode(const TileMode& mode)
         case TileMode::DECAL:
             return SkTileMode::kDecal;
         default:
-            return SkTileMode::kClamp;
+            return SkTileMode::kDecal;
     }
 }
 
@@ -100,7 +100,7 @@ void SkiaImageFilter::InitWithColorBlur(const ColorFilter& colorFilter, scalar s
     SkImageFilters::CropRect skCropRect(skiaRect);
     filter_ = SkImageFilters::ColorFilter(
         skColorFilterImpl->GetColorFilter(),
-        SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kClamp, nullptr), skCropRect);
+        SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kDecal, nullptr), skCropRect);
 }
 
 void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients,

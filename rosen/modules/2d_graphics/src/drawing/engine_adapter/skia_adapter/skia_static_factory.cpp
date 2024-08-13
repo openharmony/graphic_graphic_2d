@@ -87,6 +87,7 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendTexture(GPUContext* g
     return SkiaSurface::MakeFromBackendTexture(gpuContext, info, origin, sampleCnt, colorType,
         colorSpace, deleteVkImage, cleanHelper);
 }
+
 std::shared_ptr<Surface> SkiaStaticFactory::MakeRenderTarget(GPUContext* gpuContext,
     bool budgeted, const ImageInfo& imageInfo)
 {
