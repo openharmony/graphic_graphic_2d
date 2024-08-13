@@ -110,7 +110,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas canvas;
     const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
-    drawable->DrawRenderContent(canvas, dst);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
     RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     drawable->DrawRenderContent(canvas, dst);
@@ -121,7 +120,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     EXPECT_EQ(drawable->image_, nullptr);
 
     drawable->image_ = std::make_shared<Drawing::Image>();
-    drawable->recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(0, 0);
     drawable->DrawRenderContent(canvas, dst);
     EXPECT_NE(drawable->image_, nullptr);
     RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
@@ -508,7 +506,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceForGLTest, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReuseBackendTextureTest, TestSize.Level1)
 {
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     int width = 1;

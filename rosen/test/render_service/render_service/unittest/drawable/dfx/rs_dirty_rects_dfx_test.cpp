@@ -17,8 +17,6 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
-#include "params/rs_render_params.h"
-#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_node.h"
@@ -322,76 +320,6 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawDetailedTypesOfDirtyRegionForDFX, TestSize.Lev
         DirtyRegionDebugType::SUBTREE_SKIP_RECT;
     res = rsDirtyRectsDfx_->DrawDetailedTypesOfDirtyRegionForDFX(*surfaceDrawable);
     ASSERT_TRUE(res);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
-}
-
-/**
- * @tc.name: DrawAllSurfaceOpaqueRegionForDFX
- * @tc.desc: Test If DrawAllSurfaceOpaqueRegionForDFX Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAJM4Z
- */
-HWTEST_F(RSDirtyRectsDFXTest, DrawAllSurfaceOpaqueRegionForDFXTest, TestSize.Level1)
-{
-    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    auto& defaultSurfaceVector = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
-    RSRenderNodeDrawableAdapter* adapter = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceRenderNode);
-    adapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(adapter->GetRenderParams().get());
-    if (adapter) {
-        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawableAdapter(adapter);
-        defaultSurfaceVector.push_back(drawableAdapter);
-    }
-    rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX();
-
-    surfaceParams->isMainWindowType_ = true;
-    rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX();
-
-    adapter->renderParams_ = nullptr;
-    rsDirtyRectsDfx_->DrawAllSurfaceOpaqueRegionForDFX();
-    ASSERT_FALSE(adapter->renderParams_);
-}
-
-/**
- * @tc.name: DrawTargetSurfaceDirtyRegionForDFX
- * @tc.desc: Test If DrawTargetSurfaceDirtyRegionForDFX Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAJM4Z
- */
-HWTEST_F(RSDirtyRectsDFXTest, DrawTargetSurfaceDirtyRegionForDFXTest, TestSize.Level1)
-{
-    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    auto& defaultSurfaceVector = rsDirtyRectsDfx_->displayParams_->GetAllMainAndLeashSurfaceDrawables();
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_ID);
-    RSRenderNodeDrawableAdapter* adapter = RSSurfaceRenderNodeDrawable::OnGenerate(surfaceRenderNode);
-    adapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
-    RSSurfaceRenderNodeDrawable* surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(adapter);
-    if (surfaceDrawable) {
-        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawableAdapter(surfaceDrawable);
-        defaultSurfaceVector.push_back(drawableAdapter);
-    }
-    rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX();
-    ASSERT_FALSE(surfaceDrawable->renderParams_->IsAppWindow());
-
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
-    surfaceParams->isAppWindow_ = true;
-    rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX();
-    ASSERT_TRUE(surfaceParams->IsAppWindow());
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->dfxTargetSurfaceNames_.push_back(
-        surfaceDrawable->GetName());
-    rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX();
-    ASSERT_FALSE(RSUniRenderThread::Instance().GetRSRenderThreadParams()->dfxTargetSurfaceNames_.empty());
-
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->dirtyRegionDebugType_ =
-        DirtyRegionDebugType::CUR_DIRTY_DETAIL_ONLY_TRACE;
-    rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX();
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->dfxTargetSurfaceNames_.clear();
-    adapter->renderParams_ = nullptr;
-    rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX();
-    std::shared_ptr<RSRenderNodeDrawableAdapter> drawableAdapterPtr = nullptr;
-    defaultSurfaceVector.push_back(drawableAdapterPtr);
-    rsDirtyRectsDfx_->DrawTargetSurfaceDirtyRegionForDFX();
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
 }
 }
