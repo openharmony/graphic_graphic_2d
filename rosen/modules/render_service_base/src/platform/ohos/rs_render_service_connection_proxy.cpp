@@ -1941,7 +1941,7 @@ int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSI
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return RS_CONNECTION_ERROR;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteRemoteObject(callback->AsObject());
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
