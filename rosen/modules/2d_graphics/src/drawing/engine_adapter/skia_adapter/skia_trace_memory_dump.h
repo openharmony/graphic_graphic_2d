@@ -44,9 +44,9 @@ public:
 
     void LogTotals(OHOS::Rosen::DfxString& log) override;
 
-    float GetGpuMemorySizeInMB() override;
+    float GetGpuMemorySizeInMB() const override;
 
-    float GetGLMemorySize() override;
+    float GetGLMemorySize() const override;
 
     std::shared_ptr<SkiaMemoryTracer> GetTraceMemoryDump() const;
 
