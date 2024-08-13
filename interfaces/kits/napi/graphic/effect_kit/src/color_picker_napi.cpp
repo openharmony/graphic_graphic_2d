@@ -15,7 +15,6 @@
 
 #include "image_napi_utils.h"
 #include "effect_errors.h"
-#include "image_napi_utils.h"
 #include "color_picker.h"
 #include "color.h"
 #include "pixel_map_napi.h"
