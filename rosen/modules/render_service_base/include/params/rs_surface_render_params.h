@@ -414,8 +414,6 @@ public:
         return false;
     }
 
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) override;
-    NodeId GetRootIdOfCaptureWindow() const override;
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -490,7 +488,6 @@ private:
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

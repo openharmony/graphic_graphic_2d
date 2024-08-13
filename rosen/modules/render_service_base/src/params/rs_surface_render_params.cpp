@@ -392,7 +392,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
-    targetSurfaceParams->rootIdOfCaptureWindow_ = rootIdOfCaptureWindow_;
     RSRenderParams::OnSync(target);
 }
 
@@ -434,17 +433,4 @@ const Occlusion::Region& RSSurfaceRenderParams::GetOpaqueRegion() const
     return opaqueRegion_;
 }
 
-void RSSurfaceRenderParams::SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
-{
-    if (rootIdOfCaptureWindow_ == rootIdOfCaptureWindow) {
-        return;
-    }
-    needSync_ = true;
-    rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
-}
-
-NodeId RSSurfaceRenderParams::GetRootIdOfCaptureWindow() const
-{
-    return rootIdOfCaptureWindow_;
-}
 } // namespace OHOS::Rosen
