@@ -112,6 +112,7 @@ public:
     }
 
     // dfx
+    static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
 
 protected:

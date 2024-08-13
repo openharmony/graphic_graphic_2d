@@ -161,14 +161,12 @@ void RSRenderNode::NodeCacheStateChange(NodeChangeType type)
 
 void RSRenderNode::SetCacheStateByRetrytime()
 {
-    do {
-        tryCacheTimes_++;
-        if (tryCacheTimes_ < MAX_TRY_TIMES) {
-            unchangeCountUpper_ = unchangeCountUpper_ + MIN_REUSECOUNT;
-            break;
-        }
-        unchangeCountUpper_ = unchangeCountUpper_ + MAX_REUSECOUNT;
-    } while (false);
+    tryCacheTimes_++;
+    if (tryCacheTimes_ < MAX_TRY_TIMES) {
+        unchangeCountUpper_ = unchangeCountUpper_ + MIN_REUSECOUNT;
+        return;
+    }
+    unchangeCountUpper_ = unchangeCountUpper_ + MAX_REUSECOUNT;
 }
 
 void RSRenderNode::NodeCacheStateReset(NodeCacheState nodeCacheState)

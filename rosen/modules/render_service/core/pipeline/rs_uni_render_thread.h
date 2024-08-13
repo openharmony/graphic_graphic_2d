@@ -106,7 +106,7 @@ public:
     {
         return curDrawStatusVec_;
     }
-    const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams()
+    const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
     {
         return renderThreadParams_;
     }

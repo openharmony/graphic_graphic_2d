@@ -115,7 +115,7 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 {
     int width = 0;
     int height = 0;
-    RS_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::ProcessRenderContents %llu", GetId());
+    RS_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::ProcessRenderContents  %" PRIu64 "", GetId());
     std::lock_guard<std::mutex> lockTask(taskMutex_);
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
