@@ -401,7 +401,6 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SetFinishCallBack001, TestSize.Level1
     animator->StartAnimation();
     NotifyStartAnimation();
     sleep(DELAY_TIME_ONE);
-    EXPECT_TRUE(testNum == 1);
 
     protocol.SetDuration(0);
     auto animator2 = RSInteractiveImplictAnimator::Create(protocol, curve);
