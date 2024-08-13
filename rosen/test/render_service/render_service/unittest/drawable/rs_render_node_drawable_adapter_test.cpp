@@ -186,8 +186,10 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
     int32_t depth = 3;
     std::string out;
     auto node = std::make_shared<RSRenderNode>(id);
-    node->DumpDrawableTree(depth, out);
     auto adapter = std::make_shared<RSRenderNodeDrawable>(node);
+    auto context = RSContext();
+    context.GetMutableNodeMap().RegisterRenderNode(node);
+    adapter->DumpDrawableTree(depth, out, context);
     EXPECT_NE(adapter->renderNode_.lock(), nullptr);
     EXPECT_TRUE(!out.empty());
     out.clear();
@@ -199,7 +201,8 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
     childDrawable->childrenDrawableVec_.emplace_back(childAdapter);
     renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = childDrawable;
     adapter->renderNode_ = renderNode;
-    node->DumpDrawableTree(depth, out);
+    context.GetMutableNodeMap().RegisterRenderNode(renderNode);
+    adapter->DumpDrawableTree(depth, out, context);
     EXPECT_TRUE(out.size() > depth);
 }
 
@@ -231,7 +234,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
     NodeId id = 5;
     auto node = std::make_shared<RSRenderNode>(id);
     auto adapter = std::make_shared<RSRenderNodeDrawable>(node);
-    auto retStr = node->DumpDrawableVec();
+    auto retStr = adapter->DumpDrawableVec(node);
     EXPECT_TRUE(retStr.empty());
     auto renderNode = std::make_shared<RSRenderNode>(id + 1);
     auto rSChildrenDrawableBrother = std::make_shared<RSChildrenDrawableBrotherAdapter>();
@@ -239,7 +242,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
     auto foregroundStyle = std::make_shared<RSChildrenDrawableBrotherAdapter>();
     renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_STYLE)] = std::move(foregroundStyle);
     adapter->renderNode_ = renderNode;
-    retStr = renderNode->DumpDrawableVec();
+    retStr = adapter->DumpDrawableVec(node);
     EXPECT_GT(retStr.length(), 2);
 }
 

@@ -719,9 +719,6 @@ public:
         return renderDrawable_;
     }
 
-    // DFX
-    void DumpDrawableTree(int32_t depth, std::string& out) const;
-
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -830,9 +827,6 @@ private:
     void GenerateFullChildrenList();
     void ResortChildren();
     bool ShouldClearSurface();
-
-    // DFX
-    std::string DumpDrawableVec() const;
 
     std::weak_ptr<RSContext> context_ = {};
 

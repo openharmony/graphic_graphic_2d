@@ -4154,49 +4154,6 @@ void RSRenderNode::SetChildrenHasUIExtension(bool childrenHasUIExtension)
     }
 }
 
-void RSRenderNode::DumpDrawableTree(int32_t depth, std::string& out) const
-{
-    for (int32_t i = 0; i < depth; ++i) {
-        out += "  ";
-    }
-    RSRenderNode::DumpNodeType(Type, out);
-    out += "[" + std::to_string(id_) + "]";
-    DumpSubClassNode(out);
-
-    if (renderDrawable_) {
-        out += ", DrawableVec:[" + DumpDrawableVec() + "]";
-        renderDrawable_->DumpDrawableTree(out);
-    } else {
-        out += ", drawable null";
-    }
-
-    auto childList = GetChildren();
-    if (childList) {
-        for (auto childNode : *childList) {
-            if (childNode) {
-                childNode->DumpDrawableTree(depth + 1, out);
-            }
-        }
-    }
-}
-
-std::string RSRenderNode::DumpDrawableVec() const
-{
-    std::string str;
-    for (uint8_t i = 0; i < drawableVec_.size(); ++i) {
-        if (drawableVec_[i]) {
-            str += std::to_string(i) + ", ";
-        }
-    }
-    // str has more than 2 chars
-    if (str.length() > 2) {
-        str.pop_back();
-        str.pop_back();
-    }
-
-    return str;
-}
-
 bool SharedTransitionParam::UpdateHierarchyAndReturnIsLower(const NodeId nodeId)
 {
     // We already know which node is the lower one.
