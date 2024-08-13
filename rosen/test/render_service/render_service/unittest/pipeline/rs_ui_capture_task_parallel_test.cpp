@@ -36,6 +36,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing::ext;
@@ -104,6 +105,10 @@ public:
         usleep(SLEEP_TIME_FOR_PROXY);
 
         RSUniRenderThread::Instance().InitGrContext();
+
+        auto& renderNodeGC = RSRenderNodeGC::Instance();
+        renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
+        renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
     }
 
     static void TearDownTestCase()
