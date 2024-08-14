@@ -109,12 +109,20 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_003, Function | SmallTest | Level
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
-    params.srcRect = Drawing::Rect(5, 7, 6, 8);
-    RectF localBounds = RectF(1, 2, 3, 4);
+    int32_t left = 5;
+    int32_t top = 6;
+    int32_t right = 7;
+    int32_t bottom = 8;
+    params.srcRect = Drawing::Rect(left, top, right, bottom);
+    left = 1;
+    top = 2;
+    right = 3;
+    bottom = 4;
+    RectF localBounds = RectF(left, top, right, bottom);
     RSUniRenderUtil::SrcRectScaleDown(
         params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
-    const int32_t right = 8;
-    const int32_t bottom = 10;
+    right = 8;
+    bottom = 10;
     params.srcRect.SetRight(right);
     params.srcRect.SetBottom(bottom);
     RSUniRenderUtil::SrcRectScaleDown(
@@ -167,14 +175,22 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_003, Function | SmallTest | Level2
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
-    Drawing::Rect srcRect(5, 7, 6, 8);
-    params.srcRect = srcRect;
-    RectF localBounds(1, 2, 3, 4);
+    int32_t left = 5;
+    int32_t top = 6;
+    int32_t right = 7;
+    int32_t bottom = 8;
+    params.srcRect = Drawing::Rect(left, top, right, bottom);
+    left = 1;
+    top = 2;
+    right = 3;
+    bottom = 4;
+    RectF localBounds = RectF(left, top, right, bottom);
     RSUniRenderUtil::SrcRectScaleFit(
         params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
-    srcRect.SetRight(8);
-    srcRect.SetBottom(10);
-    
+    right = 8;
+    bottom = 10;
+    params.srcRect.SetRight(right);
+    params.srcRect.SetBottom(bottom);
     RSUniRenderUtil::SrcRectScaleFit(
         params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
@@ -402,8 +418,10 @@ HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface, Function | SmallTest | Level2)
  */
 HWTEST_F(RSUniRenderUtilTest, PostReleaseSurfaceTask001, Function | SmallTest | Level2)
 {
+    int width = 200;
+    int height = 200;
     const Drawing::ImageInfo info =
-        Drawing::ImageInfo { 200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
+        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
     auto surface(Drawing::Surface::MakeRaster(info));
     uint32_t threadIndex = UNI_MAIN_THREAD_INDEX;
     RSUniRenderUtil::PostReleaseSurfaceTask(std::move(surface), threadIndex);
@@ -700,10 +718,10 @@ HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest, Function | SmallTe
  */
 HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest002, Function | SmallTest | Level2)
 {
-    NodeId id = 0;
+    NodeId id = 1;
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(node, nullptr);
-    id = 1;
+    id = 2;
     auto child = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(child, nullptr);
     node->AddChild(child);
@@ -981,7 +999,11 @@ HWTEST_F(RSUniRenderUtilTest, UpdateRealSrcRectTest002, Function | SmallTest | L
 
     constexpr uint32_t default_canvas_width = 800;
     constexpr uint32_t default_canvas_height = 600;
-    absRect = RectI(1, 1, 1, 1);
+    int left = 1;
+    int top = 1;
+    int right = 1;
+    int bottom = 1;
+    absRect = RectI(left, top, right, bottom);
     node.GetMutableRenderProperties().SetBoundsWidth(default_canvas_width);
     node.GetMutableRenderProperties().SetBoundsHeight(default_canvas_height);
     node.GetMutableRenderProperties().SetFrameGravity(Gravity::TOP_RIGHT);
