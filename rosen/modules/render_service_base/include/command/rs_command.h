@@ -70,6 +70,11 @@ public:
         return 0;
     }
 
+    std::pair<uint16_t, uint16_t> GetUniqueType() const
+    {
+        return std::make_pair(GetType(), GetSubType());
+    }
+
     virtual NodeId GetNodeId() const
     {
         return 0;

@@ -30,7 +30,7 @@ public:
     static RSUnmarshalThread& Instance();
     void Start();
     void PostTask(const std::function<void()>& task);
-    void RecvParcel(std::shared_ptr<MessageParcel>& parcel);
+    void RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0);
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();
     void Wait();

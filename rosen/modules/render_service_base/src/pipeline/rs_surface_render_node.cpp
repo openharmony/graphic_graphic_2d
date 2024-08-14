@@ -2481,7 +2481,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             firstLevelNodeId = parentNode->GetFirstLevelNodeId ();
         }
     }
-    if (IsUIExtension()) {
+    if (IsSecureUIExtension()) {
         if (onTree) {
             secUIExtensionNodes_.insert(std::pair<NodeId, NodeId>(GetId(), instanceRootNodeId));
         } else {
