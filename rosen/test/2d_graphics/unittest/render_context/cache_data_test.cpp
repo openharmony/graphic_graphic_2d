@@ -472,5 +472,22 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
     cacheData->shaderPointers_ = {};
     EXPECT_EQ(0, cacheData->Clean(2));
 }
+
+/**
+ * @tc.name: GetTest
+ * @tc.desc: Imporve Coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+ HWTEST_F(CacheDataTest, GetTest, TestSize.Level1)
+{
+    std::string testFileDir = "testCachedata";
+    std::shared_ptr<CacheData> cacheData = std::make_shared<CacheData>(4, 4, 6, testFileDir);
+    auto returnData = cacheData->Get(nullptr, 5, nullptr, 1);
+    std::tuple<CacheData::ErrorCode, size_t> testData = {CacheData::ErrorCode::VALUE_SIZE_OVER_MAX_SIZE, 0};
+    EXPECT_EQ(std::get<0>(returnData), std::get<0>(testData));
+    EXPECT_EQ(std::get<1>(returnData), std::get<1>(testData));
+}
 } // namespace Rosen
 } // namespace OHOS

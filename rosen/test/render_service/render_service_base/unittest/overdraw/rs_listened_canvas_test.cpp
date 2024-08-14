@@ -528,5 +528,31 @@ HWTEST_F(RSListenedCanvasTest, PenAndBrushFunctionsTest007, TestSize.Level1)
     listenedCanvas.DetachPen();
     listenedCanvas.DetachBrush();
 }
+
+/**
+ * @tc.name: DrawShadowStyleTest
+ * @tc.desc: DrawShadowStyle Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9NDED
+ */
+HWTEST_F(RSListenedCanvasTest, DrawShadowStyleTest, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    RSListenedCanvas listenedCanvas(canvas);
+    Drawing::Canvas canvasTest;
+    listenedCanvas.listener_ = nullptr;
+    Drawing::Path path;
+    Drawing::Point3 planeParams;
+    Drawing::Point3 devLightPos;
+    Drawing::Color ambientColor;
+    Drawing::Color spotColor;
+    listenedCanvas.DrawShadowStyle(path, planeParams, devLightPos, SET_XORY1,
+        ambientColor, spotColor, Drawing::ShadowFlags::NONE, false);
+    std::shared_ptr<RSCanvasListener> canvasListener = std::make_shared<RSCanvasListener>(canvasTest);
+    EXPECT_TRUE(canvasListener);
+    listenedCanvas.listener_ = canvasListener;
+    listenedCanvas.DrawShadowStyle(path, planeParams, devLightPos, SET_XORY1,
+        ambientColor, spotColor, Drawing::ShadowFlags::NONE, false);
+}
 } // namespace Rosen
 } // namespace OHOS

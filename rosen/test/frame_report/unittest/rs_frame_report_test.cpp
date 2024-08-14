@@ -207,5 +207,20 @@ HWTEST_F(RsFrameReportTest, LoadSymbol001, TestSize.Level1)
     fr.LoadSymbol("function");
     fr.CloseLibrary();
 }
+
+/**
+ * @tc.name: LoadLibrary002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, LoadLibrary002, TestSize.Level1)
+{
+    RsFrameReport& fr = RsFrameReport::GetInstance();
+    fr.frameSchedSoLoaded_ = false;
+    fr.LoadLibrary();
+    fr.frameSchedSoLoaded_ = true;
+    EXPECT_TRUE(fr.LoadLibrary());
+}
 } // namespace Rosen
 } // namespace OHOS
