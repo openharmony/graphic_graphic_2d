@@ -1694,7 +1694,20 @@ void RSUniRenderVisitor::UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<Rect
     std::shared_ptr<RSSurfaceRenderNode>& appNode)
 {
     const auto& hwcNodes = appNode->GetChildHardwareEnabledNodes();
+    std::shared_ptr<RSRenderNode> parentNode =
+        std::static_pointer_cast<RSRenderNode>(appNode);
     bool hasCornerRadius = !appNode->GetRenderProperties().GetCornerRadius().IsZero();
+    auto appRect = appNode->GetRenderProperties().GetBoundsRect();
+    while ((bool)(parentNode = parentNode->GetParent().lock()) &&
+           parentNode->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+        auto parentRect = parentNode->GetRenderProperties().GetBoundsRect();
+        if (parentRect.Intersect(appRect)) {
+            hasCornerRadius |= (!parentNode->GetRenderProperties().GetCornerRadius().IsZero());
+        }
+        if (hasCornerRadius) {
+            break;
+        }
+    }
     for (auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
