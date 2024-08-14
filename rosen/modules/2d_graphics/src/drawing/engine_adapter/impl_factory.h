@@ -52,8 +52,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Matrix;
-class RuntimeEffect;
 class ImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl();

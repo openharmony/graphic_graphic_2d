@@ -313,10 +313,19 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated001, TestSize.Level1)
     instance->SetScreenRotation(ScreenRotation::ROTATION_90);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(true);
-	
-    RSObjGeometry rsObjGeometry;
-    rsObjGeometry.SetWidth(-0.1f);
-    rsObjGeometry.SetHeight(-0.1f);
+
+    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
+    illuminatedNode->GetMutableRenderProperties().SetBounds({0, 0, 10, 10});
+    lightSourceNode->GetMutableRenderProperties().lightSourcePtr_ = std::make_shared<RSLightSource>();
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(true);
+    instance->SetScreenRotation(ScreenRotation::ROTATION_90);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(true);
+    instance->SetScreenRotation(ScreenRotation::ROTATION_180);
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_TRUE(true);
+    instance->SetScreenRotation(ScreenRotation::ROTATION_270);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(true);
 }

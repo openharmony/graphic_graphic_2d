@@ -155,10 +155,32 @@ public:
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
 
+    void SetUiFrameworkTypeTable(const std::vector<std::string>& table)
+    {
+        uiFrameworkTypeTable_ = table;
+    }
+
+    const std::vector<std::string>& GetUiFrameworkTypeTable() const
+    {
+        return uiFrameworkTypeTable_;
+    }
+
+    void UpdateUiFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
+    {
+        uiFrameworkDirtyNodes_.emplace_back(uiFwkDirtyNode);
+    }
+
+    std::vector<std::weak_ptr<RSRenderNode>>& GetUiFrameworkDirtyNodes()
+    {
+        return uiFrameworkDirtyNodes_;
+    }
+
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
     RSRenderNodeMap nodeMap;
+    std::vector<std::string> uiFrameworkTypeTable_;
+    std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
     RSRenderInteractiveImplictAnimatorMap interactiveImplictAnimatorMap_;
     // The root of render node tree, Note: this node is not the animation fallback node.

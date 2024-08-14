@@ -110,7 +110,10 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
 ohos_unittest("RSRenderServiceUnitTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "../../../../../modules/render_service_base/src/platform:platform",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -469,8 +472,6 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "rs_surface_capture_task_parallel_test.cpp",
-    "rs_surface_capture_task_test.cpp",
     "rs_ui_capture_task_parallel_test.cpp",
   ]
   deps = [ ":rs_test_common" ]

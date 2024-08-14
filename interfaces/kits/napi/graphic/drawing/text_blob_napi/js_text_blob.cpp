@@ -304,7 +304,11 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     uint32_t len = 0;
     GET_UINT32_PARAM(ARGC_ONE, len);
 
-    size_t bufferLen = static_cast<size_t>(len);
+    size_t bufferLen = 0;
+    if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &bufferLen) != napi_ok) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+    }
+
     char* buffer = new(std::nothrow) char[bufferLen + 1];
     if (!buffer) {
         ROSEN_LOGE("JsTextBlob::MakeFromPosText: failed to create buffer");
@@ -325,7 +329,7 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
         delete[] buffer;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Argv[0] is empty.");
     }
-    if (len != pointsSize || len != bufferLen) {
+    if (len != pointsSize) {
         delete[] buffer;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "string length does not match points array length.");

@@ -57,7 +57,7 @@ public:
         }
     }
 
-    bool IsEmpty() override
+    bool IsEmpty() const override
     {
         return images_.empty();
     }

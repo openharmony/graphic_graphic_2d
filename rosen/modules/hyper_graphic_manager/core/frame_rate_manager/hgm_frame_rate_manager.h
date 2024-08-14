@@ -149,10 +149,9 @@ public:
     void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
+    HgmIdleDetector& GetIdleDetector() { return idleDetector_; }
     void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
         pid_t pid, UIFWKType uiFwkType);
-    void ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp);
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {

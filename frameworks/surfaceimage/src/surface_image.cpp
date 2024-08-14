@@ -342,12 +342,18 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& b
         return SURFACE_ERROR_EGL_API_FAILED;
     }
 
-    auto sync = image.eglSync_;
-    if (sync != EGL_NO_SYNC_KHR) {
-        eglDestroySyncKHR(eglDisplay_, sync);
+    // Create fence object for current image
+    auto iter = imageCacheSeqs_.find(currentSurfaceImage_);
+    if (iter != imageCacheSeqs_.end()) {
+        auto &currentImage = iter->second;
+        auto preSync = currentImage.eglSync_;
+        if (preSync != EGL_NO_SYNC_KHR) {
+            eglDestroySyncKHR(eglDisplay_, preSync);
+        }
+        currentImage.eglSync_ = eglCreateSyncKHR(eglDisplay_, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
+        glFlush();
     }
-    sync = eglCreateSyncKHR(eglDisplay_, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
-    image.eglSync_ = sync;
+
     if (isNewBuffer) {
         CheckImageCacheNeedClean(seqNum);
     }

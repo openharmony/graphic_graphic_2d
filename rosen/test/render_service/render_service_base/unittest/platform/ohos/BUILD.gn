@@ -17,29 +17,11 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic/rosen_engine/render_service_base/platform/ohos"
 
-##############################  RSRenderServiceBasePlatformTest  ##################################
-ohos_unittest("RSRenderServiceBasePlatformTest") {
+##############################  RRSAccessibilityTest  ##################################
+ohos_unittest("RRSAccessibilityTest") {
   module_out_path = module_output_path
 
-  sources = [
-    "rs_accessibility_test.cpp",
-    "rs_ashmem_helper_test.cpp",
-    "rs_event_detector_test.cpp",
-    "rs_event_manager_test.cpp",
-    "rs_innovation_test.cpp",
-    "rs_jank_stats_test.cpp",
-    "rs_log_test.cpp",
-    "rs_marshalling_helper_test.cpp",
-    "rs_node_stats_test.cpp",
-    "rs_render_service_client_test.cpp",
-    "rs_render_service_connect_hub_test.cpp",
-    "rs_render_service_connection_proxy_test.cpp",
-    "rs_render_service_proxy_test.cpp",
-    "rs_surface_ohos_converter_test.cpp",
-    "rs_surface_ohos_test.cpp",
-    "rs_system_properties_test.cpp",
-    "rs_vsync_client_ohos_test.cpp",
-  ]
+  sources = [ "rs_accessibility_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",
@@ -57,7 +39,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
-    "//utils/system/safwk/native/include",
+
     "$graphic_2d_root/prebuilts/librarys/gpu/include",
     "//drivers/peripheral/display/interfaces/include/",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
@@ -70,10 +52,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     "//third_party/googletest:gtest_main",
   ]
 
-  public_deps = [
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
-  ]
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
   public_external_deps = [
     "graphic_surface:sync_fence",
     "skia:skia_canvaskit",
@@ -88,7 +67,1093 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
 
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSAshmemHelperTest  ##################################
+ohos_unittest("RSAshmemHelperTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_ashmem_helper_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSEventDetectorTest  ##################################
+ohos_unittest("RSEventDetectorTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_event_detector_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSEventMgrTest  ##################################
+ohos_unittest("RSEventMgrTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_event_manager_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSInnovationTest  ##################################
+ohos_unittest("RSInnovationTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_innovation_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSJankStatsTest  ##################################
+ohos_unittest("RSJankStatsTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_jank_stats_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSLogTest  ##################################
+ohos_unittest("RSLogTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_log_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSMarshallingHelperTest  ##################################
+ohos_unittest("RSMarshallingHelperTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_marshalling_helper_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSNodeStatsTest  ##################################
+ohos_unittest("RSNodeStatsTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_node_stats_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSClientTest  ##################################
+ohos_unittest("RSClientTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_render_service_client_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSRenderServiceConnectHubTest  ##################################
+ohos_unittest("RSRenderServiceConnectHubTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_render_service_connect_hub_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSRenderServiceConnectionProxyTest  ##################################
+ohos_unittest("RSRenderServiceConnectionProxyTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_render_service_connection_proxy_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSProxyTest  ##################################
+ohos_unittest("RSProxyTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_render_service_proxy_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSSurfaceConverterTest  ##################################
+ohos_unittest("RSSurfaceConverterTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_surface_ohos_converter_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSSurfaceOhosTest  ##################################
+ohos_unittest("RSSurfaceOhosTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_surface_ohos_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSSystemPropertiesTest  ##################################
+ohos_unittest("RSSystemPropertiesTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_system_properties_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSVsyncClientTest  ##################################
+ohos_unittest("RSVsyncClientTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_vsync_client_ohos_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "//drivers/peripheral/display/interfaces/include/",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (ace_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
     public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
@@ -119,5 +1184,23 @@ config("render_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSRenderServiceBasePlatformTest" ]
+  deps = [
+    ":RRSAccessibilityTest",
+    ":RSAshmemHelperTest",
+    ":RSClientTest",
+    ":RSEventDetectorTest",
+    ":RSEventMgrTest",
+    ":RSInnovationTest",
+    ":RSJankStatsTest",
+    ":RSLogTest",
+    ":RSMarshallingHelperTest",
+    ":RSNodeStatsTest",
+    ":RSProxyTest",
+    ":RSRenderServiceConnectHubTest",
+    ":RSRenderServiceConnectionProxyTest",
+    ":RSSurfaceConverterTest",
+    ":RSSurfaceOhosTest",
+    ":RSSystemPropertiesTest",
+    ":RSVsyncClientTest",
+  ]
 }

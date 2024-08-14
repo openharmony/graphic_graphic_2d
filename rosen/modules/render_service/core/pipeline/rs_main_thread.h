@@ -286,9 +286,6 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     void RefreshEntireDisplay();
     bool IsCurtainScreenOn() const;
-    void NotifySurfaceCapProcFinish();
-    void WaitUntilSurfaceCapProcFinished();
-    void SetSurfaceCapProcFinished(bool flag);
 
     bool GetParallelCompositionEnabled();
     void SetFrameIsRender(bool isRender);
@@ -436,6 +433,8 @@ private:
 
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
+    void SetUiFrameworkTypeTable();
+    std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes();
     bool IsLastFrameUIFirstEnabled(NodeId appNodeId) const;
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
@@ -509,10 +508,6 @@ private:
     int32_t unmarshalFinishedCount_ = 0;
     bool needWaitUnmarshalFinished_ = true;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
-
-    std::condition_variable surfaceCapProcTaskCond_;
-    std::mutex surfaceCapProcMutex_;
-    bool surfaceCapProcFinished_ = true;
 
 #if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
     RSTaskMessage::RSTask uploadTextureBarrierTask_;
@@ -677,6 +672,7 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
+    bool initUiFwkTable_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

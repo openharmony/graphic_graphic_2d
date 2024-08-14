@@ -33,6 +33,32 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LABEL_TEST = {
 
 namespace OHOS {
 namespace Rosen {
+
+std::shared_ptr<ColorPicker> ColorPickerUnittest::CreateColorPicker()
+{
+    size_t bufferSize = 0;
+    uint8_t *buffer = GetJpgBuffer(bufferSize);
+    if (buffer == nullptr) {
+        return nullptr;
+    }
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource =
+        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    if ((errorCode != SUCCESS) || (imageSource == nullptr)) {
+        return nullptr;
+    }
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    if ((errorCode != SUCCESS) || (pixmap == nullptr)) {
+        return nullptr;
+    }
+
+    return ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+}
 /**
  * @tc.name: CreateColorPickerFromPixelmapTest001
  * @tc.desc: Ensure the ability of creating color picker from pixelmap.
@@ -542,6 +568,35 @@ HWTEST_F(ColorPickerUnittest, GetTopProportionColors, TestSize.Level1)
 
     std::vector<ColorManager::Color> colors2 = pColorPicker->GetTopProportionColors(0);
     ASSERT_EQ(colors2.size(), 0);
+}
+
+/**
+ * @tc.name: AdjustHSVToDefinedIterval
+ * @tc.desc: check hsv to defined iterval.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, AdjustHSVToDefinedIterval, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedIterval start";
+
+    std::shared_ptr<ColorPicker> pColorPicker = CreateColorPicker();
+    ASSERT_NE(pColorPicker, nullptr);
+
+    HSV gHsv {361, 101, 101}; // 361,101,101 invalid hsv
+    pColorPicker->AdjustHSVToDefinedIterval(gHsv);
+    EXPECT_EQ(gHsv.h, 360); // 360 is valid hue
+    EXPECT_EQ(gHsv.s, 100); // 100 is valid saturation
+    EXPECT_EQ(gHsv.v, 100); // 100 is valid value
+
+    HSV lHsv {-1, -1, -1}; // -1, -1, -1 invalid hsv
+    pColorPicker->AdjustHSVToDefinedIterval(lHsv);
+    EXPECT_EQ(lHsv.h, 0); // 0 is valid hue
+    EXPECT_EQ(lHsv.s, 0); // 0 is valid saturation
+    EXPECT_EQ(lHsv.v, 0); // 0 is valid value
+
+    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedIterval end";
 }
 } // namespace Rosen
 } // namespace OHOS

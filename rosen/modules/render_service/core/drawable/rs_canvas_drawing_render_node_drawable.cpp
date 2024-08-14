@@ -66,6 +66,10 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     const auto& params = GetRenderParams();
+    if (UNLIKELY(!params)) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable params is null!");
+        return;
+    }
     if (params->GetCanvasDrawingSurfaceChanged()) {
         ResetSurface();
         params->SetCanvasDrawingSurfaceChanged(false);
@@ -156,7 +160,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
 {
-    auto canvasDrawingPtr = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(shared_from_this());
+    auto canvasDrawingPtr = shared_from_this();
     pid_t threadId = threadId_;
     auto task = [this, canvasDrawingPtr, threadId]() {
         std::unique_lock<std::recursive_mutex> lock(drawableMutex_);

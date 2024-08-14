@@ -827,36 +827,24 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     }
     std::function<void()> captureTask = [id, callback, captureConfig, accessible]() -> void {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node != nullptr && node->GetType() == RSRenderNodeType::DISPLAY_NODE && !accessible) {
+        if (node != nullptr && !accessible &&
+            (node->GetType() == RSRenderNodeType::DISPLAY_NODE ||
+            node->GetType() == RSRenderNodeType::SURFACE_NODE)) {
             RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture no permission");
+            callback->OnSurfaceCapture(id, nullptr);
             return;
         }
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (captureConfig.captureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
-            if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-                RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD ||
-                renderType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
-                if (node == nullptr) {
-                    RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture node == nullptr");
-                    return;
+            if (renderType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+                RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]",
+                    id);
+                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+                RSSurfaceCaptureTask task(id, captureConfig);
+                if (!task.Run(callback)) {
+                    callback->OnSurfaceCapture(id, nullptr);
                 }
-                auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
-                    !node->IsOnTheTree() : false;
-                std::function<void()> captureTaskInner = [id, callback, captureConfig, isProcOnBgThread]() -> void {
-                    RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]",
-                        id);
-                    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-                    RSSurfaceCaptureTask task(id, captureConfig, isProcOnBgThread);
-                    if (!task.Run(callback)) {
-                        callback->OnSurfaceCapture(id, nullptr);
-                    }
-                    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-                };
-                if (isProcOnBgThread) {
-                    RSBackgroundThread::Instance().PostTask(captureTaskInner);
-                } else {
-                    captureTaskInner();
-                }
+                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
             } else {
                 RSSurfaceCaptureTaskParallel::CheckModifiers(id);
                 RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);

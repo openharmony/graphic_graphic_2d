@@ -20,12 +20,14 @@
 
 namespace OHOS {
 namespace Rosen {
+class ColorPicker;
 class ColorPickerUnittest : public testing::Test {
 public:
     static void SetUpTestCase() {};
     static void TearDownTestCase() {};
     void SetUp() override {};
     void TearDown() override {};
+    std::shared_ptr<ColorPicker> CreateColorPicker();
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -400,6 +400,37 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode005, TestSize.Level1
 }
 
 /**
+ * @tc.name: PrepareSurfaceRenderNode006
+ * @tc.desc: test results of PrepareSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ76O
+ */
+HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode006, TestSize.Level1)
+{
+    RSRenderThreadVisitor rsRenderThreadVisitor;
+    RSSurfaceRenderNode node(0);
+    rsRenderThreadVisitor.curDirtyManager_ = nullptr;
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ == nullptr);
+}
+
+/**
+ * @tc.name: PrepareSurfaceRenderNode007
+ * @tc.desc: test results of PrepareSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ76O
+ */
+HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode007, TestSize.Level1)
+{
+    RSRenderThreadVisitor rsRenderThreadVisitor;
+    RSSurfaceRenderNode node(0);
+    auto nodeParent = node.GetParent().lock();
+    nodeParent.reset();
+    rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor.curDirtyManager_ != nullptr);
+}
+
+/**
  * @tc.name: ProcessChildren001
  * @tc.desc: test results of ProcessChildren
  * @tc.type: FUNC
@@ -503,6 +534,11 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode005, TestSize.Level1)
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
     EXPECT_TRUE(rsRenderThreadVisitor.canvas_ != nullptr);
 
+    rsRenderThreadVisitor.isOpDropped_ = true;
+    rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor.isOpDropped_);
+
+    rsRenderThreadVisitor.isOpDropped_ = false;
     auto& properties = node.GetMutableRenderProperties();
     properties.isSpherizeValid_ = true;
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
@@ -748,28 +784,32 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
 HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode node(config);
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
     RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.canvas_ == nullptr);
 
-    Drawing::Canvas canvas;
+    // Use non-default constructor only to trigger creation of clip rectangle for canvas,
+    // because the test calls RSRenderThreadVisitor::ProcessSurfaceRenderNode method,
+    // which in turn tries to get clip boundaries via RSPaintFilterCanvas::GetLocalClipBounds.
+    // This way the test won't exit the function under test early, and can do a deeper traversal of the code.
+    Drawing::Canvas canvas(10, 10);
     rsRenderThreadVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(rsRenderThreadVisitor.canvas_ != nullptr);
 
-    node.shouldPaint_ = false;
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(!node.shouldPaint_);
+    node->shouldPaint_ = false;
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
+    EXPECT_TRUE(!node->shouldPaint_);
 
-    node.shouldPaint_ = true;
+    node->shouldPaint_ = true;
     rsRenderThreadVisitor.childSurfaceNodeIds_.clear();
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
+    EXPECT_TRUE(!rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
 
-    node.isTextureExportNode_ = true;
+    node->isTextureExportNode_ = true;
     rsRenderThreadVisitor.childSurfaceNodeIds_.push_back(0);
-    rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
+    rsRenderThreadVisitor.ProcessSurfaceRenderNode(*node);
     EXPECT_TRUE(!rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
 }
 
@@ -1269,5 +1309,67 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessOtherSurfaceRenderNode001, TestSize.L
     visitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     visitor.ProcessSurfaceRenderNode(node);
     EXPECT_EQ(visitor.childSurfaceNodeIds_.size(), 0);
+}
+
+/**
+ * @tc.name: GetFlipTransform001
+ * @tc.desc: test results of GetFlipTransform
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ76O
+ */
+HWTEST_F(RSRenderThreadVisitorTest, GetFlipTransform001, TestSize.Level1)
+{
+    RSRenderThreadVisitor visitor;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT90;
+    auto res = visitor.GetFlipTransform(transform);
+    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_H);
+
+    transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT180;
+    res = visitor.GetFlipTransform(transform);
+    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_H);
+
+    transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT270;
+    res = visitor.GetFlipTransform(transform);
+    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_H);
+
+    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT90;
+    res = visitor.GetFlipTransform(transform);
+    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_V);
+
+    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT180;
+    res = visitor.GetFlipTransform(transform);
+    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_V);
+
+    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT270;
+    res = visitor.GetFlipTransform(transform);
+    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_V);
+
+    transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    res = visitor.GetFlipTransform(transform);
+    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_ROTATE_NONE);
+}
+
+/**
+ * @tc.name: FlipMatrix001
+ * @tc.desc: test results of FlipMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ76O
+ */
+HWTEST_F(RSRenderThreadVisitorTest, FlipMatrix001, TestSize.Level1)
+{
+    RSRenderThreadVisitor visitor;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    Drawing::Matrix matrix;
+    RectF bounds;
+    visitor.FlipMatrix(transform, matrix, bounds);
+    EXPECT_TRUE(transform == GraphicTransformType::GRAPHIC_ROTATE_NONE);
+
+    transform = GraphicTransformType::GRAPHIC_FLIP_H;
+    visitor.FlipMatrix(transform, matrix, bounds);
+    EXPECT_TRUE(transform == GraphicTransformType::GRAPHIC_FLIP_H);
+
+    transform = GraphicTransformType::GRAPHIC_FLIP_V;
+    visitor.FlipMatrix(transform, matrix, bounds);
+    EXPECT_TRUE(transform == GraphicTransformType::GRAPHIC_FLIP_V);
 }
 } // namespace OHOS::Rosen

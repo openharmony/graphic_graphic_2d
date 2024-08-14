@@ -160,6 +160,7 @@ public:
     static bool GetHardwareComposerEnabled();
     static bool GetHardwareComposerEnabledForMirrorMode();
     static bool GetHwcRegionDfxEnabled();
+    static bool GetDrawMirrorCacheImageEnabled();
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
     static bool GetRSScreenRoundCornerEnable();

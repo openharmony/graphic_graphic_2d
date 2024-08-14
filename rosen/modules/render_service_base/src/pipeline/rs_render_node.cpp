@@ -1011,6 +1011,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     }
     CheckDrawingCacheType();
     if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
+        RS_LOGD("RSRenderNode::UpdateDrawingCacheInfoBC drawingCacheType is %{public}d", GetDrawingCacheType());
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfo id:%llu contentDirty:%d subTreeDirty:%d nodeGroupType:%d",
@@ -1021,6 +1022,9 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 
 void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
 {
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
+        " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
+        IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
     if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
@@ -2324,6 +2328,9 @@ void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSR
 
 void RSRenderNode::ApplyModifiers()
 {
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
+        " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
+        isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
     if (UNLIKELY(!isFullChildrenListValid_)) {
         GenerateFullChildrenList();
         AddDirtyType(RSModifierType::CHILDREN);
@@ -2334,6 +2341,7 @@ void RSRenderNode::ApplyModifiers()
         // if children has shared transition, force regenerate RSChildrenDrawable
         AddDirtyType(RSModifierType::CHILDREN);
     } else if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
+        RS_LOGD("RSRenderNode::apply modifiers RSRenderNode's dirty is false or dirtyTypes_ is none");
         // clean node, skip apply
         return;
     }
@@ -2347,12 +2355,15 @@ void RSRenderNode::ApplyModifiers()
     // Apply modifiers
     auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(shared_from_this());
     if (displayNode && displayNode->GetCurrentScbPid() != -1) {
+        RS_LOGD("RSRenderNode::apply modifiers displayNode's currentScbPid:%{public}d",
+            displayNode->GetCurrentScbPid());
         for (auto& [id, modifier] : modifiers_) {
             if (ExtractPid(id) == displayNode->GetCurrentScbPid()) {
                 ApplyModifier(context, modifier);
             }
         }
     } else {
+        RS_LOGD("RSRenderNode::apply modifiers displayNode is nullptr or displayNode's currentScbPid is -1");
         for (auto& [id, modifier] : modifiers_) {
             ApplyModifier(context, modifier);
         }
@@ -2363,6 +2374,10 @@ void RSRenderNode::ApplyModifiers()
     MarkForegroundFilterCache();
     UpdateShouldPaint();
 
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSRenderNode::apply modifiers dirtyTypes_:%{public}d RenderProperties's sandBox's hasValue is %{public}d"
+        " isTextureExportNode_:%{public}d", dirtyTypes_, GetRenderProperties().GetSandBox().has_value(),
+        isTextureExportNode_);
     if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::SANDBOX)) &&
         !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
         auto paramCopy = sharedTransitionParam_;
@@ -2405,6 +2420,7 @@ void RSRenderNode::UpdateDrawableVec()
 {
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::update drawable Vec dirtySlots is %{public}d", dirtySlots);
     if (!GetIsUsedBySubThread()) {
         UpdateDrawableVecInternal(dirtySlots);
     } else if (auto context = context_.lock()) {
@@ -2421,12 +2437,16 @@ void RSRenderNode::UpdateDrawableVecV2()
     // Step 1: Collect dirty slots
     auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
     if (dirtySlots.empty()) {
+        RS_LOGD("RSRenderNode::update drawable VecV2 dirtySlots is empty");
         return;
     }
     // Step 2: Update or regenerate drawable if needed
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d dirtySlots:%{public}d",
+        drawableChanged, dirtySlots);
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
@@ -3073,6 +3093,8 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
 void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkNodeGP type:%{public}d isNodeGroup:%{public}d id:%{public}" + PRIu64,
+        type, isNodeGroup, GetId());
     if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
         auto context = GetContext().lock();
         if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
@@ -3568,6 +3590,16 @@ bool RSRenderNode::IsStaticCached() const
 void RSRenderNode::SetNodeName(const std::string& nodeName)
 {
     nodeName_ = nodeName;
+    auto context = GetContext().lock();
+    if (!context || nodeName.empty()) {
+        return;
+    }
+    auto& uiFrameworkTypeTable = context->GetUiFrameworkTypeTable();
+    for (auto uiFwkType : uiFrameworkTypeTable) {
+        if (nodeName.rfind(uiFwkType, 0) == 0) {
+            context->UpdateUiFrameworkDirtyNodes(weak_from_this());
+        }
+    }
 }
 const std::string& RSRenderNode::GetNodeName() const
 {
@@ -4120,49 +4152,6 @@ void RSRenderNode::SetChildrenHasUIExtension(bool childrenHasUIExtension)
     if (parent && parent->ChildrenHasUIExtension() != childrenHasUIExtension) {
         parent->SetChildrenHasUIExtension(childrenHasUIExtension);
     }
-}
-
-void RSRenderNode::DumpDrawableTree(int32_t depth, std::string& out) const
-{
-    for (int32_t i = 0; i < depth; ++i) {
-        out += "  ";
-    }
-    RSRenderNode::DumpNodeType(Type, out);
-    out += "[" + std::to_string(id_) + "]";
-    DumpSubClassNode(out);
-
-    if (renderDrawable_) {
-        out += ", DrawableVec:[" + DumpDrawableVec() + "]";
-        renderDrawable_->DumpDrawableTree(out);
-    } else {
-        out += ", drawable null";
-    }
-
-    auto childList = GetChildren();
-    if (childList) {
-        for (auto childNode : *childList) {
-            if (childNode) {
-                childNode->DumpDrawableTree(depth + 1, out);
-            }
-        }
-    }
-}
-
-std::string RSRenderNode::DumpDrawableVec() const
-{
-    std::string str;
-    for (uint8_t i = 0; i < drawableVec_.size(); ++i) {
-        if (drawableVec_[i]) {
-            str += std::to_string(i) + ", ";
-        }
-    }
-    // str has more than 2 chars
-    if (str.length() > 2) {
-        str.pop_back();
-        str.pop_back();
-    }
-
-    return str;
 }
 
 bool SharedTransitionParam::UpdateHierarchyAndReturnIsLower(const NodeId nodeId)

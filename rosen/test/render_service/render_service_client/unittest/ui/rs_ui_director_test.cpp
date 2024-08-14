@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 #include "animation/rs_render_animation.h"
 #include "pipeline/rs_render_result.h"
+#include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_node_map.h"
 #include "modifier/rs_modifier_manager.h"
 #include "surface.h"
@@ -50,7 +51,10 @@ public:
 };
 
 void RSUIDirectorTest::SetUpTestCase() {}
-void RSUIDirectorTest::TearDownTestCase() {}
+void RSUIDirectorTest::TearDownTestCase()
+{
+    RSRenderThread::Instance().renderContext_ = nullptr;
+}
 void RSUIDirectorTest::SetUp() {}
 void RSUIDirectorTest::TearDown() {}
 
@@ -165,7 +169,9 @@ HWTEST_F(RSUIDirectorTest, SetUITaskRunner002, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, StartTextureExport001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->StartTextureExport();
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+        director->StartTextureExport();
+    }
     ASSERT_TRUE(director != nullptr);
 }
 
@@ -448,7 +454,9 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
     director->SetRoot(node->GetId());
     RSRootNode::SharedPtr nodePtr = std::make_shared<RSRootNode>(node->GetId());
     nodePtr->SetId(node->GetId());
-    director->StartTextureExport();
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+        director->StartTextureExport();
+    }
     director->GoForeground();
     director->GoBackground();
     bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);

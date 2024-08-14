@@ -46,24 +46,6 @@ void RSUniRenderUtilDirtyRegionTest::SetUp() {}
 void RSUniRenderUtilDirtyRegionTest::TearDown() {}
 
 /*
- * @tc.name: MergeDirtyHistory
- * @tc.desc: default value
- * @tc.type: FUNC
- * @tc.require: issueIAHPIM
-*/
-HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistory, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSDisplayNodeConfig config;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    auto rsRenderNode = std::make_shared<RSRenderNode>(id);
-    node->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(rsRenderNode);
-    node->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(id);
-    int32_t bufferAge = 0;
-    RSUniRenderUtil::MergeDirtyHistory(node, bufferAge);
-}
-
-/*
  * @tc.name: MergeDirtyHistoryInVirtual001
  * @tc.desc: Verify function MergeDirtyHistoryInVirtual while displayNode has no param
  * @tc.type: FUNC

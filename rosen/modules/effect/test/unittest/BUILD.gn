@@ -65,6 +65,11 @@ ohos_unittest("EffectTest") {
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
   ]
 
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
   configs = [
     ":effect_test_config",
     "$graphic_2d_root/utils/color_manager:color_manager_public_config",
