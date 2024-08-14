@@ -1615,6 +1615,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission SET_VMA_CACHE_STATUS");
+                return ERR_INVALID_STATE;
+            }
             bool flag = data.ReadBool();
             SetVmaCacheStatus(flag);
             break;
