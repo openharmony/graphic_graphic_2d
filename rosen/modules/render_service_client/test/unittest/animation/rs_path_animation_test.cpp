@@ -388,6 +388,8 @@ HWTEST_F(RSPathAnimationTest, StartNonNormalTest002, TestSize.Level1)
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto pathAnimation = std::make_shared<RSPathAnimation>(property, ANIMATION_PATH, startProperty, endProperty);
+    pathAnimation->InitInterpolationVector2f(nullptr, nullptr);
+    pathAnimation->InitInterpolationVector4f(nullptr, nullptr);
     pathAnimation->SetTimingCurve(RSAnimationTimingCurve::DEFAULT);
     /**
      * @tc.steps: step2. start GetEndFraction test

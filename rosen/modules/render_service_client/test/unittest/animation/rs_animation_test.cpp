@@ -555,7 +555,58 @@ HWTEST_F(RSAnimationTest, AnimationStatus003, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSAnimationTimingProtocolSetInstanceId
+ * @tc.name: AnimationStatus004
+ * @tc.desc: Verify the AnimationStatus of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus004 start";
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(ANIMATION_DURATION);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
+    auto animations = RSNode::Animate(protocol, curve, [&property]() {
+        property->Set(ANIMATION_END_BOUNDS);
+    });
+    auto animation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
+
+    animation->state_ = Rosen::RSAnimation::AnimationState::PAUSED;
+    animation->SetFraction(0.5);
+
+    animation->state_ = Rosen::RSAnimation::AnimationState::RUNNING;
+    animation->Pause();
+
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->OnReverse();
+    animation->Resume();
+    animation->Finish();
+    animation->Reverse();
+
+    animation->target_ = RSCanvasNode::Create(true, false);
+    animation->uiAnimation_.reset();
+    animation->Resume();
+    animation->OnFinish();
+    animation->OnReverse();
+    animation->OnSetFraction(0.5);
+
+    auto propAnimation = std::make_shared<RSPropertyAnimation>(nullptr);
+    auto propId = propAnimation->GetPropertyId();
+    EXPECT_TRUE(propId == 0);
+    propAnimation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    propAnimation->property_ = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    propAnimation->UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+    EXPECT_TRUE(propAnimation != nullptr);
+    
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus004 end";
+}
+
+/**
+ * @tc.name: AnimationStatus003
  * @tc.desc: Verify the SetInstanceId of RSAnimationTimingProtocol
  * @tc.type: FUNC
  */

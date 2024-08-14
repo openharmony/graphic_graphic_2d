@@ -357,6 +357,8 @@ HWTEST_F(RSCurveAnimationTest, SetIsCustomTest002, TestSize.Level1)
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(property, startProperty, endProperty);
+    auto renderAnimation = std::make_shared<RSRenderCurveAnimation>();
+    curveAnimation->StartRenderAnimation(renderAnimation);
     curveAnimation->SetTimingCurve(RSAnimationTimingCurve::EASE_OUT);
     curveAnimation->SetIsCustom(true);
     RSAnimationTimingCurve timingCurve = curveAnimation->GetTimingCurve();
@@ -370,6 +372,12 @@ HWTEST_F(RSCurveAnimationTest, SetIsCustomTest002, TestSize.Level1)
     EXPECT_TRUE(curveAnimation->IsRunning());
     EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
     NotifyStartAnimation();
+
+    RSAnimationTimingCurve timing;
+    timing.customCurveFunc_ = nullptr;
+    timing.interpolator_ = std::make_shared<RSCustomInterpolator>(nullptr, 1);
+    curveAnimation->SetTimingCurve(timing);
+    curveAnimation->IsSupportInteractiveAnimator();
     GTEST_LOG_(INFO) << "RSCurveAnimationTest SetIsCustomTest002 end" ;
 }
 } // namespace Rosen

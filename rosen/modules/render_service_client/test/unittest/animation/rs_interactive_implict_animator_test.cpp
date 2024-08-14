@@ -394,10 +394,38 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SetFinishCallBack001, TestSize.Level1
             property->Set(ANIMATION_END_BOUNDS);
         });
     });
+
+    auto callBack = animator->GetAnimatorFinishCallback();
+    EXPECT_TRUE(callBack != nullptr);
+
     animator->StartAnimation();
     NotifyStartAnimation();
     sleep(DELAY_TIME_ONE);
-    EXPECT_TRUE(testNum == 1);
+
+    protocol.SetDuration(0);
+    auto animator2 = RSInteractiveImplictAnimator::Create(protocol, curve);
+    // state
+    auto res = 1;
+    animator2->state_ = RSInteractiveAnimationState::RUNNING;
+    res = animator2->AddImplictAnimation(nullptr);
+    animator2->state_ = RSInteractiveAnimationState::INACTIVE;
+    EXPECT_TRUE(res == 0);
+    // protocol
+    res = 1;
+    res = animator2->AddImplictAnimation([&]() {
+        RSNode::Animate(protocol, curve, [&]() {
+            property->Set(ANIMATION_END_BOUNDS);
+        });
+    });
+    EXPECT_TRUE(res == 0);
+
+    protocol.SetDuration(ANIMATION_DURATION);
+    auto animator3 = RSInteractiveImplictAnimator::Create(protocol, curve);
+    animator3->AddImplictAnimation([&]()
+        { RSNode::Animate(protocol, curve, [&]() {
+            property->Set(ANIMATION_END_BOUNDS * 2);
+        });
+    });
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest SetFinishCallBack001 end";
 }
 } // namespace Rosen

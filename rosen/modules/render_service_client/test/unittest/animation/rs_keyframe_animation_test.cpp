@@ -386,5 +386,41 @@ HWTEST_F(RSKeyframeAnimationTest, SetIsCustomTest002, TestSize.Level1)
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSKeyframeAnimationTest SetIsCustomTest002 end";
 }
+
+/**
+ * @tc.name: KeyframeAnimationTest001
+ * @tc.desc: Verify the SetIsCustom of keyframeAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, KeyframeAnimationTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest KeyframeAnimationTest001 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto secondProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_SECOND_BOUNDS);
+
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(property);
+    /**
+     * @tc.steps: step2. test
+     */
+    keyframeAnimation->SetDurationKeyframe(true);
+    keyframeAnimation->InitInterpolationValue();
+    keyframeAnimation->SetDurationKeyframe(false);
+    keyframeAnimation->AddKeyFrame(FRACTION_MIN + 1, FRACTION_MIN, startProperty, RSAnimationTimingCurve::EASE_OUT);
+    keyframeAnimation->AddKeyFrame(1, 2, startProperty, RSAnimationTimingCurve::EASE_IN);
+    keyframeAnimation->InitInterpolationValue();
+    keyframeAnimation->SetDurationKeyframe(true);
+    keyframeAnimation->OnStart();
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest KeyframeAnimationTest001 end";
+}
 } // namespace Rosen
 } // namespace OHOS
