@@ -691,7 +691,6 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
         rcdRenderNode.GetFrameOffsetY();
         rcdRenderNode.GetRSSurface();
         rcdRenderNode.GetHardenBufferRequestConfig();
-        rcdRenderNode.GetRSSurface();
         auto comsumer = rcdRenderNode.GetConsumerListener();
         rcdRenderNode.CreateSurface(comsumer);
         rcdRenderNode.SetRcdBufferSize(0);
@@ -701,9 +700,21 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
         rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
         rs_rcd::RoundCornerLayer layer;
         rcdRenderNode.PrepareHardwareResourceBuffer(&layer);
-        rcdRenderNode.SetRcdBufferSize(10);
-        rcdRenderNode.SetRcdBufferHeight(20);
-        rcdRenderNode.SetRcdBufferWidth(100);
+        uint32_t size = 10;
+        rcdRenderNode.SetRcdBufferSize(size);
+        auto bufferSize = rcdRenderNode.GetRcdBufferSize();
+        EXPECT_EQ(bufferSize, size);
+
+        uint32_t height = 20;
+        rcdRenderNode.SetRcdBufferHeight(height);
+        auto bufferHeight = rcdRenderNode.GetRcdBufferHeight();
+        EXPECT_EQ(bufferHeight, height);
+
+        uint32_t width = 100;
+        rcdRenderNode.SetRcdBufferWidth(width);
+        auto bufferWidth = rcdRenderNode.GetRcdBufferWidth();
+        EXPECT_EQ(bufferWidth, width);
+        rcdRenderNode.GetHardenBufferRequestConfig();
         rcdRenderNode.SetHardwareResourceToBuffer();
         rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
         rcdRenderNode.PrepareHardwareResourceBuffer(&layer);
@@ -749,13 +760,16 @@ HWTEST_F(RSRoundCornerDisplayTest, UpdateNotchStatusTest, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
     rcdInstance.Init();
+    rcdInstance.UpdateNotchStatus(WINDOW_NOTCH_DEFAULT);
     // test status is < 0
     int notchStatus = -1;
     rcdInstance.UpdateNotchStatus(notchStatus);
+    EXPECT_TRUE(rcdInstance.notchStatus_ == WINDOW_NOTCH_DEFAULT);
 
     // test status is > 1
     int notchStatusTwo = 2;
     rcdInstance.UpdateNotchStatus(notchStatusTwo);
+    EXPECT_TRUE(rcdInstance.notchStatus_ == WINDOW_NOTCH_DEFAULT);
 }
 
 /*
@@ -772,16 +786,20 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseTopResourceTypeTest, TestSize.Level1
     ScreenRotation curOrientation = ScreenRotation::INVALID_SCREEN_ROTATION;
     rcdInstance.UpdateOrientationStatus(curOrientation);
     rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
 
     // test ScreenRotation::ROTATION_180, notchStatus is WINDOW_NOTCH_DEFAULT
     curOrientation = ScreenRotation::ROTATION_180;
     int notchStatus = WINDOW_NOTCH_DEFAULT;
     rcdInstance.UpdateNotchStatus(notchStatus);
     rcdInstance.UpdateOrientationStatus(curOrientation);
+    rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
 
     // test ScreenRotation::ROTATION_270, notchStatus is WINDOW_NOTCH_DEFAULT
     curOrientation = ScreenRotation::ROTATION_180;
     rcdInstance.UpdateOrientationStatus(curOrientation);
+    rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
 }
-
 }
