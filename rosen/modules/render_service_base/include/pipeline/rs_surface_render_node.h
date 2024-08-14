@@ -133,9 +133,9 @@ public:
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
-    bool GetForceHardwareByUser() const;
-    bool GetForceHardware() const;
-    void SetForceHardware(bool flag);
+    bool GetFixRotationByUser() const;
+    bool IsInFixedRotation() const;
+    void SetInFixedRotation(bool isRotating);
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -222,11 +222,6 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
-    void SetHardwareForcedDisabledByVisibility(bool forcesDisabled)
-    {
-        isHardwareForcedDisabledByVisibility_ = forcesDisabled;
-    }
-
     void SetNodeHasBackgroundColorAlpha(bool forcesDisabled)
     {
         isHardwareForcedByBackgroundAlpha_ = forcesDisabled;
@@ -259,10 +254,10 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if ((isForceHardware_ && !isHardwareForcedDisabledByVisibility_) || isProtectedLayer_) {
+        if (isProtectedLayer_) {
             return false;
         }
-        return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
+        return isHardwareForcedDisabled_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -529,6 +524,11 @@ public:
     const RectI& GetOriginalDstRect() const
     {
         return originalDstRect_;
+    }
+
+    const RectI& GetOriginalSrcRect() const
+    {
+        return originalSrcRect_;
     }
 
     Occlusion::Region& GetTransparentRegion()
@@ -1393,10 +1393,10 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
-    bool isForceHardwareByUser_ = false;
-    bool isForceHardware_ = false;
-    bool isHardwareForcedDisabledByVisibility_ = false;
+    bool isFixRotationByUser_ = false;
+    bool isInFixedRotation_ = false;
     RectI originalDstRect_;
+    RectI originalSrcRect_;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;

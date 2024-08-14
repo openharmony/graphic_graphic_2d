@@ -828,7 +828,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetForceHardwareAndFixRotation001, TestSize.Le
 
     node->InitRenderParams();
     node->SetForceHardwareAndFixRotation(true);
-    ASSERT_EQ(node->isForceHardwareByUser_, true);
+    ASSERT_EQ(node->isFixRotationByUser_, true);
 }
 
 /**
@@ -844,7 +844,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetForceHardwareAndFixRotation002, TestSize.Le
 
     node->InitRenderParams();
     node->SetForceHardwareAndFixRotation(false);
-    ASSERT_EQ(node->isForceHardwareByUser_, false);
+    ASSERT_EQ(node->isFixRotationByUser_, false);
 }
 
 /**

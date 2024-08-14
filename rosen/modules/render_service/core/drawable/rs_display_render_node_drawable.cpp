@@ -1350,6 +1350,9 @@ void RSDisplayRenderNodeDrawable::DrawCurtainScreen() const
 
 void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
 {
+    if (!canvasBackup_) {
+        return;
+    }
     RS_TRACE_NAME("ClearTransparentBeforeSaveLayer");
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
@@ -1364,8 +1367,7 @@ void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
         }
         RSAutoCanvasRestore arc(canvasBackup_.get());
         canvasBackup_->SetMatrix(surfaceParams->GetLayerInfo().matrix);
-        canvasBackup_->ClipRect(surfaceParams->GetForceHardwareByUser() ? surfaceDrawable->GetLocalClipRect() :
-             surfaceParams->GetBounds());
+        canvasBackup_->ClipRect(surfaceParams->GetBounds());
         canvasBackup_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
 }

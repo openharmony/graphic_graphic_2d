@@ -233,11 +233,6 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
     return false;
 }
 
-Drawing::Rect RSSurfaceRenderNodeDrawable::GetLocalClipRect() const
-{
-    return localClipRect_;
-}
-
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
@@ -646,16 +641,12 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
 #endif
     if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface()) {
-            RSAutoCanvasRestore arc(&canvas);
-            auto bounds = surfaceParams.GetBounds();
-            canvas.ClipRect({std::round(bounds.GetLeft()), std::round(bounds.GetTop()),
-                std::round(bounds.GetRight()), std::round(bounds.GetBottom())});
-            canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
-            if (surfaceParams.GetForceHardwareByUser()) {
-                auto localClip = canvas.GetLocalClipBounds(canvas);
-                localClipRect_ = localClip.has_value() ? localClip.value() : Drawing::Rect();
-            }
+            ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }
+        return;
+    }
+    if (surfaceParams.IsInFixedRotation()) {
+        DrawBufferForRotationFixed(canvas, surfaceParams);
         return;
     }
 
@@ -674,6 +665,36 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
 #endif
 
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
+}
+
+void RSSurfaceRenderNodeDrawable::ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas,
+    RSSurfaceRenderParams& surfaceParams)
+{
+    RSAutoCanvasRestore arc(&canvas);
+    auto bounds = surfaceParams.GetBounds();
+    canvas.ClipRect({std::round(bounds.GetLeft()), std::round(bounds.GetTop()),
+        std::round(bounds.GetRight()), std::round(bounds.GetBottom())});
+    canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
+}
+
+void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas,
+    RSSurfaceRenderParams& surfaceParams)
+{
+    ClipHoleForSelfDrawingNode(canvas, surfaceParams);
+
+    Drawing::Brush brush;
+    brush.SetBlendMode(Drawing::BlendMode::DST_OVER);
+    Drawing::SaveLayerOps layerOps(nullptr, &brush);
+    canvas.SaveLayer(layerOps);
+
+    Drawing::Matrix inverse;
+    if (!(surfaceParams.GetLayerInfo().matrix.Invert(inverse))) {
+        RS_LOGE("DrawBufferForRotationFixed failed to get invert matrix");
+    }
+    canvas.ConcatMatrix(inverse);
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, surfaceParams);
+    RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, *this, params);
+    canvas.Restore();
 }
 
 void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(

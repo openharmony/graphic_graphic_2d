@@ -15,6 +15,7 @@
 #include "gtest/gtest.h"
 #include "rs_test_util.h"
 #include "surface_buffer_impl.h"
+#include "surface_type.h"
 
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -679,10 +680,10 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectRotateTransformTest, Function | SmallTest |
 {
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    RSUniRenderUtil::SrcRectRotateTransform(node);
+    RSUniRenderUtil::SrcRectRotateTransform(node, GraphicTransformType::GRAPHIC_ROTATE_NONE);
 
     node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    RSUniRenderUtil::SrcRectRotateTransform(node);
+    RSUniRenderUtil::SrcRectRotateTransform(node, GraphicTransformType::GRAPHIC_ROTATE_NONE);
     EXPECT_FALSE(node.GetRSSurfaceHandler()->GetBuffer());
 }
 
@@ -698,11 +699,11 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectRotateTransformTest002, Function | SmallTes
     RSSurfaceRenderNode node(id);
     node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     node.GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
-    RSUniRenderUtil::SrcRectRotateTransform(node);
+    RSUniRenderUtil::SrcRectRotateTransform(node, GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
     node.GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT180);
-    RSUniRenderUtil::SrcRectRotateTransform(node);
+    RSUniRenderUtil::SrcRectRotateTransform(node, GraphicTransformType::GRAPHIC_FLIP_V_ROT180);
     node.GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
-    RSUniRenderUtil::SrcRectRotateTransform(node);
+    RSUniRenderUtil::SrcRectRotateTransform(node, GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
     EXPECT_FALSE(node.GetRSSurfaceHandler()->GetBuffer());
 }
 
@@ -789,7 +790,7 @@ HWTEST_F(RSUniRenderUtilTest, CheckForceHardwareAndUpdateDstRectTest, Function |
     RSSurfaceRenderNode node(id);
     node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(node);
-    node.isForceHardwareByUser_ = true;
+    node.isFixRotationByUser_ = true;
     RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(node);
     EXPECT_TRUE(node.GetOriginalDstRect().IsEmpty());
 }
@@ -804,8 +805,8 @@ HWTEST_F(RSUniRenderUtilTest, CheckForceHardwareAndUpdateDstRectTest002, Functio
 {
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    node.isForceHardwareByUser_ = true;
-    node.isForceHardware_ = true;
+    node.isFixRotationByUser_ = true;
+    node.isInFixedRotation_ = true;
     node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(node);
@@ -1117,7 +1118,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerCrop002, TestSize.Level2)
 
 /*
  * @tc.name: LayerCrop003
- * @tc.desc: LayerCrop test when isForceHardware_ is true
+ * @tc.desc: LayerCrop test when isInFixedRotation_ is true
  * @tc.type: FUNC
  * @tc.require: issueIAJBBO
  */
@@ -1125,7 +1126,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerCrop003, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    node.isForceHardware_ = true;
+    node.isInFixedRotation_ = true;
     ScreenInfo screenInfo;
 
     auto dstRect = node.GetDstRect();
