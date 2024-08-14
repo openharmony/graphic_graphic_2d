@@ -177,9 +177,8 @@ void HgmFrameRateManager::InitRsIdleTimer()
 
     static std::once_flag createFlag;
     std::call_once(createFlag, [this, resetTask, timeoutTask] () {
-        rsIdleTimer_ = std::make_unique<HgmOneShotTimer>("rs_idle_timer",
+        rsIdleTimer_ = std::make_unique<HgmSimpleTimer>("rs_idle_timer",
             std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), resetTask, timeoutTask);
-        rsIdleTimer_->Start();
     });
 }
 
@@ -881,7 +880,7 @@ void HgmFrameRateManager::HandleRsFrame()
     if (curSkipCount_ < skipFrame_) {
         curSkipCount_++;
     } else if (rsIdleTimer_) {
-        rsIdleTimer_->Reset();
+        rsIdleTimer_->Start();
     }
     touchManager_.HandleRsFrame();
 }

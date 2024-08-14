@@ -245,7 +245,7 @@ private:
     // rsIdleTimer_ skip rsFrame(see in SetShowRefreshRateEnabled), default value is 1 while ShowRefreshRate disabled
     int32_t skipFrame_ = 1;
     int32_t curSkipCount_ = 0xFF;
-    std::unique_ptr<HgmOneShotTimer> rsIdleTimer_ = nullptr;
+    std::unique_ptr<HgmSimpleTimer> rsIdleTimer_ = nullptr;
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
