@@ -20,6 +20,7 @@
 #include "sys_binder.h"
 
 #include "command/rs_command_factory.h"
+#include "common/rs_xcollie.h"
 #include "hgm_frame_rate_manager.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
@@ -1227,6 +1228,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
+            // timer: 3s
+            OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + std::to_string(callingPid), 3);
             uint64_t uniqueId = data.ReadUint64();
             std::shared_ptr<Drawing::Typeface> typeface;
             bool result = false;
