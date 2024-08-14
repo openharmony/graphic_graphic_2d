@@ -300,11 +300,6 @@ void RSUniRenderThread::Render()
     rootNodeDrawable_->OnDraw(canvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     PerfForBlurIfNeeded();
-
-    if (RSMainThread::Instance()->GetMarkRenderFlag() == false) {
-        RSMainThread::Instance()->SetFrameIsRender(true);
-    }
-    RSMainThread::Instance()->ResetMarkRenderFlag();
 }
 
 void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
