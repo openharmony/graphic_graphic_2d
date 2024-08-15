@@ -3198,9 +3198,9 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_002, TestSize.Level
 
     node->isHardwareEnabledNode_ = true;
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     node->zOrderChanged_ = true;
-    ASSERT_TRUE(node->GetZorderChanged()); // default false
+    ASSERT_TRUE(node->GetZorderChanged());
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
     ASSERT_TRUE((node->IsHardwareEnabledType() && node->GetZorderChanged() && rsUniRenderVisitor->curSurfaceNode_));
 
@@ -3245,9 +3245,9 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_003, TestSize.Level
 
     node->isHardwareEnabledNode_ = true;
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     node->zOrderChanged_ = true;
-    ASSERT_TRUE(node->GetZorderChanged()); // default false
+    ASSERT_TRUE(node->GetZorderChanged());
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
     ASSERT_TRUE((node->IsHardwareEnabledType() && node->GetZorderChanged() && rsUniRenderVisitor->curSurfaceNode_));
 
@@ -3393,7 +3393,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateLeashWindowVisibleRegionEmpty_004, TestSi
 
     const std::vector<std::shared_ptr<RSRenderNode>> constChildrenList { nullptr, nullptr };
     node->fullChildrenList_ = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>(constChildrenList);
-    // node->GenerateFullChildrenList();
+
     auto& childrenList = *(node->GetSortedChildren());
     ASSERT_NE(childrenList.size(), 0);
     for (const auto& child : childrenList) {
@@ -3411,7 +3411,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateLeashWindowVisibleRegionEmpty_004, TestSi
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is false
  * curSurfaceNode_ is nullptr
- * not reach hwc node
  * @tc.type:FUNC
  * @tc.require:issuesIAJO0U
  */
@@ -3437,7 +3436,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_001, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is true
  * curSurfaceNode_ is nullptr
- * not reach hwc node
  * @tc.type:FUNC
  * @tc.require:issuesIAJO0U
  */
@@ -3454,7 +3452,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_002, TestSize.Level
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->isHardwareEnabledNode_ = true;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = nullptr;
 
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*node);
@@ -3465,7 +3463,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_002, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is false
  * curSurfaceNode_ is not nullptr
- * not reach hwc node
  * @tc.type:FUNC
  * @tc.require:issuesIAJO0U
  */
@@ -3480,7 +3477,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_003, TestSize.Level
 
     node->needCollectHwcNode_ = true;
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
-    ASSERT_FALSE(node->IsHardwareEnabledType()); // default false
+    ASSERT_FALSE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
 
@@ -3514,10 +3511,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_004, TestSize.Level
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->isHardwareEnabledNode_ = true;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); // reach hwc node
+    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_);
 
     node->isHardWareDisabledByReverse_ = false;
     ASSERT_FALSE(node->GetHardWareDisabledByReverse());
@@ -3561,10 +3558,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_005, TestSize.Level
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->isHardwareEnabledNode_ = true;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); // reach hwc node
+    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_);
 
     node->isHardWareDisabledByReverse_ = false;
     ASSERT_FALSE(node->GetHardWareDisabledByReverse());
@@ -3615,10 +3612,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_006, TestSize.Level
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->isHardwareEnabledNode_ = true;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); // reach hwc node
+    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_);
 
     node->isHardWareDisabledByReverse_ = false;
     ASSERT_FALSE(node->GetHardWareDisabledByReverse());
@@ -3669,10 +3666,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_007, TestSize.Level
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->isHardwareEnabledNode_ = true;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); // reach hwc node
+    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_);
 
     node->isHardWareDisabledByReverse_ = false;
     ASSERT_FALSE(node->GetHardWareDisabledByReverse());
@@ -3714,8 +3711,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_008, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    // NodeId id = 0;
-    // auto node = std::make_shared<RSSurfaceRenderNode>(id);
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
 
@@ -3723,10 +3718,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_008, TestSize.Level
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->isHardwareEnabledNode_ = true;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); // reach hwc node
+    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_);
 
     node->isHardWareDisabledByReverse_ = false;
     ASSERT_FALSE(node->GetHardWareDisabledByReverse());
@@ -3784,8 +3779,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_009, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    // NodeId id = 0;
-    // auto node = std::make_shared<RSSurfaceRenderNode>(id);
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
 
@@ -3793,10 +3786,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_009, TestSize.Level
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->isHardwareEnabledNode_ = true;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); // reach hwc node
+    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_);
 
     node->isHardWareDisabledByReverse_ = false;
     ASSERT_FALSE(node->GetHardWareDisabledByReverse());
@@ -3838,8 +3831,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_010, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    // NodeId id = 0;
-    // auto node = std::make_shared<RSSurfaceRenderNode>(id);
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
 
@@ -3847,10 +3838,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_010, TestSize.Level
     ASSERT_TRUE(node->GetNeedCollectHwcNode());
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->isHardwareEnabledNode_ = true;
-    ASSERT_TRUE(node->IsHardwareEnabledType()); // default false
+    ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); // reach hwc node
+    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); 
 
     node->isHardWareDisabledByReverse_ = false;
     ASSERT_FALSE(node->GetHardWareDisabledByReverse());
