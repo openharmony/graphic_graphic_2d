@@ -3816,7 +3816,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_009, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is true
  * curSurfaceNode_ is not nullptr
- * reach hwc node
  * curSurfaceNode_->GetNeedCollectHwcNode() is true
  * node.GetHardWareDisabledByReverse() is false
  *
@@ -3841,7 +3840,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_010, TestSize.Level
     ASSERT_TRUE(node->IsHardwareEnabledType());
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_); 
+    ASSERT_TRUE(node->IsHardwareEnabledType() && rsUniRenderVisitor->curSurfaceNode_ != nullptr); 
 
     node->isHardWareDisabledByReverse_ = false;
     ASSERT_FALSE(node->GetHardWareDisabledByReverse());
