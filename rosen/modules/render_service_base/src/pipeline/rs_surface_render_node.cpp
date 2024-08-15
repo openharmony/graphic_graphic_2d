@@ -1377,7 +1377,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.blendType = GetBlendType();
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
-    if (IsHardwareEnabledTopSurface() && RSSystemProperties::GetLayerCursorEnable()) {
+    if (IsHardwareEnabledTopSurface() && RSSystemProperties::IsPcType()) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
