@@ -451,7 +451,7 @@ void RSComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const 
                                                const sptr<IConsumerSurface>& surface) const
 {
     HDRMetaDataType type;
-    if (surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
+    if (!info.buffer || surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
         RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
         return;
     }
@@ -848,7 +848,9 @@ void RSComposerAdapter::OnPrepareComplete(sptr<Surface>& surface, const PrepareC
 
 void RSComposerAdapter::SetHdiBackendDevice(HdiDevice* device)
 {
-    hdiBackend_->SetHdiBackendDevice(device);
+    if (hdiBackend_) {
+        hdiBackend_->SetHdiBackendDevice(device);
+    }
 }
 
 void RSComposerAdapter::SetMirroredScreenInfo(const ScreenInfo& mirroredScreenInfo)

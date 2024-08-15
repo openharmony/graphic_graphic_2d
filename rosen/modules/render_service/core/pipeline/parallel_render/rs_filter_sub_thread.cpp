@@ -198,7 +198,7 @@ void RSFilterSubThread::ReleaseImageAndSurfaces(std::weak_ptr<std::atomic<bool>>
     for (auto& item : tmpImageResources_) {
         auto& initHandler = handlerMap_[item.first];
         auto& imageQueue = item.second;
-        if (imageQueue.size() != 0) {
+        if (imageQueue.size() != 0 && initHandler) {
             initHandler->PostTask(
                 [this, &imageQueue, waitRelease, grBackendTextureMutex]() {
                     PreReleaseImage(imageQueue, waitRelease, grBackendTextureMutex);
@@ -230,6 +230,9 @@ void RSFilterSubThread::DumpMem(DfxString& log)
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        if (node == nullptr) {
+            return;
+        }
         std::string name = node->GetName() + " " + std::to_string(node->GetId());
         nodeTags.push_back({node->GetId(), name});
     });

@@ -19,9 +19,10 @@
 
 #include <string>
 
+#include "drawable/rs_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "GLES3/gl3.h"
 #include "include/core/SkCanvas.h"
-#include "rs_trace.h"
 
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
@@ -32,10 +33,8 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
-
 #include "pipeline/rs_uifirst_manager.h"
-#include "drawable/rs_render_node_drawable.h"
-#include "drawable/rs_surface_render_node_drawable.h"
+#include "rs_trace.h"
 
 #ifdef RES_SCHED_ENABLE
 #include "qos.h"
@@ -102,6 +101,9 @@ void RSSubThread::DumpMem(DfxString& log)
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        if (node == nullptr) {
+            return;
+        }
         std::string name = node->GetName() + " " + std::to_string(node->GetId());
         nodeTags.push_back({node->GetId(), name});
     });
@@ -177,6 +179,10 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
     visitor->SetFocusedNodeId(RSMainThread::Instance()->GetFocusNodeId(),
         RSMainThread::Instance()->GetFocusLeashWindowId());
     auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSSubThread::RenderCache screenManager is nullptr");
+        return;
+    }
     visitor->SetScreenInfo(screenManager->QueryScreenInfo(screenManager->GetDefaultScreenId()));
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     bool needRequestVsync = false;
