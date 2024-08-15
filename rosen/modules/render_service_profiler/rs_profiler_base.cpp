@@ -1108,7 +1108,7 @@ int64_t RSProfiler::AnimeSetStartTime(AnimationId id, int64_t nanoTime)
         if (!g_animeStartMap.count(id)) {
             return nanoTime;
         }
-        int64_t minDt = INT64_MAX, minTime = nanoTime;
+        int64_t minDt = INT64_MAX, minTime = nanoTime - g_replayStartTimeNano;
         for (const auto recordedTime : g_animeStartMap[id]) {
             int64_t dt = abs(recordedTime - (nanoTime - g_replayStartTimeNano));
             if (dt < minDt) {
@@ -1119,11 +1119,11 @@ int64_t RSProfiler::AnimeSetStartTime(AnimationId id, int64_t nanoTime)
         return minTime + g_replayStartTimeNano;
     } else if (g_mode == Mode::WRITE) {
         if (g_animeStartMap.count(id)) {
-            g_animeStartMap[id].push_back(nanoTime);
+            g_animeStartMap[Utils::PatchNodeId(id)].push_back(nanoTime);
         } else {
             std::vector<int64_t> list;
             list.push_back(nanoTime);
-            g_animeStartMap.insert({ id, list });
+            g_animeStartMap.insert({ Utils::PatchNodeId(id), list });
         }
     }
 

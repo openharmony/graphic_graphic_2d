@@ -1416,12 +1416,27 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 
     ImageCache::Reset();
 
+    auto &animeMap = RSProfiler::AnimeGetStartTimes();
+    animeMap.clear();
+
     Respond("Opening file " + path);
     g_playbackFile.Open(path);
     if (!g_playbackFile.IsOpen()) {
         Respond("Can't open file.");
         return;
     }
+
+    auto& fileAnimeStartTimes = g_playbackFile.GetAnimeStartTimes();
+    for (const auto item : fileAnimeStartTimes) {
+        if (animeMap.count(item.first)) {
+            animeMap[Utils::PatchNodeId(item.first)].push_back(item.second);
+        } else {
+            std::vector<int64_t> list;
+            list.push_back(item.second);
+            animeMap.insert({ Utils::PatchNodeId(item.first), list });
+        }
+    }
+
     std::string dataFirstFrame = g_playbackFile.GetHeaderFirstFrame();
 
     // get first frame data
