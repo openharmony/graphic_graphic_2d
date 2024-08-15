@@ -3217,29 +3217,10 @@ HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList002, TestSize.Level1)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId id = 3;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    rsUniRenderVisitor->curDisplayNode_ = displayNode;
-    ASSERT_EQ(rsUniRenderVisitor->GetCurrentBlackList().size(), 0);
-}
-
-/**
- * @tc.name: GetCurrentBlackList
- * @tc.desc: Test GetCurrentBlackList003, GetCastScreenEnableSkipWindow() return true
- * @tc.type: FUNC
- * @tc.require: issueIAJSIS
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList003, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
     NodeId displayNodeId = 3;
     RSDisplayNodeConfig config;
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
-    displayNode->SetScreenId(0);
     ASSERT_EQ(rsUniRenderVisitor->GetCurrentBlackList().size(), 0);
 }
 
