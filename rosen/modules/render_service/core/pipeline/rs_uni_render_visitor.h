@@ -236,7 +236,6 @@ private:
     void UpdateHwcNodeEnable();
     void PrevalidateHwcNode();
 
-    void PrepareForCapsuleWindowNode(RSSurfaceRenderNode& node);
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
     void PrepareForUIFirstNode(RSSurfaceRenderNode& node);
 
@@ -293,6 +292,8 @@ private:
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectVSyncRate(RSSurfaceRenderNode& node, RSVisibleLevel visibleLevel);
     void CollectEffectInfo(RSRenderNode& node);
+
+    void UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node);
 
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode
      * 1. is leash window

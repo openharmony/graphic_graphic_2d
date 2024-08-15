@@ -50,16 +50,16 @@ struct CubicResampler {
     {
         out += "[cubicCoffB:" + std::to_string(cubicCoffB);
         out += " cubicCoffC:" + std::to_string(cubicCoffB);
-        out += "]";
+        out += ']';
     }
 };
 
 class DRAWING_API SamplingOptions {
 public:
     inline SamplingOptions() noexcept;
-    inline SamplingOptions(FilterMode fm) noexcept;
+    inline explicit SamplingOptions(FilterMode fm) noexcept;
     inline SamplingOptions(FilterMode fm, MipmapMode mm) noexcept;
-    inline SamplingOptions(const CubicResampler& c) noexcept;
+    inline explicit SamplingOptions(const CubicResampler& c) noexcept;
 
     inline ~SamplingOptions() {}
 
@@ -75,10 +75,10 @@ public:
     inline void Dump(std::string& out) const;
 
 private:
-    bool useCubic;
-    CubicResampler cubic;
-    FilterMode filter;
-    MipmapMode mipmap;
+    bool useCubic = false;
+    CubicResampler cubic = {0, 0};
+    FilterMode filter = FilterMode::NEAREST;
+    MipmapMode mipmap = MipmapMode::NONE;
 };
 
 inline SamplingOptions::SamplingOptions() noexcept
@@ -131,12 +131,12 @@ inline bool operator!=(const SamplingOptions& a, const SamplingOptions& b)
 
 inline void SamplingOptions::Dump(std::string& out) const
 {
-    out += "[useCubic:" + std::string((useCubic ? "true" : "false"));
+    out += "[useCubic:" + std::string(useCubic ? "true" : "false");
     out += " cubic";
     cubic.Dump(out);
     out += " filterMode:" + std::to_string(static_cast<int>(filter));
     out += " mipmapMode:" + std::to_string(static_cast<int>(mipmap));
-    out += "]";
+    out += ']';
 }
 } // namespace Drawing
 } // namespace Rosen

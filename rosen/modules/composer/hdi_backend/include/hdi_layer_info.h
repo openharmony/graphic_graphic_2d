@@ -444,6 +444,16 @@ public:
         return clearCacheSet_;
     }
 
+    void SetRotationFixed(bool rotationFixed)
+    {
+        rotationFixed_ = rotationFixed;
+    }
+
+    bool GetRotationFixed() const
+    {
+        return rotationFixed_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -475,6 +485,7 @@ public:
         scalingMode_ = layerInfo->GetScalingMode();
         layerSource_ = layerInfo->GetLayerSourceTuning();
         clearCacheSet_ = layerInfo->GetClearCacheSet();
+        rotationFixed_ = layerInfo->GetRotationFixed();
     }
 
     void Dump(std::string &result) const
@@ -594,6 +605,7 @@ private:
     ScalingMode scalingMode_;
     int32_t layerSource_ = 0; // default layer source tag
     std::set<int32_t> clearCacheSet_;
+    bool rotationFixed_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

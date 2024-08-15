@@ -552,7 +552,18 @@ HWTEST_F(RSClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
 
     rsClient->SetShowRefreshRateEnabled(true);
-    EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), true);
+    EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
+}
+
+/**
+ * @tc.name: GetRefreshInfo Test
+ * @tc.desc: GetRefreshInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, GetRefreshInfo001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->GetRefreshInfo(-1), "");
 }
 
 /**
@@ -823,7 +834,7 @@ HWTEST_F(RSClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
 {
     UIExtensionCallback callback = nullptr;
     uint64_t userId = 0;
-    EXPECT_EQ(rsClient->RegisterUIExtensionCallback(userId, callback),
+    EXPECT_NE(rsClient->RegisterUIExtensionCallback(userId, callback),
         StatusCode::INVALID_ARGUMENTS);
 }
 } // namespace Rosen

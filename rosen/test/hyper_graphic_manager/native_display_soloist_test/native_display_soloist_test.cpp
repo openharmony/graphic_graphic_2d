@@ -129,8 +129,10 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange00
 HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_SetExpectedFrameRateRange002, Function | MediumTest | Level2)
 {
     DisplaySoloist_ExpectedRateRange invalidRange = { FRAME_RATE_30_HZ, FRAME_RATE_90_HZ, FRAME_RATE_120_HZ };
-    int32_t result = OH_DisplaySoloist_SetExpectedFrameRateRange(nullptr, &invalidRange);
-    EXPECT_EQ(SOLOIST_ERROR, result);
+    int32_t result1 = OH_DisplaySoloist_SetExpectedFrameRateRange(nullptr, &invalidRange);
+    EXPECT_EQ(SOLOIST_ERROR, result1);
+    int32_t result2 = OH_DisplaySoloist_SetExpectedFrameRateRange(nativeDisplaySoloist, &invalidRange);
+    EXPECT_EQ(SOLOIST_ERROR, result2);
 }
 
 /*

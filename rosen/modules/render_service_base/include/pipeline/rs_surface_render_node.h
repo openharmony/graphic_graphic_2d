@@ -133,9 +133,9 @@ public:
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
-    bool GetForceHardwareByUser() const;
-    bool GetForceHardware() const;
-    void SetForceHardware(bool flag);
+    bool GetFixRotationByUser() const;
+    bool IsInFixedRotation() const;
+    void SetInFixedRotation(bool isRotating);
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -222,11 +222,6 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
-    void SetHardwareForcedDisabledByVisibility(bool forcesDisabled)
-    {
-        isHardwareForcedDisabledByVisibility_ = forcesDisabled;
-    }
-
     void SetNodeHasBackgroundColorAlpha(bool forcesDisabled)
     {
         isHardwareForcedByBackgroundAlpha_ = forcesDisabled;
@@ -259,10 +254,10 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if ((isForceHardware_ && !isHardwareForcedDisabledByVisibility_) || isProtectedLayer_) {
+        if (isProtectedLayer_) {
             return false;
         }
-        return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
+        return isHardwareForcedDisabled_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -344,7 +339,8 @@ public:
     void SetSurfaceNodeType(RSSurfaceNodeType nodeType)
     {
         if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE &&
-            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_NODE) {
+            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE &&
+            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
             nodeType_ = nodeType;
         }
     }
@@ -529,6 +525,11 @@ public:
     const RectI& GetOriginalDstRect() const
     {
         return originalDstRect_;
+    }
+
+    const RectI& GetOriginalSrcRect() const
+    {
+        return originalSrcRect_;
     }
 
     Occlusion::Region& GetTransparentRegion()
@@ -1183,9 +1184,15 @@ public:
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
+    bool IsSecureUIExtension() const
+    {
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    }
+
     bool IsUIExtension() const
     {
-        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_NODE;
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+               nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     }
 
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
@@ -1205,12 +1212,6 @@ public:
         }
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
-
-    NodeId GetRootIdOfCaptureWindow() const
-    {
-        return rootIdOfCaptureWindow_;
-    }
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow);
 
 protected:
     void OnSync() override;
@@ -1399,10 +1400,10 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
-    bool isForceHardwareByUser_ = false;
-    bool isForceHardware_ = false;
-    bool isHardwareForcedDisabledByVisibility_ = false;
+    bool isFixRotationByUser_ = false;
+    bool isInFixedRotation_ = false;
     RectI originalDstRect_;
+    RectI originalSrcRect_;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
@@ -1481,8 +1482,6 @@ private:
     bool isSkipDraw_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
-
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

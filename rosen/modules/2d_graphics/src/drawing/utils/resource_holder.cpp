@@ -32,7 +32,7 @@ void ResourceHolder::ReleaseResource()
     impl_->ReleaseResource();
 }
 
-bool ResourceHolder::IsEmpty()
+bool ResourceHolder::IsEmpty() const
 {
     return impl_->IsEmpty();
 }

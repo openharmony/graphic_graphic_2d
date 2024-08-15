@@ -403,6 +403,7 @@ void RSUniRenderVisitor::UpdateSecuritySkipAndProtectedLayersRecord(RSSurfaceRen
 {
     if (node.GetHasSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
+        curDisplayNode_->AddSecurityLayer(node.GetId());
     }
     if (node.GetHasSkipLayer() && node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
         displayHasSkipSurface_[currentVisitDisplay_] = true;
@@ -513,6 +514,50 @@ bool RSUniRenderVisitor::IsDisplayZoomIn() const
     return scale.x_ > 1.f || scale.y_ > 1.f;
 }
 
+void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node)
+{
+    // only for virtual screen
+    if (!(node.IsMirrorDisplay())) {
+        return;
+    }
+    auto mirrorNode = node.GetMirrorSource().lock();
+    if (mirrorNode == nullptr || screenManager_ == nullptr) {
+        return;
+    }
+    auto securityExemptionList = screenManager_->GetVirtualScreenSecurityExemptionList(node.GetScreenId());
+    if (securityExemptionList.size() == 0) {
+        RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:false",
+            node.GetId());
+        node.SetSecurityExemption(false);
+        mirrorNode->ClearSecurityLayerList();
+        return;
+    }
+    auto securityLayerList = mirrorNode->GetSecurityLayerList();
+    for (const auto& exemptionLayer : securityExemptionList) {
+        RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ""
+            "securityExemption nodeId %{public}" PRIu64 ".", node.GetId(), exemptionLayer);
+    }
+    for (const auto& secLayer : securityLayerList) {
+        RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ""
+            "securityLayer nodeId %{public}" PRIu64 ".", mirrorNode->GetId(), secLayer);
+    }
+    bool isSecurityExemption = false;
+    if (securityExemptionList.size() >= securityLayerList.size()) {
+        isSecurityExemption = true;
+        for (const auto& secLayer : securityLayerList) {
+            if (std::find(securityExemptionList.begin(), securityExemptionList.end(), secLayer) ==
+                securityExemptionList.end()) {
+                isSecurityExemption = false;
+                break;
+            }
+        }
+    }
+    RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:%{public}d",
+        node.GetId(), isSecurityExemption);
+    node.SetSecurityExemption(isSecurityExemption);
+    mirrorNode->ClearSecurityLayerList();
+}
+
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
     // 0. init display info
@@ -521,6 +566,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         return;
     }
     SendRcdMessage(node);
+    UpdateVirtualScreenSecurityExemption(node);
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_;
@@ -643,25 +689,12 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     dirtyFlag_ = dirtyFlag;
 
     PrepareForUIFirstNode(node);
-    PrepareForCapsuleWindowNode(node);
     node.OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
-}
-
-void RSUniRenderVisitor::PrepareForCapsuleWindowNode(RSSurfaceRenderNode& node)
-{
-    if (UNLIKELY(!curDisplayNode_)) {
-        RS_LOGE("RSUniRenderVisitor::PrepareForCapsuleWindowNode curDisplayNode is nullptr");
-        return;
-    }
-    if (node.GetName().find("CapsuleWindow") == std::string::npos) {
-        return;
-    }
-    node.SetRootIdOfCaptureWindow(FindInstanceChildOfDisplay(node.GetParent().lock()));
 }
 
 void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)
@@ -1192,16 +1225,17 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         if (!node.GetHardWareDisabledByReverse()) {
             node.SetHardwareForcedDisabledState(false);
         }
-        node.SetHardwareForcedDisabledByVisibility(false);
-        node.SetForceHardware(displayNodeRotationChanged_ || isScreenRotationAnimating_);
-        if ((!node.GetForceHardware() && !IsHardwareComposerEnabled()) ||
+        node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
+        if (!IsHardwareComposerEnabled() ||
             curSurfaceNode_->GetVisibleRegion().IsEmpty() || !node.GetRSSurfaceHandler()->GetBuffer()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by param/invisible/no buffer",
                 node.GetName().c_str(), node.GetId());
-            node.SetHardwareForcedDisabledByVisibility(true);
+            node.SetHardwareForcedDisabledState(true);
             hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
                 HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, node.GetName());
-            return;
+            if (!node.GetFixRotationByUser()) {
+                return;
+            }
         }
         auto geo = node.GetRenderProperties().GetBoundsGeometry();
         UpdateSrcRect(node, geo->GetAbsMatrix(), geo->GetAbsRect());
@@ -1253,7 +1287,7 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
     if (!node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
         return;
     }
-    node.SetForceHardware(displayNodeRotationChanged_ || isScreenRotationAnimating_);
+    node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     RSUniRenderUtil::DealWithNodeGravity(node, screenInfo_);
     RSUniRenderUtil::LayerRotate(node, screenInfo_);
     RSUniRenderUtil::LayerCrop(node, screenInfo_);
@@ -1504,7 +1538,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             continue;
         }
         auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(it.first);
-        if (node == nullptr || node->GetForceHardware() || node->GetProtectedLayer()) {
+        if (node == nullptr || node->IsInFixedRotation() || node->GetProtectedLayer()) {
             continue;
         }
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by prevalidate",
@@ -1660,7 +1694,20 @@ void RSUniRenderVisitor::UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<Rect
     std::shared_ptr<RSSurfaceRenderNode>& appNode)
 {
     const auto& hwcNodes = appNode->GetChildHardwareEnabledNodes();
+    std::shared_ptr<RSRenderNode> parentNode =
+        std::static_pointer_cast<RSRenderNode>(appNode);
     bool hasCornerRadius = !appNode->GetRenderProperties().GetCornerRadius().IsZero();
+    auto appRect = appNode->GetRenderProperties().GetBoundsRect();
+    while ((bool)(parentNode = parentNode->GetParent().lock()) &&
+           parentNode->GetType() != RSRenderNodeType::DISPLAY_NODE) {
+        auto parentRect = parentNode->GetRenderProperties().GetBoundsRect();
+        if (parentRect.Intersect(appRect)) {
+            hasCornerRadius |= (!parentNode->GetRenderProperties().GetCornerRadius().IsZero());
+        }
+        if (hasCornerRadius) {
+            break;
+        }
+    }
     for (auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {

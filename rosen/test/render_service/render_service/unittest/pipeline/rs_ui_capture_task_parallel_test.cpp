@@ -36,6 +36,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing::ext;
@@ -71,6 +72,18 @@ public:
     bool captureSuccess_ = false;
     bool isCallbackCalled_ = false;
 };
+
+class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
+    sptr<IRemoteObject> AsObject()
+    {
+        return nullptr;
+    }
+
+    void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap)
+    {
+        // DO NOTHING
+    }
+};
 }
 
 class RSUiCaptureTaskParallelTest : public testing::Test {
@@ -90,6 +103,12 @@ public:
 
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         usleep(SLEEP_TIME_FOR_PROXY);
+
+        RSUniRenderThread::Instance().InitGrContext();
+
+        auto& renderNodeGC = RSRenderNodeGC::Instance();
+        renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
+        renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
     }
 
     static void TearDownTestCase()
@@ -172,6 +191,18 @@ public:
         }
         HiLog::Error(LOG_LABEL, "CheckSurfaceCaptureCallback timeout");
         return false;
+    }
+
+    std::shared_ptr<RSUiCaptureTaskParallel> BuildTaskParallel(NodeId nodeId, float width = 0.0f, float height = 0.0f)
+    {
+        RSSurfaceCaptureConfig config;
+        auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+        renderNode->renderContent_->renderProperties_.SetBoundsWidth(width);
+        renderNode->renderContent_->renderProperties_.SetBoundsHeight(height);
+        RSMainThread::Instance()->GetContext().nodeMap.RegisterRenderNode(renderNode);
+
+        auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+        return renderNodeHandle;
     }
 
     static RSInterfaces* rsInterfaces_;
@@ -502,6 +533,41 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest |
     parent4->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
     renderNode->parent_ = parent4;
     ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+}
+
+/*
+ * @tc.name: Run001
+ * @tc.desc: Test RSUiCaptureTaskParallel::Run
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, Run001, Function | SmallTest | Level2)
+{
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto handle = BuildTaskParallel(-1, 0.0f, 0.0f);
+    ASSERT_EQ(handle->Run(mockCallback), false);
+
+    handle->CreateResources();
+    ASSERT_EQ(handle->Run(mockCallback), false);
+}
+
+/*
+ * @tc.name: Run002
+ * @tc.desc: Test RSUiCaptureTaskParallel::Run
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, Run002, Function | SmallTest | Level2)
+{
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto handle = BuildTaskParallel(200, 1024.0f, 1024.0f);
+    ASSERT_EQ(handle->Run(mockCallback), false);
+
+    handle->CreateResources();
+    ASSERT_EQ(handle->Run(mockCallback), true);
+
+    handle->nodeDrawable_ = nullptr;
+    ASSERT_EQ(handle->Run(mockCallback), false);
 }
 
 /*

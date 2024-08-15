@@ -72,6 +72,11 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
 
+    virtual int32_t SetVirtualScreenSecurityExemptionList(
+        ScreenId id, const std::vector<uint64_t>& securityExemptionList) = 0;
+
+    virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) = 0;
+
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
 
     virtual void GetCastScreenBlackList(std::unordered_set<uint64_t>& screenBlackList) = 0;
@@ -268,6 +273,11 @@ public:
         std::vector<uint64_t> whiteList) override;
 
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
+
+    int32_t SetVirtualScreenSecurityExemptionList(
+        ScreenId id, const std::vector<uint64_t>& securityExemptionList) override;
+
+    const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 

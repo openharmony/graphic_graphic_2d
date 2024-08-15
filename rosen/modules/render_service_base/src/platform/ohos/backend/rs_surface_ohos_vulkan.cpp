@@ -79,23 +79,36 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
 
 
 void RSSurfaceOhosVulkan::CreateVkSemaphore(
-    VkSemaphore* semaphore, RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
+    VkSemaphore& semaphore, RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface)
 {
     VkSemaphoreCreateInfo semaphoreInfo;
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = nullptr;
     semaphoreInfo.flags = 0;
     auto& vkInterface = vkContext.GetRsVulkanInterface();
-    vkInterface.vkCreateSemaphore(vkInterface.GetDevice(), &semaphoreInfo, nullptr, semaphore);
+    auto res = vkInterface.vkCreateSemaphore(vkInterface.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+    if (res != VK_SUCCESS) {
+        ROSEN_LOGE("RSSurfaceOhosVulkan: CreateVkSemaphore vkCreateSemaphore failed %{public}d", res);
+        semaphore = VK_NULL_HANDLE;
+        nativeSurface.fence->Wait(-1);
+        return;
+    }
 
     VkImportSemaphoreFdInfoKHR importSemaphoreFdInfo;
     importSemaphoreFdInfo.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR;
     importSemaphoreFdInfo.pNext = nullptr;
-    importSemaphoreFdInfo.semaphore = *semaphore;
+    importSemaphoreFdInfo.semaphore = semaphore;
     importSemaphoreFdInfo.flags = VK_SEMAPHORE_IMPORT_TEMPORARY_BIT;
     importSemaphoreFdInfo.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
     importSemaphoreFdInfo.fd = nativeSurface.fence->Dup();
-    vkInterface.vkImportSemaphoreFdKHR(vkInterface.GetDevice(), &importSemaphoreFdInfo);
+    res = vkInterface.vkImportSemaphoreFdKHR(vkInterface.GetDevice(), &importSemaphoreFdInfo);
+    if (res != VK_SUCCESS) {
+        ROSEN_LOGE("RSSurfaceOhosVulkan: CreateVkSemaphore vkImportSemaphoreFdKHR failed %{public}d", res);
+        vkInterface.vkDestroySemaphore(vkInterface.GetDevice(), semaphore, nullptr);
+        semaphore = VK_NULL_HANDLE;
+        close(importSemaphoreFdInfo.fd);
+        nativeSurface.fence->Wait(-1);
+    }
 }
 
 int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer,
@@ -166,9 +179,11 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         auto status = nativeSurface.fence->GetStatus();
         if (status != SIGNALED) {
             auto& vkContext = RsVulkanContext::GetSingleton();
-            VkSemaphore semaphore;
-            CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
-            nativeSurface.drawingSurface->Wait(1, semaphore);
+            VkSemaphore semaphore = VK_NULL_HANDLE;
+            CreateVkSemaphore(semaphore, vkContext, nativeSurface);
+            if (semaphore != VK_NULL_HANDLE) {
+                nativeSurface.drawingSurface->Wait(1, semaphore);
+            }
         }
     }
     int32_t bufferAge;

@@ -302,8 +302,10 @@ public:
     bool GetHardwareEnabled() const override;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
-    void SetForceHardwareByUser(bool flag);
-    bool GetForceHardwareByUser() const;
+    void SetFixRotationByUser(bool flag);
+    bool GetFixRotationByUser() const;
+    void SetInFixedRotation(bool flag);
+    bool IsInFixedRotation() const;
     // source crop tuning
     void SetLayerSourceTuning(int32_t needSourceTuning);
     int32_t GetLayerSourceTuning() const;
@@ -414,8 +416,6 @@ public:
         return false;
     }
 
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) override;
-    NodeId GetRootIdOfCaptureWindow() const override;
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -464,7 +464,8 @@ private:
 #endif
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
-    bool isForceHardwareByUser_ = false;
+    bool isFixRotationByUser_ = false;
+    bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
@@ -490,7 +491,6 @@ private:
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

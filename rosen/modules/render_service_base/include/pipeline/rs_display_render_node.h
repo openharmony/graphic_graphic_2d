@@ -198,6 +198,31 @@ public:
         currentFrameSurfacesByDescZOrder_.emplace_back(id, rect);
     }
 
+    void AddSecurityLayer(NodeId id)
+    {
+        securityLayerList_.emplace_back(id);
+    }
+
+    void ClearSecurityLayerList()
+    {
+        securityLayerList_.clear();
+    }
+
+    const std::vector<NodeId>& GetSecurityLayerList()
+    {
+        return securityLayerList_;
+    }
+
+    void SetSecurityExemption(bool isSecurityExemption)
+    {
+        isSecurityExemption_ = isSecurityExemption;
+    }
+
+    bool GetSecurityExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {
@@ -426,6 +451,9 @@ private:
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
+
+    std::vector<NodeId> securityLayerList_;
+    bool isSecurityExemption_ = false;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;

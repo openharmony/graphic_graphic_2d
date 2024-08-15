@@ -145,6 +145,19 @@ HWTEST_F(HdiBackendTest, RegHwcDeadListener002, Function | MediumTest| Level3)
     ASSERT_EQ(ret, ROSEN_ERROR_OK);
 }
 
+/*
+* Function: ResetDevice
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call ResetDevice()
+*                  2. check ret
+*/
+HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
+{
+    hdiBackend_->ResetDevice();
+    hdiBackend_->OnScreenHotplug(-1, true);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

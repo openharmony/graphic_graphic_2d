@@ -39,6 +39,7 @@ namespace {
     constexpr float MARGIN = 0.00001;
     constexpr float MIN_DRAWING_DIVISOR = 10.0f;
     constexpr float DIVISOR_TWO = 2.0f;
+    constexpr uint32_t MULTIPLE_TWO = 2;
     constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
     constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 20;
@@ -227,11 +228,6 @@ void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, uint
     idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid, uiFwkType);
 }
 
-void HgmFrameRateManager::ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
-{
-    idleDetector_.ProcessUnknownUIFwkIdleState(activeNodesInRoot, timestamp);
-}
 void HgmFrameRateManager::UpdateAppSupportedState()
 {
     bool appNeedHighRefresh = false;
@@ -439,6 +435,11 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         }
         const auto& expectedRange = linker.second->GetExpectedRange();
         auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, expectedRange);
+        // The caculated drawing fps should be greater than or equal to preferred fps.
+        // e.g. The preferred fps is 72, the refresh rate is 120, the drawing fps will be 120, not 60.
+        if (appFrameRate < expectedRange.preferred_ && (appFrameRate * MULTIPLE_TWO <= currRefreshRate_)) {
+            appFrameRate = appFrameRate * MULTIPLE_TWO;
+        }
         if (touchManager_.GetState() != TouchState::IDLE_STATE) {
             appFrameRate = OLED_NULL_HZ;
         }

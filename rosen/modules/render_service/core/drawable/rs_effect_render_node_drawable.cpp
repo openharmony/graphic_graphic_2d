@@ -52,7 +52,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         QuickReject(canvas, effectParams->GetLocalDrawRect())) {
         return;
     }
-    Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
+    Drawing::Rect bounds = effectParams->GetFrameRect();
     canvas.ClipIRect(Drawing::RectI(0, 0, bounds.GetWidth(), bounds.GetHeight()));
 
     if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
@@ -86,9 +86,10 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSRenderNodeDrawableAdapter::DrawImpl(*offscreenCanvas, bounds, drawCmdIndex_.backgroundImageIndex_);
         RSRenderNodeDrawableAdapter::DrawImpl(*offscreenCanvas, bounds, drawCmdIndex_.backgroundFilterIndex_);
         // copy effect data from offscreen canvas to current canvas, aligned with current rect
-        auto effectData = offscreenCanvas->GetEffectData();
-        effectData->cachedRect_.Offset(currentRect.GetLeft(), currentRect.GetTop());
-        paintFilterCanvas->SetEffectData(effectData);
+        if (auto effectData = offscreenCanvas->GetEffectData()) {
+            effectData->cachedRect_.Offset(currentRect.GetLeft(), currentRect.GetTop());
+            paintFilterCanvas->SetEffectData(effectData);
+        }
     }
 
     RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);

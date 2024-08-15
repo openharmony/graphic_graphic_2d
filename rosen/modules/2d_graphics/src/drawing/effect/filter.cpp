@@ -96,6 +96,22 @@ bool operator!=(const Filter& f1, const Filter& f2)
     return f1.colorFilter_ != f2.colorFilter_ || f1.imageFilter_ != f2.imageFilter_ ||
         f1.maskFilter_ != f2.maskFilter_ || f1.filterQuality_ != f2.filterQuality_;
 }
+
+void Filter::Dump(std::string& out) const
+{
+    out += '[';
+    if (colorFilter_ != nullptr) {
+        out += "colorFilter:" + std::to_string(static_cast<int>(colorFilter_->GetType())) + " ";
+    }
+    if (imageFilter_ != nullptr) {
+        out += "imageFilter:" + std::to_string(static_cast<int>(imageFilter_->GetType())) + " ";
+    }
+    if (maskFilter_ != nullptr) {
+        out += "maskFilter:" + std::to_string(static_cast<int>(maskFilter_->GetType())) + " ";
+    }
+    out += "filterQuality:" + std::to_string(static_cast<int>(filterQuality_));
+    out += ']';
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

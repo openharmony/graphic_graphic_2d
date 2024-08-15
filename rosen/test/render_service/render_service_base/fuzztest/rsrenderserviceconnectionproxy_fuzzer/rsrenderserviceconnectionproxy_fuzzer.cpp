@@ -154,6 +154,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetScreenSupportedRefreshRates(id1);
     rsRenderServiceConnectionProxy.GetShowRefreshRateEnabled();
     rsRenderServiceConnectionProxy.SetShowRefreshRateEnabled(true);
+    rsRenderServiceConnectionProxy.GetRefreshInfo(id1);
     rsRenderServiceConnectionProxy.SetVirtualScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetScreenPowerStatus(id1, status);
     rsRenderServiceConnectionProxy.RegisterApplicationAgent(width, app);

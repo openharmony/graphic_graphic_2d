@@ -27,7 +27,8 @@
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
-static const std::string G_SYSTTEM_FONT_DIR = "/system/fonts/";
+
+static const std::string G_SYSTEM_FONT_DIR = "/system/fonts/";
 
 static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cCanvas)
 {
@@ -58,7 +59,7 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int ind
     }
     std::string pathStr(path);
     // system font is not sent to RenderService to optimize performance.
-    if (pathStr.substr(0, G_SYSTTEM_FONT_DIR.length()) != G_SYSTTEM_FONT_DIR &&
+    if (pathStr.substr(0, G_SYSTEM_FONT_DIR.length()) != G_SYSTEM_FONT_DIR &&
         Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
         bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface);
         if (!ret) {

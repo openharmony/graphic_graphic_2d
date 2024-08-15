@@ -27,6 +27,7 @@
 #include "vsync_log.h"
 #include "sandbox_utils.h"
 #include <rs_trace.h>
+#include "qos.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -160,7 +161,10 @@ VsyncError VSyncReceiver::Init()
         std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
         looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         runner->Run();
-        looper_->PostTask([this] { this->ThreadCreateNotify(); });
+        looper_->PostTask([this] {
+            SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
+            this->ThreadCreateNotify();
+        });
     }
 
     looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");

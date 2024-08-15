@@ -36,5 +36,20 @@ HWTEST_F(EglManagerTest, EGLDisplay001, TestSize.Level1)
     EXPECT_EQ(manager.GetConfig(EglManager::EGL_SUPPORT_VERSION, nullptr), nullptr);
 }
 
+/**
+ * @tc.name: EGLDisplay002
+ * @tc.desc: test repeat init
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(EglManagerTest, EGLDisplay002, TestSize.Level1)
+{
+    auto &manager = EglManager::GetInstance();
+    manager.Init();
+    manager.Init();
+    EXPECT_EQ(manager.GetConfig(EglManager::EGL_SUPPORT_VERSION, nullptr), nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

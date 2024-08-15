@@ -14,7 +14,7 @@
  */
 
 #include "js_strut_style.h"
-#include "log_wrapper.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 thread_local napi_ref JsStrutStyleManager::constructor_ = nullptr;

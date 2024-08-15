@@ -286,6 +286,8 @@ HWTEST_F(RSSpringAnimationTest, SetZeroThreshold001, TestSize.Level1)
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
     auto springAnimation = std::make_shared<RSSpringAnimation>(property, startProperty, endProperty);
     springAnimation->SetZeroThreshold(0.1f);
+    springAnimation->SetZeroThreshold(-0.1f);
+    springAnimation->SetInitialVelocity(nullptr);
     /**
      * @tc.steps: step2. start SetIsCustom test
      */
@@ -317,6 +319,7 @@ HWTEST_F(RSSpringAnimationTest, SetZeroThreshold002, TestSize.Level1)
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
     auto springAnimation = std::make_shared<RSInterpolatingSpringAnimation>(property, startProperty, endProperty);
     springAnimation->SetZeroThreshold(0.1f);
+    springAnimation->SetZeroThreshold(-0.1f);
     /**
      * @tc.steps: step2. start SetIsCustom test
      */
@@ -326,6 +329,74 @@ HWTEST_F(RSSpringAnimationTest, SetZeroThreshold002, TestSize.Level1)
     EXPECT_TRUE(springAnimation->IsRunning());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSpringAnimationTest SetZeroThreshold002 end";
+}
+
+/**
+ * @tc.name: SetIsCustomTest003
+ * @tc.desc: Verify the SetIsCustom of RSInterpolatingSpringAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, SetIsCustomTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetIsCustomTest003 start";
+    /**
+     * @tc.steps: step1. init SetIsCustom
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto springAnimation = std::make_shared<RSInterpolatingSpringAnimation>(property, startProperty, endProperty);
+    springAnimation->SetIsCustom(true);
+    RSAnimationTimingCurve timingCurve = springAnimation->GetTimingCurve();
+    /**
+     * @tc.steps: step2. start SetIsCustom test
+     */
+    EXPECT_FALSE(springAnimation == nullptr);
+    EXPECT_FALSE(springAnimation->IsStarted());
+    springAnimation->Start(canvasNode);
+    EXPECT_TRUE(springAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetIsCustomTest003 end";
+}
+
+/**
+ * @tc.name: TargetTest001
+ * @tc.desc: Verify the SetIsCustom of RSInterpolatingSpringAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpringAnimationTest, TargetTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetIsCustomTest003 start";
+    /**
+     * @tc.steps: step1. init animation
+     */
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
+    auto springAnimation = std::make_shared<RSInterpolatingSpringAnimation>(property, startProperty, endProperty);
+    springAnimation->SetIsCustom(false);
+    RSAnimationTimingCurve timingCurve = springAnimation->GetTimingCurve();
+    /**
+     * @tc.steps: step2. settarget
+     */
+    springAnimation->target_.reset();
+    springAnimation->OnStart();
+    EXPECT_FALSE(springAnimation == nullptr);
+    EXPECT_FALSE(springAnimation->IsStarted());
+    canvasNode->isRenderServiceNode_ = true;
+    canvasNode->isTextureExportNode_ = false;
+    springAnimation->Start(canvasNode);
+    EXPECT_TRUE(springAnimation->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSpringAnimationTest SetIsCustomTest002 end";
 }
 } // namespace Rosen
 } // namespace OHOS

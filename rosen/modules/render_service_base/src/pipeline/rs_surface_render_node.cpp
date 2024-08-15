@@ -752,28 +752,35 @@ void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetForceHardwareByUser(flag);
+    surfaceParams->SetFixRotationByUser(flag);
     AddToPendingSyncList();
 
-    isForceHardwareByUser_ = flag;
+    isFixRotationByUser_ = flag;
 }
 
-bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+bool RSSurfaceRenderNode::GetFixRotationByUser() const
 {
-    return isForceHardwareByUser_;
+    return isFixRotationByUser_;
 }
 
-bool RSSurfaceRenderNode::GetForceHardware() const
+bool RSSurfaceRenderNode::IsInFixedRotation() const
 {
-    return isForceHardware_;
+    return isInFixedRotation_;
 }
 
-void RSSurfaceRenderNode::SetForceHardware(bool flag)
+void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating)
 {
-    if (isForceHardwareByUser_ && !isForceHardware_ && flag) {
-        originalDstRect_ = dstRect_;
+    if (isFixRotationByUser_ && !isInFixedRotation_ && isRotating) {
+#ifndef ROSEN_CROSS_PLATFORM
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        if (surfaceParams) {
+            auto layer = surfaceParams->GetLayerInfo();
+            originalSrcRect_ = { layer.srcRect.x, layer.srcRect.y, layer.srcRect.w, layer.srcRect.h };
+            originalDstRect_ = { layer.dstRect.x, layer.dstRect.y, layer.dstRect.w, layer.dstRect.h };
+        }
+#endif
     }
-    isForceHardware_ = isForceHardwareByUser_ && flag;
+    isInFixedRotation_ = isFixRotationByUser_ && isRotating;
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
@@ -1420,6 +1427,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     surfaceParams->SetLayerInfo(layer);
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
+    surfaceParams->SetInFixedRotation(isInFixedRotation_);
     // 1 means need source tuning
     if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat()) {
         surfaceParams->SetLayerSourceTuning(1);
@@ -2473,7 +2481,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             firstLevelNodeId = parentNode->GetFirstLevelNodeId ();
         }
     }
-    if (IsUIExtension()) {
+    if (IsSecureUIExtension()) {
         if (onTree) {
             secUIExtensionNodes_.insert(std::pair<NodeId, NodeId>(GetId(), instanceRootNodeId));
         } else {
@@ -2773,16 +2781,6 @@ bool RSSurfaceRenderNode::GetSkipDraw() const
 const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtensionNodes()
 {
     return secUIExtensionNodes_;
-}
-
-void RSSurfaceRenderNode::SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
-{
-    rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
-    if (stagingRenderParams_ == nullptr) {
-        RS_LOGE("%{public}s displayParams is nullptr", __func__);
-        return;
-    }
-    stagingRenderParams_->SetRootIdOfCaptureWindow(rootIdOfCaptureWindow);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -111,9 +111,12 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
 
 bool RSSurfaceCaptureTaskParallel::CreateResources()
 {
-    RS_LOGD("RSSurfaceCaptureTaskParallel capture nodeId:[%{public}" PRIu64 "]", nodeId_);
+    RS_LOGD("RSSurfaceCaptureTaskParallel capture nodeId:[%{public}" PRIu64 "] scaleX:%{public}f"
+        " scaleY:%{public}f useCurWindow:%{public}d", nodeId_, captureConfig_.scaleX,
+        captureConfig_.scaleY,  captureConfig_.useCurWindow);
     if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
-        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
+        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f ||
+        captureConfig_.scaleX > 1.f || captureConfig_.scaleY > 1.f) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
         return false;
     }
@@ -273,11 +276,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
-        " created pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
-        " useDma: [%{public}d]",
-        node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        captureConfig_.scaleX, captureConfig_.scaleY, captureConfig_.useDma);
+        " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d]",
+        node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        captureConfig_.useDma, screenRotation_, screenCorrection_);
     return Media::PixelMap::Create(opts);
 }
 
@@ -331,8 +333,6 @@ int32_t RSSurfaceCaptureTaskParallel::CalPixelMapRotation()
     auto screenRotation = ScreenRotationMapping(screenRotation_);
     auto screenCorrection = ScreenRotationMapping(screenCorrection_);
     int32_t rotation = screenRotation - screenCorrection;
-    RS_LOGI("RSSurfaceCaptureTaskParallel::CalPixelMapRotation: screenRotation:%{public}d"
-        " screenCorrection:%{public}d", screenRotation, screenCorrection);
     return rotation;
 }
 

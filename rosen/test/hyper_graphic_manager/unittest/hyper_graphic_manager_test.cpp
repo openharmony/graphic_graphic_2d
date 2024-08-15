@@ -412,6 +412,15 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level
             STEP_ASSERT_EQ(screen1->GetXDpi(), 0);
             STEP_ASSERT_EQ(screen1->GetYDpi(), 0);
 
+            int32_t invalidValue = 66;
+            STEP_ASSERT_EQ(screen1->GetModeIdViaRate(invalidValue), -1); // invalid mode id
+            uint32_t savedActiveMode = screen1->GetActiveMode();
+            STEP_ASSERT_NE(screen1->GetModeIdViaRate(0), -2);
+            screen1->activeModeId_ = invalidValue; // invalid active mode
+            STEP_ASSERT_EQ(screen1->IfSwitchToRate(screen1->GetActiveMode(), OLED_30_HZ), false);
+            STEP_ASSERT_EQ(screen1->GetModeIdViaRate(0), -1);
+            screen1->activeModeId_ = savedActiveMode;
+
             delete screen1;
             screen1 = nullptr;
             STEP_ASSERT_EQ(screen1, nullptr);
@@ -556,6 +565,8 @@ HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level2)
     auto &instance = HgmCore::Instance();
     EXPECT_EQ(instance.GetIdealPeriod(30), IDEAL_30_PERIOD);
     EXPECT_EQ(instance.GetIdealPeriod(60), IDEAL_60_PERIOD);
+    int32_t invalidValue = 0;
+    EXPECT_EQ(instance.GetIdealPeriod(invalidValue), 0);
 }
 
 /**
@@ -617,5 +628,45 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
     EXPECT_EQ(instance.GetEnableDynamicMode(), false);
 }
 
+/**
+ * @tc.name: TestAbnormalCase
+ * @tc.desc: Verify the abnormal case of HgmCore
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level4)
+{
+    auto &hgm = HgmCore::Instance();
+    hgm.isEnabled_ = false; // HGMCore is disable.
+    hgm.Init();
+
+    hgm.isEnabled_ = true;
+    hgm.mPolicyConfigData_ = nullptr; // PolicyConfigData is nullptr.
+    hgm.Init();
+
+    auto mgr = hgm.GetFrameRateMgr();
+    std::string savedScreenStrategyId = mgr->curScreenStrategyId_;
+    EXPECT_EQ(savedScreenStrategyId, "LTPO-DEFAULT");
+    std::string invalidScreenStrategyId = "DEFAULT-INVALID";
+    mgr->curScreenStrategyId_ = invalidScreenStrategyId;
+    hgm.CheckCustomFrameRateModeValid();
+    mgr->curScreenStrategyId_ = savedScreenStrategyId;
+
+    int32_t savedFrameRateMode = hgm.customFrameRateMode_;
+    EXPECT_EQ(savedFrameRateMode, -1);
+    int32_t invalidValue = 66;
+    hgm.customFrameRateMode_ = invalidValue;
+    hgm.CheckCustomFrameRateModeValid();
+    hgm.GetCurrentRefreshRateModeName();
+
+    hgm.mPolicyConfigData_ = nullptr;
+    hgm.customFrameRateMode_ = invalidValue;
+    EXPECT_EQ(hgm.GetCurrentRefreshRateModeName(), invalidValue);
+    hgm.customFrameRateMode_ = 1;
+    EXPECT_EQ(hgm.GetCurrentRefreshRateModeName(), 60);
+    ScreenId screenId = 8;
+    hgm.GetScreenComponentRefreshRates(screenId);
+    hgm.customFrameRateMode_ = savedFrameRateMode;
+}
 } // namespace Rosen
 } // namespace OHOS

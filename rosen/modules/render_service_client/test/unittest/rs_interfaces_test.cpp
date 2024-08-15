@@ -1718,5 +1718,106 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenStatus, Function | SmallTest | Level2
     EXPECT_EQ(rsInterfaces->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PAUSE), true);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList_001
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with abnormal params, screenId is INVALID_SCREEN_ID.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ2YU
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::vector<NodeId> securityExemptionList = {};
+    int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(INVALID_SCREEN_ID, securityExemptionList);
+    EXPECT_EQ(res, INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList_002
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ2YU
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_002, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;  // width value for test
+    uint32_t defaultHeight = 1280;  // height value for test
+    ASSERT_NE(rsInterfaces, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    std::vector<NodeId> securityExemptionList = {1, 2, 3};  // 1,2,3 NodeId for test
+    int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(virtualScreenId, securityExemptionList);
+    EXPECT_EQ(res, SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList_003
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with normal params, list is empty.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ2YU
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_003, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;  // width value for test
+    uint32_t defaultHeight = 1280;  // height value for test
+    ASSERT_NE(rsInterfaces, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    std::vector<NodeId> securityExemptionList = {};
+    int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(virtualScreenId, securityExemptionList);
+    EXPECT_EQ(res, SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList_004
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with abnormal params, screen not found by screenId.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ8DJ
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_004, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;  // width value for test
+    uint32_t defaultHeight = 1280;  // height value for test
+    ASSERT_NE(rsInterfaces, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    ScreenId id = virtualScreenId + 1;
+    std::vector<NodeId> securityExemptionList = {};
+    int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    EXPECT_EQ(res, SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList_005
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with abnormal params, screen is not virtual by screenId.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ8DJ
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::vector<NodeId> securityExemptionList = {};
+    int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
+    EXPECT_EQ(res, INVALID_ARGUMENTS);
+}
 } // namespace Rosen
 } // namespace OHOS

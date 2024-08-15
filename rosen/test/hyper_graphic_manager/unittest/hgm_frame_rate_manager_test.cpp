@@ -27,11 +27,6 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
-    int32_t width = 720;
-    int32_t height = 1080;
-    int32_t phyWidth = 685;
-    int32_t phyHeight = 1218;
-    ScreenSize screenSize = {width, height, phyWidth, phyHeight};
     const std::string otherSurface = "Other_SF";
     const std::string settingStrategyName = "99";
     constexpr uint64_t  currTime = 200000000;
@@ -106,6 +101,7 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRate
     screenSetting.strategy = settingStrategyName;
     frameRateMgr.multiAppStrategy_.SetStrategyConfigs(strategyConfigs);
     frameRateMgr.multiAppStrategy_.SetScreenSetting(screenSetting);
+    frameRateMgr.ReportHiSysEvent({ .extInfo = "ON" });
 }
 
 /**
@@ -210,7 +206,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS002, Function | SmallTest | Level1
 HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
 {
     int64_t offset = 0;
-    int64_t touchCnt = 1;
     int32_t testThreadNum = 100;
     std::string pkg0 = "com.pkg.other:0:-1";
     std::string pkg1 = "com.ss.hm.ugc.aweme:1001:10067";
@@ -254,6 +249,75 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
         frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
     }
     sleep(1); // wait for handler task finished
+}
+
+/**
+ * @tc.name: CleanPidCallbackTest
+ * @tc.desc: Verify the result of CleanPidCallbackTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level2)
+{
+    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+    int32_t defaultPid = 0;
+    int32_t gamePid = 10024;
+    uint32_t undefinedCallbackType = 0xff;
+    std::string defaultScreenStrategyId = "LTPO-DEFAULT";
+    std::string invalidScreenStrategyId = "DEFAULT-INVALID";
+    auto &hgm = HgmCore::Instance();
+
+    mgr->CleanVote(defaultPid);
+    mgr->cleanPidCallback_[gamePid].insert(CleanPidCallbackType::TOUCH_EVENT);
+    mgr->cleanPidCallback_[gamePid].insert(CleanPidCallbackType::GAMES);
+    mgr->cleanPidCallback_[gamePid].insert(static_cast<CleanPidCallbackType>(undefinedCallbackType));
+    mgr->CleanVote(gamePid);
+
+    ASSERT_EQ(mgr->sceneStack_.empty(), true);
+    mgr->sceneStack_.push_back(std::make_pair("sceneName", 0));
+    ASSERT_EQ(mgr->sceneStack_.empty(), false);
+
+    std::string savedScreenStrategyId = mgr->curScreenStrategyId_;
+    ASSERT_EQ(savedScreenStrategyId, defaultScreenStrategyId);
+    mgr->curScreenStrategyId_ = invalidScreenStrategyId;
+    mgr->UpdateVoteRule();
+    hgm.mPolicyConfigData_ = nullptr;
+    mgr->UpdateVoteRule();
+    mgr->curScreenStrategyId_ = savedScreenStrategyId;
+}
+
+/**
+ * @tc.name: HandleEventTest
+ * @tc.desc: Verify the result of HandleEventTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level2)
+{
+    std::string pkg0 = "com.pkg.other:0:-1";
+    std::string pkg1 = "com.pkg.other:1:-1";
+
+    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+    auto &hgm = HgmCore::Instance();
+    mgr->DeliverRefreshRateVote({"VOTER_GAMES", 120, 90, 0}, true);
+
+    mgr->GetExpectedFrameRate(static_cast<RSPropertyUnit>(0xff), 100.f);
+    hgm.mPolicyConfigData_ = nullptr;
+    ASSERT_EQ(nullptr, hgm.GetPolicyConfigData());
+    mgr->GetPreferredFps("translate", 100.f);
+
+    EventInfo eventInfo = { .eventName = "VOTER_GAMES", .eventStatus = false,
+        .description = pkg0,
+    };
+    mgr->HandleRefreshRateEvent(0, eventInfo);
+    mgr->HandleGamesEvent(0, eventInfo);
+    eventInfo.eventStatus = true;
+    mgr->HandleGamesEvent(0, eventInfo);
+    eventInfo.description = pkg1;
+    mgr->HandleGamesEvent(0, eventInfo);
+    mgr->HandleGamesEvent(1, eventInfo);
+    mgr->HandleIdleEvent(true);
+    mgr->HandleIdleEvent(false);
 }
 
 /**

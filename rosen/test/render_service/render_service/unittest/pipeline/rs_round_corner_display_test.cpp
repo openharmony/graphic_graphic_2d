@@ -146,6 +146,34 @@ HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest, TestSize.Level1)
 }
 
 /*
+ * @tc.name: RSLoadImgTest001
+ * @tc.desc: Test RSRoundCornerDisplayTest.RSLoadImgTest001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest001, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Image> imgBottomPortrait;
+    Drawing::Bitmap bitmapBottomPortrait;
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.Init();
+
+    // test waring path
+    const char* path1 = "test_waring_path.png";
+    bool flag1 = rcdInstance.LoadImg(path1, imgBottomPortrait);
+    EXPECT_TRUE(flag1 == false);
+
+    // test image is nullpr
+    bool flag2 = rcdInstance.DecodeBitmap(nullptr, bitmapBottomPortrait);
+    EXPECT_TRUE(flag2 == false);
+
+    // test correct path, but the file type is incorrect.
+    const char* path2 = "config.xml";
+    bool flag3 = rcdInstance.LoadImg(path2, imgBottomPortrait);
+    EXPECT_TRUE(flag3 == false);
+}
+
+/*
  * @tc.name: RSGetSurfaceSourceTest
  * @tc.desc: Test RSRoundCornerDisplayTest.RSGetSurfaceSourceTest
  * @tc.type: FUNC
@@ -285,7 +313,6 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
     // test
     visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, true);
 }
-
 
 /*
  * @tc.name: ProcessRcdSurfaceRenderNode2
@@ -664,7 +691,6 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
         rcdRenderNode.GetFrameOffsetY();
         rcdRenderNode.GetRSSurface();
         rcdRenderNode.GetHardenBufferRequestConfig();
-        rcdRenderNode.GetRSSurface();
         auto comsumer = rcdRenderNode.GetConsumerListener();
         rcdRenderNode.CreateSurface(comsumer);
         rcdRenderNode.SetRcdBufferSize(0);
@@ -674,13 +700,106 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdSurfaceRenderNode, TestSize.Level1)
         rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
         rs_rcd::RoundCornerLayer layer;
         rcdRenderNode.PrepareHardwareResourceBuffer(&layer);
-        rcdRenderNode.SetRcdBufferSize(10);
-        rcdRenderNode.SetRcdBufferHeight(20);
-        rcdRenderNode.SetRcdBufferWidth(100);
+        uint32_t size = 10;
+        rcdRenderNode.SetRcdBufferSize(size);
+        auto bufferSize = rcdRenderNode.GetRcdBufferSize();
+        EXPECT_EQ(bufferSize, size);
+
+        uint32_t height = 20;
+        rcdRenderNode.SetRcdBufferHeight(height);
+        auto bufferHeight = rcdRenderNode.GetRcdBufferHeight();
+        EXPECT_EQ(bufferHeight, height);
+
+        uint32_t width = 100;
+        rcdRenderNode.SetRcdBufferWidth(width);
+        auto bufferWidth = rcdRenderNode.GetRcdBufferWidth();
+        EXPECT_EQ(bufferWidth, width);
+        rcdRenderNode.GetHardenBufferRequestConfig();
         rcdRenderNode.SetHardwareResourceToBuffer();
         rcdRenderNode.PrepareHardwareResourceBuffer(nullptr);
         rcdRenderNode.PrepareHardwareResourceBuffer(&layer);
     }
 }
 
+/*
+ * @tc.name: RcdChooseHardwareResourceTest
+ * @tc.desc: Test RSRoundCornerDisplay.RcdChooseHardwareResource
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RcdChooseHardwareResourceTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest RcdChooseHardwareResourceTest start";
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rs_rcd::ROGSetting rog;
+    rog.height = 2772;
+    rog.width = 1344;
+    rcdInstance.rog_ = &rog;
+
+    rcdInstance.showResourceType_ = TOP_PORTRAIT;
+    rcdInstance.RcdChooseHardwareResource();
+
+    rcdInstance.showResourceType_ = TOP_HIDDEN;
+    rcdInstance.RcdChooseHardwareResource();
+
+    rcdInstance.showResourceType_ = TOP_LADS_ORIT;
+    rcdInstance.RcdChooseHardwareResource();
+
+    rcdInstance.showResourceType_ = 4;
+    rcdInstance.RcdChooseHardwareResource();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest RcdChooseHardwareResourceTest end";
+}
+
+/*
+ * @tc.name: UpdateNotchStatusTest
+ * @tc.desc: Test RSRoundCornerDisplay.UpdateNotchStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, UpdateNotchStatusTest, TestSize.Level1)
+{
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.Init();
+    rcdInstance.UpdateNotchStatus(WINDOW_NOTCH_DEFAULT);
+    // test status is < 0
+    int notchStatus = -1;
+    rcdInstance.UpdateNotchStatus(notchStatus);
+    EXPECT_TRUE(rcdInstance.notchStatus_ == WINDOW_NOTCH_DEFAULT);
+
+    // test status is > 1
+    int notchStatusTwo = 2;
+    rcdInstance.UpdateNotchStatus(notchStatusTwo);
+    EXPECT_TRUE(rcdInstance.notchStatus_ == WINDOW_NOTCH_DEFAULT);
+}
+
+/*
+ * @tc.name: RcdChooseTopResourceTypeTest
+ * @tc.desc: Test RSRoundCornerDisplay.RcdChooseTopResourceType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RcdChooseTopResourceTypeTest, TestSize.Level1)
+{
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.Init();
+    // test curOrientation is INVALID_SCREEN_ROTATION
+    ScreenRotation curOrientation = ScreenRotation::INVALID_SCREEN_ROTATION;
+    rcdInstance.UpdateOrientationStatus(curOrientation);
+    rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
+
+    // test ScreenRotation::ROTATION_180, notchStatus is WINDOW_NOTCH_DEFAULT
+    curOrientation = ScreenRotation::ROTATION_180;
+    int notchStatus = WINDOW_NOTCH_DEFAULT;
+    rcdInstance.UpdateNotchStatus(notchStatus);
+    rcdInstance.UpdateOrientationStatus(curOrientation);
+    rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
+
+    // test ScreenRotation::ROTATION_270, notchStatus is WINDOW_NOTCH_DEFAULT
+    curOrientation = ScreenRotation::ROTATION_180;
+    rcdInstance.UpdateOrientationStatus(curOrientation);
+    rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
+}
 }

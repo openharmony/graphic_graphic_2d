@@ -81,4 +81,18 @@ HWTEST_F(RSJankDetectorTest, GetSysTimeNsTest, Function | SmallTest | Level1)
     uint64_t endTimeStamp = jankDetector->GetSysTimeNs();
     EXPECT_FALSE(endTimeStamp == 0);
 }
+
+/**
+ * @tc.name: CalculateSkippedFrameTest
+ * @tc.desc: Verify the GetSysTimeNs of RSJankDetectorTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSJankDetectorTest, CalculateSkippedFrameTest, Function | SmallTest | Level1)
+{
+    // start GetSysTimeNsTest test
+    jankDetector->refreshPeriod_ = 0;
+    jankDetector->CalculateSkippedFrame(0, 0);
+    jankDetector->refreshPeriod_ = 16666667;
+    jankDetector->CalculateSkippedFrame(0, 0);
+}
 } // namespace OHOS::Rosen

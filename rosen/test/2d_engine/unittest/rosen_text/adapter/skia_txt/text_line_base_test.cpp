@@ -25,39 +25,104 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class OH_Drawing_TextLineBaseTest : public testing::Test {
+class OHDrawingTextLineBaseTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static inline std::shared_ptr<OHOS::Rosen::Typography> typography_ = nullptr;
+    static inline std::vector<std::unique_ptr<TextLineBase>> vectorTextLineBase_;
 };
 
-/*
- * @tc.name: OH_Drawing_TextLineBaseTest001
- * @tc.desc: test for constuctor of TypographyCreate
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TextLineBaseTest, OH_Drawing_TextLineBaseTest001, TestSize.Level1)
+void OHDrawingTextLineBaseTest::SetUpTestCase()
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
-        typographyStyle, fontCollection);
-    const char* text = "test";
-    const std::u16string wideText =
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
-    typographyCreate->AppendText(wideText);
-    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    Drawing::Canvas* canvas = new Drawing::Canvas();
-    // 200 for unit test
-    typography->Layout(200);
-    // 100 for unit test
-    typography->Paint(canvas, 100, 100);
-    std::vector<std::unique_ptr<TextLineBase>> vectorTextLineBase = typography->GetTextLines();
-    if (vectorTextLineBase.size() > 0) {
-        vectorTextLineBase[0]->GetGlyphCount();
-        std::vector<std::unique_ptr<OHOS::Rosen::Run>> vectorRun = vectorTextLineBase[0]->GetGlyphRuns();
-        EXPECT_EQ(vectorRun.size() > 0, true);
-        vectorTextLineBase[0]->GetTextRange();
-        // 100.0 for unit test
-        vectorTextLineBase[0]->Paint(canvas, 100.0, 100.0);
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+
+    if (!fontCollection) {
+        std::cout << "OHDrawingTextLineBaseTest::SetUpTestCase error fontCollection is nullptr" << std::endl;
+        return;
     }
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    if (!typographyCreate) {
+        std::cout << "OHDrawingTextLineBaseTest::SetUpTestCase error typographyCreate is nullptr" << std::endl;
+        return;
+    }
+    std::u16string wideText(u"OHDrawingTextLineBaseTest");
+    typographyCreate->AppendText(wideText);
+    typography_ = typographyCreate->CreateTypography();
+    if (!typography_) {
+        std::cout << "OHDrawingTextLineBaseTest::SetUpTestCase error typography_ is nullptr" << std::endl;
+        return;
+    }
+    Drawing::Canvas canvas;
+    // 200 for unit test
+    typography_->Layout(200);
+    // 100 for unit test
+    typography_->Paint(&canvas, 100, 100);
+    vectorTextLineBase_ = typography_->GetTextLines();
+    if (!vectorTextLineBase_.size() || !vectorTextLineBase_.at(0)) {
+        std::cout << "OHDrawingTextLineBaseTest::SetUpTestCase error vectorTextLineBase_ variable acquisition exception"
+                  << std::endl;
+        return;
+    }
+}
+
+/*
+ * @tc.name: OHDrawingTextLineBaseTest001
+ * @tc.desc: test for constuctor of GetGlyphCount
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest001, TestSize.Level1)
+{
+    EXPECT_EQ(typography_ != nullptr, true);
+    EXPECT_EQ(vectorTextLineBase_.size() != 0, true);
+    EXPECT_EQ(vectorTextLineBase_.at(0) != nullptr, true);
+    EXPECT_EQ(vectorTextLineBase_.at(0)->GetGlyphCount() > 0, true);
+}
+
+/*
+ * @tc.name: OHDrawingTextLineBaseTest002
+ * @tc.desc: test for constuctor of GetGlyphRuns
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest002, TestSize.Level1)
+{
+    EXPECT_EQ(typography_ != nullptr, true);
+    EXPECT_EQ(vectorTextLineBase_.size() != 0, true);
+    EXPECT_EQ(vectorTextLineBase_.at(0) != nullptr, true);
+    EXPECT_EQ(vectorTextLineBase_.at(0)->GetGlyphRuns().size() > 0, true);
+}
+
+/*
+ * @tc.name: OHDrawingTextLineBaseTest003
+ * @tc.desc: test for constuctor of GetTextRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest003, TestSize.Level1)
+{
+    EXPECT_EQ(typography_ != nullptr, true);
+    EXPECT_EQ(vectorTextLineBase_.size() != 0, true);
+    EXPECT_EQ(vectorTextLineBase_.at(0) != nullptr, true);
+    SPText::Range<size_t> rangeDefault;
+    SPText::Range<size_t> range(0, 1);
+    EXPECT_EQ(rangeDefault == range, false);
+
+    EXPECT_EQ(vectorTextLineBase_.at(0)->GetTextRange().leftIndex, 0);
+}
+
+/*
+ * @tc.name: OHDrawingTextLineBaseTest004
+ * @tc.desc: test for constuctor of Paint
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest004, TestSize.Level1)
+{
+    EXPECT_EQ(typography_ != nullptr, true);
+    EXPECT_EQ(vectorTextLineBase_.size() != 0, true);
+    EXPECT_EQ(vectorTextLineBase_.at(0) != nullptr, true);
+    Drawing::Canvas canvas;
+    vectorTextLineBase_.at(0)->Paint(&canvas, 0.0, 0.0);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -939,6 +939,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
     }
     auto consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
+        RS_LOGE("Consume and update buffer fail for consumer is nullptr");
         return false;
     }
     DropFrameProcess(surfaceHandler);
@@ -1177,7 +1178,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
         (system::GetParameter("const.build.product", "") == "ICL") ?
         FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
-    if (nodeParams != nullptr && nodeParams->GetForceHardwareByUser()) {
+    if (nodeParams != nullptr && nodeParams->GetFixRotationByUser()) {
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
         extraRotation = degree - rotationDegree;
     }
@@ -1562,6 +1563,7 @@ bool RSBaseRenderUtil::WriteToPng(const std::string &filename, const WriteToPngP
     }
     png_infop pngInfo = png_create_info_struct(pngStruct);
     if (pngInfo == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::WriteDataPng fail, pngInfo is nullptr");
         png_destroy_write_struct(&pngStruct, nullptr);
         return false;
     }

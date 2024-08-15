@@ -65,6 +65,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsAncoCalling(codeEnumTypeName_ + "::SET_ANCO_FORCE_DO_DIRECT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_GAMESTATE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_GAMESTATE");
+            break;
+        }
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_COLOR_INVERSION_CONFIG): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_POINTER_COLOR_INVERSION_CONFIG");
@@ -89,6 +93,11 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VMA_CACHE_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VMA_CACHE_STATUS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ +
+                "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
             break;
         }
         default: {

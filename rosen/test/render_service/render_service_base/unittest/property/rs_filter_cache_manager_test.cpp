@@ -19,6 +19,7 @@
 #include "property/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
+#include "render/rs_magnifier_shader_filter.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_canvas.h"
 #include "skia_surface.h"
@@ -230,6 +231,11 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     filterCanvas.surface_ = new Drawing::Surface();
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
     EXPECT_NE(filterCanvas.GetSurface(), nullptr);
+    auto para = std::make_shared<RSMagnifierParams>();
+    auto rsMagnifierShaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
+    filter = std::make_shared<RSDrawingFilter>(rsMagnifierShaderFilter);
+    rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
+    EXPECT_NE(filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER), nullptr);
 }
 
 /**

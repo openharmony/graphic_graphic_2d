@@ -265,7 +265,7 @@ bool DoCreateVkSemaphore(const uint8_t* data, size_t size)
     NativeBufferUtils::NativeSurfaceInfo nativeSurface;
     auto& vkContext = RsVulkanContext::GetSingleton();
     VkSemaphore semaphore;
-    rsSurfaceOhosVulkan->CreateVkSemaphore(&semaphore, vkContext, nativeSurface);
+    rsSurfaceOhosVulkan->CreateVkSemaphore(semaphore, vkContext, nativeSurface);
     return true;
 }
 } // namespace Rosen

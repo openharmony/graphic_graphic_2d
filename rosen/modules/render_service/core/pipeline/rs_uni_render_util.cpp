@@ -56,33 +56,6 @@ namespace {
 constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 }
-void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
-    bool useAlignedDirtyRegion)
-{
-    auto& curAllSurfaces = node->GetCurAllSurfaces();
-    // update all child surfacenode history
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto surfaceNode = RSRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
-            continue;
-        }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %" PRIu64"",
-            surfaceNode->GetId());
-        auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
-        if (UNLIKELY(!surfaceDirtyManager)) {
-            continue;
-        }
-        if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
-            ROSEN_LOGE("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
-        }
-        surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
-        surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);
-    }
-
-    // update display dirtymanager
-    node->UpdateDisplayDirtyManager(bufferAge, useAlignedDirtyRegion);
-}
-
 void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
     int32_t bufferAge, RSDisplayRenderParams& params, bool useAlignedDirtyRegion)
 {
@@ -553,6 +526,73 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     return params;
 }
 
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
+    const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams)
+{
+    BufferDrawParam params;
+    params.threadIndex = gettid();
+    params.useBilinearInterpolation = renderParams.NeedBilinearInterpolation();
+    params.useCPU = false;
+    params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    params.screenBrightnessNits = surfaceDrawable.GetDisplayNit();
+#endif
+
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    params.paint.SetFilter(filter);
+
+    auto buffer = renderParams.GetBuffer();
+    if (buffer == nullptr) {
+        return params;
+    }
+    params.buffer = buffer;
+    params.acquireFence = renderParams.GetAcquireFence();
+    auto srcRect = renderParams.GetLayerInfo().srcRect;
+    params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
+
+    auto dstRect = renderParams.GetLayerInfo().dstRect;
+    params.matrix = Drawing::Matrix();
+    params.matrix.PreTranslate(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y));
+
+    auto consumer = surfaceDrawable.GetConsumerOnDraw();
+    if (consumer == nullptr) {
+        return params;
+    }
+
+    auto layerTransform = renderParams.GetLayerInfo().transformType;
+    int realRotation = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(layerTransform));
+    auto flip = RSBaseRenderUtil::GetFlipTransform(layerTransform);
+    // calculate transform in anti-clockwise
+    auto transform = RSBaseRenderUtil::RotateEnumToInt(realRotation, flip);
+
+    RectF localBounds = { 0.0f, 0.0f,
+        static_cast<float>(dstRect.w), static_cast<float>(dstRect.h) };
+    DealWithRotationAndGravityForRotationFixed(transform, renderParams.GetFrameGravity(), localBounds, params);
+    RSBaseRenderUtil::FlipMatrix(transform, params);
+    return params;
+}
+
+void RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed(GraphicTransformType transform, Gravity gravity,
+    RectF& localBounds, BufferDrawParam& params)
+{
+    auto rotationTransform = RSBaseRenderUtil::GetRotateTransform(transform);
+    params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
+    if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
+        // after rotate, we should swap dstRect and bound's width and height.
+        std::swap(localBounds.width_, localBounds.height_);
+    }
+    params.dstRect = Drawing::Rect(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight());
+
+    Drawing::Matrix gravityMatrix;
+    if (!RSPropertiesPainter::GetGravityMatrix(gravity, localBounds,
+        params.srcRect.GetWidth(), params.srcRect.GetHeight(), gravityMatrix)) {
+        RS_LOGD("RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed did not obtain gravity matrix.");
+    }
+    params.matrix.PreConcat(gravityMatrix);
+}
+
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSDisplayRenderNode& node, bool forceCPU)
 {
     BufferDrawParam params;
@@ -619,9 +659,19 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
 
     auto layerMatrix = layer->GetMatrix();
     params.matrix = Drawing::Matrix();
-    params.matrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
-        layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
-    int nodeRotation = RSUniRenderUtil::GetRotationFromMatrix(params.matrix); // rotation degree anti-clockwise
+    bool rotationFixed = layer->GetRotationFixed();
+    auto dstRect = layer->GetLayerSize();
+    if (rotationFixed) {
+        // if rotation fixed, not use [total matrix + bounds] to draw buffer, use [src + dst + transform]
+        params.matrix.PreTranslate(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y));
+        auto srcRect = layer->GetCropRect();
+        params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
+    } else {
+        params.matrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
+            layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+    }
+    // rotation degree anti-clockwise
+    int nodeRotation = rotationFixed ? 0 : RSUniRenderUtil::GetRotationFromMatrix(params.matrix);
     auto layerTransform = layer->GetTransformType();
     // calculate clockwise rotation degree excluded rotation in total matrix
     int realRotation = (nodeRotation +
@@ -630,10 +680,21 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     // calculate transform in anti-clockwise
     auto transform = RSBaseRenderUtil::RotateEnumToInt(realRotation, flip);
 
-    RectF localBounds = { 0.0f, 0.0f, static_cast<float>(boundRect.w), static_cast<float>(boundRect.h) };
-    RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
-        localBounds, params);
+    RectF localBounds = { 0.0f, 0.0f,
+        rotationFixed ? static_cast<float>(dstRect.w) : static_cast<float>(boundRect.w),
+        rotationFixed ? static_cast<float>(dstRect.h) : static_cast<float>(boundRect.h) };
+    if (rotationFixed) {
+        DealWithRotationAndGravityForRotationFixed(transform, static_cast<Gravity>(layer->GetGravity()), localBounds,
+            params);
+    } else {
+        RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
+            localBounds, params);
+    }
     RSBaseRenderUtil::FlipMatrix(transform, params);
+    if (rotationFixed) {
+        // if rotation fixed, no need to calculate scaling mode, it is contained in dstRect
+        return params;
+    }
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& surface = layer->GetSurface();
     if (surface == nullptr) {
@@ -1277,19 +1338,31 @@ Drawing::BackendTexture RSUniRenderUtil::MakeBackendTexture(uint32_t width, uint
 }
 #endif
 
-RectI RSUniRenderUtil::SrcRectRotateTransform(RSSurfaceRenderNode& node)
+GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
+    sptr<IConsumerSurface> consumer)
 {
-    auto consumer = node.GetRSSurfaceHandler()->GetConsumer();
-    if (!consumer) {
-        return node.GetSrcRect();
+    auto transformType = RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+    int extraRotation = 0;
+    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
+        (system::GetParameter("const.build.product", "") == "ICL") ?
+        FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
+    if (node.GetFixRotationByUser()) {
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
+            node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
+        extraRotation = degree - rotationDegree;
     }
+    transformType = static_cast<GraphicTransformType>(
+        (transformType + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
+    return transformType;
+}
+
+RectI RSUniRenderUtil::SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType)
+{
     RectI srcRect = node.GetSrcRect();
     int left = srcRect.GetLeft();
     int top = srcRect.GetTop();
     int width = srcRect.GetWidth();
     int height = srcRect.GetHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
     int boundsWidth = static_cast<int>(node.GetRenderProperties().GetBoundsWidth());
     int boundsHeight = static_cast<int>(node.GetRenderProperties().GetBoundsHeight());
     // Left > 0 means move xComponent to the left outside of the screen
@@ -1329,13 +1402,13 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
     if (!consumer) {
         return;
     }
-    auto srcRect = SrcRectRotateTransform(node);
+    auto transformType = RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer);
+    auto srcRect = SrcRectRotateTransform(node, transformType);
     const auto& property = node.GetRenderProperties();
     const auto bufferWidth = surfaceHandler->GetBuffer()->GetSurfaceBufferWidth();
     const auto bufferHeight = surfaceHandler->GetBuffer()->GetSurfaceBufferHeight();
     auto boundsWidth = property.GetBoundsWidth();
     auto boundsHeight = property.GetBoundsHeight();
-    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
         transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         std::swap(boundsWidth, boundsHeight);
@@ -1438,12 +1511,10 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
 void RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
-    if (!surfaceHandler->GetConsumer() || !node.GetForceHardware() || !surfaceHandler->GetBuffer()) {
+    if (!surfaceHandler->GetConsumer() || !node.IsInFixedRotation() || !surfaceHandler->GetBuffer()) {
         return;
     }
-    RectI srcRect = { 0, 0,
-        surfaceHandler->GetBuffer()->GetSurfaceBufferWidth(), surfaceHandler->GetBuffer()->GetSurfaceBufferHeight() };
-    node.SetSrcRect(srcRect);
+    node.SetSrcRect(node.GetOriginalSrcRect());
     auto dstRect = node.GetDstRect();
     auto originalDstRect = node.GetOriginalDstRect();
     dstRect.left_ += (dstRect.width_ - originalDstRect.width_) / 2;
@@ -1489,7 +1560,7 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
     static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
         (system::GetParameter("const.build.product", "") == "ICL") ?
         FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
-    int surfaceNodeRotation = node.GetForceHardwareByUser() ? -1 * rotationDegree :
+    int surfaceNodeRotation = node.GetFixRotationByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
@@ -1520,7 +1591,7 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
     if (resDstRect == dstRectI) {
         return;
     }
-    if (node.GetForceHardware()) {
+    if (node.IsInFixedRotation()) {
         node.SetDstRect(resDstRect);
         return;
     }
@@ -1656,6 +1727,8 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         return;
     }
     RS_TRACE_NAME_FMT("Render surface flush and submit");
+    RS_LOGD("RSUniRenderUtil::optimized flush and submit GpuApiType:%{public}d",
+        RSSystemProperties::GetGpuApiType());
 #ifdef RS_ENABLE_VK
     if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && optFenceWait) {
@@ -1785,7 +1858,7 @@ void RSUniRenderUtil::TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRender
     auto rect = boundsGeo.MapAbsRect(node->GetSelfDrawRect().JoinRect(node->GetChildrenRect().ConvertTo<float>()));
     // if node is UIExtension type, update its own info, and skip its children.
     if (auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node)) {
-        if (surfaceNode->IsUIExtension()) {
+        if (surfaceNode->IsSecureUIExtension()) {
             currentUIExtensionIndex_++;
             // if host node is not recorded in callbackData, insert it.
             auto [iter, inserted] = callbackData.insert(std::pair(hostId, std::vector<SecSurfaceInfo>{}));

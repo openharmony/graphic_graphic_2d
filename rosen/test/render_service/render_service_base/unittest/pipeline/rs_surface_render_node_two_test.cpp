@@ -482,17 +482,17 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsLeashWindowSurfaceNodeVisibleTest, TestSi
 HWTEST_F(RSSurfaceRenderNodeTwoTest, SetForceHardwareTest, TestSize.Level1)
 {
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    renderNode->SetForceHardware(false);
-    EXPECT_TRUE(!renderNode->isForceHardwareByUser_);
-    renderNode->isForceHardwareByUser_ = true;
-    renderNode->isForceHardware_ = true;
-    renderNode->SetForceHardware(false);
-    EXPECT_TRUE(renderNode->isForceHardwareByUser_);
-    renderNode->isForceHardware_ = false;
-    renderNode->SetForceHardware(false);
-    EXPECT_TRUE(!renderNode->isForceHardware_);
-    renderNode->SetForceHardware(true);
-    EXPECT_TRUE(renderNode->isForceHardware_);
+    renderNode->SetInFixedRotation(false);
+    EXPECT_TRUE(!renderNode->isFixRotationByUser_);
+    renderNode->isFixRotationByUser_ = true;
+    renderNode->isInFixedRotation_ = true;
+    renderNode->SetInFixedRotation(false);
+    EXPECT_TRUE(renderNode->isFixRotationByUser_);
+    renderNode->isInFixedRotation_ = false;
+    renderNode->SetInFixedRotation(false);
+    EXPECT_TRUE(!renderNode->isInFixedRotation_);
+    renderNode->SetInFixedRotation(true);
+    EXPECT_TRUE(renderNode->isInFixedRotation_);
 }
 
 /**

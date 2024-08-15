@@ -227,12 +227,14 @@ int RSWindowAnimationStub::WindowAnimationTargetsUpdate(MessageParcel& data, Mes
 {
     WALOGD("Window animation targets update!");
     sptr<RSWindowAnimationTarget> fullScreenWindowTarget = nullptr;
-    if (data.ReadBool()) {
-        fullScreenWindowTarget = data.ReadParcelable<RSWindowAnimationTarget>();
-    }
-    if (fullScreenWindowTarget == nullptr) {
-        WALOGE("Failed to read full screen window animation target!");
+    bool isfullScreenWindowTarget;
+    if (!data.ReadBool(isfullScreenWindowTarget)) {
+        WALOGE("Failed to read whether there is full screen window target!");
         return ERR_INVALID_DATA;
+    }
+    
+    if (isfullScreenWindowTarget) {
+        fullScreenWindowTarget = data.ReadParcelable<RSWindowAnimationTarget>();
     }
 
     size_t floatWindowSize = data.ReadUint32();

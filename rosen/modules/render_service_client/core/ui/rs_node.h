@@ -291,6 +291,7 @@ public:
     void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
+    std::string GetBackgroundFilterDescription();
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
     void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
@@ -513,6 +514,7 @@ private:
     int32_t frameNodeId_ = -1;
     std::string frameNodeTag_;
     std::string nodeName_ = "";
+    std::string bgFilterDescription_ = "";
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);

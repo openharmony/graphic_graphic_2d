@@ -543,6 +543,8 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     EXPECT_EQ(RSImageCache::Instance().GetDrawingImageCache(0), nullptr);
 
     RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(0);
+    RSImageCache::Instance().pixelMapCache_.clear();
+    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
 /**
@@ -588,5 +590,20 @@ HWTEST_F(RSImageTest, dumpTest, TestSize.Level1)
     std::string desc = "dump ";
     rsImage->dump(desc, 0);
     EXPECT_NE(desc, "dump ");
+}
+
+/**
+ * @tc.name: SetDyamicRangeModeTest
+ * @tc.desc: Test RSImageTest.SetDyamicRangeMode while dynamicRangeMode = 1
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST_F(RSImageTest, SetDyamicRangeModeTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    ASSERT_NE(rsImage, nullptr);
+    constexpr uint32_t dynamicRangeMode = 1;
+    rsImage->SetDyamicRangeMode(dynamicRangeMode);
+    EXPECT_EQ(rsImage->dynamicRangeMode_, dynamicRangeMode);
 }
 } // namespace OHOS::Rosen

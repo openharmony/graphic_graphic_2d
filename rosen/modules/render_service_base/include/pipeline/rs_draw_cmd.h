@@ -169,6 +169,7 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
@@ -195,6 +196,7 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageBaseObj> objectHandle_;
@@ -241,6 +243,7 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    virtual void DumpItems(std::string& out) const override;
 private:
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
     void Clear();

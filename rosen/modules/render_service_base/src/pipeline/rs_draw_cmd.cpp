@@ -556,6 +556,12 @@ void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
     objectHandle_->SetNodeId(id);
 }
 
+void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
+{
+    out += " sampling";
+    sampling_.Dump(out);
+}
+
 /* DrawPixelMapRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
 
@@ -604,6 +610,12 @@ void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
         return;
     }
     objectHandle_->SetNodeId(id);
+}
+
+void DrawPixelMapRectOpItem::DumpItems(std::string& out) const
+{
+    out += " sampling";
+    sampling_.Dump(out);
 }
 
 /* DrawFuncOpItem */
@@ -845,6 +857,18 @@ bool DrawSurfaceBufferOpItem::CreateEglTextureId()
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, wrapT);
 
     return true;
+}
+
+void DrawSurfaceBufferOpItem::DumpItems(std::string& out) const
+{
+    out += " surfaceBufferInfo[width:" + std::to_string(surfaceBufferInfo_.width_);
+    out += " height:" + std::to_string(surfaceBufferInfo_.height_);
+    out += " offSetX:" + std::to_string(surfaceBufferInfo_.offSetX_);
+    out += " offSetY:" + std::to_string(surfaceBufferInfo_.offSetY_);
+    out += "]";
+#ifdef RS_ENABLE_GL
+    out += " texId:" + std::to_string(texId_);
+#endif
 }
 #endif
 }

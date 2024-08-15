@@ -458,7 +458,7 @@ inline void Image::Dump(std::string& out) const
     out += " colorType:" + std::to_string(static_cast<int>(GetColorType()));
     out += " alphaType:" + std::to_string(static_cast<int>(GetAlphaType()));
     out += " uniqueID:" + std::to_string(static_cast<int>(GetUniqueID()));
-    out += "]";
+    out += ']';
 }
 } // namespace Drawing
 } // namespace Rosen

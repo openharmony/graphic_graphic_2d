@@ -112,8 +112,8 @@ public:
     }
 
     // dfx
+    static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
-    void DumpDrawableTree(std::string& out) const override;
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);

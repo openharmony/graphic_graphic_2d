@@ -171,7 +171,7 @@ napi_value JsPath::CreateJsPath(napi_env env, Path* path)
             ROSEN_LOGE("JsPath::CreateJsPath Create path object failed!");
             return nullptr;
         }
-        napi_status status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
+        status = napi_wrap(env, result, jsPath, JsPath::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsPath;
             ROSEN_LOGE("JsPath::CreateJsPath failed to wrap native instance");
@@ -1101,10 +1101,6 @@ napi_value JsPath::OnGetBounds(napi_env env, napi_callback_info info)
     auto bounds = m_path->GetBounds();
     std::shared_ptr<Rect> rect = std::make_shared<Rect>(bounds.GetLeft(),
                                                         bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
-    if (!rect) {
-        ROSEN_LOGE("JsPath::OnGetBounds return value is invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
 
     return GetRectAndConvertToJsValue(env, rect);
 }

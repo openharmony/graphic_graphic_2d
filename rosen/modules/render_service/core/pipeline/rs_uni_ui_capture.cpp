@@ -136,6 +136,11 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
         return false;
     }
     void* fdPtr = new int32_t();
+    if (fdPtr == nullptr) {
+        ::munmap(ptr, size);
+        ::close(fd);
+        return false;
+    }
     *static_cast<int32_t*>(fdPtr) = fd;
     pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
 #else

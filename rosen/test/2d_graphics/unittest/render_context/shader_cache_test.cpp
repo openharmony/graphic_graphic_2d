@@ -339,5 +339,35 @@ HWTEST_F(ShaderCacheTest, storeShader_test_001, TestSize.Level1)
     cache.Store(*fakeKey, *fakeData);
     cache.Load(*fakeKey);
 }
+
+/**
+ * @tc.name: InitShaderCacheTest
+ * @tc.desc: Imporve Coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ShaderCacheTest, InitShaderCacheTest, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    cache.filePath_ = "";
+    cache.InitShaderCache(nullptr, 0, false);
+}
+
+/**
+ * @tc.name: StoreTest
+ * @tc.desc: Imporve Coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ShaderCacheTest, StoreTest, TestSize.Level1)
+{
+    auto &cache = ShaderCache::Instance();
+    cache.initialized_ = false;
+    Drawing::Data key;
+    Drawing::Data value;
+    cache.Store(key, value);
+}
 } // namespace Rosen
 } // namespace OHOS

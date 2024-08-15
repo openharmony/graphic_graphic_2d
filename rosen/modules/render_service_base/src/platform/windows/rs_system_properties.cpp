@@ -443,6 +443,11 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetDrawMirrorCacheImageEnabled()
+{
+    return false;
+}
+
 SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     return SubTreePrepareCheckType::ENABLED;

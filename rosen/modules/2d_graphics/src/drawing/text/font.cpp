@@ -219,10 +219,6 @@ std::shared_ptr<Font> Font::GetFallbackFont(int32_t unicode) const
         return nullptr;
     }
     std::shared_ptr<Font> fallbackFont = std::make_shared<Font>(*this);
-    if (fallbackFont == nullptr) {
-        LOGE("Font::GetFallbackFont, fallback font is nullptr.");
-        return nullptr;
-    }
     fallbackFont->SetTypeface(fallbackTypeface);
     return fallbackFont;
 }
