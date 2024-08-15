@@ -228,6 +228,7 @@ private:
     void CheckCustomFrameRateModeValid();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
+    void SetASConfig(PolicyConfigData::ScreenSetting curScreenSetting);
 
     bool isEnabled_ = true;
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";

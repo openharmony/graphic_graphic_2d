@@ -223,10 +223,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     } else {
         // if in game adaptive vsync mode and do direct composition,send layer immediately
         auto frameRateMgr = hgmCore.GetFrameRateMgr();
- 
         if (frameRateMgr != nullptr) {
             bool isAdaptive = frameRateMgr->IsAdaptive();
-            
             RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
             if (isAdaptive) {
                 RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers PostTask in Adaptive Mode");

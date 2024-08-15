@@ -1088,12 +1088,8 @@ bool HgmFrameRateManager::IsCurrentScreenSupportAS()
 {
     ScreenId id = HgmCore::Instance().GetActiveScreenId();
     ScreenPhysicalId screenId = static_cast<ScreenPhysicalId>(id);
-
     uint64_t propertyAS_ = 0;
     (void)HdiDevice::GetInstance()->GetDisplayProperty(screenId, ADAPTIVE_SYNC_PROPERTY, propertyAS_);
-
-    HGM_LOGI("HgmFrameRateManager::IsCurrentScreenSupportAS propertyResult: %{public}lu", propertyAS_);
-
     return propertyAS_ == DISPLAY_SUCCESS;
 }
 
