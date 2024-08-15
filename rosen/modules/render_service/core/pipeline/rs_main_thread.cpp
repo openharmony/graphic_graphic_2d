@@ -1744,7 +1744,6 @@ bool RSMainThread::GetParallelCompositionEnabled()
 void RSMainThread::SetFrameIsRender(bool isRender)
 {
     if (rsVSyncDistributor_ != nullptr) {
-        markRenderFlag_ = true;
         rsVSyncDistributor_->SetFrameIsRender(isRender);
     }
 }
@@ -1853,7 +1852,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_LOGD("RSMainThread::Render nothing to update");
             RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
             RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
-            RSMainThread::Instance()->SetFrameIsRender(false);
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
                     node->MarkCurrentFrameHardwareEnabled();
@@ -2080,10 +2078,6 @@ void RSMainThread::OnUniRenderDraw()
     }
 
     UpdateDisplayNodeScreenId();
-    if (!markRenderFlag_) {
-        SetFrameIsRender(true);
-    }
-    markRenderFlag_ = false;
     RsFrameReport& fr = RsFrameReport::GetInstance();
     if (fr.GetEnable()) {
         fr.RSRenderEnd();

@@ -269,7 +269,6 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
     instance.Render();
     EXPECT_TRUE(instance.rootNodeDrawable_);
 
-    RSMainThread::Instance()->markRenderFlag_ = true;
     instance.Render();
     EXPECT_TRUE(instance.rootNodeDrawable_);
 }
