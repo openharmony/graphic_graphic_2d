@@ -431,7 +431,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_003, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is true
  * curSurfaceNode_ is not nullptr
- * 
+ *
  * curSurfaceNode_->GetNeedCollectHwcNode() is true
  * node.GetHardWareDisabledByReverse() is false
  *
@@ -476,7 +476,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_004, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is true
  * curSurfaceNode_ is not nullptr
- * 
+ *
  * curSurfaceNode_->GetNeedCollectHwcNode() is true
  * node.GetHardWareDisabledByReverse() is false
  *
@@ -530,7 +530,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_005, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is true
  * curSurfaceNode_ is not nullptr
- * 
+ *
  * curSurfaceNode_->GetNeedCollectHwcNode() is true
  * node.GetHardWareDisabledByReverse() is false
  *
@@ -584,7 +584,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_006, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is true
  * curSurfaceNode_ is not nullptr
- * 
+ *
  * curSurfaceNode_->GetNeedCollectHwcNode() is true
  * node.GetHardWareDisabledByReverse() is false
  *
@@ -638,7 +638,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_007, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is true
  * curSurfaceNode_ is not nullptr
- * 
+ *
  * curSurfaceNode_->GetNeedCollectHwcNode() is true
  * node.GetHardWareDisabledByReverse() is false
  *
@@ -707,7 +707,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_008, TestSize.Level
  * @tc.desc: UpdateHwcNodeInfoForAppNode Test, node.GetNeedCollectHwcNode() is true
  * node.IsHardwareEnabledType() is true
  * curSurfaceNode_ is not nullptr
- * 
+ *
  * curSurfaceNode_->GetNeedCollectHwcNode() is true
  * node.GetHardWareDisabledByReverse() is false
  *
