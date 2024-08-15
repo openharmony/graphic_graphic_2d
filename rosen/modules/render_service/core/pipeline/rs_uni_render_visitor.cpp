@@ -533,18 +533,18 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
         return;
     }
     auto securityLayerList = mirrorNode->GetSecurityLayerList();
-    for (auto exemptionLayer : securityExemptionList) {
+    for (const auto& exemptionLayer : securityExemptionList) {
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ""
             "securityExemption nodeId %{public}" PRIu64 ".", node.GetId(), exemptionLayer);
     }
-    for (auto secLayer : securityLayerList) {
+    for (const auto& secLayer : securityLayerList) {
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ""
             "securityLayer nodeId %{public}" PRIu64 ".", mirrorNode->GetId(), secLayer);
     }
     bool isSecurityExemption = false;
     if (securityExemptionList.size() >= securityLayerList.size()) {
         isSecurityExemption = true;
-        for (auto secLayer : securityLayerList) {
+        for (const auto& secLayer : securityLayerList) {
             if (std::find(securityExemptionList.begin(), securityExemptionList.end(), secLayer) ==
                 securityExemptionList.end()) {
                 isSecurityExemption = false;
