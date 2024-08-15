@@ -488,9 +488,5 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS
