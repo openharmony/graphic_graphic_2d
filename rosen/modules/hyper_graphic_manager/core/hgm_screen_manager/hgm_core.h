@@ -108,9 +108,9 @@ public:
             (maxTE_ == VSYNC_MAX_REFRESHRATE);
     }
 
-    bool GetAdaptiveSyncEnabled const
+    bool GetAdaptiveSyncEnabled() const
     {
-        return GetLtpoEnabled() && adaptiveSync_ === ADAPTIVE_SYNC_ENABLED;
+        return GetLtpoEnabled() && adaptiveSync_ == ADAPTIVE_SYNC_ENABLED;
     }
 
     // called by RSHardwareTHread
