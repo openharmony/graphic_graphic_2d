@@ -190,7 +190,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
     return renderService->CreatePixelMapFromSurface(surface, srcRect);
 }
 
-void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
+void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap)
 {
     ROSEN_LOGD("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%{public}" PRIu64 "]", id);
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
@@ -211,17 +211,14 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::Pixe
             ROSEN_LOGE("RSRenderServiceClient::TriggerSurfaceCaptureCallback: callback is nullptr!");
             continue;
         }
-        Media::PixelMap* pixelmapCopyRelease = nullptr;
+        std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
         if (i != callbackVector.size() - 1) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
-                pixelmapCopyRelease = pixelmapCopy.release();
+                surfaceCapture = std::move(pixelmapCopy);
             }
-        } else {
-            pixelmapCopyRelease = pixelmap;
         }
-        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmapCopyRelease);
         callbackVector[i]->OnSurfaceCapture(surfaceCapture);
     }
 }
@@ -233,7 +230,8 @@ public:
     ~SurfaceCaptureCallbackDirector() override {};
     void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap) override
     {
-        client_->TriggerSurfaceCaptureCallback(id, pixelmap);
+        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
+        client_->TriggerSurfaceCaptureCallback(id, surfaceCapture);
     };
 
 private:
