@@ -414,7 +414,7 @@ HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface, Function | SmallTest | Level2)
  * @tc.name: ClearCacheSurface002
  * @tc.desc: Test ClearCacheSurface reset cacheSurfaceThreadIndex_ and completedSurfaceThreadIndex_
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface002, Function | SmallTest | Level2)
 {
@@ -452,7 +452,7 @@ HWTEST_F(RSUniRenderUtilTest, PostReleaseSurfaceTask001, Function | SmallTest | 
  * @tc.name: PostReleaseSurfaceTask002
  * @tc.desc: Test PostReleaseSurfaceTask when surface is not nullptr
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, PostReleaseSurfaceTask002, Function | SmallTest | Level2)
 {
@@ -557,7 +557,7 @@ HWTEST_F(RSUniRenderUtilTest, AssignSubThreadNode, Function | SmallTest | Level2
  * @tc.name: AssignSubThreadNode002
  * @tc.desc:Test RSUniRenderUtilTest.AssignSubThreadNode when reset node.cacheProcessStatus_
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, AssignSubThreadNode002, Function | SmallTest | Level2)
 {
@@ -785,7 +785,7 @@ HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest002, Function | Smal
  * @tc.name: ReleaseColorPickerResourceTest003
  * @tc.desc: Test ReleaseColorPickerResource add shadow_ to node
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest003, Function | SmallTest | Level2)
 {
@@ -802,7 +802,7 @@ HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest003, Function | Smal
  * @tc.name: ReleaseColorPickerResourceTest004
  * @tc.desc: Test ReleaseColorPickerResource add filter_ to node
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest004, Function | SmallTest | Level2)
 {
@@ -823,7 +823,7 @@ HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest004, Function | Smal
  * @tc.name: ReleaseColorPickerResourceTest005
  * @tc.desc: Test ReleaseColorPickerResource add backgroundfilter_ to node
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest005, Function | SmallTest | Level2)
 {
@@ -911,7 +911,7 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest002, Function | SmallTest |
  * @tc.name: DealWithNodeGravityTest003
  * @tc.desc: Test DealWithNodeGravity when screenInfo.rotation is modify
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest003, Function | SmallTest | Level2)
 {
@@ -1091,7 +1091,7 @@ HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest002, Function | SmallTest | 
  * @tc.name: HandleHardwareNodeTest003
  * @tc.desc: Test HandleHardwareNode add childHardwareEnabledNodes_ to node
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest003, Function | SmallTest | Level2)
 {
@@ -1283,7 +1283,7 @@ HWTEST_F(RSUniRenderUtilTest, CacheSubThreadNodesTest, TestSize.Level1)
  * @tc.name: CacheSubThreadNodesTest002
  * @tc.desc: CacheSubThreadNodes add the same node to oldSubThreadNodes and oldSubThreadNodes
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, CacheSubThreadNodesTest002, TestSize.Level1)
 {
@@ -1385,7 +1385,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo002, TestSize.Lev
  * @tc.name: TraverseAndCollectUIExtensionInfo003
  * @tc.desc: TraverseAndCollectUIExtensionInfo test when nodeType_ != nullptr
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo003, TestSize.Level2)
 {
@@ -1444,7 +1444,7 @@ HWTEST_F(RSUniRenderUtilTest, AccumulateMatrixAndAlpha002, TestSize.Level2)
  * @tc.name: AccumulateMatrixAndAlpha003
  * @tc.desc: AccumulateMatrixAndAlpha test when alpha != 1.f
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, AccumulateMatrixAndAlpha003, TestSize.Level2)
 {
@@ -1483,7 +1483,7 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit001, TestSize.Level2)
  * @tc.name: OptimizedFlushAndSubmit002
  * @tc.desc: OptimizedFlushAndSubmit test when surface and gpuContext is multiple
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit002, TestSize.Level2)
 {
@@ -1616,7 +1616,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerCrop003, TestSize.Level2)
  * @tc.name: LayerCrop004
  * @tc.desc: LayerCrop test when isForceHardware_ is false
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, LayerCrop004, TestSize.Level2)
 {
@@ -1635,7 +1635,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerCrop004, TestSize.Level2)
  * @tc.name: LayerScaleFit005
  * @tc.desc: LayerScaleFit test when surface is nullptr
  * @tc.type: FUNC
- * @tc.require: AAAAAA
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, LayerScaleFit004, TestSize.Level2)
 {
