@@ -100,6 +100,24 @@ HWTEST_F(VsyncReceiverTest, BeforeInit001, Function | MediumTest| Level3)
 }
 
 /*
+* Function: RequestNextVSyncWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSyncWithMultiCallback before Init.
+ */
+HWTEST_F(VsyncReceiverTest, RequestNextVSyncWithMultiCallback001, Function | MediumTest| Level3)
+{
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    vsyncDistributor->AddConnection(conn);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb), VSYNC_ERROR_NOT_INIT);
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
 * Function: Init001
 * Type: Function
 * Rank: Important(2)
@@ -170,6 +188,24 @@ HWTEST_F(VsyncReceiverTest, RequestNextVSync002, Function | MediumTest| Level3)
     };
     vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->RequestNextVSync(fcb, "unknown", 0), VSYNC_ERROR_OK);
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: RequestNextVSyncWithMultiCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSyncWithMultiCallback after Init.
+ */
+HWTEST_F(VsyncReceiverTest, RequestNextVSyncWithMultiCallback002, Function | MediumTest| Level3)
+{
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    vsyncDistributor->AddConnection(conn);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
 }
 
