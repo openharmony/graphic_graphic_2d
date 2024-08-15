@@ -146,7 +146,7 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_002, TestSize.Level
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
     ASSERT_TRUE((node->IsHardwareEnabledType() && node->GetZorderChanged() && rsUniRenderVisitor->curSurfaceNode_));
 
-    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_NODE;
+    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
     ASSERT_FALSE(node->IsLeashOrMainWindow());
     ASSERT_FALSE(node->IsMainWindowType());
 
@@ -305,7 +305,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateLeashWindowVisibleRegionEmpty_003, TestSi
 
     auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
     ASSERT_NE(childSurfaceNode, nullptr);
-    childSurfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_NODE;
+    childSurfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
     ASSERT_FALSE(childSurfaceNode->IsAppWindow());
 
     node->isLeashWindowVisibleRegionEmpty_ = true;
