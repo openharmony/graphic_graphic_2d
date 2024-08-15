@@ -708,8 +708,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
             tmpFilter->SetGeometry(canvas, properties.GetFrameWidth(), properties.GetFrameHeight());
         }
         // RSFilterCacheManger has no more logic for evaluating filtered snapshot clearing
-        // Should be passed as secnod argument, if required (see RSPropertyDrawableUtils::DrewFiler())
-        cacheManager->DrawFilter(canvas, filter, {RSFilter->NeedSnapshotOutset(), false });
+        // (see RSPropertyDrawableUtils::DrawFilter())
+        cacheManager->DrawFilter(canvas, filter, false);
         return;
     }
 #endif
