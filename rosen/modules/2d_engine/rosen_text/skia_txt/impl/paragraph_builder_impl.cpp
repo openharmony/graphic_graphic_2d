@@ -19,7 +19,7 @@
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
 #include "txt/paragraph_style.h"
-#include "utils/txt_log.h"
+#include "utils/text_log.h"
 
 namespace skt = skia::textlayout;
 
@@ -297,7 +297,7 @@ void ParagraphBuilderImpl::RecordDifferentPthreadCall(const char* caller) const
 {
     pthread_t currenetThreadId = pthread_self();
     if (threadId_ != currenetThreadId) {
-        TXT_LOGD("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
+        TEXT_LOGE_LIMIT3_HOUR("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
             threadId_, caller);
         threadId_ = currenetThreadId;
     }
