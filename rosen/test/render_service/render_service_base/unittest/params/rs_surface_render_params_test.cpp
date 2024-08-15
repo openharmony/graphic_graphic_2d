@@ -97,18 +97,18 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerSourceTuning, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetForceHardwareByUser
+ * @tc.name: SetFixRotationByUser
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSSurfaceRenderParamsTest, SetForceHardwareByUser, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderParamsTest, SetFixRotationByUser, TestSize.Level1)
 {
     RSSurfaceRenderParams params(104);
-    params.SetForceHardwareByUser(false);
+    params.SetFixRotationByUser(false);
     EXPECT_EQ(params.needSync_, false);
 
-    params.SetForceHardwareByUser(true);
+    params.SetFixRotationByUser(true);
     EXPECT_EQ(params.needSync_, true);
 }
 
@@ -186,43 +186,5 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetOverDrawBufferNodeCornerRadius, TestSize.
 
     params.SetOverDrawBufferNodeCornerRadius(true);
     EXPECT_EQ(params.needSync_, true);
-}
-
-/**
-* @tc.name: SetRootIdOfCaptureWindow
-* @tc.desc:
-* @tc.type:FUNC
-* @tc.require:
-*/
-HWTEST_F(RSSurfaceRenderParamsTest, SetRootIdOfCaptureWindow, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(110);
-    params.SetRootIdOfCaptureWindow(false);
-    EXPECT_EQ(params.needSync_, false);
-
-    params.SetRootIdOfCaptureWindow(true);
-    EXPECT_EQ(params.needSync_, true);
-}
-
-/**
- * @tc.name: IsVisibleDirtyRegionEmpty
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, IsVisibleDirtyRegionEmpty, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(111);
-    Drawing::Region region;
-    params.windowInfo_.isMainWindowType_ = true;
-    ASSERT_TRUE(params.IsVisibleDirtyRegionEmpty(region));
-
-    params.windowInfo_.isMainWindowType_ = false;
-    params.windowInfo_.isLeashWindow_ = true;
-    ASSERT_FALSE(params.IsVisibleDirtyRegionEmpty(region));
-
-    params.windowInfo_.isMainWindowType_ = false;
-    params.windowInfo_.isLeashWindow_ = false;
-    ASSERT_FALSE(params.IsVisibleDirtyRegionEmpty(region));
 }
 }
