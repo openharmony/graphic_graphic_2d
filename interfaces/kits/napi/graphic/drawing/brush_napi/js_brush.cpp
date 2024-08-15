@@ -297,7 +297,7 @@ napi_value JsBrush::SetColorFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsColorFilter* jsColorFilter = nullptr;
-    napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsColorFilter));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsColorFilter);
 
     Filter filter = brush->GetFilter();
     filter.SetColorFilter(jsColorFilter ? jsColorFilter->GetColorFilter() : nullptr);
@@ -340,7 +340,7 @@ napi_value JsBrush::SetImageFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsImageFilter* jsImageFilter = nullptr;
-    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsImageFilter));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsImageFilter);
 
     Filter filter = brush->GetFilter();
     filter.SetImageFilter(jsImageFilter != nullptr ? jsImageFilter->GetImageFilter() : nullptr);
@@ -365,7 +365,7 @@ napi_value JsBrush::SetMaskFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMaskFilter* jsMaskFilter = nullptr;
-    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsMaskFilter));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsMaskFilter);
 
     Filter filter = brush->GetFilter();
     filter.SetMaskFilter(jsMaskFilter ? jsMaskFilter->GetMaskFilter() : nullptr);
@@ -412,7 +412,7 @@ napi_value JsBrush::SetShadowLayer(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsShadowLayer* jsShadowLayer = nullptr;
-    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsShadowLayer));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsShadowLayer);
 
     brush->SetLooper(jsShadowLayer ? jsShadowLayer->GetBlurDrawLooper() : nullptr);
     return nullptr;
