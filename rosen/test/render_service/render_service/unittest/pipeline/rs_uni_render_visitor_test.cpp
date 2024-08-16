@@ -95,7 +95,7 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_001, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(node, nullptr);
 
@@ -122,7 +122,7 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_002, TestSize.Level
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(displayNode, nullptr);
@@ -169,7 +169,7 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_003, TestSize.Level
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(displayNode, nullptr);
@@ -214,7 +214,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateLeashWindowVisibleRegionEmpty_001, TestSi
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(node, nullptr);
 
@@ -253,7 +253,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateLeashWindowVisibleRegionEmpty_002, TestSi
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(node, nullptr);
 
@@ -291,7 +291,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateLeashWindowVisibleRegionEmpty_003, TestSi
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(node, nullptr);
 
@@ -326,7 +326,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateLeashWindowVisibleRegionEmpty_004, TestSi
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(node, nullptr);
 
@@ -361,7 +361,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_001, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(node, nullptr);
 
@@ -386,7 +386,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_002, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(node, nullptr);
 
@@ -413,7 +413,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode_003, TestSize.Level
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
-    NodeId id = 0;
+    NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     ASSERT_NE(node, nullptr);
 
