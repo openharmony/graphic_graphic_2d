@@ -431,8 +431,12 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
     }
 
     if (ShouldFileBeCreated(options)) {
-        auto createdFile = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-        close(createdFile); // will be opened and written into later
+        auto file = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+        if (file == -1) {
+            RS_LOGE("FileOpen: Cannot create '%s'!", realPath.data()); // NOLINT
+            return nullptr;
+        }
+        close(file);
     }
 
     auto file = fopen(realPath.data(), options.data());

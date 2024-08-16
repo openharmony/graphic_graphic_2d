@@ -65,7 +65,7 @@ private:
     static void ReportStats();
     static void PushCommand(const std::vector<std::string>& args);
     static void ProcessCommand(const char* data, size_t size);
-    static void ProcessBinary(const char* data, size_t size);
+    static void ProcessBinary(const std::vector<char>& data);
     static void ProcessIncoming(Socket& socket);
     static void ProcessOutgoing(Socket& socket);
     static void SendPath(const std::string& path, PackageID id);

@@ -113,7 +113,7 @@ public:
     void Close();
 
     uint32_t GetVersion() const;
-    void SetVersion(uint32_t);
+    void SetVersion(uint32_t version);
 
     static const std::string& GetDefaultPath();
 
