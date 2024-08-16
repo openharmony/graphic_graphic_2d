@@ -3355,6 +3355,9 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     auto node2 = RSTestUtil::CreateSurfaceNode();
     auto task = []() {};
 
+    mainThread->ProcessUiCaptureTasks();
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+
     mainThread->context_->nodeMap.RegisterRenderNode(node1);
     mainThread->AddUiCaptureTask(node1->GetId(), task);
     mainThread->AddUiCaptureTask(node2->GetId(), task);

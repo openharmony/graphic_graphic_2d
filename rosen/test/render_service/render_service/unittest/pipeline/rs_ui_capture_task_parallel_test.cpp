@@ -584,5 +584,32 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByNo
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_EQ(handle->CreatePixelMapByNode(node), nullptr);
 }
+
+/*
+ * @tc.name: RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask
+ * @tc.desc: Test RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask, Function | SmallTest | Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto mainThread = RSMainThread::Instance();
+
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto pixelMap = std::make_unique<Media::PixelMap>();
+    ASSERT_NE(pixelMap, nullptr);
+    auto surface = std::make_shared<Drawing::Surface>();
+    ASSERT_NE(surface, nullptr);
+#ifdef RS_ENABLE_UNI_RENDER
+    auto copytask =
+        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap), node->GetId(), mockCallback);
+
+    ASSERT_FALSE(copytask);
+    mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS
