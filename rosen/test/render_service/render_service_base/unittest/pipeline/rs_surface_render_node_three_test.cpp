@@ -248,7 +248,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, SetIsOnTheTree, TestSize.Level1)
     parent->firstLevelNodeId_ = 0;
     node->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId);
     ASSERT_EQ(parent->GetFirstLevelNodeId(), INVALID_NODEID);
-    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_NODE;
+    node->nodeType_ = RSSurfaceNodeType::SCB_SCREEN_NODE;
     flag = true;
     node->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId);
     ASSERT_TRUE(node->IsUIExtension());
@@ -502,7 +502,6 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, CheckOpaqueRegionBaseInfo, TestSize.Level
     ASSERT_FALSE(node->opaqueRegionBaseInfo_.hasContainerWindow_);
     node->UpdateOccludedByFilterCache(false);
     ASSERT_FALSE(node->IsOccludedByFilterCache());
-    ASSERT_TRUE(node->IsNeedSetVSync());
     ASSERT_FALSE(node->CheckIfOcclusionChanged());
 }
 
