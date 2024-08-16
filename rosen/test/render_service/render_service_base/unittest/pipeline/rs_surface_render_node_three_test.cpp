@@ -821,7 +821,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, RotateCorner001, TestSize.Level2)
     constexpr int firstCornerRadius{1};
     constexpr int secondCornerRadius{2};
     constexpr int thirdCornerRadius{3};
-    constexpr int fourthCornerRadius{4};
+    // constexpr int fourthCornerRadius{4};
 
     Vector4<int> cornerRadius1{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
     node->RotateCorner(RS_ROTATION_0, cornerRadius1);
