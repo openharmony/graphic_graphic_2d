@@ -29,10 +29,11 @@ namespace {
     constexpr float HALF_F = 2;
 }
 
-static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
- colorSpaceName)
+static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(
+    ColorManager::ColorSpaceName colorSpaceName)
 {
     switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DCI_P3:
         case ColorManager::ColorSpaceName::DISPLAY_P3:
             return Drawing::ColorSpace::CreateRGB(
                 Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
@@ -107,6 +108,15 @@ static void PixelMapReleaseProc(const void* /* pixels */, void* context)
         delete ctx;
         ctx = nullptr;
     }
+}
+
+std::shared_ptr<Drawing::ColorSpace> RSPixelMapUtil::GetPixelmapColorSpace(
+    const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!pixelMap) {
+        return Drawing::ColorSpace::CreateSRGB();
+    }
+    return ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName());
 }
 
 std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
