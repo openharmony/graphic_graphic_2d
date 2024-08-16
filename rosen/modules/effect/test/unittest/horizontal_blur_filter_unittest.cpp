@@ -115,6 +115,27 @@ HWTEST_F(HorizontalBlurFilterUnittest, SetValue003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetValue004
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(HorizontalBlurFilterUnittest, SetValue004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "HorizontalBlurFilterUnittest SetValue004 start";
+
+    auto horizontalBlur = std::make_shared<HorizontalBlurFilter>();
+    ASSERT_NE(horizontalBlur, nullptr);
+
+    horizontalBlur->SetValue("weight", nullptr, 0);
+    horizontalBlur->SetValue("offset", nullptr, 0);
+    EXPECT_EQ(horizontalBlur->GetFilterType(), FILTER_TYPE::ALGOFILTER);
+
+    GTEST_LOG_(INFO) << "HorizontalBlurFilterUnittest SetValue004 start";
+}
+
+/**
  * @tc.name: GetVertexShader001
  * @tc.desc: Get a string used to compile the program
  * @tc.type: FUNC
