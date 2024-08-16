@@ -1481,7 +1481,7 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit002, TestSize.Level2)
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
     rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext, optFenceWait);
     surface = std::make_shared<Drawing::Surface>();
-    ASSERT_NE(surface, nullptr);    
+    ASSERT_NE(surface, nullptr);
     rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext, optFenceWait);
 }
 
