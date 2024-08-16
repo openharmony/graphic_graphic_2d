@@ -14,8 +14,8 @@
  */
 
 #include <cstdint>
+#include <sstream>
 #include <scoped_bytrace.h>
-#include <unordered_set>
 #include "rs_trace.h"
 #include "hdi_output.h"
 #include "metadata_helper.h"
@@ -48,6 +48,8 @@ HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
 {
     // DISPLAYENGINE ARSR_PRE FLAG
     arsrPreEnabled_ = system::GetBoolParameter("const.display.enable_arsr_pre", true);
+    arsrPreEnabledForVm_ = system::GetBoolParameter("const.display.enable_arsr_pre_for_vm", false);
+    arsrWhiteList_ = system::GetParameter("const.display.vmlayer.whitelist", "VMWinXComponentSurface");
 }
 
 HdiOutput::~HdiOutput()
@@ -195,7 +197,7 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &lay
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     // DISPLAY ENGINE
-    if (!arsrPreEnabled_) {
+    if (!arsrPreEnabled_ && !arsrPreEnabledForVm_) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
 
@@ -476,11 +478,38 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
     }
 
     if ((yuvFormats.count(static_cast<GraphicPixelFormat>(layerInfo->GetBuffer()->GetFormat())) > 0) ||
-        (videoLayers.count(layerInfo->GetSurface()->GetName()) > 0)) {
+        (videoLayers.count(layerInfo->GetSurface()->GetName()) > 0) || CheckVmLayerInfo(layerInfo)) {
         return true;
     }
 
     return false;
+}
+
+bool HdiOutput::CheckVmLayerInfo(const LayerInfoPtr &layerInfo)
+{
+    if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr) {
+        return false;
+    }
+    char sep = ';';
+    std::unordered_set<std::string> whiteList;
+    SplitString(arsrWhiteList_, whiteList, sep);
+    if (whiteList.count(layerInfo->GetSurface()->GetName()) > 0) {
+        return true;
+    }
+    return false;
+}
+
+void HdiOutput::SplitString(const std::string& in, std::unordered_set<std::string>& out, const char separator)
+{
+    if (in.empty()) {
+        return;
+    }
+    std::string tmp;
+    std::stringstream ss(in);
+    while (getline(ss, tmp, separator)) {
+        out.insert(tmp);
+    }
+    return;
 }
 
 int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
