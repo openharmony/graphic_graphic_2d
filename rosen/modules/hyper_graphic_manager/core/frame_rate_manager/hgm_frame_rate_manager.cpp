@@ -32,6 +32,7 @@
 #include "frame_rate_report.h"
 #include "hgm_config_callback_manager.h"
 #include "hisysevent.h"
+#include "hdi_device.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -68,6 +69,9 @@ namespace {
         "VOTER_VIDEO",
         "VOTER_IDLE"
     };
+
+    constexpr int ADAPTIVE_SYNC_PROPERTY = 2;
+    constexpr int DISPLAY_SUCCESS = 1;
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -858,6 +862,10 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     if (curScreenStrategyId_.find("LTPO") == std::string::npos) {
         DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     }
+
+    if (!IsCurrentScreenSupportAS()) {
+        isAdaptive_.store(false);
+    }
 }
 
 void HgmFrameRateManager::SetShowRefreshRateEnabled(bool enable)
@@ -1136,6 +1144,40 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
     return mergeSuccess;
 }
 
+bool HgmFrameRateManager::IsCurrentScreenSupportAS()
+{
+    ScreenId id = HgmCore::Instance().GetActiveScreenId();
+    ScreenPhysicalId screenId = static_cast<ScreenPhysicalId>(id);
+    uint64_t propertyAS_ = 0;
+    (void)HdiDevice::GetInstance()->GetDisplayProperty(screenId, ADAPTIVE_SYNC_PROPERTY, propertyAS_);
+    return propertyAS_ == DISPLAY_SUCCESS;
+}
+
+void HgmFrameRateManager::ProcessAdaptiveSync(std::string voterName)
+{
+    bool isAdaptiveSyncEnabled = HgmCore::Instance().GetAdaptiveSyncEnabled();
+    if (!isAdaptiveSyncEnabled) {
+        return;
+    }
+
+    // VOTER_GAMES wins, enter adaptive vsync mode
+    bool isGameVoter = voterName == "VOTER_GAMES";
+
+    if (isAdaptive_.load() == isGameVoter) {
+        return;
+    }
+
+    if (isGameVoter && !IsCurrentScreenSupportAS()) {
+        HGM_LOGI("current screen not support adaptive sync mode");
+        return;
+    }
+
+    HGM_LOGI("ProcessHgmFrameRate RSAdaptiveVsync change mode");
+    RS_TRACE_BEGIN("ProcessHgmFrameRate RSAdaptiveVsync change mode");
+    isAdaptive_.store(!isAdaptive_.load());
+    RS_TRACE_END();
+}
+
 bool HgmFrameRateManager::ProcessRefreshRateVote(
     std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& voteRange)
 {
@@ -1204,6 +1246,7 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
     HGM_LOGI("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
         curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_), curRefreshRateMode_, min, max);
     SetResultVoteInfo(resultVoteInfo, min, max);
+    ProcessAdaptiveSync(resultVoteInfo.voterName);
     return resultVoteInfo;
 }
 
