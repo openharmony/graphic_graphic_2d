@@ -39,7 +39,7 @@ public:
     int32_t GetScreenCapability(GraphicDisplayCapability &info) const;
     int32_t GetScreenSupportedModes(std::vector<GraphicDisplayModeInfo> &modes) const;
     int32_t GetScreenMode(uint32_t &modeId) const;
-    int32_t SetScreenMode(uint32_t modeId) const;
+    int32_t SetScreenMode(uint32_t modeId);
     int32_t SetScreenOverlayResolution(uint32_t width, uint32_t height) const;
     int32_t GetScreenPowerStatus(GraphicDispPowerStatus &status) const;
     int32_t SetScreenPowerStatus(GraphicDispPowerStatus status) const;
@@ -61,10 +61,12 @@ public:
 
     /* only used for mock and fuzz tests */
     bool SetHdiDevice(HdiDevice* device);
+    uint32_t GetScreenModeId() const;
 
 private:
     uint32_t screenId_;
     HdiDevice *device_ = nullptr;
+    uint32_t modeId_ = 0;
 
     void Destroy();
 };

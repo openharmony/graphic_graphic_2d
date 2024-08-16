@@ -1274,6 +1274,20 @@ void RSScreenManager::GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenM
     GetScreenActiveModeLocked(id, screenModeInfo);
 }
 
+uint32_t RSScreenManager::GetDefaultScreenRefreshRate() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto screensIt = screens_.find(defaultScreenId_);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".",
+            __func__, defaultScreenId_);
+        return 0;
+    }
+    const auto& screen = screensIt->second;
+    return screen->GetActiveRefreshRate();
+}
+
 std::vector<RSScreenModeInfo> RSScreenManager::GetScreenSupportedModes(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);

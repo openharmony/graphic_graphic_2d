@@ -226,6 +226,7 @@ public:
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
+    virtual uint32_t GetDefaultScreenRefreshRate() const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -433,6 +434,7 @@ public:
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
+    uint32_t GetDefaultScreenRefreshRate() const override;
 
 private:
     RSScreenManager();
