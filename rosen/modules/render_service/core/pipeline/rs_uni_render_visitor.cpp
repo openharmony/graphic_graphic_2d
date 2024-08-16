@@ -461,7 +461,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     }
     bool ret = CheckScreenPowerChange() || CheckColorFilterChange() ||
         CheckCurtainScreenUsingStatusChange() || IsFirstFrameOfPartialRender() ||
-        IsWatermarkFlagChanged() || IsDisplayZoomIn() || isCompleteRenderEnabled_;
+        IsWatermarkFlagChanged() || IsDisplayZoomIn() || isCompleteRenderEnabled_ || CheckLuminanceStatusChange();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -483,6 +483,15 @@ bool RSUniRenderVisitor::CheckCurtainScreenUsingStatusChange() const
         return false;
     }
     RS_LOGD("RSUniRenderVisitor::CheckCurtainScreenUsingStatusChange changed");
+    return true;
+}
+
+bool RSUniRenderVisitor::CheckLuminanceStatusChange() const
+{
+    if (!RSMainThread::Instance()->IsLuminanceChanged()) {
+        return false;
+    }
+    RS_LOGD("RSUniRenderVisitor::CheckLuminanceStatusChange changed");
     return true;
 }
 
@@ -1603,16 +1612,8 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         pointWindow->SetHardwareForcedDisabledState(!IsHardwareComposerEnabled() || !pointWindow->ShouldPaint());
         auto transform = RSUniRenderUtil::GetLayerTransform(*pointWindow, screenInfo_);
         pointWindow->UpdateHwcNodeLayerInfo(transform);
-        auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(
-            curDisplayNode_->GetStagingRenderParams().get());
-        auto dirtyManager = pointWindow->GetDirtyManager();
-        if (dirtyManager && stagingDisplayParams && !pointWindow->IsHardwareForcedDisabled()) {
-            if (!dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty()) {
-                dirtyManager->SetCurrentFrameDirtyRect(RectI());
-                stagingDisplayParams->SetIsMouseDirty(true);
-            } else {
-                stagingDisplayParams->SetIsMouseDirty(false);
-            }
+        if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+            pointerWindowManager_.UpdatePointerDirtyToGlobalDirty(pointWindow, curDisplayNode_);
         }
     }
 }
@@ -1678,8 +1679,6 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);
         // 3. check merge transparent filter when it intersects with pre-dirty
         CheckMergeDisplayDirtyByTransparentFilter(surfaceNode, accumulatedDirtyRegion);
-        // 4. check whether the composition path of the frame before and after the mouse is consistent
-        CheckMergeTopSurfaceForDisplay(surfaceNode);
     });
     curDisplayNode_->SetMainAndLeashSurfaceDirty(hasMainAndLeashSurfaceDirty);
     CheckAndUpdateFilterCacheOcclusion(curMainAndLeashSurfaces);
@@ -1763,7 +1762,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparent(RSSurfaceRenderNode
                 "%{public}s: global dirty %{public}s, add rect %{public}s", surfaceNode.GetName().c_str(),
                 curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
                 transparentDirtyRect.ToString().c_str());
-            MergeDirtySurfaceToDssOrDirty(surfaceNode, transparentDirtyRect);
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(transparentDirtyRect);
         }
     }
     // surfaceNode has transparent regions
@@ -1784,6 +1783,10 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByZorderChanged(RSSurfaceRenderNo
 
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const
 {
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
+        surfaceNode.IsHardwareEnabledTopSurface() && !surfaceNode.IsHardwareForcedDisabled()) {
+        return;
+    }
     RectI lastFrameSurfacePos = curDisplayNode_->GetLastFrameSurfacePos(surfaceNode.GetId());
     RectI currentFrameSurfacePos = curDisplayNode_->GetCurrentFrameSurfacePos(surfaceNode.GetId());
     if (surfaceNode.GetAnimateState() || lastFrameSurfacePos != currentFrameSurfacePos) {
@@ -1793,10 +1796,10 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode&
             curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
             lastFrameSurfacePos.ToString().c_str(), currentFrameSurfacePos.ToString().c_str());
         if (!lastFrameSurfacePos.IsEmpty()) {
-            MergeDirtySurfaceToDssOrDirty(surfaceNode, lastFrameSurfacePos);
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(lastFrameSurfacePos);
         }
         if (!currentFrameSurfacePos.IsEmpty()) {
-            MergeDirtySurfaceToDssOrDirty(surfaceNode, currentFrameSurfacePos);
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(currentFrameSurfacePos);
         }
     }
 }
@@ -1851,30 +1854,6 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode&
             curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
             attractionDirtyRect_.ToString().c_str());
         curDisplayNode_->GetDirtyManager()->MergeDirtyRect(attractionDirtyRect_);
-    }
-}
-
-void RSUniRenderVisitor::MergeDirtySurfaceToDssOrDirty(RSSurfaceRenderNode& surfaceNode,
-    const RectI& dirtyRect) const
-{
-    // The surfaceNode has been confirmed to be non-null at the invocation
-    // this function is non-null
-    if (surfaceNode.IsHardwareEnabledTopSurface() && !surfaceNode.IsHardwareForcedDisabled()) {
-        curDisplayNode_->GetDirtyManager()->MergeHwcDirtyRect(dirtyRect);
-    } else {
-        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRect);
-    }
-}
-
-void RSUniRenderVisitor::CheckMergeTopSurfaceForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
-{
-    // The surfaceNode has been confirmed to be non-null at the invocation
-    // this function is non-null
-    if (surfaceNode->IsHardwareEnabledTopSurface() && (surfaceNode->GetIsLastFrameHwcEnabled() !=
-        !surfaceNode->IsHardwareForcedDisabled())) {
-        auto oldDirtyInSurface = surfaceNode->GetOldDirtyInSurface();
-        RS_LOGD("Mouse dirty %{public}s", oldDirtyInSurface.ToString().c_str());
-        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(oldDirtyInSurface);
     }
 }
 
@@ -1933,7 +1912,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRen
                 transparentDirtyRegion.GetRegionInfo().c_str());
             const std::vector<Occlusion::Rect>& rects = transparentDirtyRegion.GetRegionRects();
             for (const auto& rect : rects) {
-                MergeDirtySurfaceToDssOrDirty(surfaceNode, RectI{ rect.left_, rect.top_,
+                curDisplayNode_->GetDirtyManager()->MergeDirtyRect(RectI{ rect.left_, rect.top_,
                     rect.right_ - rect.left_, rect.bottom_ - rect.top_ });
             }
         }
@@ -2213,7 +2192,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
     if (RS_PROFILER_SHOULD_BLOCK_HWCNODE()) {
         return;
     }
-    
+
     if (!curSurfaceNode_) {
         return;
     }
@@ -2637,6 +2616,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isVirtualDirtyDfxEnabled_ = isVirtualDirtyDfxEnabled_;
     renderThreadParams->isExpandScreenDirtyEnabled_ = isExpandScreenDirtyEnabled_;
     renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;
+    renderThreadParams->isForceCommitLayer_ |= pointerWindowManager_.IsNeedForceCommitByPointer();
 }
 
 void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)

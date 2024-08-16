@@ -331,6 +331,7 @@ bool ImageSource::UnmarshalFromDMA(UnmarshallingContext& context, uint64_t id)
 {
     auto image = Rosen::RSProfiler::IsParcelMock(context.parcel) ? GetCachedImage(id) : nullptr;
     if (image) {
+        // REPLAY IMAGE
         context.parcel.SkipBytes(image->parcelSkipBytes);
         return context.GatherDmaImageFromFile(image);
     }
@@ -343,6 +344,7 @@ bool ImageSource::UnmarshalFromDMA(UnmarshallingContext& context, uint64_t id)
     context.context = IncrementSurfaceBufferReference(surfaceBuffer);
 
     if (auto bufferHandle = surfaceBuffer->GetBufferHandle()) {
+        // RECORD IMAGE
         const auto imageData = GenerateImageData(context.base, bufferHandle->size, *context.map);
         CacheImage(id, imageData, context.parcel.GetReadPosition() - readPosition, bufferHandle);
     }

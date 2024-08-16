@@ -56,6 +56,9 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_SUCCESS);
     bool enabled = false, needFlush = false;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenVsyncEnabled(screenId, enabled), GRAPHIC_DISPLAY_SUCCESS);
+    uint32_t pid = 3;
+    uint64_t pvalue = 0;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetDisplayProperty(screenId, pid, pvalue), GRAPHIC_DISPLAY_SUCCESS);
     GraphicDisplayCapability dcpInfo;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenCapability(screenId, dcpInfo), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicDisplayModeInfo> dmodes;

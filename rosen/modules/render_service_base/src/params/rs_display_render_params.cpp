@@ -178,7 +178,6 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
-    targetDisplayParams->isMouseDirty_ = isMouseDirty_;
     RSRenderParams::OnSync(target);
 }
 

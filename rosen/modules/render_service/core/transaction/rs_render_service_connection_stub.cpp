@@ -1211,6 +1211,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // timer: 3s
             OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + std::to_string(callingPid), 3);
             uint64_t uniqueId = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             std::shared_ptr<Drawing::Typeface> typeface;
             bool result = false;
             result = RSMarshallingHelper::Unmarshalling(data, typeface);
@@ -1224,6 +1225,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
             uint64_t uniqueId = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             UnRegisterTypeface(uniqueId);
             break;
         }

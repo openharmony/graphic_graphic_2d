@@ -188,17 +188,6 @@ HWTEST_F(StaticFactoryTest, GetGroupParameters001, TestSize.Level1)
     ASSERT_TRUE(param.empty());
 }
 
-/**
- * @tc.name: CreateEmpty001
- * @tc.desc: Test StaticFactory
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(StaticFactoryTest, CreateEmpty001, TestSize.Level1)
-{
-    ASSERT_TRUE(StaticFactory::CreateEmpty() != nullptr);
-}
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

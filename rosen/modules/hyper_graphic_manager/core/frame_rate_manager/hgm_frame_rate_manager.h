@@ -133,6 +133,7 @@ public:
     void HandleRsFrame();
     void SetShowRefreshRateEnabled(bool enable);
     bool IsLtpo() const { return isLtpo_; };
+    bool IsAdaptive() const { return isAdaptive_.load(); };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, const DvsyncInfo& dvsyncInfo);
 
@@ -190,6 +191,8 @@ private:
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange(const std::string& voter = "");
+    bool IsCurrentScreenSupportAS();
+    void ProcessAdaptiveSync(std::string voterName);
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
@@ -256,6 +259,7 @@ private:
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
+    std::atomic<bool> isAdaptive_ = false;
 
     uint64_t timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;

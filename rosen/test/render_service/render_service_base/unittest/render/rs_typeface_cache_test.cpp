@@ -149,5 +149,54 @@ HWTEST_F(RSTypefaceCacheTest, HandleDelayDestroyQueueTest001, TestSize.Level1)
     RSTypefaceCache::Instance().Dump();
     EXPECT_FALSE(RSTypefaceCache::Instance().typefaceHashCode_.empty());
 }
+
+/**
+ * @tc.name: ReplaySerializeTest001
+ * @tc.desc: Verify function ReplaySerialize
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplaySerializeTest001, TestSize.Level1)
+{
+    auto typeface = Drawing::Typeface::MakeDefault();
+    uint64_t uniqueId = 1;
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+
+    size_t fontCount = 0;
+    std::stringstream fontStream;
+    RSTypefaceCache::Instance().ReplaySerialize(fontStream);
+    fontStream.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
+    EXPECT_NE(fontCount, 0);
+}
+
+/**
+ * @tc.name: ReplayDeserializeTest001
+ * @tc.desc: Verify function ReplayDeserialize
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayDeserializeTest001, TestSize.Level1)
+{
+    uint64_t uniqueId = 1;
+    uint64_t replayMask = (uint64_t)1 << (30 + 32);
+    std::stringstream fontStream;
+    RSTypefaceCache::Instance().ReplaySerialize(fontStream);
+    RSTypefaceCache::Instance().ReplayDeserialize(fontStream);
+    EXPECT_NE(RSTypefaceCache::Instance().typefaceHashCode_.find(uniqueId | replayMask),
+              RSTypefaceCache::Instance().typefaceHashCode_.end());
+}
+
+/**
+ * @tc.name: ReplayClearTest001
+ * @tc.desc: Verify function ReplayClear
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, ReplayClearTest001, TestSize.Level1)
+{
+    uint64_t uniqueId = 1;
+    uint64_t replayMask = (uint64_t)1 << (30 + 32);
+    RSTypefaceCache::Instance().ReplayClear();
+    EXPECT_EQ(RSTypefaceCache::Instance().typefaceHashCode_.find(uniqueId | replayMask),
+              RSTypefaceCache::Instance().typefaceHashCode_.end());
+}
+
 } // namespace Rosen
 } // namespace OHOS
