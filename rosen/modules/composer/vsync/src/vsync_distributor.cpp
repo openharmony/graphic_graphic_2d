@@ -981,7 +981,7 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
     if (name.find("WM") == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    if (name.find("NWeb") != std::string::npos) {
+    if ((name.find("NWeb") != std::string::npos) && (name.find("ArkWebCore") != std::string::npos)) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::string::size_type pos = name.find("_");

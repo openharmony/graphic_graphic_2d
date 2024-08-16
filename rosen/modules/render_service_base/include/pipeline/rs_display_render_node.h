@@ -218,6 +218,11 @@ public:
         isSecurityExemption_ = isSecurityExemption;
     }
 
+    bool GetSecurityExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {

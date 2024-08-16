@@ -50,6 +50,7 @@ namespace {
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
     constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
     constexpr uint64_t UI_ENERGY_ASSURANCE_TASK_DELAY_TIME = 3000; // 3s
+    constexpr int32_t RS_IDLE_TIMEOUT_MS = 600; // ms
     const static std::string ENERGY_ASSURANCE_TASK_ID = "ENERGY_ASSURANCE_TASK_ID";
     const static std::string UI_ENERGY_ASSURANCE_TASK_ID = "UI_ENERGY_ASSURANCE_TASK_ID";
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
@@ -115,9 +116,10 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator);
     multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
         DeliverRefreshRateVote({"VOTER_PACKAGES", strategy.min, strategy.max}, ADD_VOTE);
-        idleFps_ = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
+        idleFps_ = std::max(strategy.min, minIdleFps_);
         HandleIdleEvent(true);
     });
+    InitRsIdleTimer();
     InitTouchManager();
     multiAppStrategy_.CalcVote();
 }
@@ -149,6 +151,36 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
     });
 
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
+}
+
+void HgmFrameRateManager::InitRsIdleTimer()
+{
+    SetShowRefreshRateEnabled(false);
+
+    auto resetTask = [this] () {
+        PolicyConfigData::StrategyConfig strategy;
+        multiAppStrategy_.GetVoteRes(strategy);
+        auto resetRefreshRate = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
+        if (minIdleFps_ != resetRefreshRate) {
+            minIdleFps_ = resetRefreshRate;
+            DeliverRefreshRateVote({"VOTER_IDLE", minIdleFps_, minIdleFps_}, ADD_VOTE);
+        }
+    };
+    auto timeoutTask = [this] () {
+        PolicyConfigData::StrategyConfig strategy;
+        multiAppStrategy_.GetVoteRes(strategy);
+        if (minIdleFps_ != strategy.idleFps) {
+            minIdleFps_ = strategy.idleFps;
+            DeliverRefreshRateVote({"VOTER_IDLE", minIdleFps_, minIdleFps_}, ADD_VOTE);
+            curSkipCount_ = 0;
+        }
+    };
+
+    static std::once_flag createFlag;
+    std::call_once(createFlag, [this, resetTask, timeoutTask] () {
+        rsIdleTimer_ = std::make_unique<HgmSimpleTimer>("rs_idle_timer",
+            std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), resetTask, timeoutTask);
+    });
 }
 
 void HgmFrameRateManager::InitTouchManager()
@@ -831,6 +863,31 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     if (!IsCurrentScreenSupportAS()) {
         isAdaptive_ = false;
     }
+}
+
+void HgmFrameRateManager::SetShowRefreshRateEnabled(bool enable)
+{
+    // Each time rsIdleTimer_ vote the idleFps by config, hgm will call forceUpdateCallback_, which lead to Reset of
+    // rsIdleTimer_, so the idleFps will be update(to 60hz at least) soon by rsIdleTimer_. With no new frame update
+    // for RS_IDLE_TIMEOUT_MS, rsIdleTimer_ will vote the idleFps by config again. To avoid entering this loop,
+    // rsIdleTimer_ should filter the RS frame.
+    HgmTaskHandleThread::Instance().PostTask([this, enable] () {
+        // 1: the RefreshRate Change Request lead to 1 frame update.
+        static const int countToUpdateScreenRefreshRate = 1;
+        // 2: when ShowRefreshRate enabled, the change of RefreshRate need to update displayed value by 1 more update
+        static const int countToUpdateDisplayedFpsValue = 2;
+        skipFrame_ = enable ? countToUpdateDisplayedFpsValue : countToUpdateScreenRefreshRate;
+    });
+}
+
+void HgmFrameRateManager::HandleRsFrame()
+{
+    if (curSkipCount_ < skipFrame_) {
+        curSkipCount_++;
+    } else if (rsIdleTimer_) {
+        rsIdleTimer_->Start();
+    }
+    touchManager_.HandleRsFrame();
 }
 
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)

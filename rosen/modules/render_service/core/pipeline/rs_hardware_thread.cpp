@@ -333,6 +333,10 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     static ScreenId lastScreenId = 12345; // init value diff with any real screen id
     auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    if (hgmCore.GetFrameRateMgr() == nullptr) {
+        RS_LOGD("FrameRateMgr is null");
+        return;
+    }
     ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
@@ -533,7 +537,7 @@ void RSHardwareThread::AddRefreshRateCount()
             RS_LOGE("RSHardwareThread::AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
             return;
         }
-        frameRateMgr->GetTouchManager().HandleRsFrame();
+        frameRateMgr->HandleRsFrame();
     });
 }
 

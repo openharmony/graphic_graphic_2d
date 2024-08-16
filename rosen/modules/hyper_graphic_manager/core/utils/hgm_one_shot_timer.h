@@ -106,6 +106,7 @@ private:
 
     std::string name_;
     const Interval interval_;
+    const ResetCallback resetCallback_ = nullptr;
     const ExpiredCallback expiredCallback_ = nullptr;
     std::unique_ptr<ChronoSteadyClock> clock_ = nullptr;
 

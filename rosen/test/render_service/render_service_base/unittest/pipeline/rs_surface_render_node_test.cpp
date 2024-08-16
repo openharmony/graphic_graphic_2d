@@ -2263,6 +2263,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckOpaqueRegionBaseInfo, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckUpdateHwcNodeLayerInfo
+ * @tc.desc: test results of CheckUpdateHwcNodeLayerInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKCYI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    RectI screeninfo;
+    RectI absRect;
+    ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
+    bool isFocusWindow = true;
+    Vector4<int> cornerRadius;
+    ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius));
+    bool hasContainer = true;
+    float density = 1.0f;
+    node->containerConfig_.Update(hasContainer, density);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    node->addedToPendingSyncList_ = true;
+    node->isHardwareForcedDisabled_ = false;
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+
+    RSLayerInfo layerInfo;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateHwcNodeLayerInfo(transform);
+    auto layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+}
+
+/**
  * @tc.name: NeedSetCallbackForRenderThreadRefresh
  * @tc.desc: test results of NeedSetCallbackForRenderThreadRefresh
  * @tc.type: FUNC

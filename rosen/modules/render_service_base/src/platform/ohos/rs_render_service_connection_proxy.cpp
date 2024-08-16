@@ -495,6 +495,7 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList: Send Request err.");
+        return RS_CONNECTION_ERROR;
     }
 
     int32_t status = reply.ReadInt32();

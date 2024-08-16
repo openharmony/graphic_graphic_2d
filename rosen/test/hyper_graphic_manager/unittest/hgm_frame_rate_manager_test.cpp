@@ -350,5 +350,24 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
     sleep(1); // wait for timer stop
 }
 
+/**
+ * @tc.name: HgmRsIdleTimerTest
+ * @tc.desc: Verify the result of HgmRsIdleTimerTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmRsIdleTimerTest, Function | SmallTest | Level2)
+{
+    int32_t interval = 700; // 700ms waiting time
+
+    HgmFrameRateManager mgr;
+    mgr.minIdleFps_ = OLED_30_HZ;
+    mgr.InitRsIdleTimer();
+    std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+    mgr.HandleRsFrame();
+    std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+    sleep(1); // wait for timer stop
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -42,6 +42,7 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getCapStyle", GetCapStyle),
         DECLARE_NAPI_FUNCTION("setColor", SetColor),
         DECLARE_NAPI_FUNCTION("getColor", GetColor),
+        DECLARE_NAPI_FUNCTION("getHexColor", GetHexColor),
         DECLARE_NAPI_FUNCTION("setColorFilter", SetColorFilter),
         DECLARE_NAPI_FUNCTION("getColorFilter", GetColorFilter),
         DECLARE_NAPI_FUNCTION("setImageFilter", SetImageFilter),
@@ -308,7 +309,7 @@ napi_value JsPen::SetColorFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsColorFilter* jsColorFilter = nullptr;
-    napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsColorFilter));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsColorFilter);
 
     Filter filter = pen->GetFilter();
     filter.SetColorFilter(jsColorFilter ? jsColorFilter->GetColorFilter() : nullptr);
@@ -351,7 +352,7 @@ napi_value JsPen::SetImageFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsImageFilter* jsImageFilter = nullptr;
-    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsImageFilter));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsImageFilter);
 
     Filter filter = pen->GetFilter();
     filter.SetImageFilter(jsImageFilter != nullptr ? jsImageFilter->GetImageFilter() : nullptr);
@@ -376,7 +377,7 @@ napi_value JsPen::SetMaskFilter(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsMaskFilter* jsMaskFilter = nullptr;
-    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsMaskFilter));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsMaskFilter);
 
     Filter filter = pen->GetFilter();
     filter.SetMaskFilter(jsMaskFilter ? jsMaskFilter->GetMaskFilter() : nullptr);
@@ -527,7 +528,7 @@ napi_value JsPen::SetPathEffect(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsPathEffect* jsPathEffect = nullptr;
-    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsPathEffect));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsPathEffect);
 
     pen->SetPathEffect(jsPathEffect ? jsPathEffect->GetPathEffect() : nullptr);
     return nullptr;
@@ -550,7 +551,7 @@ napi_value JsPen::SetShadowLayer(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
     JsShadowLayer* jsShadowLayer = nullptr;
-    napi_unwrap(env, argv[ARGC_ZERO], reinterpret_cast<void **>(&jsShadowLayer));
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsShadowLayer);
 
     pen->SetLooper(jsShadowLayer ? jsShadowLayer->GetBlurDrawLooper() : nullptr);
     return nullptr;
@@ -701,6 +702,23 @@ napi_value JsPen::GetColor(napi_env env, napi_callback_info info)
 
     Color color = pen->GetColor();
     return GetColorAndConvertToJsValue(env, color);
+}
+
+napi_value JsPen::GetHexColor(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::GetHexColor jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetHexColor pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    Color color = pen->GetColor();
+    return GetHexColorAndConvertToJsValue(env, color);
 }
 
 Pen* JsPen::GetPen()

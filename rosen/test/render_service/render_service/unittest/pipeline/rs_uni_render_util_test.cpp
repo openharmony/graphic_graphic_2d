@@ -99,6 +99,38 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_002, Function | SmallTest | Level
 }
 
 /*
+ * @tc.name: SrcRectScaleDown_003
+ * @tc.desc: Test SrcRectScaleDown when srcRect is multiple
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+*/
+HWTEST_F(RSUniRenderUtilTest, SrcRectScaleDown_003, Function | SmallTest | Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    BufferDrawParam params;
+    int32_t left = 0;
+    int32_t top = 0;
+    int32_t right = 1;
+    int32_t bottom = 2;
+    params.srcRect = Drawing::Rect(left, top, right, bottom);
+    right = 2;
+    bottom = 1;
+    RectF localBounds = RectF(left, top, right, bottom);
+    RSUniRenderUtil::SrcRectScaleDown(
+        params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
+   
+    params.srcRect.SetRight(right);
+    params.srcRect.SetBottom(bottom);
+    right = 1;
+    bottom = 2;
+    localBounds.SetRight(right);
+    localBounds.SetBottom(bottom);
+    RSUniRenderUtil::SrcRectScaleDown(
+        params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
+}
+
+/*
  * @tc.name: SrcRectScaleFit_001
  * @tc.desc: default value
  * @tc.type: FUNC
@@ -130,6 +162,38 @@ HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_002, Function | SmallTest | Level2
     RectF localBounds;
     RSUniRenderUtil::SrcRectScaleFit(
         params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
+}
+
+/*
+ * @tc.name: SrcRectScaleFit_003
+ * @tc.desc: Test SrcRectScaleFit when srcRect is multiple
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+*/
+HWTEST_F(RSUniRenderUtilTest, SrcRectScaleFit_003, Function | SmallTest | Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    BufferDrawParam params;
+    int32_t left = 0;
+    int32_t top = 0;
+    int32_t right = 1;
+    int32_t bottom = 2;
+    params.srcRect = Drawing::Rect(left, top, right, bottom);
+    right = 2;
+    bottom = 1;
+    RectF localBounds = RectF(left, top, right, bottom);
+    RSUniRenderUtil::SrcRectScaleFit(
+        params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
+   
+    params.srcRect.SetRight(right);
+    params.srcRect.SetBottom(bottom);
+    right = 1;
+    bottom = 2;
+    localBounds.SetRight(right);
+    localBounds.SetBottom(bottom);
+    RSUniRenderUtil::SrcRectScaleFit(
+        params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
 }
 
 /*
@@ -187,6 +251,40 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_002, Function | SmallTe
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+}
+
+/*
+ * @tc.name: CreateLayerBufferDrawParam_003
+ * @tc.desc: Test CreateLayerBufferDrawParam when buffer is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_003, Function | SmallTest | Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetBuffer(nullptr, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+}
+
+/*
+ * @tc.name: CreateLayerBufferDrawParam_004
+ * @tc.desc: Test CreateLayerBufferDrawParam when surface is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_004, Function | SmallTest | Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layer->SetBuffer(nullptr, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    auto csurface = IConsumerSurface::Create();
+    layer->SetSurface(csurface);
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
 
@@ -251,6 +349,21 @@ HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: Is3DRotation_003
+ * @tc.desc: Test Is3DRotation when ScaleX and ScaleY have different sign
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, Is3DRotation_003, Function | SmallTest | Level2)
+{
+    bool is3DRotation;
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(-1, 0, 0, 0, 1, 0, 0, 0, 1);
+    is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
+    ASSERT_TRUE(is3DRotation);
+}
+
+/*
  * @tc.name: AssignWindowNodes
  * @tc.desc:
  * @tc.type: FUNC
@@ -298,6 +411,26 @@ HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface, Function | SmallTest | Level2)
     RSUniRenderUtil::ClearCacheSurface(node, threadIndex);
 }
 
+/*
+ * @tc.name: PostReleaseSurfaceTask001
+ * @tc.desc: Test PostReleaseSurfaceTask when surface is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, PostReleaseSurfaceTask001, Function | SmallTest | Level2)
+{
+    int width = 200;
+    int height = 200;
+    const Drawing::ImageInfo info =
+        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
+    auto surface(Drawing::Surface::MakeRaster(info));
+    ASSERT_NE(surface, nullptr);
+    uint32_t threadIndex = UNI_MAIN_THREAD_INDEX;
+    RSUniRenderUtil::PostReleaseSurfaceTask(std::move(surface), threadIndex);
+    threadIndex = UNI_RENDER_THREAD_INDEX;
+    RSUniRenderUtil::PostReleaseSurfaceTask(std::move(surface), threadIndex);
+}
+ 
 /*
  * @tc.name: ClearNodeCacheSurface
  * @tc.desc:
@@ -348,6 +481,22 @@ HWTEST_F(RSUniRenderUtilTest, AssignMainThreadNode, Function | SmallTest | Level
     RSUniRenderUtil::AssignMainThreadNode(mainThreadNodes, nullptr);
     ASSERT_EQ(0, mainThreadNodes.size());
     auto node = RSTestUtil::CreateSurfaceNode();
+    RSUniRenderUtil::AssignMainThreadNode(mainThreadNodes, node);
+    ASSERT_EQ(1, mainThreadNodes.size());
+}
+
+/*
+ * @tc.name: AssignMainThreadNode002
+ * @tc.desc:Test AssignMainThreadNode002 when node.isMainThreadNode_ is false
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, AssignMainThreadNode002, Function | SmallTest | Level2)
+{
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
+    ASSERT_EQ(0, mainThreadNodes.size());
+    auto node = RSTestUtil::CreateSurfaceNode();
+    node->isMainThreadNode_ = false;
     RSUniRenderUtil::AssignMainThreadNode(mainThreadNodes, node);
     ASSERT_EQ(1, mainThreadNodes.size());
 }
@@ -487,6 +636,27 @@ HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread005, Function | SmallTest | L
     ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()), false);
 }
 
+/*
+ * @tc.name: IsNodeAssignSubThread006
+ * @tc.desc: test IsNodeAssignSubThread when nodeType_ is reset
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNodeAssignSubThread006, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    ASSERT_NE(displayNode, nullptr);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->AddChild(surfaceNode);
+    surfaceNode->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+    
+    ASSERT_EQ(RSUniRenderUtil::IsNodeAssignSubThread(surfaceNode, displayNode->IsRotationChanged()), false);
+}
+
 /**
  * @tc.name: IsNeedClientsTest
  * @tc.desc: Verify function IsNeedClient
@@ -500,6 +670,28 @@ HWTEST_F(RSUniRenderUtilTest, IsNeedClientsTest, Function | SmallTest | Level2)
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     ComposeInfo info;
     EXPECT_FALSE(RSUniRenderUtil::IsNeedClient(node, info));
+}
+
+/**
+ * @tc.name: IsNeedClientTest002
+ * @tc.desc: Test IsNeedClient with modify params such as Rotation
+ * @tc.type:FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, IsNeedClientTest002, Function | SmallTest | Level2)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(node, nullptr);
+    ComposeInfo info;
+    node->renderContent_->renderProperties_.SetRotation(1.0f);
+    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
+    node->renderContent_->renderProperties_.SetRotationX(1.0f);
+    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
+    node->renderContent_->renderProperties_.SetRotationY(1.0f);
+    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
+    Quaternion quaternion(90.0f, 90.0f, 90.0f, 90.0f);
+    node->renderContent_->renderProperties_.SetQuaternion(quaternion);
+    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
 }
 
 /**
@@ -517,6 +709,25 @@ HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest, Function | SmallTe
     node->children_.emplace_back(std::make_shared<RSRenderNode>(id));
     RSUniRenderUtil::ReleaseColorPickerResource(node);
     EXPECT_FALSE(node->children_.empty());
+}
+
+/**
+ * @tc.name: ReleaseColorPickerResourceTest002
+ * @tc.desc: Test ReleaseColorPickerResource without nullptr
+ * @tc.type:FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest002, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    id = 2;
+    auto child = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(child, nullptr);
+    node->AddChild(child);
+    EXPECT_FALSE(node->children_.empty());
+    RSUniRenderUtil::ReleaseColorPickerResource(node);
 }
 
 /*
@@ -727,6 +938,25 @@ HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: HandleHardwareNodeTest002
+ * @tc.desc: Test HandleHardwareNode add child to node
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest002, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->hasHardwareNode_ = true;
+    id = 2;
+    auto child = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(child, nullptr);
+    node->AddChild(child);
+    RSUniRenderUtil::HandleHardwareNode(node);
+}
+
+/*
  * @tc.name: UpdateRealSrcRectTest
  * @tc.desc: Verify function UpdateRealSrcRect
  * @tc.type: FUNC
@@ -770,7 +1000,11 @@ HWTEST_F(RSUniRenderUtilTest, UpdateRealSrcRectTest002, Function | SmallTest | L
 
     constexpr uint32_t default_canvas_width = 800;
     constexpr uint32_t default_canvas_height = 600;
-    absRect = RectI(1, 1, 1, 1);
+    int left = 1;
+    int top = 1;
+    int right = 1;
+    int bottom = 1;
+    absRect = RectI(left, top, right, bottom);
     node.GetMutableRenderProperties().SetBoundsWidth(default_canvas_width);
     node.GetMutableRenderProperties().SetBoundsHeight(default_canvas_height);
     node.GetMutableRenderProperties().SetFrameGravity(Gravity::TOP_RIGHT);
@@ -1242,6 +1476,21 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleFitTest03, TestSize.Level2)
     rsUniRenderUtil.LayerScaleFit(node);
     ASSERT_EQ(node.GetDstRect().width_, retWidth);
     ASSERT_EQ(node.GetDstRect().height_, retHeight);
+}
+
+/*
+ * @tc.name: CreateBufferDrawParam001
+ * @tc.desc: test CreateBufferDrawParam when surfaceHandler.buffer is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam001, TestSize.Level2)
+{
+    NodeId id = 1;
+    RSSurfaceHandler surfaceHandler(id);
+    bool forceCPU = true;
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(surfaceHandler, forceCPU);
+    ASSERT_EQ(params.buffer, nullptr);
 }
 
 /*
