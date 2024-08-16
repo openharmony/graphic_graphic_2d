@@ -45,6 +45,7 @@
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
+#include "command/rs_node_command.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
@@ -402,6 +403,7 @@ RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id()),
 
 RSMainThread::~RSMainThread() noexcept
 {
+    RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
     if (rsAppStateListener_) {
@@ -500,6 +502,11 @@ void RSMainThread::Init()
             return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
         };
     Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
+    {
+        using namespace std::placeholders;
+        RSNodeCommandHelper::SetDumpNodeTreeProcessor(
+            std::bind(&RSMainThread::OnDumpClientNodeTree, this, _1, _2, _3, _4));
+    }
 
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
@@ -3162,6 +3169,104 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
         g_dumpStr = "";
     }
 }
+
+void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
+{
+    std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
+    if (nodeTreeDumpTasks_.find(taskId) != nodeTreeDumpTasks_.end()) {
+        RS_LOGD("SendClientDumpNodeTreeCommands task[%{public}u] duplicate", taskId);
+        return;
+    }
+
+    std::unordered_map<pid_t, std::vector<NodeId>> topNodes;
+    if (const auto& rootNode = context_->GetGlobalRootRenderNode()) {
+        for (const auto& displayNode : *rootNode->GetSortedChildren()) {
+            for (const auto& node : *displayNode->GetSortedChildren()) {
+                NodeId id = node->GetId();
+                topNodes[ExtractPid(id)].push_back(id);
+            }
+        }
+    }
+    context_->GetNodeMap().TraversalNodes([this, &topNodes] (const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node->IsOnTheTree() && node->GetType() == RSRenderNodeType::ROOT_NODE) {
+            if (auto parent = node->GetParent().lock()) {
+                NodeId id = parent->GetId();
+                topNodes[ExtractPid(id)].push_back(id);
+            }
+            NodeId id = node->GetId();
+            topNodes[ExtractPid(id)].push_back(id);
+        }
+    });
+
+    auto& task = nodeTreeDumpTasks_[taskId];
+    for (const auto& [pid, nodeIds] : topNodes) {
+        auto iter = applicationAgentMap_.find(pid);
+        if (iter == applicationAgentMap_.end() || !iter->second) {
+            continue;
+        }
+        auto transactionData = std::make_shared<RSTransactionData>();
+        for (auto id : nodeIds) {
+            auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId, "");
+            transactionData->GetPayload().emplace_back(id, FollowType::NONE, std::move(command));
+            task.count++;
+        }
+        iter->second->OnTransaction(transactionData);
+    }
+    RS_LOGD("SendClientDumpNodeTreeCommands send task[%{public}u] count[%{public}zu]",
+        taskId, task.count);
+}
+
+void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout)
+{
+    std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
+    nodeTreeDumpCondVar_.wait_for(lock, std::chrono::milliseconds(timeout), [this, taskId] () {
+        const auto& task = nodeTreeDumpTasks_[taskId];
+        return task.completionCount == task.count;
+    });
+
+    const auto& task = nodeTreeDumpTasks_[taskId];
+    size_t completed = task.completionCount;
+    dumpString += "\n-- ClientNodeTreeDump: ";
+    for (const auto& [pid, data] : task.data) {
+        dumpString += "\n| pid[";
+        dumpString += std::to_string(pid);
+        dumpString += "]";
+        if (data) {
+            dumpString += "\n";
+            dumpString += data.value();
+        }
+    }
+    nodeTreeDumpTasks_.erase(taskId);
+
+    RS_LOGD("CollectClientNodeTreeResult task[%{public}u] completionCount[%{public}zu]",
+        taskId, completed);
+}
+
+void RSMainThread::OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
+{
+    {
+        std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
+        auto iter = nodeTreeDumpTasks_.find(taskId);
+        if (iter == nodeTreeDumpTasks_.end()) {
+            RS_LOGD("OnDumpClientNodeTree task[%{public}u] not found for pid[%d]", taskId, pid);
+            return;
+        }
+
+        iter->second.completionCount++;
+        auto& data = iter->second.data[pid];
+        if (data) {
+            data->append("\n");
+            data->append(result);
+        } else {
+            data = result;
+        }
+    }
+    nodeTreeDumpCondVar_.notify_all();
+
+    RS_LOGD("OnDumpClientNodeTree task[%{public}u] dataSize[%{public}zu] pid[%d]",
+        taskId, result.size(), pid);
+}
+
 
 bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
