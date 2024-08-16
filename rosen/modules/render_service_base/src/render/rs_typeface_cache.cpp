@@ -61,7 +61,8 @@ bool RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
     if (hash) {
         // check if someone else has already registered this typeface, add ref count and
         // mapping if so.
-        if (auto iterator = typefaceHashMap_.find(hash); iterator != typefaceHashMap_.end()) {
+        auto iterator = typefaceHashMap_.find(hash);
+        if (iterator != typefaceHashMap_.end()) {
             typefaceHashCode_[uniqueId] = hash;
             std::get<1>(iterator->second)++;
             return true;

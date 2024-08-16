@@ -33,13 +33,16 @@ public:
     static RSTypefaceCache& Instance();
     static pid_t GetTypefacePid(uint64_t globalUniqueId);
     static uint32_t GetTypefaceId(uint64_t globalUniqueId);
+    /**
+      * Calculate unique id by combining process id and local unique id
+      * uniqueId = pid(high 32bit) | typefaceId(low 32bit)
+      */
     static uint64_t GenGlobalUniqueId(uint32_t typefaceId);
     /**
       * Checks if the given hash exists in the cache already
       * provided by someone else. If so, increases ref count to reduce registration cost.
       */
     bool HasTypeface(uint64_t globalUniqueId, uint32_t hash);
-    // uniqueId = pid(32bit) | typefaceId(32bit)
     void CacheDrawingTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface> typeface);
     std::shared_ptr<Drawing::Typeface> GetDrawingTypefaceCache(uint64_t globalUniqueId) const;
     void RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqueId);

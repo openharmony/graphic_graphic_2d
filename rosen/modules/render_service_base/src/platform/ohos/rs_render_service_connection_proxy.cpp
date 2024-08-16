@@ -1889,7 +1889,7 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
             uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE);
             int32_t err = Remote()->SendRequest(code, data2, reply2, option);
             if (err != NO_ERROR) {
-                RS_LOGD("RSRenderServiceConnectionProxy::RegisterTypeface: Check if RegisterTypeface is needed failed");
+                RS_LOGW("RSRenderServiceConnectionProxy::RegisterTypeface: Check if RegisterTypeface is needed failed,err:%{public}zu",err);
                 return false;
             }
             if (!reply2.ReadBool()) {
