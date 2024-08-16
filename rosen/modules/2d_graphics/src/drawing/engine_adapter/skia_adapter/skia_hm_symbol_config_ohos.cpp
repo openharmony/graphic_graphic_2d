@@ -119,7 +119,7 @@ static DrawingPiecewiseParameter ConvertPiecewiseParameter(const PiecewiseParame
 static std::vector<DrawingPiecewiseParameter> ConvertPiecewiseParametersVec(const std::vector<PiecewiseParameter>& in)
 {
     std::vector<DrawingPiecewiseParameter> out;
-    for (auto& tmp : in) {
+    for (const auto& tmp : in) {
         out.push_back(ConvertPiecewiseParameter(tmp));
     }
     return out;

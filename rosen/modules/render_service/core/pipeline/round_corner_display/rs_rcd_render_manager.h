@@ -24,8 +24,8 @@ namespace OHOS {
 namespace Rosen {
 
 struct RcdPrepareInfo {
-    RSBaseRenderNode::SharedPtr bottomNode;
-    RSBaseRenderNode::SharedPtr topNode;
+    RSBaseRenderNode::SharedPtr bottomNode = nullptr;
+    RSBaseRenderNode::SharedPtr topNode = nullptr;
     bool hasInvalidScene = false;
 };
 
