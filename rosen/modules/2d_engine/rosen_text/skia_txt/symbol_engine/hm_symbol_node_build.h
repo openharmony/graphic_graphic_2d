@@ -39,7 +39,7 @@ public:
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
 
     static void AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
-        std::vector<RSGroupSetting> &groupSettings,
+        const std::vector<RSGroupSetting> &groupSettings,
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
     ~SymbolNodeBuild() {}
     bool DecomposeSymbolAndDraw();
