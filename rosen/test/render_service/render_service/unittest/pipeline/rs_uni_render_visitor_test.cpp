@@ -809,7 +809,7 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent001, Tes
  * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent002
  * @tc.desc: Reset but keep node's surfaceInfo since upper surface's InstanceRootNode is not registered
  * @tc.type: FUNC
- * @tc.require: issueIAKDJI
+ * @tc.require: issuesI8MQCS
  */
 HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent002, TestSize.Level2)
 {
@@ -838,7 +838,7 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent002, Tes
  * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent003
  * @tc.desc: Reset curSurfaceInfo when upper surface is leash/main window
  * @tc.type: FUNC
- * @tc.require: issueIAKDJI
+ * @tc.require: issuesI8MQCS
  */
 HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent003, TestSize.Level2)
 {
@@ -846,7 +846,7 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent003, Tes
     auto upperSurfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     ASSERT_NE(upperSurfaceNode, nullptr);
-    upperSufaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    upperSurfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     surfaceNode->SetParent(upperSurfaceNode);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -863,7 +863,7 @@ HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent003, Tes
  * @tc.name: UpdateChildHwcNodeEnabledByHwcNodeBelow
  * @tc.desc: Test RSUniRenderVistorTest.UpdateChildHwcNodeEnableByHwcNodeBelow
  * @tc.type: FUNC
- * @tc.require: issueIAKDJI
+ * @tc.require: issuesI8MQCS
  */
 HWTEST_F(RSUniRenderVisitorTest, UpdateChildHwcNodeEnableByHwcNodeBelow, TestSize.Level2)
 {
@@ -882,38 +882,16 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateChildHwcNodeEnableByHwcNodeBelow, TestSiz
     appNode->AddChildHardwareEnabledNode(hwcNode2);
     appNode->AddChildHardwareEnabledNode(hwcNode3);
     std::vector<RectI> hwcRects;
-    hwRects.emplace_back(0, 0, 0, 0);
+    hwcRects.emplace_back(0, 0, 0, 0);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    RSUniRenderVisitor->UpdateChildHwcNodeEnableByHwcNodeBelow(hwcRects, appNode);
-}
-
-/*
- * @tc.name: PrepareForCapsuleWindowMode001
- * @tc.desc: Test PrepareForCapsuleWindowMode
- * @tc.type: FUNC
- * @tc.require: issueIAKDJI
- */
-HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode001, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    RSSurfaceRenderNodeConfig config;
-    RSDisplayNodeConfig displayConfig;
-    config.id = 10;
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
-    rsSurfaceRenderNode->InitRenderParmas();
-    // 11 non-zero node id
-    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
-    rsDisplayRenderNode->InitRenderParams();
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->InitDisplayInfo(*rsDisplayRenderNode);
-    rsUniRenderVisitor->PrepareForCapsuleWindowNode(*rsSurfaceRenderNode);
+    rsUniRenderVisitor->UpdateChildHwcNodeEnableByHwcNodeBelow(hwcRects, appNode);
 }
 
 /*
  * @tc.name: PrepareForUIFirstNode001
  * @tc.desc: Test PrePareForUIFirstNode with last frame uifirst flag is not leash window and hardware enabled
  * @tc.type: FUNC
- * @tc.require: issueIAKDJI
+ * @tc.require: issuesI8MQCS
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode001, TestSize.Level2)
 {
@@ -921,15 +899,15 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode001, TestSize.Level2
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
     surfaceNode->SetHardwareForcedDisabledState(false);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVistor>();
-    rsUniRenderVisitor->PrePareForUIFirstNode(*surfaceNode);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->PrepareForUIFirstNode(*surfaceNode);
 }
 
 /*
  * @tc.name: PrepareForUIFirstNode002
  * @tc.desc: Test PrePareForUIFirstNode with last frame uifirst flag is leash window and hardware disabled
  * @tc.type: FUNC
- * @tc.require: issueIAKDJI
+ * @tc.require: issuesI8MQCS
  */
 HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode002, TestSize.Level2)
 {
@@ -937,8 +915,8 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode002, TestSize.Level2
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
     surfaceNode->SetHardwareForcedDisabledState(true);
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVistor>();
-    rsUniRenderVisitor->PrePareForUIFirstNode(*surfaceNode);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->PrepareForUIFirstNode(*surfaceNode);
 }
 
 /*
