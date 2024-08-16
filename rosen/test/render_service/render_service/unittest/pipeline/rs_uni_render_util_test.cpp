@@ -383,15 +383,16 @@ HWTEST_F(RSUniRenderUtilTest, AssignWindowNodes, Function | SmallTest | Level2)
  * @tc.name: AssignWindowNodes002
  * @tc.desc: Test AssignWindowNodes when mainThreadNodes and subThreadNodes is not empty
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIAKA4Y
  */
 HWTEST_F(RSUniRenderUtilTest, AssignWindowNodes002, Function | SmallTest | Level2)
 {
     std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-    NodeId id = 0;
+    NodeId id = 1;
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
     std::shared_ptr<RSSurfaceRenderNode> node1 = std::make_shared<RSSurfaceRenderNode>(1);
     ASSERT_NE(node1, nullptr);
     std::shared_ptr<RSSurfaceRenderNode> node2 = std::make_shared<RSSurfaceRenderNode>(2);
@@ -1377,11 +1378,12 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo003, TestSize.Lev
 {
     RSUniRenderUtil rsUniRenderUtil;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_EQ(node, nullptr);
     node->SetSurfaceNodeType(RSSurfaceNodeType::STARTING_WINDOW_NODE);
     node->childrenHasUIExtension_ = true;
     Drawing::Matrix parentMatrix = Drawing::Matrix();
     parentMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-    NodeId hostId = 0;
+    NodeId hostId = 1;
     UIExtensionCallbackData callbackData;
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData);
 }
@@ -1444,7 +1446,6 @@ HWTEST_F(RSUniRenderUtilTest, AccumulateMatrixAndAlpha003, TestSize.Level2)
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
     float alpha = 2.0f;
-
     rsUniRenderUtil.AccumulateMatrixAndAlpha(hwcNode, matrix, alpha);
 }
 
@@ -1601,7 +1602,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerCrop003, TestSize.Level2)
 
 /*
  * @tc.name: LayerCrop004
- * @tc.desc: LayerCrop test when isForceHardware_ is false
+ * @tc.desc: LayerCrop test when isInFixedRotation_ is false
  * @tc.type: FUNC
  * @tc.require: issueIAKA4Y
  */
