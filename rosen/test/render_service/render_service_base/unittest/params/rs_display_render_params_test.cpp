@@ -55,12 +55,12 @@ HWTEST_F(RSDisplayRenderParamsTest, OnSync001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetMainAndLeashSurfaceDirty001
+ * @tc.name: SetMainAndLeashSurfaceDirty
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetMainAndLeashSurfaceDirty001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, SetMainAndLeashSurfaceDirty, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
     RSDisplayRenderParams params(id);
