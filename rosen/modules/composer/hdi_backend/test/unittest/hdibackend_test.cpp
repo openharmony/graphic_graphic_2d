@@ -158,6 +158,26 @@ HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
     hdiBackend_->ResetDevice();
     hdiBackend_->OnScreenHotplug(-1, true);
 }
+
+/*
+* Function: OnPrepareComplete001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OnPrepareComplete() with invalid param
+*                  2. no crash
+*/
+HWTEST_F(HdiBackendTest, OnPrepareComplete001, Function | MediumTest| Level3)
+{
+    OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+
+    std::vector<LayerInfoPtr> newLayerInfos;
+    for (size_t i = 0; i < 3; i++) {
+        newLayerInfos.emplace_back(nullptr);
+    }
+    hdiBackend_->OnPrepareComplete(true, output, newLayerInfos);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

@@ -284,6 +284,24 @@ HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence002, Function | MediumTest| Leve
     res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 }
+
+/*
+* Function: UpdateInfosAfterCommit002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call UpdateInfosAfterCommit() with nullptr param
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, UpdateInfosAfterCommit002, Function | MediumTest| Level1)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    ASSERT_EQ(output->UpdateInfosAfterCommit(nullptr), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(output->UpdateInfosAfterCommit(nullptr), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(output->UpdateInfosAfterCommit(nullptr), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(output->UpdateInfosAfterCommit(nullptr), GRAPHIC_DISPLAY_NULL_PTR);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
