@@ -157,14 +157,14 @@ const std::shared_ptr<RSRenderModifier> RSTransitionFade::CreateModifier()
     return std::make_shared<RSAlphaRenderModifier>(property_);
 }
 
-void RSTransitionFade::UpdateFraction(float valueFraction) const
+void RSTransitionFade::UpdateFraction(float fraction) const
 {
     if (property_ == nullptr) {
         return;
     }
     float startValue(1.0f);
     float endValue(alpha_);
-    auto value = startValue * (1.0f - valueFraction) + endValue * valueFraction;
+    auto value = startValue * (1.0f - fraction) + endValue * fraction;
     property_->Set(value);
 }
 
@@ -175,14 +175,14 @@ const std::shared_ptr<RSRenderModifier> RSTransitionScale::CreateModifier()
     return std::make_shared<RSScaleRenderModifier>(property_);
 }
 
-void RSTransitionScale::UpdateFraction(float valueFraction) const
+void RSTransitionScale::UpdateFraction(float fraction) const
 {
     if (property_ == nullptr) {
         return;
     }
     Vector2f startValue(1.0f, 1.0f);
     Vector2f endValue(scaleX_, scaleY_);
-    auto value = startValue * (1.0f - valueFraction) + endValue * valueFraction;
+    auto value = startValue * (1.0f - fraction) + endValue * fraction;
     property_->Set(value);
 }
 
@@ -193,14 +193,14 @@ const std::shared_ptr<RSRenderModifier> RSTransitionTranslate::CreateModifier()
     return std::make_shared<RSTranslateRenderModifier>(property_);
 }
 
-void RSTransitionTranslate::UpdateFraction(float valueFraction) const
+void RSTransitionTranslate::UpdateFraction(float fraction) const
 {
     if (property_ == nullptr) {
         return;
     }
     Vector2f startValue(0.0f, 0.0f);
     Vector2f endValue(translateX_, translateY_);
-    auto value = startValue * (1.0f - valueFraction) + endValue * valueFraction;
+    auto value = startValue * (1.0f - fraction) + endValue * fraction;
     property_->Set(value);
 }
 
@@ -210,12 +210,12 @@ const std::shared_ptr<RSRenderModifier> RSTransitionRotate::CreateModifier()
     return std::make_shared<RSQuaternionRenderModifier>(property_);
 }
 
-void RSTransitionRotate::UpdateFraction(float valueFraction) const
+void RSTransitionRotate::UpdateFraction(float fraction) const
 {
     if (property_ == nullptr) {
         return;
     }
-    auto radian = radian_ * valueFraction;
+    auto radian = radian_ * fraction;
     float factor = std::sin(radian / 2);
     float qx = dx_ * factor;
     float qy = dy_ * factor;
