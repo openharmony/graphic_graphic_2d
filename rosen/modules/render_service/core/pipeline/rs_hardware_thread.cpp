@@ -479,7 +479,12 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #endif
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo, colorGamut);
+#else
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
+#endif
+
     renderFrame->Flush();
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }
@@ -535,6 +540,10 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
     using namespace HDI::Display::Graphic::Common::V1_0;
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
     for (auto& layer : layers) {
+        if (layer == nullptr) {
+            RS_LOGE("RSHardwareThread::ComputeTargetColorGamut layer is nullptr");
+            continue;
+        }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
             RS_LOGW("RSHardwareThread::ComputeTargetColorGamut The buffer of layer is nullptr");
