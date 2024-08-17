@@ -88,9 +88,9 @@ bool Image::MakeFromEncoded(const std::shared_ptr<Data>& data)
 }
 
 bool Image::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
-    CompressedType type)
+    CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace)
 {
-    return imageImplPtr->BuildFromCompressed(gpuContext, data, width, height, type);
+    return imageImplPtr->BuildFromCompressed(gpuContext, data, width, height, type, colorSpace);
 }
 
 bool Image::BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
