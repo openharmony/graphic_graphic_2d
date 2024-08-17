@@ -109,6 +109,9 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     std::shared_ptr<Media::PixelMap> pixelmap)
 {
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
+    if (size <= 0) {
+        return false;
+    }
     Drawing::ImageInfo info = Drawing::ImageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
 #ifdef ROSEN_OHOS
@@ -132,6 +135,7 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     }
     if (!img->ReadPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap readPixels failed");
+        ::munmap(ptr, size);
         ::close(fd);
         return false;
     }
