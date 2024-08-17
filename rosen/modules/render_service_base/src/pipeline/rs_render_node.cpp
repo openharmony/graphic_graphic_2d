@@ -2917,6 +2917,10 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
             }
         }
 #endif
+        if (canvas.GetGPUContext() == nullptr) {
+            RS_LOGE("canvas GetGPUContext failed");
+            return nullptr;
+        }
         auto image = std::make_shared<Drawing::Image>();
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
         Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888,
@@ -2963,6 +2967,10 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
     auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("canvas GetGPUContext failed");
+        return nullptr;
+    }
     bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
         origin, info, nullptr);
     if (!ret) {
