@@ -50,7 +50,6 @@ ohos_unittest("RSAibarShaderFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -103,7 +102,6 @@ ohos_unittest("RSBorderTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -159,7 +157,6 @@ ohos_unittest("RSColorExtractTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -219,7 +216,6 @@ ohos_unittest("RSColorfulShadowFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -275,7 +271,6 @@ ohos_unittest("RSImageCacheTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -328,7 +323,6 @@ ohos_unittest("RSKawaseBlurShaderFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -381,7 +375,6 @@ ohos_unittest("RSLightUpEffectFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -438,7 +431,6 @@ ohos_unittest("RSMagnifierShaderFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -496,7 +488,6 @@ ohos_unittest("RSMaterialFilterTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
@@ -557,7 +548,6 @@ ohos_unittest("RSPixelMapUtilTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gmock",
     "//third_party/googletest:gtest_main",
   ]
   external_deps = [
