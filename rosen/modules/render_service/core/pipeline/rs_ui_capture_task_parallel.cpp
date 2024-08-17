@@ -311,7 +311,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         Drawing::BitmapFormat bitmapFormat =
             Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
         std::shared_ptr<Drawing::Surface> surface;
-        auto grContext = RSBackgroundThread::Instance().GetShareGPUContext();\
+        auto grContext = RSBackgroundThread::Instance().GetShareGPUContext();
         if (!grContext) {
             RS_LOGE("RSUiCaptureTaskParallel: SharedGPUContext get failed");
             return;
