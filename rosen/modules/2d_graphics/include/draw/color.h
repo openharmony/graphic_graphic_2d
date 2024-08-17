@@ -38,6 +38,7 @@ enum ColorType {
     COLORTYPE_N32,
     COLORTYPE_RGBA_1010102,
     COLORTYPE_GRAY_8,
+    COLORTYPE_RGB_888X,
 };
 
 enum AlphaType {
