@@ -347,6 +347,11 @@ public:
         return systemAnimatedScenesList_.empty();
     }
 
+    bool IsFirstFrameOfOverdrawSwitch() const
+    {
+        return isFirstFrameOfOverdrawSwitch_;
+    }
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -650,6 +655,11 @@ private:
     bool lastFrameUIExtensionDataEmpty_ = false;
     // <pid, <uid, callback>>
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
+
+    // overDraw
+    bool isFirstFrameOfOverdrawSwitch_ = false;
+    bool isOverDrawEnabledOfCurFrame_ = false;
+    bool isOverDrawEnabledOfLastFrame_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
