@@ -32,10 +32,10 @@ public:
     void TearDown() override;
 };
 
-void RSUnmarshalThreadTest::SetUpTestCase() {}
-void RSUnmarshalThreadTest::TearDownTestCase() {}
-void RSUnmarshalThreadTest::SetUp() {}
-void RSUnmarshalThreadTest::TearDown() {}
+void RSPointerWindowManagerTest::SetUpTestCase() {}
+void RSPointerWindowManagerTest::TearDownTestCase() {}
+void RSPointerWindowManagerTest::SetUp() {}
+void RSPointerWindowManagerTest::TearDown() {}
 
 /**
  * @tc.name: UpdatePointerDirtyToGlobalDirty
