@@ -207,7 +207,7 @@ private:
     static void SendBetaRecordPath();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
-    static void WriteBetaRecordFileThread(RSFile& file, const std::string path);
+    static void WriteBetaRecordFileThread(RSFile& file, const std::string& path);
     static void RenameAndSendFilenameThread();
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
@@ -265,25 +265,25 @@ private:
     RSB_EXPORT static std::string DumpSurfaceNode(const RSRenderNode& node);
 
     // JSON
-    static void RenderServiceTreeDump(JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeSubsurfaces(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& outWrapper);
+    static void RenderServiceTreeDump(JsonWriter& out);
+    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeSubsurfaces(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeDrawCmdModifier(
-        const RSRenderNode& node, JsonWriter& outWrapper, int type, RSRenderModifier& modifier);
-    RSB_EXPORT static void DumpNodeProperties(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesClip(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesTransform(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesDecoration(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesEffects(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesShadow(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesColor(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeChildrenListUpdate(const RSRenderNode& node, JsonWriter& outWrapper);
+        const RSRenderNode& node, JsonWriter& out, int type, RSRenderModifier& modifier);
+    RSB_EXPORT static void DumpNodeProperties(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesClip(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesTransform(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesDecoration(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesEffects(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesShadow(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesColor(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeChildrenListUpdate(const RSRenderNode& node, JsonWriter& out);
 
     // RSAnimationManager
     RSB_EXPORT static void FilterAnimationForPlayback(RSAnimationManager& manager);

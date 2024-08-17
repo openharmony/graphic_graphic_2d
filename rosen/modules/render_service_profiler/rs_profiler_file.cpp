@@ -584,7 +584,7 @@ void RSFile::WriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer, dou
 {
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
-    if (!file_ || layerData_.empty()) {
+    if (!file_ || !HasLayer(layer)) {
         return;
     }
 
