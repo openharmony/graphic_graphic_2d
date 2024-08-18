@@ -149,7 +149,7 @@ void SkiaPaint::PaintToSkPaint(const Paint& paint, SkPaint& skPaint)
 
 void SkiaPaint::ApplyStrokeParam(const Paint& paint, SkPaint& skPaint)
 {
-    if (!IsScalarAlmostEqual(paint.GetMiterLimit(), Pen::DEFAULT_MITER_VAL)) {
+    if (!IsScalarAlmostEqual(paint.GetMiterLimit(), Paint::DEFAULT_MITER_VAL)) {
         skPaint.setStrokeMiter(paint.GetMiterLimit());
     }
     skPaint.setStrokeWidth(paint.GetWidth());
