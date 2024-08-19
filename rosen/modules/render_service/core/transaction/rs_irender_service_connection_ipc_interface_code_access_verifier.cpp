@@ -41,6 +41,34 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemApp();
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_REFRESH_RATE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_REFRESH_RATE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_CURRENT_REFRESH_RATE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_CURRENT_REFRESH_RATE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_LIGHT_FACTOR_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_LIGHT_FACTOR_STATUS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_PACKAGE_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_PACKAGE_EVENT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_REFRESH_RATE_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_REFRESH_RATE_EVENT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_DYNAMIC_MODE_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_DYNAMIC_MODE_EVENT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_TOUCH_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_TOUCH_EVENT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE): {
             hasPermission = CheckPermission(code);
             break;
