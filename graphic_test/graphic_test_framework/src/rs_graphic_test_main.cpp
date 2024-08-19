@@ -130,7 +130,7 @@ static int FilterTestUnit(int argc, char **argv)
     int argcTemp = ARGS_TWO;
     string filter = "--gtest_filter=";
     filter.append(unitName).append(".").append(caseName);
-    argv[ARGS_ONE] = (char*)filter.c_str();
+    argv[ARGS_ONE] = filter.data();
     RSGraphicTestDirector::Instance().Run();
     testing::InitGoogleTest(&argcTemp, argv);
     return RUN_ALL_TESTS();
