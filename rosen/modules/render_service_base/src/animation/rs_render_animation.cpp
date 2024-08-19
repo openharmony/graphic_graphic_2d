@@ -371,7 +371,7 @@ void RSRenderAnimation::SetStartTime(int64_t time)
     needUpdateStartTime_ = false;
 }
 
-const std::shared_ptr<RSRenderPropertyBase> RSRenderAnimation::GetAnimateVelocity() const
+const std::shared_ptr<RSRenderPropertyBase>& RSRenderAnimation::GetAnimateVelocity() const
 {
     return animateVelocity_;
 }
