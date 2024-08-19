@@ -173,6 +173,8 @@ private:
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
+    static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
+    static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;

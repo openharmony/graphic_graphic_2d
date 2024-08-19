@@ -259,7 +259,7 @@ public:
     void ResetChildRelevantFlags();
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
-    void UpdateCurCornerRadius(Vector4f& curCornerRadius, bool isSubNodeInSurface);
+    void UpdateCurCornerRadius(Vector4f& curCornerRadius);
     void SetDirty(bool forceAddToActiveList = false);
 
     virtual void AddDirtyType(RSModifierType type)

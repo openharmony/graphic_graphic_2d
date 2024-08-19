@@ -2694,6 +2694,8 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->overDrawBufferNodeCornerRadius_ = GetOverDrawBufferNodeCornerRadius();
     surfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     surfaceParams->SetSkipDraw(isSkipDraw_);
+    surfaceParams->visibleFilterChild_ = GetVisibleFilterChild();
+    surfaceParams->isTransparent_ = IsTransparent();
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();

@@ -34,9 +34,12 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
+namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
-
+constexpr NodeId DEFAULT_SURFACE_NODE_ID = 1;
+constexpr NodeId DEFAULT_RENDER_NODE_ID = 2;
+}
 class RSDisplayRenderNodeDrawableTest : public testing::Test {
 public:
     std::shared_ptr<RSDisplayRenderNode> renderNode_;
@@ -440,6 +443,86 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasDoneNode_ = false;
     RSUifirstManager::Instance().pendingPostDrawables_.clear();
+}
+
+/**
+ * @tc.name: CheckAndUpdateFilterCacheOcclusion
+ * @tc.desc: Test CheckAndUpdateFilterCacheOcclusion
+ * @tc.type: FUNC
+ * @tc.require: issueIAL2EA
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusionTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_SURFACE_NODE_ID);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto surfaceDrawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_NE(surfaceDrawableAdapter, nullptr);
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto screenInfo = surfaceDrawableAdapter->renderParams_->GetScreenInfo();
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> allSurfaceDrawable{surfaceDrawableAdapter};
+    params->SetAllMainAndLeashSurfaceDrawables(allSurfaceDrawable);
+
+    surfaceParams->isMainWindowType_ = false;
+    RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
+
+    surfaceParams->isMainWindowType_ = true;
+    RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
+}
+
+/**
+ * @tc.name: CheckFilterCacheFullyCovered
+ * @tc.desc: Test CheckFilterCacheFullyCovered
+ * @tc.type: FUNC
+ * @tc.require: issueIAL2EA
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(DEFAULT_SURFACE_NODE_ID);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->visibleFilterChild_ = {DEFAULT_RENDER_NODE_ID};
+
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(DEFAULT_RENDER_NODE_ID);
+    ASSERT_NE(renderNode, nullptr);
+    auto renderDrawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    ASSERT_NE(renderDrawableAdapter, nullptr);
+    renderDrawableAdapter->renderParams_ = std::make_unique<RSRenderParams>(DEFAULT_RENDER_NODE_ID);
+    ASSERT_NE(renderDrawableAdapter->renderParams_, nullptr);
+    RectI screenRect{0, 0, 0, 0};
+
+    renderDrawableAdapter->renderParams_->SetHasBlurFilter(false);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetHasBlurFilter(true);
+    surfaceParams->isTransparent_ = true;
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetEffectNodeShouldPaint(false);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetNodeType(RSRenderNodeType::EFFECT_NODE);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    surfaceParams->isTransparent_ = false;
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetHasGlobalCorner(true);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetGlobalAlpha(0.f);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
 }
 
 /**

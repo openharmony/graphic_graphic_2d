@@ -20,6 +20,11 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+const RectI DEFAULT_RECT = {0, 0, 100, 100};
+constexpr NodeId DEFAULT_NODEID = 1;
+} // namespace
+
 class RSSurfaceRenderParamsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -46,6 +51,41 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetOccludedByFilterCache, TestSize.Level1)
 
     params.SetOccludedByFilterCache(true);
     EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: SetFilterCacheFullyCovered
+ * @tc.desc: test SetFilterCacheFullyCovered successfully
+ * @tc.type: FUNC
+ * @tc.require: issueIAL2EA
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetFilterCacheFullyCovered, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    params.SetFilterCacheFullyCovered(true);
+    EXPECT_EQ(params.GetFilterCacheFullyCovered(), true);
+}
+
+/**
+ * @tc.name: CheckValidFilterCacheFullyCoverTarget
+ * @tc.desc: test CheckValidFilterCacheFullyCoverTarget correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIAL2EA
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, CheckValidFilterCacheFullyCoverTarget, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    params.isFilterCacheFullyCovered_ = false;
+    params.CheckValidFilterCacheFullyCoverTarget(true, DEFAULT_RECT, DEFAULT_RECT);
+    EXPECT_EQ(params.isFilterCacheFullyCovered_, true);
+
+    params.isFilterCacheFullyCovered_ = false;
+    params.CheckValidFilterCacheFullyCoverTarget(false, DEFAULT_RECT, DEFAULT_RECT);
+    EXPECT_EQ(params.isFilterCacheFullyCovered_, false);
+
+    params.isFilterCacheFullyCovered_ = true;
+    params.CheckValidFilterCacheFullyCoverTarget(false, DEFAULT_RECT, DEFAULT_RECT);
+    EXPECT_EQ(params.isFilterCacheFullyCovered_, true);
 }
 
 /**
