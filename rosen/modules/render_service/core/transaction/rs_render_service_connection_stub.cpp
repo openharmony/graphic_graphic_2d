@@ -1045,19 +1045,31 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
-            uint64_t uniqueId = data.ReadUint64();
-            std::shared_ptr<Drawing::Typeface> typeface;
             bool result = false;
-            result = RSMarshallingHelper::Unmarshalling(data, typeface);
-            if (result) {
-                RegisterTypeface(uniqueId, typeface);
+            uint64_t uniqueId = data.ReadUint64();
+            // safe check
+            if (ExtractPid(uniqueId) == callingPid) {
+                std::shared_ptr<Drawing::Typeface> typeface;
+                result = RSMarshallingHelper::Unmarshalling(data, typeface);
+                if (result) {
+                    RegisterTypeface(uniqueId, typeface);
+                }
+            } else {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                    "no permission REGISTER_TYPEFACE", callingPid);
             }
             reply.WriteBool(result);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
             uint64_t uniqueId = data.ReadUint64();
-            UnRegisterTypeface(uniqueId);
+            // safe check
+            if (ExtractPid(uniqueId) == callingPid) {
+                UnRegisterTypeface(uniqueId);
+            } else {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                    "no permission UNREGISTER_TYPEFACE", callingPid);
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL): {
