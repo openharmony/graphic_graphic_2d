@@ -24,6 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class VSyncWaiter;
 class RSGraphicTestDirector {
 public:
     ~RSGraphicTestDirector();
@@ -31,6 +32,7 @@ public:
     void Run();
     void FlushMessage();
     std::shared_ptr<Media::PixelMap> TakeScreenCaptureAndWait(int ms);
+    void WaitForVSync(size_t count = 1);
     void ResetImagePath();
 
     std::shared_ptr<RSGraphicRootNode> GetRootNode() const;
@@ -48,6 +50,7 @@ private:
 
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
+    std::shared_ptr<VSyncWaiter> vsyncWaiter_;
 
     friend class RSGraphicTest;
 };
