@@ -628,7 +628,7 @@ bool RSFile::ReadTrackData(
 
 void RSFile::ReadTrackDataRestart(LayerTrackIndexPtr trackIndex, uint32_t layer)
 {
-    if (layerData_.empty()) {
+    if (!HasLayer(layer)) {
         return;
     }
 
