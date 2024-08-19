@@ -16,7 +16,7 @@
 #include "drawing_rect.h"
 
 #include "drawing_canvas_utils.h"
-
+#include "array_mgr.h"
 #include "utils/rect.h"
 
 using namespace OHOS;
@@ -178,4 +178,63 @@ void OH_Drawing_RectCopy(OH_Drawing_Rect* sRect, OH_Drawing_Rect* dRect)
 void OH_Drawing_RectDestroy(OH_Drawing_Rect* cRect)
 {
     delete CastToRect(cRect);
+}
+
+OH_Drawing_Array* OH_Drawing_RectCreateArray(size_t size)
+{
+    if ((size == 0) || (size > (std::numeric_limits<uint16_t>::max() + 1))) {
+        return nullptr;
+    }
+    ObjectArray *obj = new ObjectArray();
+    if (obj == nullptr) {
+        return nullptr;
+    }
+    obj->num = size;
+    obj->addr = (OH_Drawing_Rect*)new Rect[size];
+    if (obj->addr == nullptr) {
+        return nullptr;
+    }
+    obj->type = ObjectType::DRAWING_RECT;
+    return reinterpret_cast<OH_Drawing_Array*>(obj);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectGetArraySize(OH_Drawing_Array* rectArray, size_t* pSize)
+{
+    if (rectArray == nullptr || pSize == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    ObjectArray *obj = reinterpret_cast<ObjectArray*>(rectArray);
+    if (obj->type != ObjectType::DRAWING_RECT) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *pSize = obj->num;
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectGetArrayElement(OH_Drawing_Array* rectArray, size_t index,
+    OH_Drawing_Rect** rect)
+{
+    if (rectArray == nullptr || rect == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    ObjectArray *obj = reinterpret_cast<ObjectArray*>(rectArray);
+    if (index >= obj->num || obj->type != ObjectType::DRAWING_RECT || obj->addr == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *rect = (OH_Drawing_Rect*)&(reinterpret_cast<Rect*>(obj->addr)[index]);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectDestroyArray(OH_Drawing_Array* rectArray)
+{
+    if (rectArray == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    ObjectArray *obj = reinterpret_cast<ObjectArray*>(rectArray);
+    if (obj->type != ObjectType::DRAWING_RECT || obj->addr == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    delete[] reinterpret_cast<Rect*>(obj->addr);
+    delete obj;
+    return OH_DRAWING_SUCCESS;
 }

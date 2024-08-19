@@ -302,6 +302,14 @@ typedef struct OH_Drawing_GpuContext OH_Drawing_GpuContext;
 typedef struct OH_Drawing_Surface OH_Drawing_Surface;
 
 /**
+ * @brief Defines a array object, which is used to store multiple object.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct OH_Drawing_Array OH_Drawing_Array;
+
+/**
  * @brief Enumerates storage formats of bitmap pixels.
  *
  * @since 8

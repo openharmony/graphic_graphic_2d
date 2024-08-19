@@ -21,6 +21,7 @@
 
 #include "js_drawing_utils.h"
 #include "js_typeface.h"
+#include "path_napi/js_path.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -58,6 +59,8 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("getHinting", JsFont::GetHinting),
     DECLARE_NAPI_FUNCTION("getEdging", JsFont::GetEdging),
     DECLARE_NAPI_FUNCTION("textToGlyphs", JsFont::TextToGlyphs),
+    DECLARE_NAPI_FUNCTION("createPathForGlyph", JsFont::CreatePathForGlyph),
+    DECLARE_NAPI_FUNCTION("getBounds", JsFont::GetBounds),
 };
 
 napi_value JsFont::Init(napi_env env, napi_value exportObj)
@@ -225,6 +228,12 @@ napi_value JsFont::GetWidths(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnGetWidths(env, info) : nullptr;
 }
 
+napi_value JsFont::GetBounds(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnGetBounds(env, info) : nullptr;
+}
+
 napi_value JsFont::IsBaselineSnap(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
@@ -331,6 +340,12 @@ napi_value JsFont::TextToGlyphs(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
     return (me != nullptr) ? me->OnTextToGlyphs(env, info) : nullptr;
+}
+
+napi_value JsFont::CreatePathForGlyph(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnCreatePathForGlyph(env, info) : nullptr;
 }
 
 napi_value JsFont::OnEnableSubpixel(napi_env env, napi_callback_info info)
@@ -577,6 +592,55 @@ napi_value JsFont::OnGetWidths(napi_env env, napi_callback_info info)
         napi_set_element(env, widthJsArray, i, element);
     }
     return widthJsArray;
+}
+
+napi_value JsFont::OnGetBounds(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnGetBounds font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_ONE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    uint32_t glyphscnt = UINT32_MAX;
+    napi_status status = napi_get_array_length(env, argv[ARGC_ZERO], &glyphscnt);
+    if (status != napi_ok || glyphscnt == 0) {
+        ROSEN_LOGE("Failed to get size of glyph array %u", glyphscnt);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(glyphscnt);
+    for (uint32_t i = 0; i < glyphscnt; i++) {
+        napi_value tempglyph = nullptr;
+        status = napi_get_element(env, argv[ARGC_ZERO], i, &tempglyph);
+        if (status != napi_ok) {
+            ROSEN_LOGE("Failed to get element of glyph array");
+            return nullptr;
+        }
+        uint32_t glyph_t = 0;
+        bool ret = ConvertFromJsValue(env, tempglyph, glyph_t);
+        if (!ret) {
+            ROSEN_LOGE("JsFont::OnGetBounds Argv[ARGC_ZERO] is invalid");
+            return nullptr;
+        }
+        glyphPtr[i] = glyph_t;
+    }
+    std::unique_ptr<Rect[]> rectPtr = std::make_unique<Rect[]>(glyphscnt);
+    m_font->GetWidths(glyphPtr.get(), glyphscnt, nullptr, rectPtr.get());
+    napi_value rectJsArray;
+    status = napi_create_array(env, &rectJsArray);
+    if (status != napi_ok) {
+        ROSEN_LOGE("failed to napi_create_array");
+        return nullptr;
+    }
+    for (uint32_t i = 0; i < glyphscnt; i++) {
+        napi_value element = GetRectAndConvertToJsValue(env, std::make_shared<Rect>(rectPtr[i]));
+        status = napi_set_element(env, rectJsArray, i, element);
+        if (status != napi_ok) {
+            ROSEN_LOGE("failed to set array element");
+            return nullptr;
+        }
+    }
+    return rectJsArray;
 }
 
 napi_value JsFont::OnMeasureSingleCharacter(napi_env env, napi_callback_info info)
@@ -845,6 +909,30 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
         napi_set_element(env, glyphJsArray, i, element);
     }
     return glyphJsArray;
+}
+
+napi_value JsFont::OnCreatePathForGlyph(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnCreatePathForGlyph font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    uint32_t id = 0;
+    GET_UINT32_PARAM(ARGC_ZERO, id);
+
+    Path* path = new Path();
+    if (path == nullptr) {
+        ROSEN_LOGE("JsFont::OnCreatePathForGlyph Failed to create Path");
+        return nullptr;
+    }
+    if  (!m_font->GetPathForGlyph(static_cast<uint16_t>(id), path)) {
+        delete path;
+        return nullptr;
+    }
+    return JsPath::CreateJsPath(env, path);
 }
 
 std::shared_ptr<Font> JsFont::GetFont()
