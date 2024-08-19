@@ -343,12 +343,12 @@ void RSUIDirector::SendMessages()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
+        index_ = transactionProxy->GetTransactionDataIndex();
     }
-    index_ = transactionProxy->GetTransactionDataIndex();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
-uint32_t RSUIDirector::GetIndex()
+uint32_t RSUIDirector::GetIndex() const
 {
     return index_;
 }
