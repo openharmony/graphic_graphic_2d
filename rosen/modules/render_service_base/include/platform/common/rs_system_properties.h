@@ -123,7 +123,7 @@ public:
     static int GetDumpFrameNum();
     static void SetRecordingDisenabled();
     static int GetRecordingEnabled();
-    static bool GetVkQueueDividedEnable();
+    static bool GetVkQueuePriorityEnable();
 
     static bool GetProfilerEnabled();
     static bool GetInstantRecording();

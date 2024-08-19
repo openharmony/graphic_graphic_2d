@@ -117,7 +117,7 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetVkQueueDividedEnable()
+bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;
 }

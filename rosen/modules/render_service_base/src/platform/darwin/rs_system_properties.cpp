@@ -52,7 +52,7 @@ std::string RSSystemProperties::GetRecordingFile()
     return "";
 }
 
-bool RSSystemProperties::GetVkQueueDividedEnable()
+bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;
 }

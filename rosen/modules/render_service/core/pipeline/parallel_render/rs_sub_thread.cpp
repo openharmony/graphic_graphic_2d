@@ -317,9 +317,9 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         auto size = vulkanVersion.size();
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
         bool useHBackendContext = false;
-        if (RSSystemProperties::GetVkQueueDividedEnable()) {
-            useHBackendContext = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
-        }
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
+        useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+#endif
         if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(useHBackendContext),
             options)) {
             RS_LOGE("nullptr gpuContext is null");

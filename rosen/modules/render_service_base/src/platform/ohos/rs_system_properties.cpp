@@ -104,12 +104,11 @@ bool RSSystemProperties::GetProfilerEnabled()
     return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
 
-bool RSSystemProperties::GetVkQueueDividedEnable()
+bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.q.divided.enalbed", "0");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
+    static bool vkQueuePriorityEnabled =
+        std::atoi((system::GetParameter("persist.vkqueue.priority.enalbed", "1")).c_str()) != 0;
+    return vkQueuePriorityEnabled;
 }
 
 bool RSSystemProperties::GetInstantRecording()
