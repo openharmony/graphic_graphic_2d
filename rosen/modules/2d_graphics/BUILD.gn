@@ -147,6 +147,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/recording/draw_cmd_list.cpp",
       "$drawing_core_src_dir/recording/mask_cmd_list.cpp",
       "$drawing_core_src_dir/recording/mem_allocator.cpp",
+      "$drawing_core_src_dir/recording/record_cmd.cpp",
       "$drawing_core_src_dir/recording/recording_canvas.cpp",
       "$drawing_core_src_dir/text/font.cpp",
       "$drawing_core_src_dir/text/font_mgr.cpp",
