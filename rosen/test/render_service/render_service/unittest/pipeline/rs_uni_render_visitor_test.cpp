@@ -3606,4 +3606,4 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeDirtyRegionForApp002, TestSize.Lev
     rsUniRenderVisitor->UpdateHwcNodeDirtyRegionForApp(appNode, hwcNode);
     ASSERT_FALSE(appNode->GetDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty());
 }
-} // namespace OHOS::Rosen
+} // OHOS::Rosen
