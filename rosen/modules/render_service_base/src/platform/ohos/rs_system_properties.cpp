@@ -848,6 +848,12 @@ bool RSSystemProperties::IsPcType()
     return isPc;
 }
 
+bool RSSystemProperties::IsBetaRelease()
+{
+    static bool isBetaRelease = system::GetParameter("const.logsystem.versiontype", "") == "beta";
+    return isBetaRelease;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     static bool syncTransactionEnabled =
@@ -1003,14 +1009,6 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
-}
-
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.layercursor.enable", "0");
-    int changed = 0;
-    const char *num = CachedParameterGetChanged(g_Handle, &changed);
-    return (ConvertToInt(num, 0) != 0) && IsPcType();
 }
 
 bool RSSystemProperties::GetHDRImageEnable()

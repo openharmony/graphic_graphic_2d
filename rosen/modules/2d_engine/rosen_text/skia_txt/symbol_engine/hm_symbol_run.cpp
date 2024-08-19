@@ -16,6 +16,7 @@
 #include "hm_symbol_run.h"
 #include "draw/path.h"
 #include "hm_symbol_node_build.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,6 +31,8 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
     symbolInfo.symbolGlyphId = glyphId;
     RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
     if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
+        LOGD("[%{public}s] HmSymbol: GetSymbolLayersGroups of graphId %{public}d failed\n",
+            __func__, std::static_cast<int>(glyphId));
         return symbolInfo;
     }
 
@@ -88,6 +91,7 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
 void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& offset, const HMSymbolTxt& symbolTxt)
 {
     if (canvas == nullptr || blob == nullptr) {
+        LOGD("[%{public}s] HmSymbol: the canvas or textBlob is nullptr\n", __func__);
         return;
     }
 
@@ -116,6 +120,7 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& 
             canvas->DrawSymbol(symbolData, offset);
         }
     } else {
+        LOGD("[%{public}s] HmSymbol: the glyphIds is > 1\n", __func__);
         canvas->DrawTextBlob(blob, offset.GetX(), offset.GetY());
     }
 }
@@ -126,11 +131,14 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, uint16_t glyphid
     RSEffectStrategy effectMode = symbolTxt.GetEffectStrategy();
     uint16_t animationMode = symbolTxt.GetAnimationMode();
     if (effectMode == RSEffectStrategy::NONE) {
+        LOGD("[%{public}s] HmSymbol: the RSEffectStrategy is NONE\n", __func__);
         return false;
     }
     RSAnimationSetting animationSetting;
     if (animationMode == 0 || effectMode == RSEffectStrategy::VARIABLE_COLOR) {
         if (!GetAnimationGroups(glyphid, effectMode, animationSetting)) {
+            LOGD("[%{public}s] HmSymbol: GetAnimationGroups of glyphId %{public}d is failed\n",
+                __func__, std::static_cast<int>(glyphid));
             return false;
         }
 

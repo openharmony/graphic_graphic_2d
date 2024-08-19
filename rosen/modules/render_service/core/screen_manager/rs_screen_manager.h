@@ -78,12 +78,8 @@ public:
     virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) = 0;
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
-
-    virtual void GetCastScreenBlackList(std::unordered_set<uint64_t>& screenBlackList) = 0;
-
-    virtual bool GetCastScreenEnableSkipWindow(ScreenId id) = 0;
     
-    virtual std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) = 0;
+    virtual std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
@@ -118,6 +114,8 @@ public:
     virtual ScreenRotation GetScreenCorrection(ScreenId id) const = 0;
 
     virtual RSScreenData GetScreenData(ScreenId id) const = 0;
+
+    virtual ScreenInfo QueryDefaultScreenInfo() const = 0;
 
     virtual ScreenInfo QueryScreenInfo(ScreenId id) const = 0;
 
@@ -280,12 +278,8 @@ public:
     const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
-
-    void GetCastScreenBlackList(std::unordered_set<uint64_t>& screenBlackList) override;
-
-    bool GetCastScreenEnableSkipWindow(ScreenId id) override;
     
-    std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) override;
+    std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
@@ -318,6 +312,8 @@ public:
     ScreenRotation GetScreenCorrection(ScreenId id) const override;
 
     RSScreenData GetScreenData(ScreenId id) const  override;
+
+    ScreenInfo QueryDefaultScreenInfo() const override;
 
     ScreenInfo QueryScreenInfo(ScreenId id) const override;
 
@@ -463,7 +459,6 @@ private:
     ScreenRotation GetScreenCorrectionLocked(ScreenId id) const;
     int32_t GetScreenBacklightLocked(ScreenId id) const;
 
-    void SetCastScreenBlackList(std::unordered_set<uint64_t>& screenBlackList);
     void RemoveVirtualScreenLocked(ScreenId id);
     ScreenId GenerateVirtualScreenIdLocked();
     void ReuseVirtualScreenIdLocked(ScreenId id);
@@ -486,6 +481,8 @@ private:
     int32_t GetScreenSupportedColorSpacesLocked(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
     int32_t GetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const;
     int32_t SetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
+    ScreenInfo QueryScreenInfoLocked(ScreenId id) const;
+    bool GetCastScreenEnableSkipWindow(ScreenId id) const;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void RegisterSensorCallback();
@@ -500,7 +497,8 @@ private:
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
     std::map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>> screens_;
     std::queue<ScreenId> freeVirtualScreenIds_;
-    uint32_t maxVirtualScreenNum_ = 0;
+    uint32_t virtualScreenCount_ = 0;
+    uint32_t currentVirtualScreenNum_ = 0;
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
     bool mipiCheckInFirstHotPlugEvent_ = false;
     bool isHwcDead_ = false;

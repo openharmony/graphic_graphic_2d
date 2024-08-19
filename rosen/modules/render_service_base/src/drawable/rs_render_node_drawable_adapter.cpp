@@ -174,7 +174,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         return;
     }
 
-    if (end > static_cast<int8_t>(drawCmdList_.size())) {
+    if (static_cast<uint32_t>(end) > drawCmdList_.size()) {
         ROSEN_LOGE("RSRenderNodeDrawableAdapter::DrawRangeImpl, end is invalid");
         return;
     }
@@ -201,7 +201,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
 
 void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const
 {
-    if (drawCmdList_.empty() || index < 0 || index >= static_cast<int8_t>(drawCmdList_.size())) {
+    if (drawCmdList_.empty() || index < 0 || static_cast<uint32_t>(index) >= drawCmdList_.size()) {
         return;
     }
 

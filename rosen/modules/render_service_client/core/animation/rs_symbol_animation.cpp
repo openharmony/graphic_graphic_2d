@@ -326,6 +326,7 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
     }
 
     if (animationLevelNum < 0) {
+        ROSEN_LOGD("[%{public}s] HmSymbol: this symbol does not have an animated layer\n", __func__);
         return false;
     }
     animationLevelNum = animationLevelNum + 1;
@@ -344,6 +345,7 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
             symbolAnimationConfig->animationMode);
     }
     if (parameters.empty()) {
+        ROSEN_LOGD("[%{public}s] HmSymbol: GetGroupParameters failed\n", __func__);
         return false;
     }
     return true;

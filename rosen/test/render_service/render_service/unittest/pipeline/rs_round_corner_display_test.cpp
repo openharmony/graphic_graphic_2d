@@ -279,8 +279,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
     rcdInstance.DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait);
 
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
-    rs_rcd::LCDModel* lcdModel = rcdCfg.GetLcdModel(rs_rcd::ATTR_DEFAULT);
+    rcdCfg.Load(std::string(rs_rcd::PATH_CONFIG_FILE));
+    rs_rcd::LCDModel* lcdModel = rcdCfg.GetLcdModel(std::string(rs_rcd::ATTR_DEFAULT));
     if (lcdModel == nullptr) {
         std::cout << "RSRoundCornerDisplayTest: current os less lcdModel source" << std::endl;
         return;
@@ -337,8 +337,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode2, TestSize.Level1
     rcdInstance.DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait);
 
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
-    rs_rcd::LCDModel* lcdModel = rcdCfg.GetLcdModel(rs_rcd::ATTR_DEFAULT);
+    rcdCfg.Load(std::string(rs_rcd::PATH_CONFIG_FILE));
+    rs_rcd::LCDModel* lcdModel = rcdCfg.GetLcdModel(std::string(rs_rcd::ATTR_DEFAULT));
     if (lcdModel == nullptr) {
         std::cout << "RSRoundCornerDisplayTest: current os less lcdModel source" << std::endl;
         return;
@@ -482,13 +482,10 @@ HWTEST_F(RSRoundCornerDisplayTest, MessageBus, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, RCDConfig, TestSize.Level1)
 {
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    rcdCfg.Load("NG_PATH_CONFIG_FILE");
-    rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
-    auto invalidLcd = rcdCfg.GetLcdModel("invalideName");
-    rs_rcd::RCDConfig::PrintParseLcdModel(invalidLcd);
-    auto defaultLcd = rcdCfg.GetLcdModel(rs_rcd::ATTR_DEFAULT);
-    rs_rcd::RCDConfig::PrintParseLcdModel(defaultLcd);
-
+    rcdCfg.Load(std::string("NG_PATH_CONFIG_FILE"));
+    rcdCfg.Load(std::string(rs_rcd::PATH_CONFIG_FILE));
+    auto invalidLcd = rcdCfg.GetLcdModel(std::string("invalideName"));
+    EXPECT_EQ(invalidLcd, nullptr);
     rs_rcd::RCDConfig::PrintParseRog(nullptr);
     rs_rcd::ROGSetting rog;
     rs_rcd::RogPortrait rp;
@@ -507,8 +504,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RCDConfig, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, LCDModel, TestSize.Level1)
 {
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
-    auto defaultLcd = rcdCfg.GetLcdModel(rs_rcd::ATTR_DEFAULT);
+    rcdCfg.Load(std::string(rs_rcd::PATH_CONFIG_FILE));
+    auto defaultLcd = rcdCfg.GetLcdModel(std::string(rs_rcd::ATTR_DEFAULT));
     if (defaultLcd == nullptr) {
         std::cout << "OS less lcdModel resource" << std::endl;
         return;
@@ -634,22 +631,36 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerLayer, TestSize.Level1)
  */
 HWTEST_F(RSRoundCornerDisplayTest, XMLReader, TestSize.Level1)
 {
-    rs_rcd::XMLReader reader;
-    auto ngResult = reader.Init("nofiles");
-    ASSERT_NE(ngResult, true);
-    auto okResult = reader.Init(rs_rcd::PATH_CONFIG_FILE);
-    if (okResult == false) {
-        std::cout << "OS less roundcorner resource" << std::endl;
-        return;
-    }
-    reader.ReadNode({"a", "b"});
-    reader.Read({"a", "b"});
-
     xmlNodePtr nodePtr = nullptr;
     rs_rcd::XMLReader::ReadAttrStr(nodePtr, std::string("a"));
     rs_rcd::XMLReader::ReadAttrInt(nodePtr, std::string("a"));
     rs_rcd::XMLReader::ReadAttrFloat(nodePtr, std::string("a"));
     rs_rcd::XMLReader::ReadAttrBool(nodePtr, std::string("a"));
+
+    std::vector<std::string> okCase = {
+        "0.0",
+        "0",
+        "123",
+        "1230.0",
+        "8192.0 ",
+        "819200",
+    };
+    for (auto& tmpCase : okCase) {
+        bool isOk = rs_rcd::XMLReader::RegexMatchNum(tmpCase);
+        EXPECT_EQ(isOk, true);
+    }
+
+    std::vector<std::string> ngCase = {
+        "a0.0",
+        "0a",
+        "a123",
+        "1230.0c",
+        "a8192.0 ",
+    };
+    for (auto& tmpCase : ngCase) {
+        bool isOk = rs_rcd::XMLReader::RegexMatchNum(tmpCase);
+        EXPECT_EQ(isOk, false);
+    }
 }
 
 /*

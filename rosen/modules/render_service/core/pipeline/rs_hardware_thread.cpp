@@ -221,6 +221,17 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
+        // if in game adaptive vsync mode and do direct composition,send layer immediately
+        auto frameRateMgr = hgmCore.GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            bool isAdaptive = frameRateMgr->IsAdaptive();
+            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
+            if (isAdaptive) {
+                RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers PostTask in Adaptive Mode");
+                PostTask(task);
+                return;
+            }
+        }
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
         int64_t pipelineOffset = hgmCore.GetPipelineOffset();
         uint64_t expectCommitTime = static_cast<uint64_t>(param.frameTimestamp +
@@ -322,6 +333,10 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     static ScreenId lastScreenId = 12345; // init value diff with any real screen id
     auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    if (hgmCore.GetFrameRateMgr() == nullptr) {
+        RS_LOGD("FrameRateMgr is null");
+        return;
+    }
     ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
@@ -522,7 +537,7 @@ void RSHardwareThread::AddRefreshRateCount()
             RS_LOGE("RSHardwareThread::AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
             return;
         }
-        frameRateMgr->GetTouchManager().HandleRsFrame();
+        frameRateMgr->HandleRsFrame();
     });
 }
 

@@ -547,6 +547,7 @@ void RSPropertyDrawableUtils::DrawColorFilter(
     Drawing::Filter filter;
     filter.SetColorFilter(colorFilter);
     brush.SetFilter(filter);
+    brush.SetForceBrightnessDisable(true);
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorFilter surface is null");

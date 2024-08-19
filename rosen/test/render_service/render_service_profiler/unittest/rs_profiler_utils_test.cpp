@@ -52,7 +52,7 @@ HWTEST_F(RSProfilerUtilsTest, UtilsTimeTest, testing::ext::TestSize.Level1)
 HWTEST_F(RSProfilerUtilsTest, UtilsFileTest, testing::ext::TestSize.Level1)
 {
     // open not existing file
-    auto fd = Utils::FileOpen(",,,,,,,,,,,,,", "rb");
+    auto fd = Utils::FileOpen("</,,,,,,,,,,,/>", "rb");
     EXPECT_FALSE(Utils::IsFileValid(fd));
     EXPECT_EQ(fd, nullptr);
     EXPECT_EQ(Utils::FileSize(fd), 0);

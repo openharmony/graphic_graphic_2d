@@ -443,4 +443,62 @@ HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, Te
     auto region = displayNode->GetDisappearedSurfaceRegionBelowCurrent(topSurface.first);
     EXPECT_TRUE(region.GetBound() == bottomSurface.second);
 }
+
+/**
+ * @tc.name: AddSecurityLayer001
+ * @tc.desc: test results of AddSecurityLayer
+ * @tc.type:FUNC
+ * @tc.require: issuesIAKMJP
+ */
+HWTEST_F(RSDisplayRenderNodeTest, AddSecurityLayer001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    NodeId id = 1;
+    displayNode->AddSecurityLayer(id);
+    EXPECT_EQ(displayNode->GetSecurityLayerList().size(), 1);
+}
+
+/**
+ * @tc.name: ClearSecurityLayerList001
+ * @tc.desc: test results of ClearSecurityLayerList
+ * @tc.type:FUNC
+ * @tc.require: issuesIAKMJP
+ */
+HWTEST_F(RSDisplayRenderNodeTest, ClearSecurityLayerList001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    NodeId id = 1;
+    displayNode->AddSecurityLayer(id);
+    displayNode->ClearSecurityLayerList();
+    EXPECT_EQ(displayNode->GetSecurityLayerList().size(), 0);
+}
+
+/**
+ * @tc.name: GetSecurityExemption001
+ * @tc.desc: test results of GetSecurityExemption
+ * @tc.type:FUNC
+ * @tc.require: issuesIAKMJP
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetSecurityExemption001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    EXPECT_EQ(displayNode->GetSecurityExemption(), false);
+}
+
+/**
+ * @tc.name: SetSecurityExemption001
+ * @tc.desc: test results of SetSecurityExemption001
+ * @tc.type:FUNC
+ * @tc.require: issuesIAKMJP
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetSecurityExemption(true);
+    EXPECT_EQ(displayNode->GetSecurityExemption(), true);
+}
 } // namespace OHOS::Rosen

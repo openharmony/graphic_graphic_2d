@@ -32,6 +32,7 @@
 #include "frame_rate_report.h"
 #include "hgm_config_callback_manager.h"
 #include "hisysevent.h"
+#include "hdi_device.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,6 +50,7 @@ namespace {
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
     constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
     constexpr uint64_t UI_ENERGY_ASSURANCE_TASK_DELAY_TIME = 3000; // 3s
+    constexpr int32_t RS_IDLE_TIMEOUT_MS = 600; // ms
     const static std::string ENERGY_ASSURANCE_TASK_ID = "ENERGY_ASSURANCE_TASK_ID";
     const static std::string UI_ENERGY_ASSURANCE_TASK_ID = "UI_ENERGY_ASSURANCE_TASK_ID";
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
@@ -67,6 +69,9 @@ namespace {
         "VOTER_VIDEO",
         "VOTER_IDLE"
     };
+
+    constexpr int ADAPTIVE_SYNC_PROPERTY = 2;
+    constexpr int DISPLAY_SUCCESS = 1;
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -114,9 +119,10 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator);
     multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
         DeliverRefreshRateVote({"VOTER_PACKAGES", strategy.min, strategy.max}, ADD_VOTE);
-        idleFps_ = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
+        idleFps_ = std::max(strategy.min, minIdleFps_);
         HandleIdleEvent(true);
     });
+    InitRsIdleTimer();
     InitTouchManager();
     multiAppStrategy_.CalcVote();
 }
@@ -148,6 +154,36 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
     });
 
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
+}
+
+void HgmFrameRateManager::InitRsIdleTimer()
+{
+    SetShowRefreshRateEnabled(false);
+
+    auto resetTask = [this] () {
+        PolicyConfigData::StrategyConfig strategy;
+        multiAppStrategy_.GetVoteRes(strategy);
+        auto resetRefreshRate = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
+        if (minIdleFps_ != resetRefreshRate) {
+            minIdleFps_ = resetRefreshRate;
+            DeliverRefreshRateVote({"VOTER_IDLE", minIdleFps_, minIdleFps_}, ADD_VOTE);
+        }
+    };
+    auto timeoutTask = [this] () {
+        PolicyConfigData::StrategyConfig strategy;
+        multiAppStrategy_.GetVoteRes(strategy);
+        if (minIdleFps_ != strategy.idleFps) {
+            minIdleFps_ = strategy.idleFps;
+            DeliverRefreshRateVote({"VOTER_IDLE", minIdleFps_, minIdleFps_}, ADD_VOTE);
+            curSkipCount_ = 0;
+        }
+    };
+
+    static std::once_flag createFlag;
+    std::call_once(createFlag, [this, resetTask, timeoutTask] () {
+        rsIdleTimer_ = std::make_unique<HgmSimpleTimer>("rs_idle_timer",
+            std::chrono::milliseconds(RS_IDLE_TIMEOUT_MS), resetTask, timeoutTask);
+    });
 }
 
 void HgmFrameRateManager::InitTouchManager()
@@ -826,6 +862,35 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     if (curScreenStrategyId_.find("LTPO") == std::string::npos) {
         DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     }
+
+    if (!IsCurrentScreenSupportAS()) {
+        isAdaptive_.store(false);
+    }
+}
+
+void HgmFrameRateManager::SetShowRefreshRateEnabled(bool enable)
+{
+    // Each time rsIdleTimer_ vote the idleFps by config, hgm will call forceUpdateCallback_, which lead to Reset of
+    // rsIdleTimer_, so the idleFps will be update(to 60hz at least) soon by rsIdleTimer_. With no new frame update
+    // for RS_IDLE_TIMEOUT_MS, rsIdleTimer_ will vote the idleFps by config again. To avoid entering this loop,
+    // rsIdleTimer_ should filter the RS frame.
+    HgmTaskHandleThread::Instance().PostTask([this, enable] () {
+        // 1: the RefreshRate Change Request lead to 1 frame update.
+        static const int countToUpdateScreenRefreshRate = 1;
+        // 2: when ShowRefreshRate enabled, the change of RefreshRate need to update displayed value by 1 more update
+        static const int countToUpdateDisplayedFpsValue = 2;
+        skipFrame_ = enable ? countToUpdateDisplayedFpsValue : countToUpdateScreenRefreshRate;
+    });
+}
+
+void HgmFrameRateManager::HandleRsFrame()
+{
+    if (curSkipCount_ < skipFrame_) {
+        curSkipCount_++;
+    } else if (rsIdleTimer_) {
+        rsIdleTimer_->Start();
+    }
+    touchManager_.HandleRsFrame();
 }
 
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
@@ -1079,6 +1144,40 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
     return mergeSuccess;
 }
 
+bool HgmFrameRateManager::IsCurrentScreenSupportAS()
+{
+    ScreenId id = HgmCore::Instance().GetActiveScreenId();
+    ScreenPhysicalId screenId = static_cast<ScreenPhysicalId>(id);
+    uint64_t propertyAS_ = 0;
+    (void)HdiDevice::GetInstance()->GetDisplayProperty(screenId, ADAPTIVE_SYNC_PROPERTY, propertyAS_);
+    return propertyAS_ == DISPLAY_SUCCESS;
+}
+
+void HgmFrameRateManager::ProcessAdaptiveSync(std::string voterName)
+{
+    bool isAdaptiveSyncEnabled = HgmCore::Instance().GetAdaptiveSyncEnabled();
+    if (!isAdaptiveSyncEnabled) {
+        return;
+    }
+
+    // VOTER_GAMES wins, enter adaptive vsync mode
+    bool isGameVoter = voterName == "VOTER_GAMES";
+
+    if (isAdaptive_.load() == isGameVoter) {
+        return;
+    }
+
+    if (isGameVoter && !IsCurrentScreenSupportAS()) {
+        HGM_LOGI("current screen not support adaptive sync mode");
+        return;
+    }
+
+    HGM_LOGI("ProcessHgmFrameRate RSAdaptiveVsync change mode");
+    RS_TRACE_BEGIN("ProcessHgmFrameRate RSAdaptiveVsync change mode");
+    isAdaptive_.store(!isAdaptive_.load());
+    RS_TRACE_END();
+}
+
 bool HgmFrameRateManager::ProcessRefreshRateVote(
     std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& voteRange)
 {
@@ -1147,6 +1246,7 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
     HGM_LOGI("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
         curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_), curRefreshRateMode_, min, max);
     SetResultVoteInfo(resultVoteInfo, min, max);
+    ProcessAdaptiveSync(resultVoteInfo.voterName);
     return resultVoteInfo;
 }
 

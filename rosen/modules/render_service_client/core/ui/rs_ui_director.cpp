@@ -165,6 +165,10 @@ void RSUIDirector::GoBackground(bool isTextureExport)
 #else
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
 #endif
+                if (rsSurface == nullptr) {
+                    ROSEN_LOGE("rsSurface is nullptr");
+                    return;
+                }
                 rsSurface->ClearBuffer();
             }
         });
@@ -339,12 +343,12 @@ void RSUIDirector::SendMessages()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
+        index_ = transactionProxy->GetTransactionDataIndex();
     }
-    index_ = transactionProxy->GetTransactionDataIndex();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
-uint32_t RSUIDirector::GetIndex()
+uint32_t RSUIDirector::GetIndex() const
 {
     return index_;
 }
@@ -386,12 +390,18 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
         m[instanceId].push_back(std::move(cmd));
     }
     auto msgId = ++messageId;
-    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages messageId [%lu]", msgId);
+    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages [messageId:%lu,cmdIndex:%llu,cmdCount:%lu]",
+        msgId, cmds->GetIndex(), cmds->GetCommandCount());
     auto counter = std::make_shared<std::atomic_size_t>(m.size());
     for (auto &[instanceId, commands] : m) {
+        ROSEN_LOGI("RSUIDirector::ProcessMessages messageId:%{public}d, cmdCount:%{public}lu, "
+            "instanceId:%{public}d", msgId, static_cast<unsigned long>(commands.size()), instanceId);
         PostTask(
-            [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter, msgId] {
+            [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
+                counter, msgId, tempInstanceId = instanceId] {
                 RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages PostTask messageId [%lu]", msgId);
+                ROSEN_LOGI("RSUIDirector::PostTask messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d",
+                    msgId, static_cast<unsigned long>(cmds->size()), tempInstanceId);
                 for (auto &cmd : *cmds) {
                     RSContext context; // RSCommand->process() needs it
                     cmd->Process(context);

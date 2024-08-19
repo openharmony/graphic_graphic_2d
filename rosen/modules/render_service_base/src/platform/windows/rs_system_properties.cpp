@@ -379,6 +379,11 @@ bool RSSystemProperties::IsPcType()
     return false;
 }
 
+bool RSSystemProperties::IsBetaRelease()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     return false;
@@ -488,9 +493,5 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS

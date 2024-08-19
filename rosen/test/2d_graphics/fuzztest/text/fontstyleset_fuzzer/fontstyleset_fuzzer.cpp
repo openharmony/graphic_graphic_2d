@@ -97,20 +97,6 @@ bool FontStyleSetFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
-bool FontStyleSetFuzzTest003(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    auto fontStyleSet = FontStyleSet::CreateEmpty();
-    fontStyleSet->Count();
-    return true;
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -121,6 +107,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::FontStyleSetFuzzTest001(data, size);
     OHOS::Rosen::Drawing::FontStyleSetFuzzTest002(data, size);
-    OHOS::Rosen::Drawing::FontStyleSetFuzzTest003(data, size);
     return 0;
 }

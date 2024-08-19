@@ -69,7 +69,8 @@ private:
 #endif
     std::shared_ptr<Drawing::Image> GetImageTexture(std::shared_ptr<Drawing::Image>& image);
     void GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect, int displayNodeIndex);
-    void RunColorPickerTaskBackground(BufferDrawParam& param);
+    void RunColorPickerTaskBackground(const BufferDrawParam& param);
+    int16_t CalcAverageLuminance(std::shared_ptr<Drawing::Image> image);
 
 private:
     RectI rect_;
@@ -84,6 +85,9 @@ private:
     int16_t luminance_ = 0;
     bool forceCPU_ = false;
     std::shared_ptr<Drawing::Image> image_ = nullptr;
+    Drawing::BackendTexture backendTexture_;
+    Drawing::BackendTexture backendTexturePre_;
+    Drawing::BitmapFormat bitmapFormat_;
     std::atomic<bool> taskDoing_ = false;
     bool isEnableCursorInversion_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForPointer_ = nullptr;

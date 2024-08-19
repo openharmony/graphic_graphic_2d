@@ -375,6 +375,9 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
             Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
         std::shared_ptr<Drawing::Surface> surface;
         auto grContext = RSBackgroundThread::Instance().GetShareGPUContext();
+        if (!grContext) {
+            return;
+        }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         DmaMem dmaMem;
         if (useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE &&

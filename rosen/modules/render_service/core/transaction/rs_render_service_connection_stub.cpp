@@ -543,6 +543,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "SET_SCREEN_REFRESH_RATE");
+                return ERR_INVALID_STATE;
+            }
             ScreenId id = data.ReadUint64();
             int32_t sceneId = data.ReadInt32();
             int32_t rate = data.ReadInt32();
@@ -565,6 +570,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "GET_SCREEN_CURRENT_REFRESH_RATE");
+                return ERR_INVALID_STATE;
+            }
             ScreenId id = data.ReadUint64();
             uint32_t refreshRate = GetScreenCurrentRefreshRate(id);
             if (!reply.WriteUint32(refreshRate)) {
@@ -1210,6 +1220,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // timer: 3s
             OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + std::to_string(callingPid), 3);
             uint64_t uniqueId = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             std::shared_ptr<Drawing::Typeface> typeface;
             bool result = false;
             result = RSMarshallingHelper::Unmarshalling(data, typeface);
@@ -1223,10 +1234,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
             uint64_t uniqueId = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             UnRegisterTypeface(uniqueId);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "SET_SCREEN_SKIP_FRAME_INTERVAL");
+                return ERR_INVALID_STATE;
+            }
             ScreenId id = data.ReadUint64();
             uint32_t skipFrameInterval = data.ReadUint32();
             int32_t result = SetScreenSkipFrameInterval(id, skipFrameInterval);
@@ -1384,11 +1401,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "NOTIFY_LIGHT_FACTOR_STATUS");
+                return ERR_INVALID_STATE;
+            }
             auto isSafe = data.ReadBool();
             NotifyLightFactorStatus(isSafe);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "NOTIFY_PACKAGE_EVENT");
+                return ERR_INVALID_STATE;
+            }
             auto listSize = data.ReadUint32();
             const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
@@ -1403,6 +1430,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT) : {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "NOTIFY_REFRESH_RATE_EVENT");
+                return ERR_INVALID_STATE;
+            }
             EventInfo eventInfo = {
                 data.ReadString(), data.ReadBool(), data.ReadUint32(), data.ReadUint32(), data.ReadString(),
             };
@@ -1410,11 +1442,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT) : {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "NOTIFY_DYNAMIC_MODE_EVENT");
+                return ERR_INVALID_STATE;
+            }
             auto enableDynamicMode = data.ReadBool();
             NotifyDynamicModeEvent(enableDynamicMode);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT) : {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
+                    "NOTIFY_TOUCH_EVENT");
+                return ERR_INVALID_STATE;
+            }
             auto touchStatus = data.ReadInt32();
             auto touchCnt = data.ReadInt32();
             NotifyTouchEvent(touchStatus, touchCnt);
@@ -1468,7 +1510,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED) : {
-            auto isEnabled = data.ReadBool();
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission SET_ROTATION_CACHE_ENABLED");
+                return ERR_INVALID_STATE;
+            }
+            bool isEnabled = false;
+            if (!data.ReadBool(isEnabled)) {
+                ret = IPC_STUB_INVALID_DATA_ERR;
+                break;
+            }
             SetCacheEnabledForRotation(isEnabled);
             break;
         }

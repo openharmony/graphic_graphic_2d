@@ -391,6 +391,46 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
     HdiOutputTest::hdiOutput_->DumpFps(ret, "UniRender");
 }
+
+/*
+* Function: ReorderLayerInfoLocked001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call ReorderLayerInfoLocked() with invalid param
+*                  2.no crash
+*/
+HWTEST_F(HdiOutputTest, ReorderLayerInfoLocked001, Function | MediumTest | Level1)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    for (size_t i = 0; i < 3; i++) {
+        output->surfaceIdMap_[i] = nullptr;
+    }
+    std::vector<LayerDumpInfo> dumpLayerInfos;
+    output->ReorderLayerInfoLocked(dumpLayerInfos);
+}
+
+/*
+* Function: DumpFps001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call DumpFps() with invalid param
+*                  2.no crash
+*/
+HWTEST_F(HdiOutputTest, DumpFps001, Function | MediumTest | Level1)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    for (size_t i = 0; i < 3; i++) {
+        output->surfaceIdMap_[i] = HdiLayer::CreateHdiLayer(i);
+        output->surfaceIdMap_[i]->UpdateLayerInfo(HdiLayerInfo::CreateHdiLayerInfo());
+    }
+    std::string result;
+    std::string arg;
+    output->DumpFps(result, arg);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

@@ -31,21 +31,11 @@ struct OH_NativeImage {
 OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget)
 {
     OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage(textureId, textureTarget);
-    if (surfaceImage == nullptr) {
-        return nullptr;
-    }
     sptr<OHOS::IBufferProducer> producer = surfaceImage->GetProducer();
     OH_NativeImage* nativeImage = new OH_NativeImage();
-    if (nativeImage == nullptr) {
-        return nullptr;
-    }
     nativeImage->consumer = surfaceImage;
     nativeImage->producer = producer;
     sptr<IBufferConsumerListener> listener = new SurfaceImageListener(surfaceImage);
-    if (listener == nullptr) {
-        delete nativeImage;
-        return nullptr;
-    }
     nativeImage->consumer->RegisterConsumerListener(listener);
     return nativeImage;
 }

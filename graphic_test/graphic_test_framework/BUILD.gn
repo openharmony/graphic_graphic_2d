@@ -107,7 +107,7 @@ ohos_shared_library("rs_graphic_test") {
   subsystem_name = "graphic"
 }
 
-ohos_shared_library("rs_graphic_test_main") {
+ohos_static_library("rs_graphic_test_main") {
   branch_protector_ret = "pac_ret"
   sanitize = {
     cfi = true

@@ -71,7 +71,7 @@ void RSMaskColorShaderFilter::CaclMaskColor(std::shared_ptr<Drawing::Image>& ima
             Drawing::Color::ColorQuadGetB(colorPicker), maskColor_.GetAlpha());
     }
     if (colorMode_ == FASTAVERAGE && RSColorPickerCacheTask::ColorPickerPartialEnabled &&
-        image != nullptr) {
+        image != nullptr && colorPickerTask_ != nullptr) {
         RSColor color;
         if (colorPickerTask_->GetWaitRelease()) {
             if (colorPickerTask_->GetColor(color) && colorPickerTask_->GetFirstGetColorFinished()) {

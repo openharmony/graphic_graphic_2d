@@ -149,7 +149,7 @@ public:
     static constexpr pid_t GetMockPid(pid_t pid)
     {
         constexpr uint32_t bits = 30u;
-        return static_cast<pid_t>((1 << bits) | static_cast<uint32_t>(pid));
+        return static_cast<pid_t>((1u << bits) | static_cast<uint32_t>(pid));
     }
 
     static constexpr uint64_t ExtractNodeId(uint64_t id)

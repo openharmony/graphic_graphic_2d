@@ -33,6 +33,8 @@ class RSB_EXPORT RSPixelMapUtil {
 public:
     // The generated SkImage already holds the shared_ptr of the source PixelMap,
     // and the PixelMap should not hold SkImage to avoid circular references.
+    static std::shared_ptr<Drawing::ColorSpace> GetPixelmapColorSpace(
+        const std::shared_ptr<Media::PixelMap>& pixelMap);
     static std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
     static void TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pixelMap,
                                         Drawing::Rect& src, Drawing::Rect& dst, Drawing::Canvas& canvas);

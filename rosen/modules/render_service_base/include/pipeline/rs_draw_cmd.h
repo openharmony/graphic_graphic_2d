@@ -68,7 +68,8 @@ public:
     bool GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer);
+    bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
+        const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 #endif
     void SetNodeId(NodeId id) override;
     void SetPaint(Drawing::Paint paint) override;

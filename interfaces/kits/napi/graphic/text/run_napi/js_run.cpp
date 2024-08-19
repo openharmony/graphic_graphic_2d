@@ -15,7 +15,7 @@
 
 #include "js_run.h"
 #include "napi_common.h"
-#include "log_wrapper.h"
+#include "utils/text_log.h"
 #include "canvas_napi/js_canvas.h"
 #include "font_napi/js_font.h"
 #include "recording/recording_canvas.h"
