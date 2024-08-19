@@ -1408,6 +1408,27 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
     }
 }
 
+void RSNode::SetBlender(const Blender* blender)
+{
+    if (blender == nullptr) {
+        ROSEN_LOGE("RSNode::SetBlender: blender is null!");
+        return;
+    }
+
+    if (Blender::BRIGHTNESS_BLENDER == blender->GetBlenderType()) {
+        auto brightnessBlender = static_cast<const BrightnessBlender*>(blender);
+        if (brightnessBlender != nullptr) {
+            SetFgBrightnessFract(brightnessBlender->GetFraction());
+            SetFgBrightnessParams({ brightnessBlender->GetLinearRate(), brightnessBlender->GetDegree(),
+                brightnessBlender->GetCubicRate(), brightnessBlender->GetQuadRate(), brightnessBlender->GetSaturation(),
+                { brightnessBlender->GetPositiveCoeff().x_, brightnessBlender->GetPositiveCoeff().y_,
+                    brightnessBlender->GetPositiveCoeff().z_ },
+                { brightnessBlender->GetNegativeCoeff().x_, brightnessBlender->GetNegativeCoeff().y_,
+                    brightnessBlender->GetNegativeCoeff().z_ } });
+        }
+    }
+}
+
 void RSNode::SetForegroundEffectRadius(const float blurRadius)
 {
     SetProperty<RSForegroundEffectRadiusModifier, RSAnimatableProperty<float>>(
