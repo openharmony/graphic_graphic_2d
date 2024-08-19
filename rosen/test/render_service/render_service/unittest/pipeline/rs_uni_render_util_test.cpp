@@ -1380,7 +1380,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo003, TestSize.Lev
 {
     RSUniRenderUtil rsUniRenderUtil;
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(1);
-    ASSERT_EQ(node, nullptr);
+    ASSERT_NE(node, nullptr);
     node->SetSurfaceNodeType(RSSurfaceNodeType::STARTING_WINDOW_NODE);
     node->childrenHasUIExtension_ = true;
     Drawing::Matrix parentMatrix = Drawing::Matrix();
