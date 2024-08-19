@@ -130,7 +130,7 @@ HWTEST_F(OHDrawingRunTest, GetPositionsTest, TestSize.Level1)
 HWTEST_F(OHDrawingRunTest, GetOffsetsTest, TestSize.Level1)
 {
     EXPECT_TRUE(runs[0]->GetOffsets().size() > 0);
-    EXPECT_TRUE(runNull->GetOffsets().size() > 0);
+    EXPECT_FALSE(runNull->GetOffsets().size() > 0);
 }
 
 /*
