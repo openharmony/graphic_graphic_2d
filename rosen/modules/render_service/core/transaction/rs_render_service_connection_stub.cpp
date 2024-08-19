@@ -1171,7 +1171,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
             auto listSize = data.ReadUint32();
-            const uint32_t MAX_LIST_SIZE = 30;
+            const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
                 ret = ERR_INVALID_STATE;
                 break;
