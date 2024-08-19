@@ -104,6 +104,7 @@ namespace Rosen {
 class EffectKitNapiUtils {
 public:
     static napi_valuetype getType(napi_env env, napi_value root);
+    static bool IsSystemApp();
 };
 } // namespace Rosen
 } // namespace OHOS
