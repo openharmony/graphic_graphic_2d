@@ -520,7 +520,9 @@ bool RSUniRenderVisitor::IsDisplayZoomIn() const
         return false;
     }
     auto scale = curDisplayNode_->GetRenderProperties().GetScale();
-    return scale.x_ > 1.f || scale.y_ > 1.f;
+    bool curZoomState = scale.x_ > 1.f || scale.y_ > 1.f;
+    curDisplayNode_->UpdateZoomState(curZoomState);
+    return curZoomState || curDisplayNode_->IsZoomStateChange();
 }
 
 void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node)
