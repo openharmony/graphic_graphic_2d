@@ -183,10 +183,10 @@ bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
 bool SkiaCanvas::AddSdfPara(SkRuntimeShaderBuilder& builder, const SDFShapeBase& shape)
 {
     std::vector<float> para = shape.GetPara();
-    std::vector<float> para1 = shape.GetTransPara();
-    uint64_t num1 = para1.size();
-    uint64_t num = para.size();
-    for (uint64_t i = 1; i <= num; i++) {
+    std::vector<float> transPara = shape.GetTransPara();
+    uint64_t transCount = transPara.size();
+    uint64_t paraCount = para.size();
+    for (uint64_t i = 1; i <= paraCount; i++) {
         char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 10.
         if (sprintf_s(buf, sizeof(buf), "para%lu", i) != -1) {
             builder.uniform(buf) = para[i-1];
@@ -195,10 +195,10 @@ bool SkiaCanvas::AddSdfPara(SkRuntimeShaderBuilder& builder, const SDFShapeBase&
             return false;
         }
     }
-    for (uint64_t i = 1; i <= num1; i++) {
+    for (uint64_t i = 1; i <= transCount; i++) {
         char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 15.
         if (sprintf_s(buf, sizeof(buf), "transpara%lu", i) != -1) {
-            builder.uniform(buf) = para1[i-1];
+            builder.uniform(buf) = transPara[i-1];
         } else {
             LOGE("sdf splicing para error.");
             return false;
