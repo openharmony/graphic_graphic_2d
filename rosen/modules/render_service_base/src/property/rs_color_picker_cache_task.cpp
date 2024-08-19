@@ -165,14 +165,14 @@ bool RSColorPickerCacheTask::Render()
     auto threadImage = std::make_shared<Drawing::Image>();
     {
         std::unique_lock<std::mutex> lock(*grBackendTextureMutex_);
-        if (cacheCanvas == nullptr || !cacheBackendTexture_.IsValid()) {
+        if (cacheCanvas == nullptr || cacheCanvas->GetGPUContext() == nullptr || !cacheBackendTexture_.IsValid()) {
             SetStatus(CacheProcessStatus::WAITING);
             ROSEN_LOGE("RSColorPickerCacheTask cacheCanvas is null or cacheBackendTexture not valid");
             return false;
         }
         SharedTextureContext* sharedContext = new SharedTextureContext(imageSnapshotCache_);
-        if (cacheCanvas->GetGPUContext() == nullptr || !threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(),
-            cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT, cacheBitmapFormat_, nullptr,
+        if (!threadImage->BuildFromTexture(*cacheCanvas->GetGPUContext(), cacheBackendTexture_.GetTextureInfo(),
+            Drawing::TextureOrigin::BOTTOM_LEFT, cacheBitmapFormat_, nullptr,
             SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
             SetStatus(CacheProcessStatus::WAITING);
             ROSEN_LOGE("RSColorPickerCacheTask::Render BuildFromTexture failed");
