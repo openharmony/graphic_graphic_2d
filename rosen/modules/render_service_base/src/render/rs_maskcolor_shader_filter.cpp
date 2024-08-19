@@ -37,13 +37,6 @@ RSColor RSMaskColorShaderFilter::GetMaskColor() const
     return maskColor_;
 }
 
-void RSMaskColorShaderFilter::InitColorMod()
-{
-    if (colorMode_ == FASTAVERAGE && RSColorPickerCacheTask::ColorPickerPartialEnabled) {
-        colorPickerTask_ = std::make_shared<RSColorPickerCacheTask>();
-    }
-}
-
 Drawing::ColorQuad RSMaskColorShaderFilter::CalcAverageColor(std::shared_ptr<Drawing::Image> image)
 {
     // create a 1x1 SkPixmap
@@ -70,22 +63,6 @@ void RSMaskColorShaderFilter::CaclMaskColor(std::shared_ptr<Drawing::Image>& ima
         maskColor_ = RSColor(Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
             Drawing::Color::ColorQuadGetB(colorPicker), maskColor_.GetAlpha());
     }
-    if (colorMode_ == FASTAVERAGE && RSColorPickerCacheTask::ColorPickerPartialEnabled &&
-        image != nullptr && colorPickerTask_ != nullptr) {
-        RSColor color;
-        if (colorPickerTask_->GetWaitRelease()) {
-            if (colorPickerTask_->GetColor(color) && colorPickerTask_->GetFirstGetColorFinished()) {
-                maskColor_ = RSColor(color.GetRed(), color.GetGreen(), color.GetBlue(), maskColor_.GetAlpha());
-            }
-            return;
-        }
-        if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask_, image)) {
-            if (colorPickerTask_->GetColor(color)) {
-                maskColor_ = RSColor(color.GetRed(), color.GetGreen(), color.GetBlue(), maskColor_.GetAlpha());
-            }
-            colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
-        }
-    }
 }
 
 void RSMaskColorShaderFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)
@@ -106,19 +83,6 @@ void RSMaskColorShaderFilter::PostProcess(Drawing::Canvas& canvas)
     }
 
     canvas.DrawBackground(brush);
-}
-
-const std::shared_ptr<RSColorPickerCacheTask>& RSMaskColorShaderFilter::GetColorPickerCacheTask() const
-{
-    return colorPickerTask_;
-}
-
-void RSMaskColorShaderFilter::ReleaseColorPickerFilter()
-{
-    if (colorPickerTask_ == nullptr) {
-        return;
-    }
-    colorPickerTask_->ReleaseColorPicker();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -3450,50 +3450,6 @@ HWTEST_F(RSMainThreadTest, SetFrameIsRender002, TestSize.Level2)
 }
 
 /**
- * @tc.name: ColorPickerRequestVsyncIfNeed
- * @tc.desc: test ColorPickerRequestVsyncIfNeed001, colorPickerForceRequestVsync_ = true
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->colorPickerForceRequestVsync_ = true;
-    mainThread->ColorPickerRequestVsyncIfNeed();
-}
-
-/**
- * @tc.name: ColorPickerRequestVsyncIfNeed
- * @tc.desc: test ColorPickerRequestVsyncIfNeed002, colorPickerRequestFrameNum_ > 0
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->colorPickerForceRequestVsync_ = true;
-    mainThread->colorPickerRequestFrameNum_ = 15;
-    mainThread->ColorPickerRequestVsyncIfNeed();
-}
-
-/**
- * @tc.name: ColorPickerRequestVsyncIfNeed
- * @tc.desc: test ColorPickerRequestVsyncIfNeed003, colorPickerRequestFrameNum_ <= 0
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed003, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->colorPickerForceRequestVsync_ = true;
-    mainThread->colorPickerRequestFrameNum_ = 0;
-    mainThread->ColorPickerRequestVsyncIfNeed();
-}
-
-/**
  * @tc.name: OnUniRenderDraw
  * @tc.desc: test OnUniRenderDraw001, test isUniRender_ & doDirectComposition_ = false
  * @tc.type: FUNC

@@ -20,6 +20,7 @@
 #include <event_handler.h>
 #include <mutex>
 #include <vector>
+#include <queue>
 
 #include "common/rs_thread_handler.h"
 #include "drawable/rs_render_node_drawable_adapter.h"

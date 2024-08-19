@@ -19,7 +19,7 @@
 #include "draw/color.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
-#include "property/rs_color_picker_cache_task.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_shader_filter.h"
 
 namespace OHOS {
@@ -33,17 +33,13 @@ public:
 
     int GetColorMode() const;
     RSColor GetMaskColor() const;
-    void InitColorMod();
     void CaclMaskColor(std::shared_ptr<Drawing::Image>& image);
-    const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTask() const;
     virtual void PreProcess(std::shared_ptr<Drawing::Image>& image) override;
     virtual void PostProcess(Drawing::Canvas& canvas) override;
-    void ReleaseColorPickerFilter();
     static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> image);
 private:
     int colorMode_;
     RSColor maskColor_ = RSColor();
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

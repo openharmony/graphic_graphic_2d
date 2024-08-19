@@ -796,42 +796,6 @@ HWTEST_F(RSUniRenderUtilTest, IsNeedClientTest002, Function | SmallTest | Level2
     EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
 }
 
-/**
- * @tc.name: ReleaseColorPickerResourceTest
- * @tc.desc: Verify function ReleaseColorPickerResource
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    std::shared_ptr<RSRenderNode> node = nullptr;
-    RSUniRenderUtil::ReleaseColorPickerResource(node);
-    node = std::make_shared<RSRenderNode>(id);
-    node->children_.emplace_back(std::make_shared<RSRenderNode>(id));
-    RSUniRenderUtil::ReleaseColorPickerResource(node);
-    EXPECT_FALSE(node->children_.empty());
-}
-
-/**
- * @tc.name: ReleaseColorPickerResourceTest002
- * @tc.desc: Test ReleaseColorPickerResource without nullptr
- * @tc.type:FUNC
- * @tc.require: issueIAJOWI
- */
-HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest002, Function | SmallTest | Level2)
-{
-    NodeId id = 1;
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    id = 2;
-    auto child = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(child, nullptr);
-    node->AddChild(child);
-    EXPECT_FALSE(node->children_.empty());
-    RSUniRenderUtil::ReleaseColorPickerResource(node);
-}
-
 /*
  * @tc.name: DrawRectForDfxTest
  * @tc.desc: Verify function DrawRectForDfx
