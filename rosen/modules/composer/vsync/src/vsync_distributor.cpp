@@ -567,6 +567,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     dvsync_->RecordVSync(now, period, refreshRate);
     dvsync_->NotifyPreexecuteWait();
 
+    SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
     // when dvsync switch to vsync, skip all vsync events within one period from the pre-rendered timestamp
     if (dvsync_->NeedSkipDVsyncPrerenderedFrame()) {
         return;
@@ -584,7 +585,6 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
 
     ChangeConnsRateLocked();
     RS_TRACE_NAME_FMT("pendingRNVInVsync: %d DVSyncOn: %d isRS:%d", pendingRNVInVsync_, IsDVsyncOn(), isRs_);
-    SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
     if (dvsync_->WaitCond() || pendingRNVInVsync_) {
         con_.notify_all();
     } else {
@@ -678,7 +678,7 @@ void VSyncDistributor::SendConnectionsToVSyncWindow(int64_t now, int64_t period,
 {
     std::vector<sptr<VSyncConnection>> conns;
     bool waitForVSync = false;
-    if (isRs_ || !IsDVsyncOn()) {
+    if (isRs_ || GetUIDVsyncPid() == 0) {
         return;
     }
     CollectConns(waitForVSync, now, conns, false);
@@ -690,7 +690,7 @@ void VSyncDistributor::SendConnectionsToVSyncWindow(int64_t now, int64_t period,
 int32_t VSyncDistributor::GetUIDVsyncPid()
 {
     int32_t pid = 0;
-    if (!isRs_ && IsDVsyncOn()) {
+    if (!isRs_) {
         pid = dvsync_->GetProxyPid();
     }
     return pid;
