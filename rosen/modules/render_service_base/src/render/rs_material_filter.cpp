@@ -101,7 +101,7 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
         materialParam.radius, materialParam.saturation, materialParam.brightness);
     type_ = FilterType::MATERIAL;
     if (colorMode_ == FASTAVERAGE) {
-        colorMode_ == AVERAGE;
+        colorMode_ = AVERAGE;
     }
 
     float radiusForHash = DecreasePrecision(radius_);
