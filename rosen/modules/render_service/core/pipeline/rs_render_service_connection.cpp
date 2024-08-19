@@ -693,7 +693,7 @@ std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
                 if (!connection) {
                     return;
                 }
-                return connection->screenManager_->FpsDump(dumpString, surfaceName);
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
             }).wait();
     } else {
         mainThread_->ScheduleTask(
@@ -702,7 +702,7 @@ std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
                 if (!connection) {
                     return;
                 }
-                return connection->screenManager_->FpsDump(dumpString, surfaceName);
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
             }).wait();
     }
     return dumpString;
