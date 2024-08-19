@@ -180,7 +180,7 @@ bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
     return skCanvas_->readPixels(skBitmap, srcX, srcY);
 }
 
-bool SkiaCanvas::AddSdfPara(SkRuntimeShaderBuilder& build, const SDFShapeBase& shape)
+bool SkiaCanvas::AddSdfPara(SkRuntimeShaderBuilder& builder, const SDFShapeBase& shape)
 {
     std::vector<float> para = shape.GetPara();
     std::vector<float> para1 = shape.GetTransPara();

@@ -175,7 +175,7 @@ public:
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
-    bool AddSdfPara(SkRuntimeShaderBuilder& build, const SDFShapeBase& shape);
+    bool AddSdfPara(SkRuntimeShaderBuilder& builder, const SDFShapeBase& shape);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;
     SkCanvas* skCanvasBackup_ = nullptr;
