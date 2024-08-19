@@ -614,7 +614,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
 ## Build RSPointerWindowManagerTest
 ohos_unittest("RSPointerWindowManagerTest") {
   module_out_path = module_output_path
-  sources = [ "rs_pointer_render_manager_test.cpp" ]
+  sources = [ "rs_pointer_window_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
