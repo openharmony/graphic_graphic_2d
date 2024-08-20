@@ -250,6 +250,18 @@ public:
      */
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
 
+    /**
+     * @brief                   Set MemoryOverCheck callback.
+     * @param func              MemoryOverCheck callback.
+     */
+    void SetMemoryOverCheck(MemoryOverCheckCallback func);
+
+    /**
+     * @brief                   Set RemoveMemoryFromSnapshotInfo callback.
+     * @param func              RemoveMemoryFromSnapshotInfo callback.
+     */
+    void SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func);
+
 #ifdef RS_ENABLE_VK
     /**
      * @brief                   Store vulkan pipeline cache

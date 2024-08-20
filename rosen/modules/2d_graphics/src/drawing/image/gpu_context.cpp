@@ -161,6 +161,16 @@ void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     impl_->SetCurrentGpuResourceTag(tag);
 }
 
+void GPUContext::SetMemoryOverCheck(MemoryOverCheckCallback func)
+{
+    impl_->SetMemoryOverCheck(func);
+}
+
+void GPUContext::SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func)
+{
+    impl_->SetRemoveMemoryFromSnapshotInfo(func);
+}
+
 void GPUContext::ResetContext()
 {
     impl_->ResetContext();
@@ -187,7 +197,6 @@ void GPUContext::VmaDefragment()
 {
     impl_->VmaDefragment();
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
