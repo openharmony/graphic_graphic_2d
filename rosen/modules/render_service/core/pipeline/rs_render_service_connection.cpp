@@ -33,7 +33,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
@@ -514,14 +514,14 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Sur
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
     float brightBuffer, int64_t interval, int32_t rangeSize)
 {
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
+    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
         interval, rangeSize);
     return StatusCode::SUCCESS;
 }
 
 int32_t RSRenderServiceConnection::SetPointerColorInversionEnabled(bool enable)
 {
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(enable);
+    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(enable);
     return StatusCode::SUCCESS;
 }
 
@@ -532,13 +532,13 @@ int32_t RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback(
         RS_LOGE("RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback: callback is nullptr");
         return StatusCode::INVALID_ARGUMENTS;
     }
-    RSPointerRenderManager::GetInstance().RegisterPointerLuminanceChangeCallback(remotePid_, callback);
+    RSMagicPointerRenderManager::GetInstance().RegisterPointerLuminanceChangeCallback(remotePid_, callback);
     return StatusCode::SUCCESS;
 }
 
 int32_t RSRenderServiceConnection::UnRegisterPointerLuminanceChangeCallback()
 {
-    RSPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
+    RSMagicPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
     return StatusCode::SUCCESS;
 }
 #endif

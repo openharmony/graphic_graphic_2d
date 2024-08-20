@@ -80,7 +80,7 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_log.h"
@@ -514,11 +514,11 @@ void RSMainThread::Init()
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #if defined (RS_ENABLE_VK)
-    RSPointerRenderManager::InitInstance(GetRenderEngine()->GetVkImageManager());
+    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetVkImageManager());
 #endif
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-    RSPointerRenderManager::InitInstance(GetRenderEngine()->GetEglImageManager());
+    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetEglImageManager());
 #endif
 #endif
 

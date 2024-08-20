@@ -46,7 +46,7 @@
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -671,8 +671,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     if (!mirrorDrawable) {
-        RSPointerRenderManager::GetInstance().ProcessColorPicker(processor, curCanvas_->GetGPUContext());
-        RSPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
+        RSMagicPointerRenderManager::GetInstance().ProcessColorPicker(processor, curCanvas_->GetGPUContext());
+        RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
     }
 #endif
 }

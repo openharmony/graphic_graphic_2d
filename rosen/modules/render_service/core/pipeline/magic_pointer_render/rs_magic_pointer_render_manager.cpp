@@ -19,7 +19,7 @@
 #include "pipeline/rs_uni_render_processor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/sk_resource_manager.h"
-#include "rs_pointer_render_manager.h"
+#include "rs_magic_pointer_render_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,35 +30,35 @@ static const float RGB = 255.0f;
 static const float HALF = 0.5f;
 static const int32_t CALCULATE_MIDDLE = 2;
 } // namespace
-static std::unique_ptr<RSPointerRenderManager> g_pointerRenderManagerInstance =
-    std::make_unique<RSPointerRenderManager>();
+static std::unique_ptr<RSMagicPointerRenderManager> g_pointerRenderManagerInstance =
+    std::make_unique<RSMagicPointerRenderManager>();
 
-RSPointerRenderManager& RSPointerRenderManager::GetInstance()
+RSMagicPointerRenderManager& RSMagicPointerRenderManager::GetInstance()
 {
     return *g_pointerRenderManagerInstance;
 }
 
 #if defined (RS_ENABLE_VK)
-void RSPointerRenderManager::InitInstance(const std::shared_ptr<RSVkImageManager>& vkImageManager)
+void RSMagicPointerRenderManager::InitInstance(const std::shared_ptr<RSVkImageManager>& vkImageManager)
 {
     g_pointerRenderManagerInstance->vkImageManager_ = vkImageManager;
 }
 #endif
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-void RSPointerRenderManager::InitInstance(const std::shared_ptr<RSEglImageManager>& eglImageManager)
+void RSMagicPointerRenderManager::InitInstance(const std::shared_ptr<RSEglImageManager>& eglImageManager)
 {
     g_pointerRenderManagerInstance->eglImageManager_ = eglImageManager;
 }
 #endif
 
-int64_t RSPointerRenderManager::GetCurrentTime()
+int64_t RSMagicPointerRenderManager::GetCurrentTime()
 {
     auto timeNow = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now());
     return std::chrono::duration_cast<std::chrono::milliseconds>(timeNow.time_since_epoch()).count();
 }
 
-void RSPointerRenderManager::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
+void RSMagicPointerRenderManager::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
     int64_t interval, int32_t rangeSize)
 {
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
@@ -68,29 +68,29 @@ void RSPointerRenderManager::SetPointerColorInversionConfig(float darkBuffer, fl
     rangeSize_ = rangeSize;
 }
  
-void RSPointerRenderManager::SetPointerColorInversionEnabled(bool enable)
+void RSMagicPointerRenderManager::SetPointerColorInversionEnabled(bool enable)
 {
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
     isEnableCursorInversion_ = enable;
 }
  
-void RSPointerRenderManager::RegisterPointerLuminanceChangeCallback(pid_t pid,
+void RSMagicPointerRenderManager::RegisterPointerLuminanceChangeCallback(pid_t pid,
     sptr<RSIPointerLuminanceChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
     colorChangeListeners_[pid] = callback;
 }
  
-void RSPointerRenderManager::UnRegisterPointerLuminanceChangeCallback(pid_t pid)
+void RSMagicPointerRenderManager::UnRegisterPointerLuminanceChangeCallback(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
     colorChangeListeners_.erase(pid);
 }
  
-void RSPointerRenderManager::ExecutePointerLuminanceChangeCallback(int32_t brightness)
+void RSMagicPointerRenderManager::ExecutePointerLuminanceChangeCallback(int32_t brightness)
 {
     std::lock_guard<std::mutex> lock(cursorInvertMutex_);
-    lastColorPickerTime_ = RSPointerRenderManager::GetCurrentTime();
+    lastColorPickerTime_ = RSMagicPointerRenderManager::GetCurrentTime();
     for (auto it = colorChangeListeners_.begin(); it != colorChangeListeners_.end(); it++) {
         if (it->second) {
             it->second->OnPointerLuminanceChanged(brightness);
@@ -98,9 +98,9 @@ void RSPointerRenderManager::ExecutePointerLuminanceChangeCallback(int32_t brigh
     }
 }
 
-void RSPointerRenderManager::CallPointerLuminanceChange(int32_t brightness)
+void RSMagicPointerRenderManager::CallPointerLuminanceChange(int32_t brightness)
 {
-    RS_LOGD("RSPointerRenderManager::CallPointerLuminanceChange luminance_:%{public}d.", luminance_);
+    RS_LOGD("RSMagicPointerRenderManager::CallPointerLuminanceChange luminance_:%{public}d.", luminance_);
     if (brightnessMode_ == CursorBrightness::NONE) {
         brightnessMode_ = brightness < static_cast<int32_t>(RGB * HALF) ?
             CursorBrightness::DARK : CursorBrightness::BRIGHT;
@@ -120,13 +120,13 @@ void RSPointerRenderManager::CallPointerLuminanceChange(int32_t brightness)
     }
 }
 
-bool RSPointerRenderManager::CheckColorPickerEnabled()
+bool RSMagicPointerRenderManager::CheckColorPickerEnabled()
 {
     if (!isEnableCursorInversion_ || taskDoing_) {
         return false;
     }
 
-    auto time = RSPointerRenderManager::GetCurrentTime() - lastColorPickerTime_;
+    auto time = RSMagicPointerRenderManager::GetCurrentTime() - lastColorPickerTime_;
     if (time < colorSamplingInterval_) {
         return false;
     }
@@ -134,7 +134,7 @@ bool RSPointerRenderManager::CheckColorPickerEnabled()
     bool exists = false;
     auto& threadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (threadParams == nullptr) {
-        ROSEN_LOGE("RSPointerRenderManager::CheckColorPickerEnabled threadParams == nullptr");
+        ROSEN_LOGE("RSMagicPointerRenderManager::CheckColorPickerEnabled threadParams == nullptr");
         return false;
     }
     auto& hardwareDrawables = threadParams->GetHardwareEnabledTypeDrawables();
@@ -150,25 +150,25 @@ bool RSPointerRenderManager::CheckColorPickerEnabled()
     return exists;
 }
 
-void RSPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> processor,
+void RSMagicPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> processor,
     std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
     if (!CheckColorPickerEnabled()) {
-        ROSEN_LOGD("RSPointerRenderManager::CheckColorPickerEnabled is false!");
+        ROSEN_LOGD("RSMagicPointerRenderManager::CheckColorPickerEnabled is false!");
         return;
     }
 
-    RS_TRACE_BEGIN("RSPointerRenderManager ProcessColorPicker");
+    RS_TRACE_BEGIN("RSMagicPointerRenderManager ProcessColorPicker");
     std::lock_guard<std::mutex> locker(mtx_);
 
     if (cacheImgForPointer_) {
         if (!GetIntersectImageBySubset(gpuContext)) {
-            ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageBySubset is false!");
+            ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageBySubset is false!");
             return;
         }
     } else {
         if (!CalculateTargetLayer(processor)) { // get the layer intersect with pointer and calculate the rect
-            ROSEN_LOGD("RSPointerRenderManager::CalculateTargetLayer is false!");
+            ROSEN_LOGD("RSMagicPointerRenderManager::CalculateTargetLayer is false!");
             return;
         }
     }
@@ -178,7 +178,7 @@ void RSPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> pro
     RS_TRACE_END();
 }
 
-bool RSPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
+bool RSMagicPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
@@ -203,11 +203,11 @@ bool RSPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::
     return false;
 }
 
-bool RSPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcessor> processor)
+bool RSMagicPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcessor> processor)
 {
     auto uniRenderProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
     if (uniRenderProcessor == nullptr) {
-        ROSEN_LOGE("RSPointerRenderManager::CalculateTargetLayer uniRenderProcessor is null!");
+        ROSEN_LOGE("RSMagicPointerRenderManager::CalculateTargetLayer uniRenderProcessor is null!");
         return false;
     }
     std::vector<LayerInfoPtr> layers = uniRenderProcessor->GetLayers();
@@ -235,7 +235,7 @@ bool RSPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcessor> p
     }
 
     if (!find || displayNodeIndex == INT_MAX) {
-        ROSEN_LOGD("RSPointerRenderManager::CalculateTargetLayer cannot find pointer or display node.");
+        ROSEN_LOGD("RSMagicPointerRenderManager::CalculateTargetLayer cannot find pointer or display node.");
         return false;
     }
     CalculateColorRange(pRect);
@@ -245,7 +245,7 @@ bool RSPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcessor> p
     return true;
 }
 
-void RSPointerRenderManager::CalculateColorRange(RectI& pRect)
+void RSMagicPointerRenderManager::CalculateColorRange(RectI& pRect)
 {
     if (rangeSize_ > 0) {
         int left = pRect.GetLeft() + (pRect.GetWidth() - rangeSize_) / CALCULATE_MIDDLE;
@@ -254,7 +254,7 @@ void RSPointerRenderManager::CalculateColorRange(RectI& pRect)
     }
 }
 
-void RSPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect,
+void RSMagicPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect,
     int displayNodeIndex)
 {
     target_ = nullptr;
@@ -287,7 +287,7 @@ void RSPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr>& la
     }
 }
 
-int16_t RSPointerRenderManager::CalcAverageLuminance(std::shared_ptr<Drawing::Image> image)
+int16_t RSMagicPointerRenderManager::CalcAverageLuminance(std::shared_ptr<Drawing::Image> image)
 {
     // create a 1x1 SkPixmap
     uint32_t pixel[1] = { 0 };
@@ -307,7 +307,7 @@ int16_t RSPointerRenderManager::CalcAverageLuminance(std::shared_ptr<Drawing::Im
         Drawing::Color::ColorQuadGetB(color) * 0.0722f;
 }
 
-void RSPointerRenderManager::RunColorPickerTaskBackground(const BufferDrawParam& param)
+void RSMagicPointerRenderManager::RunColorPickerTaskBackground(const BufferDrawParam& param)
 {
 #ifdef RS_ENABLE_UNI_RENDER
     std::lock_guard<std::mutex> locker(mtx_);
@@ -320,14 +320,14 @@ void RSPointerRenderManager::RunColorPickerTaskBackground(const BufferDrawParam&
             Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat_, nullptr,
             SKResourceManager::DeleteSharedTextureContext, sharedContext);
         if (!ret) {
-            RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground BuildFromTexture failed.");
+            RS_LOGE("RSMagicPointerRenderManager::RunColorPickerTaskBackground BuildFromTexture failed.");
             return;
         }
     } else {
         image = GetIntersectImageByLayer(param);
     }
     if (image == nullptr || !image->IsValid(context)) {
-        RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground image not valid.");
+        RS_LOGE("RSMagicPointerRenderManager::RunColorPickerTaskBackground image not valid.");
         return;
     }
 
@@ -337,10 +337,10 @@ void RSPointerRenderManager::RunColorPickerTaskBackground(const BufferDrawParam&
 #endif
 }
 
-void RSPointerRenderManager::RunColorPickerTask()
+void RSMagicPointerRenderManager::RunColorPickerTask()
 {
     if (!image_ && (target_ == nullptr || rect_.IsEmpty())) {
-        ROSEN_LOGE("RSPointerRenderManager::RunColorPickerTask failed for null target or rect is empty!");
+        ROSEN_LOGE("RSMagicPointerRenderManager::RunColorPickerTask failed for null target or rect is empty!");
         return;
     }
 
@@ -358,17 +358,17 @@ void RSPointerRenderManager::RunColorPickerTask()
     });
 }
 
-std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageByLayer(const BufferDrawParam& param)
+std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageByLayer(const BufferDrawParam& param)
 {
 #ifdef RS_ENABLE_UNI_RENDER
     Drawing::RectI imgCutRect = Drawing::RectI(rect_.GetLeft(), rect_.GetTop(), rect_.GetRight(), rect_.GetBottom());
     auto context = RSBackgroundThread::Instance().GetShareGPUContext();
     if (context == nullptr) {
-        RS_LOGE("RSPointerRenderManager::GetIntersectImageByLayer context is nullptr.");
+        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageByLayer context is nullptr.");
         return nullptr;
     }
     if (param.buffer == nullptr) {
-        ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageByLayer param buffer is nullptr");
+        ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageByLayer param buffer is nullptr");
         return nullptr;
     }
 #ifdef RS_ENABLE_VK
@@ -387,16 +387,16 @@ std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageByLayer
 }
 
 #ifdef RS_ENABLE_VK
-std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageFromVK(Drawing::RectI& imgCutRect,
+std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFromVK(Drawing::RectI& imgCutRect,
     std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& param)
 {
     if (vkImageManager_ == nullptr) {
-        RS_LOGE("RSPointerRenderManager::GetIntersectImageFromVK vkImageManager_ == nullptr");
+        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK vkImageManager_ == nullptr");
         return nullptr;
     }
     auto imageCache = vkImageManager_->CreateImageCacheFromBuffer(param.buffer, param.acquireFence);
     if (imageCache == nullptr) {
-        ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageFromVK imageCache == nullptr!");
+        ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK imageCache == nullptr!");
         return nullptr;
     }
     auto& backendTexture = imageCache->GetBackendTexture();
@@ -406,7 +406,7 @@ std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageFromVK(
     if (!layerImage->BuildFromTexture(*context, backendTexture.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
         NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {
-        ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageFromVK image BuildFromTexture failed.");
+        ROSEN_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK image BuildFromTexture failed.");
         return nullptr;
     }
 
@@ -417,17 +417,17 @@ std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageFromVK(
 #endif
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageFromGL(Drawing::RectI& imgCutRect,
+std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFromGL(Drawing::RectI& imgCutRect,
     std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& param)
 {
     if (eglImageManager_ == nullptr) {
-        RS_LOGE("RSPointerRenderManager::GetIntersectImageFromGL eglImageManager_ == nullptr");
+        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL eglImageManager_ == nullptr");
         return nullptr;
     }
     auto eglTextureId = eglImageManager_->MapEglImageFromSurfaceBuffer(param.buffer,
         param.acquireFence, param.threadIndex);
     if (eglTextureId == 0) {
-        RS_LOGE("RSPointerRenderManager::GetIntersectImageFromGL invalid texture ID");
+        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL invalid texture ID");
         return nullptr;
     }
 
@@ -450,7 +450,7 @@ std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageFromGL(
     std::shared_ptr<Drawing::Image> layerImage = std::make_shared<Drawing::Image>();
     if (!layerImage->BuildFromTexture(*context, externalTextureInfo,
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
-        RS_LOGE("RSPointerRenderManager::GetIntersectImageFromGL image BuildFromTexture failed");
+        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL image BuildFromTexture failed");
         return nullptr;
     }
 
@@ -461,7 +461,7 @@ std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageFromGL(
 
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRenderTarget(context.get(), false, info);
     if (surface == nullptr) {
-        RS_LOGE("RSPointerRenderManager::GetIntersectImageFromGL MakeRenderTarget failed.");
+        RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL MakeRenderTarget failed.");
         return nullptr;
     }
     auto drawCanvas = std::make_shared<RSPaintFilterCanvas>(surface.get());

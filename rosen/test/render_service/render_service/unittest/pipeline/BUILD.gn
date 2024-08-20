@@ -74,7 +74,7 @@ group("unittest") {
   }
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
-    deps += [ ":RSPointerRenderManagerTest" ]
+    deps += [ ":RSMagicPointerRenderManagerTest" ]
   }
   if (graphic_2d_feature_product == "pc") {
     deps += [ ":RSPointerWindowManagerTest" ]
@@ -1183,10 +1183,10 @@ ohos_unittest("RSUifirstManagerTest") {
   }
 }
 
-## Build RSPointerRenderManagerTest
-ohos_unittest("RSPointerRenderManagerTest") {
+## Build RSMagicPointerRenderManagerTest
+ohos_unittest("RSMagicPointerRenderManagerTest") {
   module_out_path = module_output_path
-  sources = [ "pointer_render/rs_pointer_render_manager_test.cpp" ]
+  sources = [ "magic_pointer_render/rs_magic_pointer_render_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

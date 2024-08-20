@@ -155,7 +155,9 @@ ohos_shared_library("librender_service") {
   ]
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
-    sources += [ "core/pipeline/pointer_render/rs_pointer_render_manager.cpp" ]
+    sources += [
+      "core/pipeline/magic_pointer_render/rs_magic_pointer_render_manager.cpp",
+    ]
   }
 
   if (rs_enable_eglimage) {
