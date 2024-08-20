@@ -409,6 +409,11 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     return false;
