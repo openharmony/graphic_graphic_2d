@@ -107,6 +107,9 @@ private:
     friend class TextShaper;
     friend class TextReverser;
     friend void ReportMemoryUsage(std::string const &member, TextSpan const &that, bool needThis);
+
+    void drawBackgroundRRect(TexgineCanvas& canvas, TexginePaint& paint, const RoundRectType& rType,
+        const TextStyle& xs, std::pair<double, double>& offset);
 };
 } // namespace TextEngine
 } // namespace Rosen

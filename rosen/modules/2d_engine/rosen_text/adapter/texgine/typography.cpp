@@ -15,69 +15,37 @@
 
 #include "typography.h"
 
+#include "convert.h"
 #include "engine_adapter/skia_adapter/skia_canvas.h"
 #include "texgine_canvas.h"
 
-#include "convert.h"
-
 namespace OHOS {
 namespace Rosen {
-#ifndef USE_GRAPHIC_TEXT_GINE
-TextRect::TextRect(Drawing::RectF rect, TextDirection direction)
-#else
 TextRect::TextRect(Drawing::RectF rec, TextDirection dir)
-#endif
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    rect_ = rect;
-    direction_ = direction;
-#else
     rect = rec;
     direction = dir;
-#endif
 }
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-IndexAndAffinity::IndexAndAffinity(size_t index, Affinity affinity)
-#else
 IndexAndAffinity::IndexAndAffinity(size_t charIndex, Affinity charAffinity)
-#endif
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    index_ = index;
-    affinity_ = affinity;
-#else
     index = charIndex;
     affinity = charAffinity;
-#endif
 }
 
 Boundary::Boundary(size_t left, size_t right)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    leftIndex_ = left;
-    rightIndex_ = right;
-#else
     leftIndex = left;
     rightIndex = right;
-#endif
 }
 
-bool Boundary::operator ==(const Boundary& rhs) const
+bool Boundary::operator==(const Boundary& rhs) const
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    return leftIndex_ == rhs.leftIndex_ && rightIndex_ == rhs.rightIndex_;
-#else
     return leftIndex == rhs.leftIndex && rightIndex == rhs.rightIndex;
-#endif
 }
 
 namespace AdapterTextEngine {
-#ifndef USE_GRAPHIC_TEXT_GINE
-Typography::Typography(std::shared_ptr<Texgine::Typography> typography) : typography_(std::move(typography)) {}
-#else
 Typography::Typography(std::shared_ptr<TextEngine::Typography> typography) : typography_(std::move(typography)) {}
-#endif
 
 double Typography::GetMaxWidth() const
 {
@@ -134,19 +102,17 @@ void Typography::Layout(double width)
     return typography_->Layout(width);
 }
 
-void Typography::Paint(SkCanvas *canvas, double x, double y)
-{
-}
+void Typography::Paint(SkCanvas* canvas, double x, double y) {}
 
-void Typography::Paint(Drawing::Canvas *drawCanvas, double x, double y)
+void Typography::Paint(Drawing::Canvas* drawCanvas, double x, double y)
 {
     auto texgineCanvas = std::make_shared<TextEngine::TexgineCanvas>();
     texgineCanvas->SetCanvas(drawCanvas);
     return typography_->Paint(*texgineCanvas, x, y);
 }
 
-std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t right,
-    TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle)
+std::vector<TextRect> Typography::GetTextRectsByBoundary(
+    size_t left, size_t right, TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle)
 {
     auto txtRectHeightStyle = Convert(heightStyle);
     auto txtRectWidthStyle = Convert(widthStyle);
@@ -154,7 +120,7 @@ std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t rig
     auto rects = typography_->GetTextRectsByBoundary(boundary, txtRectHeightStyle, txtRectWidthStyle);
 
     std::vector<TextRect> boxes;
-    for (const auto &rect : rects) {
+    for (const auto& rect : rects) {
         boxes.push_back(Convert(rect));
     }
     return boxes;
@@ -165,7 +131,7 @@ std::vector<TextRect> Typography::GetTextRectsOfPlaceholders()
     auto rects = typography_->GetTextRectsOfPlaceholders();
 
     std::vector<TextRect> boxes;
-    for (const auto &rect : rects) {
+    for (const auto& rect : rects) {
         boxes.push_back(Convert(rect));
     }
     return boxes;
