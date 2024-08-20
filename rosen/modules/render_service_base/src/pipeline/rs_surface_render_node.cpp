@@ -2480,7 +2480,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
         firstLevelNodeId = GetId();
         auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetParent().lock());
         if (parentNode && parentNode->GetFirstLevelNodeId() != INVALID_NODEID) {
-            firstLevelNodeId = parentNode->GetFirstLevelNodeId ();
+            firstLevelNodeId = parentNode->GetFirstLevelNodeId();
         }
     }
     if (IsSecureUIExtension()) {
