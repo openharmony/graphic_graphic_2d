@@ -846,8 +846,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     std::function<void()> captureTask = [id, callback, captureConfig, accessible]() -> void {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr || (!accessible &&
-            (node->GetType() == RSRenderNodeType::DISPLAY_NODE ||
-            node->GetType() == RSRenderNodeType::SURFACE_NODE))) {
+            node->GetType() == RSRenderNodeType::DISPLAY_NODE)) {
             RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture no permission or node is nullptr");
             callback->OnSurfaceCapture(id, nullptr);
             return;
