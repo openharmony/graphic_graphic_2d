@@ -26,10 +26,10 @@ ohos_fuzztest("RSUIEffectFuzzTest") {
     "${graphic_2d_root}/rosen/modules/render_service_client/core/ui_effect/filter/include",
   ]
   cflags = [
+    "-fno-omit-frame-pointer",
     "-g",
     "-O0",
     "-Wno-unused-variable",
-    "-fno-omit-frame-pointer",
   ]
   sources = [ "rsuieffect_fuzzer.cpp" ]
   deps = [ "${graphic_2d_root}/rosen/modules/render_service_client:librender_service_client" ]
