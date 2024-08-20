@@ -570,6 +570,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         curCanvas_->SetBrightnessRatio(hdrBrightnessRatio);
         curCanvas_->SetHDRPresent(isHdrOn);
     }
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (autoCacheEnable_) {
+        screenRectInfo_ = {0, 0, screenInfo.width, screenInfo.height};
+    }
+#endif
 
     // canvas draw
     {
