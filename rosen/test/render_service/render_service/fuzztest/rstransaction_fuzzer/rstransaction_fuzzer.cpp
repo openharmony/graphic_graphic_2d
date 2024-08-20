@@ -99,11 +99,6 @@ bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest002(const u
     code = static_cast<CodeUnderlyingType>(
         RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SCREEN_POWER_STATUS);
     verifier.IsExclusiveVerificationPassed(code);
-#ifdef RS_ENABLE_VK
-    code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_2D_RENDER_CTRL);
-    verifier.IsExclusiveVerificationPassed(code);
-#endif
 #ifdef ENABLE_IPC_SECURITY
     uint32_t times = GetData<uint32_t>();
     PermissionType permission = PermissionType::CAPTURE_SCREEN;
