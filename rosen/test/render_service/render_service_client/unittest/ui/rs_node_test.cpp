@@ -7201,6 +7201,7 @@ HWTEST_F(RSNodeTest, UpdateLocalGeometry, TestSize.Level1)
     rsNode->modifiers_[0] = modifier;
     ASSERT_TRUE(!rsNode->modifiers_.empty());
     rsNode->UpdateLocalGeometry();
+    EXPECT_NE(rsNode->GetLocalGeometry(), nullptr);
 }
 
 /**
@@ -7222,5 +7223,7 @@ HWTEST_F(RSNodeTest, UpdateGlobalGeometry, TestSize.Level1)
     rsNode->globalGeometry_ = parentGlobalGeometry;
     rsNode->UpdateGlobalGeometry(parentGlobalGeometry);
     EXPECT_NE(rsNode->GetGlobalGeometry(), nullptr);
+    EXPECT_EQ(rsNode->GetGlobalPositionX(), 0.f);
+    EXPECT_EQ(rsNode->GetGlobalPositionY(), 0.f);
 }
 } // namespace OHOS::Rosen

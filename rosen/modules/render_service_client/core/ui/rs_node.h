@@ -454,8 +454,11 @@ public:
     bool IsAppearanceDirty() const;
     void MarkDirty(NodeDirtyType type, bool isDirty);
 
-    std::shared_ptr<RSObjAbsGeometry> GetLocalGeometry();
-    std::shared_ptr<RSObjAbsGeometry> GetGlobalGeometry();
+    float GetGlobalPositionX() const;
+    float GetGlobalPositionY() const;
+
+    std::shared_ptr<RSObjAbsGeometry> GetLocalGeometry() const;
+    std::shared_ptr<RSObjAbsGeometry> GetGlobalGeometry() const;
     void UpdateLocalGeometry();
     void UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& parentGlobalGeometry);
 
@@ -560,6 +563,9 @@ private:
 
     std::shared_ptr<RSObjAbsGeometry> localGeometry_;
     std::shared_ptr<RSObjAbsGeometry> globalGeometry_;
+
+    float globalPositionX_ = 0.f;
+    float globalPositionY_ = 0.f;
 
     pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };

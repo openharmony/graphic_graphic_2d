@@ -529,12 +529,22 @@ void RSNode::MarkDirty(NodeDirtyType type, bool isDirty)
     }
 }
 
-std::shared_ptr<RSObjAbsGeometry> RSNode::GetLocalGeometry()
+float RSNode::GetGlobalPositionX() const
+{
+    return globalPositionX_;
+}
+
+float RSNode::GetGlobalPositionY() const
+{
+    return globalPositionY_;
+}
+
+std::shared_ptr<RSObjAbsGeometry> RSNode::GetLocalGeometry() const
 {
     return localGeometry_;
 }
 
-std::shared_ptr<RSObjAbsGeometry> RSNode::GetGlobalGeometry()
+std::shared_ptr<RSObjAbsGeometry> RSNode::GetGlobalGeometry() const
 {
     return globalGeometry_;
 }
@@ -562,6 +572,16 @@ void RSNode::UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& paren
     }
     *globalGeometry_ = *localGeometry_;
     globalGeometry_->UpdateMatrix(&parentGlobalGeometry->GetAbsMatrix(), std::nullopt);
+
+    float parentGlobalPositionX = 0.f;
+    float parentGlobalPositionY = 0.f;
+    auto parent = GetParent();
+    if (parent) {
+        parentGlobalPositionX = parent->globalPositionX_;
+        parentGlobalPositionY = parent->globalPositionY_;
+    }
+    globalPositionX_ = parentGlobalPositionX + localGeometry_->GetX();
+    globalPositionY_ = parentGlobalPositionY + localGeometry_->GetY();
 }
 
 template<typename ModifierName, typename PropertyName, typename T>
