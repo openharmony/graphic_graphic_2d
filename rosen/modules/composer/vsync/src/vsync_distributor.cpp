@@ -460,7 +460,7 @@ void VSyncDistributor::ThreadMain()
                     WaitForVsyncOrRequest(locker);
                 }
                 RS_TRACE_NAME_FMT("%s_continue: waitForVSync %d, vsyncEnabled %d, dvsyncOn %d",
-                    name_.c_str(), waitForVSync, vsyncEnabled_, IsDVsyncOn());\
+                    name_.c_str(), waitForVSync, vsyncEnabled_, IsDVsyncOn());
                 if (isRs_ || !IsDVsyncOn()) {
                     continue;
                 } else {
