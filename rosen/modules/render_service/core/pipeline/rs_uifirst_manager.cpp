@@ -571,7 +571,7 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
         return true;
     }
     auto& params = drawable->GetRenderParams();
-    auto uifirstRootNodeDrawable = params->GetUifirstRootNodeId() != INVALID_NODEID ? 
+    auto uifirstRootNodeDrawable = params->GetUifirstRootNodeId() != INVALID_NODEID ?
         params->GetUiFirstRootNodeDrawable().lock() : params->GetFirstLevelNodeDrawable().lock();
     if (uifirstRootNodeDrawable && uifirstRootNodeDrawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
         auto drawableNode = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(uifirstRootNodeDrawable);
@@ -585,8 +585,8 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
                 node->SetUifirstSkipPartialSync(true);
                 return false;
             }
-            RS_OPTIONAL_TRACE_NAME_FMT(
-                "CollectSkipSyncNode root %" PRIu64 ", node %" PRIu64 "", uifirstRootNodeDrawable->GetId(), node->GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %" PRIu64 ", node %" PRIu64 "",
+                uifirstRootNodeDrawable->GetId(), node->GetId());
             return true;
         }
     }
