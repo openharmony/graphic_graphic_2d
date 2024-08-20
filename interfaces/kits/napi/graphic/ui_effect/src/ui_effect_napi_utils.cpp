@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "effect_kit_napi_utils.h"
+#include "ui_effect_napi_utils.h"
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
 
