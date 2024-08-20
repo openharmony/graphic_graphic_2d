@@ -72,12 +72,12 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content
         // case 3a: static blur with valid cache, reuse cache
-        Drawing::AutoCanvasRestore acr(canvase, true);
+        Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.ClipIRect(Drawing::RectI(0, 0, bounds.GetWidth(), bounds.GetHeight()));
         RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.backgroundFilterIndex_);
     } else {
         // case 3b: static blur without valid cache, draw background image and blur
-        Drawing::AutoCanvasRestore acr(canvase, true);
+        Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.ClipIRect(Drawing::RectI(0, 0, bounds.GetWidth(), bounds.GetHeight()));
         auto surface = canvas.GetSurface();
         if (!surface) {
