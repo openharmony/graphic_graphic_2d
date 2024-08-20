@@ -412,6 +412,8 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         if (rotation) {
             pixelmap->rotate(rotation);
         }
+
+        RSUniRenderUtil::FlushSurfaceBuffer(pixelmap.get());
         // To get dump image
         // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
         RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);

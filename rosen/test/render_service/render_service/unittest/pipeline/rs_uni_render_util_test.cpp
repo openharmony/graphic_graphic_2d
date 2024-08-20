@@ -1777,4 +1777,34 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixOfBufferToRelRect_003, TestSize.Level2)
     auto matrix = RSUniRenderUtil::GetMatrixOfBufferToRelRect(node);
     ASSERT_EQ(matrix, Drawing::Matrix());
 }
+
+/*
+ * @tc.name: FlushSurfaceBuffer001
+ * @tc.desc: test FlushSurfaceBuffer when pixelMap is nullptr
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer001, TestSize.Level2)
+{
+    Media::PixelMap* pixelMap = nullptr;
+    ASSERT_EQ(pixelMap, nullptr);
+    RSUniRenderUtil::FlushSurfaceBuffer(pixelMap);
+}
+
+/*
+ * @tc.name: FlushSurfaceBuffer002
+ * @tc.desc: test FlushSurfaceBuffer when pixelMap is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer002, TestSize.Level2)
+{
+    Media::InitializationOptions opts;
+    auto pixelMap =  Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    RSUniRenderUtil::FlushSurfaceBuffer(pixelMap.get());
+    pixelMap.allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    RSUniRenderUtil::FlushSurfaceBuffer(pixelMap.get());
+}
+
 } // namespace OHOS::Rosen
