@@ -11,14 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("${graphic_2d_root}/rosen/modules/render_service_client/render_service_client.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
-##############################fuzztest##########################################
 ohos_fuzztest("RSUIEffectFuzzTest") {
   fuzz_config_file = "${graphic_2d_root}/rosen/modules/render_service_client/test/fuzztest/rsuieffect_fuzzer"
   module_out_path = module_output_path
@@ -43,7 +41,6 @@ ohos_fuzztest("RSUIEffectFuzzTest") {
   ]
 }
 
-###############################################################################
 group("fuzztest") {
   testonly = true
   deps = []
@@ -52,4 +49,3 @@ group("fuzztest") {
     ":RSUIEffectFuzzTest",
   ]
 }
-###############################################################################
