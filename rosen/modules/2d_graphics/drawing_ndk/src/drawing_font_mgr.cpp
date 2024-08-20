@@ -215,6 +215,7 @@ OH_Drawing_FontStyleStruct OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleS
     }
     FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
     if (converFontStyleSet == nullptr) {
+        *styleName = nullptr;
         return fontStyleStruct;
     }
     FontStyle tempFontStyle;
@@ -225,10 +226,13 @@ OH_Drawing_FontStyleStruct OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleS
     if (allocatedMemoryForStyleName != nullptr) {
         auto retCopy = strcpy_s(allocatedMemoryForStyleName, len, tempStringPtr.c_str());
         if (retCopy != 0) {
-            delete[] allocatedMemoryForStyleName;
+            free(allocatedMemoryForStyleName);
+            allocatedMemoryForStyleName = nullptr;
+            *styleName = nullptr;
             return fontStyleStruct;
         }
     } else {
+        *styleName = nullptr;
         return fontStyleStruct;
     }
     *styleName = allocatedMemoryForStyleName;
