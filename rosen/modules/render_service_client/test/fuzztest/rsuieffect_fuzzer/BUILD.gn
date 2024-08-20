@@ -14,18 +14,19 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import(
-    "../../../../render_service_client/render_service_client.gni")
+    "${graphic_2d_root}/rosen/modules/render_service_client/render_service_client.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("RSUIEffectFuzzTest") {
-  fuzz_config_file = "../../../../render_service_client/test/fuzztest/rsuieffect_fuzzer"
+  fuzz_config_file = "${graphic_2d_root}/rosen/modules/render_service_client/test/fuzztest/rsuieffect_fuzzer"
   module_out_path = module_output_path
 
   include_dirs = [
-    "../../../../render_service_client/core/ui_effect/effect/include",
-    "../../../../render_service_client/core/ui_effect/filter/include",
+    "${graphic_2d_root}/rosen/modules/render_service_client/core/ui_effect/effect/include",
+    "${graphic_2d_root}/rosen/modules/render_service_client/core/ui_effect/filter/include",
   ]
   cflags = [
     "-g",
@@ -34,7 +35,7 @@ ohos_fuzztest("RSUIEffectFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "rsuieffect_fuzzer.cpp" ]
-  deps = [ "../../../../render_service_client:librender_service_client" ]
+  deps = [ "${graphic_2d_root}/rosen/modules/render_service_client:librender_service_client" ]
 
   external_deps = [
     "c_utils:utils",
