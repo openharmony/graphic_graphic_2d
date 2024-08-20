@@ -80,7 +80,7 @@ bool RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
         // check if someone else is about to register this typeface -> queue uid
         auto iterator = typefaceHashQueue_.find(hash);
         if (iterator != typefaceHashQueue_.end()) {
-            iterator->second.push_bask(uniqueId);
+            iterator->second.push_back(uniqueId);
             return true;
         } else {
             typefaceHashQueue_[hash] = {uniqueId};
@@ -140,7 +140,7 @@ static void RemoveHashMap(std::unordered_map<uint64_t, TypefaceTuple> &typefaceH
         if (ref == 1) {
             typefaceHashMap.erase(hash_value);
         } else {
-            typefaceHashMap[hash_value] = std::make_tuple(typeface, ref - 1)
+            typefaceHashMap[hash_value] = std::make_tuple(typeface, ref - 1);
         }
     }
 }
