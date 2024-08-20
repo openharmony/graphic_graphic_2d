@@ -786,10 +786,7 @@ napi_value JsParagraph::OnLayoutAsync(napi_env env, napi_callback_info info)
     struct ConcreteContext : public ContextBase {
         double width = 0.0;
     };
-    auto context = std::make_shared<ConcreteContext>();
-    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERR_NO_MEMORY,
-        "JsParagraph::OnLayoutAsync failed, no memory");
-
+    sptr<ConcreteContext> context = sptr<ConcreteContext>::MakeSptr();
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
         TEXT_ERROR_CHECK(argv, return, "JsParagraph::OnLayoutAsync inputParser context or argv is nullptr");
         NAPI_CHECK_ARGS_RETURN_VOID(context, context->status == napi_ok, napi_invalid_arg,

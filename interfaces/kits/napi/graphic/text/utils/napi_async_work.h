@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include "refbase.h"
 
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -51,7 +52,7 @@ using NapiCbInfoParser = std::function<void(size_t argc, napi_value* argv)>;
 using NapiAsyncExecute = std::function<void(void)>;
 using NapiAsyncComplete = std::function<void(napi_value&)>;
 
-struct ContextBase {
+struct ContextBase : RefBase {
     virtual ~ContextBase();
     void GetCbInfo(napi_env env, napi_callback_info info, NapiCbInfoParser parser = NapiCbInfoParser(),
                    bool sync = false);
@@ -72,7 +73,6 @@ private:
 
     NapiAsyncExecute execute = nullptr;
     NapiAsyncComplete complete = nullptr;
-    std::shared_ptr<ContextBase> hold = nullptr; /* cross thread data */
 
     static constexpr size_t ARGC_MAX = 6;
 
@@ -81,7 +81,7 @@ private:
 
 class NapiAsyncWork {
 public:
-    static napi_value Enqueue(napi_env env, std::shared_ptr<ContextBase> contextBase, const std::string& name,
+    static napi_value Enqueue(napi_env env, sptr<ContextBase> contextBase, const std::string& name,
                               NapiAsyncExecute execute = NapiAsyncExecute(),
                               NapiAsyncComplete complete = NapiAsyncComplete());
 
@@ -92,7 +92,7 @@ private:
         RESULT_DATA = 1,
         RESULT_ALL = 2
     };
-    static void GenerateOutput(ContextBase& ctxt);
+    static void GenerateOutput(sptr<ContextBase> ctxt);
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_NAPI_ASYNC_WORK_H
