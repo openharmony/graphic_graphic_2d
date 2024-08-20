@@ -21,14 +21,14 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
-class OH_Drawing_TextShadowTest : public testing::Test {};
+class OHDrawingTextShadowTest : public testing::Test {};
 
 /*
- * @tc.name: OH_Drawing_TextShadowTest002
+ * @tc.name: OHDrawingTextShadowTest002
  * @tc.desc: test for TextShadow
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TextShadowTest, OH_Drawing_TextShadowTest001, TestSize.Level1)
+HWTEST_F(OHDrawingTextShadowTest, OHDrawingTextShadowTest001, TestSize.Level1)
 {
     OHOS::Rosen::Drawing::Point offset;
     offset.SetX(2.0f);
@@ -44,7 +44,7 @@ HWTEST_F(OH_Drawing_TextShadowTest, OH_Drawing_TextShadowTest001, TestSize.Level
     EXPECT_EQ(textShadow == textShadow2, false);
 }
 
-HWTEST_F(OH_Drawing_TextShadowTest, OH_Drawing_TextShadowTest002, TestSize.Level1)
+HWTEST_F(OHDrawingTextShadowTest, OHDrawingTextShadowTest002, TestSize.Level1)
 {
     OHOS::Rosen::Drawing::Point offset;
     TextShadow textShadow(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
@@ -57,14 +57,14 @@ HWTEST_F(OH_Drawing_TextShadowTest, OH_Drawing_TextShadowTest002, TestSize.Level
     EXPECT_EQ(textShadow.HasShadow(), true);
 }
 
-class OH_Drawing_TextStyleTest : public testing::Test {};
+class OHDrawingTextStyleTest : public testing::Test {};
 
 /*
- * @tc.name: OH_Drawing_TextStyleTest001
+ * @tc.name: OHDrawingTextStyleTest001
  * @tc.desc: test for TextStyle comparison
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest001, TestSize.Level1)
+HWTEST_F(OHDrawingTextStyleTest, OHDrawingTextStyleTest001, TestSize.Level1)
 {
     TextStyle textStyle;
     TextStyle textStyle2;
@@ -72,11 +72,11 @@ HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest001, TestSize.Level1)
 }
 
 /*
- * @tc.name: OH_Drawing_TextStyleTest002
+ * @tc.name: OHDrawingTextStyleTest002
  * @tc.desc: test for TextStyle font features
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TextStyleTest, OH_Drawing_TextStyleTest002, TestSize.Level1)
+HWTEST_F(OHDrawingTextStyleTest, OHDrawingTextStyleTest002, TestSize.Level1)
 {
     TextStyle textStyle;
     std::string features = textStyle.fontFeatures.GetFeatureSettings();

@@ -25,14 +25,14 @@ using RectHeightStyle = OHOS::Rosen::TextRectHeightStyle;
 using RectWidthStyle = OHOS::Rosen::TextRectWidthStyle;
 
 namespace OHOS {
-class OH_Drawing_UI_TypographyTest : public testing::Test {};
+class OHDrawingUITypographyTest : public testing::Test {};
 
 /*
- * @tc.name: OH_Drawing_UI_TypographyTest
+ * @tc.name: OHDrawingUITypographyTest
  * @tc.desc: test for typography metrics
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_UI_TypographyTest, OH_Drawing_UI_TypographyTest001, TestSize.Level1)
+HWTEST_F(OHDrawingUITypographyTest, OH_Drawing_UI_TypographyTest001, TestSize.Level1)
 {
     TypographyStyle typoStype;
     std::unique_ptr<TypographyCreate> builder = TypographyCreate::Create(typoStype, FontCollection::Create());
@@ -54,16 +54,4 @@ HWTEST_F(OH_Drawing_UI_TypographyTest, OH_Drawing_UI_TypographyTest001, TestSize
     EXPECT_EQ(result.empty(), true);
 }
 
-/*
- * @tc.name: OH_Drawing_UI_TypographyTest001
- * @tc.desc: test for DidExceedMaxLines metrics
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_UI_TypographyTest, OH_Drawing_UI_DidExceedMaxLinesTest001, TestSize.Level1)
-{
-    TypographyStyle typoStype;
-#ifndef USE_GRAPHIC_TEXT_GINE
-    result = typography->GetGlyphPositionAtCoordinate();
-#endif
-}
 } // namespace OHOS

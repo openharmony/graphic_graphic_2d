@@ -44,7 +44,8 @@ const double MAX_WIDTH = 800.0;
 const double SWEEP_DEGREE = 180.0;
 } // namespace
 
-class OH_Drawing_TypographyTest : public testing::Test {};
+class OH_Drawing_TypographyTest : public testing::Test {
+};
 
 static TypographyStyle* ConvertToOriginalText(OH_Drawing_TypographyStyle* style)
 {

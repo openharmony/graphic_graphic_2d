@@ -168,10 +168,38 @@ bool TextSpan::IsRTL() const
     return rtl_;
 }
 
+void TextSpan::drawBackgroundRRect(TexgineCanvas& canvas, TexginePaint& paint, const RoundRectType& rType,
+    const TextStyle& xs, std::pair<double, double>& offset)
+{
+    if (xs.backgroundRect.color == 0) {
+        return;
+    }
+    paint.SetColor(xs.backgroundRect.color);
+    double ltRadius = 0.0;
+    double rtRadius = 0.0;
+    double rbRadius = 0.0;
+    double lbRadius = 0.0;
+    if (rType == RoundRectType::ALL || rType == RoundRectType::LEFT_ONLY) {
+        ltRadius = std::fmin(xs.backgroundRect.leftTopRadius, maxRoundRectRadius_);
+        lbRadius = std::fmin(xs.backgroundRect.leftBottomRadius, maxRoundRectRadius_);
+    }
+    if (rType == RoundRectType::ALL || rType == RoundRectType::RIGHT_ONLY) {
+        rtRadius = std::fmin(xs.backgroundRect.rightTopRadius, maxRoundRectRadius_);
+        rbRadius = std::fmin(xs.backgroundRect.rightBottomRadius, maxRoundRectRadius_);
+    }
+    const SkVector fRadii[4] = { { ltRadius, ltRadius }, { rtRadius, rtRadius }, { rbRadius, rbRadius },
+        { lbRadius, lbRadius } };
+    auto rect =
+        TexgineRect::MakeRRect(offset.first, offset.second + topInGroup_, width_, bottomInGroup_ - topInGroup_, fRadii);
+    paint.SetAntiAlias(false);
+    canvas.DrawRRect(rect, paint);
+}
+
 void TextSpan::Paint(
     TexgineCanvas& canvas, double offsetX, double offsetY, const TextStyle& xs, const RoundRectType& rType)
 {
     TexginePaint paint;
+    std::pair<double, double> offset(offsetX, offsetY);
     paint.SetAntiAlias(true);
     paint.SetAlpha(MAXALPHA);
     if (xs.background.has_value()) {
@@ -184,27 +212,7 @@ void TextSpan::Paint(
 #endif
     }
 
-    if (xs.backgroundRect.color != 0) {
-        paint.SetColor(xs.backgroundRect.color);
-        double ltRadius = 0.0;
-        double rtRadius = 0.0;
-        double rbRadius = 0.0;
-        double lbRadius = 0.0;
-        if (rType == RoundRectType::ALL || rType == RoundRectType::LEFT_ONLY) {
-            ltRadius = std::fmin(xs.backgroundRect.leftTopRadius, maxRoundRectRadius_);
-            lbRadius = std::fmin(xs.backgroundRect.leftBottomRadius, maxRoundRectRadius_);
-        }
-        if (rType == RoundRectType::ALL || rType == RoundRectType::RIGHT_ONLY) {
-            rtRadius = std::fmin(xs.backgroundRect.rightTopRadius, maxRoundRectRadius_);
-            rbRadius = std::fmin(xs.backgroundRect.rightBottomRadius, maxRoundRectRadius_);
-        }
-        const SkVector fRadii[4] = { { ltRadius, ltRadius }, { rtRadius, rtRadius }, { rbRadius, rbRadius },
-            { lbRadius, lbRadius } };
-        auto rect =
-            TexgineRect::MakeRRect(offsetX, offsetY + topInGroup_, width_, bottomInGroup_ - topInGroup_, fRadii);
-        paint.SetAntiAlias(false);
-        canvas.DrawRRect(rect, paint);
-    }
+    drawBackgroundRect(canvas, paint, rType, xs, offset);
 
     paint.SetAntiAlias(true);
     paint.SetColor(xs.color);
@@ -218,7 +226,6 @@ void TextSpan::Paint(
 
     PaintShadow(canvas, offsetX, offsetY, xs.shadows);
     if (xs.isSymbolGlyph && G_IS_HMSYMBOL_ENABLE) {
-        std::pair<double, double> offset(offsetX, offsetY);
         HMSymbolRun hmSymbolRun = HMSymbolRun();
         hmSymbolRun.SetAnimation(animationFunc_);
         hmSymbolRun.SetSymbolId(symbolId_);

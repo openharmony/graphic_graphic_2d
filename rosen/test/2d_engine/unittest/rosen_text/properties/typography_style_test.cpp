@@ -26,14 +26,14 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
-class OH_Drawing_TypographyStyleTest : public testing::Test {};
+class OHDrawingTypographyStyleTest : public testing::Test {};
 
 /*
- * @tc.name: OH_Drawing_TypographyStyleTest001
+ * @tc.name: OHDrawingTypographyStyleTest001
  * @tc.desc: test for creating TypographyStyle
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyStyleTest, OH_Drawing_TypographyStyleTest001, TestSize.Level1)
+HWTEST_F(OHDrawingTypographyStyleTest, OHDrawingTypographyStyleTest001, TestSize.Level1)
 {
     TypographyStyle typoStyle;
     TextStyle textstyle = typoStyle.GetTextStyle();
@@ -46,11 +46,11 @@ HWTEST_F(OH_Drawing_TypographyStyleTest, OH_Drawing_TypographyStyleTest001, Test
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyStyleTest002
+ * @tc.name: OHDrawingTypographyStyleTest002
  * @tc.desc: test for TypographyStyle EffectiveAlign
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_TypographyStyleTest, OH_Drawing_TypographyStyleTest002, TestSize.Level1)
+HWTEST_F(OHDrawingTypographyStyleTest, OHDrawingTypographyStyleTest002, TestSize.Level1)
 {
     TypographyStyle typoStyle;
     typoStyle.textAlign = TextAlign::START;

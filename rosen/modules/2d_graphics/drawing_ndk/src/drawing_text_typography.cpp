@@ -36,7 +36,7 @@
 using namespace OHOS::Rosen;
 
 namespace {
-__attribute__((constructor)) void init()
+__attribute__((constructor)) void Init()
 {
 #ifndef _WIN32
     u_setDataDirectory("/system/usr/ohos_icu");
@@ -1180,7 +1180,7 @@ static bool CopyStrData(
     }
     auto retCopy = strcpy_s(*destination, destinationSize, source.c_str());
     if (retCopy != 0) {
-        delete[] * destination;
+        delete[] *destination;
         *destination = nullptr;
         SetFontConfigInfoErrorCode(OH_Drawing_FontConfigInfoErrorCode::ERROR_FONT_CONFIG_INFO_COPY_STRING_DATA, code);
         return false;

@@ -22,15 +22,15 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
-class OH_Drawing_RosenConverterTest : public testing::Test {};
+class OHDrawingRosenConverterTest : public testing::Test {};
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest001
+ * @tc.name: OHDrawingRosenConverterTest001
  * @tc.desc: test for font weight
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest001, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest001, TestSize.Level1)
 {
     TextStyle style;
     style.fontWeight = FontWeight::W100;
@@ -72,12 +72,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest001, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest002
+ * @tc.name: OHDrawingRosenConverterTest002
  * @tc.desc: test for font style
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest002, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest002, TestSize.Level1)
 {
     TextStyle style;
     style.fontStyle = FontStyle::NORMAL;
@@ -91,12 +91,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest002, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest003
+ * @tc.name: OHDrawingRosenConverterTest003
  * @tc.desc: test for baseline
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest003, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest003, TestSize.Level1)
 {
     TextStyle style;
     style.baseline = TextBaseline::ALPHABETIC;
@@ -110,12 +110,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest003, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest004
+ * @tc.name: OHDrawingRosenConverterTest004
  * @tc.desc: test for decoration
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest004, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest004, TestSize.Level1)
 {
     TextStyle style;
     style.decoration = TextDecoration::NONE;
@@ -137,12 +137,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest004, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest005
+ * @tc.name: OHDrawingRosenConverterTest005
  * @tc.desc: test for decoration style
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest005, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest005, TestSize.Level1)
 {
     TextStyle style;
     style.decorationStyle = TextDecorationStyle::SOLID;
@@ -168,12 +168,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest005, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest006
+ * @tc.name: OHDrawingRosenConverterTest006
  * @tc.desc: test for break strategy
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest006, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest006, TestSize.Level1)
 {
     TypographyStyle style;
     style.breakStrategy = BreakStrategy::GREEDY;
@@ -191,12 +191,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest006, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest007
+ * @tc.name: OHDrawingRosenConverterTest007
  * @tc.desc: test for word break type
  * @tc.type: FUNC
  */
 #ifndef NEW_SKIA
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest007, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest007, TestSize.Level1)
 {
     TypographyStyle style;
     style.wordBreakType = WordBreakType::BREAK_WORD;
@@ -214,12 +214,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest007, TestSi
 }
 #endif
 /*
- * @tc.name: OH_Drawing_RosenConverterTest008
+ * @tc.name: OHDrawingRosenConverterTest008
  * @tc.desc: test for text direction
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest008, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest008, TestSize.Level1)
 {
     TypographyStyle style;
     style.textDirection = TextDirection::RTL;
@@ -232,12 +232,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest008, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest009
+ * @tc.name: OHDrawingRosenConverterTest009
  * @tc.desc: test for text align
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest009, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest009, TestSize.Level1)
 {
     TypographyStyle style;
     style.textAlign = TextAlign::LEFT;
@@ -267,12 +267,12 @@ HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest009, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_RosenConverterTest010
+ * @tc.name: OHDrawingRosenConverterTest010
  * @tc.desc: test for text style conversion
  * @tc.type: FUNC
  */
 
-HWTEST_F(OH_Drawing_RosenConverterTest, OH_Drawing_RosenConverterTest010, TestSize.Level1)
+HWTEST_F(OHDrawingRosenConverterTest, OHDrawingRosenConverterTest010, TestSize.Level1)
 {
     OHOS::Rosen::Drawing::Point offset;
     TextShadow textShadow(Rosen::Drawing::Color::COLOR_BLACK, offset, 0.0);
