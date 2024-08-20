@@ -580,8 +580,8 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForRange(OH_Drawing_Typography*
     std::vector<TextRect>* originalVector = new std::vector<TextRect>;
     auto originalRectHeightStyle = ConvertToOriginalText<TextRectHeightStyle>(&heightStyle);
     auto originalRectWidthStyle = ConvertToOriginalText<TextRectWidthStyle>(&widthStyle);
-    *originalVector = ConvertToOriginalText<Typography>(typography)
-                          ->GetTextRectsByBoundary(start, end, *originalRectHeightStyle, *originalRectWidthStyle);
+    *originalVector = ConvertToOriginalText<Typography>(typography)->GetTextRectsByBoundary(start, end,
+        *originalRectHeightStyle, *originalRectWidthStyle);
     return (OH_Drawing_TextBox*)originalVector;
 }
 
