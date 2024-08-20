@@ -66,23 +66,24 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
     RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::CheckModifiers");
     bool needSync = RSMainThread::Instance()->IsOcclusionNodesNeedSync(id) ||
         RSMainThread::Instance()->IsHardwareEnabledNodesNeedSync();
-    if (needSync) {
-        std::function<void()> syncTask = []() -> void {
-            RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
-            auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
-            for (auto& [id, weakPtr] : pendingSyncNodes) {
-                if (auto node = weakPtr.lock()) {
-                    if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
-                        node->Sync();
-                    } else {
-                        node->SkipSync();
-                    }
+    if (!needSync) {
+        return;
+    }
+    std::function<void()> syncTask = []() -> void {
+        RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
+        auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
+        for (auto& [id, weakPtr] : pendingSyncNodes) {
+            if (auto node = weakPtr.lock()) {
+                if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
+                    node->Sync();
+                } else {
+                    node->SkipSync();
                 }
             }
-            pendingSyncNodes.clear();
-        };
-        RSUniRenderThread::Instance().PostSyncTask(syncTask);
-    }
+        }
+        pendingSyncNodes.clear();
+    };
+    RSUniRenderThread::Instance().PostSyncTask(syncTask);
 }
 
 void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
@@ -112,7 +113,8 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
 {
     RS_LOGD("RSSurfaceCaptureTaskParallel capture nodeId:[%{public}" PRIu64 "]", nodeId_);
     if (ROSEN_EQ(captureConfig_.scaleX, 0.f) || ROSEN_EQ(captureConfig_.scaleY, 0.f) ||
-        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f) {
+        captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f ||
+        captureConfig_.scaleX > 1.f || captureConfig_.scaleY > 1.f) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
         return false;
     }

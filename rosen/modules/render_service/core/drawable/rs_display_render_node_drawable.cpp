@@ -1158,12 +1158,6 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RSRenderNodeDrawable::OnCapture(canvas);
         DrawWatermarkIfNeed(*params, *rscanvas);
     } else {
-        auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-        if (!processor) {
-            RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture RSProcessor is null!");
-            return;
-        }
-
         DrawHardwareEnabledNodes(canvas, *params);
     }
 }
@@ -1176,7 +1170,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
         return;
     }
 
-    FindHardwareEnabledNodes();
+    FindHardwareEnabledNodes(params);
 
     if (GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) {
         RS_LOGE("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: buffer is null!");
@@ -1241,7 +1235,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodesMissedInCacheImage(Dra
     }
 
     Drawing::AutoCanvasRestore acr(canvas, true);
-    FindHardwareEnabledNodes();
+    FindHardwareEnabledNodes(*params);
     if (params->GetHardwareEnabledDrawables().size() != 0) {
         AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledDrawables(), canvas, *params);
     }
@@ -1288,36 +1282,31 @@ void RSDisplayRenderNodeDrawable::SetHighContrastIfEnabled(RSPaintFilterCanvas& 
     }
 }
 
-void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes()
+void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes(RSDisplayRenderParams& params)
 {
-    auto displayParams = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
-    if (!displayParams) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes displayParams is null!");
-        return;
-    }
-
-    displayParams->GetHardwareEnabledTopDrawables().clear();
-    displayParams->GetHardwareEnabledDrawables().clear();
+    params.GetHardwareEnabledTopDrawables().clear();
+    params.GetHardwareEnabledDrawables().clear();
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     for (const auto& drawable : hardwareDrawables) {
-        if (!drawable || !drawable->GetRenderParams()) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
+        if (!surfaceNodeDrawable || !surfaceNodeDrawable->ShouldPaint()) {
             continue;
         }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-        if (!surfaceParams->GetHardwareEnabled()) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (surfaceParams == nullptr || !surfaceParams->GetHardwareEnabled()) {
             continue;
         }
         // To get dump image
         // execute "param set rosen.dumpsurfacetype.enabled 4 && setenforce 0 && param set rosen.afbc.enabled 0"
         auto buffer = surfaceParams->GetBuffer();
         RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer, surfaceParams->GetId());
-        if (std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable)->IsHardwareEnabledTopSurface()) {
+        if (surfaceNodeDrawable->IsHardwareEnabledTopSurface()) {
             // surfaceNode which should be drawn above displayNode like pointer window
-            displayParams->GetHardwareEnabledTopDrawables().emplace_back(drawable);
+            params.GetHardwareEnabledTopDrawables().emplace_back(drawable);
         } else {
             // surfaceNode which should be drawn below displayNode
-            displayParams->GetHardwareEnabledDrawables().emplace_back(drawable);
+            params.GetHardwareEnabledDrawables().emplace_back(drawable);
         }
     }
 }
