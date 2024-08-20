@@ -335,6 +335,15 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
             "string length does not match points array length.");
     }
 
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM(ARGC_THREE, jsFont);
+    std::shared_ptr<Font> font = jsFont->GetFont();
+    if (font == nullptr) {
+        delete[] buffer;
+        ROSEN_LOGE("JsTextBlob::MakeFromPosText: font is nullptr");
+        return nullptr;
+    }
+
     Point* points = new(std::nothrow) Point[pointsSize];
     if (!points) {
         delete[] buffer;
@@ -345,16 +354,6 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
         delete[] buffer;
         delete[] points;
         ROSEN_LOGE("JsTextBlob::MakeFromPosText: Argv[2] is invalid");
-        return nullptr;
-    }
-
-    JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_THREE, jsFont);
-    std::shared_ptr<Font> font = jsFont->GetFont();
-    if (font == nullptr) {
-        delete[] buffer;
-        delete[] points;
-        ROSEN_LOGE("JsTextBlob::MakeFromPosText: font is nullptr");
         return nullptr;
     }
     return getJsTextBlob(buffer, bufferLen, points, font, env);
