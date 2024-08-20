@@ -423,7 +423,7 @@ void RSPixelMapMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterC
     canvas.SaveLayer(slrMask);
     {
         Drawing::AutoCanvasRestore acr(canvas, true);
-        if (mask_->GetImage()) {
+        if (mask_ && mask_->GetImage()) {
             canvas.DrawImage(*mask_->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
         }
     }
