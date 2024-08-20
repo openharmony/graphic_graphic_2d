@@ -204,6 +204,7 @@ private:
     bool CheckCurtainScreenUsingStatusChange() const;
     bool CheckLuminanceStatusChange() const;
     bool IsFirstFrameOfPartialRender() const;
+    bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsWatermarkFlagChanged() const;
     bool IsDisplayZoomIn() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,

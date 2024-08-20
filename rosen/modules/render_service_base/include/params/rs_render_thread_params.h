@@ -340,6 +340,11 @@ public:
         return isSecurityExemption_;
     }
 
+    bool IsOverDrawEnabled() const
+    {
+        return isOverDrawEnabled_;
+    }
+
 private:
     mutable std::mutex mutex_;
     std::unordered_set<NodeId> blackList_ = {};
@@ -377,6 +382,7 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
 
     bool needRequestNextVsyncAnimate_ = false;
+    bool isOverDrawEnabled_ = false;
 
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;

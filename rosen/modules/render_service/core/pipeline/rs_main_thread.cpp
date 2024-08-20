@@ -542,7 +542,13 @@ void RSMainThread::Init()
 #endif
 
     auto delegate = RSFunctionalDelegate::Create();
-    delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
+    delegate->SetRepaintCallback([this]() {
+        PostTask([this]() {
+            SetDirtyFlag();
+            isOverDrawEnabledOfCurFrame_ = RSOverdrawController::GetInstance().IsEnabled();
+            RequestNextVSync("OverDrawUpdate");
+        });
+    });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
     HgmTaskHandleThread::Instance().PostSyncTask([this] () {
@@ -1877,6 +1883,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         forceUIFirstChanged_ = false;
         isFirstFrameOfPartialRender_ = (!isPartialRenderEnabledOfLastFrame_ || isRegionDebugEnabledOfLastFrame_) &&
             uniVisitor->GetIsPartialRenderEnabled() && !uniVisitor->GetIsRegionDebugEnabled();
+        isFirstFrameOfOverdrawSwitch_ = (isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_);
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rootNode->QuickPrepare(uniVisitor);
@@ -1884,6 +1891,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SetUniVSyncRateByVisibleLevel(uniVisitor);
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
+        renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         isLuminanceChanged_ = false;
@@ -1906,6 +1914,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         lastWatermarkFlag_ = watermarkFlag_;
         isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
         isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();
+        isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
