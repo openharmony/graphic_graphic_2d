@@ -213,6 +213,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read isUniRender");
         return false;
     }
+    ClearCommandMap();
     std::unique_lock<std::mutex> payloadLock(commandMutex_, std::defer_lock);
     for (size_t i = 0; i < len; i++) {
         if (!isUniRender) {
@@ -243,6 +244,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                     commandType, commandSubType);
                 return false;
             }
+            InsertCommandToMap(command->GetNodeId(), command->GetUniqueType());
             RS_PROFILER_PATCH_COMMAND(parcel, command);
             payloadLock.lock();
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
@@ -258,6 +260,55 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_);
 }
 
+void RSTransactionData::ClearCommandMap()
+{
+    std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
+    pidToCommandMap_.clear();
+}
+
+void RSTransactionData::InsertCommandToMap(NodeId nodeId, std::pair<uint16_t, uint16_t> commandType)
+{
+    pid_t commandPid = ExtractPid(nodeId);
+    std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
+    pidToCommandMap_[commandPid][nodeId].insert(commandType);
+}
+
+bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
+    std::string& commandMapDesc) const
+{
+    std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
+    for (const auto& [commandPid, commandTypeMap] : pidToCommandMap_) {
+        if (callingPid == commandPid) {
+            continue;
+        }
+        for (const auto& [nodeId, _] : commandTypeMap) {
+            if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+                continue;
+            }
+            conflictCommandPid = commandPid;
+            commandMapDesc = PrintCommandMapDesc(commandTypeMap);
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string RSTransactionData::PrintCommandMapDesc(
+    const std::unordered_map<NodeId, std::set<std::pair<uint16_t, uint16_t>>>& commandTypeMap) const
+{
+    std::string commandMapDesc = "{ ";
+    for (const auto& [nodeId, commandTypeSet] : commandTypeMap) {
+        std::string commandSetDesc = std::to_string(nodeId) + ": [";
+        for (const auto& [commandType, commandSubType] : commandTypeSet) {
+            std::string commandDesc = "(" + std::to_string(commandType) + "," + std::to_string(commandSubType) + "),";
+            commandSetDesc += commandDesc;
+        }
+        commandSetDesc += "], ";
+        commandMapDesc += commandSetDesc;
+    }
+    commandMapDesc += "}";
+    return commandMapDesc;
+}
 
 } // namespace Rosen
 } // namespace OHOS

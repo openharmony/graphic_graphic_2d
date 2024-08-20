@@ -336,7 +336,8 @@ public:
     void SetSurfaceNodeType(RSSurfaceNodeType nodeType)
     {
         if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE &&
-            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_NODE) {
+            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE &&
+            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
             nodeType_ = nodeType;
         }
     }
@@ -1163,9 +1164,15 @@ public:
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
+    bool IsSecureUIExtension() const
+    {
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    }
+
     bool IsUIExtension() const
     {
-        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_NODE;
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+               nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     }
 
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
