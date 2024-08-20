@@ -3660,4 +3660,18 @@ HWTEST_F(RSMainThreadTest, ResetAnimateNodeFlag, TestSize.Level2)
     mainThread->context_ = nullptr;
     mainThread->ResetAnimateNodeFlag();
 }
+
+/**
+ * @tc.name: ConfigureRenderService
+ * @tc.desc: test ConfigureRenderService before and after LoadConfigXml
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ConfigureRenderService, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ConfigureRenderService();
+    ASSERT_TRUE(RSGraphicConfig::LoadConfigXml());
+    mainThread->ConfigureRenderService();
+}
 } // namespace OHOS::Rosen

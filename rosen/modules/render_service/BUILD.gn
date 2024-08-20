@@ -92,9 +92,11 @@ ohos_shared_library("librender_service") {
     "core/pipeline/round_corner_display/rs_round_corner_display.cpp",
     "core/pipeline/rs_base_render_engine.cpp",
     "core/pipeline/rs_base_render_util.cpp",
+    "core/pipeline/rs_base_xml_config.cpp",
     "core/pipeline/rs_composer_adapter.cpp",
     "core/pipeline/rs_divided_render_util.cpp",
     "core/pipeline/rs_draw_frame.cpp",
+    "core/pipeline/rs_graphic_config.cpp",
     "core/pipeline/rs_hardware_thread.cpp",
     "core/pipeline/rs_main_thread.cpp",
     "core/pipeline/rs_physical_screen_processor.cpp",
@@ -287,6 +289,7 @@ ohos_shared_library("librender_service") {
 
   external_deps = [
     "c_utils:utils",
+    "config_policy:configpolicy_util",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
