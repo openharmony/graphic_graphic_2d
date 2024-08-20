@@ -800,6 +800,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node != nullptr && node->GetType() == RSRenderNodeType::DISPLAY_NODE && !accessible) {
             RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture no permission");
+            callback->OnSurfaceCapture(id, nullptr);
             return;
         }
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
