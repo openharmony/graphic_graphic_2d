@@ -35,7 +35,9 @@ public:
 
     void Process(int param) const override
     {
-        task_();
+        if (task_) {
+            task_();
+        }
     }
 
 private:

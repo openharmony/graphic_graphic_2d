@@ -55,6 +55,7 @@ MemAllocater& MemAllocater::GetInstance()
 
 MemAllocater::~MemAllocater()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     for (void* ptr : blocks_) {
         if (ptr != nullptr) {
             free(ptr);

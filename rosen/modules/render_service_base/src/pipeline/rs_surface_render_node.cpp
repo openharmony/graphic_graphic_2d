@@ -2147,7 +2147,7 @@ void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
     }
 }
 
-void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds)
+void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId>& nodeIds)
 {
     abilityNodeIds_.insert(nodeIds.begin(), nodeIds.end());
 }

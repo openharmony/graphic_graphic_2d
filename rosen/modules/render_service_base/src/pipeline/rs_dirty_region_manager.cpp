@@ -26,12 +26,16 @@ RSDirtyRegionManager::RSDirtyRegionManager()
 {
     dirtyHistory_.resize(HISTORY_QUEUE_MAX_SIZE);
     debugRegionEnabled_.resize(DebugRegionType::TYPE_MAX);
+    dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
+    dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
 }
 
 RSDirtyRegionManager::RSDirtyRegionManager(bool isDisplayDirtyManager)
 {
     dirtyHistory_.resize(HISTORY_QUEUE_MAX_SIZE);
     debugRegionEnabled_.resize(DebugRegionType::TYPE_MAX);
+    dirtyCanvasNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
+    dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     isDisplayDirtyManager_ = isDisplayDirtyManager;
 }
 

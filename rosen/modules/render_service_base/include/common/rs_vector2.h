@@ -70,7 +70,10 @@ typedef Vector2<float> Vector2f;
 typedef Vector2<double> Vector2d;
 template<typename T>
 Vector2<T>::Vector2()
-{}
+{
+    data_[0] = 0;
+    data_[1] = 0;
+}
 
 template<typename T>
 Vector2<T>::Vector2(T x, T y)

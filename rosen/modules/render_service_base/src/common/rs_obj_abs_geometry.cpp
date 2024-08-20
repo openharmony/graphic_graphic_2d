@@ -177,7 +177,7 @@ void RSObjAbsGeometry::UpdateAbsMatrix2D()
         matrix_.PreTranslate(x_, y_);
     } else {
         // Translate
-        if ((x_ + trans_->translateX_ != 0) || (y_ + trans_->translateY_ != 0)) {
+        if (!ROSEN_EQ(x_ + trans_->translateX_, 0.f, EPSILON) || !ROSEN_EQ(y_ + trans_->translateY_, 0.f, EPSILON)) {
             matrix_.PreTranslate(x_ + trans_->translateX_, y_ + trans_->translateY_);
         }
         // Persp
@@ -253,7 +253,7 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
             camera.SetCameraPos(0, 0, trans_->cameraDistance_);
         }
         // Rotate
-        if (trans_->pivotZ_ != 0.f) {
+        if (!ROSEN_EQ(trans_->pivotZ_, 0.f, EPSILON)) {
             camera.Translate(-sin(trans_->rotationY_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
                 -sin(trans_->rotationX_ * DEGREE_TO_RADIAN) * trans_->pivotZ_,
                 (1 - cos(trans_->rotationX_ * DEGREE_TO_RADIAN) * cos(trans_->rotationY_ * DEGREE_TO_RADIAN)) *
