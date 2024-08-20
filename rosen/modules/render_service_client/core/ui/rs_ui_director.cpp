@@ -450,7 +450,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
 
 void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
 {
-    ROSEN_LOGD("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
+    ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;
     if (auto node = RSNodeMap::Instance().GetNode(nodeId)) {

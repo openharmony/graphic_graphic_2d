@@ -3145,7 +3145,7 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
 {
     std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
     if (nodeTreeDumpTasks_.find(taskId) != nodeTreeDumpTasks_.end()) {
-        RS_LOGD("SendClientDumpNodeTreeCommands task[%{public}u] duplicate", taskId);
+        RS_LOGW("SendClientDumpNodeTreeCommands task[%{public}u] duplicate", taskId);
         return;
     }
 
@@ -3183,7 +3183,7 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
         }
         iter->second->OnTransaction(transactionData);
     }
-    RS_LOGD("SendClientDumpNodeTreeCommands send task[%{public}u] count[%{public}zu]",
+    RS_LOGI("SendClientDumpNodeTreeCommands send task[%{public}u] count[%{public}zu]",
         taskId, task.count);
 }
 
@@ -3209,7 +3209,7 @@ void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dum
     }
     nodeTreeDumpTasks_.erase(taskId);
 
-    RS_LOGD("CollectClientNodeTreeResult task[%{public}u] completionCount[%{public}zu]",
+    RS_LOGI("CollectClientNodeTreeResult task[%{public}u] completionCount[%{public}zu]",
         taskId, completed);
 }
 
@@ -3219,7 +3219,7 @@ void RSMainThread::OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskI
         std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
         auto iter = nodeTreeDumpTasks_.find(taskId);
         if (iter == nodeTreeDumpTasks_.end()) {
-            RS_LOGD("OnDumpClientNodeTree task[%{public}u] not found for pid[%d]", taskId, pid);
+            RS_LOGW("OnDumpClientNodeTree task[%{public}u] not found for pid[%d]", taskId, pid);
             return;
         }
 
@@ -3234,7 +3234,7 @@ void RSMainThread::OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskI
     }
     nodeTreeDumpCondVar_.notify_all();
 
-    RS_LOGD("OnDumpClientNodeTree task[%{public}u] dataSize[%{public}zu] pid[%d]",
+    RS_LOGI("OnDumpClientNodeTree task[%{public}u] dataSize[%{public}zu] pid[%d]",
         taskId, result.size(), pid);
 }
 
