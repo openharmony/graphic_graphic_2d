@@ -181,8 +181,8 @@ DrawError SKImageChain::Draw()
         LOGE("The image_ is nullptr, nothing to draw.");
         ret = DrawError::ERR_IMAGE_NULL;
     }
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SKImageChain::Draw");
     if (ret == DrawError::ERR_OK) {
-        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SKImageChain::Draw");
         SkPaint paint;
         paint.setAntiAlias(true);
         paint.setBlendMode(SkBlendMode::kSrc);
