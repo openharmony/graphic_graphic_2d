@@ -154,18 +154,32 @@ bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
     return isLastFrameHardwareEnabled_;
 }
 
-void RSSurfaceRenderParams::SetForceHardwareByUser(bool flag)
+void RSSurfaceRenderParams::SetFixRotationByUser(bool flag)
 {
-    if (isForceHardwareByUser_ == flag) {
+    if (isFixRotationByUser_ == flag) {
         return;
     }
-    isForceHardwareByUser_ = flag;
+    isFixRotationByUser_ = flag;
     needSync_ = true;
 }
 
-bool RSSurfaceRenderParams::GetForceHardwareByUser() const
+bool RSSurfaceRenderParams::GetFixRotationByUser() const
 {
-    return isForceHardwareByUser_;
+    return isFixRotationByUser_;
+}
+
+void RSSurfaceRenderParams::SetInFixedRotation(bool flag)
+{
+    if (isInFixedRotation_ == flag) {
+        return;
+    }
+    isInFixedRotation_ = flag;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsInFixedRotation() const
+{
+    return isInFixedRotation_;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -359,7 +373,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
-    targetSurfaceParams->isForceHardwareByUser_ = isForceHardwareByUser_;
+    targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
+    targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
     targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
     targetSurfaceParams->uifirstUseStarting_ = uifirstUseStarting_;

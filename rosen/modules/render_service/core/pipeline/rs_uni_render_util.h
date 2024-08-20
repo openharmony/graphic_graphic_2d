@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "surface.h"
+#include "surface_type.h"
 #include "sync_fence.h"
 
 #include "common/rs_obj_abs_geometry.h"
@@ -80,7 +81,11 @@ public:
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceHandler& surfaceHandler, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, bool forceCPU, uint32_t threadIndex);
+    static BufferDrawParam CreateBufferDrawParam(
+        const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
+    static void DealWithRotationAndGravityForRotationFixed(GraphicTransformType transform, Gravity gravity,
+        RectF& localBounds, BufferDrawParam& params);
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
     static void DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
         float alpha, const std::string& extraInfo = "");
@@ -131,7 +136,7 @@ public:
         Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData);
     static void ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed);
 private:
-    static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
+    static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void AssignSubThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes,
@@ -139,6 +144,8 @@ private:
     static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
     static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
+    static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
+        sptr<IConsumerSurface> consumer);
     static inline int currentUIExtensionIndex_ = -1;
 };
 }

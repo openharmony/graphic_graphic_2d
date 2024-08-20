@@ -1975,16 +1975,17 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         if (!node.GetHardWareDisabledByReverse()) {
             node.SetHardwareForcedDisabledState(false);
         }
-        node.SetHardwareForcedDisabledByVisibility(false);
-        node.SetForceHardware(displayNodeRotationChanged_ || isScreenRotationAnimating_);
-        if ((!node.GetForceHardware() && !IsHardwareComposerEnabled()) ||
+        node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
+        if (!IsHardwareComposerEnabled() ||
             curSurfaceNode_->GetVisibleRegion().IsEmpty() || !node.GetRSSurfaceHandler()->GetBuffer()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by param/invisible/no buffer",
                 node.GetName().c_str(), node.GetId());
-            node.SetHardwareForcedDisabledByVisibility(true);
+            node.SetHardwareForcedDisabledState(true);
             hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
                 HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, node.GetName());
-            return;
+            if (!node.GetFixRotationByUser()) {
+                return;
+            }
         }
         auto geo = node.GetRenderProperties().GetBoundsGeometry();
         UpdateSrcRect(node, geo->GetAbsMatrix(), geo->GetAbsRect());
@@ -2036,7 +2037,7 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
     if (!node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
         return;
     }
-    node.SetForceHardware(displayNodeRotationChanged_ || isScreenRotationAnimating_);
+    node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     RSUniRenderUtil::DealWithNodeGravity(node, screenInfo_);
     RSUniRenderUtil::LayerRotate(node, screenInfo_);
     RSUniRenderUtil::LayerCrop(node, screenInfo_);
@@ -2268,7 +2269,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             continue;
         }
         auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(it.first);
-        if (node == nullptr || node->GetForceHardware() || node->GetProtectedLayer()) {
+        if (node == nullptr || node->IsInFixedRotation() || node->GetProtectedLayer()) {
             continue;
         }
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%llu disabled by prevalidate",

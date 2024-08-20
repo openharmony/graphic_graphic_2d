@@ -241,6 +241,8 @@ public:
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override;
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
     bool PrepareOffscreenRender();
