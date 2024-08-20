@@ -112,6 +112,7 @@ public:
     virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
+    virtual uint32_t GetActiveRefreshRate() const = 0;
 };
 
 namespace impl {
@@ -196,6 +197,7 @@ public:
     VirtualScreenStatus GetVirtualScreenStatus() const override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
+    uint32_t GetActiveRefreshRate() const override;
 
 private:
     // create hdiScreen and get some information from drivers.

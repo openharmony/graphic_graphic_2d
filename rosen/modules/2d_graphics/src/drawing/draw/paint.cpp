@@ -251,7 +251,7 @@ void Paint::Reset()
     blendMode_ = BlendMode::SRC_OVER;
     style_ = PaintStyle::PAINT_NONE;
     width_ = 0;
-    miterLimit_ = Pen::DEFAULT_MITER_VAL;
+    miterLimit_ = DEFAULT_MITER_VAL;
     join_ = Pen::JoinStyle::DEFAULT_JOIN;
     cap_ = Pen::CapStyle::DEFAULT_CAP;
 

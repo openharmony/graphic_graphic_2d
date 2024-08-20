@@ -62,7 +62,7 @@ public:
     bool MakeFromEncoded(const std::shared_ptr<Data>& data) override;
     bool BuildSubset(const std::shared_ptr<Image> image, const RectI& rect, GPUContext& gpuContext) override;
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
-        CompressedType type) override;
+        CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace = nullptr) override;
     bool BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace,
         void (*deleteFunc)(void*) = nullptr, void* cleanupHelper = nullptr) override;

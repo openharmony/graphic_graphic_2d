@@ -83,7 +83,7 @@ inline T1* ConvertToNDKText(T2* ptr)
 
 OH_Drawing_TypographyStyle* OH_Drawing_CreateTypographyStyle(void)
 {
-    return (OH_Drawing_TypographyStyle*)new TypographyStyle;
+    return (OH_Drawing_TypographyStyle*)new (std::nothrow) TypographyStyle;
 }
 
 void OH_Drawing_DestroyTypographyStyle(OH_Drawing_TypographyStyle* style)
@@ -162,7 +162,7 @@ void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle* style, int
 
 OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void)
 {
-    return (OH_Drawing_TextStyle*)new TextStyle;
+    return (OH_Drawing_TextStyle*)new (std::nothrow) TextStyle;
 }
 
 void OH_Drawing_DestroyTextStyle(OH_Drawing_TextStyle* style)
@@ -318,12 +318,17 @@ void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle* style, double fontH
 void OH_Drawing_SetTextStyleFontFamilies(
     OH_Drawing_TextStyle* style, int fontFamiliesNumber, const char* fontFamilies[])
 {
-    if (!style) {
+    if (style == nullptr || fontFamilies == nullptr) {
         return;
     }
     std::vector<std::string> rosenFontFamilies;
     for (int i = 0; i < fontFamiliesNumber; i++) {
-        rosenFontFamilies.emplace_back(fontFamilies[i]);
+        if (fontFamilies[i]) {
+            rosenFontFamilies.emplace_back(fontFamilies[i]);
+        } else {
+            LOGE("Null fontFamilies[%{public}d]", i);
+            return;
+        }
     }
     ConvertToOriginalText<TextStyle>(style)->fontFamilies = rosenFontFamilies;
 }
@@ -431,7 +436,7 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
         LOGE("null text");
         return;
     } else if (!IsUtf8(text)) {
-        LOGE("text is not utf-8, text: %{public}s", text);
+        LOGE("text is not utf-8");
         return;
     }
 
@@ -577,7 +582,10 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForRange(OH_Drawing_Typography*
     if (!typography) {
         return nullptr;
     }
-    std::vector<TextRect>* originalVector = new std::vector<TextRect>;
+    std::vector<TextRect>* originalVector = new (std::nothrow) std::vector<TextRect>;
+    if (originalVector == nullptr) {
+        return nullptr;
+    }
     auto originalRectHeightStyle = ConvertToOriginalText<TextRectHeightStyle>(&heightStyle);
     auto originalRectWidthStyle = ConvertToOriginalText<TextRectWidthStyle>(&widthStyle);
     *originalVector = ConvertToOriginalText<Typography>(typography)->GetTextRectsByBoundary(start, end,
@@ -590,7 +598,10 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForPlaceholders(OH_Drawing_Typo
     if (!typography) {
         return nullptr;
     }
-    std::vector<TextRect>* originalVector = new std::vector<TextRect>;
+    std::vector<TextRect>* originalVector = new (std::nothrow) std::vector<TextRect>;
+    if (originalVector == nullptr) {
+        return nullptr;
+    }
     *originalVector = ConvertToOriginalText<Typography>(typography)->GetTextRectsOfPlaceholders();
     return (OH_Drawing_TextBox*)originalVector;
 }
@@ -686,7 +697,10 @@ OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetGlyphPositionAtCoordinat
     if (!typography) {
         return nullptr;
     }
-    IndexAndAffinity* originalPositionAndAffinity = new IndexAndAffinity(0, Affinity::PREV);
+    IndexAndAffinity* originalPositionAndAffinity = new (std::nothrow) IndexAndAffinity(0, Affinity::PREV);
+    if (originalPositionAndAffinity == nullptr) {
+        return nullptr;
+    }
     return (OH_Drawing_PositionAndAffinity*)originalPositionAndAffinity;
 }
 
@@ -696,7 +710,10 @@ OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetGlyphPositionAtCoordinat
     if (!typography) {
         return nullptr;
     }
-    IndexAndAffinity* originalPositionAndAffinity = new IndexAndAffinity(0, Affinity::PREV);
+    IndexAndAffinity* originalPositionAndAffinity = new (std::nothrow) IndexAndAffinity(0, Affinity::PREV);
+    if (originalPositionAndAffinity == nullptr) {
+        return nullptr;
+    }
     *originalPositionAndAffinity = ConvertToOriginalText<Typography>(typography)->GetGlyphIndexByCoordinate(dx, dy);
     return (OH_Drawing_PositionAndAffinity*)originalPositionAndAffinity;
 }
@@ -734,7 +751,10 @@ OH_Drawing_Range* OH_Drawing_TypographyGetWordBoundary(OH_Drawing_Typography* ty
     if (!typography) {
         return nullptr;
     }
-    Boundary* originalRange = new Boundary(0, 0);
+    Boundary* originalRange = new (std::nothrow) Boundary(0, 0);
+    if (originalRange == nullptr) {
+        return nullptr;
+    }
     *originalRange = ConvertToOriginalText<Typography>(typography)->GetWordBoundaryByIndex(offset);
     return (OH_Drawing_Range*)originalRange;
 }
@@ -969,7 +989,10 @@ OH_Drawing_Range* OH_Drawing_TypographyGetLineTextRange(
     if (!typography) {
         return nullptr;
     }
-    Boundary* originalRange = new Boundary(0, 0);
+    Boundary* originalRange = new (std::nothrow) Boundary(0, 0);
+    if (originalRange == nullptr) {
+        return nullptr;
+    }
     *originalRange = ConvertToOriginalText<Typography>(typography)->GetActualTextRange(lineNumber, includeSpaces);
     return (OH_Drawing_Range*)originalRange;
 }
@@ -1101,7 +1124,7 @@ void OH_Drawing_TextStyleGetBackgroundPen(OH_Drawing_TextStyle* style, OH_Drawin
 
 OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 {
-    auto fontDescriptor = new TextEngine::FontParser::FontDescriptor;
+    auto fontDescriptor = new (std::nothrow) TextEngine::FontParser::FontDescriptor;
     if (fontDescriptor == nullptr) {
         return nullptr;
     }
@@ -1118,7 +1141,7 @@ void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 
 OH_Drawing_FontParser* OH_Drawing_CreateFontParser(void)
 {
-    auto fontParser = new TextEngine::FontParser;
+    auto fontParser = new (std::nothrow) TextEngine::FontParser;
     if (fontParser == nullptr) {
         return nullptr;
     }
@@ -1150,7 +1173,7 @@ static bool CopyStrData(
         return false;
     }
     size_t destinationSize = source.size() + 1;
-    *destination = new char[destinationSize];
+    *destination = new (std::nothrow) char[destinationSize];
     if (!(*destination)) {
         SetFontConfigInfoErrorCode(OH_Drawing_FontConfigInfoErrorCode::ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY, code);
         return false;
@@ -1180,7 +1203,7 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
         *num = 0;
         return nullptr;
     }
-    fontList = new char*[systemFontList.size()];
+    fontList = new (std::nothrow) char* [systemFontList.size()];
     if (fontList == nullptr) {
         return nullptr;
     }
@@ -1224,7 +1247,10 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
     }
     std::vector<TextEngine::FontParser::FontDescriptor> systemFontList =
         ConvertToOriginalText<TextEngine::FontParser>(fontParser)->GetVisibilityFonts();
-    TextEngine::FontParser::FontDescriptor* descriptor = new TextEngine::FontParser::FontDescriptor;
+    TextEngine::FontParser::FontDescriptor* descriptor = new (std::nothrow) TextEngine::FontParser::FontDescriptor;
+    if (descriptor == nullptr) {
+        return nullptr;
+    }
     for (size_t i = 0; i < systemFontList.size(); ++i) {
         if (strcmp(name, systemFontList[i].fullName.c_str()) == 0) {
             *descriptor = systemFontList[i];
@@ -1244,7 +1270,7 @@ OH_Drawing_LineMetrics* OH_Drawing_TypographyGetLineMetrics(OH_Drawing_Typograph
     if (lineMetrics.size() == 0) {
         return nullptr;
     }
-    OH_Drawing_LineMetrics* lineMetricsArr = new OH_Drawing_LineMetrics[lineMetrics.size()];
+    OH_Drawing_LineMetrics* lineMetricsArr = new (std::nothrow) OH_Drawing_LineMetrics[lineMetrics.size()];
     if (lineMetricsArr == nullptr) {
         return nullptr;
     }
@@ -1312,7 +1338,7 @@ void OH_Drawing_TypographySetIndents(OH_Drawing_Typography* typography, int inde
 
 OH_Drawing_TextShadow* OH_Drawing_CreateTextShadow(void)
 {
-    return (OH_Drawing_TextShadow*)new TextShadow;
+    return (OH_Drawing_TextShadow*)new (std::nothrow) TextShadow;
 }
 
 void OH_Drawing_DestroyTextShadow(OH_Drawing_TextShadow* shadow)
@@ -1335,9 +1361,14 @@ int OH_Drawing_TextStyleGetShadowCount(OH_Drawing_TextStyle* style)
 OH_Drawing_TextShadow* OH_Drawing_TextStyleGetShadows(OH_Drawing_TextStyle* style)
 {
     if (style) {
-        std::vector<TextShadow>* originalShadows = new std::vector<TextShadow>;
-        *originalShadows = ConvertToOriginalText<TextStyle>(style)->shadows;
-        return (OH_Drawing_TextShadow*)originalShadows;
+        std::vector<TextShadow>* originalShadows = new (std::nothrow) std::vector<TextShadow>;
+        if (originalShadows) {
+            *originalShadows = ConvertToOriginalText<TextStyle>(style)->shadows;
+            return (OH_Drawing_TextShadow*)originalShadows;
+        } else {
+            LOGE("Null textshadow");
+            return nullptr;
+        }
     }
     return nullptr;
 }
@@ -1683,7 +1714,10 @@ OH_Drawing_TextStyle* OH_Drawing_TypographyGetTextStyle(OH_Drawing_TypographySty
     if (!style) {
         return nullptr;
     }
-    TextStyle* originalTextStyle = new TextStyle;
+    TextStyle* originalTextStyle = new (std::nothrow) TextStyle;
+    if (!originalTextStyle) {
+        return nullptr;
+    }
     *originalTextStyle = ConvertToOriginalText<TypographyStyle>(style)->GetTextStyle();
     return (OH_Drawing_TextStyle*)originalTextStyle;
 }
@@ -1799,10 +1833,20 @@ OH_Drawing_FontFeature* OH_Drawing_TextStyleGetFontFeatures(OH_Drawing_TextStyle
     if (fontFeatureSize <= 0) {
         return nullptr;
     }
-    OH_Drawing_FontFeature* fontFeatureArray = new OH_Drawing_FontFeature[fontFeatureSize];
+    OH_Drawing_FontFeature* fontFeatureArray = new (std::nothrow) OH_Drawing_FontFeature[fontFeatureSize];
+    if (!fontFeatureArray) {
+        return nullptr;
+    }
     size_t index = 0;
     for (auto& kv : originMap) {
-        (fontFeatureArray + index)->tag = new char[(kv.first).size() + 1];
+        (fontFeatureArray + index)->tag = new (std::nothrow) char[(kv.first).size() + 1];
+        if ((fontFeatureArray + index)->tag == nullptr) {
+            for (size_t j = 0; j < index; j++) {
+                delete[] (fontFeatureArray + j)->tag;
+                (fontFeatureArray + j)->tag = nullptr;
+            }
+            return nullptr;
+        }
         auto result = strcpy_s((fontFeatureArray + index)->tag, ((kv.first).size() + 1), (kv.first).c_str());
         if (result != 0) {
             OH_Drawing_TextStyleDestroyFontFeatures(fontFeatureArray, index);
@@ -1918,7 +1962,7 @@ char** OH_Drawing_TextStyleGetFontFamilies(OH_Drawing_TextStyle* style, size_t* 
     TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
     char** fontFamilies = nullptr;
     std::vector<std::string>& textStyleFontFamilies = textStyle->fontFamilies;
-    fontFamilies = new char*[textStyleFontFamilies.size()];
+    fontFamilies = new (std::nothrow) char* [textStyleFontFamilies.size()];
     if (fontFamilies == nullptr) {
         return nullptr;
     }
@@ -2127,9 +2171,21 @@ char** OH_Drawing_TypographyTextlineStyleGetFontFamilies(OH_Drawing_TypographySt
         *num = 0;
         return nullptr;
     }
-    fontFamilie = new char*[systemFontFamilies.size()];
+    fontFamilie = new (std::nothrow) char* [systemFontFamilies.size()];
+    if (!fontFamilie) {
+        return nullptr;
+    }
     for (size_t i = 0; i < systemFontFamilies.size(); ++i) {
-        fontFamilie[i] = new char[systemFontFamilies[i].size() + 1];
+        fontFamilie[i] = new (std::nothrow) char[systemFontFamilies[i].size() + 1];
+        if (!fontFamilie[i]) {
+            for (size_t j = 0; j < i; j++) {
+                delete[] fontFamilie[j];
+                fontFamilie[j] = nullptr;
+            }
+            delete[] fontFamilie;
+            fontFamilie = nullptr;
+            return nullptr;
+        }
         auto retMemset =
             memset_s(fontFamilie[i], systemFontFamilies[i].size() + 1, '\0', systemFontFamilies[i].size() + 1);
         auto retCopy = strcpy_s(fontFamilie[i], systemFontFamilies[i].size() + 1, systemFontFamilies[i].c_str());
@@ -2244,7 +2300,10 @@ char* OH_Drawing_TypographyGetTextEllipsis(OH_Drawing_TypographyStyle* style)
     const char16_t* buffer = ellipsis.c_str();
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
     std::string str = convert.to_bytes(buffer);
-    char* result = new char[str.size() + 1];
+    char* result = new (std::nothrow) char[str.size() + 1];
+    if (!result) {
+        return nullptr;
+    }
     if (strcpy_s(result, str.size() + 1, str.c_str()) != 0) {
         delete[] result;
         return nullptr;
@@ -2283,7 +2342,7 @@ static OH_Drawing_FontAliasInfo* InitDrawingAliasInfoSet(
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
     }
-    OH_Drawing_FontAliasInfo* aliasInfoArray = new OH_Drawing_FontAliasInfo[aliasInfoSize];
+    OH_Drawing_FontAliasInfo* aliasInfoArray = new (std::nothrow) OH_Drawing_FontAliasInfo[aliasInfoSize];
     if (aliasInfoArray == nullptr) {
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
@@ -2333,7 +2392,7 @@ static OH_Drawing_FontAdjustInfo* InitDrawingAdjustInfoSet(
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
     }
-    OH_Drawing_FontAdjustInfo* adjustInfoArray = new OH_Drawing_FontAdjustInfo[adjustInfoSize];
+    OH_Drawing_FontAdjustInfo* adjustInfoArray = new (std::nothrow) OH_Drawing_FontAdjustInfo[adjustInfoSize];
     if (adjustInfoArray == nullptr) {
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
@@ -2370,7 +2429,8 @@ static OH_Drawing_FontGenericInfo* InitDrawingFontGenericInfoSet(
         return nullptr;
     }
 
-    OH_Drawing_FontGenericInfo* fontGenericInfoArray = new OH_Drawing_FontGenericInfo[fontGenericInfoSize];
+    OH_Drawing_FontGenericInfo* fontGenericInfoArray =
+        new (std::nothrow) OH_Drawing_FontGenericInfo[fontGenericInfoSize];
     if (fontGenericInfoArray == nullptr) {
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
@@ -2422,7 +2482,7 @@ static OH_Drawing_FontFallbackInfo* InitDrawingDrawingFallbackInfoSet(
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
     }
-    OH_Drawing_FontFallbackInfo* fallbackInfoArray = new OH_Drawing_FontFallbackInfo[fallbackInfoSize];
+    OH_Drawing_FontFallbackInfo* fallbackInfoArray = new (std::nothrow) OH_Drawing_FontFallbackInfo[fallbackInfoSize];
     if (fallbackInfoArray == nullptr) {
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
@@ -2468,7 +2528,8 @@ static OH_Drawing_FontFallbackGroup* InitDrawingFallbackGroupSet(
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
     }
-    OH_Drawing_FontFallbackGroup* fallbackGroupArray = new OH_Drawing_FontFallbackGroup[fallbackGroupSize];
+    OH_Drawing_FontFallbackGroup* fallbackGroupArray =
+        new (std::nothrow) OH_Drawing_FontFallbackGroup[fallbackGroupSize];
     if (fallbackGroupArray == nullptr) {
         code = ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY;
         return nullptr;
@@ -2506,7 +2567,7 @@ static void ResetDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** fallback
 
 static OH_Drawing_FontConfigInfo* InitDrawingFontConfigJsonInfo()
 {
-    OH_Drawing_FontConfigInfo* drawFontCfgInfo = new OH_Drawing_FontConfigInfo;
+    OH_Drawing_FontConfigInfo* drawFontCfgInfo = new (std::nothrow) OH_Drawing_FontConfigInfo;
     if (drawFontCfgInfo == nullptr) {
         return nullptr;
     }
@@ -2527,7 +2588,7 @@ static char** InitStringArray(const size_t charArraySize)
         return nullptr;
     }
 
-    char** ptr = new char*[charArraySize];
+    char** ptr = new (std::nothrow) char* [charArraySize];
     if (!ptr) {
         return nullptr;
     }
@@ -3018,7 +3079,7 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
     if (typographyStyle == nullptr) {
         return nullptr;
     }
-    OH_Drawing_StrutStyle* strutstyle = new OH_Drawing_StrutStyle();
+    OH_Drawing_StrutStyle* strutstyle = new (std::nothrow) OH_Drawing_StrutStyle();
     if (strutstyle == nullptr) {
         return nullptr;
     }
@@ -3035,14 +3096,14 @@ OH_Drawing_StrutStyle* OH_Drawing_TypographyStyleGetStrutStyle(OH_Drawing_Typogr
         strutstyle->families = nullptr;
         return strutstyle;
     }
-    strutstyle->families = new char*[strutstyle->familiesSize];
+    strutstyle->families = new (std::nothrow) char* [strutstyle->familiesSize];
     if (strutstyle->families == nullptr) {
         delete strutstyle;
         return nullptr;
     }
     for (size_t i = 0; i < strutstyle->familiesSize; i++) {
         int size = static_cast<int>(typographyStyle->lineStyleFontFamilies[i].size()) + 1;
-        strutstyle->families[i] = new char[size];
+        strutstyle->families[i] = new (std::nothrow) char[size];
         if (!strutstyle->families[i]) {
             for (size_t j = 0; j < i; j++) {
                 delete[] strutstyle->families[j];
@@ -3104,7 +3165,7 @@ OH_Drawing_Font_Metrics* OH_Drawing_TypographyGetLineFontMetrics(
         return nullptr;
     }
 
-    OH_Drawing_Font_Metrics* fontMetrics = new OH_Drawing_Font_Metrics[grabFontMetrics.size()];
+    OH_Drawing_Font_Metrics* fontMetrics = new (std::nothrow) OH_Drawing_Font_Metrics[grabFontMetrics.size()];
     if (fontMetrics == nullptr || !grabFontMetrics.size()) {
         if (fontMetrics != nullptr) {
             delete[] fontMetrics;

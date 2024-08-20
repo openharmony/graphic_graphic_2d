@@ -328,7 +328,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     }
 
     // if time not changed since last frame, return
-    if (time <= animationFraction_.GetLastFrameTime()) {
+    if (time == animationFraction_.GetLastFrameTime()) {
         return state_ == AnimationState::FINISHED;
     }
 
@@ -367,11 +367,12 @@ bool RSRenderAnimation::Animate(int64_t time)
 
 void RSRenderAnimation::SetStartTime(int64_t time)
 {
+    time = RS_PROFILER_ANIME_SET_START_TIME(id_, time);
     animationFraction_.SetLastFrameTime(time);
     needUpdateStartTime_ = false;
 }
 
-const std::shared_ptr<RSRenderPropertyBase> RSRenderAnimation::GetAnimateVelocity() const
+const std::shared_ptr<RSRenderPropertyBase>& RSRenderAnimation::GetAnimateVelocity() const
 {
     return animateVelocity_;
 }

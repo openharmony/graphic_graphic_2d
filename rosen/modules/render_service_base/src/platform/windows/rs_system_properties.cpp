@@ -117,7 +117,7 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetVkQueueDividedEnable()
+bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;
 }
@@ -235,11 +235,6 @@ bool RSSystemProperties::GetFilterCacheEnabled()
 int RSSystemProperties::GetFilterCacheUpdateInterval()
 {
     return 0;
-}
-
-bool RSSystemProperties::GetColorPickerPartialEnabled()
-{
-    return false;
 }
 
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
@@ -379,6 +374,11 @@ bool RSSystemProperties::IsPcType()
     return false;
 }
 
+bool RSSystemProperties::IsBetaRelease()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     return false;
@@ -488,9 +488,5 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS

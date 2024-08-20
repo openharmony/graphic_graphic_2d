@@ -50,7 +50,6 @@ public:
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
-    void ScaleMirrorIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas);
     void Fill(RSPaintFilterCanvas& canvas,
         float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight);
     void UniScale(RSPaintFilterCanvas& canvas,
@@ -77,13 +76,11 @@ public:
     // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
     GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
     bool RequestVirtualFrame(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
-    void CalculateTransform(RSDisplayRenderNode& node);
     void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
     void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
-    void CanvasInit(RSDisplayRenderNode& node);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
 
     sptr<Surface> producerSurface_;

@@ -23,6 +23,7 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -732,15 +733,21 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetHwcChildrenDisabledStateByUifirst, TestS
     node->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     node->SetHwcChildrenDisabledStateByUifirst();
     std::shared_ptr<RSSurfaceRenderNode> rssNode = nullptr;
-    std::weak_ptr<RSSurfaceRenderNode> rssNodeF = rssNode;
-    std::weak_ptr<RSSurfaceRenderNode> rssNodeT = std::make_shared<RSSurfaceRenderNode>(0);
-    node->childHardwareEnabledNodes_.emplace_back(rssNodeF);
-    node->childHardwareEnabledNodes_.emplace_back(rssNodeT);
+    std::weak_ptr<RSSurfaceRenderNode> rssNode1 = rssNode;
+    std::weak_ptr<RSSurfaceRenderNode> rssNode2 = std::make_shared<RSSurfaceRenderNode>(0);
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(id + 1);
+    node3->isProtectedLayer_ = true;
+    std::weak_ptr<RSSurfaceRenderNode> rssNode3 = node3;
+    node->childHardwareEnabledNodes_.emplace_back(rssNode1);
+    node->childHardwareEnabledNodes_.emplace_back(rssNode2);
+    node->childHardwareEnabledNodes_.emplace_back(rssNode3);
     node->SetHwcChildrenDisabledStateByUifirst();
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    std::shared_ptr<RSRenderNode> rsrnode = std::make_shared<RSRenderNode>(0);
+    std::shared_ptr<RSRenderNode> rsrNode1 = std::make_shared<RSRenderNode>(0);
+    std::shared_ptr<RSRenderNode> rsrNode2 = std::make_shared<RSSurfaceRenderNode>(id + 2);
     std::vector<std::shared_ptr<RSRenderNode>> children;
-    children.push_back(rsrnode);
+    children.push_back(rsrNode1);
+    children.push_back(rsrNode2);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
     node->SetHwcChildrenDisabledStateByUifirst();
     ASSERT_FALSE(node->childHardwareEnabledNodes_.empty());
@@ -758,12 +765,19 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, LeashWindowRelatedAppWindowOccluded, TestSi
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> appNode;
     ASSERT_FALSE(node->LeashWindowRelatedAppWindowOccluded(appNode));
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    std::shared_ptr<RSSurfaceRenderNode> rssNode = std::make_shared<RSSurfaceRenderNode>(0);
+    auto rssNode1 = std::make_shared<RSSurfaceRenderNode>(id + 1);
+    auto rssNode2 = std::make_shared<RSRenderNode>(id + 2);
+    auto rssNode3 = std::make_shared<RSSurfaceRenderNode>(id + 3);
+    Occlusion::Rect rect(0, 0, 10, 10);
+    Occlusion::Region region(rect);
+    rssNode3->visibleRegion_ = region;
     ASSERT_TRUE(node->LeashWindowRelatedAppWindowOccluded(appNode));
     std::vector<std::shared_ptr<RSRenderNode>> children;
-    children.push_back(rssNode);
+    children.push_back(rssNode1);
+    children.push_back(rssNode2);
+    children.push_back(rssNode3);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    ASSERT_TRUE(node->LeashWindowRelatedAppWindowOccluded(appNode));
+    ASSERT_FALSE(node->LeashWindowRelatedAppWindowOccluded(appNode));
 }
 
 /**
@@ -848,12 +862,16 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateCacheSurfaceDirtyManager, TestSize.Le
     children.push_back(rssNodeF);
     children.push_back(rssNode);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     node->UpdateCacheSurfaceDirtyManager(bufferAge);
     node->dirtyManager_.reset();
     node->UpdateCacheSurfaceDirtyManager(bufferAge);
     node->cacheSurfaceDirtyManager_.reset();
     node->UpdateCacheSurfaceDirtyManager(bufferAge);
     EXPECT_EQ(node->cacheSurfaceDirtyManager_, nullptr);
+    node->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    node->UpdateCacheSurfaceDirtyManager(bufferAge);
+    EXPECT_NE(node->dirtyManager_, nullptr);
 }
 
 /**
@@ -865,11 +883,17 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateCacheSurfaceDirtyManager, TestSize.Le
 HWTEST_F(RSSurfaceRenderNodeTwoTest, HasOnlyOneRootNode, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    bool res = node->HasOnlyOneRootNode();
-    ASSERT_FALSE(res);
-    auto rsrNode = std::make_shared<RSRenderNode>(0);
-    node->children_.push_back(rsrNode);
+    ASSERT_FALSE(node->HasOnlyOneRootNode());
+    auto child1 = std::make_shared<RSRenderNode>(id + 1);
+    node->children_.emplace_back(child1);
     EXPECT_FALSE(node->HasOnlyOneRootNode());
+    auto child2 = std::make_shared<RSRootRenderNode>(id + 2);
+    node->children_.clear();
+    node->children_.emplace_back(child2);
+    EXPECT_TRUE(node->HasOnlyOneRootNode());
+    auto child3 = std::make_shared<RSRenderNode>(id + 3);
+    child1->children_.emplace_back(child3);
+    EXPECT_TRUE(node->HasOnlyOneRootNode());
 }
 
 /**

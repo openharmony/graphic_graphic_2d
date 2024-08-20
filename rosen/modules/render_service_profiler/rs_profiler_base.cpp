@@ -55,6 +55,9 @@ static std::atomic<uint32_t> g_commandExecuteCount = 0; // EXECUTE RSCOMMAND COU
 constexpr uint32_t COMMAND_PARSE_LIST_COUNT = 1024;
 constexpr uint32_t COMMAND_PARSE_LIST_SIZE = COMMAND_PARSE_LIST_COUNT * 2 + 5;
 
+static std::mutex g_msgBaseMutex;
+static std::queue<std::string> g_msgBaseList;
+
 #pragma pack(push, 1)
 struct PacketParsedCommandList {
     double packetTime;
@@ -73,8 +76,11 @@ static std::atomic<uint32_t> g_commandLoopIndexEnd = 0;
 static uint64_t g_pauseAfterTime = 0;
 static uint64_t g_pauseCumulativeTime = 0;
 static int64_t g_transactionTimeCorrection = 0;
+static int64_t g_replayStartTimeNano = 0.0;
 
 static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
+
+static std::unordered_map<AnimationId, std::vector<int64_t>> g_animeStartMap;
 
 bool RSProfiler::testing_ = false;
 
@@ -156,6 +162,21 @@ NodeId RSProfiler::PatchPlainNodeId(const Parcel& parcel, NodeId id)
     }
 
     return Utils::PatchNodeId(id);
+}
+
+void RSProfiler::PatchTypefaceId(const Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+{
+    if (!val || !IsEnabled()) {
+        return;
+    }
+
+    if (g_mode == Mode::READ_EMUL) {
+        val->PatchTypefaceIds();
+    } else if (g_mode == Mode::READ) {
+        if (IsParcelMock(parcel)) {
+            val->PatchTypefaceIds();
+        }
+    }
 }
 
 pid_t RSProfiler::PatchPlainPid(const Parcel& parcel, pid_t pid)
@@ -835,6 +856,7 @@ void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
 void RSProfiler::SetTransactionTimeCorrection(double replayStartTime, double recordStartTime)
 {
     g_transactionTimeCorrection = static_cast<int64_t>((replayStartTime - recordStartTime) * NS_TO_S);
+    g_replayStartTimeNano = replayStartTime * NS_TO_S;
 }
 
 std::string RSProfiler::GetCommandParcelList(double recordStartTime)
@@ -1040,6 +1062,72 @@ uint32_t RSProfiler::GetNodeDepth(const std::shared_ptr<RSRenderNode> node)
         curNode = curNode ? curNode->GetParent().lock() : nullptr;
     }
     return depth;
+}
+
+std::string RSProfiler::SendMessageBase()
+{
+    const std::lock_guard<std::mutex> guard(g_msgBaseMutex);
+    if (g_msgBaseList.empty()) {
+        return "";
+    }
+    std::string value = g_msgBaseList.front();
+    g_msgBaseList.pop();
+    return value;
+}
+
+void RSProfiler::SendMessageBase(const std::string msg)
+{
+    const std::lock_guard<std::mutex> guard(g_msgBaseMutex);
+    g_msgBaseList.push(msg);
+}
+
+std::unordered_map<AnimationId, std::vector<int64_t>> &RSProfiler::AnimeGetStartTimes()
+{
+    return g_animeStartMap;
+}
+
+void RSProfiler::ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex)
+{
+    if (!IsEnabled()) {
+        return;
+    }
+    if (g_mode == Mode::READ) {
+        if (lastIndex == 0) {
+            lastIndex = curIndex - 1;
+        }
+    }
+}
+
+int64_t RSProfiler::AnimeSetStartTime(AnimationId id, int64_t nanoTime)
+{
+    if (!IsEnabled()) {
+        return nanoTime;
+    }
+
+    if (g_mode == Mode::READ) {
+        if (!g_animeStartMap.count(id)) {
+            return nanoTime;
+        }
+        int64_t minDt = INT64_MAX, minTime = nanoTime - g_replayStartTimeNano;
+        for (const auto recordedTime : g_animeStartMap[id]) {
+            int64_t dt = abs(recordedTime - (nanoTime - g_replayStartTimeNano));
+            if (dt < minDt) {
+                minDt = dt;
+                minTime = recordedTime;
+            }
+        }
+        return minTime + g_replayStartTimeNano;
+    } else if (g_mode == Mode::WRITE) {
+        if (g_animeStartMap.count(id)) {
+            g_animeStartMap[Utils::PatchNodeId(id)].push_back(nanoTime);
+        } else {
+            std::vector<int64_t> list;
+            list.push_back(nanoTime);
+            g_animeStartMap.insert({ Utils::PatchNodeId(id), list });
+        }
+    }
+
+    return nanoTime;
 }
 
 } // namespace OHOS::Rosen

@@ -195,13 +195,13 @@ public:
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
-    void SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync);
     void SetNoNeedToPostTask(bool noNeedToPostTask);
     void SetAccessibilityConfigChanged();
     void SetScreenPowerOnChanged(bool val);
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     bool IsCurtainScreenUsingStatusChanged() const;
+    bool IsLuminanceChanged() const;
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
@@ -284,7 +284,7 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
-    void RefreshEntireDisplay();
+    void SetLuminanceChangingStatus(bool isLuminanceChanged);
     bool IsCurtainScreenOn() const;
 
     bool GetParallelCompositionEnabled();
@@ -346,6 +346,11 @@ public:
         return systemAnimatedScenesList_.empty();
     }
 
+    bool IsFirstFrameOfOverdrawSwitch() const
+    {
+        return isFirstFrameOfOverdrawSwitch_;
+    }
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -366,7 +371,6 @@ private:
     void Render();
     void OnUniRenderDraw();
     void SetDeviceType();
-    void ColorPickerRequestVsyncIfNeed();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
@@ -530,6 +534,9 @@ private:
     // Used to refresh the whole display when curtain screen status is changed
     bool isCurtainScreenUsingStatusChanged_ = false;
 
+    // Used to refresh the whole display when luminance is changed
+    bool isLuminanceChanged_ = false;
+
     // used for blocking mainThread when hardwareThread has 2 and more task to Execute
     mutable std::mutex hardwareThreadTaskMutex_;
     std::condition_variable hardwareThreadTaskCond_;
@@ -559,9 +566,7 @@ private:
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
 
-    bool colorPickerForceRequestVsync_ = false;
     std::atomic_bool noNeedToPostTask_ = false;
-    std::atomic_int colorPickerRequestFrameNum_ = 15;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
@@ -633,7 +638,7 @@ private:
 
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
-    std::vector<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
@@ -646,6 +651,11 @@ private:
     bool lastFrameUIExtensionDataEmpty_ = false;
     // <pid, <uid, callback>>
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
+
+    // overDraw
+    bool isFirstFrameOfOverdrawSwitch_ = false;
+    bool isOverDrawEnabledOfCurFrame_ = false;
+    bool isOverDrawEnabledOfLastFrame_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

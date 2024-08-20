@@ -579,17 +579,6 @@ HWTEST_F(RSSystemPropertiesTest, GetFilterCacheSizeThreshold, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetColorPickerPartialEnabled
- * @tc.desc: GetColorPickerPartialEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetColorPickerPartialEnabled, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetColorPickerPartialEnabled());
-}
-
-/**
  * @tc.name: GetMaskLinearBlurEnabled
  * @tc.desc: GetMaskLinearBlurEnabled Test
  * @tc.type:FUNC

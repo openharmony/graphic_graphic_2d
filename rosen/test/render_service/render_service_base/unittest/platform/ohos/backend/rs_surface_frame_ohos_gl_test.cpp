@@ -209,6 +209,8 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvasAndGetSurface001, TestSize.Level1)
     renderContextTest2.drGPUContext_ = drGPUContextTest2;
     rsSurfaceTest2.renderContext_ = &renderContextTest2;
     EXPECT_EQ(rsSurfaceTest2.GetSurface(), nullptr);
+    rsSurfaceTest2.surface_ = surface;
+    EXPECT_NE(rsSurfaceTest2.GetSurface(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

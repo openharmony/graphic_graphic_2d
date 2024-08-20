@@ -333,6 +333,22 @@ static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pi
         default: return Drawing::CompressedType::NoneType;
     }
 }
+
+static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
+ colorSpaceName)
+{
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
+            return Drawing::ColorSpace::CreateSRGBLinear();
+        case ColorManager::ColorSpaceName::SRGB:
+            return Drawing::ColorSpace::CreateSRGB();
+        default:
+            return Drawing::ColorSpace::CreateSRGB();
+    }
+}
 #endif
 
 void RSImage::UploadGpu(Drawing::Canvas& canvas)
@@ -352,9 +368,11 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
             Media::Size realSize;
             pixelMap_->GetAstcRealSize(realSize);
             auto image = std::make_shared<Drawing::Image>();
+            std::shared_ptr<Drawing::ColorSpace> colorSpace =
+                ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
             bool result = image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
                 static_cast<int>(realSize.width), static_cast<int>(realSize.height),
-                PixelFormatToCompressedType(imageInfo.pixelFormat));
+                PixelFormatToCompressedType(imageInfo.pixelFormat), colorSpace);
             if (result) {
                 image_ = image;
                 SKResourceManager::Instance().HoldResource(image);

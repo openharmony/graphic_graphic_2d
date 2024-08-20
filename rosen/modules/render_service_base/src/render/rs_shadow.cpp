@@ -73,11 +73,6 @@ void RSShadow::SetColorStrategy(int colorStrategy)
     colorStrategy_ = colorStrategy;
 }
 
-void RSShadow::SetColorPickerCacheTask(const std::shared_ptr<RSColorPickerCacheTask>& task)
-{
-    colorPickerCacheTask_ = task;
-}
-
 const Color& RSShadow::GetColor() const
 {
     return color_;
@@ -126,11 +121,6 @@ bool RSShadow::GetIsFilled() const
 int RSShadow::GetColorStrategy() const
 {
     return colorStrategy_;
-}
-
-const std::shared_ptr<RSColorPickerCacheTask>& RSShadow::GetColorPickerCacheTask() const
-{
-    return colorPickerCacheTask_;
 }
 
 bool RSShadow::IsValid() const

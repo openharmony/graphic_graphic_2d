@@ -31,12 +31,14 @@
 #include "hgm_core.h"
 
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/rs_uni_render_util.h"
 
 namespace OHOS::Rosen {
 namespace {
 // DFX drawing alpha
 constexpr float DFXFillAlpha = 0.2f;
 constexpr float DFXFontSize = 24.f;
+constexpr float HWC_DFX_FILL_ALPHA = 0.3f;
 }
 
 static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
@@ -89,6 +91,10 @@ void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
         DrawCurrentRefreshRate();
     }
 
+    if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
+        DrawHwcRegionForDFX();
+    }
+
     DrawableV2::RSRenderNodeDrawable::DrawDfxForCacheInfo(*canvas_);
 }
 
@@ -107,6 +113,30 @@ void RSDirtyRectsDfx::OnDrawVirtual(std::shared_ptr<RSPaintFilterCanvas> canvas)
     canvas_ = canvas;
     if (renderThreadParams->isVirtualDirtyDfxEnabled_) {
         DrawDirtyRegionInVirtual();
+    }
+}
+
+void RSDirtyRectsDfx::DrawHwcRegionForDFX() const
+{
+    auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    static uint32_t updateCnt = 0;
+    if (++updateCnt == UINT32_MAX) {
+        updateCnt = 0;
+    }
+    for (const auto& drawable : hardwareDrawables) {
+        if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+        std::string extraInfo = surfaceParams->GetName() + " UpdateCnt: " + std::to_string(updateCnt);
+        if (surfaceParams->GetHardwareEnabled()) {
+            RSUniRenderUtil::DrawRectForDfx(*canvas_, surfaceParams->GetDstRect(), Drawing::Color::COLOR_BLUE,
+                HWC_DFX_FILL_ALPHA, extraInfo);
+        } else {
+            RSUniRenderUtil::DrawRectForDfx(*canvas_, surfaceParams->GetDstRect(), Drawing::Color::COLOR_RED,
+                HWC_DFX_FILL_ALPHA, extraInfo);
+        }
     }
 }
 

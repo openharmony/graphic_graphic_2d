@@ -66,6 +66,7 @@ void OH_NativeVSync_Destroy(OH_NativeVSync *nativeVSync)
     }
 
     delete OH_NativeVSync_OHNativeVSyncToNativeVSync(nativeVSync);
+    nativeVSync = nullptr;
 }
 
 int OH_NativeVSync_RequestFrame(OH_NativeVSync *ohNativeVSync, OH_NativeVSync_FrameCallback callback, void* data)

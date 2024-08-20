@@ -104,12 +104,11 @@ bool RSSystemProperties::GetProfilerEnabled()
     return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
 
-bool RSSystemProperties::GetVkQueueDividedEnable()
+bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.q.divided.enalbed", "0");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
+    static bool vkQueuePriorityEnabled =
+        std::atoi((system::GetParameter("persist.vkqueue.priority.enalbed", "1")).c_str()) != 0;
+    return vkQueuePriorityEnabled;
 }
 
 bool RSSystemProperties::GetInstantRecording()
@@ -525,15 +524,6 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return filterCacheSizeThreshold;
 }
 
-bool RSSystemProperties::GetColorPickerPartialEnabled()
-{
-    // Determine whether the color picker partial render should be enabled. The default value is 0,
-    // which means that it is unenabled.
-    static bool enabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.colorPickerPartialEnabled", "1")).c_str()) != 0;
-    return enabled;
-}
-
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
 {
     // Determine whether the mask LinearBlur render should be enabled. The default value is 0,
@@ -848,6 +838,12 @@ bool RSSystemProperties::IsPcType()
     return isPc;
 }
 
+bool RSSystemProperties::IsBetaRelease()
+{
+    static bool isBetaRelease = system::GetParameter("const.logsystem.versiontype", "") == "beta";
+    return isBetaRelease;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     static bool syncTransactionEnabled =
@@ -1003,14 +999,6 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
-}
-
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.layercursor.enable", "0");
-    int changed = 0;
-    const char *num = CachedParameterGetChanged(g_Handle, &changed);
-    return (ConvertToInt(num, 0) != 0) && IsPcType();
 }
 
 bool RSSystemProperties::GetHDRImageEnable()

@@ -132,6 +132,11 @@ public:
     void UnmarshallingDrawOps();
 
     /**
+     * @brief   Change typeface ids adding 1 << (30 + 32) - used for profiler replay
+     */
+    void PatchTypefaceIds();
+
+    /**
      * @brief   Draw cmd is empty or not.
      */
     bool IsEmpty() const;

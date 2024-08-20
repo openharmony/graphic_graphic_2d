@@ -94,6 +94,29 @@ HWTEST_F(BrightnessFilterUnittest, SetValue003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetValue004
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(BrightnessFilterUnittest, SetValue004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "BrightnessFilterUnittest SetValue004 start";
+
+    auto brightness = std::make_shared<BrightnessFilter>();
+    ASSERT_NE(brightness, nullptr);
+
+    std::shared_ptr<float> sBright = std::make_shared<float>(1.0f);
+    std::weak_ptr<void> vBright = sBright;
+    brightness->SetValue("", vBright.lock(), 1);
+    brightness->SetValue("brightness", vBright.lock(), 0);
+    EXPECT_EQ(brightness->GetFilterType(), FILTER_TYPE::ALGOFILTER);
+
+    GTEST_LOG_(INFO) << "BrightnessFilterUnittest SetValue004 start";
+}
+
+/**
  * @tc.name: GetVertexShader001
  * @tc.desc: Get a string used to compile the program
  * @tc.type: FUNC

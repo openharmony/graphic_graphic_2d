@@ -1475,6 +1475,34 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsFirstFrameOfOverdrawSwitch
+ * @tc.desc: test IsFirstFrameOfOverdrawSwitch
+ * @tc.type: FUNC
+ * @tc.require: issueIAKQC3
+ */
+HWTEST_F(RSMainThreadTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    // prepare nodes
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    rootNode->AddChild(childDisplayNode, 0);
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
+    mainThread->doDirectComposition_ = false;
+    mainThread->isOverDrawEnabledOfCurFrame_ = true;
+    mainThread->UniRender(rootNode);
+    ASSERT_TRUE(mainThread->IsFirstFrameOfOverdrawSwitch());
+}
+
+/**
  * @tc.name: Render
  * @tc.desc: Render test
  * @tc.type: FUNC
@@ -2853,20 +2881,6 @@ HWTEST_F(RSMainThreadTest, ReleaseSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: RefreshEntireDisplay
- * @tc.desc: RefreshEntireDisplay Test
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSMainThreadTest, RefreshEntireDisplay, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->RefreshEntireDisplay();
-    ASSERT_EQ(mainThread->IsCurtainScreenUsingStatusChanged(), true);
-}
-
-/**
  * @tc.name: SetCurtainScreenUsingStatus
  * @tc.desc: SetCurtainScreenUsingStatus Test
  * @tc.type: FUNC
@@ -2881,6 +2895,21 @@ HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus, TestSize.Level2)
 
     // restore curtain screen status
     mainThread->SetCurtainScreenUsingStatus(false);
+}
+
+/**
+ * @tc.name: SetLuminanceChangingStatus
+ * @tc.desc: SetLuminanceChangingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, SetLuminanceChangingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_EQ(mainThread->IsLuminanceChanged(), false);
+    mainThread->SetLuminanceChangingStatus(true);
+    ASSERT_EQ(mainThread->IsLuminanceChanged(), true);
 }
 
 /**
@@ -3354,6 +3383,9 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     auto node2 = RSTestUtil::CreateSurfaceNode();
     auto task = []() {};
 
+    mainThread->ProcessUiCaptureTasks();
+    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
+
     mainThread->context_->nodeMap.RegisterRenderNode(node1);
     mainThread->AddUiCaptureTask(node1->GetId(), task);
     mainThread->AddUiCaptureTask(node2->GetId(), task);
@@ -3443,50 +3475,6 @@ HWTEST_F(RSMainThreadTest, SetFrameIsRender002, TestSize.Level2)
     auto vsyncController = new VSyncController(vsyncGenerator, 0);
     mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
     mainThread->SetFrameIsRender(true);
-}
-
-/**
- * @tc.name: ColorPickerRequestVsyncIfNeed
- * @tc.desc: test ColorPickerRequestVsyncIfNeed001, colorPickerForceRequestVsync_ = true
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->colorPickerForceRequestVsync_ = true;
-    mainThread->ColorPickerRequestVsyncIfNeed();
-}
-
-/**
- * @tc.name: ColorPickerRequestVsyncIfNeed
- * @tc.desc: test ColorPickerRequestVsyncIfNeed002, colorPickerRequestFrameNum_ > 0
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->colorPickerForceRequestVsync_ = true;
-    mainThread->colorPickerRequestFrameNum_ = 15;
-    mainThread->ColorPickerRequestVsyncIfNeed();
-}
-
-/**
- * @tc.name: ColorPickerRequestVsyncIfNeed
- * @tc.desc: test ColorPickerRequestVsyncIfNeed003, colorPickerRequestFrameNum_ <= 0
- * @tc.type: FUNC
- * @tc.require: issueIAIPI3
- */
-HWTEST_F(RSMainThreadTest, ColorPickerRequestVsyncIfNeed003, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->colorPickerForceRequestVsync_ = true;
-    mainThread->colorPickerRequestFrameNum_ = 0;
-    mainThread->ColorPickerRequestVsyncIfNeed();
 }
 
 /**

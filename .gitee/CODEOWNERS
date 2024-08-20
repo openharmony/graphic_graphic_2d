@@ -12,3 +12,19 @@ rosen/modules/2d_graphics/include/ @ustc-tianyu
 rosen/modules/2d_graphics/src/drawing/ @ustc-tianyu
 rosen/modules/2d_graphics/drawing_ndk/ @ustc-tianyu
 interfaces/kits/napi/graphic/drawing/ @ustc-tianyu
+
+[display-effect]
+rosen/modules/render_service_client/core/modifier/ @xiaojianfeng_jeffery
+rosen/modules/render_service_client/core/ui/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/drawable/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/drawable/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/modifier/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/modifier/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/pipeline/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/pipeline/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/property/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/property/ @xiaojianfeng_jeffery
+rosen/modules/render_service/core/drawable/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/render/ @lyt1024
+rosen/modules/render_service_base/src/render/ @lyt1024
+

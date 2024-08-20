@@ -42,9 +42,17 @@ inline T1* ConvertToFontCollection(T2* ptr)
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 {
 #ifndef USE_TEXGINE
-    OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTxt::FontCollection;
+    OH_Drawing_FontCollection* fc =
+        (OH_Drawing_FontCollection*)new (std::nothrow) OHOS::Rosen::AdapterTxt::FontCollection;
+    if (fc == nullptr) {
+        return nullptr;
+    }
 #else
-    OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new OHOS::Rosen::AdapterTextEngine::FontCollection;
+    OH_Drawing_FontCollection* fc =
+        (OH_Drawing_FontCollection*) new (std::nothrow) OHOS::Rosen::AdapterTextEngine::FontCollection;
+    if (fc == nullptr) {
+        return nullptr;
+    }
 #endif
     objectMgr->AddObject(fc);
     return fc;

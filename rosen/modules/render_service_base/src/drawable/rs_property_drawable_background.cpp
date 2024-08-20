@@ -167,22 +167,10 @@ bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
     }
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
-    // shadow alpha follow setting
-    auto shadowAlpha = spotColor.GetAlpha();
-    RSColor colorPicked;
-    if (properties.GetColorPickerCacheTaskShadow() != nullptr &&
-        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        if (!properties.GetColorPickerCacheTaskShadow()->GetFirstGetColorFinished()) {
-            shadowAlpha = 0;
-        }
-    } else {
-        shadowAlpha = spotColor.GetAlpha();
-        colorPicked = spotColor;
-    }
 
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(
-        shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
+        spotColor.GetAlpha(), spotColor.GetRed(), spotColor.GetGreen(), spotColor.GetBlue()));
     brush.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetMaskFilter(
@@ -494,7 +482,7 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
 {
     std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
     std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-    if (!pixelMap || !fileData || !pixelMap->GetFd()) {
+    if (!pixelMap || !pixelMap->GetFd()) {
         RS_LOGE("SetCompressedDataForASTC fail, data is null");
         return;
     }
@@ -513,11 +501,12 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
     } else {
         const void* data = pixelMap->GetPixels();
         if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
-            (data == nullptr || !fileData->BuildWithoutCopy((void*)((char*) data + ASTC_HEADER_SIZE),
-            pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
-            RS_LOGE("SetCompressedDataForASTC data BuildWithoutCopy fail");
-            return;
-        }
+            (data == nullptr || !fileData->BuildWithoutCopy(
+                reinterpret_cast<void *>(reinterpret_cast<char *>(data) + ASTC_HEADER_SIZE),
+                pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
+                RS_LOGE("SetCompressedDataForASTC data BuildWithoutCopy fail");
+                return;
+            }
     }
     bgImage_->SetCompressData(fileData);
 }

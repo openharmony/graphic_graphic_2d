@@ -218,6 +218,11 @@ public:
         isSecurityExemption_ = isSecurityExemption;
     }
 
+    bool GetSecurityExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {
@@ -411,6 +416,13 @@ public:
 
     Occlusion::Region GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const;
 
+    void UpdateZoomState(bool state)
+    {
+        preZoomState_ = curZoomState_;
+        curZoomState_ = state;
+    }
+
+    bool IsZoomStateChange() const;
 protected:
     void OnSync() override;
 private:
@@ -480,6 +492,9 @@ private:
 
     friend class DisplayNodeCommandHelper;
     int64_t lastRefreshTime_ = 0;
+
+    bool curZoomState_ = false;
+    bool preZoomState_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

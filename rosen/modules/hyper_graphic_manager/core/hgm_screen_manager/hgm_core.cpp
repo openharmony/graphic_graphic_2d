@@ -154,6 +154,22 @@ int32_t HgmCore::InitXmlConfig()
     return EXEC_SUCCESS;
 }
 
+void HgmCore::SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting)
+{
+    if (curScreenSetting.ltpoConfig.find("adaptiveSync") != curScreenSetting.ltpoConfig.end()) {
+        std::string asConfig = curScreenSetting.ltpoConfig["adaptiveSync"];
+ 
+        if (asConfig == "1" || asConfig == "0") {
+            adaptiveSync_ = std::stoi(curScreenSetting.ltpoConfig["adaptiveSync"]);
+        } else {
+            adaptiveSync_ = 0;
+        }
+    } else {
+        adaptiveSync_ = 0;
+        HGM_LOGW("HgmCore failed to find adaptiveSync strategy for LTPO, then set to 0");
+    }
+}
+
 void HgmCore::SetLtpoConfig()
 {
     if ((hgmFrameRateMgr_ == nullptr) || (mPolicyConfigData_ == nullptr)) {
@@ -196,6 +212,8 @@ void HgmCore::SetLtpoConfig()
         pipelineOffsetPulseNum_ = 0;
         HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
     }
+
+    SetASConfig(curScreenSetting);
 
     SetScreenConstraintConfig();
     HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, " \

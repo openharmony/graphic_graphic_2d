@@ -49,7 +49,6 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_frame_rate_policy.h"
-#include "ui/rs_node.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -1461,6 +1460,27 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
                 brightnessBlender->GetPositiveCoeff().data_[2] },
             { brightnessBlender->GetNegativeCoeff().data_[0], brightnessBlender->GetNegativeCoeff().data_[1],
                 brightnessBlender->GetNegativeCoeff().data_[2] } });
+    }
+}
+
+void RSNode::SetBlender(const Blender* blender)
+{
+    if (blender == nullptr) {
+        ROSEN_LOGE("RSNode::SetBlender: blender is null!");
+        return;
+    }
+
+    if (Blender::BRIGHTNESS_BLENDER == blender->GetBlenderType()) {
+        auto brightnessBlender = static_cast<const BrightnessBlender*>(blender);
+        if (brightnessBlender != nullptr) {
+            SetFgBrightnessFract(brightnessBlender->GetFraction());
+            SetFgBrightnessParams({ brightnessBlender->GetLinearRate(), brightnessBlender->GetDegree(),
+                brightnessBlender->GetCubicRate(), brightnessBlender->GetQuadRate(), brightnessBlender->GetSaturation(),
+                { brightnessBlender->GetPositiveCoeff().x_, brightnessBlender->GetPositiveCoeff().y_,
+                    brightnessBlender->GetPositiveCoeff().z_ },
+                { brightnessBlender->GetNegativeCoeff().x_, brightnessBlender->GetNegativeCoeff().y_,
+                    brightnessBlender->GetNegativeCoeff().z_ } });
+        }
     }
 }
 

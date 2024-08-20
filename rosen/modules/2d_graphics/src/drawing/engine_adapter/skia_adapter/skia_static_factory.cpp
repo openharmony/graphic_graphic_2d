@@ -202,11 +202,6 @@ std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupP
     return parameters;
 }
 
-FontStyleSet* SkiaStaticFactory::CreateEmpty()
-{
-    return SkiaFontStyleSet::CreateEmpty();
-}
-
 std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
 {
     return SkiaBlender::CreateWithBlendMode(mode);

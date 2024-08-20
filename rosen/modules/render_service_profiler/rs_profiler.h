@@ -52,6 +52,9 @@
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN() RSProfiler::OnParallelRenderBegin()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber) RSProfiler::OnParallelRenderEnd(renderFrameNumber)
 #define RS_PROFILER_SHOULD_BLOCK_HWCNODE() RSProfiler::ShouldBlockHWCNode()
+#define RS_PROFILER_ANIME_SET_START_TIME(id, time) RSProfiler::AnimeSetStartTime(id, time)
+#define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex) RSProfiler::ReplayFixTrIndex(curIndex, lastIndex)
+#define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val) RSProfiler::PatchTypefaceId(parcel, val)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN()
@@ -79,6 +82,9 @@
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
 #define RS_PROFILER_SHOULD_BLOCK_HWCNODE() false
+#define RS_PROFILER_ANIME_SET_START_TIME(id, time) time
+#define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex)
+#define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val) 
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -143,6 +149,8 @@ public:
     RSB_EXPORT static uint64_t PatchTime(uint64_t time);
     RSB_EXPORT static uint64_t PatchTransactionTime(const Parcel& parcel, uint64_t timeAtRecordProcess);
 
+    RSB_EXPORT static void PatchTypefaceId(const Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val);
+
     template<typename T>
     static T PatchNodeId(const Parcel& parcel, T id)
     {
@@ -169,6 +177,12 @@ public:
     RSB_EXPORT static uint32_t GetFrameNumber();
     RSB_EXPORT static bool ShouldBlockHWCNode();
 
+    RSB_EXPORT static std::unordered_map<AnimationId, std::vector<int64_t>> &AnimeGetStartTimes();
+    RSB_EXPORT static int64_t AnimeSetStartTime(AnimationId id, int64_t nanoTime);
+    RSB_EXPORT static std::string SendMessageBase();
+    RSB_EXPORT static void SendMessageBase(const std::string msg);
+    RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
+
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
     RSB_EXPORT static bool IsSharedMemoryEnabled();
@@ -193,7 +207,7 @@ private:
     static void SendBetaRecordPath();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
-    static void WriteBetaRecordFileThread(RSFile& file, const std::string path);
+    static void WriteBetaRecordFileThread(RSFile& file, const std::string& path);
     static void RenameAndSendFilenameThread();
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
@@ -251,25 +265,25 @@ private:
     RSB_EXPORT static std::string DumpSurfaceNode(const RSRenderNode& node);
 
     // JSON
-    static void RenderServiceTreeDump(JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeSubsurfaces(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& outWrapper);
+    static void RenderServiceTreeDump(JsonWriter& out);
+    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeSubsurfaces(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeDrawCmdModifier(
-        const RSRenderNode& node, JsonWriter& outWrapper, int type, RSRenderModifier& modifier);
-    RSB_EXPORT static void DumpNodeProperties(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesClip(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesTransform(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesDecoration(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesEffects(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesShadow(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodePropertiesColor(const RSProperties& properties, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& outWrapper);
-    RSB_EXPORT static void DumpNodeChildrenListUpdate(const RSRenderNode& node, JsonWriter& outWrapper);
+        const RSRenderNode& node, JsonWriter& out, int type, RSRenderModifier& modifier);
+    RSB_EXPORT static void DumpNodeProperties(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesClip(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesTransform(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesDecoration(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesEffects(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesShadow(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodePropertiesColor(const RSProperties& properties, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeChildrenListUpdate(const RSRenderNode& node, JsonWriter& out);
 
     // RSAnimationManager
     RSB_EXPORT static void FilterAnimationForPlayback(RSAnimationManager& manager);
@@ -312,6 +326,9 @@ private:
 
     RSB_EXPORT static uint32_t GetNodeDepth(const std::shared_ptr<RSRenderNode> node);
 
+    static void TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion);
+    static void TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion);
+
     // Network interface
     using Command = void (*)(const ArgList&);
     static Command GetCommand(const std::string& command);
@@ -352,7 +369,7 @@ private:
 
     static void PlaybackStart(const ArgList& args);
     static void PlaybackStop(const ArgList& args);
-    static void PlaybackUpdate();
+    static double PlaybackUpdate(const double deltaTime);
 
     static void PlaybackPrepare(const ArgList& args);
     static void PlaybackPrepareFirstFrame(const ArgList& args);

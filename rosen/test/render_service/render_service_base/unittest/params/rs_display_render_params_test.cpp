@@ -55,144 +55,172 @@ HWTEST_F(RSDisplayRenderParamsTest, OnSync001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetMainAndLeashSurfaceDirty001
+ * @tc.name: SetMainAndLeashSurfaceDirty
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetMainAndLeashSurfaceDirty001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, SetMainAndLeashSurfaceDirty, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
     RSDisplayRenderParams params(id);
-    auto res = params.GetMainAndLeashSurfaceDirty();
-    params.SetMainAndLeashSurfaceDirty(res);
+    params.SetMainAndLeashSurfaceDirty(params.GetMainAndLeashSurfaceDirty());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetMainAndLeashSurfaceDirty(true);
+    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
- * @tc.name: SetRotationChanged001
+ * @tc.name: SetRotationChanged
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetRotationChanged001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, SetRotationChanged, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
     RSDisplayRenderParams params(id);
-    auto res = params.IsRotationChanged();
-    params.SetRotationChanged(res);
+    params.SetRotationChanged(params.IsRotationChanged());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetRotationChanged(true);
+    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
- * @tc.name: SetHDRPresent001
+ * @tc.name: SetHDRPresent
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetHDRPresent001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, SetHDRPresent, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[5];
     RSDisplayRenderParams params(id);
-    auto res = params.GetHDRPresent();
-    params.SetHDRPresent(res);
+    params.SetHDRPresent(params.GetHDRPresent());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetHDRPresent(true);
+    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
- * @tc.name: SetNewColorSpace001
+ * @tc.name: SetNewColorSpace
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetNewColorSpace001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, SetNewColorSpace, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[6];
     RSDisplayRenderParams params(id);
-    GraphicColorGamut newColorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    params.SetNewColorSpace(newColorSpace);
+    params.SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
- * @tc.name: SetNewPixelFormat001
+ * @tc.name: SetNewPixelFormat
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetNewPixelFormat001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, SetNewPixelFormat, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
-    auto res = params.GetNewPixelFormat();
-    params.SetNewPixelFormat(res);
+    params.SetNewPixelFormat(params.GetNewPixelFormat());
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetNewPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT);
+    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
- * @tc.name: HasSecurityLayer001
+ * @tc.name: HasSecurityLayer
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasSecurityLayer001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, HasSecurityLayer, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
     auto displayHasSecSurface = params.GetDisplayHasSecSurface();
     EXPECT_FALSE(params.HasSecurityLayer());
+
+    params.displayHasSecSurface_[params.screenId_] = true;
+    EXPECT_TRUE(params.HasSecurityLayer());
 }
 
 /**
- * @tc.name: HasSkipLayer001
+ * @tc.name: HasSkipLayer
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasSkipLayer001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, HasSkipLayer, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
-    params.displayHasSkipSurface_[1] = false;
     EXPECT_FALSE(params.HasSkipLayer());
+
+    params.displayHasSkipSurface_[params.screenId_] = true;
+    EXPECT_TRUE(params.HasSkipLayer());
 }
 
 /**
- * @tc.name: HasProtectedLayer001
+ * @tc.name: HasProtectedLayer
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasProtectedLayer001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, HasProtectedLayer, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[2];
     RSDisplayRenderParams params(id);
-    params.displayHasProtectedSurface_[1] = false;
     EXPECT_FALSE(params.HasProtectedLayer());
+
+    params.displayHasProtectedSurface_[params.screenId_] = true;
+    EXPECT_TRUE(params.HasProtectedLayer());
 }
 
 
 /**
- * @tc.name: HasCaptureWindow001
+ * @tc.name: HasCaptureWindow
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, HasCaptureWindow001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, HasCaptureWindow, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
     RSDisplayRenderParams params(id);
-    params.hasCaptureWindow_[1] = false;
     EXPECT_FALSE(params.HasCaptureWindow());
+
+    params.hasCaptureWindow_[params.screenId_] = true;
+    EXPECT_TRUE(params.HasCaptureWindow());
 }
 
 /**
- * @tc.name: HasCaptureWindow001
+ * @tc.name: SetNeedOffscreen
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSDisplayRenderParamsTest, SetNeedOffscreen001, TestSize.Level1)
+HWTEST_F(RSDisplayRenderParamsTest, SetNeedOffscreen, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
     RSDisplayRenderParams params(id);
     auto needOffscreen = params.GetNeedOffscreen();
     params.SetNeedOffscreen(needOffscreen);
+    EXPECT_EQ(params.needSync_, false);
+
+    params.SetNeedOffscreen(true);
+    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
@@ -208,4 +236,16 @@ HWTEST_F(RSDisplayRenderParamsTest, IsSpecialLayerChanged001, TestSize.Level1)
     EXPECT_FALSE(params.IsSpecialLayerChanged());
 }
 
+/**
+ * @tc.name: GetSecurityExemption001
+ * @tc.desc: test result of GetSecurityExemption
+ * @tc.type: FUNC
+ * @tc.require: issuesIAKMJP
+ */
+HWTEST_F(RSDisplayRenderParamsTest, GetSecurityExemption001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    EXPECT_FALSE(params.GetSecurityExemption());
+}
 } // namespace OHOS::Rosen

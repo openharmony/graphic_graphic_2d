@@ -82,7 +82,6 @@ public:
     static std::vector<std::vector<DrawingPiecewiseParameter>> GetGroupParameters(
         DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
         DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
-    static FontStyleSet* CreateEmpty();
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
 };
 } // namespace Drawing

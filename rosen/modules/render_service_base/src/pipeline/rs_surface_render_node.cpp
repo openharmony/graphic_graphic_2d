@@ -797,6 +797,8 @@ void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
     } else {
         securityLayerIds_.erase(GetId());
     }
+    ROSEN_LOGI("RSSurfaceRenderNode::SetSecurityLayer, Node id: %{public}" PRIu64 ", SecurityLayer:%{public}d",
+        GetId(), isSecurityLayer);
     SyncSecurityInfoToFirstLevelNode();
 }
 
@@ -1398,7 +1400,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.blendType = GetBlendType();
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
-    if (IsHardwareEnabledTopSurface() && RSSystemProperties::GetLayerCursorEnable()) {
+    if (IsHardwareEnabledTopSurface() && RSSystemProperties::IsPcType()) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;

@@ -47,7 +47,7 @@ bool RoundCornerDisplay::Init()
 bool RoundCornerDisplay::SeletedLcdModel(const char* lcdModelName)
 {
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    lcdModel_ = rcdCfg.GetLcdModel(lcdModelName);
+    lcdModel_ = rcdCfg.GetLcdModel(std::string(lcdModelName));
     if (lcdModel_ == nullptr) {
         RS_LOGD("[%{public}s] No lcdModel found in config file with name %{public}s \n", __func__, lcdModelName);
         return false;
@@ -65,7 +65,7 @@ bool RoundCornerDisplay::LoadConfigFile()
 {
     RS_LOGD("[%{public}s] LoadConfigFile \n", __func__);
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    return rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
+    return rcdCfg.Load(std::string(rs_rcd::PATH_CONFIG_FILE));
 }
 
 bool RoundCornerDisplay::LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img)

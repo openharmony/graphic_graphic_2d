@@ -72,6 +72,60 @@ HWTEST_F(HdiFramebufferSurfaceTest, GetBufferQueueSize001, Function | MediumTest
     ASSERT_EQ(hdiFramebufferSurface_->GetBufferQueueSize(), HdiFramebufferSurface::MAX_BUFFER_SIZE);
 }
 
+/*
+* Function: SetBufferQueueSize001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetBufferQueueSize
+*                  2. check ret and no crash
+*/
+HWTEST_F(HdiFramebufferSurfaceTest, SetBufferQueueSize001, Function | MediumTest| Level3)
+{
+    // create a HdiFramebufferSurface obj without consumer
+    sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
+
+    // no consumer, should fail with error code(SURFACE_ERROR_NO_CONSUMER)
+    ASSERT_EQ(fbSurface->SetBufferQueueSize(1), SURFACE_ERROR_NO_CONSUMER);
+}
+
+/*
+* Function: ReleaseFramebuffer002
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call ReleaseFramebuffer
+*                  2. check ret and no crash
+*/
+HWTEST_F(HdiFramebufferSurfaceTest, ReleaseFramebuffer002, Function | MediumTest| Level3)
+{
+    // create a HdiFramebufferSurface obj without consumer
+    sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
+
+    // no consumer, call ReleaseFramebuffer should not be crash
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> fence = new SyncFence(10);
+    ASSERT_EQ(fbSurface->ReleaseFramebuffer(buffer, fence), 0);
+
+    // no consumer, call ReleaseFramebuffer should not be crash
+    buffer = new SurfaceBufferImpl();
+    ASSERT_EQ(fbSurface->ReleaseFramebuffer(buffer, fence), 0);
+}
+
+/*
+* Function: OnBufferAvailable001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call OnBufferAvailable
+*                  2. check ret and no crash
+*/
+HWTEST_F(HdiFramebufferSurfaceTest, OnBufferAvailable001, Function | MediumTest| Level3)
+{
+    // create a HdiFramebufferSurface obj without consumer
+    sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
+    fbSurface->OnBufferAvailable(); // no crash
+}
 }
 } // namespace Rosen
 } // namespace OHOS

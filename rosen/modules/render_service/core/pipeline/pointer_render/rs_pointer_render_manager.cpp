@@ -18,6 +18,7 @@
 #include "rs_trace.h"
 #include "pipeline/rs_uni_render_processor.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/sk_resource_manager.h"
 #include "rs_pointer_render_manager.h"
 
 namespace OHOS {
@@ -31,12 +32,6 @@ static const int32_t CALCULATE_MIDDLE = 2;
 } // namespace
 static std::unique_ptr<RSPointerRenderManager> g_pointerRenderManagerInstance =
     std::make_unique<RSPointerRenderManager>();
-
-
-RSPointerRenderManager::RSPointerRenderManager()
-{
-    colorPickerTask_ = std::make_shared<RSColorPickerCacheTask>();
-}
 
 RSPointerRenderManager& RSPointerRenderManager::GetInstance()
 {
@@ -165,7 +160,7 @@ void RSPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> pro
 
     RS_TRACE_BEGIN("RSPointerRenderManager ProcessColorPicker");
     std::lock_guard<std::mutex> locker(mtx_);
-    image_ = nullptr;
+
     if (cacheImgForPointer_) {
         if (!GetIntersectImageBySubset(gpuContext)) {
             ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageBySubset is false!");
@@ -199,6 +194,10 @@ bool RSPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::
         Drawing::RectI drawingPointerRect = Drawing::RectI(pointerRect.GetLeft(), pointerRect.GetTop(),
             pointerRect.GetRight(), pointerRect.GetBottom());
         image_->BuildSubset(cacheImgForPointer_, drawingPointerRect, *gpuContext);
+
+        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        backendTexture_ = image_->GetBackendTexture(false, &origin);
+        bitmapFormat_ = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
         return true;
     }
     return false;
@@ -288,49 +287,52 @@ void RSPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr>& la
     }
 }
 
-void RSPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& param)
+int16_t RSPointerRenderManager::CalcAverageLuminance(std::shared_ptr<Drawing::Image> image)
+{
+    // create a 1x1 SkPixmap
+    uint32_t pixel[1] = { 0 };
+    Drawing::ImageInfo single_pixel_info(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888,
+        Drawing::AlphaType::ALPHATYPE_PREMUL);
+    Drawing::Bitmap single_pixel;
+    single_pixel.Build(single_pixel_info, single_pixel_info.GetBytesPerPixel());
+    single_pixel.SetPixels(pixel);
+
+    // resize image to 1x1 to calculate average color
+    // kMedium_SkFilterQuality will do bilerp + mipmaps for down-scaling, we can easily get average color
+    image->ScalePixels(single_pixel,
+        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR));
+    // convert color format and return average luminance
+    auto color = SkColor4f::FromBytes_RGBA(pixel[0]).toSkColor();
+    return Drawing::Color::ColorQuadGetR(color) * 0.2126f + Drawing::Color::ColorQuadGetG(color) * 0.7152f +
+        Drawing::Color::ColorQuadGetB(color) * 0.0722f;
+}
+
+void RSPointerRenderManager::RunColorPickerTaskBackground(const BufferDrawParam& param)
 {
 #ifdef RS_ENABLE_UNI_RENDER
     std::lock_guard<std::mutex> locker(mtx_);
-    taskDoing_ = true;
     std::shared_ptr<Drawing::Image> image;
     auto context = RSBackgroundThread::Instance().GetShareGPUContext().get();
-    if (image_) {
-        image = image_;
+    if (backendTexturePre_.IsValid()) {
+        image = std::make_shared<Drawing::Image>();
+        SharedTextureContext* sharedContext = new SharedTextureContext(image_);
+        bool ret = image->BuildFromTexture(*context, backendTexturePre_.GetTextureInfo(),
+            Drawing::TextureOrigin::BOTTOM_LEFT, bitmapFormat_, nullptr,
+            SKResourceManager::DeleteSharedTextureContext, sharedContext);
+        if (!ret) {
+            RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground BuildFromTexture failed.");
+            return;
+        }
     } else {
         image = GetIntersectImageByLayer(param);
-        if (image == nullptr || !image->IsValid(context)) {
-            RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground image not valid.");
-            taskDoing_ = false;
-            return;
-        }
     }
-    if (!colorPickerTask_->InitTask(image)) {
-        bool initStatus = colorPickerTask_->InitTask(image);
-        if (!initStatus) {
-            RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground InitTask failed.");
-            taskDoing_ = false;
-            return;
-        }
-    }
-    colorPickerTask_->SetStatus(CacheProcessStatus::DOING);
-    if (!colorPickerTask_->InitSurface(context)) {
-        RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground InitSurface failed.");
-        colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
-        taskDoing_ = false;
+    if (image == nullptr || !image->IsValid(context)) {
+        RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground image not valid.");
         return;
     }
-    if (!colorPickerTask_->Render()) {
-        RS_LOGE("RSPointerRenderManager::RunColorPickerTaskBackground Render failed.");
-        taskDoing_ = false;
-        return;
-    }
-    colorPickerTask_->Reset();
-    RSColor color;
-    colorPickerTask_->GetColor(color);
 
-    luminance_ = color.GetRed() * 0.2126f + color.GetGreen() * 0.7152f + color.GetBlue() * 0.0722f;
-    taskDoing_ = false;
+    luminance_ = CalcAverageLuminance(image);
+
     CallPointerLuminanceChange(luminance_);
 #endif
 }
@@ -347,7 +349,12 @@ void RSPointerRenderManager::RunColorPickerTask()
         param = RSUniRenderUtil::CreateLayerBufferDrawParam(target_, forceCPU_);
     }
     RSBackgroundThread::Instance().PostTask([this, param] () {
+        taskDoing_ = true;
         this->RunColorPickerTaskBackground(param);
+        taskDoing_ = false;
+        backendTexturePre_ = backendTexture_;
+        backendTexture_ = Drawing::BackendTexture(false);
+        image_ = nullptr;
     });
 }
 
@@ -387,8 +394,7 @@ std::shared_ptr<Drawing::Image> RSPointerRenderManager::GetIntersectImageFromVK(
         RS_LOGE("RSPointerRenderManager::GetIntersectImageFromVK vkImageManager_ == nullptr");
         return nullptr;
     }
-    auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(param.buffer, param.acquireFence,
-        param.threadIndex);
+    auto imageCache = vkImageManager_->CreateImageCacheFromBuffer(param.buffer, param.acquireFence);
     if (imageCache == nullptr) {
         ROSEN_LOGE("RSPointerRenderManager::GetIntersectImageFromVK imageCache == nullptr!");
         return nullptr;

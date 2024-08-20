@@ -42,6 +42,7 @@ typedef void (*OnBufferAvailableListener)(void *context);
 class SurfaceImage : public ConsumerSurface {
 public:
     SurfaceImage(uint32_t textureId, uint32_t textureTarget = GL_TEXTURE_EXTERNAL_OES);
+    SurfaceImage();
     virtual ~SurfaceImage();
 
     void InitSurfaceImage();
