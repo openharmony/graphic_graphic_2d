@@ -63,6 +63,10 @@ std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
 template<>
 float RSCurveValueEstimator<float>::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator)
 {
+    if (interpolator == nullptr) {
+        ROSEN_LOGD("Interpolator is null, return FRACTION_MIN.");
+        return FRACTION_MIN;
+    }
     float start = FRACTION_MIN;
     float end = FRACTION_MAX;
     auto byValue = endValue_ - startValue_;

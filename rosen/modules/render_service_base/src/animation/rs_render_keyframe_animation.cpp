@@ -165,7 +165,7 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
     if (isDurationKeyframe_) {
         return ParseDurationKeyframesParam(parcel, size);
     }
-    float tupValue0 = 0;
+    float tupValue0 = 0.0;
     for (uint32_t i = 0; i < size; i++) {
         if (!(parcel.ReadFloat(tupValue0))) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling value failed");
@@ -183,8 +183,8 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
 
 bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int keyframeSize)
 {
-    float startFraction = 0;
-    float endFraction = 0;
+    float startFraction = 0.0;
+    float endFraction = 0.0;
     for (int i = 0; i < keyframeSize; i++) {
         if (!(parcel.ReadFloat(startFraction)) || !(parcel.ReadFloat(endFraction))) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling duration value failed");

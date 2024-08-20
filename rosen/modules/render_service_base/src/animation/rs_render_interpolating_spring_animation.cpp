@@ -152,7 +152,7 @@ float RSRenderInterpolatingSpringAnimation::CalculateTimeFraction(float targetFr
     if (secondTime <= 0) {
         return FRACTION_MIN;
     }
-    auto frameTimes = MAX_FRAME_TIME_FRACTION * secondTime;
+    int64_t frameTimes = MAX_FRAME_TIME_FRACTION * secondTime;
     float lastFraction = FRACTION_MIN;
     for (int time = 1; time <= frameTimes; time++) {
         float frameFraction = static_cast<float>(time) / frameTimes;
@@ -222,7 +222,7 @@ void RSRenderInterpolatingSpringAnimation::InitValueEstimator()
 
 std::shared_ptr<RSRenderPropertyBase> RSRenderInterpolatingSpringAnimation::CalculateVelocity(float time) const
 {
-    float TIME_INTERVAL = 1e-6f; // 1e-6f : 1 microsecond
+    constexpr float TIME_INTERVAL = 1e-6f; // 1e-6f : 1 microsecond
     float currentDisplacement = 1.0f + CalculateDisplacement(time);
     float nextDisplacement = 1.0f + CalculateDisplacement(time + TIME_INTERVAL);
     auto velocity = (valueEstimator_->Estimate(nextDisplacement, startValue_, endValue_) -

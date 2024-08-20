@@ -25,14 +25,14 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT ParticleNoiseField {
 public:
-    int fieldStrength_;
+    int fieldStrength_ { 0 };
     ShapeType fieldShape_;
     Vector2f fieldSize_;
     Vector2f fieldCenter_;
-    uint16_t fieldFeather_;
-    float noiseScale_;
-    float noiseFrequency_;
-    float noiseAmplitude_;
+    uint16_t fieldFeather_ { 0 };
+    float noiseScale_ { 0.0 };
+    float noiseFrequency_ { 0.0 };
+    float noiseAmplitude_ { 0.0 };
 
     explicit ParticleNoiseField(const int fieldStrength, const ShapeType& fieldShape, const Vector2f& fieldSize,
         const Vector2f& fieldCenter, uint16_t fieldFeather, float noiseScale, float noiseFrequency,
@@ -70,9 +70,9 @@ private:
     float Fade(float t);
     float Lerp(float t, float a, float b);
     float Grad(int hash, float x, float y);
-    float noiseScale_;
-    float noiseFrequency_;
-    float noiseAmplitude_;
+    float noiseScale_ { 0.0 };
+    float noiseFrequency_ { 0.0 };
+    float noiseAmplitude_ { 0.0 };
 
 public:
     PerlinNoise2D(float noiseScale, float noiseFrequency, float noiseAmplitude);
