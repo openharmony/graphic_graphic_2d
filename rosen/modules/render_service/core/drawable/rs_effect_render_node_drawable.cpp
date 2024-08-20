@@ -61,7 +61,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 }
 
 bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams* effectParams,
-    Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas);
+    Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas)
 {
     if (drawCmdIndex_.childrenIndex_ == -1) {
         // case 0: No children, skip
