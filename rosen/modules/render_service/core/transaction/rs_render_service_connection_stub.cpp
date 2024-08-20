@@ -237,6 +237,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION): {
+            bool isTokenTypeValid = true;
+            bool isNonSystemAppCalling = false;
+            RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+            if (!isTokenTypeValid) {
+                RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION invalid token type");
+                return ERR_INVALID_STATE;
+            }
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
             std::shared_ptr<MessageParcel> parsedParcel;
@@ -251,6 +258,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     // no need to copy or copy failed, use original parcel
                     // execute Unmarshalling immediately
                     auto transactionData = RSBaseRenderUtil::ParseTransactionData(data);
+                    if (transactionData && isNonSystemAppCalling) {
+                        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+                        pid_t conflictCommandPid = 0;
+                        std::string commandMapDesc = "";
+                        if (!transactionData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid,
+                                                                commandMapDesc)) {
+                            RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION non-system callingPid %{public}d"
+                                    " is denied to access commandPid %{public}d, commandMap = %{public}s",
+                                    callingPid, conflictCommandPid, commandMapDesc.c_str());
+                            return ERR_INVALID_STATE;
+                        }
+                    }
                     CommitTransaction(transactionData);
                     break;
                 }
@@ -265,10 +284,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             if (isUniRender) {
                 // post Unmarshalling task to RSUnmarshalThread
-                RSUnmarshalThread::Instance().RecvParcel(parsedParcel);
+                RSUnmarshalThread::Instance().RecvParcel(parsedParcel, isNonSystemAppCalling, callingPid);
             } else {
                 // execute Unmarshalling immediately
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(*parsedParcel);
+                if (transactionData && isNonSystemAppCalling) {
+                    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+                    pid_t conflictCommandPid = 0;
+                    std::string commandMapDesc = "";
+                    if (!transactionData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid, commandMapDesc)) {
+                        RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION non-system callingPid %{public}d"
+                                " is denied to access commandPid %{public}d, commandMap = %{public}s",
+                                callingPid, conflictCommandPid, commandMapDesc.c_str());
+                        return ERR_INVALID_STATE;
+                    }
+                }
                 CommitTransaction(transactionData);
             }
             break;
