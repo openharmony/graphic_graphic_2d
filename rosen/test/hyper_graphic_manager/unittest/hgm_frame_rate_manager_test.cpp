@@ -229,11 +229,10 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
         testThreads.push_back(std::thread([&] () { frameRateMgr.HandleLightFactorStatus(i, false); }));
 
         // HandlePackageEvent
-        // param 1/2：pkg size
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg0}); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg1}); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 1, {pkg2}); }));
-        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, 2, {pkg0, pkg1}); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, {pkg0}); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, {pkg1}); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, {pkg2}); }));
+        testThreads.push_back(std::thread([&] () { frameRateMgr.HandlePackageEvent(i, {pkg0, pkg1}); }));
 
         // HandleRefreshRateEvent
         testThreads.push_back(std::thread([&] () { frameRateMgr.HandleRefreshRateEvent(i, {}); }));

@@ -221,7 +221,7 @@ private:
     bool isEnabled_ = true;
     std::atomic<bool> isInit_{false};
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
-    std::unique_ptr<XMLParser> mParser_;
+    std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
 
     int32_t customFrameRateMode_ = HGM_REFRESHRATE_MODE_AUTO;

@@ -92,7 +92,7 @@ bool HgmCore::Init()
     auto newRateMode = static_cast<int32_t>(RSSystemProperties::GetHgmRefreshRateModesEnabled());
     if (newRateMode == 0) {
         HGM_LOGI("HgmCore No customer refreshrate mode found, set to xml default");
-        if (mPolicyConfigData_ == nullptr) {
+        if (mPolicyConfigData_ == nullptr || !XMLParser::IsNumber(mPolicyConfigData_->defaultRefreshRateMode_)) {
             HGM_LOGE("HgmCore failed to get parsed data");
         } else {
             customFrameRateMode_ = std::stoi(mPolicyConfigData_->defaultRefreshRateMode_);
@@ -173,9 +173,14 @@ void HgmCore::SetLtpoConfig()
         return;
     }
     auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    if (mPolicyConfigData_->screenConfigs_.count(curScreenStrategyId) == 0 ||
+        mPolicyConfigData_->screenConfigs_[curScreenStrategyId].count(std::to_string(customFrameRateMode_)) == 0) {
+        return;
+    }
     auto curScreenSetting =
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
-    if (curScreenSetting.ltpoConfig.find("switch") != curScreenSetting.ltpoConfig.end()) {
+    if (curScreenSetting.ltpoConfig.find("switch") != curScreenSetting.ltpoConfig.end() &&
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig["switch"])) {
         ltpoEnabled_ = std::stoi(curScreenSetting.ltpoConfig["switch"]);
     } else {
         ltpoEnabled_ = 0;
@@ -196,7 +201,8 @@ void HgmCore::SetLtpoConfig()
         HGM_LOGW("HgmCore failed to find alignRate strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("pipelineOffsetPulseNum") != curScreenSetting.ltpoConfig.end()) {
+    if (curScreenSetting.ltpoConfig.find("pipelineOffsetPulseNum") != curScreenSetting.ltpoConfig.end() &&
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig["pipelineOffsetPulseNum"])) {
         pipelineOffsetPulseNum_ = std::stoi(curScreenSetting.ltpoConfig["pipelineOffsetPulseNum"]);
         CreateVSyncGenerator()->SetVSyncPhaseByPulseNum(pipelineOffsetPulseNum_);
     } else {
@@ -213,6 +219,10 @@ void HgmCore::SetLtpoConfig()
 void HgmCore::SetScreenConstraintConfig()
 {
     auto curScreenStrategyId = hgmFrameRateMgr_->GetCurScreenStrategyId();
+    if (mPolicyConfigData_->screenConfigs_.count(curScreenStrategyId) == 0 ||
+        mPolicyConfigData_->screenConfigs_[curScreenStrategyId].count(std::to_string(customFrameRateMode_)) == 0) {
+        return;
+    }
     auto curScreenSetting =
         mPolicyConfigData_->screenConfigs_[curScreenStrategyId][std::to_string(customFrameRateMode_)];
     if (curScreenSetting.ltpoConfig.find("vBlankIdleCorrectSwitch") != curScreenSetting.ltpoConfig.end() &&

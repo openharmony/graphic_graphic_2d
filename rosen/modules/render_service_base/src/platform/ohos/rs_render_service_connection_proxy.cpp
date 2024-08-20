@@ -2275,6 +2275,10 @@ void RSRenderServiceConnectionProxy::NotifyPackageEvent(uint32_t listSize, const
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
+    if (listSize != packageList.size()) {
+        ROSEN_LOGE("input size doesn't match");
+        return;
+    }
     if (!data.WriteUint32(listSize)) {
         return;
     }

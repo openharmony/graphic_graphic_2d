@@ -119,7 +119,7 @@ public:
     ~HgmFrameRateManager() = default;
 
     void HandleLightFactorStatus(pid_t pid, bool isSafe);
-    void HandlePackageEvent(pid_t pid, uint32_t listSize, const std::vector<std::string>& packageList);
+    void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
     void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
     void HandleDynamicModeEvent(bool enableDynamicModeEvent);
@@ -205,16 +205,18 @@ private:
     void EnterEnergyConsumptionAssuranceMode();
     void ExitEnergyConsumptionAssuranceMode();
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
+    void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
+        sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
-    std::shared_ptr<uint32_t> pendingRefreshRate_;
+    std::shared_ptr<uint32_t> pendingRefreshRate_ = nullptr;
     uint64_t pendingConstraintRelativeTime_ = 0;
-    std::shared_ptr<HgmVSyncGeneratorController> controller_;
+    std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
     std::mutex appChangeDataMutex_;
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData_;
 
-    std::function<void(bool, bool)> forceUpdateCallback_;
+    std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
     std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> screenTimerMap_;
 
     std::mutex pkgSceneMutex_;
