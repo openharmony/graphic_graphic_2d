@@ -943,14 +943,44 @@ void RSProfiler::ExecuteCommand(const RSCommand* command)
     g_commandExecuteCount++;
 }
 
-int RSProfiler::PerfTreeFlatten(
-    const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet, std::unordered_map<NodeId, int>& mapNode2Count)
+uint32_t RSProfiler::PerfTreeFlatten(const std::shared_ptr<RSRenderNode> node,
+    std::vector<std::pair<NodeId, uint32_t>>& nodeSet,
+    std::unordered_map<NodeId, uint32_t>& mapNode2Count, int depth)
 {
-    if (node.renderContent_ == nullptr) {
+    if (!node) {
         return 0;
     }
 
-    int nodeCmdListCount = 0;
+    constexpr uint32_t depthToAnalyze = 10;
+    uint32_t drawCmdListCount = CalcNodeCmdListCount(*node);
+    uint32_t valuableChildrenCount = 0;
+    if (node->GetSortedChildren()) {
+        for (auto& child : *node->GetSortedChildren()) {
+            if (child && child->GetType() != RSRenderNodeType::EFFECT_NODE && depth < depthToAnalyze) {
+                nodeSet.emplace_back(child->id_, depth + 1);
+            }
+        }
+        for (auto& child : *node->GetSortedChildren()) {
+            if (child) {
+                drawCmdListCount += PerfTreeFlatten(child, nodeSet, mapNode2Count, depth + 1);
+                valuableChildrenCount++;
+            }
+        }
+    }
+
+    if (drawCmdListCount > 0) {
+        mapNode2Count[node->id_] = drawCmdListCount;
+    }
+    return drawCmdListCount;
+}
+
+uint32_t RSProfiler::CalcNodeCmdListCount(RSRenderNode& node)
+{
+    if (!node.renderContent_) {
+        return 0;
+    }
+
+    uint32_t nodeCmdListCount = 0;
     for (auto& [type, modifiers] : node.renderContent_->drawCmdModifiers_) {
         if (type >= RSModifierType::ENV_FOREGROUND_COLOR) {
             continue;
@@ -965,31 +995,7 @@ int RSProfiler::PerfTreeFlatten(
             }
         }
     }
-
-    int drawCmdListCount = nodeCmdListCount;
-    int valuableChildrenCount = 0;
-    if (node.GetSortedChildren()) {
-        for (auto& child : *node.GetSortedChildren()) {
-            if (child) {
-                drawCmdListCount += PerfTreeFlatten(*child, nodeSet, mapNode2Count);
-                valuableChildrenCount++;
-            }
-        }
-    }
-    for (auto& [child, pos] : node.disappearingChildren_) {
-        if (child) {
-            drawCmdListCount += PerfTreeFlatten(*child, nodeSet, mapNode2Count);
-            valuableChildrenCount++;
-        }
-    }
-
-    if (drawCmdListCount > 0) {
-        mapNode2Count[node.id_] = drawCmdListCount;
-        if (valuableChildrenCount != 1 || nodeCmdListCount != 0) {
-            nodeSet.insert(node.id_);
-        }
-    }
-    return drawCmdListCount;
+    return nodeCmdListCount;
 }
 
 void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image,
