@@ -193,6 +193,57 @@ export class CanvasDrawLine extends TestBase {
   }
 }
 
+export class CanvasCreateLattice extends TestBase {
+  public constructor(){
+    super();
+  }
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    let xDivs : Array<number> = [1, 2, 4];
+    let yDivs : Array<number> = [1, 2, 4];
+    let colorArray :Array<number>=[0xffffff,0x444444,0x999999,0xffffff,0x444444,0x999999,0xffffff,0x444444,0x999999,0x444444,0x999999,0xffffff,0x444444,0x999999,0xffffff,0x444444];
+    for (let i = 0; i < this.testCount_; i++) {
+      let lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3,null,null,colorArray);
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    {
+      let xDivs : Array<number> = [1, 2, 4];
+      let yDivs : Array<number> = [1, 2, 4];
+      let colorArray :Array<number>=[0xffffff,0x444444,0x999999,0xffffff,0x444444,0x999999,0xffffff,0x444444,0x999999,0x444444,0x999999,0xffffff,0x444444,0x999999,0xffffff,0x444444];
+      let color : common2D.Color = { alpha: 0xFF, red: 0x55, green: 0xFF, blue: 0x44 };
+      let colorArray1 :Array<common2D.Color>=[color,color,color,color,color,color,color,color,color,color,color,color,color,color,color,color]
+      let lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3,null,null,colorArray);
+    }
+  }
+}
+
+export class CanvasDrawShadow extends TestBase {
+  public constructor(){
+    super();
+  }
+  public OnTestPerformance(canvas: drawing.Canvas) {
+    const path = new drawing.Path();
+    let point1 : common2D.Point3d = {x: 100, y: 80, z:80};
+    let point2 : common2D.Point3d = {x: 200, y: 10, z:40};
+    let shadowFlag : drawing.ShadowFlag = drawing.ShadowFlag.ALL;
+    for (let i = 0; i < this.testCount_; i++) {
+      canvas.drawShadow(path, point1, point2, 30, 0xFF0000FF, 0xFFFF0000, shadowFlag);
+    }
+  }
+
+  public OnTestFunction(canvas: drawing.Canvas) {
+    {
+      const path = new drawing.Path();
+      path.addCircle(350, 300, 100, drawing.PathDirection.CLOCKWISE);
+      let point1 : common2D.Point3d = {x: 100, y: 80, z:80};
+      let point2 : common2D.Point3d = {x: 200, y: 10, z:40};
+      let shadowFlag : drawing.ShadowFlag = drawing.ShadowFlag.ALL;
+      canvas.drawShadow(path, point1, point2, 30, 0xFF0000FF, 0xFFFF0000, shadowFlag);
+    }
+  }
+}
+
 export class CanvasDrawPath extends TestBase {
 
   public constructor(styleType: number = StyleType.DRAW_STYLE_NONE){
