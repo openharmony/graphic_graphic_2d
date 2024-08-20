@@ -187,6 +187,10 @@ public:
         return impl_->DowncastingTo<T>();
     }
 
+#ifdef RS_ENABLE_GL
+    void Wait(const std::vector<GrGLsync>& syncs);
+#endif
+
 #ifdef RS_ENABLE_VK
     void Wait(int32_t time, const VkSemaphore& semaphore);
     void SetDrawingArea(const std::vector<RectI>& rects);

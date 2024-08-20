@@ -36,6 +36,11 @@ public:
         return SystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
+    static inline bool IsUseGl()
+    {
+        return SystemProperties::GetGpuApiType() == GpuApiType::OPENGL;
+    }
+
     static bool GetHMSymbolEnable();
     static GpuApiType GetSystemGraphicGpuType();
 

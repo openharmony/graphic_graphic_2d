@@ -449,6 +449,35 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
     skSurface_->flush();
 }
 
+#ifdef RS_ENABLE_GL
+void SkiaSurface::Wait(const std::vector<GrGLsync>& syncs)
+{
+    if (!SystemProperties::IsUseGl()) {
+        return;
+    }
+
+    if (skSurface_ == nullptr) {
+        LOGD("skSurface is nullptr");
+        return;
+    }
+
+    uint32_t count = syncs.size();
+    if (count == 0) {
+        LOGD("GrGLsync count is zero");
+        return;
+    } else {
+        std::vector<GrBackendSemaphore> semaphores;
+        semaphores.reserve(count);
+        for (auto& sync : syncs) {
+            GrBackendSemaphore backendSemaphore;
+            backendSemaphore.initGL(sync);
+            semaphores.emplace_back(backendSemaphore);
+        }
+        skSurface_->wait(count, semaphores.data());
+    }
+}
+#endif
+
 #ifdef RS_ENABLE_VK
 void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
