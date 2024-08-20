@@ -27,6 +27,7 @@
 #include "include/core/SkPoint3.h"
 #include "include/core/SkRegion.h"
 #include "include/core/SkRRect.h"
+#include "include/effects/SkRuntimeEffect.h"
 #include "include/utils/SkShadowUtils.h"
 #include "skia_bitmap.h"
 #include "skia_image.h"
@@ -174,6 +175,7 @@ public:
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
+    bool AddSdfPara(SkRuntimeShaderBuilder& builder, const SDFShapeBase& shape);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;
     SkCanvas* skCanvasBackup_ = nullptr;
