@@ -461,7 +461,7 @@ void VSyncDistributor::ThreadMain()
                 }
                 RS_TRACE_NAME_FMT("%s_continue: waitForVSync %d, vsyncEnabled %d, dvsyncOn %d",
                     name_.c_str(), waitForVSync, vsyncEnabled_, IsDVsyncOn());
-                if (isRs_ || !IsDVsyncOn()) {
+                if ((isRs_ && event_.timestamp == 0) || !IsDVsyncOn()) {
                     continue;
                 } else {
                     timestamp = event_.timestamp;
@@ -509,9 +509,8 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
             dvsync_->RNVNotify();
             dvsync_->DelayBeforePostEvent(timestamp, locker);
             dvsync_->MarkDistributorSleep(false);
-            if (!isRs_) {
-                CollectConns(waitForVSync, timestamp, conns, true);
-            }
+            CollectConns(waitForVSync, timestamp, conns, true);
+            hasVsync_.store(false);
         }
         // if getting switched into vsync mode after sleep
         if (!IsDVsyncOn()) {
@@ -522,6 +521,9 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
             }  // resend RNV for vsync
             return false;  // do not accumulate frame;
         }
+    } else {
+        std::unique_lock<std::mutex> locker(mutex_);
+        hasVsync_.store(false);
     }
     {
         std::unique_lock<std::mutex> locker(mutex_);
@@ -827,7 +829,6 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
     if (isDvsyncThread) {
         std::unique_lock<std::mutex> locker(mutex_);
         dvsync_->RecordPostEvent(conns, timestamp);
-        hasVsync_.store(false);
     }
 #endif
     countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
