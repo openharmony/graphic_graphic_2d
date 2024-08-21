@@ -109,10 +109,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_OCCLUSION_CHANGE_CALLBACK");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_UIEXTENSION_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_UIEXTENSION_CALLBACK");
             break;
@@ -197,10 +193,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SHOW_WATERMARK");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_REFRESH_RATE_MODE): {
             hasPermission = IsSystemApp();
             break;
@@ -250,7 +242,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE): {
-            hasPermission = CheckPermission(code) && IsSystemCalling(codeEnumTypeName_ + "::TAKE_SURFACE_CAPTURE");
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHICS): {
@@ -296,8 +288,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ +
-                "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROTATION_CACHE_ENABLED): {
