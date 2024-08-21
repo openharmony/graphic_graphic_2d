@@ -15,6 +15,7 @@
 
 #include <cstdint>
 #include <scoped_bytrace.h>
+#include <unordered_set>
 #include "rs_trace.h"
 #include "hdi_output.h"
 #include "string_utils.h"
