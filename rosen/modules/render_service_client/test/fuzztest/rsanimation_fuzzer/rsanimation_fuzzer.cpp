@@ -18,12 +18,15 @@
 #include <securec.h>
 
 #include "rs_animation.h"
+#include "rs_animation_callback.h"
 #include "rs_animation_group.h"
 #include "rs_animation_timing_curve.h"
 #include "rs_curve_animation.h"
 #include "rs_implicit_animation_param.h"
 #include "rs_implicit_animator_map.h"
 #include "rs_implicit_animator.h"
+#include "rs_interactive_implict_animator.h"
+#include "rs_interpolating_spring_animation.h"
 #include "rs_keyframe_animation.h"
 #include "rs_motion_path_option.h"
 #include "rs_path.h"
@@ -399,6 +402,66 @@ namespace OHOS {
         testTransitionParam->CreateAnimation();
     }
 
+    void AnimationCallbackFuzzTest()
+    {
+        auto finishCallbackType = GetData<FinishCallbackType>();
+
+        auto finishCallback = std::make_shared<AnimationFinishCallback>(nullptr, finishCallbackType);
+        finishCallback->Execute();
+        auto repeatCallback = std::make_shared<AnimationRepeatCallback>(nullptr);
+        repeatCallback->Execute();
+    }
+
+    void RSImplicitAnimatorMapFuzzTest()
+    {
+        int32_t animatorId = GetData<int32_t>();
+
+        auto implicitAnimatorMap = RSImplicitAnimatorMap::Instance().GetAnimator(animatorId);
+        if (implicitAnimatorMap == nullptr) {
+            return;
+        }
+    }
+
+    void RSInteractiveImplictAnimatorFuzzTest()
+    {
+        auto position = GetData<RSInteractiveAnimationPosition>();
+        auto fraction = GetData<float>();
+        const RSAnimationTimingProtocol timingProtocol = {};
+
+        auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
+            timingProtocol, RSAnimationTimingCurve::DEFAULT);
+        interactiveAnimator->AddImplictAnimation([]() {});
+        interactiveAnimator->AddAnimation([]() {});
+        interactiveAnimator->StartAnimation();
+        interactiveAnimator->PauseAnimation();
+        interactiveAnimator->ContinueAnimation();
+        interactiveAnimator->FinishAnimation(position);
+        interactiveAnimator->ReverseAnimation();
+        interactiveAnimator->SetFraction(fraction);
+        interactiveAnimator->GetFraction();
+        interactiveAnimator->GetStatus();
+        interactiveAnimator->SetFinishCallBack([]() {});
+    }
+
+    void RSInterpolatingSpringAnimationFuzzTest()
+    {
+        float first = GetData<float>();
+        float second = GetData<float>();
+        float third = GetData<float>();
+        float zeroThreshold = GetData<float>();
+        auto firstProperty = std::make_shared<RSAnimatableProperty<float>>(first);
+        auto secondProperty = std::make_shared<RSAnimatableProperty<float>>(second);
+        auto thirdProperty = std::make_shared<RSAnimatableProperty<float>>(third);
+
+        auto firstAnimation = std::make_shared<RSInterpolatingSpringAnimation>(firstProperty, secondProperty);
+        firstAnimation->SetTimingCurve(RSAnimationTimingCurve::DEFAULT);
+        firstAnimation->GetTimingCurve();
+        auto secondAnimation = std::make_shared<RSInterpolatingSpringAnimation>(
+            firstProperty, secondProperty, thirdProperty);
+        secondAnimation->SetZeroThreshold(zeroThreshold);
+        secondAnimation->IsSupportInteractiveAnimator();
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -422,6 +485,10 @@ namespace OHOS {
         RsTransitionEffectFuzzTest();
         RsImplicitAnimatorFuzzTest();
         RsImplicitAnimatorParamFuzzTest();
+        AnimationCallbackFuzzTest();
+        RSImplicitAnimatorMapFuzzTest();
+        RSInteractiveImplictAnimatorFuzzTest();
+        RSInterpolatingSpringAnimationFuzzTest();
         return true;
     }
 } // namespace OHOS
