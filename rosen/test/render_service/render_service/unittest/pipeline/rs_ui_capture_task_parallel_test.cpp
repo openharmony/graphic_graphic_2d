@@ -70,6 +70,18 @@ public:
     bool captureSuccess_ = false;
     bool isCallbackCalled_ = false;
 };
+
+class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
+    sptr<IRemoteObject> AsObject()
+    {
+        return nullptr;
+    }
+
+    void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap)
+    {
+        // DO NOTHING
+    }
+};
 }
 
 class RSUiCaptureTaskParallelTest : public testing::Test {
@@ -320,6 +332,33 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByNo
     auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_EQ(handle->CreatePixelMapByNode(node), nullptr);
+}
+
+/*
+ * @tc.name: RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask
+ * @tc.desc: Test RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask, Function | SmallTest | Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto mainThread = RSMainThread::Instance();
+
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto pixelMap = std::make_unique<Media::PixelMap>();
+    ASSERT_NE(pixelMap, nullptr);
+    auto surface = std::make_shared<Drawing::Surface>();
+    ASSERT_NE(surface, nullptr);
+#ifdef RS_ENABLE_UNI_RENDER
+    auto copytask =
+        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap), node->GetId(), mockCallback);
+
+    ASSERT_FALSE(copytask);
+    mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

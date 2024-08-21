@@ -37,6 +37,19 @@ public:
     bool CreateResources();
     bool Run(sptr<RSISurfaceCaptureCallback> callback);
 
+    static void ProcessUiCaptureCallback(
+        sptr<RSISurfaceCaptureCallback> callback, NodeId id, Media::PixelMap* pixelmap);
+#ifdef RS_ENABLE_UNI_RENDER
+    static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
+        std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        int32_t rotation = 0, bool useDma = false);
+#endif
+
+    static int32_t GetCaptureCount()
+    {
+        return captureCount_;
+    }
+
 private:
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap) const;
     std::unique_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
@@ -45,6 +58,7 @@ private:
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> nodeDrawable_ = nullptr;
     NodeId nodeId_;
     RSSurfaceCaptureConfig captureConfig_;
+    static inline std::atomic<int32_t> captureCount_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
