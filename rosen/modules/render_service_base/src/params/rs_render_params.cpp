@@ -21,6 +21,7 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
 #include "screen_manager/rs_screen_info.h"
+#include "drawable/rs_render_node_drawable_adapter.h"
 namespace OHOS::Rosen {
 namespace {
 thread_local Drawing::Matrix parentSurfaceMatrix_;
@@ -415,6 +416,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->contentEmpty_ = contentEmpty_;
     target->hasSandBox_ = hasSandBox_;
     target->localDrawRect_ = localDrawRect_;
+    target->absDrawRect_ = absDrawRect_;
     target->id_ = id_;
     target->cacheSize_ = cacheSize_;
     target->frameGravity_ = frameGravity_;
@@ -434,6 +436,10 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
+    target->firstLevelNodeId_ = firstLevelNodeId_;
+    target->firstLevelNodeDrawable_ = firstLevelNodeDrawable_;
+    target->uifirstRootNodeId_ = uifirstRootNodeId_;
+    target->uifirstRootNodeDrawable_ = uifirstRootNodeDrawable_;
     needSync_ = false;
 }
 
@@ -463,6 +469,38 @@ void RSRenderParams::SetParentSurfaceMatrix(const Drawing::Matrix& parentSurface
 const Drawing::Matrix& RSRenderParams::GetParentSurfaceMatrix()
 {
     return parentSurfaceMatrix_;
+}
+
+void RSRenderParams::SetFirstLevelNode(NodeId firstLevelNodeId)
+{
+    firstLevelNodeId_ = firstLevelNodeId;
+    firstLevelNodeDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(firstLevelNodeId);
+}
+
+const NodeId& RSRenderParams::GetFirstLevelNodeId() const
+{
+    return firstLevelNodeId_;
+}
+
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetFirstLevelNodeDrawable() const
+{
+    return firstLevelNodeDrawable_;
+}
+
+void RSRenderParams::SetUiFirstRootNode(NodeId uifirstRootNodeId)
+{
+    uifirstRootNodeId_ = uifirstRootNodeId;
+    uifirstRootNodeDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(uifirstRootNodeId);
+}
+
+const NodeId& RSRenderParams::GetUifirstRootNodeId() const
+{
+    return uifirstRootNodeId_;
+}
+
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetUiFirstRootNodeDrawable() const
+{
+    return uifirstRootNodeDrawable_;
 }
 
 // overrided surface params

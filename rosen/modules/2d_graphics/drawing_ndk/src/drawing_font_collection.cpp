@@ -14,9 +14,7 @@
  */
 
 #include "drawing_font_collection.h"
-#ifndef USE_GRAPHIC_TEXT_GINE
-#include "rosen_text/ui/font_collection.h"
-#else
+
 #include "rosen_text/font_collection.h"
 
 #ifndef USE_TEXGINE
@@ -29,7 +27,6 @@
 #include "texgine/font_collection.h"
 #endif
 
-#endif
 #include "utils/object_mgr.h"
 
 using namespace OHOS::Rosen::Drawing;
@@ -44,12 +41,6 @@ inline T1* ConvertToFontCollection(T2* ptr)
 
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    OH_Drawing_FontCollection* fc = (OH_Drawing_FontCollection*)new (std::nothrow) rosen::FontCollection;
-    if (fc == nullptr) {
-        return nullptr;
-    }
-#else
 #ifndef USE_TEXGINE
     OH_Drawing_FontCollection* fc =
         (OH_Drawing_FontCollection*)new (std::nothrow) OHOS::Rosen::AdapterTxt::FontCollection;
@@ -58,11 +49,10 @@ OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
     }
 #else
     OH_Drawing_FontCollection* fc =
-        (OH_Drawing_FontCollection*)new (std::nothrow) OHOS::Rosen::AdapterTextEngine::FontCollection;
+        (OH_Drawing_FontCollection*) new (std::nothrow) OHOS::Rosen::AdapterTextEngine::FontCollection;
     if (fc == nullptr) {
         return nullptr;
     }
-#endif
 #endif
     objectMgr->AddObject(fc);
     return fc;
@@ -70,14 +60,10 @@ OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 
 OH_Drawing_FontCollection* OH_Drawing_CreateSharedFontCollection(void)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    auto fc = std::make_shared<rosen::FontCollection>();
-#else
 #ifndef USE_TEXGINE
     auto fc = std::make_shared<OHOS::Rosen::AdapterTxt::FontCollection>();
 #else
     auto fc = std::make_shared<OHOS::Rosen::AdapterTextEngine::FontCollection>();
-#endif
 #endif
     OH_Drawing_FontCollection* pointer = reinterpret_cast<OH_Drawing_FontCollection*>(fc.get());
     FontCollectionMgr::GetInstance().Insert(pointer, fc);
@@ -97,14 +83,10 @@ void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
         return;
     }
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-    delete ConvertToFontCollection<rosen::FontCollection>(fontCollection);
-#else
 #ifndef USE_TEXGINE
     delete ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection);
 #else
     delete ConvertToFontCollection<OHOS::Rosen::AdapterTextEngine::FontCollection>(fontCollection);
-#endif
 #endif
 }
 
@@ -121,14 +103,10 @@ void OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection* fontC
     if (fontCollection == nullptr) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToFontCollection<rosen::FontCollection>(fontCollection)->DisableSystemFont();
-#else
 #ifndef USE_TEXGINE
     ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->DisableSystemFont();
 #else
     ConvertToFontCollection<OHOS::Rosen::AdapterTextEngine::FontCollection>(fontCollection)->DisableSystemFont();
-#endif
 #endif
 }
 

@@ -328,6 +328,34 @@ bool RSSurfaceRenderParams::GetSkipDraw() const
     return isSkipDraw_;
 }
 
+void RSSurfaceRenderParams::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    auto iter = watermarkHandles_.find(name);
+    if (iter == watermarkHandles_.end()) {
+        std::tie(iter, std::ignore) = watermarkHandles_.insert({name, {false, nullptr}});
+    }
+    (iter->second).second = watermark;
+}
+
+void RSSurfaceRenderParams::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+{
+    auto iter = watermarkHandles_.find(name);
+    if (iter == watermarkHandles_.end()) {
+        return;
+    }
+    (iter->second).first = isEnabled;
+}
+
+std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> RSSurfaceRenderParams::GetWatermark() const
+{
+    return watermarkHandles_;
+}
+
+size_t RSSurfaceRenderParams::GetWatermarkSize() const
+{
+    return watermarkHandles_.size();
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -407,6 +435,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
+    targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     RSRenderParams::OnSync(target);
 }
 

@@ -17,12 +17,7 @@
 #define ROSEN_TEXT_ADAPTER_TXT_TYPOGRAPHY_H
 
 #include "rosen_text/typography.h"
-
-#ifndef USE_GRAPHIC_TEXT_GINE
-#include "third_party/flutter/txt/src/txt/paragraph.h"
-#else
 #include "txt/paragraph.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -43,11 +38,11 @@ public:
 
     void SetIndents(const std::vector<float>& indents) override;
     void Layout(double width) override;
-    void Paint(SkCanvas *canvas, double x, double y) override;
-    void Paint(Drawing::Canvas *drawCanvas, double x, double y) override;
+    void Paint(SkCanvas* canvas, double x, double y) override;
+    void Paint(Drawing::Canvas* drawCanvas, double x, double y) override;
 
-    std::vector<TextRect> GetTextRectsByBoundary(size_t left, size_t right,
-        TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle) override;
+    std::vector<TextRect> GetTextRectsByBoundary(
+        size_t left, size_t right, TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle) override;
     std::vector<TextRect> GetTextRectsOfPlaceholders() override;
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;

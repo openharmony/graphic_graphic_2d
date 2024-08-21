@@ -45,7 +45,7 @@ public:
     std::string GetDetailedDescription() override;
     Drawing::Brush GetBrush() const;
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
-        const Drawing::Rect& src, const Drawing::Rect& dst);
+        const Drawing::Rect& src, const Drawing::Rect& dst, bool discardCanvas = false);
     std::vector<std::shared_ptr<RSShaderFilter>> GetShaderFilters() const;
     void InsertShaderFilter(std::shared_ptr<RSShaderFilter> shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
@@ -91,6 +91,9 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst);
 
 private:
+    void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+        const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer, const Drawing::Rect& src,
+        const Drawing::Rect& dst);
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
     uint32_t imageFilterHash_ = 0;

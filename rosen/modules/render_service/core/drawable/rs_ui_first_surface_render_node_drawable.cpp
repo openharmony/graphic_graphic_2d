@@ -504,4 +504,25 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
     }
     return ret;
 }
+
+bool RSSurfaceRenderNodeDrawable::CheckCurFirstLevelCorrect() const
+{
+    if (!renderParams_) {
+        return false;
+    }
+
+    auto& curUifirstRootNodeId = RSUifirstManager::Instance().GetUifirstRootNodeId();
+    auto& curFirstLevelNodeId = RSUifirstManager::Instance().GetFirstLevelNodeId();
+    auto& uifirstRootNodeId = renderParams_->GetUifirstRootNodeId();
+    auto& firstLevelNodeId = renderParams_->GetFirstLevelNodeId();
+    if (curUifirstRootNodeId == INVALID_NODEID && curFirstLevelNodeId == INVALID_NODEID) {
+        // should draw when uifirst not inited
+        return true;
+    }
+
+    auto uiFirstCheckRet = uifirstRootNodeId == curUifirstRootNodeId && curUifirstRootNodeId != INVALID_NODEID;
+    auto firstLevelCheckRet = firstLevelNodeId == curFirstLevelNodeId && curFirstLevelNodeId != INVALID_NODEID;
+
+    return uiFirstCheckRet || firstLevelCheckRet;
+}
 } // namespace OHOS::Rosen

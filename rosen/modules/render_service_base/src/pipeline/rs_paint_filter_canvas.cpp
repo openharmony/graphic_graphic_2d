@@ -957,6 +957,23 @@ std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Dr
     return result;
 }
 
+bool RSPaintFilterCanvasBase::IsClipRect()
+{
+    bool result = false;
+#ifdef ENABLE_RECORDING_DCL
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            result = result || (*iter)->IsClipRect();
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        result = canvas_->IsClipRect();
+    }
+#endif
+    return result;
+}
+
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ 1.0f }),
       envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } })

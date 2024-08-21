@@ -73,12 +73,8 @@ public:
 
     virtual std::string GetModifierTypeString()
     {
-        auto iter = RS_MODIFIER_TYPE_TO_STRING.find(GetType());
-        if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
-            return iter->second;
-        } else {
-            return "UNKNOWN";
-        }
+        auto modifierTypeString = std::make_shared<RSModifierTypeString>();
+        return modifierTypeString->GetModifierTypeString(GetType());
     }
 
     virtual void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) = 0;

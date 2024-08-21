@@ -441,6 +441,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetVideoSurfaceFlag(false);
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
     rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
+    rsCommonHook.SetHardwareEnabledByIgnoringInsideFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     if (videoConfigFromHgm.empty() || pkgs.size() > 1) {
         return;
@@ -454,6 +455,11 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
             rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
             rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
+        // 3 temporary code: ignore below current hardware composer node rect size
+        } else if (videoConfigFromHgm[pkgNameForCheck] == "3") {
+            rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
+            rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
+            rsCommonHook.SetHardwareEnabledByIgnoringInsideFlag(true);
         }
     }
 }

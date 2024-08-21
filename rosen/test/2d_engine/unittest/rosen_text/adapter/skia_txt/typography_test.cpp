@@ -183,5 +183,54 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level
     typography->GetTextLines();
     typography->CloneSelf();
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest008
+ * @tc.desc: test for GetLongestLineWithIndent & GetLineInfo & GetLineMetrics
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level1)
+{
+    double maxWidth = 50;
+    std::vector<float> indents = {1.2, 3.4};
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"text";
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle typographyTextStyle;
+    typographyCreate->PushStyle(typographyTextStyle);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->SetIndents(indents);
+    typography->Layout(maxWidth);
+
+    // 0 for unit test
+    EXPECT_EQ(typography->GetLongestLineWithIndent() > 0, true);
+    EXPECT_EQ(typography->GetLongestLineWithIndent() > typography->GetActualWidth(), true);
+    EXPECT_EQ(typography->GetLongestLineWithIndent() <= maxWidth, true);
+
+    LineMetrics lineMetrics;
+    EXPECT_EQ(typography->GetLineInfo(0, true, true, &lineMetrics) == true, true);
+    EXPECT_EQ(lineMetrics.ascender > 0, true);
+    EXPECT_EQ(lineMetrics.descender > 0, true);
+    EXPECT_EQ(lineMetrics.height > 0, true);
+    EXPECT_EQ(lineMetrics.x == indents[0], true);
+    EXPECT_EQ(lineMetrics.y == 0, true);
+    EXPECT_EQ(lineMetrics.startIndex == 0, true);
+    EXPECT_EQ(lineMetrics.endIndex == text.size(), true);
+
+    std::vector<LineMetrics> lines = typography->GetLineMetrics();
+    EXPECT_EQ(lines.size() > 0, true);
+    LineMetrics firstLineMetrics = lines[0];
+    EXPECT_EQ(firstLineMetrics.ascender > 0, true);
+    EXPECT_EQ(firstLineMetrics.descender > 0, true);
+    EXPECT_EQ(firstLineMetrics.height > 0, true);
+    EXPECT_EQ(firstLineMetrics.x == indents[0], true);
+    EXPECT_EQ(firstLineMetrics.y == 0, true);
+    EXPECT_EQ(firstLineMetrics.startIndex == 0, true);
+    EXPECT_EQ(firstLineMetrics.endIndex == text.size(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

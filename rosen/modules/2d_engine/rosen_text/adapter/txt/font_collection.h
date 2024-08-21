@@ -17,11 +17,8 @@
 #define ROSEN_TEXT_ADAPTER_TXT_FONT_COLLECTION_H
 
 #include "rosen_text/font_collection.h"
-
-#include "txt/font_collection.h"
-#ifdef USE_GRAPHIC_TEXT_GINE
 #include "txt/asset_font_manager.h"
-#endif
+#include "txt/font_collection.h"
 
 #include "text/font_mgr.h"
 
@@ -36,8 +33,8 @@ public:
 
     void DisableFallback() override;
     void DisableSystemFont() override;
-    void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
-    void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    void LoadFont(const std::string& familyName, const uint8_t* data, size_t datalen) override;
+    void LoadThemeFont(const std::string& familyName, const uint8_t* data, size_t datalen) override;
 
 private:
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;

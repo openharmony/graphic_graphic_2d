@@ -325,11 +325,17 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     if (isOnTheTree_) {
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
+        if (stagingRenderParams_) {
+            stagingRenderParams_->SetFirstLevelNode(firstLevelNodeId_);
+        }
         OnTreeStateChanged();
     } else {
         OnTreeStateChanged();
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
+        if (stagingRenderParams_) {
+            stagingRenderParams_->SetFirstLevelNode(firstLevelNodeId_);
+        }
     }
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
@@ -338,6 +344,9 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     }
     if (uifirstRootNodeId != INVALID_NODEID) {
         uifirstRootNodeId_ = uifirstRootNodeId;
+        if (stagingRenderParams_) {
+            stagingRenderParams_->SetUiFirstRootNode(uifirstRootNodeId_);
+        }
     }
 
     for (auto& weakChild : children_) {
@@ -782,11 +791,8 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
     std::string splitStr = ", ";
     std::string modifierDesc = ", DrawCmdModifiers2:[";
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
-        std::string typeName = "UNKNOWN";
-        auto iter = RS_MODIFIER_TYPE_TO_STRING.find(type);
-        if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
-            typeName = iter->second;
-        }
+        auto modifierTypeString = std::make_shared<RSModifierTypeString>();
+        std::string typeName = modifierTypeString->GetModifierTypeString(type);
         modifierDesc += typeName + ":[";
         std::string propertyDesc = "";
         bool found = false;
@@ -2032,7 +2038,7 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
     }
     // force update if no next vsync when skip-frame enabled
     if (!needRequestNextVsync && filterDrawable->IsSkippingFrame()) {
-        filterDrawable->ForceClearCacheWithLastFrame();
+        filterDrawable->MarkForceClearCacheWithLastFrame();
         return;
     }
 
@@ -2058,16 +2064,14 @@ void RSRenderNode::MarkForceClearFilterCacheWithInvisible()
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->MarkNeedClearFilterCache();
-            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
+            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::BACKGROUND_FILTER);
         }
     }
     if (GetRenderProperties().GetFilter()) {
         auto filterDrawable = GetFilterDrawable(true);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->MarkNeedClearFilterCache();
-            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COMPOSITING_FILTER);
+            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::COMPOSITING_FILTER);
         }
     }
 }
@@ -3537,6 +3541,9 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetInstanceRootNode() const
 void RSRenderNode::UpdateTreeUifirstRootNodeId(NodeId id)
 {
     uifirstRootNodeId_ = id;
+    if (stagingRenderParams_) {
+        stagingRenderParams_->SetUiFirstRootNode(uifirstRootNodeId_);
+    }
     for (auto& child : *GetChildren()) {
         if (child) {
             child->UpdateTreeUifirstRootNodeId(id);
@@ -3969,6 +3976,12 @@ bool RSRenderNode::UpdateLocalDrawRect()
 {
     auto drawRect = selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>());
     return stagingRenderParams_->SetLocalDrawRect(drawRect);
+}
+
+void RSRenderNode::UpdateAbsDrawRect()
+{
+    auto absRect = GetAbsDrawRect();
+    stagingRenderParams_->SetAbsDrawRect(absRect);
 }
 
 void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius, bool isSubNodeInSurface)

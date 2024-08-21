@@ -182,6 +182,13 @@ public:
         return startingWindowFlag_;
     }
 
+    void SetFirstLevelNode(NodeId firstLevelNodeId);
+    const NodeId& GetFirstLevelNodeId() const;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetFirstLevelNodeDrawable() const;
+    void SetUiFirstRootNode(NodeId uifirstRootNodeId);
+    const NodeId& GetUifirstRootNodeId() const;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetUiFirstRootNodeDrawable() const;
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -213,8 +220,11 @@ public:
     virtual const RSLayerInfo& GetLayerInfo() const;
     virtual const RectI& GetAbsDrawRect() const
     {
-        static const RectI defaultRect = {};
-        return defaultRect;
+        return absDrawRect_;
+    }
+    void SetAbsDrawRect(RectI& absRect)
+    {
+        absDrawRect_ = absRect;
     }
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
@@ -288,6 +298,7 @@ private:
     float alpha_ = 1.0f;
     // this rect should map display coordination
     RectF localDrawRect_;
+    RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
 
@@ -312,6 +323,10 @@ private:
     bool needFilter_ = false;
     SurfaceParam surfaceParams_;
     bool freezeFlag_ = false;
+    NodeId firstLevelNodeId_ = INVALID_NODEID;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr firstLevelNodeDrawable_ = {};
+    NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr uifirstRootNodeDrawable_ = {};
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

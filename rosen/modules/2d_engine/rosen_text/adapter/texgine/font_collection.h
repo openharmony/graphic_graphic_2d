@@ -20,20 +20,16 @@
 
 #include "rosen_text/font_collection.h"
 
-#ifdef USE_GRAPHIC_TEXT_GINE
 namespace OHOS {
 namespace Rosen {
-#endif
 namespace TextEngine {
 class FontProviders;
 class DynamicFontProvider;
 class ThemeFontProvider;
 class SystemFontProvider;
 } // namespace TextEngine
-#ifdef USE_GRAPHIC_TEXT_GINE
 } // namespace Rosen
 } // namespace OHOS
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -45,8 +41,8 @@ public:
 
     void DisableFallback() override;
     void DisableSystemFont() override;
-    void LoadFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
-    void LoadThemeFont(const std::string &familyName, const uint8_t *data, size_t datalen) override;
+    void LoadFont(const std::string& familyName, const uint8_t* data, size_t datalen) override;
+    void LoadThemeFont(const std::string& familyName, const uint8_t* data, size_t datalen) override;
 
 private:
     std::shared_ptr<TextEngine::FontProviders> fontProviders_ = nullptr;

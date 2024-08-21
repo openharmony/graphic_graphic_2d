@@ -16,24 +16,18 @@
 #ifndef OBJECT_MGR_H
 #define OBJECT_MGR_H
 
-#include <mutex>
-#include <vector>
-#include <unordered_map>
 #include <memory>
+#include <mutex>
+#include <unordered_map>
+#include <vector>
 
 #include "text/typeface.h"
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-namespace rosen {
-class FontCollection;
-}
-#else
 namespace OHOS {
 namespace Rosen {
 class FontCollection;
 }
-}
-#endif
+} // namespace OHOS
 
 namespace OHOS {
 namespace Rosen {
@@ -59,11 +53,7 @@ public:
 
     static FontCollectionMgr& GetInstance();
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-    using FontCollectionType = rosen::FontCollection;
-#else
     using FontCollectionType = ::OHOS::Rosen::FontCollection;
-#endif
 
     void Insert(void* key, std::shared_ptr<FontCollectionType> fontCollection);
     std::shared_ptr<FontCollectionType> Find(void* key);

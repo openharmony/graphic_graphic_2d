@@ -325,6 +325,11 @@ public:
     bool GetSkipDraw() const;
 
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
+    
+    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
+    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> GetWatermark() const;
+    size_t GetWatermarkSize() const;
 
     void SetPreScalingMode(ScalingMode scalingMode) override
     {
@@ -487,6 +492,7 @@ private:
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> watermarkHandles_ = {};
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

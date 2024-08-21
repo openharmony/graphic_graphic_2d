@@ -50,6 +50,8 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+#include "render/rs_pixel_map_util.h"
+
 #include "luminance/rs_luminance_control.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
@@ -87,6 +89,14 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface)
 {
+    RSRenderThreadFirstLevelHelper firstLevelHelper(
+        surfaceParams.GetFirstLevelNodeId(), surfaceParams.GetUifirstRootNodeId(), nodeId_);
+    if (firstLevelHelper.IsUifirstCheckNode() && !CheckCurFirstLevelCorrect()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw CheckCurFirstLevelCorrect [%s] Id:%" PRIu64 "",
+            name_.c_str(), surfaceParams.GetId());
+        return;
+    }
+
     auto bounds = surfaceParams.GetFrameRect();
 
     // 1. draw background
@@ -109,6 +119,36 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
 
     // 5. Draw foreground of this node by the main canvas.
     DrawForeground(canvas, bounds);
+
+    if (surfaceParams.GetWatermarkSize() > 0) {
+        DrawWatermarkIfNeed(canvas, surfaceParams);
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params)
+{
+    auto surfaceRect = params.GetBounds();
+    if (surfaceRect.GetWidth() == 0 || surfaceRect.GetHeight() == 0) {
+        return;
+    }
+    for (auto& [name, pixelMapInfo] : params.GetWatermark()) {
+        auto [isEnabled, watermark] = pixelMapInfo;
+        if (!isEnabled || !watermark) {
+            continue;
+        }
+        auto imagePtr = RSPixelMapUtil::ExtractDrawingImage(watermark);
+        if (!imagePtr || imagePtr->GetWidth() == 0 || imagePtr->GetHeight() == 0) {
+            continue;
+        }
+        auto imageRect = Drawing::Rect(0, 0, imagePtr->GetWidth(), imagePtr->GetHeight());
+        Drawing::Brush brush;
+        brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
+            *imagePtr, Drawing::TileMode::REPEAT, Drawing::TileMode::REPEAT,
+            Drawing::SamplingOptions(), Drawing::Matrix()));
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(surfaceRect);
+        canvas.DetachBrush();
+    }
 }
 
 Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThreadParams& uniParam,

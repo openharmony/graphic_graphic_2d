@@ -828,5 +828,27 @@ bool RSSurfaceNode::GetSkipDraw() const
 {
     return isSkipDraw_;
 }
+
+void RSSurfaceNode::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetWatermark>(GetId(), name, watermark);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        ROSEN_LOGD("SetWatermark  RSSurfaceNode");
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
+void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetWatermarkEnabled>(GetId(), name, isEnabled);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        ROSEN_LOGD("SetWatermarkEnabled  RSSurfaceNode");
+        transactionProxy->AddCommand(command, true);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

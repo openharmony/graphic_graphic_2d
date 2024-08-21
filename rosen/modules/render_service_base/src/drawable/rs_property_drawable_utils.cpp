@@ -318,14 +318,13 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     // Optional use cacheManager to draw filter
     if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
         std::shared_ptr<RSShaderFilter> rsShaderFilter =
-        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+            filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
             filter->SetSnapshotOutset(false);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter,
-            { false, shouldClearFilteredCache });
+        cacheManager->DrawFilter(*paintFilterCanvas, filter, shouldClearFilteredCache);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         return;
     }

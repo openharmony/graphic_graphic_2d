@@ -1369,5 +1369,25 @@ void RSUifirstManager::CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRende
     }
 }
 
+const NodeId& RSUifirstManager::GetUifirstRootNodeId()
+{
+    return curUifirstRootNodeId_;
+}
+
+void RSUifirstManager::SetUifirstRootNodeId(NodeId uifirstRootNodeId)
+{
+    curUifirstRootNodeId_ = uifirstRootNodeId;
+}
+
+const NodeId& RSUifirstManager::GetFirstLevelNodeId()
+{
+    return curFirstLevelNodeId_;
+}
+
+void RSUifirstManager::SetFirstLevelNodeId(NodeId curFirstLevelNodeId)
+{
+    curFirstLevelNodeId_ = curFirstLevelNodeId;
+}
+
 } // namespace Rosen
 } // namespace OHOS

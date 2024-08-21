@@ -45,12 +45,8 @@ namespace OHOS {
 namespace Rosen {
 class UIEffectNapiUtils {
 public:
-    static napi_valuetype getType(napi_env env, napi_value root)
-    {
-        napi_valuetype res = napi_undefined;
-        napi_typeof(env, root, &res);
-        return res;
-    }
+    static napi_valuetype getType(napi_env env, napi_value root);
+    static bool IsSystemApp();
 };
 } // namespace Rosen
 } // namespace OHOS
