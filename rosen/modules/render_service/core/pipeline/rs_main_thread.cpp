@@ -3198,7 +3198,7 @@ void RSMainThread::DumpNode(std::string& result, uint64_t nodeId) const
 }
 
 void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
-    std::string& type, int pid)
+    std::string& type, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     DfxString log;
@@ -3511,7 +3511,7 @@ bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyB
     }
 }
 
-bool RSMainThread::IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const
+bool RSMainThread::IsDrawingGroupChanged(const RSRenderNode& cacheRootNode) const
 {
     std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
     auto iter = context_->activeNodesInRoot_.find(cacheRootNode.GetInstanceRootNodeId());

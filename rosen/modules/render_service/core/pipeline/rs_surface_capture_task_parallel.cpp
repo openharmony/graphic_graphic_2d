@@ -44,8 +44,8 @@
 
 namespace OHOS {
 namespace Rosen {
-
-static inline void DrawCapturedImg(Drawing::Image& image,
+namespace {
+inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
     Drawing::TextureOrigin& textureOrigin, Drawing::BitmapFormat& bitmapFormat)
 {
@@ -59,6 +59,7 @@ static inline void DrawCapturedImg(Drawing::Image& image,
         textureOrigin, bitmapFormat, nullptr);
     canvas.DrawImage(image, 0.f, 0.f, Drawing::SamplingOptions());
     surface.FlushAndSubmit(true);
+}
 }
 
 void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
@@ -89,6 +90,10 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
 void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
+    if (callback == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
+        return;
+    }
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
         std::make_shared<RSSurfaceCaptureTaskParallel>(id, captureConfig);
     if (captureHandle == nullptr) {
@@ -299,7 +304,12 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        if (renderEngine == nullptr) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: renderEngine is nullptr");
+            return nullptr;
+        }
+        auto renderContext = renderEngine->GetRenderContext();
         if (renderContext == nullptr) {
             RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: renderContext is nullptr");
             return nullptr;
@@ -320,7 +330,12 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
 
 void RSSurfaceCaptureTaskParallel::SetupGpuContext()
 {
-    auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (renderEngine == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTaskParallel::SetupGpuContext: renderEngine is nullptr");
+        return;
+    }
+    auto renderContext = renderEngine->GetRenderContext();
     gpuContext_ = renderContext != nullptr ? renderContext->GetSharedDrGPUContext() : nullptr;
     if (gpuContext_ == nullptr) {
         RS_LOGW("RSSurfaceCaptureTaskParallel::SetupGpuContext gpuContext_ is nullptr");
@@ -342,6 +357,10 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     std::shared_ptr<Drawing::Surface> surface, std::unique_ptr<Media::PixelMap> pixelMap,
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, int32_t rotation, bool useDma)
 {
+    if (surface == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTaskParallel: nodeId:[%{public}" PRIu64 "], surface is nullptr", id);
+        return {};
+    }
     Drawing::BackendTexture backendTexture = surface->GetBackendTexture();
     if (!backendTexture.IsValid()) {
         RS_LOGE("RSSurfaceCaptureTaskParallel: SkiaSurface bind Image failed: BackendTexture is invalid");
@@ -353,6 +372,10 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
     std::get<0>(*wrapperSf) = std::move(surface);
     std::function<void()> copytask = [wrapper, callback, backendTexture, wrapperSf, id, rotation, useDma]() -> void {
         RS_TRACE_NAME_FMT("copy and send capture useDma:%d", useDma);
+        if (callback == nullptr) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel: nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
+            return;
+        }
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: Surface bind Image failed: BackendTexture is invalid");
             callback->OnSurfaceCapture(id, nullptr);
@@ -442,6 +465,10 @@ sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(Drawing::ImageInfo &dstInfo, const std::
     RS_LOGE("Unsupport dma mem alloc");
     return nullptr;
 #else
+    if (pixelmap == nullptr) {
+        RS_LOGE("DmaMem::DmaMemAlloc: pixelmap is nullptr");
+        return nullptr;
+    }
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
     if (!surfaceBuffer) {
         RS_LOGE("DmaMem::DmaMemAlloc: surfaceBuffer create failed");
@@ -504,6 +531,9 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
     }
 
     auto vkTextureInfo = backendTextureTmp.GetTextureInfo().GetVKTextureInfo();
+    if (vkTextureInfo == nullptr) {
+        return nullptr;
+    }
     vkTextureInfo->imageUsageFlags = vkTextureInfo->imageUsageFlags | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
         vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
