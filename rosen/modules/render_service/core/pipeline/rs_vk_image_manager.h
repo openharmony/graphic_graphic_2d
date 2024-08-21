@@ -90,7 +90,6 @@ private:
         const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex);
 
     mutable std::mutex opMutex_;
-    static constexpr size_t MAX_CACHE_SIZE = 16;
     std::queue<int32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
     std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs_; // guarded by opMutex_
 };

@@ -575,7 +575,7 @@ std::shared_ptr<Drawing::Image> RSUniRenderThread::GetWatermarkImg()
     return renderThreadParams->GetWatermarkImg();
 }
 
-bool RSUniRenderThread::GetWatermarkFlag()
+bool RSUniRenderThread::GetWatermarkFlag() const
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     return renderThreadParams->GetWatermarkFlag();

@@ -94,7 +94,7 @@ public:
     {
         frameCount_++;
     }
-    bool GetWatermarkFlag();
+    bool GetWatermarkFlag() const;
     
     bool IsCurtainScreenOn() const;
 
@@ -204,7 +204,7 @@ private:
 
     std::vector<Callback> imageReleaseTasks_;
     std::mutex imageReleaseMutex_;
-    bool postImageReleaseTaskFlag_;
+    bool postImageReleaseTaskFlag_ = false;
     int imageReleaseCount_ = 0;
 
     sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;

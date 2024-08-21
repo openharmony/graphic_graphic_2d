@@ -64,9 +64,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 constexpr int SLEEP_TIME_US = 1000;
-constexpr int TASK_DELAY_TIME_MS = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
+}
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSRenderServiceConnection::RSRenderServiceConnection(
