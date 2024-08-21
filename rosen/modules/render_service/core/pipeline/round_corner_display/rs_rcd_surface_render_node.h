@@ -149,9 +149,9 @@ private:
     float rcdGlobalZOrder_ = 0.0f;
 
 #ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_;
+    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
 #else
-    std::shared_ptr<RSSurface> surface_;
+    std::shared_ptr<RSSurface> surface_ = nullptr;
 #endif
     sptr<IBufferConsumerListener> consumerListener_;
 

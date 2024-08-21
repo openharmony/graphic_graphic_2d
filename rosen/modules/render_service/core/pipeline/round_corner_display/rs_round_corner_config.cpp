@@ -352,7 +352,11 @@ bool LCDModel::ReadXmlNode(const xmlNodePtr& lcdNodePtr)
     while (startPtr != nullptr) {
         auto name = startPtr->name;
         if (xmlStrEqual(name, BAD_CAST(NODE_ROG)) == 1) {
-            ROGSetting *rog = new ROGSetting();
+            ROGSetting *rog = new(std::nothrow) ROGSetting();
+            if (rog == nullptr) {
+                RS_LOGE("[%{public}s] read xml node is failed! \n", __func__);
+                return false;
+            }
             if (rog->ReadXmlNode(startPtr)) {
                 rogs.push_back(rog);
             } else {
@@ -464,7 +468,11 @@ bool RCDConfig::Load(std::string configFile)
     while (startPtr != nullptr) {
         auto name = startPtr->name;
         if (xmlStrEqual(name, BAD_CAST(NODE_LCDMODEL)) == 1) {
-            LCDModel* lcdModel = new LCDModel();
+            LCDModel* lcdModel = new(std::nothrow) LCDModel();
+            if (lcdModel == nullptr) {
+                RS_LOGE("RoundCornerDisplay read xml failed \n");
+                return false;
+            }
             if (lcdModel->ReadXmlNode(startPtr)) {
                 lcdModels.push_back(lcdModel);
             } else {
