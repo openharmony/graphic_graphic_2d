@@ -460,7 +460,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         return;
     }
     bool ret = CheckScreenPowerChange() || CheckColorFilterChange() || CheckCurtainScreenUsingStatusChange() ||
-               IsFirstFrameOfPartialRender() || IsWatermarkFlagChanged() || IsDisplayZoomIn() ||
+               IsFirstFrameOfPartialRender() || IsWatermarkFlagChanged() || IsDisplayZoomStateChange() ||
                isCompleteRenderEnabled_ || CheckLuminanceStatusChange() || IsFirstFrameOfOverdrawSwitch();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
@@ -523,7 +523,7 @@ bool RSUniRenderVisitor::IsWatermarkFlagChanged() const
     }
 }
 
-bool RSUniRenderVisitor::IsDisplayZoomIn() const
+bool RSUniRenderVisitor::IsDisplayZoomStateChange() const
 {
     if (!curDisplayNode_) {
         return false;

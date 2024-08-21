@@ -206,7 +206,7 @@ private:
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsWatermarkFlagChanged() const;
-    bool IsDisplayZoomIn() const;
+    bool IsDisplayZoomStateChange() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
