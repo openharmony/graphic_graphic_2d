@@ -456,7 +456,8 @@ sptr<SurfaceBuffer> DmaMem::DmaMemAlloc(Drawing::ImageInfo &dstInfo, const std::
         .height = dstInfo.GetHeight(),
         .strideAlignment = 0x8, // set 0x8 as default value to alloc SurfaceBufferImpl
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888, // PixelFormat
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_MEM_DMA,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE |
+            BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_MMZ_CACHE,
         .timeout = 0,
         .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
         .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
