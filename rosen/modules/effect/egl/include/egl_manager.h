@@ -39,7 +39,8 @@ public:
 
     ~EglManager() {}
     EGLConfig GetConfig(int version, EGLDisplay eglDisplay);
-    void Init();
+    EGLBoolean Init();
+    void Deinit();
     EGLBoolean IsEGLContextInCurrentThread(EGLDisplay display, EGLContext context);
 
 private:
