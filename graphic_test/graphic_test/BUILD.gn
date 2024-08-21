@@ -32,7 +32,7 @@ group("test") {
 ## Build RSGraphicTest
 ohos_unittest("RSGraphicTest") {
   module_out_path = module_output_path
-  sources = []
+  sources = [ "test_template/test_template.cpp" ]
   sources += drawing_engine_sources
   sources += hardware_manager_sources
   sources += open_capability_sources

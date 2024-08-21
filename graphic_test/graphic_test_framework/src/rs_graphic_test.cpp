@@ -20,9 +20,10 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 
-#include <thread>
 #include <chrono>
 #include <filesystem>
+#include <iostream>
+#include <thread>
 
 namespace OHOS {
 namespace Rosen {
@@ -92,7 +93,7 @@ void RSGraphicTest::TearDown()
     }
 
     RSGraphicTestDirector::Instance().FlushMessage();
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+    RSGraphicTestDirector::Instance().WaitForVSync();
 
     const ::testing::TestInfo* const testInfo =
         ::testing::UnitTest::GetInstance()->current_test_info();
@@ -111,10 +112,7 @@ void RSGraphicTest::TearDown()
         auto pixelMap = RSGraphicTestDirector::Instance().TakeScreenCaptureAndWait(
             RSParameterParse::Instance().surfaceCaptureWaitTime);
         if (pixelMap) {
-            std::string filename = RSParameterParse::Instance().imageSavePath;
-            if (imageSavePath_ != "") {
-                filename = imageSavePath_;
-            }
+            std::string filename = GetImageSavePath(extInfo->filePath);
             filename += testInfo->test_case_name() + std::string("_");
             filename += testInfo->name() + std::string(".png");
             if (std::filesystem::exists(filename)) {
@@ -124,14 +122,16 @@ void RSGraphicTest::TearDown()
                 LOGE("RSGraphicTest::TearDown write image failed %{public}s-%{public}s",
                     testInfo->test_case_name(), testInfo->name());
             }
+            std::cout << "png write to " << filename << std::endl;
         }
     }
 
     AfterEach();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     GetRootNode()->ResetTestSurface();
     RSGraphicTestDirector::Instance().FlushMessage();
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+    RSGraphicTestDirector::Instance().WaitForVSync();
 
     ++imageWriteId_;
 }
@@ -161,20 +161,25 @@ void RSGraphicTest::SetSurfaceColor(const RSColor& color)
     RSGraphicTestDirector::Instance().SetSurfaceColor(color);
 }
 
-void RSGraphicTest::SetImageSavePath(const std::string path)
+std::string RSGraphicTest::GetImageSavePath(const std::string path)
 {
+    std::string imagePath = "/data/local/";
+    size_t posCnt = path.rfind("/") + 1;
+    std::string subPath = path.substr(0, posCnt);
+    imagePath.append(subPath);
+
     namespace fs = std::filesystem;
-    if (!fs::exists(path)) {
-        if (!fs::create_directories(path)) {
+    if (!fs::exists(imagePath)) {
+        if (!fs::create_directories(imagePath)) {
             LOGE("RSGraphicTestDirector create dir failed");
         }
     } else {
-        if (!fs::is_directory(path)) {
+        if (!fs::is_directory(imagePath)) {
             LOGE("RSGraphicTestDirector path is not dir");
-            return;
         }
     }
-    imageSavePath_ = path;
+
+    return imagePath;
 }
 
 } // namespace Rosen
