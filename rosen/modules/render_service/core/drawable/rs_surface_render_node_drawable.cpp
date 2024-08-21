@@ -300,6 +300,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
+    RS_LOGI("RSSurfaceRenderNodeDrawable ondraw name:%{public}s nodeId:[%" PRIu64 "]", name_.c_str(),
+        surfaceParams->GetId());
+    
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw renderEngine is nullptr");
