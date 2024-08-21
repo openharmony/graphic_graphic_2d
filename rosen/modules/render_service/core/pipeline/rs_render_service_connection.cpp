@@ -1792,6 +1792,11 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
 
+void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    RSSystemProperties::SetDefaultDeviceRotationOffset(offset);
+}
+
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()
 {
     const auto& activeDirtyRegionInfos = GpuDirtyRegionCollection::GetInstance().GetActiveDirtyRegionInfo();

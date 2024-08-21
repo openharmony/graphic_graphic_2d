@@ -341,6 +341,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DEFAULT_DEVICE_ROTATION_OFFSET): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_DEFAULT_DEVICE_ROTATION_OFFSET");
+            break;
+        }
         default: {
             break;
         }

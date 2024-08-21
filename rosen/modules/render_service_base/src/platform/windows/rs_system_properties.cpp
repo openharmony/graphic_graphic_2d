@@ -172,6 +172,15 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
 }
 
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+{
+    return {};
+}
+
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+}
+
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
