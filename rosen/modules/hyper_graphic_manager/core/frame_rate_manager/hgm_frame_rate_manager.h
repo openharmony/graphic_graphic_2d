@@ -189,7 +189,6 @@ private:
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
-    static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange(const std::string& voter = "");
     bool IsCurrentScreenSupportAS();
     void ProcessAdaptiveSync(std::string voterName);
