@@ -15,12 +15,15 @@
 #include "gtest/gtest.h"
 #include "rs_test_util.h"
 #include "surface_buffer_impl.h"
+#include "surface_type.h"
 
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pixel_map.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
 
@@ -1782,7 +1785,7 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixOfBufferToRelRect_003, TestSize.Level2)
  * @tc.name: FlushSurfaceBuffer001
  * @tc.desc: test FlushSurfaceBuffer when pixelMap is nullptr
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issueIAL5XA
  */
 HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer001, TestSize.Level2)
 {
@@ -1795,16 +1798,26 @@ HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer001, TestSize.Level2)
  * @tc.name: FlushSurfaceBuffer002
  * @tc.desc: test FlushSurfaceBuffer when pixelMap is not nullptr
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issueIAL5XA
  */
 HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer002, TestSize.Level2)
 {
     Media::InitializationOptions opts;
-    auto pixelMap =  Media::PixelMap::Create(opts);
+    const double width = 100;
+    const double height = 100;
+    opts.size.width = width;
+    opts.size.height = height;
+    auto pixelMap = Media::PixelMap::Create(opts);
     ASSERT_NE(pixelMap, nullptr);
     RSUniRenderUtil::FlushSurfaceBuffer(pixelMap.get());
-    pixelMap.allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    DmaMem dmaMem;
+    Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    sptr<SurfaceBuffer> surFaceBuffer = dmaMem.DmaMemAlloc(info, pixelMap);
+    pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
     RSUniRenderUtil::FlushSurfaceBuffer(pixelMap.get());
+#endif
 }
 
 } // namespace OHOS::Rosen
