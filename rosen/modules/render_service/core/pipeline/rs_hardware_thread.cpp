@@ -355,7 +355,6 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
-        RS_LOGE("RSHardwareThread CreateOrGetScreenManager fail.");
         return;
     }
 
@@ -368,7 +367,6 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
 
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore.GetModesToApply());
     if (modeMap == nullptr) {
-        RS_LOGE("RSHardwareThread::PerformSetData fail, modeMap is nullptr");
         return;
     }
 

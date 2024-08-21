@@ -47,7 +47,7 @@ bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offs
 {
     RS_LOGI_IF(DEBUG_COMPOSER,
         "RSUniRenderComposerAdapter::initialize id:%{public}" PRIu64 " offsetX:%{public}d offsetY:%{public}d"
-        " mirrorAdaptiveCoefficient:%{public}d", screenInfo.id, offsetX, offsetY, mirrorAdaptiveCoefficient);
+        " mirrorAdaptiveCoefficient:%{public}f", screenInfo.id, offsetX, offsetY, mirrorAdaptiveCoefficient);
     hdiBackend_ = HdiBackend::GetInstance();
     if (hdiBackend_ == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::Init: hdiBackend is nullptr");
@@ -351,7 +351,7 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
         std::swap(boundsWidth, boundsHeight);
     }
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::GetCInfoSrcRect bufferWidth:%{public}d"
-        " boundsWidth:%{public}d bufferHeight:%{public}d boundsHeight:%{public}d frameGravity:%{public}d"
+        " boundsWidth:%{public}f bufferHeight:%{public}d boundsHeight:%{public}f frameGravity:%{public}d"
         " transformType:%{public}d srcRect[%{public}d %{public}d %{public}d %{public}d]", bufferWidth,
         boundsWidth, bufferHeight, boundsHeight, node.GetRenderProperties().GetFrameGravity(),
         transformType, info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h);
@@ -427,9 +427,9 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(
         std::swap(boundsWidth, boundsHeight);
     }
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::GetCInfoSrcRect bufferWidth:%{public}d"
-        " boundsWidth:%{public}d bufferHeight:%{public}d boundsHeight:%{public}d frameGravity:%{public}d"
+        " boundsWidth:%{public}f bufferHeight:%{public}d boundsHeight:%{public}f frameGravity:%{public}d"
         " transformType:%{public}d srcRect[%{public}d %{public}d %{public}d %{public}d]", bufferWidth,
-        boundsWidth, bufferHeight, boundsHeight, node.GetRenderProperties().GetFrameGravity(),
+        boundsWidth, bufferHeight, boundsHeight, params->GetFrameGravity(),
         transformType, info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h);
     if ((bufferWidth != boundsWidth || bufferHeight != boundsHeight) &&
         params->GetFrameGravity() != Gravity::TOP_LEFT) {
@@ -504,7 +504,7 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& 
     info.gravity = static_cast<int32_t>(frameGravity);
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::DealDataGravity frameGravity:%{public}d"
-        " frameWidth:%{public}d boundsWidth:%{public}d frameHeight:%{public}d boundsHeight:%{public}d",
+        " frameWidth:%{public}f boundsWidth:%{public}f frameHeight:%{public}f boundsHeight:%{public}f",
         frameGravity, frameWidth, boundsWidth, frameHeight, boundsHeight);
     if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
         (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
@@ -574,7 +574,7 @@ void RSUniRenderComposerAdapter::DealWithNodeGravity(
     info.gravity = static_cast<int32_t>(frameGravity);
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::DealDataGravity frameGravity:%{public}d"
-        " frameWidth:%{public}d boundsWidth:%{public}d frameHeight:%{public}d boundsHeight:%{public}d",
+        " frameWidth:%{public}f boundsWidth:%{public}f frameHeight:%{public}f boundsHeight:%{public}f",
         frameGravity, frameWidth, boundsWidth, frameHeight, boundsHeight);
     if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
         (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
@@ -1152,14 +1152,14 @@ bool RSUniRenderComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) co
     int32_t boundWidth = static_cast<int32_t>(screenInfo_.phyWidth);
     int32_t boundHeight = static_cast<int32_t>(screenInfo_.phyHeight);
     ScreenRotation rotation = screenInfo_.rotation;
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::IsOutOfScreenData rotation:%{public}d boundWidth:%{public}d"
-        " boundHeight:%{public}d dstRect[%{public}d %{public}d %{public}d %{public}d]", rotation, boundWidth,
-        boundHeight, dstRect.x, dstRect.y, dstRect.w, dstRect.h);
     if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
         std::swap(boundWidth, boundHeight);
     }
 
     const auto& dstRect = info.dstRect;
+    RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::IsOutOfScreenData rotation:%{public}d boundWidth:%{public}d"
+        " boundHeight:%{public}d dstRect[%{public}d %{public}d %{public}d %{public}d]", rotation, boundWidth,
+        boundHeight, dstRect.x, dstRect.y, dstRect.w, dstRect.h);
     if (dstRect.x + dstRect.w <= 0 ||
         dstRect.x >= boundWidth ||
         dstRect.y + dstRect.h <= 0 ||

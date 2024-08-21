@@ -2380,8 +2380,8 @@ void RSRenderNode::ApplyModifiers()
     UpdateShouldPaint();
 
     RS_LOGI_IF(DEBUG_NODE,
-        "RSRenderNode::apply modifiers dirtyTypes_:%{public}d RenderProperties's sandBox's hasValue is %{public}d"
-        " isTextureExportNode_:%{public}d", dirtyTypes_, GetRenderProperties().GetSandBox().has_value(),
+        "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
+        " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(),
         isTextureExportNode_);
     if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::SANDBOX)) &&
         !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
@@ -2425,7 +2425,6 @@ void RSRenderNode::UpdateDrawableVec()
 {
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::update drawable Vec dirtySlots is %{public}d", dirtySlots);
     if (!GetIsUsedBySubThread()) {
         UpdateDrawableVecInternal(dirtySlots);
     } else if (auto context = context_.lock()) {
@@ -2450,8 +2449,7 @@ void RSRenderNode::UpdateDrawableVecV2()
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
     RS_LOGI_IF(DEBUG_NODE,
-        "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d dirtySlots:%{public}d",
-        drawableChanged, dirtySlots);
+        "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
@@ -3109,7 +3107,7 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
 void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkNodeGP type:%{public}d isNodeGroup:%{public}d id:%{public}" + PRIu64,
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkNodeGP type:%{public}d isNodeGroup:%{public}d id:%{public}" PRIu64,
         type, isNodeGroup, GetId());
     if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
         auto context = GetContext().lock();
