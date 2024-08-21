@@ -18,6 +18,7 @@
 #include <vector>
 #include <memory>
 #include "hilog/log.h"
+#include "effect_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,9 +31,14 @@ using OHOS::HiviewDFX::HiLog;
 ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
 {
     if (pixmap == nullptr) {
-        return ;
+        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with null pixmap.");
+        return;
     }
     pixelmap_ = pixmap;
+    if (pixmap->GetWidth() <= 0 || pixmap->GetHeight() <= 0) {
+        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with zero pixmap width or height.");
+        return;
+    }
     colorValLen_ = static_cast<uint32_t>(pixmap->GetWidth() * pixmap->GetHeight());
     auto colorVal = new uint32_t[colorValLen_]();
     std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
@@ -59,9 +65,14 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
 ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coordinates)
 {
     if (pixmap == nullptr) {
+        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with null pixmap.");
         return;
     }
     pixelmap_ = pixmap;
+    if (pixmap->GetWidth() <= 0 || pixmap->GetHeight() <= 0) {
+        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with zero pixmap width or height.");
+        return;
+    }
     uint32_t left = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[0]); // 0 is index of left
     uint32_t top = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[1]); // 1 is index of top
     uint32_t right = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[2]); // 2 is index of right
