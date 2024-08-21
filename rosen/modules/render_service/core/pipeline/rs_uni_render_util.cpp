@@ -1871,5 +1871,24 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
     canvas.DetachBrush();
 }
+
+void RSUniRenderUtil::FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap)
+{
+    if (!pixelMap || pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
+        return;
+    }
+    SurfaceBuffer* surfaceBuffer = reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd());
+    if (surfaceBuffer && (surfaceBuffer->GetUsage() & BUFFER_USAGE_MEM_MMZ_CACHE)) {
+        GSError err = surfaceBuffer->Map();
+        if (err != GSERROR_OK) {
+            RS_LOGE("RSUniRenderUtil::FlushDmaSurfaceBuffer Map failed, GSError=%{public}d", err);
+            return;
+        }
+        err = surfaceBuffer->InvalidateCache();
+        if (err != GSERROR_OK) {
+            RS_LOGE("RSUniRenderUtil::FlushDmaSurfaceBuffer InvalidateCache failed, GSError=%{public}d", err);
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
