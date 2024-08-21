@@ -20,7 +20,6 @@
 #include <stdint.h>
 #include <vector>
 #include <unordered_map>
-#include <unordered_set>
 
 #include "graphic_error.h"
 #include "surface_type.h"
@@ -131,7 +130,7 @@ private:
     // DISPLAYENGINE
     bool arsrPreEnabled_ = false;
     bool arsrPreEnabledForVm_ = false;
-    std::string arsrWhiteList_ = "";
+    std::string vmArsrWhiteList_ = "";
 
     int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayersLocked();
@@ -146,7 +145,8 @@ private:
 
     // DISPLAY ENGINE
     bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
-    bool CheckVmLayerInfo(const LayerInfoPtr &layerInfo);
+    bool CheckIfDoArsrPreForVm(const LayerInfoPtr &layerInfo);
+    bool CheckSupportArsrPreMetadata();
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
