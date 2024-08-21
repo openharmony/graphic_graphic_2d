@@ -707,7 +707,15 @@ void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        renderThread_.PostTask([=]() { screenManager_->MarkPowerOffNeedProcessOneFrame(); });
+        renderThread_.PostTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return;
+                }
+                connection->screenManager_->MarkPowerOffNeedProcessOneFrame();
+            }
+        );
     }
 }
 
@@ -715,7 +723,15 @@ void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        renderThread_.PostTask([=]() { screenManager_->DisablePowerOffRenderControl(id); });
+        renderThread_.PostTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this), id]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return;
+                }
+                connection->screenManager_->DisablePowerOffRenderControl(id);
+            }
+        );
     }
 }
 
@@ -1584,10 +1600,24 @@ int32_t RSRenderServiceConnection::ResizeVirtualScreen(ScreenId id, uint32_t wid
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         return RSHardwareThread::Instance().ScheduleTask(
-            [=]() { return screenManager_->ResizeVirtualScreen(id, width, height); }).get();
+            [weakThis = wptr<RSRenderServiceConnection>(this), id, width, height]() -> int32_t {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return RS_CONNECTION_ERROR;
+                }
+                return connection->screenManager_->ResizeVirtualScreen(id, width, height);
+            }
+        ).get();
     } else {
         return mainThread_->ScheduleTask(
-            [=]() { return screenManager_->ResizeVirtualScreen(id, width, height); }).get();
+            [weakThis = wptr<RSRenderServiceConnection>(this), id, width, height]() -> int32_t {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return RS_CONNECTION_ERROR;
+                }
+                return connection->screenManager_->ResizeVirtualScreen(id, width, height);
+            }
+        ).get();
     }
 }
 
