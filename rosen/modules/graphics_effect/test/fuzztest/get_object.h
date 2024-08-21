@@ -16,6 +16,7 @@
 #ifndef TEST_FUZZTEST_GRAPHICS_EFFECT_GET_OBJECT_H
 #define TEST_FUZZTEST_GRAPHICS_EFFECT_GET_OBJECT_H
 
+#include <cstdint>
 #include <string>
 
 #include "securec.h"
@@ -23,6 +24,10 @@
 namespace OHOS {
 namespace Rosen {
 namespace GETest {
+
+namespace {
+    const int32_t STR_MAX_LEN = 1024;
+}
 
 static const uint8_t* g_data = nullptr;
 static size_t g_size = 0;
@@ -56,8 +61,8 @@ std::string GetStringFromData(int strlen)
     if (strlen <= 0) {
         return "fuzz";
     }
-    if (strlen > 1024) {
-        strlen = 1024;
+    if (strlen > STR_MAX_LEN) {
+        strlen = STR_MAX_LEN;
     }
     char cstr[strlen];
     cstr[strlen - 1] = '\0';
