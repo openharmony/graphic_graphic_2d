@@ -1035,6 +1035,16 @@ VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
 {
     return screenStatus_;
 }
+
+void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList)
+{
+    securityExemptionList_ = securityExemptionList;
+}
+
+const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
+{
+    return securityExemptionList_;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

@@ -744,6 +744,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
     } else if (GetType() == RSRenderNodeType::DISPLAY_NODE) {
         auto displayNode = static_cast<const RSDisplayRenderNode*>(this);
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
+        out += ", securityExemption: " + std::to_string(displayNode->GetSecurityExemption());
     }
 }
 

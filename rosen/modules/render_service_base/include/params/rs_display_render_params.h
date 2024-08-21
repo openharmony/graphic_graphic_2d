@@ -144,6 +144,11 @@ public:
         return iter == displaySpecailSurfaceChanged_.end() ? false : iter->second;
     }
 
+    bool GetSecurityExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
     // dfx
     std::string ToString() const override;
 
@@ -162,6 +167,7 @@ private:
     ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     uint64_t screenId_ = 0;
     bool isSecurityDisplay_ = false;
+    bool isSecurityExemption_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
     NodeId mirrorSourceId_ = INVALID_NODEID;

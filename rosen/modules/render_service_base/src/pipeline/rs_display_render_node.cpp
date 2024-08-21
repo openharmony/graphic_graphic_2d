@@ -223,6 +223,7 @@ void RSDisplayRenderNode::UpdateRenderParams()
         displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
         displayParams->mirrorSourceId_ = mirroredNode->GetId();
     }
+    displayParams->isSecurityExemption_ = isSecurityExemption_;
     displayParams->offsetX_ = GetDisplayOffsetX();
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
