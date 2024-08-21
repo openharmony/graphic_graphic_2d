@@ -1832,7 +1832,7 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
 void RSMainThread::ProcessUiCaptureTasks()
 {
     while (!uiCaptureTasks_.empty()) {
-        if (RSUiCaptureTaskParallel::captureCount_ >= MAX_CAPTURE_COUNT) {
+        if (RSUiCaptureTaskParallel::GetCaptureCount() >= MAX_CAPTURE_COUNT) {
             return;
         }
         auto captureTask = std::get<1>(uiCaptureTasks_.front());
