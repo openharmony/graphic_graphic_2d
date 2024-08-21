@@ -93,42 +93,61 @@ bool RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
 void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
     std::shared_ptr<Drawing::Typeface> typeface)
 {
-    if (typeface && uniqueId > 0) {
-        std::lock_guard<std::mutex> lock(mapMutex_);
-        if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end()) {
-            return;
+    if (!(typeface && uniqueId > 0)) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end()) {
+        return;
+    }
+    uint32_t hash_value = typeface->GetHash();
+    if (!hash_value) { // fallback to slow path if the adapter does not provide hash
+        std::shared_ptr<Drawing::Data> data = typeface->Serialize();
+        const void* stream = data->GetData();
+        size_t size = data->GetSize();
+        hash_value = SkOpts::hash_fn(stream, std::min(size, 20000lu), 0);
+    }
+    typefaceHashCode_[uniqueId] = hash_value;
+    if (typefaceHashMap_.find(hash_value) != typefaceHashMap_.end()) {
+        auto [faceCache, ref] = typefaceHashMap_[hash_value];
+        if (faceCache->GetFamilyName() != typeface->GetFamilyName()) {
+            // hash collision
+            typefaceHashCode_[uniqueId] = uniqueId;
+            typefaceHashMap_[uniqueId] = std::make_tuple(typeface, 1);
+            RS_LOGI("CacheDrawingTypeface hash collision");
+        } else {
+            typefaceHashMap_[hash_value] = std::make_tuple(faceCache, ref + 1);
         }
-        uint32_t hash_value = typeface->GetHash();
-        if (!hash_value) { // fallback to slow path if the adapter does not provide hash
-            std::shared_ptr<Drawing::Data> data = typeface->Serialize();
-            const void* stream = data->GetData();
-            size_t size = data->GetSize();
-            hash_value = SkOpts::hash_fn(stream, std::min(size, 20000lu), 0);
-        }
-        typefaceHashCode_[uniqueId] = hash_value;
-        if (typefaceHashMap_.find(hash_value) != typefaceHashMap_.end()) {
-            auto [faceCache, ref] = typefaceHashMap_[hash_value];
-            if (faceCache->GetFamilyName() != typeface->GetFamilyName()) {
-                // hash collision
-                typefaceHashCode_[uniqueId] = uniqueId;
-                typefaceHashMap_[uniqueId] = std::make_tuple(typeface, 1);
-                RS_LOGI("CacheDrawingTypeface hash collision");
-            } else {
-                typefaceHashMap_[hash_value] = std::make_tuple(faceCache, ref + 1);
+        return;
+    }
+    typefaceHashMap_[hash_value] = std::make_tuple(typeface, 1);
+    // register queued entries
+    auto iterator = typefaceHashQueue_.find(hash_value);
+    if (iterator != typefaceHashQueue_.end()) {
+        while (iterator->second.size()) {
+            auto back = iterator->second.back();
+            if (back != uniqueId) {
+                AddIfFound(back, hash_value);
             }
-            return;
+            iterator->second.pop_back();
         }
-        typefaceHashMap_[hash_value] = std::make_tuple(typeface, 1);
-        // register queued entries
-        auto iterator = typefaceHashQueue_.find(hash_value);
-        if (iterator != typefaceHashQueue_.end()) {
-            while (iterator->second.size()) {
-                auto back = iterator->second.back();
-                if(back != uniqueId){
-                    AddIfFound(back, hash_value);
+    }
+}
+
+static void RemoveHashQueue(
+    std::unordered_map<uint32_t, std::vector<uint64_t>>& typefaceHashQueue, uint64_t globalUniqueId)
+{
+    for (auto& ref : typefaceHashQueue) {
+        size_t ix { 0 };
+        for (auto uid : ref.second) {
+            if (uid == globalUniqueId) {
+                if (EmptyAfterErase(ref.second, ix)) {
+                    typefaceHashQueue.erase(ref.first);
                 }
-                iterator->second.pop_back();
+                return;
             }
+            ix++;
         }
     }
 }
@@ -155,18 +174,8 @@ void RSTypefaceCache::RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqu
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
     // first check the queue;
-    for (auto& ref : typefaceHashQueue_) {
-        size_t ix { 0 };
-        for (auto uid : ref.second) {
-            if (uid == globalUniqueId) {
-                if (EmptyAfterErase(ref.second, ix)) {
-                    typefaceHashQueue_.erase(ref.first);
-                }
-                return;
-            }
-            ix++;
-        }
-    }
+    RemoveHashQueue(typefaceHashQueue_, globalUniqueId);
+    
     if (typefaceHashCode_.find(globalUniqueId) == typefaceHashCode_.end()) {
         return;
     }
@@ -199,10 +208,8 @@ static void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::vector<
         size_t ix { 0 };
         for (auto uid : ref.second) {
             pid_t pidCache = static_cast<pid_t>(uid >> 32);
-            if (pid == pidCache) {
-                if (EmptyAfterErase(ref.second, ix)) {
-                    removeList.push_back(ref.first);
-                }
+            if (pid == pidCache && EmptyAfterErase(ref.second, ix)) {
+                removeList.push_back(ref.first);
             }
             ix++;
         }
