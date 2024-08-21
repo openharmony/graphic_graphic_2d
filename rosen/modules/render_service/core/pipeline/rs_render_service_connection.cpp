@@ -741,6 +741,8 @@ namespace {
 void TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
+    RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
+        captureConfig.isSync ? "true" : "false");
     std::function<void()> captureTask = [id, callback, captureConfig]() {
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
     };
@@ -849,8 +851,12 @@ void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApp
     if (!mainThread_) {
         return;
     }
-    auto captureTask = [=]() -> void {
-        mainThread_->RegisterApplicationAgent(pid, app);
+    auto captureTask = [weakThis = wptr<RSRenderServiceConnection>(this), pid, app]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            return;
+        }
+        connection->mainThread_->RegisterApplicationAgent(pid, app);
     };
     mainThread_->PostTask(captureTask);
 

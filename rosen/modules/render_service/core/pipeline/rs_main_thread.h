@@ -635,7 +635,7 @@ private:
 
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
-    std::vector<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;

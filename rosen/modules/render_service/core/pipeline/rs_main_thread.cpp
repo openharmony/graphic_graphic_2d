@@ -70,6 +70,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/rs_ui_capture_task_parallel.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
@@ -161,6 +162,7 @@ constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
+constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
@@ -1788,29 +1790,25 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
     for (auto [id, captureTask]: pendingUiCaptureTasks_) {
         auto node = nodeMap.GetRenderNode(id);
         if (!node) {
-            RS_LOGE("RSMainThread::PrepareUiCaptureTasks node is nullptr");
-            continue;
-        }
-
-        if (!node->IsOnTheTree() || node->IsDirty()) {
+            RS_LOGW("RSMainThread::PrepareUiCaptureTasks node is nullptr");
+        } else if (!node->IsOnTheTree() || node->IsDirty()) {
             node->PrepareSelfNodeForApplyModifiers();
         }
+        uiCaptureTasks_.emplace(id, captureTask);
     }
-
-    if (!uiCaptureTasks_.empty()) {
-        RS_LOGD("RSMainThread::PrepareUiCaptureTasks uiCaptureTasks_ not empty");
-        uiCaptureTasks_.clear();
-    }
-    std::swap(pendingUiCaptureTasks_, uiCaptureTasks_);
+    pendingUiCaptureTasks_.clear();
 }
 
 void RSMainThread::ProcessUiCaptureTasks()
 {
-    const auto& nodeMap = context_->GetNodeMap();
-    for (auto [id, captureTask]: uiCaptureTasks_) {
+    while (!uiCaptureTasks_.empty()) {
+        if (RSUiCaptureTaskParallel::GetCaptureCount() >= MAX_CAPTURE_COUNT) {
+            return;
+        }
+        auto captureTask = std::get<1>(uiCaptureTasks_.front());
+        uiCaptureTasks_.pop();
         captureTask();
     }
-    uiCaptureTasks_.clear();
 }
 
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
