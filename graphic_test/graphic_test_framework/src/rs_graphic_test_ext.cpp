@@ -75,7 +75,9 @@ std::vector<const TestDefInfo*> TestDefManager::GetTestInfosByType(RSGraphicTest
 
 static inline bool Cmp(const TestDefInfo* info1, const TestDefInfo* info2)
 {
-    return info1->filePath < info2->filePath;
+    std::string s1 = info1->filePath.substr(0, info1->filePath.rfind("/") + 1) + info1->testCaseName + info1->testName;
+    std::string s2 = info2->filePath.substr(0, info2->filePath.rfind("/") + 1) + info2->testCaseName + info2->testName;
+    return s1 < s2;
 }
 
 std::vector<const TestDefInfo*> TestDefManager::GetAllTestInfos() const
