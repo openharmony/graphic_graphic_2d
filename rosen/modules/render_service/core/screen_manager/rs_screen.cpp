@@ -451,6 +451,10 @@ uint32_t RSScreen::GetPowerStatus() const
     }
 
     GraphicDispPowerStatus status;
+    if (!hdiScreen_) {
+        RS_LOGW("RSScreen %{public}s: hdiScreen_ is nullptr.", __func__);
+        return INVALID_POWER_STATUS;
+    }
     if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
         return INVALID_POWER_STATUS;
     }
