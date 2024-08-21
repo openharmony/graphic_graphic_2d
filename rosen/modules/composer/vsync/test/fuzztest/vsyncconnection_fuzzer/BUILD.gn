@@ -37,7 +37,10 @@ ohos_fuzztest("VsyncConnectionFuzzTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "ipc:ipc_single",
+  ]
   defines = []
   if (graphic_2d_feature_enable_dvsync) {
     defines += [ "RS_ENABLE_DVSYNC" ]

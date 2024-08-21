@@ -23,6 +23,7 @@
 
 namespace OHOS {
     namespace {
+        constexpr uint32_t FUNC_NUM = 6;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -73,6 +74,25 @@ namespace OHOS {
         // 16666667 is Vsync period.
         vsyncConnection->PostEvent(now, 16666667, 0);
 
+        vsyncConnection->RequestNextVSync();
+        std::string fromWhom = "FUZZ";
+        int64_t lastVSyncTS = GetData<int64_t>();
+        vsyncConnection->RequestNextVSync(fromWhom, lastVSyncTS);
+        int32_t fd = GetData<int32_t>();
+        vsyncConnection->GetReceiveFd(fd);
+        vsyncConnection->Destroy();
+        bool vsyncSwitch = GetData<bool>();
+        vsyncConnection->SetUiDvsyncSwitch(vsyncSwitch);
+        int32_t bufferCount = GetData<int32_t>();
+        vsyncConnection->SetUiDvsyncConfig(bufferCount);
+        MessageParcel arguments;
+        MessageParcel reply;
+        MessageOption option;
+        uint32_t code = GetData<uint32_t>();
+        vsyncConnection->OnRemoteRequest(code, arguments, reply, option);
+        for (uint32_t i = 0; i < FUNC_NUM; ++i) {
+            vsyncConnection->OnRemoteRequest(i, arguments, reply, option);
+        }
         return true;
     }
 }
