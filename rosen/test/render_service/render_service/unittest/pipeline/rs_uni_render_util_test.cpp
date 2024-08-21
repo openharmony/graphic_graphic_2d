@@ -1815,7 +1815,6 @@ HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer002, TestSize.Level2)
     Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     sptr<SurfaceBuffer> surFaceBuffer = dmaMem.DmaMemAlloc(info, pixelMap);
-    pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
     RSUniRenderUtil::FlushSurfaceBuffer(pixelMap.get());
 #endif
 }

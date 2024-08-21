@@ -1911,7 +1911,7 @@ void RSUniRenderUtil::FlushSurfaceBuffer(Media::PixelMap* pixelMap)
             RS_LOGE("ImageUtils Map failed, GSError=%{public}d", err);
             return;
         }
-        err = surfaceBuffer->FlushCache();
+        err = surfaceBuffer->InvalidateCache();
         if (err != GSERROR_OK) {
             RS_LOGE("ImageUtils InvalidateCache failed, GSError=%{public}d", err);
         }
