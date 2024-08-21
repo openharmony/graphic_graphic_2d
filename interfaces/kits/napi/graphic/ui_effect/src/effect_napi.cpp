@@ -356,6 +356,12 @@ bool EffectNapi::ParseBrightnessBlender(napi_env env, napi_value jsObject, Brigh
  
 napi_value EffectNapi::SetbackgroundColorBlender(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("SetbackgroundColorBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi SetbackgroundColorBlender failed, is not system app");
+        return nullptr;
+    }
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
