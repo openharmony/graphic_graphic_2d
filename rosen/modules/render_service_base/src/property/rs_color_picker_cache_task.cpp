@@ -113,8 +113,7 @@ bool RSColorPickerCacheTask::GpuScaleImage(std::shared_ptr<RSPaintFilterCanvas> 
     }
 
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBulider =
-        std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
+    auto effectBulider = std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
     Drawing::ImageInfo pcInfo;
     Drawing::Matrix matrix;
     matrix.SetScale(1.0, 1.0);
@@ -127,8 +126,11 @@ bool RSColorPickerCacheTask::GpuScaleImage(std::shared_ptr<RSPaintFilterCanvas> 
     }
     effectBulider->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(
         *threadImage, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, matrix));
-    std::shared_ptr<Drawing::Image> tmpColorImg = effectBulider->MakeImage(
-        cacheCanvas->GetGPUContext().get(), nullptr, pcInfo, false);
+    auto tmpColorImg = effectBulider->MakeImage(cacheCanvas->GetGPUContext().get(), nullptr, pcInfo, false);
+    if (tmpColorImg == nullptr) {
+        ROSEN_LOGE("RSColorPickerCacheTask tmpColorImg is null");
+        return false;
+    }
 
     const int buffLen = tmpColorImg->GetWidth() * tmpColorImg->GetHeight();
     if (pixelPtr_ != nullptr) {
@@ -163,7 +165,7 @@ bool RSColorPickerCacheTask::Render()
     auto threadImage = std::make_shared<Drawing::Image>();
     {
         std::unique_lock<std::mutex> lock(*grBackendTextureMutex_);
-        if (cacheCanvas == nullptr || !cacheBackendTexture_.IsValid()) {
+        if (cacheCanvas == nullptr || cacheCanvas->GetGPUContext() == nullptr || !cacheBackendTexture_.IsValid()) {
             SetStatus(CacheProcessStatus::WAITING);
             ROSEN_LOGE("RSColorPickerCacheTask cacheCanvas is null or cacheBackendTexture not valid");
             return false;
@@ -385,8 +387,12 @@ void RSColorPickerCacheTask::ReleaseColorPicker()
 #ifdef IS_OHOS
     waitRelease_->store(true);
     cacheProcessStatus_.store(CacheProcessStatus::WAITING);
+    if (RSColorPickerCacheTask::saveImgAndSurToRelease == nullptr) {
+        ROSEN_LOGD("RSColorPickerCacheTask::saveImgAndSurToRelease null");
+        return;
+    }
     if (imageSnapshotCache_ || cacheSurface_ || initHandler_ || handler_) {
-        ROSEN_LOGD("RSColorPickerCacheTask::ReleaseColorPicker:%{public}p", this);
+        ROSEN_LOGD("RSColorPickerCacheTask::ReleaseColorPicker");
         RSColorPickerCacheTask::saveImgAndSurToRelease(std::move(imageSnapshotCache_), std::move(cacheSurface_),
             initHandler_, waitRelease_, grBackendTextureMutex_);
     }
