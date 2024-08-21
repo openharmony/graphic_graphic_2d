@@ -537,7 +537,10 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     if (consumer == nullptr) {
         return params;
     }
-    auto transform = consumer->GetTransform();
+    auto transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    if (consumer->GetSurfaceBufferTransformType(buffer, &transform) != GSERROR_OK) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam GetSurfaceBufferTransformType failed");
+    }
     RectF localBounds = { 0.0f, 0.0f, boundWidth, boundHeight };
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
