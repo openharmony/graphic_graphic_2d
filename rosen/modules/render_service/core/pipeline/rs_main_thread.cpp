@@ -425,6 +425,13 @@ void RSMainThread::Init()
             std::bind(&RSMainThread::OnDumpClientNodeTree, this, _1, _2, _3, _4));
     }
 
+    if (RSGraphicConfig::LoadConfigXml()) {
+        if (RSGraphicConfig::GetConfig().IsMap()) {
+            RSGraphicConfig::DumpConfig(*RSGraphicConfig::GetConfig().mapValue);
+        }
+        ConfigureRenderService();
+    }
+
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     qosPidCal_ = deviceType_ == DeviceType::PC;
@@ -4144,6 +4151,24 @@ bool RSMainThread::CheckUIExtensionCallbackDataChanged() const
 void RSMainThread::SetHardwareTaskNum(uint32_t num)
 {
     rsVSyncDistributor_->SetHardwareTaskNum(num);
+}
+
+void RSMainThread::ConfigureRenderService()
+{
+    const auto& config = RSGraphicConfig::GetConfig();
+    RSGraphicConfig::ConfigItem item = config["blurEffect"];
+    if (item.IsMap()) {
+        auto subItem = item["blurSwitchOpen"].GetProp("enable");
+        if (subItem.IsBool()) {
+            isBlurSwitchOpen_ = subItem.boolValue;
+            RS_LOGI("RSMainThread::ConfigureRenderService isBlurSwitchOpen_:%{public}d", isBlurSwitchOpen_);
+        }
+    }
+}
+
+bool RSMainThread::IsBlurSwitchOpen() const
+{
+    return isBlurSwitchOpen_;
 }
 } // namespace Rosen
 } // namespace OHOS

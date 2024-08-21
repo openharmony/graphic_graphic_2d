@@ -44,6 +44,7 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_draw_frame.h"
+#include "pipeline/rs_graphic_config.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -343,6 +344,8 @@ public:
 
     void SetAncoForceDoDirect(bool direct);
 
+    bool IsBlurSwitchOpen() const;
+    
     bool IsSystemAnimatedScenesListEmpty() const
     {
         return systemAnimatedScenesList_.empty();
@@ -471,6 +474,7 @@ private:
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
+    void ConfigureRenderService();
 
     void OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
@@ -697,6 +701,9 @@ private:
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
     bool initUiFwkTable_ = false;
+
+    // graphic config
+    bool isBlurSwitchOpen_ = true;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
