@@ -94,6 +94,39 @@ HWTEST_F(ScaleFilterUnittest, SetValue003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetValue004
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ScaleFilterUnittest, SetValue004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ScaleFilterUnittest SetValue004 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto scale = std::make_shared<ScaleFilter>();
+    bool testResult = scale != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call SetValue to set the necessary values
+     */
+    std::shared_ptr<float> sScale = std::make_shared<float>(1.0f);
+    std::weak_ptr<void> vScale = sScale;
+    scale->SetValue("scale", vScale.lock(), 1);
+    scale->SetValue("scale", vScale.lock(), 0);
+    scale->SetValue("test", vScale.lock(), 1);
+    scale->SetValue("test", vScale.lock(), 0);
+
+    ProcessData data;
+    scale->DoProcess(data);
+
+    string result = "";
+    EXPECT_TRUE(scale->GetVertexShader() != result);
+}
+
+/**
  * @tc.name: GetVertexShader001
  * @tc.desc: Get a string used to compile the program.
  * @tc.type: FUNC
