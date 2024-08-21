@@ -35,44 +35,68 @@ RSWindowAnimationTarget* RSWindowAnimationTarget::Unmarshalling(Parcel& parcel)
 
 bool RSWindowAnimationTarget::Marshalling(Parcel& parcel) const
 {
-    parcel.WriteString(bundleName_);
-    parcel.WriteString(abilityName_);
-    parcel.WriteFloat(windowBounds_.rect_.left_);
-    parcel.WriteFloat(windowBounds_.rect_.top_);
-    parcel.WriteFloat(windowBounds_.rect_.width_);
-    parcel.WriteFloat(windowBounds_.rect_.height_);
-    parcel.WriteFloat(windowBounds_.radius_[0].x_);
+    if (!(parcel.WriteString(bundleName_) &&
+        parcel.WriteString(abilityName_) &&
+        parcel.WriteFloat(windowBounds_.rect_.left_) &&
+        parcel.WriteFloat(windowBounds_.rect_.top_) &&
+        parcel.WriteFloat(windowBounds_.rect_.width_) &&
+        parcel.WriteFloat(windowBounds_.rect_.height_) &&
+        parcel.WriteFloat(windowBounds_.radius_[0].x_))) {
+        WALOGE("RSWindowAnimationTarget::Marshalling, write param failed");
+        return false;
+    }
+
     // marshalling as RSSurfaceNode
     if (!surfaceNode_) {
-        parcel.WriteBool(false);
+        if (!parcel.WriteBool(false)) {
+            WALOGE("RSWindowAnimationTarget::Marshalling, write param failed");
+            return false;
+        }
     } else if (auto surfaceNode = surfaceNode_->ReinterpretCastTo<RSSurfaceNode>()) {
-        parcel.WriteBool(true);
-        surfaceNode->Marshalling(parcel);
+        if (!(parcel.WriteBool(true) && surfaceNode->Marshalling(parcel))) {
+            WALOGE("RSWindowAnimationTarget::Marshalling, write param failed");
+            return false;
+        }
     } else {
         return false;
     }
-    parcel.WriteUint32(windowId_);
-    parcel.WriteUint64(displayId_);
-    parcel.WriteInt32(missionId_);
+
+    if (!(parcel.WriteUint32(windowId_) &&
+        parcel.WriteUint64(displayId_) &&
+        parcel.WriteInt32(missionId_))) {
+        WALOGE("RSWindowAnimationTarget::Marshalling, write param failed");
+        return false;
+    }
     return true;
 }
 
 bool RSWindowAnimationTarget::ReadFromParcel(Parcel& parcel)
 {
-    bundleName_ = parcel.ReadString();
-    abilityName_ = parcel.ReadString();
-    windowBounds_.rect_.left_ = parcel.ReadFloat();
-    windowBounds_.rect_.top_ = parcel.ReadFloat();
-    windowBounds_.rect_.width_ = parcel.ReadFloat();
-    windowBounds_.rect_.height_ = parcel.ReadFloat();
-    windowBounds_.radius_[0].x_ = parcel.ReadFloat();
+    if (!(parcel.ReadString(bundleName_) &&
+        parcel.ReadString(abilityName_) &&
+        parcel.ReadFloat(windowBounds_.rect_.left_) &&
+        parcel.ReadFloat(windowBounds_.rect_.top_) &&
+        parcel.ReadFloat(windowBounds_.rect_.width_) &&
+        parcel.ReadFloat(windowBounds_.rect_.height_) &&
+        parcel.ReadFloat(windowBounds_.radius_[0].x_))) {
+        WALOGE("RSWindowAnimationTarget::ReadFromParcel, read param failed");
+        return false;
+    }
+    bool isRSProxyNode;
+    if (!parcel.ReadBool(isRSProxyNode)) {
+        WALOGE("RSWindowAnimationTarget::ReadFromParcel, read param failed");
+        return false;
+    }
     // unmarshalling as RSProxyNode
-    if (parcel.ReadBool()) {
+    if (isRSProxyNode) {
         surfaceNode_ = RSSurfaceNode::UnmarshallingAsProxyNode(parcel);
     }
-    windowId_ = parcel.ReadUint32();
-    displayId_ = parcel.ReadUint64();
-    missionId_ = parcel.ReadInt32();
+    if (!(parcel.ReadUint32(windowId_) &&
+        parcel.ReadUint64(displayId_) &&
+        parcel.ReadInt32(missionId_))) {
+        WALOGE("RSWindowAnimationTarget::ReadFromParcel, read param failed");
+        return false;
+    }
     return true;
 }
 } // namespace Rosen

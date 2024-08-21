@@ -479,7 +479,27 @@ HWTEST_F(RSWindowAnimationStubTest, WindowAnimationTargetsUpdate001, TestSize.Le
     res = windowAnimationStub_->OnRemoteRequest(
         RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data3, reply, option);
     ASSERT_EQ(res, ERR_NONE);
-    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest CloseWinWindowAnimationTargetsUpdate001dow001 end";
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data4, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data5.WriteBool(true);
+    res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data5, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+    MessageParcel data6;
+    data6.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data6.WriteBool(true);
+    data6.WriteParcelable(windowAnimationTarget_.get());
+    data6.WriteUint32(1);
+    data6.WriteParcelable(windowAnimationTarget_.get());
+    res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data6, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest CloseWinWindowAnimationTargetsUpdate001 end";
 }
 
 /**
