@@ -1782,25 +1782,25 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixOfBufferToRelRect_003, TestSize.Level2)
 }
 
 /*
- * @tc.name: FlushSurfaceBuffer001
- * @tc.desc: test FlushSurfaceBuffer when pixelMap is nullptr
+ * @tc.name: FlushDmaSurfaceBuffer001
+ * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAL5XA
  */
-HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer001, TestSize.Level2)
+HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer001, TestSize.Level2)
 {
     Media::PixelMap* pixelMap = nullptr;
     ASSERT_EQ(pixelMap, nullptr);
-    RSUniRenderUtil::FlushSurfaceBuffer(pixelMap);
+    RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap);
 }
 
 /*
- * @tc.name: FlushSurfaceBuffer002
- * @tc.desc: test FlushSurfaceBuffer when pixelMap is not nullptr
+ * @tc.name: FlushDmaSurfaceBuffer002
+ * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is not nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAL5XA
  */
-HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer002, TestSize.Level2)
+HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
 {
     Media::InitializationOptions opts;
     const double width = 100;
@@ -1809,13 +1809,13 @@ HWTEST_F(RSUniRenderUtilTest, FlushSurfaceBuffer002, TestSize.Level2)
     opts.size.height = height;
     auto pixelMap = Media::PixelMap::Create(opts);
     ASSERT_NE(pixelMap, nullptr);
-    RSUniRenderUtil::FlushSurfaceBuffer(pixelMap.get());
+    RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap.get());
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     DmaMem dmaMem;
     Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     sptr<SurfaceBuffer> surFaceBuffer = dmaMem.DmaMemAlloc(info, pixelMap);
-    RSUniRenderUtil::FlushSurfaceBuffer(pixelMap.get());
+    RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap.get());
 #endif
 }
 

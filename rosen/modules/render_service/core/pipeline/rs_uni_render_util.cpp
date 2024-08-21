@@ -1899,7 +1899,7 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     canvas.DetachBrush();
 }
 
-void RSUniRenderUtil::FlushSurfaceBuffer(Media::PixelMap* pixelMap)
+void RSUniRenderUtil::FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap)
 {
     if (!pixelMap || pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
         return;
@@ -1908,12 +1908,12 @@ void RSUniRenderUtil::FlushSurfaceBuffer(Media::PixelMap* pixelMap)
     if (surfaceBuffer && (surfaceBuffer->GetUsage() & BUFFER_USAGE_MEM_MMZ_CACHE)) {
         GSError err = surfaceBuffer->Map();
         if (err != GSERROR_OK) {
-            RS_LOGE("ImageUtils Map failed, GSError=%{public}d", err);
+            RS_LOGE("RSUniRenderUtil::FlushDmaSurfaceBuffer Map failed, GSError=%{public}d", err);
             return;
         }
         err = surfaceBuffer->InvalidateCache();
         if (err != GSERROR_OK) {
-            RS_LOGE("ImageUtils InvalidateCache failed, GSError=%{public}d", err);
+            RS_LOGE("RSUniRenderUtil::FlushDmaSurfaceBuffer InvalidateCache failed, GSError=%{public}d", err);
         }
     }
 }
