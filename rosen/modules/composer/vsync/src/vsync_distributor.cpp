@@ -461,7 +461,11 @@ void VSyncDistributor::ThreadMain()
                 }
                 RS_TRACE_NAME_FMT("%s_continue: waitForVSync %d, vsyncEnabled %d, dvsyncOn %d",
                     name_.c_str(), waitForVSync, vsyncEnabled_, IsDVsyncOn());
-                continue;
+                if (isRs_ || !IsDVsyncOn()) {
+                    continue;
+                } else {
+                    timestamp = event_.timestamp;
+                }
             } else if ((timestamp > 0) && (waitForVSync == false) && (isRs_ || !IsDVsyncOn())) {
                 // if there is a vsync signal but no vaild connections, we should disable vsync
                 RS_TRACE_NAME_FMT("%s_DisableVSync, there is no valid connections", name_.c_str());
@@ -496,6 +500,7 @@ void VSyncDistributor::CollectConns(bool &waitForVSync, int64_t &timestamp,
 bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<sptr<VSyncConnection>> &conns)
 {
 #if defined(RS_ENABLE_DVSYNC)
+    bool waitForVSync = false;
     // ensure the preexecution only gets ahead for at most one period(i.e., 3 buffer rotation)
     if (IsDVsyncOn()) {
         {
@@ -504,6 +509,9 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
             dvsync_->RNVNotify();
             dvsync_->DelayBeforePostEvent(timestamp, locker);
             dvsync_->MarkDistributorSleep(false);
+            if (!isRs_) {
+                CollectConns(waitForVSync, timestamp, conns, true);
+            }
         }
         // if getting switched into vsync mode after sleep
         if (!IsDVsyncOn()) {
