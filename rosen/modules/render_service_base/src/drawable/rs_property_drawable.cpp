@@ -178,6 +178,7 @@ void RSFilterDrawable::OnSync()
     renderIsEffectNode_ = stagingIsEffectNode_;
     renderIsSkipFrame_ = stagingIsSkipFrame_;
     renderNodeId_ = stagingNodeId_;
+    renderClearType_ = stagingClearType_;
 
     ClearFilterCache();
 
@@ -190,7 +191,7 @@ void RSFilterDrawable::OnSync()
     stagingIsOccluded_ = false;
     stagingForceClearCacheForLastFrame_ = false;
 
-    clearType_ = FilterCacheType::BOTH;
+    stagingClearType_ = FilterCacheType::BOTH;
     stagingIsLargeArea_ = false;
     isFilterCacheValid_ = false;
     stagingIsEffectNode_ = false;
@@ -373,7 +374,7 @@ void RSFilterDrawable::ClearFilterCache()
     if (filterType_ == RSFilter::AIBAR && stagingIsOccluded_) {
         cacheManager_->InvalidateFilterCache(FilterCacheType::BOTH);
     } else {
-        cacheManager_->InvalidateFilterCache(clearType_);
+        cacheManager_->InvalidateFilterCache(renderClearType_);
     }
     // 2. clear memory when region changed without skip frame.
     needClearMemoryForGpu = needClearMemoryForGpu && cacheManager_->GetCachedType() == FilterCacheType::NONE;
@@ -395,13 +396,23 @@ void RSFilterDrawable::ClearFilterCache()
         FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
     RS_TRACE_NAME_FMT("RSFilterDrawable::ClearFilterCache nodeId[%llu], clearType:%d,"
         " isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d ClearFilteredCacheAfterDrawing:%d",
-        renderNodeId_, clearType_, stagingIsOccluded_, lastCacheType_, needClearMemoryForGpu,
+        renderNodeId_, renderClearType_, stagingIsOccluded_, lastCacheType_, needClearMemoryForGpu,
         renderClearFilteredCacheAfterDrawing_);
+}
+
+// called after OnSync()
+bool RSFilterDrawable::IsFilterCacheValidForOcclusion()
+{
+    auto cacheType = cacheManager_->GetCachedType();
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::IsFilterCacheValidForOcclusion cacheType:%d renderClearType_:%d",
+        cacheType, renderClearType_);
+
+    return cacheType != FilterCacheType::NONE;
 }
 
 void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
 {
-    clearType_ = type;
+    stagingClearType_ = type;
     isFilterCacheValid_ = cacheValid;
     if (!cacheValid) {
         cacheUpdateInterval_ = stagingRotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL :

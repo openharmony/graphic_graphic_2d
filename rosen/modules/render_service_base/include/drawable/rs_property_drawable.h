@@ -142,6 +142,8 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
     const RectI GetFilterCachedRegion() const;
 
+    bool IsFilterCacheValidForOcclusion();
+
 private:
     void ClearFilterCache();
     void UpdateFlags(FilterCacheType type, bool cacheValid);
@@ -175,7 +177,8 @@ protected:
     bool renderIsSkipFrame_ = false;
 
     // the type cache needed clear before drawing
-    FilterCacheType clearType_ = FilterCacheType::NONE;
+    FilterCacheType stagingClearType_ = FilterCacheType::NONE;
+    FilterCacheType renderClearType_ = FilterCacheType::NONE;
     FilterCacheType lastCacheType_ = FilterCacheType::NONE;
     bool stagingIsOccluded_ = false;
 
