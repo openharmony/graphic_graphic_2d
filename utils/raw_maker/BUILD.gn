@@ -32,6 +32,8 @@ config("raw_maker_public_config") {
 }
 
 ohos_static_library("raw_maker") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "src/raw_maker.cpp" ]
 
   configs = [ ":raw_maker_config" ]
