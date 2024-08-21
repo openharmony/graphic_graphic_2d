@@ -374,12 +374,12 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
 }
 
 /**
- @tc.name: AfterDrawCache002
- @tc.desc: Test AfterDrawCache delay cache
+ @tc.name: AfterDrawCacheWithScreen
+ @tc.desc: Test AfterDrawCacheWithScreen delay cache
  @tc.type: FUNC
  @tc.require: issueIAL4RE
  */
-HWTEST(RSRenderNodeDrawableTest, AfterDrawCache002, TestSize.Level1)
+HWTEST(RSRenderNodeDrawableTest, AfterDrawCacheWithScreen, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
