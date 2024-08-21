@@ -67,8 +67,8 @@ public:
     virtual VsyncError SetVSyncMode(VSyncMode vsyncMode) = 0;
     virtual VSyncMode GetVSyncMode() = 0;
     virtual VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) = 0;
-    virtual int32_t GetVSyncMaxRefreshRate() = 0;
-    virtual VsyncError SetVSyncMaxRefreshRate(int32_t refreshRate) = 0;
+    virtual uint32_t GetVSyncMaxRefreshRate() = 0;
+    virtual VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) = 0;
     virtual void Dump(std::string &result) = 0;
     virtual bool GetFrameRateChaingStatus() = 0;
     virtual VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) = 0;
@@ -107,8 +107,8 @@ public:
     VsyncError SetVSyncMode(VSyncMode vsyncMode) override;
     VSyncMode GetVSyncMode() override;
     VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) override;
-    int32_t GetVSyncMaxRefreshRate() override;
-    VsyncError SetVSyncMaxRefreshRate(int32_t refreshRate) override;
+    uint32_t GetVSyncMaxRefreshRate() override;
+    VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) override;
     void Dump(std::string &result) override;
     bool GetFrameRateChaingStatus() override;
     VsyncError SetReferenceTimeOffset(int32_t phaseByPulseNum) override;
@@ -203,7 +203,7 @@ private:
     sptr<VSyncDistributor> appVSyncDistributor_;
     int64_t targetPeriod_ = 0;
     bool clearAllSamplesFlag_ = false;
-    std::atomic<int32_t> vsyncMaxRefreshRate_ = 360; // default max TE
+    std::atomic<uint32_t> vsyncMaxRefreshRate_ = 360; // default max TE
 };
 } // impl
 } // namespace Rosen

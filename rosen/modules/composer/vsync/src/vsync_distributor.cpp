@@ -579,7 +579,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     }
 
     if (refreshRate > 0) {
-        int32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
+        uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
         event_.vsyncPulseCount += static_cast<int64_t>(maxRefreshRate / refreshRate);
         generatorRefreshRate_ = refreshRate;
     }
@@ -616,7 +616,7 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
         vsyncCount = event_.vsyncCount;
 
         if (refreshRate > 0) {
-            int32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
+            uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
             event_.vsyncPulseCount += static_cast<int64_t>(maxRefreshRate / refreshRate);
             generatorRefreshRate_ = refreshRate;
         }
@@ -1075,7 +1075,7 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
 void VSyncDistributor::ChangeConnsRateLocked()
 {
     std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
-    int32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
+    uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
     for (auto connRefreshRate : changingConnsRefreshRates_) {
         for (auto conn : connections_) {
             if (conn->id_ != connRefreshRate.first) {

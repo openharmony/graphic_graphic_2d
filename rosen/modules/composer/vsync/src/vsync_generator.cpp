@@ -721,13 +721,18 @@ VsyncError VSyncGenerator::SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum)
     return VSYNC_ERROR_OK;
 }
 
-int32_t VSyncGenerator::GetVSyncMaxRefreshRate()
+uint32_t VSyncGenerator::GetVSyncMaxRefreshRate()
 {
     return vsyncMaxRefreshRate_;
 }
 
-VsyncError VSyncGenerator::SetVSyncMaxRefreshRate(int32_t refreshRate)
+VsyncError VSyncGenerator::SetVSyncMaxRefreshRate(uint32_t refreshRate)
 {
+    if (refreshRate < VSYNC_MAX_REFRESHRATE_RANGE_MIN ||
+        refreshRate > VSYNC_MAX_REFRESHRATE_RANGE_MAX) {
+        VLOGE("Not support max refresh rate: %{public}u", refreshRate);
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
     vsyncMaxRefreshRate_ = refreshRate;
     return VSYNC_ERROR_OK;
 }
