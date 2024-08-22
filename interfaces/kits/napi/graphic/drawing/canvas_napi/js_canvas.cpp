@@ -810,9 +810,9 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
             m_canvas->DrawColor(color);
         } else {
             int32_t jsMode = 0;
-            GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsMode);
+            GET_ENUM_PARAM(ARGC_ONE, jsMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
             DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-            m_canvas->DrawColor(color, BlendMode(jsMode));
+            m_canvas->DrawColor(color, static_cast<BlendMode>(jsMode));
         }
     } else if (argc == ARGC_FOUR || argc == ARGC_FIVE) {
         int32_t alpha = 0;
@@ -829,9 +829,9 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
             m_canvas->DrawColor(color);
         } else {
             int32_t jsMode = 0;
-            GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsMode);
+            GET_ENUM_PARAM(ARGC_FOUR, jsMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
             DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-            m_canvas->DrawColor(color, BlendMode(jsMode));
+            m_canvas->DrawColor(color, static_cast<BlendMode>(jsMode));
         }
     } else {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
