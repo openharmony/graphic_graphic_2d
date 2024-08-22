@@ -411,6 +411,13 @@ bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface
     return {};
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
+    ScreenId id,
+    const std::vector<NodeId>& securityExemptionList)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     return {};

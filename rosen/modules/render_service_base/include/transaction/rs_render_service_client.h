@@ -158,8 +158,10 @@ public:
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 #endif
 
+    int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
-    
+
     void RemoveVirtualScreen(ScreenId id);
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR

@@ -966,6 +966,53 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
     return SUCCESS;
 }
 
+int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(
+    ScreenId id,
+    const std::vector<uint64_t>& securityExemptionList)
+{
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGD("RSScreenManager %{public}s: INVALID_SCREEN_ID.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+
+    if (virtualScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!(virtualScreen->second->IsVirtual())) {
+        RS_LOGW("RSScreenManager %{public}s: not virtual screen for id %{public}" PRIu64 ".", __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+    virtualScreen->second->SetSecurityExemptionList(securityExemptionList);
+    for (const auto& exemption : securityExemptionList) {
+        RS_LOGD("RSScreenManager %{public}s: virtual screen(id %{public}" PRIu64 "), nodeId %{public}" PRIu64 ".",
+            __func__, id, exemption);
+    }
+    return SUCCESS;
+}
+
+const std::vector<uint64_t> RSScreenManager::GetVirtualScreenSecurityExemptionList(ScreenId id)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return {};
+    }
+
+    if (virtualScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return {};
+    }
+    return virtualScreen->second->GetSecurityExemptionList();
+}
+
 int32_t RSScreenManager::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     std::lock_guard<std::mutex> lock(mutex_);

@@ -133,6 +133,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
@@ -395,6 +396,26 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             data.ReadUInt64Vector(&blackListVector);
             int32_t status = SetVirtualScreenBlackList(id, blackListVector);
             reply.WriteInt32(status);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST): {
+            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission"
+                    "SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
+                return ERR_INVALID_STATE;
+            }
+            // read the parcel data.
+            ScreenId id = data.ReadUint64();
+            std::vector<NodeId> securityExemptionList;
+            if (!data.ReadUInt64Vector(&securityExemptionList)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            int32_t status = SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW): {
