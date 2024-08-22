@@ -3476,6 +3476,17 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstLevelNode() const
     }
     return context->GetNodeMap().GetRenderNode(firstLevelNodeId_);
 }
+
+const std::shared_ptr<RSRenderNode> RSRenderNode::GetUifirstRootNode() const
+{
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("Invalid context");
+        return nullptr;
+    }
+    return context->GetNodeMap().GetRenderNode(uifirstRootNodeId_);
+}
+
 bool RSRenderNode::IsRenderUpdateIgnored() const
 {
     return isRenderUpdateIgnored_;
