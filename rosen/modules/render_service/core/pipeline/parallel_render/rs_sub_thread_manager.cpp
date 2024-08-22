@@ -40,7 +40,6 @@ void RSSubThreadManager::Start(RenderContext *context)
     if (!threadList_.empty()) {
         return;
     }
-    renderContext_ = context;
     if (context) {
         for (uint32_t i = 0; i < SUB_THREAD_NUM; ++i) {
             auto curThread = std::make_shared<RSSubThread>(context, i);
@@ -48,8 +47,8 @@ void RSSubThreadManager::Start(RenderContext *context)
             threadIndexMap_.emplace(tid, i);
             reThreadIndexMap_.emplace(i, tid);
             threadList_.push_back(curThread);
-            auto taskDispatchFunc = [tid, this](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
-                RSSubThreadManager::Instance()->PostTask(task, threadIndexMap_[tid], isSyncTask);
+            auto taskDispatchFunc = [i](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
+                RSSubThreadManager::Instance()->PostTask(task, i, isSyncTask);
             };
             RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid, taskDispatchFunc);
         }
@@ -66,7 +65,6 @@ void RSSubThreadManager::StartColorPickerThread(RenderContext* context)
     if (colorPickerThread_ != nullptr) {
         return;
     }
-    renderContext_ = context;
     if (context) {
         colorPickerThread_ = std::make_shared<RSFilterSubThread>(context);
         colorPickerThread_->StartColorPicker();
@@ -224,8 +222,8 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
 
     for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
         auto subThread = threadList_[i];
-        subThread->PostTask([subThread, superRenderTaskList, i]() {
-            subThread->RenderCache(superRenderTaskList[i]);
+        subThread->PostTask([subThread, renderTask = superRenderTaskList[i]]() {
+            subThread->RenderCache(renderTask);
         });
     }
     needResetContext_ = true;
@@ -445,7 +443,6 @@ void RSSubThreadManager::ScheduleReleaseCacheSurfaceOnly(
     auto nowIdx = threadIndexMap_[bindThreadIdx];
 
     auto subThread = threadList_[nowIdx];
-    auto tid = reThreadIndexMap_[nowIdx];
     subThread->PostTask([subThread, nodeDrawable]() { subThread->ReleaseCacheSurfaceOnly(nodeDrawable); });
 }
 } // namespace OHOS::Rosen

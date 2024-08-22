@@ -66,6 +66,9 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     const auto& params = GetRenderParams();
+    if (UNLIKELY(!params)) {
+        return;
+    }
     if (params->GetCanvasDrawingSurfaceChanged()) {
         ResetSurface();
         params->SetCanvasDrawingSurfaceChanged(false);
