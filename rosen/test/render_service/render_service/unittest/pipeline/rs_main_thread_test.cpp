@@ -3667,10 +3667,11 @@ HWTEST_F(RSMainThreadTest, ResetAnimateNodeFlag, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->context_ = std::make_shared<RSContext>();
+    auto context = mainThread->context_;
     mainThread->ResetAnimateNodeFlag();
     mainThread->context_ = nullptr;
     mainThread->ResetAnimateNodeFlag();
+    mainThread->context_ = context;
 }
 
 /**
@@ -3697,6 +3698,7 @@ HWTEST_F(RSMainThreadTest, SendClientDumpNodeTreeCommands, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
     mainThread->nodeTreeDumpTasks_.clear();
 
     NodeId testId = 1;
