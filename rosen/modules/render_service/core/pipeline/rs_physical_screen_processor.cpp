@@ -51,7 +51,9 @@ void RSPhysicalScreenProcessor::PostProcess()
 
 void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
-    composerAdapter_->SetColorFilterMode(renderEngine_->GetColorFilterMode());
+    if (renderEngine_) {
+        composerAdapter_->SetColorFilterMode(renderEngine_->GetColorFilterMode());
+    }
     auto layer = composerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
         RS_LOGD("RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for"
@@ -75,8 +77,8 @@ void RSPhysicalScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
 void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)
 {
     RS_TRACE_NAME("Redraw");
-    if (surface == nullptr) {
-        RS_LOGE("RSPhysicalScreenProcessor::Redraw: surface is null.");
+    if (surface == nullptr || renderEngine_ == nullptr) {
+        RS_LOGE("RSPhysicalScreenProcessor::Redraw: surface or renderEngine_ is null");
         return;
     }
 

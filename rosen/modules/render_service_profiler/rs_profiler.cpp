@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstddef>
 #include <filesystem>
 #include <numeric>
 
@@ -34,6 +35,7 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "render/rs_typeface_cache.h"
 
 namespace OHOS::Rosen {
 
@@ -400,7 +402,7 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
         return;
     }
 
-    const double currentTime = static_cast<double>(g_frameRenderBeginTimestamp) * 1e-9;
+    const double currentTime = Utils::ToSeconds(g_frameRenderBeginTimestamp);
     const double timeSinceRecordStart = currentTime - g_recordStartTime;
 
     if (timeSinceRecordStart > 0.0) {
@@ -457,6 +459,16 @@ void RSProfiler::OnFrameEnd()
     UpdateBetaRecord();
 
     g_renderServiceCpuId = Utils::GetCpuId();
+
+    std::string value;
+    constexpr int maxMsgPerFrame = 32;
+    value = SendMessageBase();
+    for (int i = 0; value != "" && i < maxMsgPerFrame; value = SendMessageBase(), i++) {
+        if (!value.length()) {
+            break;
+        }
+        Network::SendMessage(value);
+    }
 }
 
 void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
@@ -670,6 +682,7 @@ void RSProfiler::HiddenSpaceTurnOff()
             displayNode->AddChild(child);
         }
         FilterMockNode(*g_context);
+        RSTypefaceCache::Instance().ReplayClear();
         g_childOfDisplayNodes.clear();
     }
 
@@ -685,6 +698,8 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
     }
 
     std::stringstream stream;
+    TypefaceMarshalling(stream, fileVersion);
+
     SetMode(Mode::WRITE_EMUL);
     DisableSharedMemory();
     MarshalNodes(*g_context, stream, fileVersion);
@@ -717,6 +732,8 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileV
 {
     std::stringstream stream;
     stream.str(data);
+
+    TypefaceUnmarshalling(stream, fileVersion);
 
     SetMode(Mode::READ_EMUL);
 
@@ -751,6 +768,31 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileV
 
     CreateMockConnection(focusPid);
     g_mainThread->SetFocusAppInfo(focusPid, focusUid, bundleName, abilityName, focusNodeId);
+}
+
+void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion)
+{
+    if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
+        std::stringstream fontStream;
+        RSTypefaceCache::Instance().ReplaySerialize(fontStream);
+        size_t fontStreamSize = fontStream.str().size();
+        stream.write(reinterpret_cast<const char*>(&fontStreamSize), sizeof(fontStreamSize));
+        stream.write(reinterpret_cast<const char*>(fontStream.str().c_str()), fontStreamSize);
+    }
+}
+
+void RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion)
+{
+    if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
+        std::vector<uint8_t> fontData;
+        std::stringstream fontStream;
+        size_t fontStreamSize;
+        stream.read(reinterpret_cast<char*>(&fontStreamSize), sizeof(fontStreamSize));
+        fontData.resize(fontStreamSize);
+        stream.read(reinterpret_cast<char*>(fontData.data()), fontStreamSize);
+        fontStream.write(reinterpret_cast<const char*>(fontData.data()), fontStreamSize);
+        RSTypefaceCache::Instance().ReplayDeserialize(fontStream);
+    }
 }
 
 void RSProfiler::SaveRdc(const ArgList& args)
@@ -800,7 +842,7 @@ void RSProfiler::RecordUpdate()
 
     const uint64_t frameLengthNanosecs = RawNowNano() - g_frameBeginTimestamp;
 
-    const double currentTime = g_frameBeginTimestamp * 1e-9; // Now();
+    const double currentTime = Utils::ToSeconds(g_frameBeginTimestamp);
     const double timeSinceRecordStart = currentTime - g_recordStartTime;
 
     if (timeSinceRecordStart > 0.0) {
@@ -814,6 +856,7 @@ void RSProfiler::RecordUpdate()
         captureData.SetProperty(RSCaptureData::KEY_RS_PIXEL_IMAGE_ADDED, GetImagesAdded());
         captureData.SetProperty(RSCaptureData::KEY_RS_DIRTY_REGION, floor(g_dirtyRegionPercentage));
         captureData.SetProperty(RSCaptureData::KEY_RS_CPU_ID, g_renderServiceCpuId.load());
+        captureData.SetProperty(RSCaptureData::KEY_RS_VSYNC_ID, g_mainThread ? g_mainThread->vsyncId_ : 0);
 
         std::vector<char> out;
         DataWriter archive(out);
@@ -919,7 +962,7 @@ void RSProfiler::DumpTree(const ArgList& args)
 
 void RSProfiler::DumpTreeToJson(const ArgList& args)
 {
-    if (!g_context) {
+    if (!g_context || !g_mainThread) {
         return;
     }
 
@@ -936,6 +979,10 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     } else {
         display = { 0.0f, 0.0f, 0.0f, 0.0f };
     }
+
+    json["transactionFlags"] = g_mainThread->transactionFlags_;
+    json["timestamp"] = g_mainThread->timestamp_;
+    json["vsyncID"] = g_mainThread->vsyncId_;
 
     json.PopObject();
     Network::SendRSTreeDumpJSON(json.GetDumpString());
@@ -1268,6 +1315,7 @@ void RSProfiler::RecordStart(const ArgList& args)
     g_recordFile.AddLayer(); // add 0 layer
 
     FilterMockNode(*g_context);
+    RSTypefaceCache::Instance().ReplayClear();
 
     g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion()));
 
@@ -1326,6 +1374,23 @@ void RSProfiler::RecordStop(const ArgList& args)
         stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
         stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
 
+        // ANIME START TIMES
+        std::vector<std::pair<uint64_t, int64_t>> headerAnimeStartTimes;
+        std::unordered_map<AnimationId, std::vector<int64_t>> &headerAnimeStartTimesMap = AnimeGetStartTimes();
+        for (const auto& item : headerAnimeStartTimesMap) {
+            for (const auto time : item.second) {
+                headerAnimeStartTimes.push_back({
+                    Utils::PatchNodeId(item.first),
+                    time - Utils::ToNanoseconds(g_recordStartTime)
+                });
+            }
+        }
+
+        uint32_t startTimesSize = headerAnimeStartTimes.size();
+        stream.write(reinterpret_cast<const char*>(&startTimesSize), sizeof(startTimesSize));
+        stream.write(reinterpret_cast<const char*>(headerAnimeStartTimes.data()),
+            startTimesSize * sizeof(std::pair<uint64_t, int64_t>));
+
         ImageCache::Serialize(stream);
         Network::SendBinary(stream.str().data(), stream.str().size());
     }
@@ -1352,12 +1417,27 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 
     ImageCache::Reset();
 
+    auto &animeMap = RSProfiler::AnimeGetStartTimes();
+    animeMap.clear();
+
     Respond("Opening file " + path);
     g_playbackFile.Open(path);
     if (!g_playbackFile.IsOpen()) {
         Respond("Can't open file.");
         return;
     }
+
+    auto& fileAnimeStartTimes = g_playbackFile.GetAnimeStartTimes();
+    for (const auto item : fileAnimeStartTimes) {
+        if (animeMap.count(item.first)) {
+            animeMap[Utils::PatchNodeId(item.first)].push_back(item.second);
+        } else {
+            std::vector<int64_t> list;
+            list.push_back(item.second);
+            animeMap.insert({ Utils::PatchNodeId(item.first), list });
+        }
+    }
+
     std::string dataFirstFrame = g_playbackFile.GetHeaderFirstFrame();
 
     // get first frame data
@@ -1395,10 +1475,8 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         while (IsPlaying()) {
             const int64_t timestamp = static_cast<int64_t>(RawNowNano());
 
-            PlaybackUpdate();
-            if (g_playbackStartTime >= 0) {
-                SendTelemetry(Now() - g_playbackStartTime);
-            }
+            const double deltaTime = Now() - g_playbackStartTime;
+            const double readTime = PlaybackUpdate(deltaTime);
 
             const int64_t timeout = timeoutLimit - static_cast<int64_t>(RawNowNano()) + timestamp;
             if (timeout > 0) {
@@ -1418,19 +1496,14 @@ void RSProfiler::PlaybackStop(const ArgList& args)
     }
     HiddenSpaceTurnOff();
     FilterMockNode(*g_context);
+    RSTypefaceCache::Instance().ReplayClear();
     g_playbackShouldBeTerminated = true;
 
     Respond("Playback stop");
 }
 
-void RSProfiler::PlaybackUpdate()
+double RSProfiler::PlaybackUpdate(const double deltaTime)
 {
-    if (!IsPlaying()) {
-        return;
-    }
-
-    const double deltaTime = Now() - g_playbackStartTime;
-
     std::vector<uint8_t> data;
     double readTime = 0.0;
     if (!g_playbackShouldBeTerminated && g_playbackFile.ReadRSData(deltaTime, data, readTime)) {
@@ -1487,6 +1560,7 @@ void RSProfiler::PlaybackUpdate()
         TimePauseClear();
         g_playbackShouldBeTerminated = false;
     }
+    return readTime;
 }
 
 void RSProfiler::PlaybackPrepare(const ArgList& args)
@@ -1496,7 +1570,6 @@ void RSProfiler::PlaybackPrepare(const ArgList& args)
         return;
     }
 
-    FilterForPlayback(*g_context, pid);
     AwakeRenderServiceThread();
     Respond("OK");
 }
@@ -1509,7 +1582,7 @@ void RSProfiler::PlaybackPause(const ArgList& args)
 
     const uint64_t currentTime = RawNowNano();
     const double recordPlayTime = Now() - g_playbackStartTime;
-    TimePauseAt(currentTime, currentTime);
+    TimePauseAt(g_frameBeginTimestamp, currentTime);
     Respond("OK: " + std::to_string(recordPlayTime));
 }
 

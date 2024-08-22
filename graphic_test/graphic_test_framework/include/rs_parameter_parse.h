@@ -30,12 +30,13 @@ public:
     static const RSParameterParse& Instance();
     static void Parse(int argc, char **argv);
 
-    std::string imageSavePath = "/data/local/rs_graphic_tests/";
+    std::string imageSavePath = "/data/local/graphic_test/";
     int testCaseWaitTime = 1000; //ms
     int surfaceCaptureWaitTime = 1000; //ms
     int manualTestWaitTime = 1500; //ms
     std::unordered_set<RSGraphicTestType> filterTestTypes = {};
     RSGraphicTestMode runTestMode = RSGraphicTestMode::ALL;
+    int32_t vsyncRate = 1;
 };
 
 } // namespace Rosen

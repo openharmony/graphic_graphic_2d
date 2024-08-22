@@ -17,6 +17,7 @@
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_animation_timing_protocol.h"
+#include "animation/rs_animation.h"
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_path_animation.h"
 #include "animation/rs_spring_animation.h"
@@ -621,6 +622,42 @@ HWTEST_F(RSAnimationTest, RSAnimationTimingProtocolSetInstanceId001, TestSize.Le
     result = protocol.GetInstanceId();
     EXPECT_EQ(result, 1);
     GTEST_LOG_(INFO) << "RSAnimationTest RSAnimationTimingProtocolSetInstanceId001 end";
+}
+
+/**
+ * @tc.name: IsSupportInteractiveAnimator001
+ * @tc.desc: Verify the IsSupportInteractiveAnimator of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, IsSupportInteractiveAnimator001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest IsSupportInteractiveAnimator001 start";
+    /**
+     * @tc.steps: step1. init IsSupportInteractiveAnimator
+     */
+    auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
+    auto newCanvasNode = RSCanvasNode::Create();
+    newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    rootNode->AddChild(newCanvasNode, -1);
+    RSAnimationTimingProtocol protocol;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE,
+        [&newCanvasNode, &effect]() {
+        newCanvasNode->NotifyTransition(effect, true);
+    });
+    /**
+     * @tc.steps: step2. start IsSupportInteractiveAnimator test
+     */
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+    if (animation != nullptr) {
+        EXPECT_TRUE(animation->IsSupportInteractiveAnimator());
+        NotifyStartAnimation();
+    }
+    GTEST_LOG_(INFO) << "RSAnimationTest IsSupportInteractiveAnimator001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -47,10 +47,10 @@ float ParticleNoiseField::CalculateDistanceToRectangleEdge(
     float top = center.y_ - size.y_ * HALF;
     float bottom = center.y_ + size.y_ * HALF;
     // Calculate the time required for reaching each boundary.
-    float tLeft = (left - position.x_) / direction.x_;
-    float tRight = (right - position.x_) / direction.x_;
-    float tTop = (top - position.y_) / direction.y_;
-    float tBottom = (bottom - position.y_) / direction.y_;
+    float tLeft = ROSEN_EQ(direction.x_, 0.f) ? -1.f : (left - position.x_) / direction.x_;
+    float tRight = ROSEN_EQ(direction.x_, 0.f) ? -1.f : (right - position.x_) / direction.x_;
+    float tTop = ROSEN_EQ(direction.y_, 0.f) ? -1.f : (top - position.y_) / direction.y_;
+    float tBottom = ROSEN_EQ(direction.y_, 0.f) ? -1.f : (bottom - position.y_) / direction.y_;
 
     // Particles advance to the boundary only if t is a positive number.
     std::vector<float> times;

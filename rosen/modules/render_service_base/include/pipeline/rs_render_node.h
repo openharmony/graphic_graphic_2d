@@ -247,10 +247,12 @@ public:
         return firstLevelNodeId_;
     }
     const std::shared_ptr<RSRenderNode> GetFirstLevelNode() const;
+    // only use for ARKTS_CARD
     inline NodeId GetUifirstRootNodeId() const
     {
         return uifirstRootNodeId_;
     }
+    const std::shared_ptr<RSRenderNode> GetUifirstRootNode() const;
     void UpdateTreeUifirstRootNodeId(NodeId id);
 
     // reset accumulated vals before traverses children
@@ -271,6 +273,7 @@ public:
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     const RectF& GetSelfDrawRect() const;
     const RectI& GetAbsDrawRect() const;
+    void UpdateAbsDrawRect();
 
     void ResetChangeState();
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,

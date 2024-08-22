@@ -246,6 +246,10 @@ bool RSComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) const
 
 void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const
 {
+    if (!info.buffer) {
+        RS_LOGE("RSComposerAdapter::DealWithNodeGravity failed, info buffer is nullptr");
+        return;
+    }
     const auto& property = node.GetRenderProperties();
     const auto frameWidth = info.buffer->GetSurfaceBufferWidth();
     const auto frameHeight = info.buffer->GetSurfaceBufferHeight();
@@ -305,6 +309,10 @@ void RSComposerAdapter::DealWithNodeGravity(const RSSurfaceRenderNode& node, Com
 
 void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo& info, const RSSurfaceRenderNode& node)
 {
+    if (!info.buffer) {
+        RS_LOGE("RSComposerAdapter::GetComposerInfoSrcRect failed, info buffer is nullptr");
+        return;
+    }
     const auto& property = node.GetRenderProperties();
     const auto bufferWidth = info.buffer->GetSurfaceBufferWidth();
     const auto bufferHeight = info.buffer->GetSurfaceBufferHeight();
@@ -324,7 +332,8 @@ void RSComposerAdapter::GetComposerInfoSrcRect(ComposeInfo& info, const RSSurfac
 bool RSComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo& info, RSSurfaceRenderNode& node) const
 {
     bool needClient = RSBaseRenderUtil::IsNeedClient(node, info);
-    if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
+    if (info.buffer &&
+        info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
         needClient = true;
     }
     if (colorFilterMode_ == ColorFilterMode::INVERT_COLOR_ENABLE_MODE) {
@@ -419,7 +428,8 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     const sptr<IConsumerSurface>& surface,
     RSBaseRenderNode* node) const
 {
-    if (layer == nullptr) {
+    if (layer == nullptr || surface == nullptr || node == nullptr) {
+        RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer failed, layer or surface or node is nullptr");
         return;
     }
     layer->SetSurface(surface);
@@ -436,10 +446,10 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     layer->SetDirtyRegions(info.dirtyRects);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
-    if (node -> GetTunnelHandleChange()) {
+    if (node->GetTunnelHandleChange()) {
         layer->SetTunnelHandleChange(true);
         layer->SetTunnelHandle(surface->GetTunnelHandle());
-        node ->SetTunnelHandleChange(false);
+        node->SetTunnelHandleChange(false);
     }
     if (surface->GetTunnelHandle() != nullptr) {
         return;
@@ -451,7 +461,7 @@ void RSComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const 
                                                const sptr<IConsumerSurface>& surface) const
 {
     HDRMetaDataType type;
-    if (surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
+    if (!info.buffer || surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
         RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
         return;
     }
@@ -743,9 +753,9 @@ void RSComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
         return;
     }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
-    srcRect.x = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
+    srcRect.x = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
         originSrcRect.w / dstRectI.width_);
-    srcRect.y = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
+    srcRect.y = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
         originSrcRect.h / dstRectI.height_);
     srcRect.w = dstRectI.IsEmpty() ? 0 : originSrcRect.w * resDstRect.width_ / dstRectI.width_;
     srcRect.h = dstRectI.IsEmpty() ? 0 : originSrcRect.h * resDstRect.height_ / dstRectI.height_;
@@ -848,7 +858,9 @@ void RSComposerAdapter::OnPrepareComplete(sptr<Surface>& surface, const PrepareC
 
 void RSComposerAdapter::SetHdiBackendDevice(HdiDevice* device)
 {
-    hdiBackend_->SetHdiBackendDevice(device);
+    if (hdiBackend_) {
+        hdiBackend_->SetHdiBackendDevice(device);
+    }
 }
 
 void RSComposerAdapter::SetMirroredScreenInfo(const ScreenInfo& mirroredScreenInfo)

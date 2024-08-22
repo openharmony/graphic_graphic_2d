@@ -68,6 +68,10 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
     auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(FAKE_WIDTH, FAKE_HEIGHT, false);
     PostTaskToRSRecord(recordingCanvas, node, visitor);
     auto drawCallList = recordingCanvas->GetDrawCmdList();
+    if (drawCallList == nullptr) {
+        RS_LOGE("RSUniUICapture::TakeLocalCapture: drawCallList == nullptr");
+        return nullptr;
+    }
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
     if (pixelmap == nullptr) {
         RS_LOGE("RSUniUICapture::TakeLocalCapture: pixelmap == nullptr!");
@@ -109,6 +113,9 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     std::shared_ptr<Media::PixelMap> pixelmap)
 {
     auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
+    if (size <= 0) {
+        return false;
+    }
     Drawing::ImageInfo info = Drawing::ImageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
 #ifdef ROSEN_OHOS
@@ -132,6 +139,7 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     }
     if (!img->ReadPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap readPixels failed");
+        ::munmap(ptr, size);
         ::close(fd);
         return false;
     }
@@ -220,6 +228,10 @@ RSUniUICapture::RSUniUICaptureVisitor::RSUniUICaptureVisitor(NodeId nodeId,
 void RSUniUICapture::PostTaskToRSRecord(std::shared_ptr<ExtendRecordingCanvas> canvas,
     std::shared_ptr<RSRenderNode> node, std::shared_ptr<RSUniUICaptureVisitor> visitor)
 {
+    if (canvas == nullptr || node == nullptr || visitor == nullptr) {
+        RS_LOGE("RSUniUICapture::PostTaskToRSRecord has nullptr");
+        return;
+    }
     std::function<void()> recordingDrawCall = [canvas, node, visitor]() -> void {
         visitor->SetCanvas(canvas);
         node->ApplyModifiers();
@@ -368,6 +380,10 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNode(RSSurfaceRe
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSurfaceRenderNode& node)
 {
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSUniUICaptureVisitor::ProcessSurfaceRenderNodeWithUni canvas is nullptr");
+        return;
+    }
     auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     if (geoPtr == nullptr) {
         RS_LOGI(
@@ -382,6 +398,10 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceRenderNodeWithUni(RSSu
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceRenderNode& node)
 {
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSUniUICaptureVisitor::ProcessSurfaceViewWithUni canvas is nullptr");
+        return;
+    }
     const auto& property = node.GetRenderProperties();
     auto& geoPtr = (property.GetBoundsGeometry());
     if (!geoPtr) {
@@ -442,6 +462,10 @@ void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithUni(RSSurfaceR
 
 void RSUniUICapture::RSUniUICaptureVisitor::ProcessSurfaceViewWithoutUni(RSSurfaceRenderNode& node)
 {
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSUniUICaptureVisitor::ProcessSurfaceViewWithoutUni canvas is nullptr");
+        return;
+    }
     Drawing::Matrix translateMatrix;
     auto parentPtr = node.GetParent().lock();
     if (parentPtr != nullptr && parentPtr->IsInstanceOf<RSSurfaceRenderNode>()) {

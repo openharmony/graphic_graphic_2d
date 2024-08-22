@@ -35,6 +35,7 @@ namespace OHOS::Rosen::DrawableV2 {
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 thread_local bool RSRenderNodeDrawable::drawBlurForCache_ = false;
 thread_local bool RSRenderNodeDrawable::isOpDropped_ = true;
+thread_local bool RSRenderNodeDrawable::isNeedOffScreenCache_ = false;
 
 namespace {
 constexpr int32_t DRAWING_CACHE_MAX_UPDATE_TIME = 3;
@@ -170,10 +171,13 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         auto canvasType = curCanvas->GetCacheType();
         // set canvas type as OFFSCREEN to not draw filter/shadow/filter
         curCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
+        bool isNeedOffScreenCacheTemp = isNeedOffScreenCache_;
+        isNeedOffScreenCache_ = true;
         RS_TRACE_NAME_FMT("UpdateCacheSurface with filter id:%" PRIu64 "", nodeId_);
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
         UpdateCacheSurface(canvas, params);
+        isNeedOffScreenCache_ = isNeedOffScreenCacheTemp;
         curCanvas->SetCacheType(canvasType);
         curDrawingCacheRoot_ = root;
     }
@@ -204,7 +208,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
-        hasFilter, GetDrawingCacheType());
+        hasFilter, params.GetDrawingCacheType());
     if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE &&
         params.GetForegroundFilterCache() == nullptr) {
         // traverse children to draw filter/shadow/effect
@@ -229,7 +233,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     }
 
     // RSPaintFilterCanvas::CacheType::OFFSCREEN case
-    if (curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN) {
+    if (isNeedOffScreenCache_) {
         if (HasFilterOrEffect() && params.GetForegroundFilterCache() == nullptr) {
             // clip hole for filter/shadow
             DrawBackgroundWithoutFilterAndEffect(canvas, params);
@@ -240,7 +244,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         }
     }
 
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}d", GetCacheType());
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}hu", GetCacheType());
     switch (GetCacheType()) {
         case DrawableCacheType::NONE: {
             RSRenderNodeDrawable::OnDraw(canvas);
@@ -451,6 +455,9 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
 #ifdef RS_ENABLE_GL
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
+        if (canvas.GetGPUContext() == nullptr) {
+            return nullptr;
+        }
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
         Drawing::BitmapFormat info = Drawing::BitmapFormat{cachedImage_->GetColorType(), cachedImage_->GetAlphaType()};
         SharedTextureContext* sharedContext = new SharedTextureContext(cachedImage_); // will move image
@@ -467,7 +474,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        if (vulkanCleanupHelper_ == nullptr) {
+        if (vulkanCleanupHelper_ == nullptr || canvas.GetGPUContext() == nullptr) {
             return nullptr;
         }
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;

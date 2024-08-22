@@ -183,25 +183,6 @@ ohos_source_set("rosen_ohos_sources") {
     defines += tp_defines
   }
 
-  if (defined(graphic_2d_ext_configs.vendor_root)) {
-    sources -= [
-      "backend/rs_surface_ohos_gl.cpp",
-      "rs_render_service_client.cpp",
-      "rs_render_service_connect_hub.cpp",
-    ]
-
-    include_dirs += graphic_2d_ext_configs.librender_service_base_platform_ohos_ext_include_dirs
-
-    sources +=
-        graphic_2d_ext_configs.librender_service_base_platform_ohos_ext_sources
-
-    if (ace_enable_gpu && is_emulator) {
-      sources -= [ "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/render_context.cpp" ]
-
-      sources +=
-          graphic_2d_ext_configs.librender_service_base_2d_graphics_ext_sources
-    }
-  }
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     cflags = []
     if (!use_libfuzzer) {

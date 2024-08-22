@@ -181,7 +181,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         relativeMatrix.Set(Drawing::Matrix::SCALE_X, scaleX_);
         relativeMatrix.Set(Drawing::Matrix::SCALE_Y, scaleY_);
         Drawing::Matrix invertMatrix;
-        if (geoPtr->GetMatrix().Invert(invertMatrix)) {
+        if (geoPtr && geoPtr->GetMatrix().Invert(invertMatrix)) {
             relativeMatrix.PreConcat(invertMatrix);
         }
         canvas_->SetMatrix(relativeMatrix);
@@ -273,6 +273,11 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     }
     // draw pixelmap in canvas
     auto image = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSDividedUICaptureVisitor::ProcessSurfaceRenderNode, failed to extract drawing image from "
+                   "pixelMap, image is nullptr");
+        return;
+    }
     canvas_->DrawImage(*image, node.GetRenderProperties().GetBoundsPositionX(),
         node.GetRenderProperties().GetBoundsPositionY(), Drawing::SamplingOptions());
     ProcessChildren(node);

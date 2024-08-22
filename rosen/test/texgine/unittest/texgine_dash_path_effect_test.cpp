@@ -13,50 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "texgine_dash_path_effect.h"
+#include <gtest/gtest.h>
 
-using namespace testing;
-using namespace testing::ext;
-#else
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include "texgine_path_effect.h"
 
 using namespace testing;
 using namespace testing::ext;
-#endif
 
-#ifndef USE_GRAPHIC_TEXT_GINE
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-class TexgineDashPathEffectTest : public testing::Test {
-};
-
-/**
- * @tc.name:Make
- * @tc.desc: Verify the Make
- * @tc.type:FUNC
- */
-HWTEST_F(TexgineDashPathEffectTest, Make, TestSize.Level1)
-{
-    float intervals[] = {0.0};
-    EXPECT_NO_THROW({
-        TexgineDashPathEffect::Make(intervals, 0, 0.0);
-    });
-}
-} // namespace TextEngine
-} // namespace Rosen
-} // namespace OHOS
-#else
-namespace OHOS {
-namespace Rosen {
-namespace TextEngine {
-class TexginePathEffectTest : public testing::Test {
-};
+class TexginePathEffectTest : public testing::Test {};
 
 /**
  * @tc.name:SetAndGet
@@ -75,4 +43,3 @@ HWTEST_F(TexginePathEffectTest, SetAndGet, TestSize.Level1)
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
-#endif

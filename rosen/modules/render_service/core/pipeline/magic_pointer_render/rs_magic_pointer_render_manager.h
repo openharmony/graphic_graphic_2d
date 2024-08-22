@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_POINTER_RENDER_MANAGER_H
-#define RS_POINTER_RENDER_MANAGER_H
+#ifndef RS_MAGIC_POINTER_RENDER_MANAGER_H
+#define RS_MAGIC_POINTER_RENDER_MANAGER_H
 
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
 #include "pipeline/rs_display_render_node.h"
@@ -25,10 +25,10 @@
 
 namespace OHOS::Rosen {
 
-class RSPointerRenderManager {
+class RSMagicPointerRenderManager {
 public:
-    RSPointerRenderManager();
-    ~RSPointerRenderManager() = default;
+    RSMagicPointerRenderManager() = default;
+    ~RSMagicPointerRenderManager() = default;
 
 #if defined (RS_ENABLE_VK)
     static void InitInstance(const std::shared_ptr<RSVkImageManager>& vkImageManager);
@@ -38,7 +38,7 @@ public:
     static void InitInstance(const std::shared_ptr<RSEglImageManager>& eglImageManager);
 #endif
 
-    static RSPointerRenderManager& GetInstance();
+    static RSMagicPointerRenderManager& GetInstance();
     static int64_t GetCurrentTime();
     void ProcessColorPicker(std::shared_ptr<RSProcessor> processor, std::shared_ptr<Drawing::GPUContext> gpuContext);
     void SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
@@ -69,12 +69,12 @@ private:
 #endif
     std::shared_ptr<Drawing::Image> GetImageTexture(std::shared_ptr<Drawing::Image>& image);
     void GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect, int displayNodeIndex);
-    void RunColorPickerTaskBackground(BufferDrawParam& param);
+    void RunColorPickerTaskBackground(const BufferDrawParam& param);
+    int16_t CalcAverageLuminance(std::shared_ptr<Drawing::Image> image);
 
 private:
     RectI rect_;
     LayerInfoPtr target_;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
 #if defined (RS_ENABLE_VK)
     std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
 #endif
@@ -84,6 +84,9 @@ private:
     int16_t luminance_ = 0;
     bool forceCPU_ = false;
     std::shared_ptr<Drawing::Image> image_ = nullptr;
+    Drawing::BackendTexture backendTexture_;
+    Drawing::BackendTexture backendTexturePre_;
+    Drawing::BitmapFormat bitmapFormat_;
     std::atomic<bool> taskDoing_ = false;
     bool isEnableCursorInversion_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForPointer_ = nullptr;
@@ -103,4 +106,4 @@ private:
     float brightBuffer_ = 0.40f;
 };
 }
-#endif // RS_POINTER_RENDER_MANAGER_H
+#endif // RS_MAGIC_POINTER_RENDER_MANAGER_H

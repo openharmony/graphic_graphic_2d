@@ -117,7 +117,7 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetVkQueueDividedEnable()
+bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;
 }
@@ -169,6 +169,10 @@ bool RSSystemProperties::GetDrawTextAsBitmap()
 }
 
 void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
+{
+}
+
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
 }
 
@@ -235,11 +239,6 @@ bool RSSystemProperties::GetFilterCacheEnabled()
 int RSSystemProperties::GetFilterCacheUpdateInterval()
 {
     return 0;
-}
-
-bool RSSystemProperties::GetColorPickerPartialEnabled()
-{
-    return false;
 }
 
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
@@ -379,6 +378,11 @@ bool RSSystemProperties::IsPcType()
     return false;
 }
 
+bool RSSystemProperties::IsBetaRelease()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     return false;
@@ -405,6 +409,11 @@ bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
 }
 
 bool RSSystemProperties::GetBlurExtraFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
 {
     return false;
 }
@@ -488,9 +497,5 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -272,10 +272,10 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->RecordFilterInfos(rsFilter);
     std::shared_ptr<RSShaderFilter> shaderFilter = std::make_shared<RSShaderFilter>();
     EXPECT_NE(shaderFilter, nullptr);
-    filterDrawable->cachedFilterHash_ = 1;
+    filterDrawable->stagingCachedFilterHash_ = 1;
     rsFilter = std::make_shared<RSDrawingFilter>(shaderFilter);
     filterDrawable->RecordFilterInfos(rsFilter);
-    EXPECT_EQ(filterDrawable->cachedFilterHash_, rsFilter->Hash());
+    EXPECT_EQ(filterDrawable->stagingCachedFilterHash_, rsFilter->Hash());
 
     // RSProperties::FilterCacheEnabled is true
     filterDrawable->ClearFilterCache();
@@ -307,12 +307,12 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->filterType_ = RSFilter::AIBAR;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 1);
-    filterDrawable->isAIBarInteractWithHWC_ = true;
+    filterDrawable->stagingIsAIBarInteractWithHWC_ = true;
     filterDrawable->cacheUpdateInterval_ = 0;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 0);
     filterDrawable->cacheUpdateInterval_ = 3;
-    filterDrawable->isAIBarInteractWithHWC_ = true;
+    filterDrawable->stagingIsAIBarInteractWithHWC_ = true;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 2);
 }

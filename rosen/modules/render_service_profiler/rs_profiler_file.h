@@ -30,7 +30,9 @@
 namespace OHOS::Rosen {
 
 #define RSFILE_VERSION_RENDER_METRICS_ADDED 0x240701
-#define RSFILE_VERSION_LATEST RSFILE_VERSION_RENDER_METRICS_ADDED
+#define RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED 0x240723
+#define RSFILE_VERSION_RENDER_TYPEFACE_FIX 0x240801
+#define RSFILE_VERSION_LATEST RSFILE_VERSION_RENDER_TYPEFACE_FIX
 
 struct RSFileLayer final {
     std::pair<uint32_t, uint32_t> layerHeader; // to put in GLOBAL HEADER
@@ -69,6 +71,9 @@ public:
 
     const std::string& GetHeaderFirstFrame() const;
     void AddHeaderFirstFrame(const std::string& dataFirstFrame);
+
+    const std::vector<std::pair<uint64_t, int64_t>>& GetAnimeStartTimes() const;
+    void AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& dataFirstFrame);
 
     void AddHeaderPid(pid_t pid);
     const std::vector<pid_t>& GetHeaderPids() const;
@@ -113,7 +118,7 @@ public:
     void Close();
 
     uint32_t GetVersion() const;
-    void SetVersion(uint32_t);
+    void SetVersion(uint32_t version);
 
     static const std::string& GetDefaultPath();
 
@@ -171,6 +176,7 @@ private:
     std::vector<RSFileLayer> layerData_;
     uint32_t writeDataOff_ = 0u; // last byte of file where we can continue writing
     std::string headerFirstFrame_;
+    std::vector<std::pair<uint64_t, int64_t>> headerAnimeStartTimes_;
     std::mutex writeMutex_;
     bool wasChanged_ = false;
     std::vector<uint8_t> preparedHeader_;

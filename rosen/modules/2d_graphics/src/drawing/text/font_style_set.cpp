@@ -55,10 +55,6 @@ int FontStyleSet::Count()
     return 0;
 }
 
-FontStyleSet* FontStyleSet::CreateEmpty()
-{
-    return StaticFactory::CreateEmpty();
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

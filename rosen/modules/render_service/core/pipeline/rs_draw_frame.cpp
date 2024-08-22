@@ -211,6 +211,9 @@ void RSDrawFrame::JankStatsRenderFrameEnd(bool doJankStats)
         return;
     }
     const auto& renderThreadParams = unirenderInstance_.GetRSRenderThreadParams();
+    if (renderThreadParams == nullptr) {
+        return;
+    }
     RSJankStats::GetInstance().SetOnVsyncStartTime(
         renderThreadParams->GetOnVsyncStartTime(),
         renderThreadParams->GetOnVsyncStartTimeSteady(),

@@ -82,6 +82,7 @@ ohos_shared_library("libhyper_graphic_manager") {
   }
 
   deps = [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
@@ -91,6 +92,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "config_policy:configpolicy_util",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "hicollie:libhicollie",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",

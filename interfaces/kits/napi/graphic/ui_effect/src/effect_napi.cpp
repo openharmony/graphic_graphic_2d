@@ -19,6 +19,7 @@ namespace {
     constexpr uint32_t NUM_1 = 1;
     constexpr uint32_t NUM_3 = 3;
     constexpr uint32_t NUM_8 = 8;
+    constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 }
 
 namespace OHOS {
@@ -176,6 +177,12 @@ bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
 
 napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("CreateBrightnessBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateBrightnessBlender failed, is not system app");
+        return nullptr;
+    }
     BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
     if (blender == nullptr) {
         UIEFFECT_LOG_E("CreateBrightnessBlender blender is nullptr");
@@ -216,7 +223,7 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
         return nullptr;
     }
 
-    if (!CheckCreateBrightnessBlender(env, nativeObj)) {
+    if (!CheckCreateBrightnessBlender(env, nativeObj) || !ParseBrightnessBlender(env, nativeObj, blender)) {
         UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
         delete blender;
         blender = nullptr;
@@ -307,8 +314,7 @@ bool ParseJsVec3Value(napi_value jsObject, napi_env env, const std::string& name
     return true;
 }
  
-bool EffectNapi::ParseBrightnessBlender(
-    napi_env env, napi_value jsObject, std::shared_ptr<BrightnessBlender> blender)
+bool EffectNapi::ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender)
 {
     double val;
     Vector3f tmpVector3;
@@ -350,6 +356,12 @@ bool EffectNapi::ParseBrightnessBlender(
  
 napi_value EffectNapi::SetbackgroundColorBlender(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("SetbackgroundColorBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi SetbackgroundColorBlender failed, is not system app");
+        return nullptr;
+    }
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
@@ -370,7 +382,7 @@ napi_value EffectNapi::SetbackgroundColorBlender(napi_env env, napi_callback_inf
         UIEFFECT_LOG_E("EffectNapi SetbackgroundColorBlender blender is nullptr");
         return thisVar;
     }
-    if (!ParseBrightnessBlender(env, argValue[0], blender)) {
+    if (!ParseBrightnessBlender(env, argValue[0], blender.get())) {
         UIEFFECT_LOG_E("  SetbackgroundColorBlender input check fails");
         return thisVar;
     }

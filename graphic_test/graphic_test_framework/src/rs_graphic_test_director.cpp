@@ -61,6 +61,43 @@ public:
 };
 }
 
+class VSyncWaiter {
+public:
+    VSyncWaiter(std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler, int32_t rate)
+    {
+        frameCallback_ = {
+            .userData_ = this,
+            .callback_ = [this](int64_t, void*) { this->OnVSync(); },
+        };
+        vsyncReceiver_ = RSInterfaces::GetInstance().CreateVSyncReceiver("RSGraphicTest", handler);
+        vsyncReceiver_->Init();
+        vsyncReceiver_->SetVSyncRate(frameCallback_, rate);
+    }
+
+    void OnVSync()
+    {
+        {
+            std::unique_lock lock(mutex_);
+            ++counts_;
+        }
+        cv_.notify_all();
+    }
+
+    void WaitForVSync(size_t count)
+    {
+        std::unique_lock lock(mutex_);
+        count += counts_;
+        cv_.wait(lock, [this, count] { return counts_ >= count; });
+    }
+
+private:
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    size_t counts_ = 0;
+    std::shared_ptr<OHOS::Rosen::VSyncReceiver> vsyncReceiver_;
+    Rosen::VSyncReceiver::FrameCallback frameCallback_;
+};
+
 RSGraphicTestDirector& RSGraphicTestDirector::Instance()
 {
     static RSGraphicTestDirector instance;
@@ -71,7 +108,7 @@ RSGraphicTestDirector::~RSGraphicTestDirector()
 {
     rootNode_->screenSurfaceNode_->RemoveFromTree();
     rsUiDirector_->SendMessages();
-    sleep(1);
+    vsyncWaiter_ = nullptr;
 }
 
 void RSGraphicTestDirector::Run()
@@ -85,6 +122,7 @@ void RSGraphicTestDirector::Run()
         [handler](const std::function<void()>& task, uint32_t delay) { handler->PostTask(task); });
     runner->Run();
 
+    vsyncWaiter_ = std::make_shared<VSyncWaiter>(handler_, RSParameterParse::Instance().vsyncRate);
     screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();
 
     auto defaultDisplay = DisplayManager::GetInstance().GetDefaultDisplay();
@@ -100,7 +138,7 @@ void RSGraphicTestDirector::Run()
 
     rsUiDirector_->SetRSSurfaceNode(rootNode_->screenSurfaceNode_);
     rsUiDirector_->SendMessages();
-    sleep(1);
+    WaitForVSync();
 
     ResetImagePath();
 }
@@ -160,5 +198,11 @@ void RSGraphicTestDirector::SetSurfaceColor(const RSColor& color)
     }
 }
 
+void RSGraphicTestDirector::WaitForVSync(size_t count)
+{
+    if (vsyncWaiter_) {
+        vsyncWaiter_->WaitForVSync(count);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

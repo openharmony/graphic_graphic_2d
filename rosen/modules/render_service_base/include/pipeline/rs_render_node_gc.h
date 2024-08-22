@@ -20,6 +20,7 @@
 #include <event_handler.h>
 #include <mutex>
 #include <vector>
+#include <queue>
 
 #include "common/rs_thread_handler.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -27,7 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr const int BUCKET_MAX_SIZE = 100;
+constexpr const int BUCKET_MAX_SIZE = 50;
 constexpr const char* DELETE_NODE_TASK = "ReleaseNodeMemory";
 constexpr const char* DELETE_DRAWABLE_TASK = "ReleaseDrawableMemory";
 class RSB_EXPORT RSRenderNodeGC {
@@ -53,10 +54,16 @@ public:
         renderTask_ = hook;
     }
 
+    inline void SetGCTaskEnable(bool isEnable)
+    {
+        isEnable_.store(isEnable);
+    }
+
 private:
     gcTask mainTask_ = nullptr;
     gcTask renderTask_ = nullptr;
 
+    std::atomic<bool> isEnable_ = true;
     std::queue<std::vector<RSRenderNode*>> nodeBucket_;
     std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>> drawableBucket_;
     std::mutex nodeMutex_;

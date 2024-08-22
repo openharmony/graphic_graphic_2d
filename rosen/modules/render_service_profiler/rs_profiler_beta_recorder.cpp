@@ -91,7 +91,7 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
     thread.detach();
 }
 
-void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string path)
+void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string& path)
 {
     std::vector<uint8_t> fileData;
     if (!file.GetDataCopy(fileData)) {

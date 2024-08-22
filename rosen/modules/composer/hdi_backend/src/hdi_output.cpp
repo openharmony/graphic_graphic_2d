@@ -798,9 +798,6 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
-        if (layer == nullptr || layer->GetLayerInfo() == nullptr) {
-            continue;
-        }
         if (arg == "UniRender") {
             if (layer->GetLayerInfo()->GetUniRenderFlag()) {
                 result += "\n surface [" + arg + "] Id[" + std::to_string(layerInfo.surfaceId) + "]:\n";
@@ -869,25 +866,21 @@ void HdiOutput::ClearFpsDump(std::string &result, const std::string &arg)
 
 static inline bool Cmp(const LayerDumpInfo &layer1, const LayerDumpInfo &layer2)
 {
-    if (layer1.layer == nullptr || layer1.layer->GetLayerInfo() == nullptr ||
-        layer2.layer == nullptr || layer2.layer->GetLayerInfo() == nullptr) {
-        return false;
-    }
     return layer1.layer->GetLayerInfo()->GetZorder() < layer2.layer->GetLayerInfo()->GetZorder();
 }
 
 void HdiOutput::ReorderLayerInfoLocked(std::vector<LayerDumpInfo> &dumpLayerInfos) const
 {
     for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
+        if (iter->second == nullptr || iter->second->GetLayerInfo() == nullptr) {
+            continue;
+        }
         struct LayerDumpInfo layerInfo = {
             .nodeId = iter->second->GetLayerInfo()->GetNodeId(),
             .surfaceId = iter->first,
             .layer = iter->second,
         };
-
-        if (iter->second != nullptr) {
-            dumpLayerInfos.emplace_back(layerInfo);
-        }
+        dumpLayerInfos.emplace_back(layerInfo);
     }
 
     std::sort(dumpLayerInfos.begin(), dumpLayerInfos.end(), Cmp);

@@ -124,36 +124,34 @@ FontParser::FontDescriptor* FontManager::FindFallbackResult(ResultSet* fontSrc, 
         return descResPtr;
     }
     ResultSet fbkFonts;
-    if (!resultCache.empty()) {
-        for (ResultCache::iterator it = resultCache.begin(); it != resultCache.end(); ++it) {
-            if (ResFallbackMatch(*it, descFind)) {
-                fbkFonts.push_back(*it);
-                LOGEX_FUNC_LINE_DEBUG() << "cache get fallback result";
-            }
+    for (auto& it : resultCache) {
+        if (ResFallbackMatch(it, descFind)) {
+            fbkFonts.push_back(it);
+            LOGEX_FUNC_LINE_DEBUG() << "cache get fallback result";
         }
     }
-    if (fbkFonts.empty()) {
-        for (ResultSet::iterator it = fontSrc->begin(); it != fontSrc->end(); ++it) {
-            if (ResFallbackMatch(*it, descFind)) {
-                fbkFonts.push_back(*it);
+    if (fbkFonts.empty() && !fontSrc) {
+        for (auto& it : *fontSrc) {
+            if (ResFallbackMatch(it, descFind)) {
+                fbkFonts.push_back(it);
                 LOGEX_FUNC_LINE_DEBUG() << "os get fallback result";
             }
         }
     }
     int bestScore = 0;
-    for (ResultSet::iterator it = fbkFonts.begin(); it != fbkFonts.end(); ++it) {
-        int score = ScoreFallbackMatch(*it, descFind);
+    for (auto& it : fbkFonts) {
+        int score = ScoreFallbackMatch(it, descFind);
         if (score > bestScore) {
             bestScore = score;
-            descResPtr = &(*it);
+            descResPtr = &it;
         }
     }
     if (descResPtr != nullptr) {
         resultCache.push_back(*descResPtr);
-        return descResPtr;
+        return &resultCache.back();
     }
 
-    return descResPtr;
+    return nullptr;
 }
 
 FontParser::FontDescriptor* FontManager::FindFont(ResultSet* fontSrc, FontParser::FontDescriptor& descFind)

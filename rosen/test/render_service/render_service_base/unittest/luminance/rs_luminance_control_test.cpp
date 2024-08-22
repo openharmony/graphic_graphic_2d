@@ -58,6 +58,20 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetNowHdrLuminance(screenId, level);
     luminCtrl.SetSdrLuminance(screenId, level);
     luminCtrl.SetHdrStatus(screenId, false);
+
+    luminCtrl.initStatus_ = true;
+    luminCtrl.DimmingIncrease(screenId);
+    std::ignore = luminCtrl.IsDimmingOn(screenId);
+    std::ignore = luminCtrl.IsHdrOn(screenId);
+    std::ignore = luminCtrl.IsNeedUpdateLuminance(screenId);
+    std::ignore = luminCtrl.GetHdrTmoNits(screenId, mode);
+    std::ignore = luminCtrl.GetHdrDisplayNits(screenId);
+    std::ignore = luminCtrl.GetHdrBrightnessRatio(screenId, mode);
+    std::ignore = luminCtrl.GetNewHdrLuminance(screenId);
+    luminCtrl.SetNowHdrLuminance(screenId, level);
+    luminCtrl.SetSdrLuminance(screenId, level);
+    luminCtrl.SetHdrStatus(screenId, false);
+    
     ASSERT_NE((&luminCtrl), nullptr);
 }
 
@@ -74,9 +88,18 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl002, TestSize.Level1)
     std::ignore = luminCtrl.LoadStatusControl();
     std::ignore = luminCtrl.LoadLumControl();
     std::ignore = luminCtrl.LoadTmoControl();
-    luminCtrl.extLibHandle_ = nullptr;
+    luminCtrl.CloseLibrary();
+
+    int32_t extLibHandle = 0;
+    luminCtrl.extLibHandle_ = &extLibHandle;
+    std::ignore = luminCtrl.LoadLibrary();
+    std::ignore = luminCtrl.LoadStatusControl();
+    std::ignore = luminCtrl.LoadLumControl();
     std::ignore = luminCtrl.LoadTmoControl();
     luminCtrl.CloseLibrary();
+    luminCtrl.extLibHandle_ = nullptr;
+    std::ignore = luminCtrl.LoadTmoControl();
+
     ASSERT_NE((&luminCtrl), nullptr);
 }
 } // namespace OHOS::Rosen

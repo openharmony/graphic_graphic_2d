@@ -67,8 +67,10 @@
 #endif
 
 namespace OHOS::Rosen {
+namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr uint64_t SAMPLE_TIME = 100000000;
+}
 
 RSHardwareThread& RSHardwareThread::Instance()
 {
@@ -176,6 +178,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     ReportFrameToRSS();
 #endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
+        if (output == nullptr || hdiBackend_ == nullptr) {
+            return;
+        }
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
         bool hasGameScene = FrameReport::GetInstance().HasGameScene();
@@ -221,6 +226,17 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
+        // if in game adaptive vsync mode and do direct composition,send layer immediately
+        auto frameRateMgr = hgmCore.GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            bool isAdaptive = frameRateMgr->IsAdaptive();
+            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
+            if (isAdaptive) {
+                RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers PostTask in Adaptive Mode");
+                PostTask(task);
+                return;
+            }
+        }
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
         int64_t pipelineOffset = hgmCore.GetPipelineOffset();
         uint64_t expectCommitTime = static_cast<uint64_t>(param.frameTimestamp +
@@ -242,7 +258,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
 
     for (const auto& layer : layers) {
-        if (layer->GetClearCacheSet().empty()) {
+        if (layer == nullptr || layer->GetClearCacheSet().empty()) {
             continue;
         }
 
@@ -322,6 +338,10 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     static ScreenId lastScreenId = 12345; // init value diff with any real screen id
     auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    if (hgmCore.GetFrameRateMgr() == nullptr) {
+        RS_LOGD("FrameRateMgr is null");
+        return;
+    }
     ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
@@ -340,7 +360,6 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
-        RS_LOGE("RSHardwareThread CreateOrGetScreenManager fail.");
         return;
     }
 
@@ -353,7 +372,6 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
 
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore.GetModesToApply());
     if (modeMap == nullptr) {
-        RS_LOGE("RSHardwareThread::PerformSetData fail, modeMap is nullptr");
         return;
     }
 
@@ -372,8 +390,10 @@ void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp
         screenManager->SetScreenActiveMode(id, modeId);
         auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
         int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
-        hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
-        hdiBackend_->StartSample(output);
+        if (hdiBackend_) {
+            hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
+            hdiBackend_->StartSample(output);
+        }
     }
 }
 
@@ -434,8 +454,8 @@ std::shared_ptr<RSSurfaceOhos> RSHardwareThread::CreateFrameBufferSurfaceOhos(co
 void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId)
 {
     RS_TRACE_NAME("RSHardwareThread::Redraw");
-    if (surface == nullptr) {
-        RS_LOGE("RSHardwareThread::Redraw: surface is null.");
+    if (surface == nullptr || uniRenderEngine_ == nullptr) {
+        RS_LOGE("RSHardwareThread::Redraw: surface or uniRenderEngine is null.");
         return;
     }
     bool isProtected = false;
@@ -461,6 +481,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer start");
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSHardwareThread::Redraw: screenManager is null.");
+        return;
+    }
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -480,9 +504,9 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         frameBufferSurfaceOhos_ = CreateFrameBufferSurfaceOhos(surface);
     }
     FrameContextConfig frameContextConfig = {isProtected, false};
-    if (RSSystemProperties::GetVkQueueDividedEnable()) {
-        frameContextConfig.independentContext = true;
-    }
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
+    frameContextConfig.independentContext = RSSystemProperties::GetVkQueuePriorityEnable();
+#endif
     auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos_, renderFrameConfig,
         forceCPU, true, frameContextConfig);
     if (renderFrame == nullptr) {
@@ -500,7 +524,12 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #endif
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo, colorGamut);
+#else
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
+#endif
+
     renderFrame->Flush();
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }
@@ -508,6 +537,10 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 void RSHardwareThread::AddRefreshRateCount()
 {
     auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSHardwareThread::AddRefreshRateCount screenManager is nullptr");
+        return;
+    }
     ScreenId id = screenManager->GetDefaultScreenId();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     uint32_t currentRefreshRate = hgmCore.GetScreenCurrentRefreshRate(id);
@@ -522,7 +555,7 @@ void RSHardwareThread::AddRefreshRateCount()
             RS_LOGE("RSHardwareThread::AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
             return;
         }
-        frameRateMgr->GetTouchManager().HandleRsFrame();
+        frameRateMgr->HandleRsFrame();
     });
 }
 
@@ -554,6 +587,10 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
     using namespace HDI::Display::Graphic::Common::V1_0;
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
     for (auto& layer : layers) {
+        if (layer == nullptr) {
+            RS_LOGE("RSHardwareThread::ComputeTargetColorGamut layer is nullptr");
+            continue;
+        }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
             RS_LOGW("RSHardwareThread::ComputeTargetColorGamut The buffer of layer is nullptr");
@@ -582,6 +619,9 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
     using namespace HDI::Display::Graphic::Common::V1_0;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     for (auto& layer : layers) {
+        if (layer == nullptr) {
+            continue;
+        }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
             RS_LOGW("RSHardwareThread::ComputeTargetPixelFormat The buffer of layer is nullptr");

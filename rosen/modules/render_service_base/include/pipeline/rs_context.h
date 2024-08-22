@@ -126,7 +126,9 @@ public:
 
     void RequestVsync() const
     {
-        vsyncRequestFunc_();
+        if (vsyncRequestFunc_) {
+            vsyncRequestFunc_();
+        }
     }
 
     void SetTaskRunner(const std::function<void(const std::function<void()>&, bool)>& taskRunner)
@@ -155,6 +157,8 @@ public:
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
 
+    // For LTPO: Transmit data in uiFrameworkTypeTable and uiFrameworkDirtyNodes
+    // between RSRenderNode and HGM model by RSContext.
     void SetUiFrameworkTypeTable(const std::vector<std::string>& table)
     {
         uiFrameworkTypeTable_ = table;

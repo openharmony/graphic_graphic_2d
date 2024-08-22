@@ -83,6 +83,10 @@ void Output::EncodeToPixelMap(ProcessData& data)
     opts.size.height = std::ceil(data.textureHeight);
     opts.editable = true;
     pixelMap_ = Media::PixelMap::Create(opts);
+    if (pixelMap_ == nullptr) {
+        LOGE("The pixelMap create failed.");
+        return;
+    }
     pixelMap_->WritePixels(colorBuffer_.get(), pixelMap_->GetByteCount());
 }
 

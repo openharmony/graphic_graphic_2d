@@ -104,12 +104,11 @@ bool RSSystemProperties::GetProfilerEnabled()
     return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
 
-bool RSSystemProperties::GetVkQueueDividedEnable()
+bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.q.divided.enalbed", "0");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
+    static bool vkQueuePriorityEnabled =
+        std::atoi((system::GetParameter("persist.vkqueue.priority.enalbed", "1")).c_str()) != 0;
+    return vkQueuePriorityEnabled;
 }
 
 bool RSSystemProperties::GetInstantRecording()
@@ -432,6 +431,16 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    defaultDeviceRotationOffset_ = offset;
+}
+
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+{
+    return defaultDeviceRotationOffset_;
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
@@ -523,15 +532,6 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     static int filterCacheSizeThreshold =
         std::atoi((system::GetParameter("persist.sys.graphic.filterCacheSizeThreshold", "400")).c_str());
     return filterCacheSizeThreshold;
-}
-
-bool RSSystemProperties::GetColorPickerPartialEnabled()
-{
-    // Determine whether the color picker partial render should be enabled. The default value is 0,
-    // which means that it is unenabled.
-    static bool enabled =
-        std::atoi((system::GetParameter("persist.sys.graphic.colorPickerPartialEnabled", "1")).c_str()) != 0;
-    return enabled;
 }
 
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
@@ -848,6 +848,12 @@ bool RSSystemProperties::IsPcType()
     return isPc;
 }
 
+bool RSSystemProperties::IsBetaRelease()
+{
+    static bool isBetaRelease = system::GetParameter("const.logsystem.versiontype", "") == "beta";
+    return isBetaRelease;
+}
+
 bool RSSystemProperties::GetSyncTransactionEnabled()
 {
     static bool syncTransactionEnabled =
@@ -878,9 +884,9 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
 
 bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
 {
-    static bool drawFilterWithoutSnahpshotEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.drawFilterWithoutSnahpshot", "0").c_str()) != 0);
-        return drawFilterWithoutSnahpshotEnabled;
+    static bool drawFilterWithoutSnapshotEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.drawFilterWithoutSnapshot", "0").c_str()) != 0);
+    return drawFilterWithoutSnapshotEnabled;
 }
 
 bool RSSystemProperties::GetBlurExtraFilterEnabled()
@@ -888,6 +894,13 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     static bool blurExtraFilterEnabled =
         (std::atoi(system::GetParameter("persist.sys.graphic.blurExtraFilter", "0").c_str()) != 0);
     return blurExtraFilterEnabled;
+}
+
+bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
+{
+    static bool discardCanvasBeforeFilterEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.discardCanvasBeforeFilter", "1").c_str()) != 0);
+    return discardCanvasBeforeFilterEnabled;
 }
 
 bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
@@ -1003,14 +1016,6 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<SubTreePrepareCheckType>(ConvertToInt(type, 2)); // Default value 2
-}
-
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.layercursor.enable", "0");
-    int changed = 0;
-    const char *num = CachedParameterGetChanged(g_Handle, &changed);
-    return (ConvertToInt(num, 0) != 0) && IsPcType();
 }
 
 bool RSSystemProperties::GetHDRImageEnable()

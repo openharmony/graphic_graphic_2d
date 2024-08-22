@@ -50,6 +50,7 @@ ohos_shared_library("uieffect_napi") {
     "src/effect_napi.cpp",
     "src/filter_napi.cpp",
     "src/native_module_ohos_ui_effect.cpp",
+    "src/ui_effect_napi_utils.cpp",
   ]
 
   deps = [
@@ -58,7 +59,10 @@ ohos_shared_library("uieffect_napi") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
     "hilog:libhilog",
+    "ipc:ipc_core",
     "napi:ace_napi",
   ]
 

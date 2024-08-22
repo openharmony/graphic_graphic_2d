@@ -57,13 +57,7 @@ RSDrawable::Ptr RSShadowDrawable::OnGenerate(const RSRenderNode& node)
     if (!node.GetRenderProperties().IsShadowValid() || node.GetRenderProperties().GetShadowMask()) {
         return nullptr;
     }
-    RSDrawable::Ptr ret = nullptr;
-    if (node.GetRenderProperties().GetShadowElevation() > 0.f ||
-        node.GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        ret = std::make_shared<RSShadowDrawable>();
-    } else {
-        ret = std::make_shared<RSMaskShadowDrawable>();
-    }
+    RSDrawable::Ptr ret = std::make_shared<RSShadowDrawable>();
     if (ret->OnUpdate(node)) {
         return ret;
     }
@@ -117,94 +111,21 @@ Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
             return;
         }
         Drawing::Path path = ptr->path_;
-        if (ptr->colorStrategy_ == SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        Color shadowColor = ptr->color_;
+        if (ptr->colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+            shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path,
+                ptr->color_, ptr->colorStrategy_);
+        }
+        if (ROSEN_GNE(ptr->elevation_, 0.f)) {
             RSPropertyDrawableUtils::DrawShadow(canvas, path, ptr->offsetX_, ptr->offsetY_,
-                ptr->elevation_, ptr->isFilled_, ptr->color_);
+                ptr->elevation_, ptr->isFilled_, shadowColor);
             return;
         }
-        Color colorPicked = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path,
-            ptr->color_, ptr->colorStrategy_);
-        if (ptr->radius_ > 0.f) {
+        if (ROSEN_GNE(ptr->radius_, 0.f)) {
             RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, ptr->offsetX_, ptr->offsetY_,
-                ptr->radius_, colorPicked);
+                ptr->radius_, ptr->isFilled_, shadowColor);
             return;
         }
-        if (ptr->elevation_ > 0.f) {
-            RSPropertyDrawableUtils::DrawShadow(canvas, path, ptr->offsetX_, ptr->offsetY_,
-                ptr->elevation_, ptr->isFilled_, colorPicked);
-            return;
-        }
-    };
-}
-
-bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
-{
-    // skip shadow if not valid. ShadowMask is processed by foreground
-    if (!node.GetRenderProperties().IsShadowValid() || node.GetRenderProperties().GetShadowMask()) {
-        return false;
-    }
-    RSPropertyDrawCmdListUpdater updater(0, 0, this);
-    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    // skip shadow if cache is enabled
-    if (canvas.GetCacheType() == Drawing::CacheType::ENABLED) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::Canvas cache type enabled.");
-        return false;
-    }
-
-    const RSProperties& properties = node.GetRenderProperties();
-    if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
-        auto shadowRadius = properties.GetShadowRadius();
-        auto shadowOffsetX = properties.GetShadowOffsetX();
-        auto shadowOffsetY = properties.GetShadowOffsetY();
-        RSPropertyDrawable::stagingPropertyDescription_ = "DrawShadow, Radius: " + std::to_string(shadowRadius) +
-            " ShadowOffsetX: " + std::to_string(shadowOffsetX) +" ShadowOffsetY: " + std::to_string(shadowOffsetY);
-    }
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    Drawing::Path path = RSPropertyDrawableUtils::CreateShadowPath(properties.GetShadowPath(),
-        properties.GetClipBounds(), properties.GetRRect());
-    if (!properties.GetShadowIsFilled()) {
-        canvas.ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
-    }
-    path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
-    Color spotColor = properties.GetShadowColor();
-    // shadow alpha follow setting
-    auto shadowAlpha = spotColor.GetAlpha();
-    RSColor colorPicked;
-    if (properties.GetColorPickerCacheTaskShadow() != nullptr &&
-        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        if (!properties.GetColorPickerCacheTaskShadow()->GetFirstGetColorFinished()) {
-            shadowAlpha = 0;
-        }
-    } else {
-        shadowAlpha = spotColor.GetAlpha();
-        colorPicked = spotColor;
-    }
-
-    Drawing::Brush brush;
-    brush.SetColor(Drawing::Color::ColorQuadSetARGB(
-        shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
-    brush.SetAntiAlias(true);
-    Drawing::Filter filter;
-    filter.SetMaskFilter(
-        Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, properties.GetShadowRadius()));
-    brush.SetFilter(filter);
-    canvas.AttachBrush(brush);
-    canvas.DrawPath(path);
-    canvas.DetachBrush();
-    return true;
-}
-
-Drawing::RecordingCanvas::DrawFunc RSMaskShadowDrawable::CreateDrawFunc() const
-{
-    auto ptr = std::static_pointer_cast<const RSMaskShadowDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSMaskShadowDrawable:: %s, bounds: %s",
-            ptr->propertyDescription_.c_str(), rect->ToString().c_str());
-        Drawing::AutoCanvasRestore rst(*canvas, true);
-        if (RSSystemProperties::IsPhoneType()) {
-            RSPropertyDrawableUtils::CeilMatrixTrans(canvas);
-        }
-        ptr->drawCmdList_->Playback(*canvas);
     };
 }
 
@@ -602,7 +523,7 @@ RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
-    nodeId_ = node.GetId();
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -615,7 +536,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 
 bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 {
-    nodeId_ = node.GetId();
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -642,7 +563,7 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         Drawing::AutoCanvasRestore acr(*canvas, true);
         paintFilterCanvas->ClipRect(*rect);
-        RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->nodeId_);
+        RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
             paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_);
     };

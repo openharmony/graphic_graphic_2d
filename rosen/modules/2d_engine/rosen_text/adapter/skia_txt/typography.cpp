@@ -227,7 +227,7 @@ Boundary Typography::GetActualTextRange(int lineNumber, bool includeSpaces)
 double Typography::GetLineHeight(int lineNumber)
 {
     const auto &lines = paragraph_->GetLineMetrics();
-    if (lineNumber < static_cast<int>(lines.size())) {
+    if ((0 <= lineNumber) && (lineNumber < static_cast<int>(lines.size()))) {
         return lines[lineNumber].fHeight;
     }
     return 0.0;
@@ -236,7 +236,7 @@ double Typography::GetLineHeight(int lineNumber)
 double Typography::GetLineWidth(int lineNumber)
 {
     const auto &lines = paragraph_->GetLineMetrics();
-    if (lineNumber < static_cast<int>(lines.size())) {
+    if ((0 <= lineNumber) && (lineNumber < static_cast<int>(lines.size()))) {
         return lines[lineNumber].fWidth;
     }
     return 0.0;

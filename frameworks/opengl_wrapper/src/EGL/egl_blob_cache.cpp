@@ -101,7 +101,6 @@ void BlobCache::Init(EglWrapperDisplay* display)
     if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
         table->egl.eglSetBlobCacheFuncsANDROID(display->GetEglDisplay(),
                                                BlobCache::SetBlobFunc, BlobCache::GetBlobFunc);
-        ReadFromDisk();
     } else {
         WLOGE("eglSetBlobCacheFuncsANDROID not found.");
     }

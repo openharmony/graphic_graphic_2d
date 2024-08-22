@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "iconsumer_surface.h"
+#include "surface_buffer_impl.h"
 
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
@@ -115,6 +116,8 @@ HWTEST_F(RSSurfaceOhosRasterTest, FlushFrame001, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     frame = std::make_unique<RSSurfaceFrameOhosRaster>(width, height);
+    auto frameOhosRaster =  static_cast<RSSurfaceFrameOhosRaster *>(frame.get());
+    frameOhosRaster->buffer_ = new SurfaceBufferImpl();
     raster.SetUiTimeStamp(frame, uiTimestamp);
     EXPECT_FALSE(raster.FlushFrame(frame, uiTimestamp));
 }

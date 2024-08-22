@@ -13,48 +13,49 @@
  * limitations under the License.
  */
 #include "pipeline/rs_uni_render_thread.h"
-#include <memory>
 
 #include <malloc.h>
+#include <memory>
 #include <parameters.h>
-#include "graphic_common_c.h"
-#include "rs_trace.h"
-#include "hgm_core.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_singleton.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "graphic_common_c.h"
+#include "hgm_core.h"
 #include "include/core/SkGraphics.h"
 #include "include/gpu/GrDirectContext.h"
-#include "static_factory.h"
-#include "surface.h"
-#include "sync_fence.h"
-#include "drawable/rs_display_render_node_drawable.h"
-#include "drawable/rs_surface_render_node_drawable.h"
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "platform/ohos/rs_node_stats.h"
-#ifdef RES_SCHED_ENABLE
-#include "system_ability_definition.h"
-#include "if_system_ability_manager.h"
-#include <iservice_registry.h>
-#endif
-#include "common/rs_singleton.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
-#include "pipeline/rs_uifirst_manager.h"
+#include "rs_trace.h"
+#include "static_factory.h"
+#include "surface.h"
+#include "sync_fence.h"
 #include "system/rs_system_parameters.h"
+
+#ifdef RES_SCHED_ENABLE
+#include <iservice_registry.h>
+#include "if_system_ability_manager.h"
+#include "system_ability_definition.h"
+#endif
 
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
@@ -344,6 +345,9 @@ void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
+    if (!renderThreadParams_) {
+        return;
+    }
     std::vector<std::function<void()>> releaseTasks;
     for (const auto& drawable : renderThreadParams_->GetSelfDrawables()) {
         if (UNLIKELY(!drawable)) {
@@ -355,6 +359,9 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
+        if (UNLIKELY(!surfaceParams)) {
+            continue;
+        }
         bool needRelease = !surfaceParams->GetHardwareEnabled() || !surfaceParams->GetLayerCreated();
         if (needRelease && surfaceParams->GetLastFrameHardwareEnabled()) {
             surfaceParams->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
@@ -420,17 +427,17 @@ void RSUniRenderThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& su
 
 uint64_t RSUniRenderThread::GetCurrentTimestamp() const
 {
-    return renderThreadParams_->GetCurrentTimestamp();
+    return renderThreadParams_ ? renderThreadParams_->GetCurrentTimestamp() : 0;
 }
 
 uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
-    return renderThreadParams_->GetPendingScreenRefreshRate();
+    return renderThreadParams_ ? renderThreadParams_->GetPendingScreenRefreshRate() : 0;
 }
 
 uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
 {
-    return renderThreadParams_->GetPendingConstraintRelativeTime();
+    return renderThreadParams_ ? renderThreadParams_->GetPendingConstraintRelativeTime() : 0;
 }
 
 #ifdef RES_SCHED_ENABLE
@@ -571,37 +578,88 @@ uint32_t RSUniRenderThread::GetRefreshRate() const
 
 std::shared_ptr<Drawing::Image> RSUniRenderThread::GetWatermarkImg()
 {
-    auto& renderThreadParams = GetRSRenderThreadParams();
-    return renderThreadParams->GetWatermarkImg();
+    return renderThreadParams_ ? renderThreadParams_->GetWatermarkImg() : nullptr;
 }
 
-bool RSUniRenderThread::GetWatermarkFlag()
+bool RSUniRenderThread::GetWatermarkFlag() const
 {
-    auto& renderThreadParams = GetRSRenderThreadParams();
-    return renderThreadParams->GetWatermarkFlag();
+    return renderThreadParams_ ? renderThreadParams_->GetWatermarkFlag() : false;
 }
 
 bool RSUniRenderThread::IsCurtainScreenOn() const
 {
-    return renderThreadParams_->IsCurtainScreenOn();
+    return renderThreadParams_ ? renderThreadParams_->IsCurtainScreenOn() : false;
+}
+
+std::string FormatNumber(size_t number)
+{
+    constexpr uint8_t FORMATE_NUM_STEP = 3;
+    std::string strNumber = std::to_string(number);
+    int n = strNumber.length();
+    for (int i = n - FORMATE_NUM_STEP; i > 0; i -= FORMATE_NUM_STEP) {
+        strNumber.insert(i, ",");
+    }
+    return strNumber;
+}
+
+static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
+{
+    gpuContext->Flush();
+    SkGraphics::PurgeAllCaches();
+    gpuContext->FreeGpuResources();
+    gpuContext->PurgeUnlockedResources(true);
+#ifdef NEW_RENDER_CONTEXT
+    MemoryHandler::ClearShader();
+#else
+    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    rendercontext->CleanAllShaderCache();
+#endif
+    gpuContext->FlushAndSubmit(true);
+}
+
+static void TrimMemShaderType()
+{
+#ifdef NEW_RENDER_CONTEXT
+    MemoryHandler::ClearShader();
+#else
+    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    rendercontext->CleanAllShaderCache();
+#endif
+}
+
+static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,
+    std::string& type, const std::string& typeGpuLimit)
+{
+    size_t cacheLimit = 0;
+    int maxResources;
+    gpuContext->GetResourceCacheLimits(&maxResources, &cacheLimit);
+
+    std::string strM = type.substr(typeGpuLimit.length());
+    size_t sizeM = std::stoul(strM);
+    size_t maxResourcesBytes = sizeM * 1000 * 1000L; // max 4G
+
+    gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
+    dumpString.append("setgpulimit: " + FormatNumber(cacheLimit)
+        + "==>" + FormatNumber(maxResourcesBytes) + "\n");
 }
 
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 {
     auto task = [this, &dumpString, &type] {
-        auto gpuContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        std::string typeGpuLimit = "setgpulimit";
+        if (!uniRenderEngine_) {
+            return;
+        }
+        auto renderContext = uniRenderEngine_->GetRenderContext();
+        if (!renderContext) {
+            return;
+        }
+        auto gpuContext = renderContext->GetDrGPUContext();
+        if (gpuContext == nullptr) {
+            return;
+        }
         if (type.empty()) {
-            gpuContext->Flush();
-            SkGraphics::PurgeAllCaches();
-            gpuContext->FreeGpuResources();
-            gpuContext->PurgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-            MemoryHandler::ClearShader();
-#else
-            std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-            rendercontext->CleanAllShaderCache();
-#endif
-            gpuContext->FlushAndSubmit(true);
+            TrimMemEmptyType(gpuContext);
         } else if (type == "cpu") {
             gpuContext->Flush();
             SkGraphics::PurgeAllCaches();
@@ -619,18 +677,15 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
             gpuContext->PurgeUnlockedResources(false);
             gpuContext->FlushAndSubmit(true);
         } else if (type == "shader") {
-#ifdef NEW_RENDER_CONTEXT
-            MemoryHandler::ClearShader();
-#else
-            std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-            rendercontext->CleanAllShaderCache();
-#endif
+            TrimMemShaderType();
         } else if (type == "flushcache") {
             int ret = mallopt(M_FLUSH_THREAD_CACHE, 0);
             dumpString.append("flushcache " + std::to_string(ret) + "\n");
+        } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
+            TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
             uint32_t pid = static_cast<uint32_t>(std::stoll(type));
-            Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+            Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
         dumpString.append("trimMem: " + type + "\n");
@@ -647,7 +702,15 @@ void RSUniRenderThread::DumpMem(DfxString& log)
         nodeTags.push_back({node->GetId(), name});
     });
     PostSyncTask([&log, &nodeTags, this]() {
-        MemoryManager::DumpDrawingGpuMemory(log, GetRenderEngine()->GetRenderContext()->GetDrGPUContext(), nodeTags);
+        if (!uniRenderEngine_) {
+            return;
+        }
+        auto renderContext = uniRenderEngine_->GetRenderContext();
+        if (!renderContext) {
+            return;
+        }
+        auto gpuContext = renderContext->GetDrGPUContext();
+        MemoryManager::DumpDrawingGpuMemory(log, gpuContext, nodeTags);
     });
 }
 
@@ -678,7 +741,14 @@ void RSUniRenderThread::DefaultClearMemoryCache()
 void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
 {
     auto task = [this, moment, deeply, isDefaultClean]() {
-        auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (!uniRenderEngine_) {
+            return;
+        }
+        auto renderContext = uniRenderEngine_->GetRenderContext();
+        if (!renderContext) {
+            return;
+        }
+        auto grContext = renderContext->GetDrGPUContext();
         if (UNLIKELY(!grContext)) {
             return;
         }
@@ -738,7 +808,14 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
     RS_TRACE_NAME_FMT("MEM PurgeCacheBetweenFrames add task");
     PostTask(
         [this]() {
-            auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+            if (!uniRenderEngine_) {
+                return;
+            }
+            auto renderContext = uniRenderEngine_->GetRenderContext();
+            if (!renderContext) {
+                return;
+            }
+            auto grContext = renderContext->GetDrGPUContext();
             if (!grContext) {
                 return;
             }

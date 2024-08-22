@@ -33,6 +33,7 @@ napi_value JsBrush::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("setColor", SetColor),
         DECLARE_NAPI_FUNCTION("getColor", GetColor),
+        DECLARE_NAPI_FUNCTION("getHexColor", GetHexColor),
         DECLARE_NAPI_FUNCTION("setAntiAlias", SetAntiAlias),
         DECLARE_NAPI_FUNCTION("isAntiAlias", IsAntiAlias),
         DECLARE_NAPI_FUNCTION("setAlpha", SetAlpha),
@@ -186,6 +187,10 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
 napi_value JsBrush::GetColor(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetColor jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColor brush is nullptr");
@@ -194,6 +199,23 @@ napi_value JsBrush::GetColor(napi_env env, napi_callback_info info)
 
     const Color& color = brush->GetColor();
     return GetColorAndConvertToJsValue(env, color);
+}
+
+napi_value JsBrush::GetHexColor(napi_env env, napi_callback_info info)
+{
+    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetHexColor jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Brush* brush = jsBrush->GetBrush();
+    if (brush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetHexColor brush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    const Color& color = brush->GetColor();
+    return GetHexColorAndConvertToJsValue(env, color);
 }
 
 napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)
@@ -247,6 +269,10 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
 napi_value JsBrush::IsAntiAlias(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::IsAntiAlias jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::IsAntiAlias brush is nullptr");
@@ -259,6 +285,10 @@ napi_value JsBrush::IsAntiAlias(napi_env env, napi_callback_info info)
 napi_value JsBrush::GetAlpha(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetAlpha jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetAlpha brush is nullptr");
@@ -409,6 +439,10 @@ napi_value JsBrush::SetShadowLayer(napi_env env, napi_callback_info info)
 napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::SetShaderEffect jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetShaderEffect brush is nullptr");
@@ -428,6 +462,10 @@ napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
 napi_value JsBrush::Reset(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::Reset jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::Reset brush is nullptr");

@@ -17,6 +17,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+RSNodeCommandHelper::DumpNodeTreeProcessor gDumpNodeTreeProcessor = nullptr;
+}
+
 void RSNodeCommandHelper::AddModifier(RSContext& context, NodeId nodeId,
     const std::shared_ptr<RSRenderModifier>& modifier)
 {
@@ -141,6 +145,19 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
         inNode->SetSharedTransitionParam(nullptr);
         outNode->SetSharedTransitionParam(nullptr);
     }
+}
+
+void RSNodeCommandHelper::DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
+    const std::string& result)
+{
+    if (gDumpNodeTreeProcessor) {
+        gDumpNodeTreeProcessor(nodeId, pid, taskId, result);
+    }
+}
+
+void RSNodeCommandHelper::SetDumpNodeTreeProcessor(DumpNodeTreeProcessor processor)
+{
+    gDumpNodeTreeProcessor = processor;
 }
 } // namespace Rosen
 } // namespace OHOS

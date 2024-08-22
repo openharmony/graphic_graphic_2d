@@ -33,7 +33,7 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 
 #include "platform/common/rs_log.h"
@@ -49,6 +49,8 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+
+#include "render/rs_pixel_map_util.h"
 
 #include "luminance/rs_luminance_control.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -87,6 +89,14 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface)
 {
+    RSRenderThreadFirstLevelHelper firstLevelHelper(
+        surfaceParams.GetFirstLevelNodeId(), surfaceParams.GetUifirstRootNodeId(), nodeId_);
+    if (firstLevelHelper.IsUifirstCheckNode() && !CheckCurFirstLevelCorrect()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw CheckCurFirstLevelCorrect [%s] Id:%" PRIu64 "",
+            name_.c_str(), surfaceParams.GetId());
+        return;
+    }
+
     auto bounds = surfaceParams.GetFrameRect();
 
     // 1. draw background
@@ -109,6 +119,36 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
 
     // 5. Draw foreground of this node by the main canvas.
     DrawForeground(canvas, bounds);
+
+    if (surfaceParams.GetWatermarkSize() > 0) {
+        DrawWatermarkIfNeed(canvas, surfaceParams);
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params)
+{
+    auto surfaceRect = params.GetBounds();
+    if (surfaceRect.GetWidth() == 0 || surfaceRect.GetHeight() == 0) {
+        return;
+    }
+    for (auto& [name, pixelMapInfo] : params.GetWatermark()) {
+        auto [isEnabled, watermark] = pixelMapInfo;
+        if (!isEnabled || !watermark) {
+            continue;
+        }
+        auto imagePtr = RSPixelMapUtil::ExtractDrawingImage(watermark);
+        if (!imagePtr || imagePtr->GetWidth() == 0 || imagePtr->GetHeight() == 0) {
+            continue;
+        }
+        auto imageRect = Drawing::Rect(0, 0, imagePtr->GetWidth(), imagePtr->GetHeight());
+        Drawing::Brush brush;
+        brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
+            *imagePtr, Drawing::TileMode::REPEAT, Drawing::TileMode::REPEAT,
+            Drawing::SamplingOptions(), Drawing::Matrix()));
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(surfaceRect);
+        canvas.DetachBrush();
+    }
 }
 
 Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThreadParams& uniParam,
@@ -236,6 +276,7 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw %s should not paint", name_.c_str());
         return;
     }
 
@@ -259,6 +300,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
+    RS_LOGI("RSSurfaceRenderNodeDrawable ondraw name:%{public}s nodeId:[%" PRIu64 "]", name_.c_str(),
+        surfaceParams->GetId());
+    
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw renderEngine is nullptr");
@@ -304,12 +348,19 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    Drawing::GPUContext* gpuContext = renderEngine->GetRenderContext()->GetDrGPUContext();
-    RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    auto realTid = gettid();
+    if (realTid == RSUniRenderThread::Instance().GetTid()) {
+        gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
+    } else {
+        gpuContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
+    }
+    RSTagTracker tagTracker(gpuContext.get(), surfaceParams->GetId(),
+        RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceParams->GetName());
 
     // Draw base pipeline start
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    bool needOffscreen = (gettid() == RSUniRenderThread::Instance().GetTid()) &&
+    bool needOffscreen = (realTid == RSUniRenderThread::Instance().GetTid()) &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
         (surfaceParams->GetVisibleRegion().Area() == surfaceParams->GetOpaqueRegion().Area());
@@ -659,8 +710,8 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     params.screenBrightnessNits = GetDisplayNit();
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    if (IsHardwareEnabledTopSurface()) {
-        RSPointerRenderManager::GetInstance().SetCacheImgForPointer(canvas.GetSurface()->GetImageSnapshot());
+    if (IsHardwareEnabledTopSurface() && RSUniRenderThread::Instance().GetRSRenderThreadParams()->HasMirrorDisplay()) {
+        RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(canvas.GetSurface()->GetImageSnapshot());
     }
 #endif
 
@@ -692,7 +743,7 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
         RS_LOGE("DrawBufferForRotationFixed failed to get invert matrix");
     }
     canvas.ConcatMatrix(inverse);
-    auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, surfaceParams);
+    auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams);
     RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, *this, params);
     canvas.Restore();
 }

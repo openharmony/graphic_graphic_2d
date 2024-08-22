@@ -233,20 +233,6 @@ HWTEST_F(SkiaStaticFactoryTest, GetGroupParameters001, TestSize.Level1)
     }
 }
 
-/**
- * @tc.name: CreateEmpty001
- * @tc.desc: Test CreateEmpty
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-
-HWTEST_F(SkiaStaticFactoryTest, CreateEmpty001, TestSize.Level1)
-{
-    auto skiaStatic = SkiaStaticFactory::CreateEmpty();
-    ASSERT_TRUE(skiaStatic != nullptr);
-    delete (skiaStatic);
-}
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

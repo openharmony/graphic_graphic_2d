@@ -97,6 +97,7 @@ group("test") {
     "render_service_base/unittest/common:unittest",
     "render_service_base/unittest/delegate:unittest",
     "render_service_base/unittest/drawable:unittest",
+    "render_service_base/unittest/ipc_callbacks:unittest",
     "render_service_base/unittest/luminance:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",

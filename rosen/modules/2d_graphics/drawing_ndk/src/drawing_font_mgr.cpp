@@ -34,19 +34,22 @@ static std::unordered_map<void*, std::shared_ptr<FontStyleSet>> g_fontStyleSetMa
 
 static FontMgr* CastToFontMgr(OH_Drawing_FontMgr* drawingFontMgr)
 {
+    if (drawingFontMgr == nullptr) {
+        return nullptr;
+    }
     FontMgr* fontMgr = reinterpret_cast<FontMgr*>(drawingFontMgr);
     auto it = g_fontMgrMap.find(fontMgr);
     if (it != g_fontMgrMap.end()) {
         return it->second.get();
     }
-    return fontMgr;
+    return nullptr;
 }
 
 OH_Drawing_FontMgr* OH_Drawing_FontMgrCreate()
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
     std::lock_guard<std::mutex> lock(g_fontMgrLockMutex);
-    g_fontMgrMap.insert({fontMgr.get(), fontMgr});
+    g_fontMgrMap.insert({ fontMgr.get(), fontMgr });
     return (OH_Drawing_FontMgr*)fontMgr.get();
 }
 
@@ -75,7 +78,7 @@ static bool CopyStrData(char** destination, const std::string& source)
         return false;
     }
     size_t destinationSize = source.size() + 1;
-    *destination = new char[destinationSize];
+    *destination = new (std::nothrow) char[destinationSize];
     if (*destination == nullptr) {
         return false;
     }
@@ -120,7 +123,7 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontMgrCreateFontStyleSet(OH_Drawing_FontMgr
     FontStyleSet* fontStyleSet = fontMgr->CreateStyleSet(index);
     std::shared_ptr<FontStyleSet> sharedFontStyleSet(fontStyleSet);
     std::lock_guard<std::mutex> lock(g_fontStyleSetLockMutex);
-    g_fontStyleSetMap.insert({sharedFontStyleSet.get(), sharedFontStyleSet});
+    g_fontStyleSetMap.insert({ sharedFontStyleSet.get(), sharedFontStyleSet });
     return (OH_Drawing_FontStyleSet*)sharedFontStyleSet.get();
 }
 
@@ -146,19 +149,19 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr* drawi
     }
     std::shared_ptr<FontStyleSet> sharedFontStyleSet(fontStyleSet);
     std::lock_guard<std::mutex> lock(g_fontStyleSetLockMutex);
-    g_fontStyleSetMap.insert({sharedFontStyleSet.get(), sharedFontStyleSet});
+    g_fontStyleSetMap.insert({ sharedFontStyleSet.get(), sharedFontStyleSet });
     return (OH_Drawing_FontStyleSet*)sharedFontStyleSet.get();
 }
 
-OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr* drawingFontMgr, const char* familyName,
-    OH_Drawing_FontStyleStruct fontStyle)
+OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(
+    OH_Drawing_FontMgr* drawingFontMgr, const char* familyName, OH_Drawing_FontStyleStruct fontStyle)
 {
     FontMgr* fontMgr = CastToFontMgr(drawingFontMgr);
     if (fontMgr == nullptr) {
         return nullptr;
     }
-    Typeface* typeface = fontMgr->MatchFamilyStyle(familyName,
-        FontStyle(fontStyle.weight, fontStyle.width, static_cast<FontStyle::Slant>(fontStyle.slant)));
+    Typeface* typeface = fontMgr->MatchFamilyStyle(
+        familyName, FontStyle(fontStyle.weight, fontStyle.width, static_cast<FontStyle::Slant>(fontStyle.slant)));
     if (typeface == nullptr) {
         return nullptr;
     }
@@ -169,16 +172,16 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyle(OH_Drawing_FontMgr* draw
 }
 
 OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_FontMgr* drawingFontMgr,
-    const char* familyName, OH_Drawing_FontStyleStruct fontStyle, const char* bcp47[],
-    int bcp47Count, int32_t character)
+    const char* familyName, OH_Drawing_FontStyleStruct fontStyle, const char* bcp47[], int bcp47Count,
+    int32_t character)
 {
     FontMgr* fontMgr = CastToFontMgr(drawingFontMgr);
     if (fontMgr == nullptr) {
         return nullptr;
     }
     Typeface* typeface = fontMgr->MatchFamilyStyleCharacter(familyName,
-        FontStyle(fontStyle.weight, fontStyle.width, static_cast<FontStyle::Slant>(fontStyle.slant)),
-        bcp47, bcp47Count, character);
+        FontStyle(fontStyle.weight, fontStyle.width, static_cast<FontStyle::Slant>(fontStyle.slant)), bcp47, bcp47Count,
+        character);
     if (typeface == nullptr) {
         return nullptr;
     }
@@ -203,8 +206,8 @@ OH_Drawing_Typeface* OH_Drawing_FontStyleSetCreateTypeface(OH_Drawing_FontStyleS
     return reinterpret_cast<OH_Drawing_Typeface*>(drawingTypeface);
 }
 
-OH_Drawing_FontStyleStruct OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleSet* fontStyleSet, int32_t index,
-    char** styleName)
+OH_Drawing_FontStyleStruct OH_Drawing_FontStyleSetGetStyle(
+    OH_Drawing_FontStyleSet* fontStyleSet, int32_t index, char** styleName)
 {
     OH_Drawing_FontStyleStruct fontStyleStruct;
     fontStyleStruct.weight = FONT_WEIGHT_400;
@@ -215,6 +218,7 @@ OH_Drawing_FontStyleStruct OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleS
     }
     FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
     if (converFontStyleSet == nullptr) {
+        *styleName = nullptr;
         return fontStyleStruct;
     }
     FontStyle tempFontStyle;
@@ -225,10 +229,13 @@ OH_Drawing_FontStyleStruct OH_Drawing_FontStyleSetGetStyle(OH_Drawing_FontStyleS
     if (allocatedMemoryForStyleName != nullptr) {
         auto retCopy = strcpy_s(allocatedMemoryForStyleName, len, tempStringPtr.c_str());
         if (retCopy != 0) {
-            delete[] allocatedMemoryForStyleName;
+            free(allocatedMemoryForStyleName);
+            allocatedMemoryForStyleName = nullptr;
+            *styleName = nullptr;
             return fontStyleStruct;
         }
     } else {
+        *styleName = nullptr;
         return fontStyleStruct;
     }
     *styleName = allocatedMemoryForStyleName;
@@ -250,16 +257,15 @@ void OH_Drawing_FontStyleSetFreeStyleName(char** styleName)
     return;
 }
 
-OH_Drawing_Typeface* OH_Drawing_FontStyleSetMatchStyle(OH_Drawing_FontStyleSet* fontStyleSet,
-    OH_Drawing_FontStyleStruct fontStyleStruct)
+OH_Drawing_Typeface* OH_Drawing_FontStyleSetMatchStyle(
+    OH_Drawing_FontStyleSet* fontStyleSet, OH_Drawing_FontStyleStruct fontStyleStruct)
 {
     FontStyleSet* converFontStyleSet = reinterpret_cast<FontStyleSet*>(fontStyleSet);
     if (converFontStyleSet == nullptr) {
         return nullptr;
     }
     auto drawingTypeface = converFontStyleSet->MatchStyle(
-        FontStyle(fontStyleStruct.weight, fontStyleStruct.width,
-        static_cast<FontStyle::Slant>(fontStyleStruct.slant)));
+        FontStyle(fontStyleStruct.weight, fontStyleStruct.width, static_cast<FontStyle::Slant>(fontStyleStruct.slant)));
     if (!drawingTypeface) {
         return nullptr;
     }

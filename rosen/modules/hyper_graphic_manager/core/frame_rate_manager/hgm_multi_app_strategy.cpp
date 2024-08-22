@@ -96,9 +96,9 @@ void HgmMultiAppStrategy::CalcVote()
 {
     RS_TRACE_FUNC();
     voteRes_ = { HGM_ERROR, {
-        .min = OledRefreshRate::OLED_NULL_HZ, .max = OledRefreshRate::OLED_120_HZ,
-        .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = false, .drawMin = OledRefreshRate::OLED_NULL_HZ,
-        .drawMax = OledRefreshRate::OLED_120_HZ, .down = OledRefreshRate::OLED_120_HZ,
+        .min = OLED_NULL_HZ, .max = OLED_120_HZ, .idleFps = OLED_60_HZ,
+        .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = false, .drawMin = OLED_NULL_HZ,
+        .drawMax = OLED_120_HZ, .down = OLED_120_HZ,
     }};
     uniqueTouchInfo_ = std::make_unique<TouchInfo>(touchInfo_);
 
@@ -441,6 +441,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetVideoSurfaceFlag(false);
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
     rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
+    rsCommonHook.SetHardwareEnabledByIgnoringInsideFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     if (videoConfigFromHgm.empty() || pkgs.size() > 1) {
         return;
@@ -454,6 +455,11 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
             rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
             rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
+        // 3 temporary code: ignore below current hardware composer node rect size
+        } else if (videoConfigFromHgm[pkgNameForCheck] == "3") {
+            rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
+            rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
+            rsCommonHook.SetHardwareEnabledByIgnoringInsideFlag(true);
         }
     }
 }

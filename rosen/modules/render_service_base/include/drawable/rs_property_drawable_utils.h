@@ -28,8 +28,6 @@ public:
         const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     static RRect GetInnerRRectForDrawingBorder(
         const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline);
-    static bool PickColor(Drawing::Canvas& canvas, const std::shared_ptr<RSColorPickerCacheTask>& colorPickerTask,
-        Drawing::Path& drPath, Drawing::Matrix& matrix, RSColor& colorPicked);
     static Color GetColorForShadowSyn(Drawing::Canvas* canvas, Drawing::Path& path, const Color& color,
         const int& colorStrategy);
     static std::shared_ptr<Drawing::Image> GetShadowRegionImage(Drawing::Canvas* canvas,
@@ -64,7 +62,7 @@ public:
     static void DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX, const float& offsetY,
         const float& elevation, const bool& isFilled, Color spotColor);
     static void DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-        const float& offsetY, const float& radius, Color spotColor);
+        const float& offsetY, const float& radius, const bool& isFilled, Color spotColor);
     static void DrawUseEffect(RSPaintFilterCanvas* canvas);
 
     static bool IsDangerousBlendMode(int blendMode, int blendApplyType);

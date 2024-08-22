@@ -301,5 +301,21 @@ void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bo
         node->SetSkipDraw(skip);
     }
 }
+
+void SurfaceNodeCommandHelper::SetWatermark(RSContext& context, NodeId nodeId,
+    const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetWatermark(name, watermark);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId nodeId,
+    const std::string& name, bool isEnabled)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetWatermarkEnabled(name, isEnabled);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

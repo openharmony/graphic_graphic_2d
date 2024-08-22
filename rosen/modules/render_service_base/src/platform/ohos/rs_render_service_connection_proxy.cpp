@@ -50,7 +50,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
     // split to several parcels if parcel size > PARCEL_SPLIT_THRESHOLD during marshalling
     std::vector<std::shared_ptr<MessageParcel>> parcelVector;
-    auto func = [isUniMode, &parcelVector, &transactionData, this]() {
+    auto func = [isUniMode, &parcelVector, &transactionData, this]() -> bool {
         if (isUniMode) {
             ++transactionDataIndex_;
         }
@@ -58,16 +58,19 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
         if (!FillParcelWithTransactionData(transactionData, parcel)) {
             ROSEN_LOGE("FillParcelWithTransactionData failed!");
-            return;
+            return false;
         }
         parcelVector.emplace_back(parcel);
+        return true;
     };
     if (transactionData->IsNeedSync() && transactionData->IsEmpty()) {
         RS_TRACE_NAME("Commit empty syncTransaction");
         func();
     } else {
         while (transactionData->GetMarshallingIndex() < transactionData->GetCommandCount()) {
-            func();
+            if (!func()) {
+                return;
+            }
         }
     }
 
@@ -1948,9 +1951,9 @@ int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSI
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
+    } else {
+        return SUCCESS;
     }
-    int32_t result = reply.ReadInt32();
-    return result;
 }
 
 int32_t RSRenderServiceConnectionProxy::RegisterSurfaceOcclusionChangeCallback(
@@ -2438,6 +2441,26 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCacheEnabledForRotation: Send Request err.");
+        return;
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteUint32(offset)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetDefaultDeviceRotationOffset: Send Request err.");
         return;
     }
 }

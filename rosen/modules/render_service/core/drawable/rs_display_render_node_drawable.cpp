@@ -46,7 +46,7 @@
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -103,7 +103,8 @@ class RSOverDrawDfx {
 public:
     explicit RSOverDrawDfx(std::shared_ptr<RSPaintFilterCanvas> curCanvas)
     {
-        enable_ = RSOverdrawController::GetInstance().IsEnabled() && curCanvas != nullptr;
+        bool isEnabled = RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsOverDrawEnabled();
+        enable_ = isEnabled && curCanvas != nullptr;
         curCanvas_ = curCanvas;
         StartOverDraw();
     }
@@ -345,10 +346,8 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
     auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
-    auto disPlayRenderParams = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
-    bool isMouseDirty = disPlayRenderParams->GetIsMouseDirty();
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
-        pendingDrawables.size() == 0 && !isMouseDirty) {
+        pendingDrawables.size() == 0) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }
@@ -440,8 +439,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
     RSScreenModeInfo modeInfo = {};
     ScreenId defaultScreenId = screenManager->GetDefaultScreenId();
-    screenManager->GetScreenActiveMode(defaultScreenId, modeInfo);
-    uint32_t refreshRate = modeInfo.GetScreenRefreshRate();
+    uint32_t refreshRate = screenManager->GetDefaultScreenRefreshRate();
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
     if (SkipFrame(refreshRate, curScreenInfo.skipFrameInterval)) {
         RS_TRACE_NAME("SkipFrame, screenId:" + std::to_string(paramScreenId));
@@ -476,20 +474,15 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 WiredScreenProjection(*params, processor);
                 return;
             }
-            castScreenEnableSkipWindow_ = screenManager->GetCastScreenEnableSkipWindow(paramScreenId);
-            if (castScreenEnableSkipWindow_) {
-                RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw, Enable CastScreen SkipWindow.");
-                screenManager->GetCastScreenBlackList(currentBlackList_);
-            } else {
-                RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw, Enable RecordScreen SkipWindow.");
-                currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
-            }
+            currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
             uniParam->SetBlackList(currentBlackList_);
             uniParam->SetWhiteList(screenInfo.whiteList);
-            uniParam->SetSecExemption(params->GetSecurityExemption());
+            curSecExemption_ = params->GetSecurityExemption();
+            uniParam->SetSecExemption(curSecExemption_);
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
             DrawMirrorScreen(*params, processor);
             lastBlackList_ = currentBlackList_;
+            lastSecExemption_ = curSecExemption_;
         } else {
             bool isOpDropped = uniParam->IsOpDropped();
             uniParam->SetOpDropped(false);
@@ -578,6 +571,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         curCanvas_->SetBrightnessRatio(hdrBrightnessRatio);
         curCanvas_->SetHDRPresent(isHdrOn);
     }
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (autoCacheEnable_) {
+        screenRectInfo_ = {0, 0, screenInfo.width, screenInfo.height};
+    }
+#endif
 
     // canvas draw
     {
@@ -678,8 +676,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     if (!mirrorDrawable) {
-        RSPointerRenderManager::GetInstance().ProcessColorPicker(processor, curCanvas_->GetGPUContext());
-        RSPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
+        RSMagicPointerRenderManager::GetInstance().ProcessColorPicker(processor, curCanvas_->GetGPUContext());
+        RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
     }
 #endif
 }
@@ -724,6 +722,10 @@ int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& 
 {
     auto hasGeneralSpecialLayer = params.HasSecurityLayer() || params.HasSkipLayer() || params.HasProtectedLayer() ||
         RSUniRenderThread::Instance().IsCurtainScreenOn() || params.GetHDRPresent();
+    RS_LOGD("RSDisplayRenderNodeDrawable::GetSpecialLayerType, SecurityLayer:%{public}d, SkipLayer:%{public}d,"
+        "ProtectedLayer:%{public}d, CurtainScreen:%{public}d, HDRPresent:%{public}d", params.HasSecurityLayer(),
+        params.HasSkipLayer(), params.HasProtectedLayer(), RSUniRenderThread::Instance().IsCurtainScreenOn(),
+        params.GetHDRPresent());
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
@@ -767,7 +769,7 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
-        mirrorParams->IsSpecialLayerChanged()) {
+        mirrorParams->IsSpecialLayerChanged() || lastSecExemption_ != curSecExemption_) {
         GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         lastMatrix_ = canvasMatrix;
         lastMirrorMatrix_ = mirrorParams->GetMatrix();

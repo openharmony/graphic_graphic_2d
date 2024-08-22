@@ -18,8 +18,6 @@
 #include "EGL/egl_core.h"
 
 #include "egl_defs.h"
-#include "egl_wrapper_layer.h"
-#include "egl_wrapper_loader.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -32,18 +30,6 @@ public:
     void SetUp() {}
     void TearDown() {}
 };
-
-/**
- * @tc.name: WrapperHookTableInit001
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(EglCoreTest, WrapperHookTableInit001, Level1)
-{
-    int res = 0;
-    EglCoreInit();
-    ASSERT_EQ(res, 0);
-}
 
 /**
  * @tc.name: EglCoreInit001
@@ -70,33 +56,5 @@ HWTEST_F(EglCoreTest, EglCoreInit002, Level2)
     ASSERT_TRUE(result);
 
     gWrapperHook.isLoad = temp;
-}
-
-/**
- * @tc.name: EglCoreInit003
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(EglCoreTest, EglCoreInit003, Level2)
-{
-    EglWrapperDispatchTable *gWrapperHook;
-    gWrapperHook = nullptr;
-    auto result = EglWrapperLoader::GetInstance().Load(gWrapperHook);
-
-    ASSERT_EQ(result, false);
-}
-
-/**
- * @tc.name: EglCoreInit004
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(EglCoreTest, EglCoreInit004s, Level2)
-{
-    EglWrapperDispatchTable *gWrapperHook;
-    gWrapperHook = nullptr;
-    int res = true;
-    EglWrapperLayer::GetInstance().Init(gWrapperHook);
-    ASSERT_EQ(res, true);
 }
 } // OHOS::Rosen

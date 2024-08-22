@@ -45,6 +45,7 @@ struct TestDefInfo {
     std::string testName;
     RSGraphicTestType testType;
     RSGraphicTestMode testMode;
+    std::string filePath;
 };
 
 class TestDefManager {
@@ -54,16 +55,18 @@ private:
 
 public:
     static TestDefManager& Instance();
-    bool Regist(const char* testCaseName, const char* testName, RSGraphicTestType type, RSGraphicTestMode mode);
+    bool Regist(const char* testCaseName, const char* testName, RSGraphicTestType type, RSGraphicTestMode mode,
+        const char* filePath);
     const TestDefInfo* GetTestInfo(const char* testCaseName, const char* testName) const;
     std::vector<const TestDefInfo*> GetTestInfosByType(RSGraphicTestType type) const;
+    std::vector<const TestDefInfo*> GetAllTestInfos() const;
 };
 } // namespace Rosen
 } // namespace OHOS
 
 #define GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, test_mode) \
     bool GTEST_TEST_UNIQUE_ID_(test_case_name, test_name, __LINE__) = \
-        OHOS::Rosen::TestDefManager::Instance().Regist(#test_case_name, #test_name, test_type, test_mode); \
+        OHOS::Rosen::TestDefManager::Instance().Regist(#test_case_name, #test_name, test_type, test_mode, __FILE__); \
     TEST_F(test_case_name, test_name)
 
 #define GRAPHIC_TEST_2(test_type, test_name) \
