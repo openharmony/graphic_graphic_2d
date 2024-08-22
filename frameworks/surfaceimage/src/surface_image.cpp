@@ -56,6 +56,15 @@ SurfaceImage::SurfaceImage(uint32_t textureId, uint32_t textureTarget)
     InitSurfaceImage();
 }
 
+SurfaceImage::SurfaceImage()
+    : ConsumerSurface("SurfaceImageConsumer-" + std::to_string(GetRealPid()) +
+    "-" + std::to_string(GetProcessUniqueId())),
+      currentSurfaceBuffer_(nullptr),
+      currentTimeStamp_(0)
+{
+    InitSurfaceImage();
+}
+
 SurfaceImage::~SurfaceImage()
 {
     for (auto it = imageCacheSeqs_.begin(); it != imageCacheSeqs_.end(); it++) {
