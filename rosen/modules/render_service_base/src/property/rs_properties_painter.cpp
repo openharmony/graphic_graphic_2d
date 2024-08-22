@@ -553,6 +553,13 @@ void RSPropertiesPainter::DrawForegroundFilter(const RSProperties& properties, R
         return;
     }
     auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(RSFilter);
+    if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
+        if (canvas.GetDisableFilterCache()) {
+            foregroundFilter->DisableMotionBlur(true);
+        } else {
+            foregroundFilter->DisableMotionBlur(false);
+        }
+    }
 
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
         imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
