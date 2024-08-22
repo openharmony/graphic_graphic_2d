@@ -431,6 +431,8 @@ void HgmFrameRateManager::FrameRateReport()
     rates[GetRealPid()] = currRefreshRate_;
     if (curRefreshRateMode_ != HGM_REFRESHRATE_MODE_AUTO) {
         rates[UNI_APP_PID] = currRefreshRate_;
+    } else if (schedulePreferredFps_ == OLED_60_HZ && currRefreshRate_ == OLED_30_HZ) {
+        rates[UNI_APP_PID] = OLED_120_HZ;
     } else {
         rates[UNI_APP_PID] = schedulePreferredFps_;
     }

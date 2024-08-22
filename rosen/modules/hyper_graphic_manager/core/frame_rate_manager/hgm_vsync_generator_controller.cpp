@@ -85,7 +85,7 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         return vsyncCount;
     }
     int pulseNum;
-    if (isNeedUpdateAppOffset) {
+    if (isNeedUpdateAppOffset && controllerRate != OLED_30_HZ) {
         pulseNum = 0;
     } else {
         pulseNum = GetAppOffset(controllerRate);
