@@ -46,7 +46,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
 }
 namespace Detail {
@@ -1175,9 +1174,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
     int extraRotation = 0;
-    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
-        (system::GetParameter("const.build.product", "") == "ICL") ?
-        FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
+    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
     if (nodeParams != nullptr && nodeParams->GetFixRotationByUser()) {
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
         extraRotation = degree - rotationDegree;

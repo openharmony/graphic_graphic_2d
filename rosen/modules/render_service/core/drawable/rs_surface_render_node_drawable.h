@@ -244,8 +244,6 @@ public:
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override;
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-    void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-    void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
     bool PrepareOffscreenRender();
@@ -307,7 +305,10 @@ private:
 
     // Watermark
     void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);
-    
+
+    void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
 #ifndef ROSEN_CROSS_PLATFORM

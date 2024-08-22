@@ -431,6 +431,16 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    defaultDeviceRotationOffset_ = offset;
+}
+
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+{
+    return defaultDeviceRotationOffset_;
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
