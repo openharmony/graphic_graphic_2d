@@ -819,11 +819,8 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     } else if (status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
         ReportHiSysEvent({.voterName = "SCREEN_POWER", .extInfo = "OFF"});
     }
-    if (status != ScreenPowerStatus::POWER_STATUS_ON) {
-        return;
-    }
     static ScreenId lastScreenId = 12345; // init value diff with any real screen id
-    if (lastScreenId == id) {
+    if (status != ScreenPowerStatus::POWER_STATUS_ON || lastScreenId == id) {
         return;
     }
     lastScreenId = id;

@@ -298,7 +298,8 @@ if (exec_script(check_graphic_ext_file_script,
                 check_hgm_ext_file_args,
                 "string") == "True") {
   graphic_2d_hgm_configs = {
-    import("//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")
+    import(
+        "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")
   }
 }
 
