@@ -18,6 +18,7 @@
 #include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_helper.h"
 #include "image_pixel_map_mdk.h"
 #include "native_pixel_map.h"
 #include "native_pixel_map_manager.h"
