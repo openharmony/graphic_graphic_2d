@@ -3540,6 +3540,9 @@ void RSProperties::GenerateColorFilter()
         colorFilter_ = filter;
     }
     isDrawn_ = true;
+    if (colorFilter_ == nullptr) {
+        ROSEN_LOGD("RSProperties::GenerateColorFilter failed");
+    }
 }
 
 std::string RSProperties::Dump() const
@@ -4132,6 +4135,7 @@ void RSProperties::OnApplyModifiers()
             needFilter_ = true;
         } else {
             filterNeedUpdate_ = true;
+            ROSEN_LOGD("RSProperties::OnApplyModifiers: colorFilter is null, need to update needFilter");
         }
     }
     if (pixelStretchNeedUpdate_ || geoDirty_) {
