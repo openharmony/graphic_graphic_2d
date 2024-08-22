@@ -16,6 +16,7 @@
 #ifndef ROSEN_TEXT_ADAPTER_TXT_TYPOGRAPHY_H
 #define ROSEN_TEXT_ADAPTER_TXT_TYPOGRAPHY_H
 
+#include <shared_mutex>
 #include "rosen_text/typography.h"
 #include "txt/paragraph.h"
 
@@ -77,6 +78,7 @@ private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;
     std::optional<std::vector<LineMetrics>> lineMetrics_;
+    mutable std::shared_mutex mutex_;
 };
 } // namespace AdapterTxt
 } // namespace Rosen
