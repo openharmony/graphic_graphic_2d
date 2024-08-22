@@ -119,7 +119,6 @@ ohos_shared_library("libvsync") {
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "COMPOSER_SCHED_ENABLE" ]
-    sources += [ "src/vsync_res_event_listener.cpp" ]
   }
 
   part_name = "graphic_2d"
