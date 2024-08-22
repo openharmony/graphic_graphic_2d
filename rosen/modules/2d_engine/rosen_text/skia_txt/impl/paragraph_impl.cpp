@@ -25,6 +25,7 @@
 #include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -165,6 +166,7 @@ float ParagraphImpl::DetectIndents(size_t index)
 
 void ParagraphImpl::Layout(double width)
 {
+    TEXT_TRACE_FUNC();
     RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();

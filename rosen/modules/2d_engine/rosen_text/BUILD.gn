@@ -207,7 +207,11 @@ if (enable_text_gine) {
         current_os == "android" || current_os == "ios"
 
     if (!is_cross_platform) {
-      external_deps += [ "hitrace:hitrace_meter" ]
+      external_deps += [
+        "hitrace:hitrace_meter",
+        "init:libbegetutil",
+      ]
+      defines += [ "OHOS_TEXT_ENABLE" ]
     }
 
     part_name = "graphic_2d"
