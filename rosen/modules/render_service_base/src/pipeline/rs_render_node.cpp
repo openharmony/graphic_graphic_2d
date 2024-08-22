@@ -4023,6 +4023,9 @@ void RSRenderNode::OnSync()
         drawCmdListNeedSync_ = false;
     }
 
+    renderDrawable_->backgroundFilterDrawable_ = GetFilterDrawable(false);
+    renderDrawable_->compositingFilterDrawable_ = GetFilterDrawable(true);
+
     if (stagingRenderParams_->NeedSync()) {
         stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
     }
