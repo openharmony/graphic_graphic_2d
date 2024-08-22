@@ -829,7 +829,7 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
             m_canvas->DrawColor(color);
         } else {
             int32_t jsMode = 0;
-            GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsMode);
+            GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_FOUR, jsMode);
             DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
             m_canvas->DrawColor(color, BlendMode(jsMode));
         }
