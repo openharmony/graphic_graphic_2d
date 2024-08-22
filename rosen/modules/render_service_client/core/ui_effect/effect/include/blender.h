@@ -25,12 +25,12 @@ public:
     };
     Blender() = default;
     virtual ~Blender() = default;
-    BlenderType GetBlenderType()
+    BlenderType GetBlenderType() const
     {
         return blenderType_;
     }
 protected:
-    BlenderType blenderType_;
+    BlenderType blenderType_ = BlenderType::NONE;
 };
 } // namespace Rosen
 } // namespace OHOS

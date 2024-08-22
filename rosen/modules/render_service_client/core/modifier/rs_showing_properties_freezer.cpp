@@ -188,16 +188,6 @@ std::optional<Vector4f> RSShowingPropertiesFreezer::GetBorderWidth() const
     return GetPropertyImpl<Vector4f, RSModifierType::BORDER_WIDTH>();
 }
 
-std::optional<Vector4f> RSShowingPropertiesFreezer::GetBorderDashWidth() const
-{
-    return GetPropertyImpl<Vector4f, RSModifierType::BORDER_DASH_WIDTH>();
-}
-
-std::optional<Vector4f> RSShowingPropertiesFreezer::GetBorderDashGap() const
-{
-    return GetPropertyImpl<Vector4f, RSModifierType::BORDER_DASH_GAP>();
-}
-
 std::optional<std::shared_ptr<RSFilter>> RSShowingPropertiesFreezer::GetBackgroundFilter() const
 {
     return GetPropertyImpl<std::shared_ptr<RSFilter>, RSModifierType::BACKGROUND_FILTER>();

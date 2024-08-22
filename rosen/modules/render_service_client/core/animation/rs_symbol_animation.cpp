@@ -257,7 +257,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
         return false;
     }
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
-    auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
+    const auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_,
         symbolFirstNode.nodeBoundary[0], symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
@@ -326,6 +326,7 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
     }
 
     if (animationLevelNum < 0) {
+        ROSEN_LOGD("[%{public}s] HmSymbol: this symbol does not have an animated layer\n", __func__);
         return false;
     }
     animationLevelNum = animationLevelNum + 1;
@@ -344,6 +345,7 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
             symbolAnimationConfig->animationMode);
     }
     if (parameters.empty()) {
+        ROSEN_LOGD("[%{public}s] HmSymbol: GetGroupParameters failed\n", __func__);
         return false;
     }
     return true;
@@ -373,14 +375,14 @@ bool RSSymbolAnimation::ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
 bool RSSymbolAnimation::SetPublicAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
-    auto nodeNum = symbolAnimationConfig->numNodes;
+    uint32_t nodeNum = symbolAnimationConfig->numNodes;
     if (nodeNum <= 0) {
         ROSEN_LOGD("HmSymbol SetDisappearAnimation::getNode or get symbolAnimationConfig:failed");
         return false;
     }
 
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
-    auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
+    const auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
 
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_, symbolFirstNode.nodeBoundary[0],
         symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
@@ -437,6 +439,10 @@ void RSSymbolAnimation::GroupAnimationStart(
 
 void RSSymbolAnimation::SetNodePivot(const std::shared_ptr<RSNode>& rsNode)
 {
+    if (rsNode == nullptr) {
+        ROSEN_LOGD("Interpolator is null, return FRACTION_MIN.");
+        return;
+    }
     // Set Node Center Offset
     Vector2f curNodePivot = rsNode->GetStagingProperties().GetPivot();
     pivotProperty_ = nullptr; // reset
@@ -453,6 +459,10 @@ void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
     std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
     const Drawing::DrawingEffectStrategy& effectStrategy)
 {
+    if (rsNode == nullptr) {
+        ROSEN_LOGD("RsNode is null, failed to SpliceAnimation.");
+        return;
+    }
     if (effectStrategy == Drawing::DrawingEffectStrategy::DISAPPEAR ||
         effectStrategy == Drawing::DrawingEffectStrategy::APPEAR) {
         AppearAnimation(rsNode, parameters);
@@ -467,7 +477,7 @@ void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
 void RSSymbolAnimation::BounceAnimation(
     const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
-    unsigned int animationStageNum = 2; // the count of atomizated animations
+    constexpr unsigned int animationStageNum = 2; // the count of atomizated animations
     if (rsNode == nullptr || parameters.size() < animationStageNum) {
         ROSEN_LOGD("[%{public}s] : invalid input\n", __func__);
         return;
@@ -489,7 +499,7 @@ void RSSymbolAnimation::BounceAnimation(
 void RSSymbolAnimation::AppearAnimation(
     const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
-    unsigned int animationStageNum = 2; // the count of atomizated animations
+    constexpr unsigned int animationStageNum = 2; // the count of atomizated animations
     if (rsNode == nullptr || parameters.size() < animationStageNum) {
         ROSEN_LOGD("[%{public}s] : invalid input\n", __func__);
         return;

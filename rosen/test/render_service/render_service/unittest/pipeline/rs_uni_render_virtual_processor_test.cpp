@@ -36,6 +36,15 @@ namespace {
 namespace OHOS::Rosen {
 class RSUniRenderVirtualProcessorTest : public testing::Test {
 public:
+    std::shared_ptr<RSProcessor> processor_ = nullptr;
+    std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcessor_ = nullptr;
+    std::shared_ptr<Drawing::Canvas> drawingCanvas_ = nullptr;
+    std::shared_ptr<RSDisplayRenderNode> rsDisplayRenderNode_ = nullptr;
+    RSDisplayRenderNodeDrawable* displayDrawable_ = nullptr;
+
+    RSDisplayNodeConfig config_;
+    NodeId nodeId_ = 0;
+
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -44,7 +53,26 @@ public:
 
 void RSUniRenderVirtualProcessorTest::SetUpTestCase() {}
 void RSUniRenderVirtualProcessorTest::TearDownTestCase() {}
-void RSUniRenderVirtualProcessorTest::SetUp() {}
+void RSUniRenderVirtualProcessorTest::SetUp()
+{
+    processor_ = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE);
+    ASSERT_NE(processor_, nullptr);
+    virtualProcessor_ = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor_);
+    ASSERT_NE(virtualProcessor_, nullptr);
+
+    drawingCanvas_ = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(drawingCanvas_, nullptr);
+    virtualProcessor_->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas_.get());
+    ASSERT_NE(virtualProcessor_->canvas_, nullptr);
+
+    rsDisplayRenderNode_ = std::make_shared<RSDisplayRenderNode>(nodeId_, config_);
+    ASSERT_NE(rsDisplayRenderNode_, nullptr);
+    displayDrawable_ =
+        static_cast<RSDisplayRenderNodeDrawable*>(RSDisplayRenderNodeDrawable::OnGenerate(rsDisplayRenderNode_));
+    ASSERT_NE(displayDrawable_, nullptr);
+    displayDrawable_->renderParams_ = std::make_unique<RSRenderParams>(nodeId_);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+}
 void RSUniRenderVirtualProcessorTest::TearDown() {}
 
 /**
@@ -157,38 +185,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, OriginScreenRotation, TestSize.Level2)
 }
 
 /**
- * @tc.name: ScaleMirrorIfNeed
- * @tc.desc: ScaleMirrorIfNeed Test
- * @tc.type: FUNC
- * @tc.require: issueI992VW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeed, TestSize.Level2)
-{
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    ASSERT_NE(nullptr, virtualProcessor);
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(nullptr, drawingCanvas);
-    virtualProcessor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-    ASSERT_NE(nullptr, virtualProcessor->canvas_);
-    virtualProcessor->scaleMode_ = ScreenScaleMode::FILL_MODE;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
-
-    virtualProcessor->virtualScreenWidth_ = DEFAULT_CANVAS_WIDTH;
-    virtualProcessor->virtualScreenHeight_ = DEFAULT_CANVAS_HEIGHT;
-    virtualProcessor->mirroredScreenWidth_ = DEFAULT_CANVAS_WIDTH / 2;
-    virtualProcessor->mirroredScreenHeight_ = DEFAULT_CANVAS_HEIGHT / 2;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
-
-    virtualProcessor->scaleMode_ = ScreenScaleMode::UNISCALE_MODE;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
-}
-
-/**
  * @tc.name: Fill
  * @tc.desc: Fill Test
  * @tc.type: FUNC
@@ -267,5 +263,159 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Le
     surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     processor->ProcessDisplaySurface(*rsDisplayRenderNode);
     EXPECT_FALSE(processor->forceCPU_);
+}
+
+/**
+ * @tc.name: CanvasInit_001
+ * @tc.desc: CanvasInit Test, displayDrawable isFirstTimeToProcessor
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_001, TestSize.Level2)
+{
+    displayDrawable_->isFirstTimeToProcessor_ = true;
+    virtualProcessor_->CanvasInit(*displayDrawable_);
+}
+
+/**
+ * @tc.name: CanvasInit_002
+ * @tc.desc: CanvasInit Test, displayDrawable_ is not FirstTimeToProcessor, canvasRotation of virtualProcessor_ is true
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_002, TestSize.Level2)
+{
+    displayDrawable_->isFirstTimeToProcessor_ = false;
+    virtualProcessor_->canvasRotation_ = true;
+    virtualProcessor_->CanvasInit(*displayDrawable_);
+}
+
+/**
+ * @tc.name: GetBufferAge_001
+ * @tc.desc: GetBufferAge Test, renderFrame_ not null, expect 0 when targetSurface_ and surfaceFrame_ are both null
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, GetBufferAge_001, TestSize.Level2)
+{
+    virtualProcessor_->renderFrame_ = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    ASSERT_NE(virtualProcessor_->renderFrame_, nullptr);
+
+    auto ret = virtualProcessor_->GetBufferAge();
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: SetDirtyInfo_001
+ * @tc.desc: SetDirtyInfo Test, renderFrame_ is null
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetDirtyInfo_001, TestSize.Level2)
+{
+    virtualProcessor_->renderFrame_ = nullptr;
+    std::vector<RectI> damageRegion {};
+    virtualProcessor_->SetDirtyInfo(damageRegion);
+}
+
+/**
+ * @tc.name: SetDirtyInfo_002
+ * @tc.desc: SetDirtyInfo Test, renderFrame_ not nul, SetRoiRegionToCodec(damageRegion) != GSERROR_OK
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetDirtyInfo_002, TestSize.Level2)
+{
+    virtualProcessor_->renderFrame_ = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    ASSERT_NE(virtualProcessor_->renderFrame_, nullptr);
+    std::vector<RectI> damageRegion {};
+    ASSERT_EQ(virtualProcessor_->SetRoiRegionToCodec(damageRegion), GSERROR_INVALID_ARGUMENTS);
+
+    virtualProcessor_->SetDirtyInfo(damageRegion);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurfaceForRenderThread_001
+ * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is true, return directly
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_001, TestSize.Level2)
+{
+    virtualProcessor_->isExpand_ = true;
+    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurfaceForRenderThread_002
+ * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is false, canvas and Buffer are not null ,
+ * renderEngine_  is not null, return
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_002, TestSize.Level2)
+{
+    virtualProcessor_->isExpand_ = false;
+    ASSERT_NE(virtualProcessor_->canvas_, nullptr);
+    auto surfaceHandler = displayDrawable_->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    processor_->ProcessDisplaySurface(*rsDisplayRenderNode_);
+    ASSERT_NE(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+
+    virtualProcessor_->renderEngine_ = RSUniRenderThread::Instance().GetRenderEngine();
+    ASSERT_NE(virtualProcessor_->renderEngine_, nullptr);
+    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurfaceForRenderThread_003
+ * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is false, canvas_ is null, buffer not null, return
+ * directly
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_003, TestSize.Level2)
+{
+    virtualProcessor_->isExpand_ = false;
+    virtualProcessor_->canvas_ = nullptr;
+    auto surfaceHandler = displayDrawable_->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    processor_->ProcessDisplaySurface(*rsDisplayRenderNode_);
+    ASSERT_NE(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurfaceForRenderThread_004
+ * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is false, canvas_ is null, buffer is null, return
+ * directly
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_004, TestSize.Level2)
+{
+    virtualProcessor_->isExpand_ = false;
+    virtualProcessor_->canvas_ = nullptr;
+    auto surfaceHandler = displayDrawable_->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->buffer_.buffer = nullptr;
+    ASSERT_EQ(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
+}
+
+/**
+ * @tc.name: ProcessDisplaySurfaceForRenderThread_005
+ * @tc.desc: ProcessDisplaySurfaceForRenderThread Test, isExpand_ is false, canvas_ is not null, buffer is null, return
+ * directly
+ * @tc.type:FUNC
+ * @tc.require:issuesIAJ4FW
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_005, TestSize.Level2)
+{
+    virtualProcessor_->isExpand_ = false;
+    ASSERT_NE(nullptr, virtualProcessor_->canvas_);
+    auto surfaceHandler = displayDrawable_->GetRSSurfaceHandlerOnDraw();
+    surfaceHandler->buffer_.buffer = nullptr;
+    ASSERT_EQ(displayDrawable_->GetRSSurfaceHandlerOnDraw()->GetBuffer(), nullptr);
+    virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
 }
 } // namespace OHOS::Rosen

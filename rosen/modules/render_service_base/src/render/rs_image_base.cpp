@@ -46,10 +46,7 @@ RSImageBase::~RSImageBase()
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
             if (renderServiceImage_) {
-                auto task = [uniqueId = uniqueId_]() {
-                    RSImageCache::Instance().ReleasePixelMapCache(uniqueId);
-                };
-                RSBackgroundThread::Instance().PostTask(task);
+                RSImageCache::Instance().CollectUniqueId(uniqueId_);
             } else {
                 RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
             }

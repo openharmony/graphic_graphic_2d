@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <string>
 #include "draw/paint.h"
 
 namespace OHOS {
@@ -250,7 +251,7 @@ void Paint::Reset()
     blendMode_ = BlendMode::SRC_OVER;
     style_ = PaintStyle::PAINT_NONE;
     width_ = 0;
-    miterLimit_ = Pen::DEFAULT_MITER_VAL;
+    miterLimit_ = DEFAULT_MITER_VAL;
     join_ = Pen::JoinStyle::DEFAULT_JOIN;
     cap_ = Pen::CapStyle::DEFAULT_CAP;
 
@@ -307,6 +308,24 @@ bool operator!=(const Paint& p1, const Paint& p2)
         p1.blenderEnabled_ != p2.blenderEnabled_ ||
         p1.blurDrawLooper_ != p2.blurDrawLooper_;
 }
+
+void Paint::Dump(std::string& out) const
+{
+    out += "[antiAlias:" + std::string(antiAlias_ ? "true" : "false");
+    out += " color";
+    color_.Dump(out);
+    out += " blendMode:" + std::to_string(static_cast<int>(blendMode_));
+    out += " style:" + std::to_string(static_cast<uint8_t>(style_));
+    out += " width:" + std::to_string(width_);
+    out += " miterLimit:" + std::to_string(miterLimit_);
+    out += " join:" + std::to_string(static_cast<int>(join_));
+    out += " cap:" + std::to_string(static_cast<int>(cap_));
+    out += " blenderEnabled:" + std::string(blenderEnabled_ ? "true" : "false");
+    out += " hasFilter:" + std::string(hasFilter_ ? "true" : "false");
+    out += " hdrImage:" + std::string(hdrImage_ ? "true" : "false");
+    out += ']';
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <algorithm>
 #include <chrono>
+#include <regex>
 #include "rs_round_corner_config.h"
 
 using std::chrono::high_resolution_clock;
@@ -22,6 +23,22 @@ using std::chrono::microseconds;
 namespace OHOS {
 namespace Rosen {
 namespace rs_rcd {
+const char REG_NUM[] = "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$"; // regular expression of check number
+
+bool XMLReader::RegexMatch(const std::string& str, const std::string& pattern)
+{
+    std::smatch result;
+    std::regex r(pattern);
+    return std::regex_match(str, result, r);
+}
+
+bool XMLReader::RegexMatchNum(std::string& str)
+{
+    // remove space from string before match
+    str.erase(remove(str.begin(), str.end(), ' '), str.end());
+    return RegexMatch(str, std::string(REG_NUM));
+}
+
 xmlNodePtr XMLReader::FindNode(const xmlNodePtr& src, const std::string& index)
 {
     xmlNodePtr startPtr = src->children;
@@ -36,32 +53,51 @@ xmlNodePtr XMLReader::FindNode(const xmlNodePtr& src, const std::string& index)
     return nullptr;
 }
 
-char* XMLReader::ReadAttrStr(const xmlNodePtr& src, std::string attr)
+std::string XMLReader::ReadAttrStr(const xmlNodePtr& src, const std::string& attr)
 {
-    return reinterpret_cast<char*>((xmlGetProp(src, BAD_CAST(attr.c_str()))));
+    auto result = reinterpret_cast<char*>((xmlGetProp(src, BAD_CAST(attr.c_str()))));
+    if (result == nullptr) {
+        RS_LOGE("[%{public}s] can not found attribute %{public}s! \n", __func__, attr.c_str());
+        return std::string("");
+    }
+    std::string str(result);
+    xmlFree(result);
+    return str;
 }
 
-int XMLReader::ReadAttrInt(const xmlNodePtr& src, std::string attr)
+int XMLReader::ReadAttrInt(const xmlNodePtr& src, const std::string& attr)
 {
     auto result = reinterpret_cast<char*>((xmlGetProp(src, BAD_CAST(attr.c_str()))));
     if (result == nullptr) {
         RS_LOGE("[%{public}s] can not found attribute %{public}s! \n", __func__, attr.c_str());
         return 0;
     }
-    return std::atoi(result);
+    std::string num(result);
+    xmlFree(result);
+    if (RegexMatchNum(num)) {
+        return std::atoi(num.c_str());
+    }
+    RS_LOGE("[%{public}s] attribute %{public}s can not convert to int! \n", __func__, attr.c_str());
+    return 0;
 }
 
-float XMLReader::ReadAttrFloat(const xmlNodePtr& src, std::string attr)
+float XMLReader::ReadAttrFloat(const xmlNodePtr& src, const std::string& attr)
 {
     auto result = reinterpret_cast<char*>((xmlGetProp(src, BAD_CAST(attr.c_str()))));
     if (result == nullptr) {
         RS_LOGE("[%{public}s] can not found attribute %{public}s! \n", __func__, attr.c_str());
         return 0.0f;
     }
-    return std::atof(result);
+    std::string num(result);
+    xmlFree(result);
+    if (RegexMatchNum(num)) {
+        return std::atof(num.c_str());
+    }
+    RS_LOGE("[%{public}s] attribute %{public}s can not convert to float! \n", __func__, attr.c_str());
+    return 0;
 }
 
-bool XMLReader::ReadAttrBool(const xmlNodePtr& src, std::string attr)
+bool XMLReader::ReadAttrBool(const xmlNodePtr& src, const std::string& attr)
 {
     auto result = reinterpret_cast<char*>((xmlGetProp(src, BAD_CAST(attr.c_str()))));
     if (result == nullptr) {
@@ -69,62 +105,11 @@ bool XMLReader::ReadAttrBool(const xmlNodePtr& src, std::string attr)
         return false;
     }
     auto istrue = strcmp(result, "true") == 0 ? true : false;
+    xmlFree(result);
     return istrue;
 }
 
-bool XMLReader::Init(std::string file)
-{
-    xmlKeepBlanksDefault(0);
-    pdoc = xmlReadFile(file.c_str(), "", XML_PARSE_RECOVER);
-    if (pdoc == nullptr) {
-        RS_LOGE("[%{public}s] can not found the file %{public}s! \n", __func__, file.c_str());
-        return false;
-    }
-    proot = xmlDocGetRootElement(pdoc);
-    if (proot == nullptr) {
-        RS_LOGE("[%{public}s] can not found root node in file %{public}s! \n", __func__, file.c_str());
-        return false;
-    }
-    return true;
-}
-
-xmlNodePtr XMLReader::ReadNode(std::vector<std::string> attribute)
-{
-    xmlNodePtr ptr = proot;
-    auto size = static_cast<int>(attribute.size());
-    for (int i = 0; i < size; i++) {
-        ptr = FindNode(ptr, attribute[i]);
-        if (i == static_cast<int>(attribute.size()) - 1) {
-            return ptr;
-        }
-        if (ptr == nullptr) {
-            RS_LOGE("[%{public}s] can not found attribute %{public}s! \n", __func__, attribute[i].c_str());
-            return nullptr;
-        } else {
-            ptr = ptr->children;
-        }
-    }
-    return ptr;
-}
-
-xmlChar* XMLReader::Read(std::vector<std::string> attribute)
-{
-    const int attrSizeMin = 2;
-    int size = static_cast<int>(attribute.size());
-    if (size < attrSizeMin) {
-        RS_LOGE("[%{public}s] attribute size less than two! \n", __func__);
-        return nullptr;
-    }
-    std::vector<std::string> nodeIndex(attribute.begin(), attribute.end() - 1);
-    auto lastNode = ReadNode(nodeIndex);
-    if (lastNode != nullptr) {
-        return xmlGetProp(lastNode, BAD_CAST(attribute[size - 1].c_str()));
-    }
-    RS_LOGE("[%{public}s] can not found attribute %{public}s! \n", __func__, attribute[size - 1].c_str());
-    return nullptr;
-}
-
-bool SupportConfig::ReadXmlNode(const xmlNodePtr& ptr, std::string supportAttr, std::string modeAttr)
+bool SupportConfig::ReadXmlNode(const xmlNodePtr& ptr, const std::string& supportAttr, const std::string& modeAttr)
 {
     auto a1 = xmlGetProp(ptr, BAD_CAST(supportAttr.c_str()));
     if (a1 == nullptr) {
@@ -133,10 +118,11 @@ bool SupportConfig::ReadXmlNode(const xmlNodePtr& ptr, std::string supportAttr, 
     }
     support = XMLReader::ReadAttrBool(ptr, supportAttr);
     mode = XMLReader::ReadAttrInt(ptr, modeAttr);
+    xmlFree(a1);
     return true;
 }
 
-bool RoundCornerLayer::ReadXmlNode(const xmlNodePtr& ptr, std::vector<std::string> attrArray)
+bool RoundCornerLayer::ReadXmlNode(const xmlNodePtr& ptr, const std::vector<std::string>& attrArray)
 {
     const int layerAttrSize = 7;
     if (attrArray.size() < layerAttrSize || ptr == nullptr) {
@@ -150,13 +136,13 @@ bool RoundCornerLayer::ReadXmlNode(const xmlNodePtr& ptr, std::vector<std::strin
     const int bufferSizeIndex = 4;
     const int cldWidthIndex = 5;
     const int cldHeightIndex = 6;
-    fileName = XMLReader::ReadAttrStr(ptr, attrArray[fileIndex].c_str());
-    offsetX = XMLReader::ReadAttrInt(ptr, attrArray[offsetXIndex].c_str());
-    offsetY = XMLReader::ReadAttrInt(ptr, attrArray[offsetYIndex].c_str());
-    binFileName = XMLReader::ReadAttrStr(ptr, attrArray[binFileIndex].c_str());
-    bufferSize = XMLReader::ReadAttrInt(ptr, attrArray[bufferSizeIndex].c_str());
-    cldWidth = XMLReader::ReadAttrInt(ptr, attrArray[cldWidthIndex].c_str());
-    cldHeight = XMLReader::ReadAttrInt(ptr, attrArray[cldHeightIndex].c_str());
+    fileName = XMLReader::ReadAttrStr(ptr, attrArray[fileIndex]);
+    offsetX = XMLReader::ReadAttrInt(ptr, attrArray[offsetXIndex]);
+    offsetY = XMLReader::ReadAttrInt(ptr, attrArray[offsetYIndex]);
+    binFileName = XMLReader::ReadAttrStr(ptr, attrArray[binFileIndex]);
+    bufferSize = XMLReader::ReadAttrInt(ptr, attrArray[bufferSizeIndex]);
+    cldWidth = XMLReader::ReadAttrInt(ptr, attrArray[cldWidthIndex]);
+    cldHeight = XMLReader::ReadAttrInt(ptr, attrArray[cldHeightIndex]);
     return true;
 }
 
@@ -215,8 +201,8 @@ bool ROGSetting::ReadXmlNode(const xmlNodePtr& rogNodePtr)
         RS_LOGE("[%{public}s] rogNodePtr node is null! \n", __func__);
         return false;
     }
-    width = XMLReader::ReadAttrInt(rogNodePtr, ATTR_WIDTH);
-    height = XMLReader::ReadAttrInt(rogNodePtr, ATTR_HEIGHT);
+    width = XMLReader::ReadAttrInt(rogNodePtr, std::string(ATTR_WIDTH));
+    height = XMLReader::ReadAttrInt(rogNodePtr, std::string(ATTR_HEIGHT));
 
     auto portPtr = XMLReader::FindNode(rogNodePtr, NODE_PORTRAIT);
     if (portPtr != nullptr) {
@@ -260,14 +246,14 @@ bool SurfaceConfig::ReadXmlNode(const xmlNodePtr& surfaceConfigNodePtr)
         RS_LOGE("[%{public}s] topSurfacePtr node is null! \n", __func__);
         return false;
     }
-    topSurface.ReadXmlNode(topSurfacePtr, ATTR_SUPPORT, ATTR_DISPLAYMODE);
+    topSurface.ReadXmlNode(topSurfacePtr, std::string(ATTR_SUPPORT), std::string(ATTR_DISPLAYMODE));
 
     auto bottomSurfacePtr = XMLReader::FindNode(surfaceConfigNodePtr, std::string(NODE_BOTTOMSURFACE));
     if (bottomSurfacePtr == nullptr) {
         RS_LOGE("[%{public}s] bottomSurfacePtr node is null! \n", __func__);
         return false;
     }
-    bottomSurface.ReadXmlNode(bottomSurfacePtr, ATTR_SUPPORT, ATTR_DISPLAYMODE);
+    bottomSurface.ReadXmlNode(bottomSurfacePtr, std::string(ATTR_SUPPORT), std::string(ATTR_DISPLAYMODE));
     return true;
 }
 
@@ -282,11 +268,11 @@ bool SideRegionConfig::ReadXmlNode(const xmlNodePtr& sideRegionNodePtr)
         RS_LOGE("[%{public}s] sideRegionPtr node is null! \n", __func__);
         return false;
     }
-    sideRegion.ReadXmlNode(sideRegionPtr, ATTR_SUPPORT, ATTR_DISPLAYMODE);
+    sideRegion.ReadXmlNode(sideRegionPtr, std::string(ATTR_SUPPORT), std::string(ATTR_DISPLAYMODE));
     return true;
 }
 
-bool HardwareComposer::ReadXmlNode(const xmlNodePtr& ptr, std::string supportAttr)
+bool HardwareComposer::ReadXmlNode(const xmlNodePtr& ptr, const std::string& supportAttr)
 {
     auto a1 = xmlGetProp(ptr, BAD_CAST(supportAttr.c_str()));
     if (a1 == nullptr) {
@@ -294,6 +280,7 @@ bool HardwareComposer::ReadXmlNode(const xmlNodePtr& ptr, std::string supportAtt
         return false;
     }
     support = XMLReader::ReadAttrBool(ptr, supportAttr);
+    xmlFree(a1);
     return true;
 }
 
@@ -308,17 +295,16 @@ bool HardwareComposerConfig::ReadXmlNode(const xmlNodePtr& hardwareComposerNodep
         RS_LOGE("[%{public}s] hardwareComposerPtr node is null! \n", __func__);
         return false;
     }
-    hardwareComposer.ReadXmlNode(hardwareComposerPtr, ATTR_SUPPORT);
+    hardwareComposer.ReadXmlNode(hardwareComposerPtr, std::string(ATTR_SUPPORT));
     return true;
 }
 
 LCDModel::~LCDModel()
 {
-    auto size = static_cast<int>(rogs.size());
-    for (int i = 0; i < size; i++) {
-        if (rogs[i] != nullptr) {
-            delete rogs[i];
-            rogs[i] = nullptr;
+    for (auto& rog : rogs) {
+        if (rog != nullptr) {
+            delete rog;
+            rog = nullptr;
         }
     }
 }
@@ -329,7 +315,7 @@ bool LCDModel::ReadXmlNode(const xmlNodePtr& lcdNodePtr)
         RS_LOGE("[%{public}s] input lcdNodePtr node is null! \n", __func__);
         return false;
     }
-    name = XMLReader::ReadAttrStr(lcdNodePtr, ATTR_NAME);
+    name = XMLReader::ReadAttrStr(lcdNodePtr, std::string(ATTR_NAME));
     auto surfaceConfigPtr = XMLReader::FindNode(lcdNodePtr, std::string(NODE_SURFACECONFIG));
     if (surfaceConfigPtr == nullptr) {
         RS_LOGW("no surfaceConfig found \n");
@@ -393,7 +379,7 @@ ROGSetting* LCDModel::GetRog(const int w, const int h) const
     return nullptr;
 }
 
-void RCDConfig::PrintLayer(std::string name, const rs_rcd::RoundCornerLayer& layer)
+void RCDConfig::PrintLayer(const std::string& name, const rs_rcd::RoundCornerLayer& layer)
 {
     RS_LOGD("%{public}s->Filename: %{public}s, Offset: %{public}d, %{public}d \n",
         name.c_str(), layer.fileName.c_str(), layer.offsetX, layer.offsetY);
@@ -410,42 +396,18 @@ void RCDConfig::PrintParseRog(rs_rcd::ROGSetting* rog)
     for (auto kv : rog->portraitMap) {
         auto port = kv.second;
         RS_LOGD("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height, kv.first.c_str());
-        PrintLayer("layerUp  ", port.layerUp);
-        PrintLayer("layerDown", port.layerDown);
-        PrintLayer("layerHide", port.layerHide);
+        PrintLayer(std::string("layerUp  "), port.layerUp);
+        PrintLayer(std::string("layerDown"), port.layerDown);
+        PrintLayer(std::string("layerHide"), port.layerHide);
     }
     for (auto kv : rog->landscapeMap) {
         auto port = kv.second;
         RS_LOGD("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height, kv.first.c_str());
-        PrintLayer("layerUp  ", port.layerUp);
+        PrintLayer(std::string("layerUp  "), port.layerUp);
     }
 }
 
-void RCDConfig::PrintParseLcdModel(rs_rcd::LCDModel* model)
-{
-    if (model == nullptr) {
-        RS_LOGE("no model input \n");
-        return;
-    }
-    RS_LOGD("lcdModel: %{public}s \n", model->name.c_str());
-    auto surfaceConfig = model->GetSurfaceConfig();
-    RS_LOGD("surfaceConfig: \n");
-    RS_LOGD("topSurface: %{public}d, %{public}d \n", surfaceConfig.topSurface.support,
-        surfaceConfig.topSurface.mode);
-    RS_LOGD("bottomSurface: %{public}d, %{public}d \n", surfaceConfig.bottomSurface.support,
-        surfaceConfig.bottomSurface.mode);
-
-    auto sideRegionConfig = model->GetSideRegionConfig();
-    RS_LOGD("sideRegionConfig: \n");
-    RS_LOGD("sideRegion: %{public}d, %{public}d \n", sideRegionConfig.sideRegion.support,
-        sideRegionConfig.sideRegion.mode);
-
-    auto hardwareConfig = model->GetHardwareComposerConfig();
-    RS_LOGD("hardwareConfig: \n");
-    RS_LOGD("hardwareComposer: %{public}d \n", hardwareConfig.hardwareComposer.support);
-}
-
-bool RCDConfig::Load(std::string configFile)
+bool RCDConfig::Load(const std::string& configFile)
 {
     auto begin = high_resolution_clock::now();
     xmlKeepBlanksDefault(0);
@@ -479,7 +441,7 @@ bool RCDConfig::Load(std::string configFile)
     return true;
 }
 
-LCDModel* RCDConfig::GetLcdModel(std::string name) const
+LCDModel* RCDConfig::GetLcdModel(const std::string& name) const
 {
     if (name.empty()) {
         RS_LOGE("[%{public}s] name is null! \n", __func__);
@@ -504,12 +466,10 @@ RCDConfig::~RCDConfig()
     }
     xmlCleanupParser();
     xmlMemoryDump();
-
-    auto size = static_cast<int>(lcdModels.size());
-    for (int i = 0; i < size; i++) {
-        if (lcdModels[i] != nullptr) {
-            delete lcdModels[i];
-            lcdModels[i] = nullptr;
+    for (auto& modelPtr : lcdModels) {
+        if (modelPtr != nullptr) {
+            delete modelPtr;
+            modelPtr = nullptr;
         }
     }
 }

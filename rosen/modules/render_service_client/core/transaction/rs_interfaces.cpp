@@ -86,6 +86,13 @@ int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>
     return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
+    ScreenId id,
+    const std::vector<NodeId>& securityExemptionList)
+{
+    return renderServiceClient_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+}
+
 int32_t RSInterfaces::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     return renderServiceClient_->SetCastScreenEnableSkipWindow(id, enable);
@@ -94,13 +101,6 @@ int32_t RSInterfaces::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 int32_t RSInterfaces::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     return renderServiceClient_->SetVirtualScreenSurface(id, surface);
-}
-#endif
-
-#ifdef RS_ENABLE_VK
-bool RSInterfaces::Set2DRenderCtrl(bool enable)
-{
-    return renderServiceClient_->Set2DRenderCtrl(enable);
 }
 #endif
 
@@ -614,6 +614,11 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
+void RSInterfaces::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    renderServiceClient_->SetDefaultDeviceRotationOffset(offset);
+}
+
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
 {
     renderServiceClient_->NotifyLightFactorStatus(isSafe);
@@ -673,6 +678,11 @@ HwcDisabledReasonInfos RSInterfaces::GetHwcDisabledReasonInfo() const
     return hwcDisabledReasonInfo;
 }
 
+void RSInterfaces::SetVmaCacheStatus(bool flag)
+{
+    renderServiceClient_->SetVmaCacheStatus(flag);
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
 {
@@ -700,12 +710,10 @@ bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus scree
     return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);
 }
 
-#ifdef RS_ENABLE_VK
-extern "C" RSC_EXPORT void Set2DRenderCtrl(bool enable)
+bool RSInterfaces::SetAncoForceDoDirect(bool direct)
 {
-    RSInterfaces::GetInstance().Set2DRenderCtrl(enable);
+    return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
-#endif
 
 } // namespace Rosen
 } // namespace OHOS

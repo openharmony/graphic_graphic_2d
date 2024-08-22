@@ -36,6 +36,7 @@ BootAnimationOperation::~BootAnimationOperation()
         rsDisplayNode_->RemoveFromTree();
     }
     OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+    LOGI("Release RsNode");
 }
 
 void BootAnimationOperation::Init(const BootAnimationConfig& config, int32_t width, int32_t height, int32_t duration)
@@ -231,10 +232,6 @@ bool BootAnimationOperation::IsBootVideoEnabled(const BootAnimationConfig& confi
     if (config.videoDefaultPath.empty() && !config.picZipPath.empty()) {
         LOGI("video path is empty and picture path is not empty");
         return false;
-    }
-
-    if (!IsFileExisted(config.videoDefaultPath)) {
-        LOGE("video file not found");
     }
     return true;
 }

@@ -46,6 +46,18 @@ void VSyncSamplerTest::TearDownTestCase()
 
 namespace {
 /*
+* Function: GetHardwarePeriodTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetHardwarePeriod
+ */
+HWTEST_F(VSyncSamplerTest, GetHardwarePeriodTest, Function | MediumTest| Level3)
+{
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 0);
+}
+
+/*
 * Function: AddSample001
 * Type: Function
 * Rank: Important(2)
@@ -219,6 +231,33 @@ HWTEST_F(VSyncSamplerTest, GetHardwarePeriod002, Function | MediumTest| Level3)
 }
 
 /*
+* Function: GetHardwarePeriod003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetHardwarePeriod
+ */
+HWTEST_F(VSyncSamplerTest, GetHardwarePeriod003, Function | MediumTest| Level3)
+{
+    VSyncSamplerTest::vsyncSampler->SetPendingPeriod(16666667); // 16666667ns
+    bool ret = true;
+    for (int i = 1; i <= 50; i++) { // add 50 samples
+        ret = VSyncSamplerTest::vsyncSampler->AddSample(i * 16666667); // 16666667ns
+    }
+    ASSERT_EQ(ret, false);
+    VSyncSamplerTest::vsyncSampler->SetPendingPeriod(8333333); // 8333333ns
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 16666667); // 16666667ns
+    VSyncSamplerTest::vsyncSampler->BeginSample();
+    VSyncSamplerTest::vsyncSampler->SetPendingPeriod(8333333); // 8333333ns
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 8333333); // 8333333ns
+    VSyncSamplerTest::vsyncSampler->SetPendingPeriod(0);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 8333333); // 8333333ns
+    VSyncSamplerTest::vsyncSampler->SetPendingPeriod(-1);
+    ASSERT_EQ(VSyncSamplerTest::vsyncSampler->GetHardwarePeriod(), 8333333); // 8333333ns
+    VSyncSamplerTest::vsyncSampler->Reset();
+}
+
+/*
 * Function: AddPresentFenceTime001
 * Type: Function
 * Rank: Important(2)
@@ -247,6 +286,113 @@ HWTEST_F(VSyncSamplerTest, AddPresentFenceTime002, Function | MediumTest| Level3
     ASSERT_EQ(ret, false);
     ASSERT_EQ(VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(SAMPLER_NUMBER + 1), false);
     VSyncSamplerTest::vsyncSampler->Reset();
+}
+
+/*
+* Function: DumpTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call Dump
+ */
+HWTEST_F(VSyncSamplerTest, DumpTest, Function | MediumTest| Level3)
+{
+    for (int i = 1; i <= 10; i++) { // add 10 samples
+        VSyncSamplerTest::vsyncSampler->AddSample(i * 16666667); // 16666667ns
+    }
+    std::string result = "";
+    VSyncSamplerTest::vsyncSampler->Dump(result);
+    ASSERT_NE(result.find("VSyncSampler"), std::string::npos);
+}
+
+/*
+* Function: RegSetScreenVsyncEnabledCallbackTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RegSetScreenVsyncEnabledCallback
+ */
+HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnabledCallbackTest, Function | MediumTest| Level3)
+{
+    bool result = false;
+    VSyncSampler::SetScreenVsyncEnabledCallback cb = [&result](bool enabled) {
+        result = enabled;
+    };
+    VSyncSamplerTest::vsyncSampler->RegSetScreenVsyncEnabledCallback(cb);
+    VSyncSamplerTest::vsyncSampler->SetScreenVsyncEnabledInRSMainThread(true);
+    ASSERT_EQ(result, true);
+    VSyncSamplerTest::vsyncSampler->SetScreenVsyncEnabledInRSMainThread(false);
+    ASSERT_EQ(result, false);
+}
+
+/*
+* Function: AddNegativeSamplesTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test add negative samples
+ */
+HWTEST_F(VSyncSamplerTest, AddNegativeSamplesTest, Function | MediumTest| Level3)
+{
+    VSyncSamplerTest::vsyncSampler->BeginSample();
+    bool ret = true;
+    for (int i = 1; i < SAMPLER_NUMBER + 1; i++) { // add 10 samples
+        ret = VSyncSamplerTest::vsyncSampler->AddSample(i * -16666667); // 16666667ns
+    }
+    ASSERT_EQ(ret, true);
+}
+
+/*
+* Function: AddSamplesVarianceOversizeTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test samples variance oversize
+ */
+HWTEST_F(VSyncSamplerTest, AddSamplesVarianceOversizeTest, Function | MediumTest| Level3)
+{
+    VSyncSamplerTest::vsyncSampler->BeginSample();
+    int64_t floatingScope = 1000000; // 1000000ms
+    bool ret = true;
+    for (int i = 1; i <= 50; i++) { // add 50 samples
+        floatingScope *= -1;
+        ret = VSyncSamplerTest::vsyncSampler->AddSample(i * 16666667 + floatingScope); // 16666667ns
+    }
+    ASSERT_EQ(ret, true);
+}
+
+/*
+* Function: AddPresentFenceTimeErrorTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test AddPresentFenceTime error_ oversize
+ */
+HWTEST_F(VSyncSamplerTest, AddPresentFenceTimeErrorTest, Function | MediumTest| Level3)
+{
+    VSyncSamplerTest::vsyncSampler->Reset();
+    VSyncSamplerTest::vsyncSampler->BeginSample();
+    bool ret = true;
+    for (int i = 1; i <= 10; i++) { // add 10 samples
+        ret = VSyncSamplerTest::vsyncSampler->AddSample(i * 16666667); // 16666667ns
+    }
+    ASSERT_EQ(ret, false);
+    for (int i = 1; i <= 10; i++) { // add 10 samples
+        ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(i * 16666667); // 16666667ns
+    }
+    ASSERT_EQ(ret, false);
+    for (int i = 1; i <= 10; i++) { // add 10 samples
+        ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(i * 16666667 + 1000000); // 16666667ns, 1000000ns
+    }
+    ASSERT_EQ(ret, true);
+    ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(1666666666); // 1666666666ns
+    ASSERT_EQ(ret, true);
+    ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(2666666666); // 2666666666ns
+    ASSERT_EQ(ret, true);
+    for (int i = 1; i <= 10; i++) { // add 10 samples
+        ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(i * 16666667 + 1000000); // 16666667ns, 1000000ns
+    }
+    ASSERT_EQ(ret, true);
 }
 } // namespace
 } // namespace Rosen

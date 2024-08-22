@@ -135,21 +135,12 @@ public:
         return originScreenRotation_;
     }
     bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval);
-    bool GetResetRotate() const
-    {
-        return resetRotate_;
-    }
-    
-    void SetResetRotate(bool resetRotate)
-    {
-        resetRotate_ = resetRotate;
-    }
 
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     std::unique_ptr<RSRenderFrame> RequestFrame(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    void FindHardwareEnabledNodes();
+    void FindHardwareEnabledNodes(RSDisplayRenderParams& params);
     void AdjustZOrderAndDrawSurfaceNode(std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void WiredScreenProjection(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
@@ -172,8 +163,6 @@ private:
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
-    void ResetRotateIfNeed(RSDisplayRenderNodeDrawable& mirroredNodeDrawable,
-        RSUniRenderVirtualProcessor& mirroredProcessor, Drawing::Region& clipRegion);
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
@@ -191,8 +180,10 @@ private:
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen rende
-    std::unordered_set<NodeId> currentBlackList_;
-    std::unordered_set<NodeId> lastBlackList_;
+    std::unordered_set<NodeId> currentBlackList_ = {};
+    std::unordered_set<NodeId> lastBlackList_ = {};
+    bool curSecExemption_ = false;
+    bool lastSecExemption_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     int32_t specialLayerType_ = 0;
     bool castScreenEnableSkipWindow_ = false;

@@ -819,38 +819,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorCopy, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetRotateIfNeed
- * @tc.desc: Test ResetRotateIfNeed
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, ResetRotateIfNeed, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    std::shared_ptr<RSDisplayRenderNode> renderNode;
-    RSRenderNodeDrawableAdapter* drawable = nullptr;
-    RSDisplayRenderNodeDrawable* mirroredDrawable = nullptr;
-    RSDisplayNodeConfig config;
-    renderNode = std::make_shared<RSDisplayRenderNode>(DEFAULT_ID + 2, config);
-    drawable = RSDisplayRenderNodeDrawable::OnGenerate(renderNode);
-    if (drawable) {
-        mirroredDrawable = static_cast<RSDisplayRenderNodeDrawable*>(drawable);
-        mirroredDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
-    }
-    RSUniRenderVirtualProcessor mirroredProcessor;
-    Drawing::Region clipRegion;
-    displayDrawable_->ResetRotateIfNeed(*mirroredDrawable, mirroredProcessor, clipRegion);
-    ASSERT_FALSE(mirroredDrawable->GetResetRotate());
-
-    mirroredDrawable->resetRotate_ = true;
-    Drawing::Canvas drawingCanvas;
-    mirroredDrawable->curCanvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
-    displayDrawable_->ResetRotateIfNeed(*mirroredDrawable, mirroredProcessor, clipRegion);
-    ASSERT_TRUE(mirroredDrawable->GetResetRotate());
-}
-
-/**
  * @tc.name: DrawHardwareEnabledNodes001
  * @tc.desc: Test DrawHardwareEnabledNodes
  * @tc.type: FUNC
@@ -989,52 +957,10 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
 {
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    displayDrawable_->FindHardwareEnabledNodes();
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->renderParams_.get());
+    ASSERT_NE(params, nullptr);
+    displayDrawable_->FindHardwareEnabledNodes(*params);
     ASSERT_EQ(RSUniRenderThread::Instance().renderThreadParams_->hardwareEnabledTypeDrawables_.size(), 2);
-}
-
-/**
- * @tc.name: AdjustZOrderAndDrawSurfaceNode
- * @tc.desc: Test AdjustZOrderAndDrawSurfaceNode
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, AdjustZOrderAndDrawSurfaceNode, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> drawables;
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
-    paintFilterCanvas.canvas_ = drawingCanvas.get();
-    paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-    auto rscanvas = static_cast<Drawing::Canvas*>(&paintFilterCanvas);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(drawables.empty());
-
-    std::shared_ptr<RSRenderNodeDrawableAdapter> firstAdapter = nullptr;
-    std::shared_ptr<RSRenderNodeDrawableAdapter> secondAdapter = nullptr;
-    drawables.push_back(firstAdapter);
-    drawables.push_back(secondAdapter);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(!firstAdapter);
-    ASSERT_TRUE(!secondAdapter);
-    drawables.clear();
-
-    NodeId id = 1;
-    auto rsSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(rsSurfaceNode);
-    ASSERT_TRUE(drawableAdapter->GetRenderParams());
-    id = 2;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawable = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
-    ASSERT_TRUE(drawable->GetRenderParams());
-    drawables.push_back(drawableAdapter);
-    drawables.push_back(drawable);
-    displayDrawable_->AdjustZOrderAndDrawSurfaceNode(drawables, *rscanvas, *params);
-    ASSERT_TRUE(drawableAdapter->GetRenderParams());
 }
 
 /**

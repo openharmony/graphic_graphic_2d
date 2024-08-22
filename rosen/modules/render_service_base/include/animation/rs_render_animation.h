@@ -178,7 +178,7 @@ public:
 
     void SetStartTime(int64_t);
 
-    const std::shared_ptr<RSRenderPropertyBase> GetAnimateVelocity() const;
+    const std::shared_ptr<RSRenderPropertyBase>& GetAnimateVelocity() const;
 
     static bool isCalcAnimateVelocity_;
 

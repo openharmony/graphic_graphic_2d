@@ -94,7 +94,7 @@ public:
     {
         frameCount_++;
     }
-    bool GetWatermarkFlag();
+    bool GetWatermarkFlag() const;
     
     bool IsCurtainScreenOn() const;
 
@@ -106,12 +106,12 @@ public:
     {
         return curDrawStatusVec_;
     }
-    const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams()
+    const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
     {
         return renderThreadParams_;
     }
 
-    void RenderServiceTreeDump(std::string& dumpString) const;
+    void RenderServiceTreeDump(std::string& dumpString);
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 
@@ -149,6 +149,13 @@ public:
     }
 
     void SetAcquireFence(sptr<SyncFence> acquireFence);
+
+    // vma cache
+    bool GetVmaOptimizeFlag() const
+    {
+        return vmaOptimizeFlag_; // global flag
+    }
+    void SetVmaCacheStatus(bool flag); // dynmic flag
 
 private:
     RSUniRenderThread();
@@ -197,10 +204,15 @@ private:
 
     std::vector<Callback> imageReleaseTasks_;
     std::mutex imageReleaseMutex_;
-    bool postImageReleaseTaskFlag_;
+    bool postImageReleaseTaskFlag_ = false;
     int imageReleaseCount_ = 0;
 
     sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+
+    // vma cache
+    bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
+    uint32_t vmaCacheCount_ = 0;
+    std::mutex vmaCacheCountMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

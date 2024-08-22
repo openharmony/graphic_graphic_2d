@@ -36,6 +36,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_system_properties.h"
 
 using namespace testing::ext;
@@ -71,6 +72,18 @@ public:
     bool captureSuccess_ = false;
     bool isCallbackCalled_ = false;
 };
+
+class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
+    sptr<IRemoteObject> AsObject()
+    {
+        return nullptr;
+    }
+
+    void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap)
+    {
+        // DO NOTHING
+    }
+};
 }
 
 class RSUiCaptureTaskParallelTest : public testing::Test {
@@ -90,6 +103,12 @@ public:
 
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         usleep(SLEEP_TIME_FOR_PROXY);
+
+        RSUniRenderThread::Instance().InitGrContext();
+
+        auto& renderNodeGC = RSRenderNodeGC::Instance();
+        renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
+        renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
     }
 
     static void TearDownTestCase()
@@ -172,6 +191,18 @@ public:
         }
         HiLog::Error(LOG_LABEL, "CheckSurfaceCaptureCallback timeout");
         return false;
+    }
+
+    std::shared_ptr<RSUiCaptureTaskParallel> BuildTaskParallel(NodeId nodeId, float width = 0.0f, float height = 0.0f)
+    {
+        RSSurfaceCaptureConfig config;
+        auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+        renderNode->renderContent_->renderProperties_.SetBoundsWidth(width);
+        renderNode->renderContent_->renderProperties_.SetBoundsHeight(height);
+        RSMainThread::Instance()->GetContext().nodeMap.RegisterRenderNode(renderNode);
+
+        auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+        return renderNodeHandle;
     }
 
     static RSInterfaces* rsInterfaces_;
@@ -408,12 +439,12 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
 }
 
 /*
- * @tc.name: RSUiCaptureTaskParallel_CreateResources
+ * @tc.name: CreateResources001
  * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
  * @tc.type: FUNC
  * @tc.require: issueIA6QID
 */
-HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateResources, Function | SmallTest | Level2)
+HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources001, Function | SmallTest | Level2)
 {
     NodeId id = -1; // invalid id
     RSSurfaceCaptureConfig captureConfig;
@@ -423,6 +454,120 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateResources, F
     ASSERT_EQ(handle->captureConfig_.scaleY, 1.0f);
     ASSERT_EQ(handle->pixelMap_, nullptr);
     ASSERT_EQ(handle->nodeDrawable_, nullptr);
+}
+
+/*
+ * @tc.name: CreateResources002
+ * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources002, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+
+    // RSSurfaceRenderNode
+    NodeId surfaceRenderNodeId = 101;
+    RSSurfaceCaptureConfig config1;
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(surfaceRenderNodeId, std::make_shared<RSContext>(),
+        true);
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    auto surfaceRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(surfaceRenderNodeId, config1);
+    ASSERT_EQ(surfaceRenderNodeHandle->CreateResources(), false);
+
+    // RSCanvasRenderNode
+    NodeId canvasRenderNodeId = 102;
+    RSSurfaceCaptureConfig config2;
+    auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(canvasRenderNodeId, std::make_shared<RSContext>(),
+        true);
+    nodeMap.RegisterRenderNode(canvasRenderNode);
+    auto canvasRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(canvasRenderNodeId, config2);
+    ASSERT_EQ(canvasRenderNodeHandle->CreateResources(), false);
+}
+
+/*
+ * @tc.name: CreateResources003
+ * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+
+    NodeId nodeId = 103;
+    NodeId parentNodeId = 1003;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderContent_->renderProperties_.SetBoundsWidth(1024.0f);
+    renderNode->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
+    nodeMap.RegisterRenderNode(renderNode);
+
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+
+    auto parent1 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
+    parent1->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parent1->hasSubNodeShouldPaint_ = false;
+    renderNode->parent_ = parent1;
+    ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+
+    auto parent2 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
+    parent2->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parent2->hasSubNodeShouldPaint_ = true;
+    renderNode->parent_ = parent2;
+    ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+
+    auto parent3 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
+    parent3->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parent3->hasSubNodeShouldPaint_ = true;
+    parent3->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    renderNode->parent_ = parent3;
+    ASSERT_EQ(renderNodeHandle->CreateResources(), false);
+
+    auto parent4 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
+    parent4->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parent4->hasSubNodeShouldPaint_ = true;
+    parent4->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
+    parent4->renderContent_->renderProperties_.SetBoundsWidth(1024.0f);
+    parent4->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
+    renderNode->parent_ = parent4;
+    ASSERT_EQ(renderNodeHandle->CreateResources(), true);
+}
+
+/*
+ * @tc.name: Run001
+ * @tc.desc: Test RSUiCaptureTaskParallel::Run
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, Run001, Function | SmallTest | Level2)
+{
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto handle = BuildTaskParallel(-1, 0.0f, 0.0f);
+    ASSERT_EQ(handle->Run(mockCallback), false);
+
+    handle->CreateResources();
+    ASSERT_EQ(handle->Run(mockCallback), false);
+}
+
+/*
+ * @tc.name: Run002
+ * @tc.desc: Test RSUiCaptureTaskParallel::Run
+ * @tc.type: FUNC
+ * @tc.require: issueIA6QID
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, Run002, Function | SmallTest | Level2)
+{
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto handle = BuildTaskParallel(200, 1024.0f, 1024.0f);
+    ASSERT_EQ(handle->Run(mockCallback), false);
+
+    handle->CreateResources();
+    ASSERT_EQ(handle->Run(mockCallback), true);
+
+    handle->nodeDrawable_ = nullptr;
+    ASSERT_EQ(handle->Run(mockCallback), false);
 }
 
 /*
@@ -438,6 +583,33 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreatePixelMapByNo
     auto handle = std::make_shared<RSUiCaptureTaskParallel>(id, captureConfig);
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_EQ(handle->CreatePixelMapByNode(node), nullptr);
+}
+
+/*
+ * @tc.name: RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask
+ * @tc.desc: Test RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_CreateSurfaceSyncCopyTask, Function | SmallTest | Level2)
+{
+    auto node = RSTestUtil::CreateSurfaceNode();
+    auto mainThread = RSMainThread::Instance();
+
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto pixelMap = std::make_unique<Media::PixelMap>();
+    ASSERT_NE(pixelMap, nullptr);
+    auto surface = std::make_shared<Drawing::Surface>();
+    ASSERT_NE(surface, nullptr);
+#ifdef RS_ENABLE_UNI_RENDER
+    auto copytask =
+        RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap), node->GetId(), mockCallback);
+
+    ASSERT_FALSE(copytask);
+    mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

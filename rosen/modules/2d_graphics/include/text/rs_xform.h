@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <stdint.h>
+#include <string>
 
 #include "utils/scalar.h"
 
@@ -29,6 +30,15 @@ struct RSXform {
     {
         RSXform xform = { cos, sin, tx, ty };
         return xform;
+    }
+
+    inline void Dump(std::string& out) const
+    {
+        out += "[cos:" + std::to_string(cos_);
+        out += " sin:" + std::to_string(sin_);
+        out += " tx:" + std::to_string(tx_);
+        out += " ty:" + std::to_string(ty_);
+        out += ']';
     }
 
     scalar cos_;

@@ -65,7 +65,7 @@ private:
     void ParseBufferStrategyList(xmlNode &node, PolicyConfigData::StrategyConfig &strategy);
     int32_t ParseSubSequentParams(xmlNode &node, std::string &paraName);
     void ParseAppBufferList(xmlNode &node);
-    xmlDoc *xmlDocument_;
+    xmlDoc *xmlDocument_ = nullptr;
     std::unique_ptr<PolicyConfigData> mParsedData_ = nullptr;
 };
 } // namespace OHOS::Rosen

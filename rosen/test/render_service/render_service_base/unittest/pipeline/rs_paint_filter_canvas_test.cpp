@@ -1065,6 +1065,18 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest001, TestSize.Level1)
     paintFilterCanvas_->SetAlpha(SET_ALPHA);
     paintFilterCanvas_->SetBlendMode(1);
     EXPECT_TRUE(paintFilterCanvas_->AttachPaint(paint).impl_);
+
+    paint.SetBlenderEnabled(false);
+    paintFilterCanvas_->SetAlpha(SET_ALPHA);
+    paintFilterCanvas_->SetBlendMode(1);
+    EXPECT_TRUE(paintFilterCanvas_->AttachPaint(paint).impl_);
+
+    paintFilterCanvas_->hasHdrPresent_ = true;
+    EXPECT_TRUE(paintFilterCanvas_->AttachPaint(paint).impl_);
+
+    paintFilterCanvas_->alphaStack_.pop();
+    paintFilterCanvas_->alphaStack_.push(1.f);
+    EXPECT_TRUE(paintFilterCanvas_->AttachPaint(paint).impl_);
 }
 
 /**
@@ -1184,20 +1196,40 @@ HWTEST_F(RSPaintFilterCanvasTest, CopyConfigurationToOffscreenCanvasTest, TestSi
 
     rsPaintFilterCanvas.SetHighContrast(true);
     paintFilterCanvas_->CopyConfigurationToOffscreenCanvas(rsPaintFilterCanvas);
+
+    envOther.effectData_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    envOther.effectData_->cachedImage_ = std::make_shared<Drawing::Image>();
+    env.effectData_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    env.effectData_->cachedImage_ = std::make_shared<Drawing::Image>();
+    paintFilterCanvas_->envStack_.push(env);
+    rsPaintFilterCanvas.envStack_.push(envOther);
+
+    EXPECT_TRUE(rsPaintFilterCanvas.envStack_.top().effectData_ != nullptr);
+    rsPaintFilterCanvas.SetHighContrast(false);
+
+    paintFilterCanvas_->CopyConfigurationToOffscreenCanvas(rsPaintFilterCanvas);
+    rsPaintFilterCanvas.SetHighContrast(true);
+    paintFilterCanvas_->CopyConfigurationToOffscreenCanvas(rsPaintFilterCanvas);
     EXPECT_TRUE(EnvStackClear());
 }
 
 /**
- * @tc.name: ReplaceOrSwapMainScreenTest
+ * @tc.name: ReplaceOrSwapMainScreenTest001
  * @tc.desc: ReplaceMainScreenData and SwapBackMainScreenData Test
  * @tc.type:FUNC
  * @tc.require:issueI9L0ZK
  */
-HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest, TestSize.Level1)
+HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest001, TestSize.Level1)
 {
     Drawing::Surface surface;
     Drawing::Canvas canvas(&surface);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+    EXPECT_TRUE(paintFilterCanvas.offscreenDataList_.empty());
+    paintFilterCanvas.SwapBackMainScreenData();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+
     std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
     std::shared_ptr<RSPaintFilterCanvas> canvasPtr = std::make_shared<RSPaintFilterCanvas>(&canvas);
 
@@ -1207,8 +1239,98 @@ HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest, TestSize.Level1)
     EXPECT_EQ(paintFilterCanvas.GetRecordingCanvas(), nullptr);
 
     // Swap data
+    EXPECT_FALSE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_FALSE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+    EXPECT_FALSE(paintFilterCanvas.offscreenDataList_.empty());
     paintFilterCanvas.SwapBackMainScreenData();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    paintFilterCanvas.storeMainScreenSurface_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_FALSE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+    EXPECT_FALSE(paintFilterCanvas.offscreenDataList_.empty());
+    paintFilterCanvas.SwapBackMainScreenData();
+    paintFilterCanvas.storeMainScreenCanvas_.pop();
+    paintFilterCanvas.offscreenDataList_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    paintFilterCanvas.storeMainScreenCanvas_.pop();
+    EXPECT_FALSE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+    EXPECT_FALSE(paintFilterCanvas.offscreenDataList_.empty());
+    paintFilterCanvas.SwapBackMainScreenData();
+    paintFilterCanvas.storeMainScreenSurface_.pop();
+    paintFilterCanvas.offscreenDataList_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    paintFilterCanvas.offscreenDataList_.pop();
+    EXPECT_FALSE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_FALSE(paintFilterCanvas.storeMainScreenCanvas_.empty());
     EXPECT_TRUE(paintFilterCanvas.offscreenDataList_.empty());
+    paintFilterCanvas.SwapBackMainScreenData();
+    paintFilterCanvas.storeMainScreenSurface_.pop();
+    paintFilterCanvas.storeMainScreenCanvas_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+}
+
+/**
+ * @tc.name: ReplaceOrSwapMainScreenTest002
+ * @tc.desc: ReplaceMainScreenData and SwapBackMainScreenData Test
+ * @tc.type:FUNC
+ * @tc.require:issueI9L0ZK
+ */
+HWTEST_F(RSPaintFilterCanvasTest, ReplaceOrSwapMainScreenTest002, TestSize.Level1)
+{
+    Drawing::Surface surface;
+    Drawing::Canvas canvas(&surface);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    std::shared_ptr<Drawing::Surface> surfacePtr = nullptr;
+    std::shared_ptr<RSPaintFilterCanvas> canvasPtr = nullptr;
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    surfacePtr = nullptr;
+    canvasPtr = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    surfacePtr = std::make_shared<Drawing::Surface>();
+    canvasPtr = nullptr;
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+    EXPECT_TRUE(paintFilterCanvas.offscreenDataList_.empty());
+
+    surfacePtr = std::make_shared<Drawing::Surface>();
+    canvasPtr = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    paintFilterCanvas.storeMainScreenSurface_.pop();
+    paintFilterCanvas.storeMainScreenCanvas_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+    EXPECT_FALSE(paintFilterCanvas.offscreenDataList_.empty());
+    paintFilterCanvas.SwapBackMainScreenData();
+    paintFilterCanvas.offscreenDataList_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    paintFilterCanvas.storeMainScreenSurface_.pop();
+    paintFilterCanvas.offscreenDataList_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_FALSE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+    EXPECT_TRUE(paintFilterCanvas.offscreenDataList_.empty());
+    paintFilterCanvas.SwapBackMainScreenData();
+    paintFilterCanvas.storeMainScreenCanvas_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+
+    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
+    paintFilterCanvas.offscreenDataList_.pop();
+    paintFilterCanvas.storeMainScreenCanvas_.pop();
+    EXPECT_FALSE(paintFilterCanvas.storeMainScreenSurface_.empty());
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
+    EXPECT_TRUE(paintFilterCanvas.offscreenDataList_.empty());
+    paintFilterCanvas.SwapBackMainScreenData();
+    paintFilterCanvas.storeMainScreenSurface_.pop();
+    EXPECT_TRUE(paintFilterCanvas.storeMainScreenCanvas_.empty());
 }
 
 /**
@@ -1416,7 +1538,8 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachBrushTest005, TestSize.Level1)
     RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };
     paintFilterCanvas->envStack_.push(env);
     paintFilterCanvas->AttachBrush(brush);
-
+    brush.SetBlenderEnabled(false);
+    paintFilterCanvas->AttachBrush(brush);
     paintFilterCanvas->canvas_ = nullptr;
     paintFilterCanvas->AttachBrush(brush);
 }
@@ -1479,6 +1602,27 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachBrushAndAttachBrushTest007, TestSize.Lev
     Drawing::Brush brushTest;
     saveLayerRec.brush_ = &brushTest;
     paintFilterCanvasBase->SaveLayer(saveLayerRec);
+}
+
+/**
+ * @tc.name: DirtyRegionTest
+ * @tc.desc: RSPaintFilterCanvas PushDirtyRegion and PopDirtyRegion Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DirtyRegionTest, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(filterCanvas, nullptr);
+    EXPECT_TRUE(filterCanvas->dirtyRegionStack_.empty());
+    filterCanvas->PopDirtyRegion();
+    EXPECT_TRUE(filterCanvas->dirtyRegionStack_.empty());
+    Drawing::Region region;
+    filterCanvas->PushDirtyRegion(region);
+    EXPECT_FALSE(filterCanvas->dirtyRegionStack_.empty());
+    filterCanvas->PopDirtyRegion();
+    EXPECT_TRUE(filterCanvas->dirtyRegionStack_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

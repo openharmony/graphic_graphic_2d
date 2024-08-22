@@ -105,14 +105,6 @@ public:
     {
         return isSecurityDisplay_;
     }
-    void SetIsMouseDirty(bool mouseDirty)
-    {
-        isMouseDirty_ = mouseDirty;
-    }
-    bool GetIsMouseDirty() const
-    {
-        return isMouseDirty_;
-    }
     void SetGlobalZOrder(float zOrder);
     float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
@@ -144,6 +136,11 @@ public:
         return iter == displaySpecailSurfaceChanged_.end() ? false : iter->second;
     }
 
+    bool GetSecurityExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
     // dfx
     std::string ToString() const override;
 
@@ -162,6 +159,7 @@ private:
     ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     uint64_t screenId_ = 0;
     bool isSecurityDisplay_ = false;
+    bool isSecurityExemption_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
     NodeId mirrorSourceId_ = INVALID_NODEID;
@@ -173,7 +171,6 @@ private:
     bool isRotationChanged_ = false;
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f;
-    bool isMouseDirty_ = false;
     float zOrder_ = 0.0f;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;

@@ -27,7 +27,6 @@ namespace {
 
 RSFrameRateVote::RSFrameRateVote()
 {
-    frameRateMgr_ = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
     ffrtQueue_ = std::make_shared<ffrt::queue>("frame_rate_vote_queue");
     auto policyConfigData = OHOS::Rosen::HgmCore::Instance().GetPolicyConfigData();
     if (policyConfigData != nullptr) {
@@ -38,7 +37,6 @@ RSFrameRateVote::RSFrameRateVote()
 
 RSFrameRateVote::~RSFrameRateVote()
 {
-    frameRateMgr_ = nullptr;
     ffrtQueue_ = nullptr;
 }
 
@@ -146,10 +144,15 @@ void RSFrameRateVote::CancelVoteRate(pid_t pid, std::string eventName)
 
 void RSFrameRateVote::NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo)
 {
-    if (frameRateMgr_ && pid > DEFAULT_PID) {
+    if (pid > DEFAULT_PID) {
         RS_LOGI("video vote pid:%{public}d rate(%{public}u, %{public}u)",
             pid, eventInfo.minRefreshRate, eventInfo.maxRefreshRate);
-        frameRateMgr_->HandleRefreshRateEvent(pid, eventInfo);
+        HgmTaskHandleThread::Instance().PostTask([pid, eventInfo] () {
+            auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+            if (frameRateMgr != nullptr) {
+                frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
+            }
+        });
     }
 }
 } // namespace Rosen

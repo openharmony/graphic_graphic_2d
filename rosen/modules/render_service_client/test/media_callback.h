@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "foundation/multimedia/player_framework/interfaces/inner_api/native/player.h"
+#include "player.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Ace {

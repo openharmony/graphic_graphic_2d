@@ -50,59 +50,6 @@ static void AwakeRenderServiceThread()
     });
 }
 
-static uint32_t OnBinaryPrepare(RSFile& file, const char* data, size_t size)
-{
-    file.Create(RSFile::GetDefaultPath());
-    return BinaryHelper::BinaryCount(data);
-}
-
-static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
-{
-    if (!file.IsOpen()) {
-        return;
-    }
-
-    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
-    stream.write(reinterpret_cast<const char*>(data + 1), size - 1);
-    stream.seekg(0);
-
-    double writeStartTime = 0.0;
-    stream.read(reinterpret_cast<char*>(&writeStartTime), sizeof(writeStartTime));
-    file.SetWriteTime(writeStartTime);
-
-    uint32_t pidCount = 0u;
-    stream.read(reinterpret_cast<char*>(&pidCount), sizeof(pidCount));
-    for (uint32_t i = 0; i < pidCount; i++) {
-        pid_t pid = 0u;
-        stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
-        file.AddHeaderPid(pid);
-    }
-    file.AddLayer();
-
-    std::string dataFirstFrame;
-    size_t sizeDataFirstFrame = 0;
-    stream.read(reinterpret_cast<char*>(&sizeDataFirstFrame), sizeof(sizeDataFirstFrame));
-    dataFirstFrame.resize(sizeDataFirstFrame);
-    stream.read(reinterpret_cast<char*>(&dataFirstFrame[0]), sizeDataFirstFrame);
-    file.AddHeaderFirstFrame(dataFirstFrame);
-
-    ImageCache::Deserialize(stream);
-}
-
-static void OnBinaryChunk(RSFile& file, const char* data, size_t size)
-{
-    constexpr size_t timeOffset = 8 + 1;
-    if (file.IsOpen() && (size >= timeOffset)) {
-        const double time = *(reinterpret_cast<const double*>(data + 1));
-        file.WriteRSData(time, const_cast<char*>(data) + timeOffset, size - timeOffset);
-    }
-}
-
-static void OnBinaryFinish(RSFile& file, const char* data, size_t size)
-{
-    file.Close();
-}
-
 void Network::Run()
 {
     const uint16_t port = 5050;
@@ -361,29 +308,25 @@ void Network::ProcessOutgoing(Socket& socket)
     }
 }
 
-void Network::ProcessBinary(const char* data, size_t size)
+void Network::ProcessBinary(const std::vector<char>& data)
 {
-    static uint32_t chunks = 0u;
-    static RSFile file;
+    if (data.empty()) {
+        return;
+    }
 
-    const PackageID id = BinaryHelper::Type(data);
-    if (id == PackageID::RS_PROFILER_PREPARE) {
-        // ping/pong for connection speed measurement
-        const char type = static_cast<char>(PackageID::RS_PROFILER_PREPARE);
-        SendBinary(&type, sizeof(type));
-        // amount of binary packages will be sent
-        chunks = OnBinaryPrepare(file, data, size);
-    } else if (id == PackageID::RS_PROFILER_HEADER) {
-        OnBinaryHeader(file, data, size);
-    } else if (id == PackageID::RS_PROFILER_BINARY) {
-        OnBinaryChunk(file, data, size);
+    std::istringstream stream(data.data(), data.size());
+    std::string path;
+    stream >> path;
 
-        chunks--;
-        if (chunks == 0) {
-            OnBinaryFinish(file, data, size);
-            const char type = static_cast<char>(PackageID::RS_PROFILER_PREPARE_DONE);
-            SendBinary(&type, sizeof(type));
-        }
+    const auto offset = std::min(path.size() + 1, data.size());
+    const auto size = data.size() - offset;
+    if (size == 0) {
+        return;
+    }
+
+    if (auto file = Utils::FileOpen(path, "wb")) {
+        Utils::FileWrite(file, data.data() + offset, size);
+        Utils::FileClose(file);
     }
 }
 
@@ -408,9 +351,9 @@ void Network::ProcessIncoming(Socket& socket)
 {
     const uint32_t sleepTimeout = 500000u;
 
-    Packet packetIncoming { Packet::UNKNOWN };
+    Packet packet { Packet::UNKNOWN };
     auto wannaReceive = Packet::HEADER_SIZE;
-    socket.Receive(packetIncoming.Begin(), wannaReceive);
+    socket.Receive(packet.Begin(), wannaReceive);
 
     if (wannaReceive == 0) {
         socket.SetState(SocketState::SHUTDOWN);
@@ -418,8 +361,15 @@ void Network::ProcessIncoming(Socket& socket)
         return;
     }
 
-    const size_t size = packetIncoming.GetPayloadLength();
+    const size_t size = packet.GetPayloadLength();
     if (size == 0) {
+        return;
+    }
+
+    constexpr size_t maxPayloadSize = 1024 * 1024 * 1024;
+    if (size > maxPayloadSize) {
+        socket.SetState(SocketState::SHUTDOWN);
+        usleep(sleepTimeout);
         return;
     }
 
@@ -427,9 +377,9 @@ void Network::ProcessIncoming(Socket& socket)
     data.resize(size);
     socket.ReceiveWhenReady(data.data(), data.size());
 
-    if (packetIncoming.IsBinary()) {
-        ProcessBinary(data.data(), data.size());
-    } else if (packetIncoming.IsCommand()) {
+    if (packet.IsBinary()) {
+        ProcessBinary(data);
+    } else if (packet.IsCommand()) {
         ProcessCommand(data.data(), data.size());
     }
 }

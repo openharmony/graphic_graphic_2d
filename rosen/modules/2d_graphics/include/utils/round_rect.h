@@ -67,6 +67,8 @@ public:
      */
     bool ScaleRadii();
 
+    void Dump(std::string& out) const;
+
 private:
     Rect rect_;
     // Four radii are stored: top-left/top-right/bottom-left/bottom-right corner radii.

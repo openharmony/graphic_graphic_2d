@@ -54,9 +54,7 @@ void RSFile::Create(const std::string& fname)
 
     uint32_t headerId = 'ROHR';
     Utils::FileWrite(&headerId, sizeof(headerId), 1, file_);
-
-    uint32_t versionId = RSFILE_VERSION_LATEST;
-    Utils::FileWrite(&versionId, sizeof(versionId), 1, file_);
+    Utils::FileWrite(&versionId_, sizeof(versionId_), 1, file_);
 
     headerOff_ = 0; // TEMP VALUE
     Utils::FileWrite(&headerOff_, sizeof(headerOff_), 1, file_);
@@ -83,24 +81,18 @@ bool RSFile::Open(const std::string& fname)
 
     uint32_t headerId;
     Utils::FileRead(&headerId, sizeof(headerId), 1, file_);
-    if (headerId == 'ROHR') {
-        Utils::FileRead(&versionId_, sizeof(versionId_), 1, file_);
-    } else if (headerId == 'RPLY') {
-        versionId_ = 0;
-    } else {
+    if (headerId != 'ROHR') { // Prohibit too old file versions
         Utils::FileClose(file_);
         file_ = nullptr;
         return false;
     }
 
+    Utils::FileRead(&versionId_, sizeof(versionId_), 1, file_);
     Utils::FileRead(&headerOff_, sizeof(headerOff_), 1, file_);
-
     Utils::FileSeek(file_, 0, SEEK_END);
     writeDataOff_ = Utils::FileTell(file_);
-
     Utils::FileSeek(file_, headerOff_, SEEK_SET);
     ReadHeaders();
-
     wasChanged_ = false;
 
     return true;
@@ -182,6 +174,14 @@ void RSFile::WriteHeader()
         Utils::FileWrite(&firstScrSize, sizeof(firstScrSize), 1, file_);
         Utils::FileWrite(headerFirstFrame_.data(), headerFirstFrame_.size(), 1, file_);
 
+        if (versionId_ >= RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED) {
+            // ANIME START TIMES
+            uint32_t startTimesSize = headerAnimeStartTimes_.size();
+            Utils::FileWrite(&startTimesSize, sizeof(startTimesSize), 1, file_);
+            Utils::FileWrite(headerAnimeStartTimes_.data(),
+                headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>), 1, file_);
+        }
+
         // ALL TEXTURES
         ImageCache::Serialize(file_);
     }
@@ -206,11 +206,14 @@ void RSFile::ReadHeader()
 
     Utils::FileSeek(file_, headerOff_, SEEK_SET);
 
+    uint32_t recordSize;
+
+    const size_t subHeaderStartOff = Utils::FileTell(file_);
+
     // READ what was write start time
     Utils::FileRead(&writeStartTime_, 1, sizeof(writeStartTime_), file_);
 
     // READ PID LIST
-    uint32_t recordSize;
     Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
     headerPidList_.resize(recordSize);
     Utils::FileRead(headerPidList_.data(), headerPidList_.size(), sizeof(pid_t), file_);
@@ -221,13 +224,22 @@ void RSFile::ReadHeader()
     headerFirstFrame_.resize(firstScrSize);
     Utils::FileRead(headerFirstFrame_.data(), headerFirstFrame_.size(), 1, file_);
 
+     // READ ANIME START TIMES
+    if (versionId_ >= RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED) {
+        uint32_t startTimesSize;
+        Utils::FileRead(&startTimesSize, sizeof(startTimesSize), 1, file_);
+        headerAnimeStartTimes_.resize(startTimesSize);
+        Utils::FileRead(headerAnimeStartTimes_.data(),
+            headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>), 1, file_);
+    }
+
     // ALL TEXTURES
     ImageCache::Deserialize(file_);
 
     if (preparedHeaderMode_) {
         const size_t subHeaderEndOff = Utils::FileTell(file_);
-        Utils::FileSeek(file_, headerOff_, SEEK_SET);
-        const size_t subHeaderLen = subHeaderEndOff - headerOff_;
+        Utils::FileSeek(file_, subHeaderStartOff, SEEK_SET);
+        const size_t subHeaderLen = subHeaderEndOff - subHeaderStartOff;
         preparedHeader_.resize(subHeaderLen);
         Utils::FileRead(preparedHeader_.data(), subHeaderLen, 1, file_);
     }
@@ -291,7 +303,9 @@ void RSFile::LayerWriteHeader(uint32_t layer)
     LayerWriteHeaderOfTrack(layerData.rsData);
     LayerWriteHeaderOfTrack(layerData.oglData);
     LayerWriteHeaderOfTrack(layerData.rsMetrics);
-    LayerWriteHeaderOfTrack(layerData.renderMetrics);
+    if (versionId_ >= RSFILE_VERSION_RENDER_METRICS_ADDED) {
+        LayerWriteHeaderOfTrack(layerData.renderMetrics);
+    }
     LayerWriteHeaderOfTrack(layerData.oglMetrics);
     LayerWriteHeaderOfTrack(layerData.gfxMetrics);
     layerData.layerHeader = { layerHeaderOff, Utils::FileTell(file_) - layerHeaderOff }; // position of layer table
@@ -327,15 +341,18 @@ void RSFile::LayerReadHeader(uint32_t layer)
     LayerReadHeaderOfTrack(layerData.gfxMetrics);
 }
 
-uint32_t RSFile::GetVersion()
+uint32_t RSFile::GetVersion() const
 {
     return versionId_;
 }
 
+void RSFile::SetVersion(uint32_t version)
+{
+    versionId_ = version;
+}
+
 // ***********************************
 // *** LAYER DATA - WRITE
-
-// XXX: static std::map<uint64_t, std::pair<std::shared_ptr<void>, int>> ImageMap;
 
 void RSFile::WriteRSData(double time, const void* data, size_t size)
 {
@@ -432,6 +449,7 @@ bool RSFile::GFXMetricsEOF(uint32_t layer) const
 
 bool RSFile::ReadRSData(double untilTime, std::vector<uint8_t>& data, double& readTime)
 {
+    readTime = 0.0;
     if (!file_ || layerData_.empty()) {
         return false;
     }
@@ -566,7 +584,7 @@ void RSFile::WriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer, dou
 {
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
-    if (!file_ || layerData_.empty()) {
+    if (!file_ || !HasLayer(layer)) {
         return;
     }
 
@@ -636,6 +654,17 @@ const std::string& RSFile::GetHeaderFirstFrame() const
 void RSFile::AddHeaderFirstFrame(const std::string& dataFirstFrame)
 {
     headerFirstFrame_ = dataFirstFrame;
+    wasChanged_ = true;
+}
+
+const std::vector<std::pair<uint64_t, int64_t>>& RSFile::GetAnimeStartTimes() const
+{
+    return headerAnimeStartTimes_;
+}
+
+void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& value)
+{
+    headerAnimeStartTimes_ = value;
     wasChanged_ = true;
 }
 

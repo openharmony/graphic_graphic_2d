@@ -223,6 +223,7 @@ void RSDisplayRenderNode::UpdateRenderParams()
         displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
         displayParams->mirrorSourceId_ = mirroredNode->GetId();
     }
+    displayParams->isSecurityExemption_ = isSecurityExemption_;
     displayParams->offsetX_ = GetDisplayOffsetX();
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
@@ -437,6 +438,11 @@ Occlusion::Region RSDisplayRenderNode::GetDisappearedSurfaceRegionBelowCurrent(N
         result.OrSelf(disappearedSurface);
     }
     return result;
+}
+
+bool RSDisplayRenderNode::IsZoomStateChange() const
+{
+    return preZoomState_ != curZoomState_;
 }
 } // namespace Rosen
 } // namespace OHOS

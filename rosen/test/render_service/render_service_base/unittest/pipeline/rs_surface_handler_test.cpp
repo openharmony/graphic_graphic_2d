@@ -205,7 +205,7 @@ HWTEST_F(RSSurfaceHandlerTest, CacheBuffer01, TestSize.Level2)
 {
     RSSurfaceHandler::SurfaceBufferEntry buffer;
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer);
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer, "");
     ASSERT_TRUE(rSSurfaceHandlerPtr_->HasBufferCache());
 }
 
@@ -224,11 +224,11 @@ HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache001, TestSize.Level2)
 
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
     rSSurfaceHandlerPtr_->bufferCache_.clear();
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer1);
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer2);
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer1, "");
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer2, "");
 
     uint64_t vsyncTimestamp = 50; // let vsyncTimestamp's timestamp smller than any buffer in cache
-    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp).buffer, nullptr);
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp, "").buffer, nullptr);
 
     rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
     rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);
@@ -249,11 +249,11 @@ HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache002, TestSize.Level2)
 
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
     rSSurfaceHandlerPtr_->bufferCache_.clear();
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer1);
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer2);
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer1, "");
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer2, "");
 
     uint64_t vsyncTimestamp = 150; // let vsyncTimestamp's timestamp only bigger than one buffer in cache
-    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp).buffer, buffer1.buffer);
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp, "").buffer, buffer1.buffer);
 
     rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
     rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);
@@ -274,11 +274,11 @@ HWTEST_F(RSSurfaceHandlerTest, GetBufferFromCache003, TestSize.Level2)
 
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
     rSSurfaceHandlerPtr_->bufferCache_.clear();
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer1);
-    rSSurfaceHandlerPtr_->CacheBuffer(buffer2);
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer1, "");
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer2, "");
 
     uint64_t vsyncTimestamp = 250; // let vsyncTimestamp's timestamp bigger than more than one buffer in cache
-    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp).buffer, buffer2.buffer);
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetBufferFromCache(vsyncTimestamp, "").buffer, buffer2.buffer);
 
     rSSurfaceHandlerPtr_->ReleaseBuffer(buffer1);
     rSSurfaceHandlerPtr_->ReleaseBuffer(buffer2);

@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include "hgm_log.h"
+#include "hgm_task_handle_thread.h"
 
 namespace OHOS::Rosen {
 HgmScreen::HgmScreen() {}

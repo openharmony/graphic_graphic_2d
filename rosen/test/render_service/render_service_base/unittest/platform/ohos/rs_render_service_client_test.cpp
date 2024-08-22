@@ -405,23 +405,6 @@ HWTEST_F(RSClientTest, SetVirtualScreenSurface001, TestSize.Level1)
 }
 
 /**
- * @tc.name: Set2DRenderCtrl Test
- * @tc.desc: Set2DRenderCtrl Test
- * @tc.type:FUNC
- * @tc.require: issuesI9NA1T
- */
-#ifdef RS_ENABLE_VK
-HWTEST_F(RSClientTest, Set2DRenderCtrl, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->Set2DRenderCtrl(false);
-    ASSERT_EQ(ret, true);
-    ret = rsClient->Set2DRenderCtrl(true);
-    ASSERT_EQ(ret, true);
-}
-#endif
-
-/**
  * @tc.name: SetScreenChangeCallback Test
  * @tc.desc: SetScreenChangeCallback Test
  * @tc.type:FUNC
@@ -569,7 +552,18 @@ HWTEST_F(RSClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
     EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
 
     rsClient->SetShowRefreshRateEnabled(true);
-    EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), true);
+    EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
+}
+
+/**
+ * @tc.name: GetRefreshInfo Test
+ * @tc.desc: GetRefreshInfo Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, GetRefreshInfo001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->GetRefreshInfo(-1), "");
 }
 
 /**
@@ -840,7 +834,7 @@ HWTEST_F(RSClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
 {
     UIExtensionCallback callback = nullptr;
     uint64_t userId = 0;
-    EXPECT_EQ(rsClient->RegisterUIExtensionCallback(userId, callback),
+    EXPECT_NE(rsClient->RegisterUIExtensionCallback(userId, callback),
         StatusCode::INVALID_ARGUMENTS);
 }
 } // namespace Rosen

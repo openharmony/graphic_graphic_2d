@@ -2818,6 +2818,18 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType001, TestSize.Level1)
     properties.illuminatedPtr_ = std::make_shared<RSIlluminated>();
     properties.SetIlluminatedType(0);
     EXPECT_EQ(properties.contentDirty_, true);
+
+    IlluminatedType illuminatedTypeBB = IlluminatedType::BLEND_BORDER;
+    properties.SetIlluminatedType(static_cast<int>(illuminatedTypeBB));
+    EXPECT_EQ(properties.contentDirty_, true);
+
+    IlluminatedType illuminatedTypeBC = IlluminatedType::BLEND_CONTENT;
+    properties.SetIlluminatedType(static_cast<int>(illuminatedTypeBC));
+    EXPECT_EQ(properties.contentDirty_, true);
+
+    IlluminatedType illuminatedTypeBBC = IlluminatedType::BLEND_BORDER_CONTENT;
+    properties.SetIlluminatedType(static_cast<int>(illuminatedTypeBBC));
+    EXPECT_EQ(properties.contentDirty_, true);
 }
 
 /**
@@ -3055,23 +3067,6 @@ HWTEST_F(RSPropertiesTest, SetHaveEffectRegion001, TestSize.Level1)
     properties.backgroundFilterCacheManager_->cachedFilteredSnapshot_ =
         std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     properties.SetHaveEffectRegion(false);
-    EXPECT_NE(properties.isDrawn_, true);
-}
-
-/**
- * @tc.name: ReleaseColorPickerTaskShadow001
- * @tc.desc: test results of ReleaseColorPickerTaskShadow
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, ReleaseColorPickerTaskShadow001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.ReleaseColorPickerTaskShadow();
-    EXPECT_NE(properties.isDrawn_, true);
-
-    properties.shadow_ = std::make_optional<RSShadow>();
-    properties.ReleaseColorPickerTaskShadow();
     EXPECT_NE(properties.isDrawn_, true);
 }
 

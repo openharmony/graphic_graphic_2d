@@ -111,7 +111,7 @@ napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Type
             ROSEN_LOGE("JsTypeface::MakeFromFile Create Typeface failed!");
             return nullptr;
         }
-        napi_status status = napi_wrap(env, result, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
+        status = napi_wrap(env, result, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
         if (status != napi_ok) {
             delete jsTypeface;
             ROSEN_LOGE("JsTypeface::MakeFromFile failed to wrap native instance");

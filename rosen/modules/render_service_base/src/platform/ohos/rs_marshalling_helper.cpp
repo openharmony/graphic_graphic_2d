@@ -682,21 +682,21 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMa
  
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnifierParams>& val)
 {
-    float factor;
-    float width;
-    float height;
-    float cornerRadius;
-    float borderWidth;
-    float offsetX;
-    float offsetY;
-    float shadowOffsetX;
-    float shadowOffsetY;
-    float shadowSize;
-    float shadowStrength;
-    uint32_t gradientMaskColor1;
-    uint32_t gradientMaskColor2;
-    uint32_t outerContourColor1;
-    uint32_t outerContourColor2;
+    float factor = 0.f;
+    float width = 0.f;
+    float height = 0.f;
+    float cornerRadius = 0.f;
+    float borderWidth = 0.f;
+    float offsetX = 0.f;
+    float offsetY = 0.f;
+    float shadowOffsetX = 0.f;
+    float shadowOffsetY = 0.f;
+    float shadowSize = 0.f;
+    float shadowStrength = 0.f;
+    uint32_t gradientMaskColor1 = 0x00000000;
+    uint32_t gradientMaskColor2 = 0x00000000;
+    uint32_t outerContourColor1 = 0x00000000;
+    uint32_t outerContourColor2 = 0x00000000;
 
     val = std::make_shared<RSMagnifierParams>();
     if (val == nullptr) { return false; }
@@ -1643,6 +1643,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     bool ret = true;
     uint32_t objectSize = parcel.ReadUint32();
     if (objectSize > 0) {
+        if (objectSize > PARTICLE_UPPER_LIMIT) {
+            return false;
+        }
         std::vector<std::shared_ptr<Drawing::ExtendImageObject>> imageObjectVec;
         for (uint32_t i = 0; i < objectSize; i++) {
             std::shared_ptr<RSExtendImageObject> object;
@@ -1659,6 +1662,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     uint32_t objectBaseSize = parcel.ReadUint32();
     if (objectBaseSize > 0) {
+        if (objectBaseSize > PARTICLE_UPPER_LIMIT) {
+            return false;
+        }
         std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> ObjectBaseVec;
         for (uint32_t i = 0; i < objectBaseSize; i++) {
             std::shared_ptr<RSExtendImageBaseObj> objectBase;
@@ -1681,6 +1687,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 #ifdef ROSEN_OHOS
     uint32_t surfaceBufferSize = parcel.ReadUint32();
     if (surfaceBufferSize > 0) {
+        if (surfaceBufferSize > PARTICLE_UPPER_LIMIT) {
+            return false;
+        }
         std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
         for (uint32_t i = 0; i < surfaceBufferSize; ++i) {
             sptr<SurfaceBuffer> surfaceBuffer;
@@ -1696,6 +1705,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetupSurfaceBuffer(surfaceBufferVec);
     }
 #endif
+
+    RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val);
     val->UnmarshallingDrawOps();
     return ret;
 }

@@ -162,7 +162,13 @@ bool GetLatticeColors(napi_env env, napi_value colorsArray, uint32_t count, std:
             napi_get_element(env, colorsArray, i, &tempColor);
             Drawing::Color drawingColor;
             int32_t argb[ARGC_FOUR] = {0};
-            if (!ConvertFromJsColor(env, tempColor, argb, ARGC_FOUR)) {
+            napi_valuetype valueType;
+            napi_typeof(env, tempColor, &valueType);
+            bool exitFlag = false;
+            if (valueType == napi_number) {
+                exitFlag = ConvertFromJsColorWithNumber(env, tempColor, argb, ARGC_FOUR, i);
+            }
+            if (!exitFlag && !ConvertFromJsColor(env, tempColor, argb, ARGC_FOUR)) {
                 ROSEN_LOGE("JsLattice::CreateImageLattice colors is invalid");
                 return false;
             }
@@ -204,8 +210,8 @@ napi_value JsLattice::CreateImageLattice(napi_env env, napi_callback_info info)
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "Incorrect CreateImageLattice parameter5 type.");
         }
-        int32_t ltrb[ARGC_FOUR] = {0};
         if (valueType == napi_object) {
+            int32_t ltrb[ARGC_FOUR] = {0};
             if (!ConvertFromJsIRect(env, argv[ARGC_FOUR], ltrb, ARGC_FOUR)) {
                 return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                     "Incorrect parameter5 type. The type of left, top, right and bottom must be number.");

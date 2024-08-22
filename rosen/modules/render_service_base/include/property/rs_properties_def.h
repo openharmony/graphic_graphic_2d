@@ -191,6 +191,9 @@ enum class IlluminatedType : uint32_t {
     BORDER_CONTENT,
     BLOOM_BORDER,
     BLOOM_BORDER_CONTENT,
+    BLEND_BORDER,
+    BLEND_CONTENT,
+    BLEND_BORDER_CONTENT,
 };
 
 class RSLightSource final {

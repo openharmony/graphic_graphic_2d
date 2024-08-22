@@ -38,6 +38,7 @@ enum ColorType {
     COLORTYPE_N32,
     COLORTYPE_RGBA_1010102,
     COLORTYPE_GRAY_8,
+    COLORTYPE_RGB_888X,
 };
 
 enum AlphaType {
@@ -142,6 +143,8 @@ public:
 
     friend DRAWING_API bool operator==(const Color& c1, const Color& c2);
     friend DRAWING_API bool operator!=(const Color& c1, const Color& c2);
+
+    void Dump(std::string& out) const;
 
 private:
     uint32_t alpha_;

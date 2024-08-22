@@ -190,7 +190,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
     return renderService->CreatePixelMapFromSurface(surface, srcRect);
 }
 
-void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap)
+void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap)
 {
     ROSEN_LOGD("RSRenderServiceClient::Into TriggerSurfaceCaptureCallback nodeId:[%{public}" PRIu64 "]", id);
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
@@ -211,17 +211,14 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, Media::Pixe
             ROSEN_LOGE("RSRenderServiceClient::TriggerSurfaceCaptureCallback: callback is nullptr!");
             continue;
         }
-        Media::PixelMap* pixelmapCopyRelease = nullptr;
+        std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
         if (i != callbackVector.size() - 1) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
-                pixelmapCopyRelease = pixelmapCopy.release();
+                surfaceCapture = std::move(pixelmapCopy);
             }
-        } else {
-            pixelmapCopyRelease = pixelmap;
         }
-        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmapCopyRelease);
         callbackVector[i]->OnSurfaceCapture(surfaceCapture);
     }
 }
@@ -233,7 +230,8 @@ public:
     ~SurfaceCaptureCallbackDirector() override {};
     void OnSurfaceCapture(NodeId id, Media::PixelMap* pixelmap) override
     {
-        client_->TriggerSurfaceCaptureCallback(id, pixelmap);
+        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
+        client_->TriggerSurfaceCaptureCallback(id, surfaceCapture);
     };
 
 private:
@@ -339,6 +337,18 @@ int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vecto
     return renderService->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
+    ScreenId id,
+    const std::vector<NodeId>& securityExemptionList)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+}
+
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -358,18 +368,6 @@ int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface
 
     return renderService->SetVirtualScreenSurface(id, surface);
 }
-
-#ifdef RS_ENABLE_VK
-bool RSRenderServiceClient::Set2DRenderCtrl(bool enable)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
-        return false;
-    }
-
-    return renderService->Set2DRenderCtrl(enable);
-}
-#endif
 
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
@@ -1347,6 +1345,14 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
+void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetDefaultDeviceRotationOffset(offset);
+    }
+}
+
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1389,6 +1395,15 @@ HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
         return {};
     }
     return renderService->GetHwcDisabledReasonInfo();
+}
+
+void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->SetVmaCacheStatus(flag);
 }
 
 #ifdef TP_FEATURE_ENABLE
@@ -1451,6 +1466,16 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         return renderService->SetVirtualScreenStatus(id, screenStatus);
+    }
+    return false;
+}
+
+bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService == nullptr!");
+        return renderService->SetAncoForceDoDirect(direct);
     }
     return false;
 }

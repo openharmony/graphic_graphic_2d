@@ -178,8 +178,10 @@ int32_t XMLParser::ParseParams(xmlNode &node)
         }
         mParsedData_->refreshRateForSettings_.clear();
         for (auto &[name, id]: refreshRateForSettings) {
-            mParsedData_->refreshRateForSettings_.emplace_back(
-                std::pair<int32_t, int32_t>(std::stoi(name), std::stoi(id)));
+            if (IsNumber(name) && IsNumber(id)) {
+                mParsedData_->refreshRateForSettings_.emplace_back(
+                    std::pair<int32_t, int32_t>(std::stoi(name), std::stoi(id)));
+            }
         }
         std::sort(mParsedData_->refreshRateForSettings_.begin(), mParsedData_->refreshRateForSettings_.end(),
             [=] (auto rateId0, auto rateId1) { return rateId0.first < rateId1.first; });
@@ -220,6 +222,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto min = ExtractPropertyValue("min", *currNode);
         auto max = ExtractPropertyValue("max", *currNode);
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
+        auto idleFps = ExtractPropertyValue("idleFps", *currNode);
         auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
@@ -232,6 +235,9 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
         strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+        strategy.idleFps = IsNumber(idleFps) ?
+            std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
+            std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
         strategy.isFactor = isFactor;
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;

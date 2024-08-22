@@ -203,7 +203,7 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_penReset009, TestSize.Level1
     EXPECT_EQ(OH_Drawing_PenIsAntiAlias(pen9), false);
     EXPECT_EQ(OH_Drawing_PenGetColor(pen9), 0xFF000000);
     EXPECT_EQ(OH_Drawing_PenGetWidth(pen9), 0);
-    EXPECT_EQ(OH_Drawing_PenGetMiterLimit(pen9), 4.0f);
+    EXPECT_EQ(OH_Drawing_PenGetMiterLimit(pen9), -1);
     EXPECT_EQ(OH_Drawing_PenGetCap(pen9), OH_Drawing_PenLineCapStyle::LINE_FLAT_CAP);
     EXPECT_EQ(OH_Drawing_PenGetJoin(pen9), OH_Drawing_PenLineJoinStyle::LINE_MITER_JOIN);
 

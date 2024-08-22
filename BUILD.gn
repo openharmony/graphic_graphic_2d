@@ -17,6 +17,7 @@ import("graphic_config.gni")
 
 group("default") {
   public_deps = [ ":graphic.rc" ]
+  public_deps += [ "etc:graphic_config" ]
 
   if (graphic_2d_feature_bootanimation_enable) {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]
@@ -49,9 +50,6 @@ group("graphic_common_test") {
     "utils/rs_frame_report_ext:test",
     "utils/socketpair:test",
   ]
-  if (graphic_2d_feature_enable_vulkan) {
-    public_deps -= [ "frameworks/opengl_wrapper/test:test" ]
-  }
 }
 
 ## Install graphic.rc to /system/etc/init/graphic.rc {{{

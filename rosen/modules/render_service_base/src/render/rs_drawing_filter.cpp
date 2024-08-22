@@ -278,20 +278,10 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
     return;
 }
 
-void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
-    const Drawing::Rect& src, const Drawing::Rect& dst)
+void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer, const Drawing::Rect& src,
+    const Drawing::Rect& dst)
 {
-    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    if (visualEffectContainer == nullptr) {
-        ROSEN_LOGE("RSDrawingFilter::DrawImageRect visualEffectContainer is null");
-        return;
-    }
-    for (const auto& filter : shaderFilters_) {
-        if (filter->GetShaderFilterType() == RSShaderFilter::KAWASE) {
-            continue;
-        }
-        filter->GenerateGEVisualEffect(visualEffectContainer);
-    }
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
     if (geRender == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect geRender is null");
@@ -329,6 +319,29 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
+}
+
+void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
+    const Drawing::Rect& src, const Drawing::Rect& dst, bool discardCanvas)
+{
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    bool kawaseHpsFilter = false;
+    if (visualEffectContainer == nullptr) {
+        ROSEN_LOGE("RSDrawingFilter::DrawImageRect visualEffectContainer is null");
+        return;
+    }
+    for (const auto& filter : shaderFilters_) {
+        if (filter->GetShaderFilterType() == RSShaderFilter::KAWASE) {
+            kawaseHpsFilter = true;
+            continue;
+        }
+        filter->GenerateGEVisualEffect(visualEffectContainer);
+    }
+    auto brush = GetBrush();
+    if (discardCanvas && kawaseHpsFilter && brush.GetColor().GetAlphaF() == 1.0) {
+        canvas.Discard();
+    }
+    ApplyImageEffect(canvas, image, visualEffectContainer, src, dst);
 }
 
 void RSDrawingFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)

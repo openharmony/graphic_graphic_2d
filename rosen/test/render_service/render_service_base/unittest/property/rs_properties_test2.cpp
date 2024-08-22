@@ -218,17 +218,17 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
 
     properties.foregroundEffectRadius_ = 0.1f;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    EXPECT_FALSE(properties.foregroundFilter_);
 
     properties.foregroundEffectRadius_ = -0.1f;
     properties.isSpherizeValid_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    EXPECT_FALSE(properties.foregroundFilter_);
 
     properties.isSpherizeValid_ = false;
     properties.shadow_->imageMask_ = true;
     properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
+    EXPECT_FALSE(properties.foregroundFilter_);
 
     properties.foregroundEffectRadius_ = -0.1f;
     properties.isAttractionValid_ = true;
@@ -541,11 +541,16 @@ HWTEST_F(PropertiesTest, SetDynamicLightUpDegreeTest, TestSize.Level1)
 HWTEST_F(PropertiesTest, SetNGetDynamicDimDegreeTest, TestSize.Level1)
 {
     RSProperties properties;
-    std::optional<float> dimDegree(1.f);
+    std::optional<float> dimDegree(0.99f);
     properties.SetDynamicDimDegree(dimDegree);
     ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
     EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
     EXPECT_TRUE(properties.IsDynamicDimValid());
+    dimDegree = 1.f;
+    properties.SetDynamicDimDegree(dimDegree);
+    ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
+    EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
+    EXPECT_FALSE(properties.IsDynamicDimValid());
 
     std::optional<float> degree;
     properties.SetDynamicDimDegree(degree);

@@ -57,10 +57,13 @@ public:
     virtual void Apply(RSModifierContext& context) const = 0;
 
     virtual PropertyId GetPropertyId() = 0;
-    virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
-    void Dump(std::string& out)
+    virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() const = 0;
+    void Dump(std::string& out) const
     {
-        GetProperty()->Dump(out);
+        auto property = GetProperty();
+        if (property != nullptr) {
+            property->Dump(out);
+        }
     }
 
     virtual RSModifierType GetType()
@@ -68,14 +71,10 @@ public:
         return RSModifierType::INVALID;
     }
 
-    std::string GetModifierTypeString()
+    virtual std::string GetModifierTypeString()
     {
-        auto iter = RS_MODIFIER_TYPE_TO_STRING.find(GetType());
-        if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
-            return iter->second;
-        } else {
-            return "UNKNOWN";
-        }
+        auto modifierTypeString = std::make_shared<RSModifierTypeString>();
+        return modifierTypeString->GetModifierTypeString(GetType());
     }
 
     virtual void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) = 0;
@@ -107,7 +106,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
@@ -143,7 +142,7 @@ public:
     }
 
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
@@ -193,7 +192,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
@@ -309,6 +308,7 @@ public:
         void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;                   \
         bool Marshalling(Parcel& parcel) override;                                                               \
         RSModifierType GetType() override { return (RSModifierType::MODIFIER_TYPE); }                            \
+        virtual std::string GetModifierTypeString() override { return #MODIFIER_NAME; }                          \
     };
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \

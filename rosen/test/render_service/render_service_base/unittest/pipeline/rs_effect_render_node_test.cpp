@@ -196,8 +196,8 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsTest, TestSize.Level1)
     rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
     rsEffectRenderNode.isRotationChanged_ = true;
     rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
-    filterDrawable->forceUseCache_ = true;
-    filterDrawable->forceClearCache_ = true;
+    filterDrawable->stagingForceUseCache_ = true;
+    filterDrawable->stagingForceClearCache_ = true;
     rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
     EXPECT_TRUE(rsEffectRenderNode.isRotationChanged_);
 }

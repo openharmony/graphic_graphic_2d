@@ -39,7 +39,7 @@ class HgmFrameRateManager;
 class HgmTouchManager final : public HgmStateMachine<TouchState, TouchEvent> {
 public:
     HgmTouchManager();
-    ~HgmTouchManager() override;
+    ~HgmTouchManager() = default;
 
     void HandleTouchEvent(TouchEvent event, const std::string& pkgName = "");
     void HandleRsFrame();
@@ -49,12 +49,10 @@ public:
 protected:
     std::string State2String(State state) const override;
     bool CheckChangeStateValid(State lastState, State newState) override;
-    void ExecuteCallback(const std::function<void()>& callback) override;
 private:
     std::string pkgName_;
-    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-    HgmOneShotTimer upTimeoutTimer_;
-    HgmOneShotTimer rsIdleTimeoutTimer_;
+    HgmSimpleTimer upTimeoutTimer_;
+    HgmSimpleTimer rsIdleTimeoutTimer_;
 };
 } // OHOS::Rosen
 #endif // HGM_TOUCH_MANAGER_H

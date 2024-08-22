@@ -97,6 +97,34 @@ HWTEST_F(RSScreenManagerTest, SetDefaultScreenId_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: QueryDefaultScreenInfo001
+ * @tc.desc: Test QueryDefaultScreenInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKFUL
+ */
+HWTEST_F(RSScreenManagerTest, QueryDefaultScreenInfo001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    screenManager->SetDefaultScreenId(id);
+    auto defaultScreenInfo = screenManager->QueryDefaultScreenInfo();
+    EXPECT_EQ(defaultScreenInfo.id, id);
+    EXPECT_EQ(defaultScreenInfo.width, width);
+    EXPECT_EQ(defaultScreenInfo.height, height);
+}
+
+/*
  * @tc.name: CreateVirtualScreen_001
  * @tc.desc: Test CreateVirtualScreen
  * @tc.type: FUNC
@@ -1804,6 +1832,105 @@ HWTEST_F(RSScreenManagerTest, ForceRefreshOneFrameIfNoRNV_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenStatus_001
+ * @tc.desc: Test SetVirtualScreenStatus, input invalid id, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_FALSE(screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus_002
+ * @tc.desc: Test SetVirtualScreenStatus, input screens_ with nullptr, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    screenManagerImpl.screens_[screenId] = nullptr;
+    ASSERT_FALSE(screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
+}
+
+/*
+ * @tc.name: GetCanvasRotation_001
+ * @tc.desc: Test GetCanvasRotation, input invalid id, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, GetCanvasRotation_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_FALSE(screenManager->GetCanvasRotation(screenId));
+}
+
+/*
+ * @tc.name: GetCanvasRotation_002
+ * @tc.desc: Test GetCanvasRotation, input screens_ with nullptr, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, GetCanvasRotation_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    screenManagerImpl.screens_[screenId] = nullptr;
+    ASSERT_FALSE(screenManager->GetCanvasRotation(screenId));
+}
+
+/*
+ * @tc.name: GetScaleMode_001
+ * @tc.desc: Test GetScaleMode, input invalid id, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, GetScaleMode_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_EQ(screenManager->GetScaleMode(screenId), ScreenScaleMode::INVALID_MODE);
+}
+
+/*
+ * @tc.name: GetScaleMode_002
+ * @tc.desc: Test GetScaleMode, input screens_ with nullptr, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAINL7
+ */
+HWTEST_F(RSScreenManagerTest, GetScaleMode_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    screenManagerImpl.screens_[screenId] = nullptr;
+    ASSERT_EQ(screenManager->GetScaleMode(screenId), ScreenScaleMode::INVALID_MODE);
+}
+
+/*
  * @tc.name: SetVirtualMirrorScreenScaleMode_001
  * @tc.desc: Test SetVirtualMirrorScreenScaleMode false.
  * @tc.type: FUNC
@@ -1849,9 +1976,9 @@ HWTEST_F(RSScreenManagerTest, SetVirtualMirrorScreenScaleMode_002, TestSize.Leve
 
 /*
  * @tc.name: IsScreenPowerOffTest001
- * @tc.desc: Test IsScreenPowerOff, input invalid id, expect false.
+ * @tc.desc: Test IsScreenPowerOff, input invalid id, expect correctly get power status.
  * @tc.type: FUNC
- * @tc.require: #I9UNQP
+ * @tc.require: issueI9UNQP
  */
 HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest001, TestSize.Level1)
 {
@@ -1865,7 +1992,7 @@ HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest001, TestSize.Level1)
  * @tc.name: IsScreenPowerOffTest002
  * @tc.desc: Test IsScreenPowerOff, input invalid id, expect false.
  * @tc.type: FUNC
- * @tc.require: #I9UNQP
+ * @tc.require: issueI9UNQP
  */
 HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest002, TestSize.Level1)
 {
@@ -1883,5 +2010,460 @@ HWTEST_F(RSScreenManagerTest, IsScreenPowerOffTest002, TestSize.Level1)
     ASSERT_TRUE(screenManager->IsScreenPowerOff(id));
     screenManagerImpl.screenPowerStatus_[id] = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND;
     ASSERT_TRUE(screenManager->IsScreenPowerOff(id));
+}
+
+/*
+ * @tc.name: SetVirtualScreenBlackList001
+ * @tc.desc: Test SetVirtualScreenBlackList, input invalid id
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManager->SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenBlackList002
+ * @tc.desc: Test SetVirtualScreenBlackList, input id  which not found in screens_
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId id = 1;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManager->SetVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetVirtualScreenBlackList003
+ * @tc.desc: Test SetVirtualScreenBlackList, input id in screens_, and screens_[id] = null,
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetVirtualScreenBlackList004
+ * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id==mainId
+ * screens_[]!=null id==DefaultScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList004, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = id;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    std::vector<uint64_t> blackList = {};
+
+    ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualScreenBlackList005
+ * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, mainId is not one of key of screens_
+ * screens_[]!=null id==DefaultScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList005, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    std::vector<uint64_t> blackList = {};
+
+    ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetVirtualScreenBlackList006
+ * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, mainId is one of key of screens_ but
+ * screens_[mainId]==nullptr screens_[]!=null id==DefaultScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList006, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[mainId] = nullptr;
+    std::vector<uint64_t> blackList = {};
+
+    ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetVirtualScreenBlackList007
+ * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, mainId is one of key of screens_ but
+ * screens_[mainId]!=nullptr screens_[]!=null id==DefaultScreenId
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList007, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    screenManagerImpl.screens_[mainId] = std::make_unique<impl::RSScreen>(mainId, false, nullptr, nullptr);
+    std::vector<uint64_t> blackList = {};
+
+    ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetCastScreenEnableSkipWindow001
+ * @tc.desc: Test SetCastScreenEnableSkipWindow, input id not in keys of screens_
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetCastScreenEnableSkipWindow001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    bool enable = false;
+    ASSERT_EQ(screenManagerImpl.SetCastScreenEnableSkipWindow(id, enable), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetCastScreenEnableSkipWindow002
+ * @tc.desc: Test SetCastScreenEnableSkipWindow, input id in keys of screens_, and screens_[id] = nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetCastScreenEnableSkipWindow002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    bool enable = false;
+    ASSERT_EQ(screenManagerImpl.SetCastScreenEnableSkipWindow(id, enable), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetCastScreenEnableSkipWindow003
+ * @tc.desc: Test SetCastScreenEnableSkipWindow, input id in keys of screens_, and screens_[id] != nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, SetCastScreenEnableSkipWindow003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    bool enable = false;
+    ASSERT_EQ(screenManagerImpl.SetCastScreenEnableSkipWindow(id, enable), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetCastScreenEnableSkipWindow001
+ * @tc.desc: Test GetCastScreenEnableSkipWindow, input id not in keys of screens_
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, GetCastScreenEnableSkipWindow001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ASSERT_EQ(screenManagerImpl.GetCastScreenEnableSkipWindow(id), false);
+}
+
+/*
+ * @tc.name: GetCastScreenEnableSkipWindow002
+ * @tc.desc: Test GetCastScreenEnableSkipWindow, input id in keys of screens_， and screens[id] ==null
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, GetCastScreenEnableSkipWindow002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    ASSERT_EQ(screenManagerImpl.GetCastScreenEnableSkipWindow(id), false);
+}
+
+/*
+ * @tc.name: GetCastScreenEnableSkipWindow003
+ * @tc.desc: Test GetCastScreenEnableSkipWindow, input id in keys of screens_， and screens[id] !=null
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, GetCastScreenEnableSkipWindow003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    bool enable = false;
+    ASSERT_EQ(screenManagerImpl.SetCastScreenEnableSkipWindow(id, enable), StatusCode::SUCCESS);
+    ASSERT_EQ(screenManagerImpl.GetCastScreenEnableSkipWindow(id), enable);
+}
+
+/*
+ * @tc.name: GetVirtualScreenBlackList001
+ * @tc.desc: Test GetVirtualScreenBlackList, input id not in keys of screens_
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenBlackList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ASSERT_TRUE(screenManagerImpl.GetVirtualScreenBlackList(id).empty());
+}
+
+/*
+ * @tc.name: GetVirtualScreenBlackList002
+ * @tc.desc: Test GetVirtualScreenBlackList, input id  in keys of screens_,screens_[id]=null
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenBlackList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    ASSERT_TRUE(screenManagerImpl.GetVirtualScreenBlackList(id).empty());
+}
+
+/*
+ * @tc.name: GetVirtualScreenBlackList003
+ * @tc.desc: Test GetVirtualScreenBlackList, input id in keys of screens_,screens_[id]!=null
+ * @tc.type: FUNC
+ * @tc.require: issueIAIMIW
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenBlackList003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+
+    const std::vector<uint64_t>& blackList = { 1, 2, 3, 4 };
+    std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
+
+    ScreenId mainId = id;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+
+    const std::unordered_set<uint64_t>& blackList_ = screenManagerImpl.GetVirtualScreenBlackList(id);
+    ASSERT_TRUE(std::set<NodeId>(blackList_.begin(), blackList_.end()) ==
+                std::set<NodeId>(screenBlackList.begin(), screenBlackList.end()));
+}
+
+/*
+ * @tc.name: TrySimpleProcessHotPlugEvents_001
+ * @tc.desc: Test TrySimpleProcessHotPlugEvents when isHwcDead_ equals true, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.isHwcDead_ = true;
+    ASSERT_FALSE(screenManager->TrySimpleProcessHotPlugEvents());
+}
+
+/*
+ * @tc.name: TrySimpleProcessHotPlugEvents_002
+ * @tc.desc: Test TrySimpleProcessHotPlugEvents when pendingHotPlugEvents_ is not empty, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.isHwcDead_ = false;
+    impl::ScreenHotPlugEvent screenHotPlugEvent;
+    screenManagerImpl.pendingHotPlugEvents_.push_back(screenHotPlugEvent);
+    ASSERT_FALSE(screenManager->TrySimpleProcessHotPlugEvents());
+}
+
+/*
+ * @tc.name: TrySimpleProcessHotPlugEvents_003
+ * @tc.desc: Test TrySimpleProcessHotPlugEvents when connectedIds_ is not empty, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.isHwcDead_ = false;
+    screenManagerImpl.pendingHotPlugEvents_.clear();
+    ScreenId screenId = SCREEN_ID;
+    screenManagerImpl.connectedIds_.push_back(screenId);
+    ASSERT_FALSE(screenManager->TrySimpleProcessHotPlugEvents());
+}
+
+/*
+ * @tc.name: TrySimpleProcessHotPlugEvents_004
+ * @tc.desc: Test TrySimpleProcessHotPlugEvents, expect true.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_004, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.isHwcDead_ = false;
+    screenManagerImpl.pendingHotPlugEvents_.clear();
+    screenManagerImpl.connectedIds_.clear();
+    ASSERT_TRUE(screenManager->TrySimpleProcessHotPlugEvents());
+}
+
+/*
+ * @tc.name: GenerateVirtualScreenIdLocked_001
+ * @tc.desc: Test GenerateVirtualScreenIdLocked when freeVirtualScreenIds_ is empty.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, GenerateVirtualScreenIdLocked_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.freeVirtualScreenIds_ = std::queue<ScreenId>();
+    ASSERT_EQ(screenManagerImpl.freeVirtualScreenIds_.size(), 0);
+
+    screenManagerImpl.virtualScreenCount_ = 0;
+    auto screenId = (static_cast<ScreenId>(screenManagerImpl.virtualScreenCount_) << 32) | 0xffffffffu;
+    ASSERT_EQ(screenManagerImpl.GenerateVirtualScreenIdLocked(), screenId);
+}
+
+/*
+ * @tc.name: GenerateVirtualScreenIdLocked_002
+ * @tc.desc: Test GenerateVirtualScreenIdLocked when freeVirtualScreenIds_ is not empty.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, GenerateVirtualScreenIdLocked_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.freeVirtualScreenIds_.push(SCREEN_ID);
+    auto screenId = screenManagerImpl.freeVirtualScreenIds_.front();
+    ASSERT_EQ(screenManagerImpl.GenerateVirtualScreenIdLocked(), screenId);
+}
+
+/*
+ * @tc.name: ReuseVirtualScreenIdLocked_001
+ * @tc.desc: Test ReuseVirtualScreenIdLocked.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, ReuseVirtualScreenIdLocked_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    screenManagerImpl.ReuseVirtualScreenIdLocked(screenId);
+    ASSERT_EQ(screenManagerImpl.freeVirtualScreenIds_.back(), screenId);
 }
 } // namespace OHOS::Rosen

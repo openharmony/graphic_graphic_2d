@@ -17,6 +17,7 @@
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_animation_timing_protocol.h"
+#include "animation/rs_animation.h"
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_path_animation.h"
 #include "animation/rs_spring_animation.h"
@@ -555,7 +556,58 @@ HWTEST_F(RSAnimationTest, AnimationStatus003, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSAnimationTimingProtocolSetInstanceId
+ * @tc.name: AnimationStatus004
+ * @tc.desc: Verify the AnimationStatus of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus004 start";
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    auto modifier = std::make_shared<RSBoundsModifier>(property);
+    canvasNode->AddModifier(modifier);
+    rsUiDirector->SendMessages();
+    sleep(DELAY_TIME_ONE);
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(ANIMATION_DURATION);
+    RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
+    auto animations = RSNode::Animate(protocol, curve, [&property]() {
+        property->Set(ANIMATION_END_BOUNDS);
+    });
+    auto animation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
+
+    animation->state_ = Rosen::RSAnimation::AnimationState::PAUSED;
+    animation->SetFraction(0.5);
+
+    animation->state_ = Rosen::RSAnimation::AnimationState::RUNNING;
+    animation->Pause();
+
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->OnReverse();
+    animation->Resume();
+    animation->Finish();
+    animation->Reverse();
+
+    animation->target_ = RSCanvasNode::Create(true, false);
+    animation->uiAnimation_.reset();
+    animation->Resume();
+    animation->OnFinish();
+    animation->OnReverse();
+    animation->OnSetFraction(0.5);
+
+    auto propAnimation = std::make_shared<RSPropertyAnimation>(nullptr);
+    auto propId = propAnimation->GetPropertyId();
+    EXPECT_TRUE(propId == 0);
+    propAnimation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    propAnimation->property_ = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
+    propAnimation->UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+    EXPECT_TRUE(propAnimation != nullptr);
+    
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus004 end";
+}
+
+/**
+ * @tc.name: AnimationStatus003
  * @tc.desc: Verify the SetInstanceId of RSAnimationTimingProtocol
  * @tc.type: FUNC
  */
@@ -570,6 +622,42 @@ HWTEST_F(RSAnimationTest, RSAnimationTimingProtocolSetInstanceId001, TestSize.Le
     result = protocol.GetInstanceId();
     EXPECT_EQ(result, 1);
     GTEST_LOG_(INFO) << "RSAnimationTest RSAnimationTimingProtocolSetInstanceId001 end";
+}
+
+/**
+ * @tc.name: IsSupportInteractiveAnimator001
+ * @tc.desc: Verify the IsSupportInteractiveAnimator of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, IsSupportInteractiveAnimator001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest IsSupportInteractiveAnimator001 start";
+    /**
+     * @tc.steps: step1. init IsSupportInteractiveAnimator
+     */
+    auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
+    auto newCanvasNode = RSCanvasNode::Create();
+    newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
+    newCanvasNode->SetBackgroundColor(SK_ColorRED);
+    rootNode->AddChild(newCanvasNode, -1);
+    RSAnimationTimingProtocol protocol;
+    auto animations = RSNode::Animate(protocol, RSAnimationTimingCurve::EASE,
+        [&newCanvasNode, &effect]() {
+        newCanvasNode->NotifyTransition(effect, true);
+    });
+    /**
+     * @tc.steps: step2. start IsSupportInteractiveAnimator test
+     */
+    if (animations.size() != CORRECT_SIZE) {
+        return;
+    }
+    auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
+    EXPECT_TRUE(animation != nullptr);
+    if (animation != nullptr) {
+        EXPECT_TRUE(animation->IsSupportInteractiveAnimator());
+        NotifyStartAnimation();
+    }
+    GTEST_LOG_(INFO) << "RSAnimationTest IsSupportInteractiveAnimator001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

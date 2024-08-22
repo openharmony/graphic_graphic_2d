@@ -76,7 +76,8 @@ void RsVulkanInterface::Init(bool isProtected)
     SelectPhysicalDevice(isProtected);
     CreateDevice(isProtected);
     std::unique_lock<std::mutex> lock(vkMutex_);
-    if (RSSystemProperties::GetVkQueueDividedEnable()) {
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
+    if (RSSystemProperties::GetVkQueuePriorityEnable()) {
         if (!isProtected) {
             CreateSkiaBackendContext(&backendContext_, false, isProtected);
         }
@@ -84,6 +85,9 @@ void RsVulkanInterface::Init(bool isProtected)
     } else {
         CreateSkiaBackendContext(&backendContext_, false, isProtected);
     }
+#else
+    CreateSkiaBackendContext(&backendContext_, false, isProtected);
+#endif
 }
 
 RsVulkanInterface::~RsVulkanInterface()
@@ -371,7 +375,7 @@ bool RsVulkanInterface::OpenLibraryHandle()
 {
     ROSEN_LOGI("VulkanProcTable OpenLibararyHandle: dlopen libvulkan.so.");
     dlerror();
-    handle_ = dlopen("/system/lib64/platformsdk/libvulkan.so", RTLD_NOW | RTLD_LOCAL);
+    handle_ = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
     if (handle_ == nullptr) {
         ROSEN_LOGE("Could not open the vulkan library: %{public}s", dlerror());
         return false;
@@ -460,9 +464,23 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(boo
     return drawingContext;
 }
 
+
+void RsVulkanInterface::DestroyAllSemaphoreFence()
+{
+    std::lock_guard<std::mutex> lock(semaphoreLock_);
+    for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
+        vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
+    }
+    usedSemaphoreFenceList_.clear();
+}
+
 VkSemaphore RsVulkanInterface::RequireSemaphore()
 {
     std::unique_lock<std::mutex> lock(semaphoreLock_);
+    // 32 means too many used semaphore fences
+    if (usedSemaphoreFenceList_.size() >= 32) {
+        RS_LOGE("Too many used semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
+    }
     for (auto it = usedSemaphoreFenceList_.begin(); it != usedSemaphoreFenceList_.end();) {
         auto& fence = it->fence;
         if (fence == nullptr || fence->GetStatus() == FenceStatus::SIGNALED) {
@@ -500,9 +518,9 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateNewDrawingContext(
     if (hcontext_ != nullptr) {
         return hcontext_;
     }
-    if (!RSSystemProperties::GetVkQueueDividedEnable()) {
-        CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
-    }
+#ifndef RS_ENABLE_VKQUEUE_PRIORITY
+    CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
+#endif
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
     memHandler_ = std::make_shared<MemoryHandler>();
@@ -531,9 +549,14 @@ RsVulkanContext::RsVulkanContext()
     drawingContext_ = rsVulkanInterface.CreateDrawingContext();
     isProtected_ = true;
     rsProtectedVulkanInterface.Init(isProtected_);
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
     // Init protectedDrawingContext_ bind to hbackendContext
     protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
-        RSSystemProperties::GetVkQueueDividedEnable(), true);
+        RSSystemProperties::GetVkQueuePriorityEnable(), isProtected_);
+#else
+    protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
+        false, isProtected_);
+#endif
     isProtected_ = false;
 }
 

@@ -26,7 +26,6 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "pipeline/rs_base_render_node.h"
 #include "render_context/render_context.h"
-#include "rs_filter_sub_thread.h"
 
 namespace OHOS::Rosen {
 constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
@@ -36,7 +35,6 @@ class RSSubThreadManager {
 public:
     static RSSubThreadManager *Instance();
     void Start(RenderContext *context);
-    void StartColorPickerThread(RenderContext* context);
     void PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask = false);
     void WaitNodeTask(uint64_t nodeId);
     void NodeTaskNotify(uint64_t nodeId);
@@ -66,7 +64,6 @@ private:
     RSSubThreadManager &operator = (const RSSubThreadManager &) = delete;
     RSSubThreadManager &operator = (const RSSubThreadManager &&) = delete;
 
-    RenderContext* renderContext_ = nullptr;
     uint32_t minLoadThreadIndex_ = 0;
     uint32_t defaultThreadIndex_ = 0;
     std::mutex parallelRenderMutex_;
@@ -75,7 +72,6 @@ private:
     std::vector<std::shared_ptr<RSSubThread>> threadList_;
     std::unordered_map<pid_t, uint32_t> threadIndexMap_;
     std::unordered_map<uint32_t, pid_t> reThreadIndexMap_;
-    std::shared_ptr<RSFilterSubThread> colorPickerThread_ = nullptr;
     bool needResetContext_ = false;
     bool needCancelTask_ = false;
     bool needCancelReleaseTextureTask_ = false;

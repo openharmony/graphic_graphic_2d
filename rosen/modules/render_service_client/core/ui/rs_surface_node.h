@@ -145,10 +145,13 @@ public:
     void SetForeground(bool isForeground);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
-    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    void SetAncoFlags(int32_t flags);
     static void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+
+    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
 protected:
     bool NeedForcedSendToRemote() const override;

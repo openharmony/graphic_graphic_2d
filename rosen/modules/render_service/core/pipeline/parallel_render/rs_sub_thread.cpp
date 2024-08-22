@@ -19,9 +19,10 @@
 
 #include <string>
 
+#include "drawable/rs_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
 #include "GLES3/gl3.h"
 #include "include/core/SkCanvas.h"
-#include "rs_trace.h"
 
 #include "memory/rs_memory_graphic.h"
 #include "memory/rs_memory_manager.h"
@@ -29,13 +30,11 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
-
-#include "pipeline/rs_uifirst_manager.h"
-#include "drawable/rs_render_node_drawable.h"
-#include "drawable/rs_surface_render_node_drawable.h"
+#include "rs_trace.h"
 
 #ifdef RES_SCHED_ENABLE
 #include "qos.h"
@@ -45,7 +44,7 @@ namespace OHOS::Rosen {
 RSSubThread::~RSSubThread()
 {
     RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
-    PostTask([this]() {
+    PostSyncTask([this]() {
         DestroyShareEglContext();
     });
 }
@@ -102,6 +101,9 @@ void RSSubThread::DumpMem(DfxString& log)
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        if (node == nullptr) {
+            return;
+        }
         std::string name = node->GetName() + " " + std::to_string(node->GetId());
         nodeTags.push_back({node->GetId(), name});
     });
@@ -177,6 +179,10 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
     visitor->SetFocusedNodeId(RSMainThread::Instance()->GetFocusNodeId(),
         RSMainThread::Instance()->GetFocusLeashWindowId());
     auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSSubThread::RenderCache screenManager is nullptr");
+        return;
+    }
     visitor->SetScreenInfo(screenManager->QueryScreenInfo(screenManager->GetDefaultScreenId()));
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     bool needRequestVsync = false;
@@ -208,7 +214,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         }
 
         RSTagTracker nodeProcessTracker(grContext_.get(), surfaceNodePtr->GetId(),
-            RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+            RSTagTracker::TAGTYPE::TAG_SUB_THREAD, surfaceNodePtr->GetName());
         bool needNotify = !surfaceNodePtr->HasCachedTexture();
         nodeDrawable->Process(visitor);
         nodeProcessTracker.SetTagEnd();
@@ -216,7 +222,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         if (cacheSurface) {
             RS_TRACE_NAME_FMT("Rendercache skSurface flush and submit");
             RSTagTracker nodeFlushTracker(grContext_.get(), surfaceNodePtr->GetId(),
-                RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+                RSTagTracker::TAGTYPE::TAG_SUB_THREAD, surfaceNodePtr->GetName());
             cacheSurface->FlushAndSubmit(true);
             nodeFlushTracker.SetTagEnd();
         }
@@ -255,7 +261,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     nodeDrawable->SetSubThreadSkip(false);
 
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
-    RSTagTracker tagTracker(grContext_.get(), nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+    RSTagTracker tagTracker(grContext_.get(), nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
     if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount() &&
         nodeDrawable->HasCachedTexture()) {
@@ -317,9 +323,9 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         auto size = vulkanVersion.size();
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
         bool useHBackendContext = false;
-        if (RSSystemProperties::GetVkQueueDividedEnable()) {
-            useHBackendContext = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
-        }
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
+        useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+#endif
         if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(useHBackendContext),
             options)) {
             RS_LOGE("nullptr gpuContext is null");
@@ -364,10 +370,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
-    bool optFenceWait = true;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
-        optFenceWait = false;
-    }
+    bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     nodeDrawable->UpdateBackendTexture();
 
@@ -414,10 +417,7 @@ void RSSubThread::DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRend
     nodeDrawable->ClipRoundRect(*rsCanvas);
     rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rsCanvas);
-    bool optFenceWait = true;
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && nodeDrawable->HasCachedTexture()) {
-        optFenceWait = false;
-    }
+    bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
     RS_TRACE_BEGIN("FlushFrame");
     RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get(), optFenceWait);
     renderFrame->Flush();

@@ -108,8 +108,6 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest001, TestSize.Level1)
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
     ASSERT_TRUE(drawable->ShouldPaint());
-    const auto& params = drawable->GetRenderParams();
-    ASSERT_FALSE(drawable->EnableRecordingOptimization(*params));
     CaptureParam param;
     param.isMirror_ = false;
     RSUniRenderThread::SetCaptureParam(param);
@@ -167,43 +165,9 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest003, TestSize.Level1)
     drawable->renderParams_->contentEmpty_ = false;
     RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     ASSERT_TRUE(RSUniRenderThread::Instance().renderThreadParams_);
-    RSUniRenderThread::Instance().renderThreadParams_->SetRootIdOfCaptureWindow(1);
-    RSUniRenderThread::Instance().renderThreadParams_->SetHasCaptureImg(true);
-    RSUniRenderThread::Instance().renderThreadParams_->SetStartVisit(false);
     ASSERT_TRUE(drawable->GetRenderParams());
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
     RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
-}
-
-/**
- * @tc.name: EnableRecordingOptimizationeTest
- * @tc.desc: Test If EnableRecordingOptimization Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, EnableRecordingOptimizationTest, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
-    ASSERT_NE(drawable, nullptr);
-    RSRenderParams params(nodeId);
-    bool res = drawable->EnableRecordingOptimization(params);
-    ASSERT_FALSE(res);
-
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    res = drawable->EnableRecordingOptimization(params);
-    ASSERT_FALSE(res);
-
-    RSUniRenderThread::Instance().renderThreadParams_->SetRootIdOfCaptureWindow(1);
-    RSUniRenderThread::Instance().renderThreadParams_->SetHasCaptureImg(true);
-    RSUniRenderThread::Instance().renderThreadParams_->SetStartVisit(false);
-    res = drawable->EnableRecordingOptimization(params);
-    ASSERT_TRUE(res);
-
-    RSUniRenderThread::Instance().renderThreadParams_->SetStartVisit(true);
-    res = drawable->EnableRecordingOptimization(params);
-    ASSERT_FALSE(res);
 }
 }

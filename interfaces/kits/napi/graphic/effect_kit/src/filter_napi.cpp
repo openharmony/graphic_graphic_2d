@@ -25,7 +25,7 @@
 #include "node_api.h"
 #include "pixel_map.h"
 #include "sk_image_chain.h"
-#include "image_napi_utils.h"
+#include "effect_kit_napi_utils.h"
 #include "sk_image_filter_factory.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -45,7 +45,7 @@ struct FilterAsyncContext {
     napi_async_work work;
     napi_deferred deferred; // promise
     napi_ref callback;      // callback
-    uint32_t status;
+    uint32_t status = SUCCESS;
     napi_value this_;
 
     // build error msg
@@ -160,37 +160,37 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
     status = napi_define_class(
         env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi Init napi_define_class falid");
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi Init napi_define_class fail");
         return nullptr;
     }
 
     status = napi_create_reference(env, constructor, 1, &sConstructor_);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi Init napi_create_reference falid");
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi Init napi_create_reference fail");
         return nullptr;
     }
     napi_value global = nullptr;
     status = napi_get_global(env, &global);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi Init napi_get_global falid");
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi Init napi_get_global fail");
         return nullptr;
     }
 
     status = napi_set_named_property(env, global, CLASS_NAME.c_str(), constructor);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi Init napi_set_named_property falid");
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi Init napi_set_named_property fail");
         return nullptr;
     }
 
     status = napi_set_named_property(env, exports, CLASS_NAME.c_str(), constructor);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi Init napi_set_named_property falid");
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi Init napi_set_named_property fail");
         return nullptr;
     }
-    status = napi_define_properties(env, exports, IMG_ARRAY_SIZE(static_prop), static_prop);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi Init napi_set_named_property falid");
+    status = napi_define_properties(env, exports, EFFECT_ARRAY_SIZE(static_prop), static_prop);
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi Init napi_set_named_property fail");
         return nullptr;
     }
     return exports;
@@ -202,28 +202,28 @@ napi_value FilterNapi::CreateEffect(napi_env env, napi_callback_info info)
     napi_status status;
     napi_value thisValue = nullptr;
     napi_value argv[requireArgc] = {nullptr};
-    IMG_JS_ARGS(env, info, status, realArgc, argv, thisValue);
+    EFFECT_JS_ARGS(env, info, status, realArgc, argv, thisValue);
     if (status != napi_ok) {
-        EFFECT_LOG_I("FilterNapi CreateEffect parsr input Faild");
+        EFFECT_LOG_I("FilterNapi CreateEffect parsing input fail");
         return nullptr;
     }
     if (realArgc != requireArgc) {
-        EFFECT_LOG_I("FilterNapi CreateEffect the realArgc does not equal requireArgc");
+        EFFECT_LOG_I("FilterNapi CreateEffect the realArgc does not equal to requireArgc");
         return nullptr;
     }
     napi_valuetype valueType;
     napi_value instance = nullptr;
-    valueType = Media::ImageNapiUtils::getType(env, argv[0]);
+    valueType = EffectKitNapiUtils::getType(env, argv[0]);
     if (valueType == napi_object) {
         napi_value cons = nullptr;
         status = napi_get_reference_value(env, sConstructor_, &cons);
-        if (!IMG_IS_OK(status)) {
-            EFFECT_LOG_I("FilterNapi CreateEffect napi_get_reference_value falid");
+        if (!EFFECT_IS_OK(status)) {
+            EFFECT_LOG_I("FilterNapi CreateEffect napi_get_reference_value fail");
             return nullptr;
         }
         status = napi_new_instance(env, cons, requireArgc, argv, &instance);
-        if (!IMG_IS_OK(status)) {
-            EFFECT_LOG_I("FilterNapi CreateEffect napi_new_instance falid");
+        if (!EFFECT_IS_OK(status)) {
+            EFFECT_LOG_I("FilterNapi CreateEffect napi_new_instance fail");
             return nullptr;
         }
     }
@@ -236,9 +236,9 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     napi_value argv[1];
     napi_value _this;
     napi_status status;
-    IMG_JS_ARGS(env, info, status, argc, argv, _this);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi Constructor falid");
+    EFFECT_JS_ARGS(env, info, status, argc, argv, _this);
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi Constructor fail");
         return nullptr;
     }
 
@@ -250,16 +250,16 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
 
     napi_valuetype valueType = napi_undefined;
     if (argc == 1) {
-        valueType = Media::ImageNapiUtils::getType(env, argv[0]);
+        valueType = EffectKitNapiUtils::getType(env, argv[0]);
     }
     if (valueType == napi_undefined) {
-        EFFECT_LOG_I("FilterNapi parse input PixelMapNapi faild the type is napi_undefined");
+        EFFECT_LOG_I("FilterNapi parse input PixelMapNapi fail, the type is napi_undefined");
     }
     if (valueType == napi_object) {
         Media::PixelMapNapi* tempPixelMap = nullptr;
         napi_unwrap(env, argv[0], reinterpret_cast<void**>(&tempPixelMap));
         if (tempPixelMap == nullptr) {
-            EFFECT_LOG_I("Constructor failed when parse input PixelMapNapi, the PixelMap is NULL!");
+            EFFECT_LOG_I("Constructor fail when parse input PixelMapNapi, the PixelMap is NULL!");
         } else {
             std::shared_ptr<Media::PixelMap>* sharPixelPoint = tempPixelMap->GetPixelMap();
             filterNapi->srcPixelMap_ = *sharPixelPoint;
@@ -311,21 +311,21 @@ napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
     napi_value argv[1];
     napi_value _this;
     napi_status status;
-    IMG_JS_ARGS(env, info, status, argc, argv, _this);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi parse input falid");
+    EFFECT_JS_ARGS(env, info, status, argc, argv, _this);
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi parsing input fail");
         return nullptr;
     }
     bool forceCPU = false;
-    if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_boolean) {
-        if (!IMG_IS_OK(napi_get_value_bool(env, argv[0], &forceCPU))) {
-            EFFECT_LOG_I("FilterNapi parse foceCPU falid");
+    if (EffectKitNapiUtils::getType(env, argv[0]) == napi_boolean) {
+        if (!EFFECT_IS_OK(napi_get_value_bool(env, argv[0], &forceCPU))) {
+            EFFECT_LOG_I("FilterNapi parsing forceCPU fail");
         }
     }
     FilterNapi* thisFilter = nullptr;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
     if (thisFilter == nullptr) {
-        EFFECT_LOG_I("FilterNapi CreatPixelMap is Faild");
+        EFFECT_LOG_I("FilterNapi CreatPixelMap fail");
         return nullptr;
     }
     thisFilter->Render(forceCPU);
@@ -389,20 +389,20 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
     napi_status status;
 
     std::unique_ptr<FilterAsyncContext> ctx = std::make_unique<FilterAsyncContext>();
-    IMG_JS_ARGS(env, info, status, argc, argv, ctx->this_);
-    BuildMsgOnError(env, ctx, IMG_IS_OK(status), "FilterNapi: GetPixelMapAsync parse input failed");
+    EFFECT_JS_ARGS(env, info, status, argc, argv, ctx->this_);
+    BuildMsgOnError(env, ctx, EFFECT_IS_OK(status), "FilterNapi: GetPixelMapAsync parse input failed");
 
     NAPI_CALL(env, napi_unwrap(env, ctx->this_, reinterpret_cast<void**>(&(ctx->filterNapi))));
     BuildMsgOnError(env, ctx, (ctx->filterNapi != nullptr), "FilterNapi: GetPixelMapAsync filter is null");
 
-    if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_boolean) {
-        if (!IMG_IS_OK(napi_get_value_bool(env, argv[0], &(ctx->forceCPU)))) {
+    if (EffectKitNapiUtils::getType(env, argv[0]) == napi_boolean) {
+        if (!EFFECT_IS_OK(napi_get_value_bool(env, argv[0], &(ctx->forceCPU)))) {
             EFFECT_LOG_I("FilterNapi: GetPixelMapAsync parse forceCPU failed");
         }
     }
 
     if (argc >= NUM_1) {
-        if (Media::ImageNapiUtils::getType(env, argv[argc - 1]) == napi_function) {
+        if (EffectKitNapiUtils::getType(env, argv[argc - 1]) == napi_function) {
             napi_create_reference(env, argv[argc - 1], 1, &(ctx->callback));
         }
     }
@@ -417,11 +417,11 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
     }
 
     if (ctx->errorMsg != nullptr) {
-        IMG_CREATE_CREATE_ASYNC_WORK(env, status, "GetPixelMapAsyncError", [](napi_env env, void* data) {
+        EFFECT_CREATE_CREATE_ASYNC_WORK(env, status, "GetPixelMapAsyncError", [](napi_env env, void* data) {
             EFFECT_LOG_E("FilterNapi: GetPixelMapAsync fail to extract param");
         }, GetPixelMapAsyncErrorComplete, ctx, ctx->work);
     } else {
-        IMG_CREATE_CREATE_ASYNC_WORK(env, status, "GetPixelMapAsync", GetPixelMapAsyncExecute,
+        EFFECT_CREATE_CREATE_ASYNC_WORK(env, status, "GetPixelMapAsync", GetPixelMapAsyncExecute,
             GetPixelMapAsyncComplete, ctx, ctx->work);
     }
 
@@ -443,15 +443,15 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
     napi_value argv[ARGS_TWO];
     napi_value _this;
     napi_status status;
-    IMG_JS_ARGS(env, info, status, argc, argv, _this);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi parse input falid");
+    EFFECT_JS_ARGS(env, info, status, argc, argv, _this);
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi parsing input fail");
         return nullptr;
     }
     float radius = 0.0f;
-    if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_number) {
+    if (EffectKitNapiUtils::getType(env, argv[0]) == napi_number) {
         double scale = -1.0f;
-        if (IMG_IS_OK(napi_get_value_double(env, argv[0], &scale))) {
+        if (EFFECT_IS_OK(napi_get_value_double(env, argv[0], &scale))) {
             if (scale >= 0) {
                 radius = static_cast<float>(scale);
             }
@@ -459,10 +459,10 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
     }
     TileMode tileMode = TileMode::DECAL;
     if (argc == ARGS_ONE) {
-        EFFECT_LOG_D("FilterNapi parse input with default skTileMode.");
+        EFFECT_LOG_D("FilterNapi parsing input with default skTileMode.");
     } else if (argc == ARGS_TWO) {
         int32_t skTileMode = 0;
-        if (IMG_IS_OK(napi_get_value_int32(env, argv[1], &skTileMode))) {
+        if (EFFECT_IS_OK(napi_get_value_int32(env, argv[1], &skTileMode))) {
             tileMode = static_cast<TileMode>(skTileMode);
         }
     }
@@ -470,7 +470,7 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
     FilterNapi* thisFilter = nullptr;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
     if (thisFilter == nullptr) {
-        EFFECT_LOG_I("FilterNapi napi_unwrap is Faild");
+        EFFECT_LOG_I("FilterNapi napi_unwrap fail");
         return nullptr;
     }
     auto blur = Rosen::SKImageFilterFactory::Blur(radius, tileMode);
@@ -484,18 +484,18 @@ napi_value FilterNapi::Brightness(napi_env env, napi_callback_info info)
     napi_value argv[1];
     napi_value _this;
     napi_status status;
-    IMG_JS_ARGS(env, info, status, argc, argv, _this);
-    if (!IMG_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi parse input falid");
+    EFFECT_JS_ARGS(env, info, status, argc, argv, _this);
+    if (!EFFECT_IS_OK(status)) {
+        EFFECT_LOG_I("FilterNapi parsing input fail");
         return nullptr;
     }
     float fBright = 0.0f;
     if (argc != 1) {
         return nullptr;
     }
-    if (Media::ImageNapiUtils::getType(env, argv[0]) == napi_number) {
+    if (EffectKitNapiUtils::getType(env, argv[0]) == napi_number) {
         double dBright = -1.0f;
-        if (IMG_IS_OK(napi_get_value_double(env, argv[0], &dBright))) {
+        if (EFFECT_IS_OK(napi_get_value_double(env, argv[0], &dBright))) {
             if (dBright >= 0 && dBright <= 1) {
                 fBright = static_cast<float>(dBright);
             }
@@ -517,11 +517,11 @@ napi_value FilterNapi::Grayscale(napi_env env, napi_callback_info info)
 {
     napi_value _this;
     napi_status status;
-    IMG_JS_NO_ARGS(env, info, status, _this);
+    EFFECT_JS_NO_ARGS(env, info, status, _this);
     FilterNapi* thisFilter = nullptr;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
     if (thisFilter == nullptr) {
-        EFFECT_LOG_I("FilterNapi napi_unwrap is Faild");
+        EFFECT_LOG_I("FilterNapi napi_unwrap fail");
         return nullptr;
     }
     auto grayscale = Rosen::SKImageFilterFactory::Grayscale();
@@ -533,11 +533,11 @@ napi_value FilterNapi::Invert(napi_env env, napi_callback_info info)
 {
     napi_value _this;
     napi_status status;
-    IMG_JS_NO_ARGS(env, info, status, _this);
+    EFFECT_JS_NO_ARGS(env, info, status, _this);
     FilterNapi* thisFilter = nullptr;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
     if (thisFilter == nullptr) {
-        EFFECT_LOG_I("FilterNapi napi_unwrap is Faild");
+        EFFECT_LOG_I("FilterNapi napi_unwrap fail");
         return nullptr;
     }
     auto invert = Rosen::SKImageFilterFactory::Invert();
@@ -557,7 +557,7 @@ static uint32_t ParseColorMatrix(napi_env env, napi_value val, PixelColorMatrix 
     uint32_t len = 0;
     if (napi_get_array_length(env, val, &len) != napi_ok ||
         len != PixelColorMatrix::MATRIX_SIZE) {
-        EFFECT_LOG_E("Parse color matrix napi_get_array_length failed %{public}u", len);
+        EFFECT_LOG_E("Parse color matrix napi_get_array_length fail %{public}u", len);
         return ERR_INVALID_PARAM;
     }
 
@@ -566,7 +566,7 @@ static uint32_t ParseColorMatrix(napi_env env, napi_value val, PixelColorMatrix 
         napi_value item;
         napi_get_element(env, val, i, &item);
         if (napi_get_value_double(env, item, &itemVal) != napi_ok) {
-            EFFECT_LOG_E("Parse format in item failed %{public}zu", i);
+            EFFECT_LOG_E("Parsing format in item fail %{public}zu", i);
             return ERR_INVALID_PARAM;
         }
         colorMatrix.val[i] = static_cast<float>(itemVal);
@@ -583,9 +583,9 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     napi_status status;
     uint32_t res = 0;
     PixelColorMatrix colorMatrix;
-    IMG_JS_ARGS(env, info, status, argc, argv, _this);
-    if (!IMG_IS_OK(status) || argc != NUM_1) {
-        EFFECT_LOG_E("FilterNapi parse input falid");
+    EFFECT_JS_ARGS(env, info, status, argc, argv, _this);
+    if (!EFFECT_IS_OK(status) || argc != NUM_1) {
+        EFFECT_LOG_E("FilterNapi parsing input fail");
         napi_throw_error(env, std::to_string(ERR_INVALID_PARAM).c_str(),
             "FilterNapi parse input falid, Color matrix mismatch");
         return nullptr;
@@ -600,7 +600,7 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     FilterNapi* thisFilter = nullptr;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
     if (thisFilter == nullptr) {
-        EFFECT_LOG_E("FilterNapi napi_unwrap is Faild");
+        EFFECT_LOG_E("FilterNapi napi_unwrap fail");
         return nullptr;
     }
     auto applyColorMatrix = Rosen::SKImageFilterFactory::ApplyColorMatrix(colorMatrix);

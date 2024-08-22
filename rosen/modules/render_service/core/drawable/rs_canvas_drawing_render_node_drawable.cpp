@@ -66,6 +66,10 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     const auto& params = GetRenderParams();
+    if (UNLIKELY(!params)) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable params is null!");
+        return;
+    }
     if (params->GetCanvasDrawingSurfaceChanged()) {
         ResetSurface();
         params->SetCanvasDrawingSurfaceChanged(false);
@@ -156,7 +160,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
 {
-    auto canvasDrawingPtr = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(shared_from_this());
+    auto canvasDrawingPtr = shared_from_this();
     pid_t threadId = threadId_;
     auto task = [this, canvasDrawingPtr, threadId]() {
         std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
@@ -170,6 +174,7 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         DrawContent(*canvas_, rect);
         renderParams_->SetNeedProcess(false);
         canvas_->Flush();
+        SetDrawCmdListsVisited(true);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId, task, false);
 }
@@ -518,6 +523,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
+    bool isNewCreate = false;
 #ifdef RS_ENABLE_VK
     auto gpuContext = canvas.GetRecordingState() ? nullptr : canvas.GetGPUContext();
     isGpuSurface_ = true;
@@ -545,7 +551,6 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
             }
         }
         auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
-        bool isNewCreate = false;
         if (vulkanCleanupHelper_ == nullptr) {
             vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
             RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
@@ -575,6 +580,9 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
     }
     recordingCanvas_ = nullptr;
     canvas_ = std::make_shared<RSPaintFilterCanvas>(surface_.get());
+    if (isNewCreate) {
+        canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    }
     return true;
 }
 

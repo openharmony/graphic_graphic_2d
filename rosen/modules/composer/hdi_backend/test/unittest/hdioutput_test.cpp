@@ -16,6 +16,7 @@
 #include "hdi_output.h"
 #include <gtest/gtest.h>
 #include "mock_hdi_device.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -271,6 +272,164 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Leve
     bool needFlush = false;
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false),
         GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: CheckAndUpdateClientBufferCahce001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call CheckAndUpdateClientBufferCahce()
+*                  2.check ret
+*/
+HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce001, Function | MediumTest | Level1)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    uint32_t index;
+    auto &hdiOutput = HdiOutputTest::hdiOutput_;
+    hdiOutput->bufferCache_.push_back(buffer);
+    bool result = hdiOutput->CheckAndUpdateClientBufferCahce(buffer, index);
+
+    ASSERT_TRUE(result);
+    ASSERT_EQ(index, 0);
+}
+
+/*
+* Function: CheckAndUpdateClientBufferCahce002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call CheckAndUpdateClientBufferCahce()
+*                  2.check ret
+*/
+HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce002, Function | MediumTest | Level1)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    uint32_t index;
+    auto &hdiOutput = HdiOutputTest::hdiOutput_;
+    bool result = hdiOutput->CheckAndUpdateClientBufferCahce(buffer, index);
+    ASSERT_FALSE(result);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(hdiOutput->bufferCache_.size(), 1);
+    ASSERT_EQ(hdiOutput->bufferCache_[0], buffer);
+}
+
+/*
+* Function: CheckAndUpdateClientBufferCahce003
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call CheckAndUpdateClientBufferCahce()
+*                  2.check ret
+*/
+HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce003, Function | MediumTest | Level1)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    uint32_t index;
+    auto &hdiOutput = HdiOutputTest::hdiOutput_;
+    hdiOutput->bufferCacheCountMax_ = 1;
+    hdiOutput->bufferCache_.push_back(new SurfaceBufferImpl());
+    bool result = hdiOutput->CheckAndUpdateClientBufferCahce(buffer, index);
+    ASSERT_FALSE(result);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(hdiOutput->bufferCache_.size(), 1);
+    ASSERT_EQ(hdiOutput->bufferCache_[0], buffer);
+}
+
+/*
+* Function: SetBufferColorSpace
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call SetBufferColorSpace()
+*                  2.check ret
+*/
+HWTEST_F(HdiOutputTest, SetBufferColorSpace, Function | MediumTest | Level1)
+{
+    std::vector<LayerPtr> layers;
+    for (size_t i = 0; i < 3; i++) {
+        layers.emplace_back(std::make_shared<HdiLayer>(i));
+    }
+    sptr<SurfaceBuffer> buffer = nullptr;
+    HdiOutputTest::hdiOutput_->SetBufferColorSpace(buffer, layers);
+    sptr<SurfaceBuffer> buffer1 = new SurfaceBufferImpl();
+    HdiOutputTest::hdiOutput_->SetBufferColorSpace(buffer1, layers);
+}
+/*
+* Function: ReleaseLayers
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call ReleaseLayers()
+*                  2.check ret
+*/
+HWTEST_F(HdiOutputTest, ReleaseLayers, Function | MediumTest | Level1)
+{
+    auto &map = HdiOutputTest::hdiOutput_->layerIdMap_;
+    for (auto &layer : map) {
+        layer.second->GetLayerInfo()->SetIsSupportedPresentTimestamp(true);
+    }
+    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    HdiOutputTest::hdiOutput_->ReleaseLayers(fbFence);
+}
+/*
+* Function: DumpHitchs
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call DumpHitchs()
+*                  2.check ret
+*/
+HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
+{
+    std::vector<LayerInfoPtr> layerInfos;
+    for (size_t i = 0; i < 3; i++) {
+        layerInfos.emplace_back(std::make_shared<HdiLayerInfo>());
+    }
+    HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
+    std::string ret = "";
+    HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
+    HdiOutputTest::hdiOutput_->DumpFps(ret, "UniRender");
+}
+
+/*
+* Function: ReorderLayerInfoLocked001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call ReorderLayerInfoLocked() with invalid param
+*                  2.no crash
+*/
+HWTEST_F(HdiOutputTest, ReorderLayerInfoLocked001, Function | MediumTest | Level1)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    for (size_t i = 0; i < 3; i++) {
+        output->surfaceIdMap_[i] = nullptr;
+    }
+    std::vector<LayerDumpInfo> dumpLayerInfos;
+    output->ReorderLayerInfoLocked(dumpLayerInfos);
+}
+
+/*
+* Function: DumpFps001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call DumpFps() with invalid param
+*                  2.no crash
+*/
+HWTEST_F(HdiOutputTest, DumpFps001, Function | MediumTest | Level1)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    for (size_t i = 0; i < 3; i++) {
+        output->surfaceIdMap_[i] = HdiLayer::CreateHdiLayer(i);
+        output->surfaceIdMap_[i]->UpdateLayerInfo(HdiLayerInfo::CreateHdiLayerInfo());
+    }
+    std::string result;
+    std::string arg;
+    output->DumpFps(result, arg);
 }
 } // namespace
 } // namespace Rosen

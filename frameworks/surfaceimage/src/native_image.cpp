@@ -31,21 +31,23 @@ struct OH_NativeImage {
 OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget)
 {
     OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage(textureId, textureTarget);
-    if (surfaceImage == nullptr) {
-        return nullptr;
-    }
     sptr<OHOS::IBufferProducer> producer = surfaceImage->GetProducer();
     OH_NativeImage* nativeImage = new OH_NativeImage();
-    if (nativeImage == nullptr) {
-        return nullptr;
-    }
     nativeImage->consumer = surfaceImage;
     nativeImage->producer = producer;
     sptr<IBufferConsumerListener> listener = new SurfaceImageListener(surfaceImage);
-    if (listener == nullptr) {
-        delete nativeImage;
-        return nullptr;
-    }
+    nativeImage->consumer->RegisterConsumerListener(listener);
+    return nativeImage;
+}
+
+OH_NativeImage* OH_ConsumerSurface_Create()
+{
+    OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage();
+    sptr<OHOS::IBufferProducer> producer = surfaceImage->GetProducer();
+    OH_NativeImage* nativeImage = new OH_NativeImage();
+    nativeImage->consumer = surfaceImage;
+    nativeImage->producer = producer;
+    sptr<IBufferConsumerListener> listener = new SurfaceImageListener(surfaceImage);
     nativeImage->consumer->RegisterConsumerListener(listener);
     return nativeImage;
 }
@@ -53,7 +55,7 @@ OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget
 OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
 {
     if (image == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return nullptr;
     }
 
@@ -71,7 +73,7 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
 int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 {
     if (image == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->AttachContext(textureId);
@@ -80,7 +82,7 @@ int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 {
     if (image == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->DetachContext();
@@ -89,7 +91,7 @@ int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 {
     if (image == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->UpdateSurfaceImage();
@@ -98,7 +100,7 @@ int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 {
     if (image == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return -1;
     }
     return image->consumer->GetTimeStamp();
@@ -106,8 +108,8 @@ int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 
 int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16])
 {
-    if (image == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+    if (image == nullptr || image->consumer == nullptr || matrix == nullptr) {
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->GetTransformMatrix(matrix);
@@ -115,8 +117,8 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
 
 int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[16])
 {
-    if (image == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+    if (image == nullptr || image->consumer == nullptr || matrix == nullptr) {
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->GetTransformMatrixV2(matrix);
@@ -125,7 +127,7 @@ int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[
 int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
 {
     if (image == nullptr || surfaceId == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     *surfaceId = image->consumer->GetUniqueId();
@@ -140,7 +142,7 @@ int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
 int32_t OH_NativeImage_SetOnFrameAvailableListener(OH_NativeImage* image, OH_OnFrameAvailableListener listener)
 {
     if (image == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->SetOnBufferAvailableListener(listener.context, listener.onFrameAvailable);
@@ -149,7 +151,7 @@ int32_t OH_NativeImage_SetOnFrameAvailableListener(OH_NativeImage* image, OH_OnF
 int32_t OH_NativeImage_UnsetOnFrameAvailableListener(OH_NativeImage* image)
 {
     if (image == nullptr || image->consumer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->UnsetOnBufferAvailableListener();
@@ -158,7 +160,7 @@ int32_t OH_NativeImage_UnsetOnFrameAvailableListener(OH_NativeImage* image)
 void OH_NativeImage_Destroy(OH_NativeImage** image)
 {
     if (image == nullptr || *image == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return;
     }
     if ((*image)->consumer != nullptr) {
@@ -178,7 +180,7 @@ int32_t OH_NativeImage_AcquireNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
 {
     if (image == nullptr || image->consumer == nullptr || nativeWindowBuffer == nullptr || fenceFd == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->AcquireNativeWindowBuffer(nativeWindowBuffer, fenceFd);
@@ -188,7 +190,7 @@ int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
     if (image == nullptr || image->consumer == nullptr || nativeWindowBuffer == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->ReleaseNativeWindowBuffer(nativeWindowBuffer, fenceFd);

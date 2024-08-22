@@ -28,8 +28,6 @@ namespace Rosen {
 namespace Drawing {
 class DRAWING_API Pen {
 public:
-    constexpr static scalar DEFAULT_MITER_VAL = 4.0f;
-
     enum class JoinStyle {
         MITER_JOIN,
         ROUND_JOIN,
@@ -323,6 +321,8 @@ public:
 
     friend DRAWING_API bool operator==(const Pen& p1, const Pen& p2);
     friend DRAWING_API bool operator!=(const Pen& p1, const Pen& p2);
+
+    void Dump(std::string& out) const;
 
 private:
     scalar width_;

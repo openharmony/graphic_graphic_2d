@@ -164,6 +164,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->screenRotation_ = screenRotation_;
     targetDisplayParams->screenId_ = screenId_;
     targetDisplayParams->isSecurityDisplay_ = isSecurityDisplay_;
+    targetDisplayParams->isSecurityExemption_ = isSecurityExemption_;
     targetDisplayParams->mirroredId_ = mirroredId_;
     targetDisplayParams->compositeType_ = compositeType_;
     targetDisplayParams->mirrorSourceDrawable_ = mirrorSourceDrawable_;
@@ -177,7 +178,6 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
-    targetDisplayParams->isMouseDirty_ = isMouseDirty_;
     RSRenderParams::OnSync(target);
 }
 

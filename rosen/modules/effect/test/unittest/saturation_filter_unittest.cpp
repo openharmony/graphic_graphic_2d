@@ -94,6 +94,30 @@ HWTEST_F(SaturationFilterUnittest, SetValue003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetValue004
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SaturationFilterUnittest, SetValue004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SaturationFilterUnittest SetValue004 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto saturation = std::make_shared<SaturationFilter>();
+    bool testResult = saturation != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call SetValue to set the exception value
+     */
+    std::shared_ptr<float> sSaturation = std::make_shared<float>(1.0f);
+    std::weak_ptr<void> vSaturation = sSaturation;
+    saturation->SetValue("", vSaturation.lock(), 1);
+}
+
+/**
  * @tc.name: GetVertexShader001
  * @tc.desc: Get a string used to compile the program
  * @tc.type: FUNC

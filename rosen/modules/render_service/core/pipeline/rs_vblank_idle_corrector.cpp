@@ -16,6 +16,7 @@
 #include "pipeline/rs_vblank_idle_corrector.h"
 
 #include "hgm_core.h"
+#include "hgm_frame_rate_manager.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -44,7 +45,21 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(uint64_t timestamp, uint64_t
         return;
     }
 
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        RS_LOGE("RSHardwareThread CreateOrGetScreenManager fail, frameRateMgr is null!");
+        return;
+    }
+
     auto defaultScreenId = screenManager->GetDefaultScreenId();
+
+    bool isAdaptive = frameRateMgr->IsAdaptive();
+    if (isAdaptive) {
+        RS_TRACE_NAME("RSVBlankIdleCorrector::ProcessScreenConstraint set 3 in Adaptive Mode!");
+        screenManager->SetScreenConstraint(defaultScreenId, 0, ScreenConstraintType::CONSTRAINT_ADAPTIVE);
+        return;
+    }
+
     bool isCorrectorEnabled = HgmCore::Instance().IsVBlankIdleCorrectEnabled();
     if (!isCorrectorEnabled) {
         idleFrameCount_ = 0;

@@ -52,15 +52,6 @@ enum class PointMode {
     POLYGON_POINTMODE, // draw the array of points as a open polygon
 };
 
-enum class QuadAAFlags {
-    LEFT_QUADAAFLAG = 1,
-    TOP_QUADAAFLAG = 2,
-    RIGHT_QUADAAFLAG = 4,
-    BOTTOM_QUADAAFLAG = 8,
-    NONE_QUADAAFLAGS = 0,
-    ALL_QUADAAFLAGS = 15,
-};
-
 #undef TRANSPARENT
 struct Lattice {
     enum RectType : uint8_t {
@@ -734,7 +725,7 @@ public:
 
     /**
      * @brief                   Get the size after HPS blur downsampling. Only VK will return valid values.
-     * @param blurParam         HPS blur Param is used to calculate the size after downsampling.
+     * @param blurParams         HPS blur Param is used to calculate the size after downsampling.
      * @return {width, height}, if return {0, 0}, witch means something error.
      */
     virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams);

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <sstream>
+
 #include "common/rs_common_tools.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
@@ -165,7 +167,6 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (!pixelMap) {
         return;
     }
-
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -176,14 +177,14 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()),
+                RSPixelMapUtil::GetPixelmapColorSpace(pixelMap))) {
                 rsImage_->SetDmaImage(image_);
             }
         }
 #endif
         return;
     }
-
     if (pixelMap->IsAstc()) {
         std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
         // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
@@ -210,7 +211,6 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         rsImage_->SetCompressData(fileData);
         return;
     }
-
     if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
         rsImage_->MarkYUVImage();
     }
@@ -294,7 +294,8 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer)
+bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     if (!RSSystemProperties::IsUseVukan()) {
         return false;
@@ -324,7 +325,8 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         tid_ = gettid();
     }
 
-    if (!canvas.GetGPUContext()) {
+    auto context = canvas.GetGPUContext();
+    if (!context) {
         RS_LOGE("MakeFromTextureForVK gpu context is nullptr");
         return false;
     }
@@ -332,8 +334,8 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    if (!image_->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
+    if (!image_->BuildFromTexture(*context, backendTexture_.GetTextureInfo(),
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace,
         NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
         RS_LOGE("MakeFromTextureForVK build image failed");
@@ -491,6 +493,17 @@ void DrawImageWithParmOpItem::SetNodeId(NodeId id)
     objectHandle_->SetNodeId(id);
 }
 
+void DrawImageWithParmOpItem::Dump(std::string& out) const
+{
+    out += "[sampling:";
+    sampling_.Dump(out);
+    out += " objectHandle:";
+    
+    std::stringstream stream;
+    stream << std::hex << objectHandle_.get() << "]";
+    out += std::string(stream.str());
+}
+
 /* DrawPixelMapWithParmOpItem */
 REGISTER_UNMARSHALLING_FUNC(
     DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling);
@@ -543,6 +556,12 @@ void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
     objectHandle_->SetNodeId(id);
 }
 
+void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
+{
+    out += " sampling";
+    sampling_.Dump(out);
+}
+
 /* DrawPixelMapRectOpItem */
 REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
 
@@ -591,6 +610,12 @@ void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
         return;
     }
     objectHandle_->SetNodeId(id);
+}
+
+void DrawPixelMapRectOpItem::DumpItems(std::string& out) const
+{
+    out += " sampling";
+    sampling_.Dump(out);
 }
 
 /* DrawFuncOpItem */
@@ -798,6 +823,7 @@ bool DrawSurfaceBufferOpItem::CreateEglTextureId()
     eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        nativeWindowBuffer_ = nullptr;
         LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
         return false;
     }
@@ -832,6 +858,18 @@ bool DrawSurfaceBufferOpItem::CreateEglTextureId()
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, wrapT);
 
     return true;
+}
+
+void DrawSurfaceBufferOpItem::DumpItems(std::string& out) const
+{
+    out += " surfaceBufferInfo[width:" + std::to_string(surfaceBufferInfo_.width_);
+    out += " height:" + std::to_string(surfaceBufferInfo_.height_);
+    out += " offSetX:" + std::to_string(surfaceBufferInfo_.offSetX_);
+    out += " offSetY:" + std::to_string(surfaceBufferInfo_.offSetY_);
+    out += "]";
+#ifdef RS_ENABLE_GL
+    out += " texId:" + std::to_string(texId_);
+#endif
 }
 #endif
 }

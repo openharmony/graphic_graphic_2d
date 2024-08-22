@@ -37,6 +37,7 @@ class RSRenderParams;
 class RSDisplayRenderNode;
 class RSSurfaceRenderNode;
 class RSSurfaceHandler;
+class RSContext;
 namespace Drawing {
 class Canvas;
 }
@@ -80,7 +81,8 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
 
     virtual void Draw(Drawing::Canvas& canvas) = 0;
-    virtual void DumpDrawableTree(std::string& out) const {};
+    virtual void DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const;
+
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
     static SharedPtr OnGenerateShadowDrawable(
@@ -127,6 +129,7 @@ public:
     SkipType GetSkipType() { return skipType_; }
 protected:
     // Util functions
+    std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect() const;
 

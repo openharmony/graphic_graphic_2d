@@ -180,5 +180,72 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources003, TestSize.Level2)
     RSSurfaceCaptureTaskParallel task(1, captureConfig);
     ASSERT_EQ(false, task.CreateResources());
 }
+
+/*
+ * @tc.name: Run001
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run while surface is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIT5Z
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run001, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
+    task.pixelMap_ = nullptr;
+    ASSERT_EQ(nullptr, task.pixelMap_);
+    ASSERT_EQ(false, task.Run(nullptr));
+}
+
+/*
+ * @tc.name: Run002
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run while surfaceNodeDrawable_ is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIT5Z
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run002, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
+    auto node = std::make_shared<RSRenderNode>(id);
+    task.surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_EQ(false, task.Run(nullptr));
+}
+
+/*
+ * @tc.name: Run003
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run while displayNodeDrawable_ is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIT5Z
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run003, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
+    auto node = std::make_shared<RSRenderNode>(id);
+    task.surfaceNodeDrawable_ = nullptr;
+    task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_EQ(false, task.Run(nullptr));
+}
+
+/*
+ * @tc.name: Run004
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run while surfaceNodeDrawable_ and displayNodeDrawable_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIT5Z
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(id, captureConfig);
+    task.surfaceNodeDrawable_ = nullptr;
+    task.displayNodeDrawable_ = nullptr;
+    ASSERT_EQ(false, task.Run(nullptr));
+}
 }
 }

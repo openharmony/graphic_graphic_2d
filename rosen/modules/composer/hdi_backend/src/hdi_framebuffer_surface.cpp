@@ -49,9 +49,6 @@ HdiFramebufferSurface::~HdiFramebufferSurface() noexcept
 sptr<HdiFramebufferSurface> HdiFramebufferSurface::CreateFramebufferSurface()
 {
     sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
-    if (fbSurface == nullptr) {
-        return nullptr;
-    }
 
     SurfaceError ret = fbSurface->CreateSurface();
     if (ret != SURFACE_ERROR_OK) {

@@ -33,6 +33,9 @@ constexpr const char* ARKTS_CARD_NODE = "ArkTSCardNode";
 constexpr const char* SYSTEM_APP = "";
 constexpr const int ABILITY_COMPONENT_LIMIT = 100;
 };
+
+using ResidentSurfaceNodeMap = std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>;
+
 RSRenderNodeMap::RSRenderNodeMap()
 {
     // add animation fallback node, NOTE: this is different from RSContext::globalRootRenderNode_
@@ -102,7 +105,11 @@ void RSRenderNodeMap::CalCulateAbilityComponentNumsInProcess(NodeId id)
 {
     if (abilityComponentNumsInProcess_[ExtractPid(id)] > ABILITY_COMPONENT_LIMIT) {
         renderNodeMap_.erase(id);
-        surfaceNodeMap_.erase(id);
+        auto it = surfaceNodeMap_.find(id);
+        if (it != surfaceNodeMap_.end()) {
+            RemoveUIExtensionSurfaceNode(it->second);
+            surfaceNodeMap_.erase(it);
+        }
         return;
     }
     abilityComponentNumsInProcess_[ExtractPid(id)]++;
@@ -127,6 +134,28 @@ bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
         [nodePid](const auto& pair) -> bool { return ExtractPid(pair.first) == nodePid; });
 }
 
+bool RSRenderNodeMap::IsUIExtensionSurfaceNode(NodeId id) const
+{
+    std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
+    return uiExtensionSurfaceNodes_.find(id) != uiExtensionSurfaceNodes_.end();
+}
+
+void RSRenderNodeMap::AddUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+{
+    if (surfaceNode && surfaceNode->IsUIExtension()) {
+        std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
+        uiExtensionSurfaceNodes_.insert(surfaceNode->GetId());
+    }
+}
+
+void RSRenderNodeMap::RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+{
+    if (surfaceNode && surfaceNode->IsUIExtension()) {
+        std::lock_guard<std::mutex> lock(uiExtensionSurfaceNodesMutex_);
+        uiExtensionSurfaceNodes_.erase(surfaceNode->GetId());
+    }
+}
+
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
@@ -141,6 +170,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         if (IsResidentProcess(surfaceNode)) {
             residentSurfaceNodeMap_.emplace(id, surfaceNode);
         }
+        AddUIExtensionSurfaceNode(surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
     } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
@@ -184,11 +214,12 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
     EraseAbilityComponentNumsInProcess(id);
     // temp solution to address the dma leak
-    auto surfaceNode = surfaceNodeMap_[id];
-    if (surfaceNode) {
-        if (surfaceNode->GetName().find("ShellAssistantAnco") == std::string::npos) {
+    auto it = surfaceNodeMap_.find(id);
+    if (it != surfaceNodeMap_.end()) {
+        if (it->second->GetName().find("ShellAssistantAnco") == std::string::npos) {
             renderNodeMap_.erase(id);
         }
+        RemoveUIExtensionSurfaceNode(it->second);
     } else {
         renderNodeMap_.erase(id);
     }
@@ -208,8 +239,6 @@ void RSRenderNodeMap::MoveRenderNodeMap(
             ++iter;
             continue;
         }
-        // update node flag to avoid animation fallback
-        iter->second->fallbackAnimationOnDestroy_ = false;
         // remove node from tree
         iter->second->RemoveFromTree(false);
         subRenderNodeMap->emplace(iter->first, iter->second);
@@ -229,18 +258,22 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (pair.second == nullptr) {
             return true;
         }
-        // Fix the loss of animation callbacks for the host when uiextension exits abnormally
-        if (pair.second->GetType() != RSRenderNodeType::SURFACE_NODE) {
-            // update node flag to avoid animation fallback
-            pair.second->fallbackAnimationOnDestroy_ = false;
+        auto parent = pair.second->GetParent().lock();
+        if (parent) {
+            parent->RemoveChildFromFulllist(pair.second->GetId());
         }
         // remove node from tree
         pair.second->RemoveFromTree(false);
+        pair.second->GetAnimationManager().FilterAnimationByPid(pid);
         return true;
     });
 
-    EraseIf(surfaceNodeMap_, [pid](const auto& pair) -> bool {
-        return ExtractPid(pair.first) == pid;
+    EraseIf(surfaceNodeMap_, [pid, this](const auto& pair) -> bool {
+        bool shouldErase = (ExtractPid(pair.first) == pid);
+        if (shouldErase) {
+            RemoveUIExtensionSurfaceNode(pair.second);
+        }
+        return shouldErase;
     });
 
     EraseIf(residentSurfaceNodeMap_, [pid](const auto& pair) -> bool {
@@ -305,7 +338,7 @@ void RSRenderNodeMap::TraverseDisplayNodes(std::function<void (const std::shared
     }
 }
 
-std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> RSRenderNodeMap::GetResidentSurfaceNodeMap() const
+const ResidentSurfaceNodeMap& RSRenderNodeMap::GetResidentSurfaceNodeMap() const
 {
     return residentSurfaceNodeMap_;
 }

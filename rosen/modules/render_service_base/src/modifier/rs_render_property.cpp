@@ -354,6 +354,12 @@ bool operator!=(
 }
 
 template<>
+void RSRenderProperty<bool>::Dump(std::string& out) const
+{
+    out += "[" + std::string(Get() ? "true" : "false") + "]";
+}
+
+template<>
 void RSRenderProperty<int>::Dump(std::string& out) const
 {
     out += "[" + std::to_string(Get()) + "]";
@@ -365,6 +371,29 @@ void RSRenderProperty<float>::Dump(std::string& out) const
     std::stringstream ss;
     ss << "[" << std::fixed << std::setprecision(1) << Get() << "]";
     out += ss.str();
+}
+
+template<>
+void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const
+{
+    Vector4 v4 = Get();
+    switch (modifierType_) {
+        case RSModifierType::BORDER_STYLE:
+        case RSModifierType::OUTLINE_STYLE: {
+            out += "[left:" + std::to_string(v4.x_);
+            out += " top:" + std::to_string(v4.y_);
+            out += " right:" + std::to_string(v4.z_);
+            out += " bottom:" + std::to_string(v4.w_) + "]";
+            break;
+        }
+        default: {
+            out += "[x:" + std::to_string(v4.x_) + " y:";
+            out += std::to_string(v4.y_) + " z:";
+            out += std::to_string(v4.z_) + " w:";
+            out += std::to_string(v4.w_) + "]";
+            break;
+        }
+    }
 }
 
 template<>
@@ -404,6 +433,11 @@ void RSRenderProperty<Vector4f>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Quaternion>::Dump(std::string& out) const
 {
+    Quaternion q = Get();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1);
+    ss << "[x:" << q.x_ << " y:" << q.y_ << " z:" << q.z_ << " w:" << q.w_ << + "]";
+    out += ss.str();
 }
 
 template<>
@@ -423,57 +457,203 @@ void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Color>::Dump(std::string& out) const
 {
-    out += "[";
     Get().Dump(out);
-    out += "]";
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSFilter>>::Dump(std::string& out) const
 {
+    auto filter = Get();
+    out += "[";
+    if (filter != nullptr && filter->IsValid()) {
+        out += filter->GetDescription();
+    }
+    out += "]";
 }
 
 template<>
 void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const
 {
     Vector4<Color> v4Color = Get();
-    out += "[left:";
+    out += "[left";
     v4Color.x_.Dump(out);
-    out += " top:";
+    out += " top";
     v4Color.y_.Dump(out);
-    out += " right:";
+    out += " right";
     v4Color.z_.Dump(out);
     out += " bottom";
     v4Color.w_.Dump(out);
-    out += "]";
+    out += ']';
 }
 
 template<>
 void RSRenderProperty<RRect>::Dump(std::string& out) const
 {
+    const auto& rrect = stagingValue_;
+    out += "[rect:[x:";
+    out += std::to_string(rrect.rect_.left_) + " y:";
+    out += std::to_string(rrect.rect_.top_) + " width:";
+    out += std::to_string(rrect.rect_.width_) + " height:";
+    out += std::to_string(rrect.rect_.height_) + "]";
+    out += " radius:[[";
+    out += std::to_string(rrect.radius_[0][0]) + " " + std::to_string(rrect.radius_[0][1]) + "] [";
+    out += std::to_string(rrect.radius_[1][0]) + " " + std::to_string(rrect.radius_[1][1]) + "] [";
+    out += std::to_string(rrect.radius_[2][0]) + " " + std::to_string(rrect.radius_[2][1]) + "] [";
+    out += std::to_string(rrect.radius_[3][0]) + " " + std::to_string(rrect.radius_[3][1]) + "]";
+    out += "]";
 }
 
 template<>
 void RSRenderProperty<Drawing::DrawCmdListPtr>::Dump(std::string& out) const
 {
-    out += "drawCmdList[";
-    Get()->Dump(out);
-    out += "]";
+    auto propertyData = Get();
+    if (propertyData != nullptr) {
+        out += "drawCmdList[";
+        propertyData->Dump(out);
+        out += ']';
+    }
 }
 
 template<>
 void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
 {
-    out += "ENV_FOREGROUND_COLOR_STRATEGY[";
     out += std::to_string(static_cast<int>(Get()));
-    out += "]";
 }
 
 template<>
 void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
 {
-    out += "GEOMETRYTRANS[";
     Get().dump(out, 0);
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    out += '[';
+    bool found = false;
+    for (auto& eu : property) {
+        if (eu != nullptr) {
+            found = true;
+            out += "emitterUpdater";
+            eu->Dump(out);
+            out += ' ';
+        }
+    }
+    if (found) {
+        out.pop_back();
+    }
+    out += ']';
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSShader>>::Dump(std::string& out) const
+{
+    if (!Get() || !Get()->GetDrawingShader()) {
+        out += "[null]";
+        return;
+    }
+    out += "[";
+    out += std::to_string(static_cast<int>(Get()->GetDrawingShader()->GetType()));
+    out += "]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
+{
+    if (!Get()) {
+        out += "[null]";
+        return;
+    }
+    std::string info;
+    Get()->dump(info, 0);
+    info.erase(std::remove_if(info.begin(), info.end(), [](auto c) { return c == '\t' || c == '\n'; }),
+        info.end());
+    out += "[\"" + info + "\"]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSPath>>::Dump(std::string& out) const
+{
+    if (!Get()) {
+        out += "[null]";
+        return;
+    }
+    const auto& path = Get()->GetDrawingPath();
+    const auto bounds = path.GetBounds();
+    out += "[length:";
+    out += std::to_string(path.GetLength(false)) + " bounds[x:";
+    out += std::to_string(bounds.GetLeft()) + " y:";
+    out += std::to_string(bounds.GetTop()) + " width:";
+    out += std::to_string(bounds.GetWidth()) + " height:";
+    out += std::to_string(bounds.GetHeight()) + "] valid:";
+    out += std::string(path.IsValid() ? "true" : "false");
+    out += "]";
+}
+
+template<>
+void RSRenderProperty<Gravity>::Dump(std::string& out) const
+{
+    out += "[";
+    out += std::to_string(static_cast<int>(Get()));
+    out += "]";
+}
+
+template<>
+void RSRenderProperty<Drawing::Matrix>::Dump(std::string& out) const
+{
+    out += "[";
+    Drawing::Matrix::Buffer buffer;
+    Get().GetAll(buffer);
+    for (auto v: buffer) {
+        out += std::to_string(v) + " ";
+    }
+    out.pop_back();
     out += "]";
 }
 
@@ -638,8 +818,10 @@ bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
     }
 }
 
+template class RSRenderProperty<bool>;
 template class RSRenderProperty<int>;
 template class RSRenderProperty<float>;
+template class RSRenderProperty<Vector4<uint32_t>>;
 template class RSRenderProperty<Vector4f>;
 template class RSRenderProperty<Quaternion>;
 template class RSRenderProperty<Vector2f>;
@@ -651,6 +833,17 @@ template class RSRenderProperty<RRect>;
 template class RSRenderProperty<Drawing::DrawCmdListPtr>;
 template class RSRenderProperty<ForegroundColorStrategyType>;
 template class RSRenderProperty<SkMatrix>;
+template class RSRenderProperty<std::shared_ptr<RSShader>>;
+template class RSRenderProperty<std::shared_ptr<RSImage>>;
+template class RSRenderProperty<std::shared_ptr<RSPath>>;
+template class RSRenderProperty<Gravity>;
+template class RSRenderProperty<Drawing::Matrix>;
+template class RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>;
+template class RSRenderProperty<std::shared_ptr<MotionBlurParam>>;
+template class RSRenderProperty<std::shared_ptr<RSMagnifierParams>>;
+template class RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>;
+template class RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>;
+template class RSRenderProperty<std::shared_ptr<RSMask>>;
 
 template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;

@@ -50,7 +50,6 @@ private:
     pid_t lastVotedPid_ {DEFAULT_PID};
     uint32_t lastVotedRate_ {OLED_NULL_HZ};
     bool isVoted_ {false};
-    std::shared_ptr<HgmFrameRateManager> frameRateMgr_ {nullptr};
     std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_ {};
     std::unordered_map<uint64_t, uint32_t> surfaceVideoRate_ {};
     std::mutex mutex_;

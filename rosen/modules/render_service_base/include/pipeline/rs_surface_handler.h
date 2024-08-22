@@ -90,7 +90,6 @@ public:
     void SetDefaultWidthAndHeight(int32_t width, int32_t height)
     {
 #ifndef ROSEN_CROSS_PLATFORM
-        std::lock_guard<std::mutex> lock(mutex_);
         if (consumer_ != nullptr) {
             consumer_->SetDefaultWidthAndHeight(width, height);
         }
@@ -102,7 +101,6 @@ public:
 
     sptr<IConsumerSurface> GetConsumer() const
     {
-        std::lock_guard<std::mutex> lock(mutex_);
         return consumer_;
     }
 
@@ -254,7 +252,6 @@ public:
     bool HasConsumer() const
     {
 #ifndef ROSEN_CROSS_PLATFORM
-        std::lock_guard<std::mutex> lock(mutex_);
         return consumer_ != nullptr;
 #else
         return false;
@@ -283,8 +280,8 @@ public:
         }
     }
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
-    void CacheBuffer(SurfaceBufferEntry buffer);
-    RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
+    void CacheBuffer(const SurfaceBufferEntry& buffer, const std::string& surfaceName);
+    RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp, const std::string& surfaceName);
     bool HasBufferCache() const;
     void ClearBufferCache();
 #endif
@@ -302,7 +299,7 @@ private:
     ScalingMode scalingModePre = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
 #endif
     NodeId id_ = 0;
-    // mutex buffer_ & preBuffer_ & bufferCache_ & consumer_
+    // mutex buffer_ & preBuffer_ & bufferCache_
     mutable std::mutex mutex_;
     SurfaceBufferEntry buffer_;
     SurfaceBufferEntry preBuffer_;

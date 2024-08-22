@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_thread.h"
+#include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_data.h"
 #include "rs_frame_report.h"
 #include "pipeline/rs_root_render_node.h"
@@ -127,6 +128,26 @@ HWTEST_F(RSRenderThreadTest, RequestNextVSync001, TestSize.Level1)
     RSRenderThread::Instance().handler_ = std::make_shared<AppExecFwk::EventHandler>();
     RSRenderThread::Instance().RequestNextVSync();
     EXPECT_TRUE(RSRenderThread::Instance().hasSkipVsync_);
+}
+
+/**
+ * @tc.name: RequestNextVSync002
+ * @tc.desc: test results of RequestNextVSync
+ * @tc.type:FUNC
+ * @tc.require: issueIAJ76O
+ */
+HWTEST_F(RSRenderThreadTest, RequestNextVSync002, TestSize.Level1)
+{
+    auto renderThread = std::make_shared<RSRenderThread>();
+    EXPECT_FALSE(renderThread->hasSkipVsync_);
+    renderThread->runner_ = AppExecFwk::EventRunner::Create(false);
+    renderThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(renderThread->runner_);
+    auto rsClient = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    std::string name = "RSRenderThread_1";
+    renderThread->receiver_ = rsClient->CreateVSyncReceiver(name, renderThread->handler_);
+    EXPECT_TRUE(renderThread->receiver_ != nullptr);
+    renderThread->RequestNextVSync();
+    EXPECT_FALSE(renderThread->hasSkipVsync_);
 }
 
 /**

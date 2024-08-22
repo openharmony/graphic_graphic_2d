@@ -112,8 +112,8 @@ public:
     }
 
     // dfx
+    static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
-    void DumpDrawableTree(std::string& out) const override;
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -140,6 +140,7 @@ protected:
     static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
     thread_local static inline bool isOpincDropNodeExt_ = true;
     thread_local static inline int opincRootTotalCount_ = 0;
+    static inline RectI screenRectInfo_ = {0, 0, 0, 0};
 
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
@@ -204,6 +205,8 @@ private:
     {
         return isOpincMarkCached_;
     }
+    bool IsOpincNodeInScreenRect(RSRenderParams& params);
+    static thread_local bool isNeedOffScreenCache_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

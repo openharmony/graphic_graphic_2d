@@ -16,9 +16,38 @@
 #ifndef HGM_TASK_HANDLE_THREAD_H
 #define HGM_TASK_HANDLE_THREAD_H
 
+#include <future>
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
 #include "event_handler.h"
+#include "refbase.h"
 
 namespace OHOS::Rosen {
+namespace HgmDetail {
+template<typename Task>
+class ScheduledTask : public RefBase {
+public:
+    static auto Create(Task&& task)
+    {
+        sptr<ScheduledTask<Task>> t(new ScheduledTask(std::forward<Task&&>(task)));
+        return std::make_pair(t, t->task_.get_future());
+    }
+
+    void Run()
+    {
+        task_();
+    }
+
+private:
+    explicit ScheduledTask(Task&& task) : task_(std::move(task)) {}
+    ~ScheduledTask() override = default;
+
+    using Return = std::invoke_result_t<Task>;
+    std::packaged_task<Return()> task_;
+};
+} // namespace HgmDetail
+
 class HgmTaskHandleThread {
 public:
     static HgmTaskHandleThread& Instance();
@@ -28,6 +57,13 @@ public:
     bool PostSyncTask(const std::function<void()>& task);
     void PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime = 0);
     void RemoveEvent(std::string eventId);
+    template<typename Task, typename Return = std::invoke_result_t<Task>>
+    std::future<Return> ScheduleTask(Task&& task)
+    {
+        auto [scheduledTask, taskFuture] = HgmDetail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
+        PostTask([t(std::move(scheduledTask))]() { t->Run(); });
+        return std::move(taskFuture);
+    }
 
 private:
     HgmTaskHandleThread();

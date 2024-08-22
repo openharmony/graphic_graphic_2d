@@ -179,5 +179,20 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ComputeRadiusAndScale001, TestSize.Level1
     std::string expect = "blur radius is " + std::to_string(float(36)); // 36 match result
     EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
 }
+
+/**
+* @tc.name: CheckInputImage001
+* @tc.desc: Verify function CheckInputImage
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, CheckInputImage001, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Rect src { 3.0f, 5.0f, 3.0f, 5.0f };
+    geKawaseBlurShaderFilter->CheckInputImage(canvas_, image_, image_, src);
+    EXPECT_NE(image_, nullptr);
+}
+
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

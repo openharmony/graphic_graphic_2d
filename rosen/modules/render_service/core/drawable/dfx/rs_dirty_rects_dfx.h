@@ -68,6 +68,7 @@ private:
         float alpha, int edgeWidth = 6) const;
     bool DrawDetailedTypesOfDirtyRegionForDFX(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     void DrawSurfaceOpaqueRegionForDFX(RSSurfaceRenderParams& surfaceParams) const;
+    void DrawHwcRegionForDFX() const;
 
     void DrawDirtyRegionForDFX(const std::vector<RectI>& dirtyRects) const;
     void DrawAllSurfaceDirtyRegionForDFX() const;

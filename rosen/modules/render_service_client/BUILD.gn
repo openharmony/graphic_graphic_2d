@@ -143,11 +143,6 @@ template("render_service_client_source_set") {
       defines += [ "CROSS_PLATFORM" ]
     }
 
-    if (defined(graphic_2d_ext_configs.vendor_root)) {
-      sources += graphic_2d_ext_configs.librender_service_client_ext_sources
-      sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
-    }
-
     if (rosen_is_ohos) {
       sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
     } else if (!is_arkui_x) {
@@ -192,7 +187,7 @@ template("render_service_client_source_set") {
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
       deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-      if (ace_enable_gpu && !is_arkui_x) {
+      if (ace_enable_gpu) {
         defines += [ "ACE_ENABLE_GPU" ]
       }
       if (current_os == "mingw") {
@@ -340,6 +335,9 @@ ohos_source_set("librender_service_client_static") {
     public_external_deps += [ "graphic_surface:surface" ]
   } else if (rosen_preview) {
     public_external_deps += [ "graphic_surface:surface_headers" ]
+  } else if (is_arkui_x) {
+    public_deps +=
+        [ "//foundation/graphic/graphic_surface/surface:surface_headers" ]
   }
 
   part_name = "graphic_2d"

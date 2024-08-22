@@ -43,10 +43,10 @@ struct ComposeInfo {
     int32_t gravity { 0 };
     int32_t zOrder { 0 };
     GraphicLayerAlpha alpha;
-    sptr<SurfaceBuffer> buffer;
-    sptr<SurfaceBuffer> preBuffer;
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    GraphicBlendType blendType;
+    GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };
@@ -96,6 +96,12 @@ using WriteToPngParam = struct {
     const uint8_t *data;
 };
 
+using ControlBufferConsumeParam = struct ControlBufferConsumeParam {
+    std::string surfaceName = "";
+    bool isDisplaySurface = true;
+    uint64_t vsyncTimestamp = 0;
+};
+
 enum class ColorFilterMode {
     INVERT_COLOR_DISABLE_MODE = 0,
     INVERT_COLOR_ENABLE_MODE = 1,
@@ -125,10 +131,10 @@ public:
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
-    static GSError DropFrameProcess(RSSurfaceHandler& node);
+    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler);
     static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool ConsumeAndUpdateBuffer(
-        RSSurfaceHandler& surfaceHandler, bool isDisplaySurface, uint64_t vsyncTimestamp = 0);
+        RSSurfaceHandler& surfaceHandler, const ControlBufferConsumeParam& param = { "", true, 0});
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);

@@ -36,7 +36,7 @@ ColorMatrix::~ColorMatrix() {}
 
 void ColorMatrix::SetIdentity()
 {
-    for (size_t i = 0; i < MATRIX_SIZE; i = i + 6) {
+    for (size_t i = 0; i < MATRIX_SIZE; i = i + 6) { // 6 means color vector scale
         array_[i] = 1; // identity matrix, the value of the elements on the main diagonal is 1
     }
 }
@@ -69,13 +69,19 @@ void ColorMatrix::SetConcat(const ColorMatrix& m1, const ColorMatrix& m2)
     }
 
     int index = 0;
-    for (int j = 0; j < MATRIX_SIZE; j = j + 5) {
-        for (int i = 0; i < 4; i++) { // Color matrix is a 4x5 float type matrix.
-            target[index++] = m1.array_[j + 0] * m2.array_[i + 0] + m1.array_[j + 1] * m2.array_[i + 5] +
-                m1.array_[j + 2] * m2.array_[i + 10] + m1.array_[j + 3] * m2.array_[i + 15];
+    // Color matrix is a 4x5 float type matrix.
+    for (int j = 0; j < MATRIX_SIZE; j = j + 5) { // 5 means color matrix cols
+        for (int i = 0; i < 4; i++) { // 4 means color matrix rows
+            target[index++] = m1.array_[j + 0] * m2.array_[i + 0] + // 0 means color matrix offset
+                m1.array_[j + 1] * m2.array_[i + 5] + //1 5 means color matrix offset
+                m1.array_[j + 2] * m2.array_[i + 10] + //2 10 means color matrix offset
+                m1.array_[j + 3] * m2.array_[i + 15]; //3 15 means color matrix offset
         }
-        target[index++] = m1.array_[j + 0] * m2.array_[4] + m1.array_[j + 1] * m2.array_[9] +
-            m1.array_[j + 2] * m2.array_[14] + m1.array_[j + 3] * m2.array_[19] + m1.array_[j + 4];
+        target[index++] = m1.array_[j + 0] * m2.array_[4] + //0 4 means color matrix offset
+            m1.array_[j + 1] * m2.array_[9] + //1 9 means color matrix offset
+            m1.array_[j + 2] * m2.array_[14] + //2 14 means color matrix offset
+            m1.array_[j + 3] * m2.array_[19] + //3 19 means color matrix offset
+            m1.array_[j + 4]; //4 means color matrix offset
     }
 
     if (target != array_) {

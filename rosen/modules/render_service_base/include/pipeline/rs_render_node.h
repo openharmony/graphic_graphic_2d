@@ -247,10 +247,12 @@ public:
         return firstLevelNodeId_;
     }
     const std::shared_ptr<RSRenderNode> GetFirstLevelNode() const;
+    // only use for ARKTS_CARD
     inline NodeId GetUifirstRootNodeId() const
     {
         return uifirstRootNodeId_;
     }
+    const std::shared_ptr<RSRenderNode> GetUifirstRootNode() const;
     void UpdateTreeUifirstRootNodeId(NodeId id);
 
     // reset accumulated vals before traverses children
@@ -271,11 +273,13 @@ public:
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     const RectF& GetSelfDrawRect() const;
     const RectI& GetAbsDrawRect() const;
+    void UpdateAbsDrawRect();
 
     void ResetChangeState();
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
         const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
+    void UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
 
@@ -501,7 +505,7 @@ public:
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
     bool IsFilterCacheValid() const;
     bool IsAIBarFilterCacheValid() const;
-    void MarkForceClearFilterCacheWhenWithInvisible();
+    void MarkForceClearFilterCacheWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
@@ -718,9 +722,6 @@ public:
         return renderDrawable_;
     }
 
-    // DFX
-    void DumpDrawableTree(int32_t depth, std::string& out) const;
-
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -830,9 +831,6 @@ private:
     void ResortChildren();
     bool ShouldClearSurface();
 
-    // DFX
-    std::string DumpDrawableVec() const;
-
     std::weak_ptr<RSContext> context_ = {};
 
     bool isContentDirty_ = false;
@@ -888,7 +886,6 @@ private:
     bool isDirtyRegionUpdated_ = false;
     bool isContainBootAnimation_ = false;
     bool isLastVisible_ = false;
-    bool fallbackAnimationOnDestroy_ = true;
     uint32_t disappearingTransitionCount_ = 0;
     RectI oldDirty_;
     RectI oldDirtyInSurface_;

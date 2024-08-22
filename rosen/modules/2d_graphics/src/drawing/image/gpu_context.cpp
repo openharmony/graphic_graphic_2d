@@ -183,6 +183,11 @@ GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() cons
     return persistentCache_;
 }
 
+void GPUContext::VmaDefragment()
+{
+    impl_->VmaDefragment();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

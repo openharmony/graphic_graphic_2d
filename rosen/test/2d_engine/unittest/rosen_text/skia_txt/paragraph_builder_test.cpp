@@ -135,4 +135,69 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest007, TestSize.Level1)
     builder->PushStyle(textStyle);
     EXPECT_EQ(builder->Build() != nullptr, true);
 }
+
+/*
+ * @tc.name: ParagraphBuilderTest008
+ * @tc.desc: test for italic font style
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest008, TestSize.Level1)
+{
+    TextStyle textStyle;
+    textStyle.fontStyle = FontStyle::ITALIC;
+    paragraphBuilder_->PushStyle(textStyle);
+}
+
+/*
+ * @tc.name: ParagraphBuilderTest009
+ * @tc.desc: test for oblique font style
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest009, TestSize.Level1)
+{
+    TextStyle textStyle;
+    textStyle.fontStyle = FontStyle::OBLIQUE;
+    paragraphBuilder_->PushStyle(textStyle);
+}
+
+/*
+ * @tc.name: ParagraphBuilderTest010
+ * @tc.desc: test for default font style
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest010, TestSize.Level1)
+{
+    TextStyle textStyle;
+    textStyle.fontStyle = static_cast<FontStyle>(999);
+    paragraphBuilder_->PushStyle(textStyle);
+}
+
+/*
+ * @tc.name: ParagraphBuilderTest011
+ * @tc.desc: test for MakeTextShadow
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest011, TestSize.Level1)
+{
+    TextStyle textStyle;
+    textStyle.textShadows.clear();
+    SkColor color = 255;
+    SkPoint offset{0, 0};
+    TextShadow shadow(color, offset, 0.0);
+    textStyle.textShadows.emplace_back(shadow);
+    EXPECT_EQ(textStyle.textShadows.size(), 1);
+    paragraphBuilder_->PushStyle(textStyle);
+}
+
+/*
+ * @tc.name: ParagraphBuilderTest012
+ * @tc.desc: test for isPlaceholder is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest012, TestSize.Level1)
+{
+    TextStyle textStyle;
+    textStyle.isPlaceholder = true;
+    paragraphBuilder_->PushStyle(textStyle);
+}
 } // namespace txt

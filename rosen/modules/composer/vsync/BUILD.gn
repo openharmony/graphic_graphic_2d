@@ -106,18 +106,11 @@ ohos_shared_library("libvsync") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:qos",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
   public_external_deps = [ "c_utils:utils" ]
-
-  if (defined(graphic_2d_ext_configs.vendor_root)) {
-    include_dirs += graphic_2d_ext_configs.libvsync_ext_include_dirs
-
-    sources += graphic_2d_ext_configs.libvsync_ext_sources
-
-    public_deps += [ "//foundation/graphic/graphic_2d_ext/ohcore/graphic_compat_layer:libgraphic_compat_layer" ]
-  }
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {

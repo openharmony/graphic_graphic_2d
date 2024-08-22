@@ -44,7 +44,8 @@
         "graphic_2d_feature_freemem_enable",
         "graphic_2d_feature_parallel_render_enable",
         "graphic_2d_feature_tp_switch_enbale",
-        "graphic_2d_feature_rs_enable_profiler"
+        "graphic_2d_feature_rs_enable_profiler",
+        "graphic_2d_feature_vkqueue_priority_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -434,7 +435,7 @@
         ],
         "test": [
           "//foundation/graphic/graphic_2d:graphic_common_test",
-          "//foundation/graphic/graphic_2d/frameworks/surfaceimage/test/unittest:unittest",
+          "//foundation/graphic/graphic_2d/frameworks/surfaceimage/test:test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:test",
           "//foundation/graphic/graphic_2d/rosen/modules/ressched/test/unittest:unittest",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test",

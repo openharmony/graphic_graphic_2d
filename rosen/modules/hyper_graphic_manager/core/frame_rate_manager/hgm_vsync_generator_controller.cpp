@@ -25,6 +25,7 @@ namespace Rosen {
 namespace {
     constexpr uint32_t TARGET_TIME_TRIGGER_PULSE_NUM = 6;
 }
+
 HgmVSyncGeneratorController::HgmVSyncGeneratorController(sptr<VSyncController> rsController,
     sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
     : rsController_(rsController),
@@ -75,9 +76,14 @@ uint64_t HgmVSyncGeneratorController::CalcVSyncQuickTriggerTime(uint64_t lastVSy
     return targetTime;
 }
 
-void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
+int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerRate,
     const std::vector<std::pair<FrameRateLinkerId, uint32_t>>& appData, uint64_t targetTime, bool isNeedUpdateAppOffset)
 {
+    int64_t vsyncCount = 0;
+    if (vsyncGenerator_ == nullptr) {
+        HGM_LOGE("HgmVSyncGeneratorController::vsyncGenerator is nullptr");
+        return vsyncCount;
+    }
     int pulseNum;
     if (isNeedUpdateAppOffset) {
         pulseNum = 0;
@@ -96,15 +102,17 @@ void HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controllerR
             ", nextVSyncTargetTime =" + std::to_string(targetTime));
         listenerPhase.cb = appController_;
         listenerPhase.phaseByPulseNum = pulseNum;
-        vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate, targetTime);
+        vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+            listenerRate, listenerPhase, controllerRate, vsyncCount, targetTime);
         currentOffset_ = vsyncGenerator_->GetVSyncPulse() * pulseNum;
         currentRate_ = controllerRate;
     } else {
         if (isNeedUpdateAppOffset) {
             listenerPhase.phaseByPulseNum = pulseNum;
         }
-        vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate);
+        vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate, vsyncCount);
     }
+    return vsyncCount;
 }
 
 int64_t HgmVSyncGeneratorController::GetCurrentOffset() const

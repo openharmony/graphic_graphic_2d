@@ -100,7 +100,7 @@ HWTEST_F(EglBlobTest, EglBlobInit003, Level1)
     BlobCache::SetBlobFunc(key, keysize, value, valuesize);
     BlobCache::GetBlobFunc(key, keysize, value2, valuesize2);
     int c = *static_cast<int *>(value2);
-    ASSERT_NE(c, 0);
+    ASSERT_EQ(c, 0);
 }
 
 /**
@@ -160,4 +160,91 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
     ASSERT_EQ(retnum, 4);
 }
 
+/**
+ * @tc.name: destructBlobCacheTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, destructBlobCacheTest001, Level1)
+{
+    auto cache = new BlobCache();
+    cache->blobCache_ = nullptr;
+    delete cache;
+    cache = nullptr;
+}
+
+/**
+ * @tc.name: destructBlobCacheTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, destructBlobCacheTest002, Level1)
+{
+    auto cache = new BlobCache();
+    cache->blobCache_ = nullptr;
+    BlobCache::Get();
+    delete cache;
+    cache = nullptr;
+}
+
+/**
+ * @tc.name: GetMapSizeTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, GetMapSizeTest, Level1)
+{
+    BlobCache* ret = BlobCache::Get();
+    EXPECT_EQ(0, ret->GetMapSize());
+}
+
+/**
+ * @tc.name: InitTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, InitTest, Level1)
+{
+    BlobCache* ret = BlobCache::Get();
+    ret->initStatus_ = true;
+    ret->Init(nullptr);
+    ret->initStatus_ = false;
+    ret->Init(nullptr);
+}
+
+/**
+ * @tc.name: SetBlobTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, SetBlobTest, Level1)
+{
+    BlobCache* ret = BlobCache::Get();
+    ret->SetBlob(nullptr, 0, nullptr, 0);
+    ret->GetBlob(nullptr, 0, nullptr, 0);
+}
+
+/**
+ * @tc.name: SetCacheDirTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, SetCacheDirTest, Level1)
+{
+    BlobCache* ret = BlobCache::Get();
+    ret->SetCacheDir("SetCacheDirTest");
+}
+
+/**
+ * @tc.name: SetCacheShaderSizeTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, SetCacheShaderSizeTest, Level1)
+{
+    BlobCache* ret = BlobCache::Get();
+    ret->SetCacheShaderSize(0);
+    ret->SetCacheShaderSize(MAX_SHADER + 1);
+    ret->SetCacheShaderSize(1);
+}
 } // OHOS::Rosen

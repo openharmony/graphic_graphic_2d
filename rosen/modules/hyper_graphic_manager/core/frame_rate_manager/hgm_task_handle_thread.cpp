@@ -13,9 +13,15 @@
  * limitations under the License.
  */
 
+#include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
+#include "xcollie/watchdog.h"
 
 namespace OHOS::Rosen {
+namespace {
+constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
+}
+
 HgmTaskHandleThread& HgmTaskHandleThread::Instance()
 {
     static HgmTaskHandleThread instance;
@@ -25,6 +31,10 @@ HgmTaskHandleThread& HgmTaskHandleThread::Instance()
 HgmTaskHandleThread::HgmTaskHandleThread() : runner_(AppExecFwk::EventRunner::Create("HgmTaskHandleThread"))
 {
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    int ret = HiviewDFX::Watchdog::GetInstance().AddThread("HgmTaskHandle", handler_, WATCHDOG_TIMEVAL);
+    if (ret != 0) {
+        HGM_LOGW("Add watchdog thread failed");
+    }
 }
 
 std::shared_ptr<AppExecFwk::EventHandler> HgmTaskHandleThread::CreateHandler()
@@ -42,7 +52,7 @@ void HgmTaskHandleThread::PostTask(const std::function<void()>& task, int64_t de
 bool HgmTaskHandleThread::PostSyncTask(const std::function<void()>& task)
 {
     if (handler_) {
-        return handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        return handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::VIP);
     }
     return false;
 }

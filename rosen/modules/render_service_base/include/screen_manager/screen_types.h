@@ -41,6 +41,7 @@ constexpr int32_t RS_ROTATION_0 = 0;
 constexpr int32_t RS_ROTATION_90 = 90;
 constexpr int32_t RS_ROTATION_180 = 180;
 constexpr int32_t RS_ROTATION_270 = 270;
+constexpr int32_t RS_ROTATION_360 = 360;
 
 inline constexpr ScreenId ToScreenId(ScreenPhysicalId physicalId)
 {
@@ -73,6 +74,7 @@ enum class ScreenConstraintType : uint32_t {
     CONSTRAINT_NONE = 0,      /**< No constraint */
     CONSTRAINT_ABSOLUTE,      /**< Absolute timestamp */
     CONSTRAINT_RELATIVE,      /**< Relative timestamp */
+    CONSTRAINT_ADAPTIVE,      /**< Adaptive vsync mode */
 };
 
 enum class ScreenScaleMode : uint32_t {

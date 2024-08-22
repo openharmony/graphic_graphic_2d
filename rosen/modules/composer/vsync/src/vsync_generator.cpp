@@ -618,8 +618,13 @@ VsyncError VSyncGenerator::SetExpectNextVsyncTimeInternal(int64_t expectNextVsyn
 
 VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefreshRateData &listenerRefreshRates,
                                                            const ListenerPhaseOffsetData &listenerPhaseOffset,
-                                                           uint32_t generatorRefreshRate, int64_t expectNextVsyncTime)
+                                                           uint32_t generatorRefreshRate,
+                                                           int64_t &rsVsyncCount,
+                                                           int64_t expectNextVsyncTime)
 {
+    if (rsVSyncDistributor_ != nullptr) {
+        rsVsyncCount = rsVSyncDistributor_->GetVsyncCount();
+    }
     std::string refreshrateStr = "refreshRates[";
     for (std::pair<uint64_t, uint32_t> rateVec : listenerRefreshRates.refreshRates) {
         uint64_t linkerId = rateVec.first;

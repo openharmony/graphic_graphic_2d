@@ -102,6 +102,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     if (!RegisterTypeface(typeface)) {
         LOGE("register typeface failed.");
+        return nullptr;
     }
     fontCollection_->ClearFontFamilyCache();
     return typeface;

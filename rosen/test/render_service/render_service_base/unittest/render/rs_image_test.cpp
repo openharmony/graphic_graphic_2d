@@ -185,6 +185,19 @@ HWTEST_F(RSImageTest, ApplyImageFitTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDstRectTest001
+ * @tc.desc: Verify function GetDstRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, GetDstRectTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<RSImage>();
+    RectF srcRf(0.f, 0.f, 0.f, 0.f);
+    image->dstRect_ = srcRf;
+    ASSERT_EQ(image->GetDstRect(), srcRf);
+}
+
+/**
  * @tc.name: GetAdaptiveImageInfoWithFrameRectTest001
  * @tc.desc: Verify function GetAdaptiveImageInfoWithFrameRect
  * @tc.type:FUNC
@@ -196,6 +209,36 @@ HWTEST_F(RSImageTest, GetAdaptiveImageInfoWithFrameRectTest001, TestSize.Level1)
     image->imageFit_ = ImageFit::COVER;
     EXPECT_EQ(
         image->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect).fitNum, static_cast<int32_t>(ImageFit::COVER));
+}
+
+/**
+ * @tc.name: GetImageFitTest001
+ * @tc.desc: Verify function GetImageFit
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, GetImageFitTest001, TestSize.Level1)
+{
+    Drawing::Rect frameRect;
+    auto image = std::make_shared<RSImage>();
+    image->imageFit_ = ImageFit::COVER;
+    EXPECT_EQ(image->GetImageFit(), ImageFit::COVER);
+}
+
+/**
+ * @tc.name: SetFrameRectTest001
+ * @tc.desc: Verify function SetFrameRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, SetFrameRectTest001, TestSize.Level1)
+{
+    float left = 0.f;
+    float top = 0.f;
+    float width = 1.0f;
+    float height = 1.0f;
+    RectF destRect(left, top, width, height);
+    auto image = std::make_shared<RSImage>();
+    image->SetFrameRect(destRect);
+    EXPECT_EQ(image->frameRect_, destRect);
 }
 
 /**
@@ -500,6 +543,8 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     EXPECT_EQ(RSImageCache::Instance().GetDrawingImageCache(0), nullptr);
 
     RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(0);
+    RSImageCache::Instance().pixelMapCache_.clear();
+    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
 /**
@@ -545,5 +590,20 @@ HWTEST_F(RSImageTest, dumpTest, TestSize.Level1)
     std::string desc = "dump ";
     rsImage->dump(desc, 0);
     EXPECT_NE(desc, "dump ");
+}
+
+/**
+ * @tc.name: SetDyamicRangeModeTest
+ * @tc.desc: Test RSImageTest.SetDyamicRangeMode while dynamicRangeMode = 1
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST_F(RSImageTest, SetDyamicRangeModeTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    ASSERT_NE(rsImage, nullptr);
+    constexpr uint32_t dynamicRangeMode = 1;
+    rsImage->SetDyamicRangeMode(dynamicRangeMode);
+    EXPECT_EQ(rsImage->dynamicRangeMode_, dynamicRangeMode);
 }
 } // namespace OHOS::Rosen

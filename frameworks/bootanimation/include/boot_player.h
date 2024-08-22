@@ -23,6 +23,8 @@
 #include "util.h"
 
 namespace OHOS {
+static const int MAX_WAIT_MEDIA_CREATE_TIME = 5000000; // 5S
+
 class BootPlayer {
 public:
     virtual ~BootPlayer() {};

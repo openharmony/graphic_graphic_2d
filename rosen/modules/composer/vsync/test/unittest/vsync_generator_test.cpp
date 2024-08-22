@@ -16,6 +16,9 @@
 #include "vsync_generator.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
+#include "vsync_receiver.h"
+#include "vsync_iconnection_token.h"
+#include <event_handler.h>
 
 #include <gtest/gtest.h>
 
@@ -35,6 +38,7 @@ class VSyncGeneratorTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    static inline void OnVSync(int64_t now, void* data) {}
 
     static inline sptr<VSyncGenerator> vsyncGenerator_;
     static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
@@ -42,6 +46,9 @@ public:
     static inline sptr<VSyncController> rsController;
     static inline sptr<VSyncDistributor> appDistributor;
     static inline sptr<VSyncDistributor> rsDistributor;
+    static inline std::shared_ptr<VSyncReceiver> receiver;
+    static inline std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    static inline std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 
 void VSyncGeneratorTest::SetUpTestCase()
@@ -50,9 +57,16 @@ void VSyncGeneratorTest::SetUpTestCase()
     appController = new VSyncController(vsyncGenerator_, 0);
     rsController = new VSyncController(vsyncGenerator_, 0);
     appDistributor = new VSyncDistributor(appController, "app");
-    rsDistributor = new VSyncDistributor(rsController, "app");
+    rsDistributor = new VSyncDistributor(rsController, "rs");
     vsyncGenerator_->SetRSDistributor(rsDistributor);
     vsyncGenerator_->SetAppDistributor(appDistributor);
+    sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
+    sptr<VSyncConnection> conn = new VSyncConnection(rsDistributor, "generator_test", token->AsObject());
+    rsDistributor->AddConnection(conn);
+    runner_ = AppExecFwk::EventRunner::Create(false);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    receiver = std::make_shared<VSyncReceiver>(conn, token->AsObject(), handler_, "generator_test");
+    receiver->Init();
 }
 
 void VSyncGeneratorTest::TearDownTestCase()
@@ -83,6 +97,546 @@ void VSyncGeneratorTestCallback::OnConnsRefreshRateChanged(
 }
 
 namespace {
+/*
+* Function: CheckAndUpdateReferenceTimeTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest001, Function | MediumTest| Level0)
+{
+    ASSERT_EQ(vsyncGenerator_->CheckAndUpdateReferenceTime(-1, -1), VSYNC_ERROR_INVALID_ARGUMENTS);
+    // 2000000000ns
+    ASSERT_EQ(vsyncGenerator_->CheckAndUpdateReferenceTime(-1, 2000000000), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(vsyncGenerator_->CheckAndUpdateReferenceTime(8333333, -1), VSYNC_ERROR_INVALID_ARGUMENTS); // 8333333ns
+    // 8333333ns, 2000000000ns
+    ASSERT_EQ(vsyncGenerator_->CheckAndUpdateReferenceTime(8333333, 2000000000), VSYNC_ERROR_API_FAILED);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest002, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(16666667, 1000000000); // 16666667ns, 1000000000ns
+    ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000); // 8333333ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    int64_t refreshRate = 120; // 120hz
+    int64_t rsVsyncCount = 0;
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(8333333, 2000000000); // 8333333ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest003, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(8333333, 1000000000); // 8333333ns, 1000000000ns
+    ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000); // 8333333ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    int64_t refreshRate = 60; // 60hz
+    int64_t rsVsyncCount = 0;
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(8333333, 2000000000); // 8333333ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest004, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(16666667, 1000000000); // 16666667ns, 1000000000ns
+    int64_t refreshRate = 120; // 120hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000); // 8333333ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(8333333, 2000000000); // 8333333ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest005
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime and set pendingPeriod_ 8.3ms
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest005, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(8333333, 1000000000); // 8333333ns, 1000000000ns
+    int64_t refreshRate = 120; // 120hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000); // 8333333ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(8333333, 2000000000); // 8333333ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest006
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime and set pendingPeriod_ 11.1ms
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest006, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(11111111, 1000000000); // 11111111ns, 1000000000ns
+    int64_t refreshRate = 90; // 90hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(11111111, 0, 1000000000); // 11111111ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(11111111, 2000000000); // 11111111ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest007
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime and set pendingPeriod_ 16.6ms
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest007, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(16666667, 1000000000); // 16666667ns, 1000000000ns
+    int64_t refreshRate = 60; // 60hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(16666667, 0, 1000000000); // 16666667ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(16666667, 2000000000); // 16666667ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest008
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime and set pendingPeriod_ 33.3ms
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest008, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(33333333, 1000000000); // 33333333ns, 1000000000ns
+    int64_t refreshRate = 30; // 30hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(33333333, 0, 1000000000); // 33333333ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(33333333, 2000000000); // 33333333ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest009
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime and StartRefresh
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest009, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(33333333, 1000000000); // 33333333ns, 1000000000ns
+    int64_t refreshRate = 30; // 30hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(33333333, 0, 1000000000); // 33333333ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->StartRefresh();
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(33333333, 2000000000); // 33333333ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest010
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime and SetVSyncPhaseByPulseNum
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest010, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(33333333, 1000000000); // 33333333ns, 1000000000ns
+    int64_t refreshRate = 30; // 30hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(33333333, 0, 1000000000); // 33333333ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->SetReferenceTimeOffset(1);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->SetVSyncPhaseByPulseNum(1);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(33333333, 2000000000); // 33333333ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: CheckAndUpdateReferenceTimeTest011
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test CheckAndUpdateReferenceTime and StartRefresh, SetVSyncPhaseByPulseNum
+ */
+HWTEST_F(VSyncGeneratorTest, CheckAndUpdateReferenceTimeTest011, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    vsyncGenerator_->SetPendingMode(33333333, 1000000000); // 33333333ns, 1000000000ns
+    int64_t refreshRate = 30; // 30hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(33333333, 0, 1000000000); // 33333333ns, 1000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->SetReferenceTimeOffset(1);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->SetVSyncPhaseByPulseNum(1);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->StartRefresh();
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->CheckAndUpdateReferenceTime(33333333, 2000000000); // 33333333ns, 2000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: PeriodCheckLockedTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test PeriodCheckLocked
+ */
+HWTEST_F(VSyncGeneratorTest, PeriodCheckLockedTest, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    for (int i = 0; i < 20; i++) { // test 20 times
+        int64_t testPeriod = i < 2 ? 8333333 : 16666667; // 2, 8333333ns, 16666667ns
+        vsyncGenerator_->SetPendingMode(testPeriod, 1000000000); // 1000000000ns
+        int64_t refreshRate = 120; // 120hz
+        int64_t rsVsyncCount = 0;
+        VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+        VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+        ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+            listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+        ASSERT_EQ(ret, VSYNC_ERROR_OK);
+        VSyncReceiver::FrameCallback fcb = {
+            .userData_ = this,
+            .callback_ = OnVSync,
+        };
+        ret = receiver->RequestNextVSync(fcb);
+        ASSERT_EQ(ret, VSYNC_ERROR_OK);
+        usleep(100000); // 100000us
+        ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000); // 8333333ns, 1000000000ns
+        ASSERT_EQ(ret, VSYNC_ERROR_OK);
+        ret = vsyncGenerator_->CheckAndUpdateReferenceTime(testPeriod, 2000000000); // 2000000000ns
+        ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: NowLessThanReferenceTimeTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test now is less than referenceTime
+ */
+HWTEST_F(VSyncGeneratorTest, NowLessThanReferenceTimeTest, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPS);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ASSERT_EQ(vsyncGenerator_->GetVSyncMode(), VSYNC_MODE_LTPS);
+    int64_t refreshRate = 120; // 120hz
+    int64_t rsVsyncCount = 0;
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_NOT_SUPPORT);
+    ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000000000); // 8333333ns, 1000000000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+}
+
+/*
+* Function: ChangeGeneratorRefreshRateModelTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test ChangeGeneratorRefreshRateModel for LTPO
+ */
+HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest001, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    int64_t refreshRate = 120; // 120hz
+    int64_t rsVsyncCount = 0;
+    std::vector<std::pair<uint64_t, uint32_t>> refreshRates = {};
+    refreshRates.push_back({0, 60});
+    refreshRates.push_back({1, 120});
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {
+        .cb = appController,
+        .refreshRates = refreshRates,
+    };
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {
+        .cb = rsController,
+        .phaseByPulseNum = 3,
+    };
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000000); // 8333333ns, 1000000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ASSERT_EQ(vsyncGenerator_->GetVSyncMode(), VSYNC_MODE_LTPO);
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: ChangeGeneratorRefreshRateModelTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test ChangeGeneratorRefreshRateModel for LTPS
+ */
+HWTEST_F(VSyncGeneratorTest, ChangeGeneratorRefreshRateModelTest002, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPS);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ASSERT_EQ(vsyncGenerator_->GetVSyncMode(), VSYNC_MODE_LTPS);
+    int64_t refreshRate = 120; // 120hz
+    int64_t rsVsyncCount = 0;
+    std::vector<std::pair<uint64_t, uint32_t>> refreshRates = {};
+    refreshRates.push_back({0, 60});
+    refreshRates.push_back({1, 120});
+    VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {
+        .cb = appController,
+        .refreshRates = refreshRates,
+    };
+    VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {
+        .cb = rsController,
+        .phaseByPulseNum = 3,
+    };
+    ret = vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_NOT_SUPPORT);
+    ret = vsyncGenerator_->UpdateMode(8333333, 0, 1000000000000); // 8333333ns, 1000000000000ns
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetVSyncModeTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test SetVSyncMode and GetVSyncMode
+ */
+HWTEST_F(VSyncGeneratorTest, SetVSyncModeTest, Function | MediumTest| Level0)
+{
+    VsyncError ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPS);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ASSERT_EQ(vsyncGenerator_->GetVSyncMode(), VSYNC_MODE_LTPS);
+    ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetHighPriorityVSyncRateTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test SetHighPriorityVSyncRate
+ */
+HWTEST_F(VSyncGeneratorTest, SetHighPriorityVSyncRateTest, Function | MediumTest| Level0)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(rsDistributor, "SetHighPriorityVSyncRateTest");
+    rsDistributor->AddConnection(conn);
+    VsyncError ret = rsDistributor->SetHighPriorityVSyncRate(2, conn); // rate is 2
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    for (int i = 0; i < 10; i++) {
+        ret = receiver->RequestNextVSync(fcb);
+        ASSERT_EQ(ret, VSYNC_ERROR_OK);
+        usleep(10000); // 10000us
+    }
+    usleep(100000); // 100000us
+}
+
 /*
 * Function: UpdateMode001
 * Type: Function
@@ -260,8 +814,9 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest001, Function | MediumTest| 
     VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
-    VsyncError ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-        listenerRefreshRates, listenerPhaseOffset, refreshRate, 0); // expectNextVsyncTime 0
+    int64_t rsVsyncCount = 0;
+    auto ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0); // expectNextVsyncTime 0
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
 }
 
@@ -281,8 +836,9 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest002, Function | MediumTest| 
     VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
-    VsyncError ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-        listenerRefreshRates, listenerPhaseOffset, refreshRate, -1); // expectNextVsyncTime -1
+    int64_t rsVsyncCount = 0;
+    auto ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, -1); // expectNextVsyncTime -1
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
 }
 
@@ -298,12 +854,26 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest003, Function | MediumTest| 
     int64_t period = 8333333; // 8333333ns
     int64_t referenceTime = SystemTime();
     vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
-    vsyncGenerator_->UpdateMode(period, 0, referenceTime);
+    VsyncError ret = vsyncGenerator_->UpdateMode(period, 0, referenceTime);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    int64_t refreshRate = 120; // 120hz
+    int64_t rsVsyncCount = 0;
     VSyncGenerator::ListenerRefreshRateData listenerRefreshRates = {};
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
-    int64_t refreshRate = 120; // 120hz
-    VsyncError ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-        listenerRefreshRates, listenerPhaseOffset, refreshRate, referenceTime - 10000000); // 10ms == 10000000ns
+    ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 0);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync,
+    };
+    ret = receiver->RequestNextVSync(fcb);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    usleep(100000); // 100000us
+    ret = vsyncGenerator_->UpdateMode(period, 0, referenceTime);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, 10000000); // 10ms == 10000000ns
     ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
 }
 
@@ -324,8 +894,9 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest004, Function | MediumTest| 
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
-    VsyncError ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-        listenerRefreshRates, listenerPhaseOffset, refreshRate, now);
+    int64_t rsVsyncCount = 0;
+    auto ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, now);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
 }
 
@@ -346,8 +917,9 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest005, Function | MediumTest| 
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
-    VsyncError ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-        listenerRefreshRates, listenerPhaseOffset, refreshRate, now + 5000000); // 5ms == 5000000ns
+    int64_t rsVsyncCount = 0;
+    auto ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, now + 5000000); // 5ms == 5000000ns
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
 }
 
@@ -368,8 +940,9 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest006, Function | MediumTest| 
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
-    VsyncError ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-        listenerRefreshRates, listenerPhaseOffset, refreshRate, now + 5500000); // 5.5ms == 5500000ns
+    int64_t rsVsyncCount = 0;
+    auto ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, now + 5500000); // 5.5ms == 5500000ns
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
 }
 
@@ -390,8 +963,9 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest007, Function | MediumTest| 
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
-    VsyncError ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-        listenerRefreshRates, listenerPhaseOffset, refreshRate, now + 90000000); // 90ms == 90000000ns
+    int64_t rsVsyncCount = 0;
+    auto ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, now + 90000000); // 90ms == 90000000ns
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
 }
 
@@ -412,8 +986,9 @@ HWTEST_F(VSyncGeneratorTest, expectNextVsyncTimeTest008, Function | MediumTest| 
     VSyncGenerator::ListenerPhaseOffsetData listenerPhaseOffset = {};
     int64_t refreshRate = 120; // 120hz
     int64_t now = SystemTime();
-    VsyncError ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
-        listenerRefreshRates, listenerPhaseOffset, refreshRate, now + 110000000); // 110ms == 110000000ns
+    int64_t rsVsyncCount = 0;
+    auto ret = VSyncGeneratorTest::vsyncGenerator_->ChangeGeneratorRefreshRateModel(
+        listenerRefreshRates, listenerPhaseOffset, refreshRate, rsVsyncCount, now + 110000000); // 110ms == 110000000ns
     ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
 }
 } // namespace

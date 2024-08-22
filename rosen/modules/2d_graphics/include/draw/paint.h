@@ -24,6 +24,8 @@ namespace Rosen {
 namespace Drawing {
 class DRAWING_API Paint {
 public:
+    constexpr static scalar DEFAULT_MITER_VAL = 4.0f;
+
     Paint() noexcept;
     Paint(const Paint& other) noexcept;
     Paint(const Color& c, std::shared_ptr<ColorSpace> colorSpace = nullptr) noexcept;
@@ -108,13 +110,15 @@ public:
     friend bool operator==(const Paint& p1, const Paint& p2);
     friend bool operator!=(const Paint& p1, const Paint& p2);
 
+    void Dump(std::string& out) const;
+
 private:
     bool antiAlias_ = false;
     Color color_ = Color::COLOR_BLACK;
     BlendMode blendMode_ = BlendMode::SRC_OVER;
     PaintStyle style_ = PaintStyle::PAINT_NONE;
     scalar width_ = 0.0f;
-    scalar miterLimit_ = Pen::DEFAULT_MITER_VAL; // default as 4.0f
+    scalar miterLimit_ = DEFAULT_MITER_VAL; // default as 4.0f
     Pen::JoinStyle join_ = Pen::JoinStyle::DEFAULT_JOIN;
     Pen::CapStyle cap_ = Pen::CapStyle::DEFAULT_CAP;
 

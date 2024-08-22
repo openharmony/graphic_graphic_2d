@@ -337,7 +337,7 @@ HWTEST_F(GpuContextTest, PurgeUnlockedResourcesByTagTest001, TestSize.Level1)
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    GPUResourceTag tag(0, 0, 0, 0);
+    GPUResourceTag tag(0, 0, 0, 0, "PurgeUnlockedResourcesByTagTest001");
     gpuContext->PurgeUnlockedResourcesByTag(true, tag);
 }
 
@@ -351,7 +351,7 @@ HWTEST_F(GpuContextTest, ReleaseByTagTest001, TestSize.Level1)
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    GPUResourceTag tag(0, 0, 0, 0);
+    GPUResourceTag tag(0, 0, 0, 0, "ReleaseByTagTest001");
     gpuContext->ReleaseByTag(tag);
 }
 

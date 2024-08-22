@@ -198,6 +198,31 @@ public:
         currentFrameSurfacesByDescZOrder_.emplace_back(id, rect);
     }
 
+    void AddSecurityLayer(NodeId id)
+    {
+        securityLayerList_.emplace_back(id);
+    }
+
+    void ClearSecurityLayerList()
+    {
+        securityLayerList_.clear();
+    }
+
+    const std::vector<NodeId>& GetSecurityLayerList()
+    {
+        return securityLayerList_;
+    }
+
+    void SetSecurityExemption(bool isSecurityExemption)
+    {
+        isSecurityExemption_ = isSecurityExemption;
+    }
+
+    bool GetSecurityExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {
@@ -391,6 +416,13 @@ public:
 
     Occlusion::Region GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const;
 
+    void UpdateZoomState(bool state)
+    {
+        preZoomState_ = curZoomState_;
+        curZoomState_ = state;
+    }
+
+    bool IsZoomStateChange() const;
 protected:
     void OnSync() override;
 private:
@@ -403,11 +435,11 @@ private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
-    uint64_t screenId_;
-    int32_t offsetX_;
-    int32_t offsetY_;
-    uint32_t rogWidth_;
-    uint32_t rogHeight_;
+    uint64_t screenId_ = 0;
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
+    uint32_t rogWidth_ = 0;
+    uint32_t rogHeight_ = 0;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
@@ -426,6 +458,9 @@ private:
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
+
+    std::vector<NodeId> securityLayerList_;
+    bool isSecurityExemption_ = false;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
@@ -457,6 +492,9 @@ private:
 
     friend class DisplayNodeCommandHelper;
     int64_t lastRefreshTime_ = 0;
+
+    bool curZoomState_ = false;
+    bool preZoomState_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

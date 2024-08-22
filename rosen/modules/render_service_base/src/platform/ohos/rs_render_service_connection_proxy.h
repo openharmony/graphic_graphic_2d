@@ -72,11 +72,11 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    int32_t SetVirtualScreenSecurityExemptionList(
+        ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable) override;
-#endif
     void RemoveVirtualScreen(ScreenId id) override;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -239,6 +239,8 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
     void RunOnRemoteDiedCallback() override;
@@ -250,6 +252,8 @@ public:
     LayerComposeInfo GetLayerComposeInfo() override;
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
+
+    void SetVmaCacheStatus(bool flag) override;
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 
@@ -267,6 +271,8 @@ private:
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
 
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
+
+    bool SetAncoForceDoDirect(bool direct) override;
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "include/command/rs_animation_command.h"
 
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_vector2.h"
@@ -35,6 +36,12 @@ public:
     void TearDown() override;
     static constexpr uint64_t ANIMATION_ID = 12345;
     static constexpr uint64_t PROPERTY_ID = 54321;
+    ParticleVelocity velocity;
+    RenderParticleAcceleration acceleration;
+    RenderParticleColorParaType color;
+    RenderParticleParaType<float> opacity;
+    RenderParticleParaType<float> scale;
+    RenderParticleParaType<float> spin;
     std::shared_ptr<ParticleRenderParams> param;
     std::shared_ptr<ParticleRenderParams> param1;
     std::shared_ptr<ParticleRenderParams> param2;
@@ -59,12 +66,6 @@ void RSRenderParticleAnimationTest::SetUp()
     EmitterConfig emitterConfig =
         EmitterConfig(emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image, imageSize);
 
-    ParticleVelocity velocity;
-    RenderParticleAcceleration acceleration;
-    RenderParticleColorParaType color;
-    RenderParticleParaType<float> opacity;
-    RenderParticleParaType<float> scale;
-    RenderParticleParaType<float> spin;
     param = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
 
     int emitRate1 = 0;
@@ -120,6 +121,16 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
     particleSystem_->UpdateParticle(NS_TO_S, activeParticles);
     bool finish = particleSystem_->IsFinish(activeParticles);
     EXPECT_TRUE(finish);
+    particleSystem_->particlesRenderParams_ = {};
+    particleSystem_->CreateEmitter();
+    particleSystem_->Emit(NS_TO_S, activeParticles, imageVector);
+    auto particleParams = std::make_shared<ParticleRenderParams>();
+    std::shared_ptr<RSRenderParticle> newParam = std::make_shared<RSRenderParticle>(particleParams);
+    activeParticles.push_back(newParam);
+    activeParticles.push_back(nullptr);
+    particleSystem_->UpdateParticle(NS_TO_S, activeParticles);
+    finish = particleSystem_->IsFinish(activeParticles);
+    EXPECT_TRUE(finish);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate001 end";
 }
 
@@ -137,8 +148,55 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate002, TestSize.Level1)
     auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
     ASSERT_TRUE(renderParticleAnimation != nullptr);
     renderParticleAnimation->Attach(renderNode.get());
+    renderParticleAnimation->OnAttach();
     ASSERT_TRUE(renderParticleAnimation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate002 end";
+}
+
+/**
+ * @tc.name: Animate003
+ * @tc.desc: Verify the Animate
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleAnimationTest, Animate003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate003 start";
+    int emitRate = 20;
+    ShapeType emitShape = ShapeType::RECT;
+    Vector2f position = Vector2f(0.f, 0.f);
+    Vector2f emitSize = Vector2f(10.f, 20.f); // 10.f is width, 20.f is height
+    int particleCount = 0;
+    Range<int64_t> lifeTime = Range<int64_t>(0, 0); // 1000 is lifeTime range start, 3000 is lifeTime range end.
+    ParticleType type = ParticleType::POINTS;
+    float radius = 10.f;
+    std::shared_ptr<RSImage> image;
+    Vector2f imageSize = Vector2f(1.f, 1.f);
+    EmitterConfig emitterConfig =
+        EmitterConfig(emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image, imageSize);
+
+    param = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
+
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams1;
+    particlesRenderParams1.push_back(param);
+
+    NodeId targetId = static_cast<NodeId>(PROPERTY_ID);
+    auto animation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, std::move(particlesRenderParams1));
+    OHOS::Rosen::RSContext context;
+    AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
+    RSRenderParticleVector particles;
+    auto particleParams = std::make_shared<ParticleRenderParams>();
+    std::shared_ptr<RSRenderParticle> newParam = std::make_shared<RSRenderParticle>(particleParams);
+    particles.renderParticleVector_.push_back(newParam);
+    auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(particles, PROPERTY_ID);
+    ASSERT_TRUE(animation != nullptr);
+    animation->AttachRenderProperty(property);
+    EXPECT_TRUE(animation->Animate(NS_TO_S));
+    animation->particleSystem_ = nullptr;
+    animation->SetPropertyValue(nullptr);
+    EXPECT_TRUE(animation->Animate(NS_TO_S));
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate003 end";
 }
 
 /**
@@ -254,20 +312,78 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateEmitter004, TestSize.Level1)
 
 /**
  * @tc.name: UpdateEmitter005
- * @tc.desc: Verify the UpdateEmitter EmitterUpdater = particlesRenderParams_[index]->emitterConfig
+ * @tc.desc: Verify the UpdateEmitter emitterIndex >= particlesRenderParams_.size()
  * @tc.type:FUNC
  * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleAnimationTest, UpdateEmitter005, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateEmitter005 start";
+    int emitRate = 20;
+    ShapeType emitShape = ShapeType::RECT;
+    Vector2f position = Vector2f(0.f, 0.f);
+    Vector2f emitSize = Vector2f(10.f, 20.f); // 10.f is width, 20.f is height
+    int particleCount = 0;
+    Range<int64_t> lifeTime = Range<int64_t>(0, 0); // 1000 is lifeTime range start, 3000 is lifeTime range end.
+    ParticleType type = ParticleType::POINTS;
+    float radius = 10.f;
+    std::shared_ptr<RSImage> image;
+    Vector2f imageSize = Vector2f(1.f, 1.f);
+    EmitterConfig emitterConfig =
+        EmitterConfig(emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image, imageSize);
+    param = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
+    std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams1;
+    particlesRenderParams1.push_back(param);
+    particlesRenderParams1.push_back(nullptr);
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams1);
+    uint32_t emitterIndex = 0;
+    position = Vector2f(0.f, 0.f);
+    emitSize = Vector2f(10.f, 20.f);
+    emitRate = 100;
+    auto para = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
+    std::vector<std::shared_ptr<EmitterUpdater>> emitUpdate;
+    emitUpdate.push_back(para);
+    uint32_t emitterIndex1 = 1;
+    Vector2f position1 = { 200.f, 300.f };
+    Vector2f emitSize1 = { 400.f, 500.f };
+    int emitRate1 = 10;
+    auto para1 = std::make_shared<EmitterUpdater>(emitterIndex1, position1, emitSize1, emitRate1);
+    emitUpdate.push_back(para1);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+    renderParticleAnimation->UpdateEmitter(emitUpdate);
+    auto particleSystem = renderParticleAnimation->GetParticleSystem();
+    ASSERT_TRUE(particleSystem != nullptr);
+    auto emitters = particleSystem->GetParticleEmitter();
+    ASSERT_TRUE(emitters.size() != 0);
+    ASSERT_TRUE(emitters[0] != nullptr);
+    auto particleParams = emitters[0]->GetParticleParams();
+    ASSERT_TRUE(particleParams != nullptr);
+    EXPECT_TRUE(particleParams->emitterConfig_.position_ == position);
+    EXPECT_TRUE(particleParams->emitterConfig_.emitSize_ == emitSize);
+    EXPECT_TRUE(particleParams->emitterConfig_.emitRate_ == emitRate);
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateEmitter005 end";
+}
+
+/**
+ * @tc.name: UpdateEmitter006
+ * @tc.desc: Verify the UpdateEmitter EmitterUpdater = particlesRenderParams_[index]->emitterConfig
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleAnimationTest, UpdateEmitter006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateEmitter006 start";
     uint32_t emitterIndex = 0;
     Vector2f position = Vector2f(0.f, 0.f);
     Vector2f emitSize = Vector2f(10.f, 10.f);
     int emitRate = 20;
     auto para = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
+    uint32_t emitterIndex1 = 1;
+    auto para1 = std::make_shared<EmitterUpdater>(emitterIndex1);
     std::vector<std::shared_ptr<EmitterUpdater>> emitUpdate;
     emitUpdate.push_back(para);
+    emitUpdate.push_back(para1);
     auto renderParticleAnimation =
         std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
     ASSERT_TRUE(renderParticleAnimation != nullptr);
@@ -282,7 +398,7 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateEmitter005, TestSize.Level1)
     EXPECT_TRUE(particleParams->emitterConfig_.position_ == position);
     EXPECT_TRUE(particleParams->emitterConfig_.emitSize_ == emitSize);
     EXPECT_TRUE(particleParams->emitterConfig_.emitRate_ == emitRate);
-    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateEmitter005 end";
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateEmitter006 end";
 }
 
 /**
@@ -366,13 +482,14 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateNoiseField003, TestSize.Level1)
     auto particleNoiseFields = std::make_shared<ParticleNoiseFields>();
     particleNoiseFields->AddField(noiseFiled);
     renderParticleAnimation->UpdateNoiseField(particleNoiseFields);
-    renderParticleAnimation->UpdateNoiseField(particleNoiseFields);
     auto particleSystem = renderParticleAnimation->GetParticleSystem();
     ASSERT_TRUE(particleSystem != nullptr);
     auto noiseFields = particleSystem->GetParticleNoiseFields();
     ASSERT_TRUE(noiseFields != nullptr);
     EXPECT_TRUE(noiseFields->GetFieldCount() == particleNoiseFields->GetFieldCount());
     EXPECT_TRUE(noiseFields->GetField(0) == particleNoiseFields->GetField(0));
+    renderParticleAnimation->particleSystem_ = nullptr;
+    renderParticleAnimation->UpdateNoiseField(particleNoiseFields);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateNoiseField003 end";
 }
 
@@ -411,6 +528,22 @@ HWTEST_F(RSRenderParticleAnimationTest, OnDetach001, TestSize.Level1)
     auto target = renderParticleAnimation->GetTarget();
     EXPECT_TRUE(target == nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest OnDetach001 end";
+}
+
+/**
+ * @tc.name: OnDetach002
+ * @tc.desc: Verify the OnDetach
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleAnimationTest, OnDetach002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest OnDetach002 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+    renderParticleAnimation->OnDetach();
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest OnDetach002 end";
 }
 
 /**

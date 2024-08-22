@@ -95,7 +95,7 @@ public:
 
     float EstimateDuration() const
     {
-        if (dampingRatio_ <= 0.0f) {
+        if (dampingRatio_ <= 0.0f || response_ <= 0.0f) {
             return 0.0f;
         }
 

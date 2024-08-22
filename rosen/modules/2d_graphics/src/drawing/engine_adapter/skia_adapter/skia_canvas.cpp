@@ -27,7 +27,6 @@
 #include "skia_data.h"
 #include "skia_text_blob.h"
 #include "skia_surface.h"
-#include "include/effects/SkRuntimeEffect.h"
 #include "skia_canvas_autocache.h"
 #include "skia_oplist_handle.h"
 
@@ -43,6 +42,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr int32_t MAX_PARA_LEN = 15;
 SkiaCanvas::SkiaCanvas() : skiaCanvas_(std::make_shared<SkCanvas>())
 {
     skCanvas_ = skiaCanvas_.get();
@@ -161,17 +161,12 @@ bool SkiaCanvas::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t ds
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return false;
     }
-    SkImageInfo info;
-    if (dstInfo.GetColorSpace()) {
-        info = SkImageInfo::Make(dstInfo.GetWidth(), dstInfo.GetHeight(),
-                                 SkiaImageInfo::ConvertToSkColorType(dstInfo.GetColorType()),
-                                 SkiaImageInfo::ConvertToSkAlphaType(dstInfo.GetAlphaType()),
-                                 dstInfo.GetColorSpace()->GetImpl<SkiaColorSpace>()->GetColorSpace());
-    } else {
-        info = SkImageInfo::Make(dstInfo.GetWidth(), dstInfo.GetHeight(),
-                                 SkiaImageInfo::ConvertToSkColorType(dstInfo.GetColorType()),
-                                 SkiaImageInfo::ConvertToSkAlphaType(dstInfo.GetAlphaType()));
-    }
+    auto colorSpace = dstInfo.GetColorSpace();
+    auto colorSpaceImpl = colorSpace ? colorSpace->GetImpl<SkiaColorSpace>() : nullptr;
+    SkImageInfo info = SkImageInfo::Make(dstInfo.GetWidth(), dstInfo.GetHeight(),
+                                         SkiaImageInfo::ConvertToSkColorType(dstInfo.GetColorType()),
+                                         SkiaImageInfo::ConvertToSkAlphaType(dstInfo.GetAlphaType()),
+                                         colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : nullptr);
     return skCanvas_->readPixels(info, dstPixels, dstRowBytes, srcX, srcY);
 }
 
@@ -183,6 +178,48 @@ bool SkiaCanvas::ReadPixels(const Bitmap& dstBitmap, int srcX, int srcY)
     }
     const SkBitmap& skBitmap = dstBitmap.GetImpl<SkiaBitmap>()->ExportSkiaBitmap();
     return skCanvas_->readPixels(skBitmap, srcX, srcY);
+}
+
+bool SkiaCanvas::AddSdfPara(SkRuntimeShaderBuilder& builder, const SDFShapeBase& shape)
+{
+    std::vector<float> para = shape.GetPara();
+    std::vector<float> transPara = shape.GetTransPara();
+    uint64_t transCount = transPara.size();
+    uint64_t paraCount = para.size();
+    for (uint64_t i = 1; i <= paraCount; i++) {
+        char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 10.
+        if (sprintf_s(buf, sizeof(buf), "para%lu", i) != -1) {
+            builder.uniform(buf) = para[i-1];
+        } else {
+            LOGE("sdf splicing para error.");
+            return false;
+        }
+    }
+    for (uint64_t i = 1; i <= transCount; i++) {
+        char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 15.
+        if (sprintf_s(buf, sizeof(buf), "transpara%lu", i) != -1) {
+            builder.uniform(buf) = transPara[i-1];
+        } else {
+            LOGE("sdf splicing para error.");
+            return false;
+        }
+    }
+    std::vector<float> color = shape.GetColorPara();
+    builder.uniform("sdfalpha") = color[0]; // color_[0] is color alpha channel.
+    for (uint64_t i = 1; i < color.size(); i++) {
+        char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 15.
+        if (sprintf_s(buf, sizeof(buf), "colpara%lu", i) != -1) {
+            builder.uniform(buf) = color[i];
+        } else {
+            LOGE("sdf splicing para error.");
+            return false;
+        }
+    }
+    builder.uniform("sdfsize") = shape.GetSize();
+    builder.uniform("filltype") = shape.GetFillType();
+    builder.uniform("translatex") = shape.GetTranslateX();
+    builder.uniform("translatey") = shape.GetTranslateY();
+    return true;
 }
 
 void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
@@ -201,33 +238,9 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
     }
     float width = skCanvas_->imageInfo().width();
     SkRuntimeShaderBuilder builder(effect);
-    if (shape.GetParaNum() > 0) {
-        std::vector<float> para = shape.GetPara();
-        std::vector<float> para1 = shape.GetTransPara();
-        uint64_t num1 = para1.size();
-        uint64_t num = para.size();
-        for (uint64_t i = 1; i <= num; i++) {
-            char buf[10] = {0}; // maximum length of string needed is 10.
-            (void)sprintf_s(buf, sizeof(buf), "para%lu", i);
-            builder.uniform(buf) = para[i-1];
-        }
-        for (uint64_t i = 1; i <= num1; i++) {
-            char buf[15] = {0}; // maximum length of string needed is 15.
-            (void)sprintf_s(buf, sizeof(buf), "transpara%lu", i);
-            builder.uniform(buf) = para1[i-1];
-        }
-        std::vector<float> color = shape.GetColorPara();
-        builder.uniform("fillcolpara1") = color[0];
-        builder.uniform("fillcolpara2") = color[1]; // color_[1] is fillcolor green channel.
-        builder.uniform("fillcolpara3") = color[2]; // color_[2] is fillcolor blue channel.
-        builder.uniform("strokecolpara1") = color[3]; // color_[3] is strokecolor red channel.
-        builder.uniform("strokecolpara2") = color[4]; // color_[4] is strokecolor green channel.
-        builder.uniform("strokecolpara3") = color[5]; // color_[5] is strokecolor blue channel.
-        builder.uniform("sdfalpha") = color[6]; // color_[6] is color alpha channel.
-        builder.uniform("sdfsize") = shape.GetSize();
-        builder.uniform("filltype") = shape.GetFillType();
-        builder.uniform("translatex") = shape.GetTranslateX();
-        builder.uniform("translatey") = shape.GetTranslateY();
+    if (shape.GetParaNum() <= 0 || !AddSdfPara(builder, shape)) {
+        LOGE("sdf para error.");
+        return;
     }
     builder.uniform("width") = width;
     auto shader = builder.makeShader(nullptr, false);
@@ -521,6 +534,16 @@ void SkiaCanvas::DrawVertices(const Vertices& vertices, BlendMode mode, const Pa
 void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    if (!image) {
+        LOGD("image is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
     auto skImageImpl = image->GetImpl<SkiaImage>();
     sk_sp<SkImage> img = nullptr;
     if (skImageImpl != nullptr) {
@@ -549,6 +572,11 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
 {
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    if (!image) {
+        LOGD("image is null, return on line %{public}d", __LINE__);
         return;
     }
 
@@ -1102,6 +1130,10 @@ uint32_t SkiaCanvas::GetSaveCount() const
 
 void SkiaCanvas::Discard()
 {
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
     skCanvas_->discard();
 }
 
@@ -1173,6 +1205,11 @@ void SkiaCanvas::Reset(int32_t width, int32_t height)
 
 bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams)
 {
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+
     auto skImageImpl = image.GetImpl<SkiaImage>();
     if (skImageImpl == nullptr) {
         LOGE("skImageImpl is null, return on line %{public}d", __LINE__);

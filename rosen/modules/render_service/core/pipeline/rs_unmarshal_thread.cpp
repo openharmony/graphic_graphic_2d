@@ -61,20 +61,32 @@ void RSUnmarshalThread::PostTask(const std::function<void()>& task)
     }
 }
 
-void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
+void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling, pid_t callingPid)
 {
-    if (!handler_) {
-        RS_LOGE("RSUnmarshalThread::RecvParcel handler_ is nullptr");
+    if (!handler_ || !parcel) {
+        RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, handler: %{public}d, parcel: %{public}d",
+            (!handler_), (!parcel));
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
-    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal]() {
+    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid]() {
         SetFrameParam(REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
         SetFrameLoad(REQUEST_FRAME_AWARE_LOAD);
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
         SetFrameLoad(REQUEST_FRAME_STANDARD_LOAD);
         if (!transData) {
             return;
+        }
+        if (isNonSystemAppCalling) {
+            const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+            pid_t conflictCommandPid = 0;
+            std::string commandMapDesc = "";
+            if (!transData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid, commandMapDesc)) {
+                RS_LOGE("RSUnmarshalThread::RecvParcel non-system callingPid %{public}d"
+                        " is denied to access commandPid %{public}d, commandMap = %{public}s",
+                        callingPid, conflictCommandPid, commandMapDesc.c_str());
+                return;
+            }
         }
         RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
         {

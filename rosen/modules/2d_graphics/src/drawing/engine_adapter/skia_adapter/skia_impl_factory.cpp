@@ -38,7 +38,7 @@
 #include "skia_adapter/skia_path_effect.h"
 #include "skia_adapter/skia_picture.h"
 #include "skia_adapter/skia_region.h"
-#include "skia_adapter/skia_resourece_holder.h"
+#include "skia_adapter/skia_resource_holder.h"
 #include "skia_adapter/skia_shader_effect.h"
 #include "skia_adapter/skia_runtime_blender_builder.h"
 #include "skia_adapter/skia_runtime_effect.h"
@@ -208,16 +208,6 @@ std::unique_ptr<RegionImpl> SkiaImplFactory::CreateRegion()
     return std::make_unique<SkiaRegion>();
 }
 
-std::unique_ptr<VerticesImpl> SkiaImplFactory::CreateVertices()
-{
-    return std::make_unique<SkiaVertices>();
-}
-
-std::unique_ptr<VerticesImpl::BuilderImpl> SkiaImplFactory::CreateVerticesBuilder()
-{
-    return std::make_unique<SkiaVertices::SkiaBuilder>();
-}
-
 std::unique_ptr<FontImpl> SkiaImplFactory::CreateFont()
 {
     return std::make_unique<SkiaFont>();
@@ -250,6 +240,16 @@ std::shared_ptr<FontMgrImpl> SkiaImplFactory::CreateDynamicFontMgr()
     return SkiaFontMgr::CreateDynamicFontMgr();
 }
 #endif
+
+std::unique_ptr<VerticesImpl> SkiaImplFactory::CreateVertices()
+{
+    return std::make_unique<SkiaVertices>();
+}
+
+std::unique_ptr<VerticesImpl::BuilderImpl> SkiaImplFactory::CreateVerticesBuilder()
+{
+    return std::make_unique<SkiaVertices::SkiaBuilder>();
+}
 
 std::shared_ptr<MemoryStreamImpl> SkiaImplFactory::CreateMemoryStream()
 {

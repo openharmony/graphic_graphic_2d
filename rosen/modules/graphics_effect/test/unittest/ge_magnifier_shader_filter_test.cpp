@@ -177,5 +177,28 @@ HWTEST_F(GEMagnifierShaderFilterTest, ConvertToRgba002, TestSize.Level1)
     filter->ConvertToRgba(color1, maskColor1, 3);
     filter->ConvertToRgba(color1, nullptr, 3);
 }
+
+/**
+ * @tc.name: MakeMagnifierShader001
+ * @tc.desc: Verify function MakeMagnifierShader
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEMagnifierShaderFilterTest, MakeMagnifierShader001, TestSize.Level1)
+{
+    Drawing::GEMagnifierShaderFilterParams params{1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0x00000000, 0x00000000,
+        0x00000000, 0x00000000};
+    auto filter = std::make_shared<GEMagnifierShaderFilter>(params);
+    ASSERT_TRUE(filter != nullptr);
+    filter->magnifierPara_ = nullptr;
+    Drawing::Matrix matrix;
+    EXPECT_NE(image_, nullptr);
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image_, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
+    float imageWidth = image_->GetWidth();
+    float imageHeight = image_->GetHeight();
+    auto builder = filter->MakeMagnifierShader(imageShader, imageWidth, imageHeight);
+    EXPECT_EQ(builder, nullptr);
+}
+
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

@@ -42,10 +42,10 @@ private:
     constexpr static int MAX_RESOLUTION = 4000;
     constexpr static float SEARCH_STEP = 1.0f / MAX_RESOLUTION;
 
-    float controlX1_;
-    float controlY1_;
-    float controlX2_;
-    float controlY2_;
+    float controlX1_ { 0.0 };
+    float controlY1_ { 0.0 };
+    float controlX2_ { 0.0 };
+    float controlY2_ { 0.0 };
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -13,5 +13,8 @@
 
 group("fuzztest") {
   testonly = true
-  deps = [ "rsanimation_fuzzer:fuzztest" ]
+  deps = [
+    "rsanimation_fuzzer:fuzztest",
+    "rsuieffect_fuzzer:fuzztest",
+  ]
 }

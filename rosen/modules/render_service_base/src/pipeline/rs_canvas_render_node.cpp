@@ -246,21 +246,28 @@ void RSCanvasRenderNode::ApplyDrawCmdModifier(RSModifierContext& context, RSModi
     }
 }
 
-void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas)
+void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool needApplyMatrix)
 {
     RSModifierContext context = { GetMutableRenderProperties(), &canvas };
-    canvas.Translate(GetRenderProperties().GetFrameOffsetX(), GetRenderProperties().GetFrameOffsetY());
 
-    if (GetRenderProperties().GetClipToFrame()) {
-        RSPropertiesPainter::Clip(canvas, GetRenderProperties().GetFrameRect());
+    if (needApplyMatrix) {
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CONTENT_STYLE, canvas);
+    } else {
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::OUTLINE, RSPropertyDrawableSlot::CONTENT_STYLE, canvas);
     }
-    ApplyDrawCmdModifier(context, RSModifierType::CONTENT_STYLE);
 
-    // temporary solution for drawing children
     for (auto& child : *GetSortedChildren()) {
         if (auto canvasChild = ReinterpretCast<RSCanvasRenderNode>(child)) {
-            canvasChild->InternalDrawContent(canvas);
+            canvasChild->InternalDrawContent(canvas, true);
         }
+    }
+
+    if (needApplyMatrix) {
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::RESTORE_ALL,
+            canvas);
+    } else {
+        DrawPropertyDrawableRange(RSPropertyDrawableSlot::FOREGROUND_STYLE, RSPropertyDrawableSlot::PIXEL_STRETCH,
+            canvas);
     }
 }
 } // namespace Rosen

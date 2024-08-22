@@ -234,6 +234,9 @@ public:
      * @return true if pixel storage is allocated
      */
     bool TryAllocPixels(const ImageInfo& info);
+
+    inline void Dump(std::string& out) const;
+
     template<typename T>
     T* GetImpl() const
     {
@@ -246,6 +249,16 @@ public:
 private:
     std::shared_ptr<BitmapImpl> bmpImplPtr;
 };
+
+inline void Bitmap::Dump(std::string& out) const
+{
+    out += "[width:" + std::to_string(bmpImplPtr->GetWidth());
+    out += " height:" + std::to_string(bmpImplPtr->GetHeight());
+    out += " rowBytes:" + std::to_string(bmpImplPtr->GetRowBytes());
+    out += " colorType:" + std::to_string(static_cast<int>(bmpImplPtr->GetColorType()));
+    out += " alphaType:" + std::to_string(static_cast<int>(bmpImplPtr->GetAlphaType()));
+    out += "]";
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

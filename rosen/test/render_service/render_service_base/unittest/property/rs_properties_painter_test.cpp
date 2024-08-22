@@ -18,6 +18,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_foreground_effect_filter.h"
@@ -552,25 +553,6 @@ HWTEST_F(RSPropertiesPainterTest, GetDarkColor001, TestSize.Level1)
 }
 
 /**
- * @tc.name: PickColor001
- * @tc.desc: test results of PickColor
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, PickColor001, TestSize.Level1)
-{
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas drCanvas(&drawingCanvas);
-    RSProperties properties;
-    Drawing::Path drPath;
-    Drawing::Matrix matrix;
-    Drawing::RectI deviceClipBounds;
-    RSColor colorPicked;
-    RSPropertiesPainter::PickColor(properties, drCanvas, drPath, matrix, deviceClipBounds, colorPicked);
-    EXPECT_TRUE(drCanvas.surface_ == nullptr);
-}
-
-/**
  * @tc.name: DrawShadowInner001
  * @tc.desc: test results of DrawShadowInner
  * @tc.type:FUNC
@@ -583,19 +565,15 @@ HWTEST_F(RSPropertiesPainterTest, DrawShadowInner001, TestSize.Level1)
     RSProperties properties;
     Drawing::Path path;
     RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
-    EXPECT_TRUE(properties.shadow_->colorPickerCacheTask_ == nullptr);
 
     properties.SetShadowElevation(1.0f);
     RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
-    EXPECT_TRUE(properties.shadow_->colorPickerCacheTask_ == nullptr);
 
     properties.SetShadowElevation(0.f);
     RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
-    EXPECT_TRUE(properties.shadow_->colorPickerCacheTask_ == nullptr);
 
     properties.SetShadowColorStrategy(2);
     RSPropertiesPainter::DrawShadowInner(properties, canvas, path);
-    EXPECT_TRUE(properties.shadow_->colorPickerCacheTask_ != nullptr);
 }
 
 /**

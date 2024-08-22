@@ -17,7 +17,6 @@
 #define HGM_MULTI_APP_STRATEGY_H
 
 #include <functional>
-#include <mutex>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -85,30 +84,26 @@ private:
         PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate = false);
     void OnStrategyChange();
 
-    std::mutex pkgsMutex_;
     std::vector<std::string> pkgs_;
     std::unordered_map<std::string, std::pair<pid_t, int32_t>> pidAppTypeMap_;
     std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap_;
     HgmLRUCache<pid_t> backgroundPid_{ 100 }; // max nums of pkgs that can be stored is 100
-    std::mutex pidAppTypeMutex_;
     std::pair<HgmErrCode, PolicyConfigData::StrategyConfig> voteRes_ = { HGM_ERROR, {
         .min = OledRefreshRate::OLED_NULL_HZ,
         .max = OledRefreshRate::OLED_120_HZ,
         .dynamicMode = DynamicModeType::TOUCH_ENABLED,
+        .idleFps = OledRefreshRate::OLED_NULL_HZ,
         .drawMin = OledRefreshRate::OLED_NULL_HZ,
         .drawMax = OledRefreshRate::OLED_120_HZ,
         .down = OledRefreshRate::OLED_120_HZ,
     }};
-    std::mutex touchInfoMutex_;
     TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE, OLED_120_HZ }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
-    std::atomic<bool> lightFactorStatus_{false};
+    std::atomic<bool> lightFactorStatus_{ false };
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
 
-    std::mutex updateCacheMutex_;
     PolicyConfigData::ScreenSetting& screenSettingCache_;
     PolicyConfigData::StrategyConfigMap& strategyConfigMapCache_;
-    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

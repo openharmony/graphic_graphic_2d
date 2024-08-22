@@ -271,6 +271,44 @@ HWTEST_F(RSRenderEngineTest, DrawWithParams005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawWithParams006
+ * @tc.desc: test DrawWithParams when param.useCPU are true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderEngineTest, DrawWithParams006, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    param.useCPU = true;
+    param.setColorFilter = true;
+    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
+    ASSERT_NE(canvas, nullptr);
+}
+
+/**
+ * @tc.name: DrawWithParams007
+ * @tc.desc: test DrawWithParams when param.useCPU are true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderEngineTest, DrawWithParams007, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto param = RSDividedRenderUtil::CreateBufferDrawParam(*node);
+    param.useCPU = true;
+    param.setColorFilter = false;
+    renderEngine->DrawWithParams(*canvas, param, nullptr, nullptr);
+    ASSERT_NE(canvas, nullptr);
+}
+
+/**
  * @tc.name: RSSurfaceNodeCommonPreProcess
  * @tc.desc: test RSSurfaceNodeCommonPreProcess without filter, expect no error
  * @tc.type: FUNC
@@ -341,139 +379,36 @@ HWTEST_F(RSRenderEngineTest, SetColorFilterModeToPaint, TestSize.Level1)
     ASSERT_NE(brush, nullptr);
 }
 
-/*
- * @tc.name: CaptureSurfaceInDisplayWithUni006
- * @tc.desc: Test RSRenderEngineTest.CaptureSurfaceInDisplayWithUni
+/**
+ * @tc.name: SetColorFilterModeToPaint002
+ * @tc.desc: test SetColorFilterModeToPaint, expect no error
  * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSRenderEngineTest, CaptureSurfaceInDisplayWithUni006, Function | SmallTest | Level2)
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSRenderEngineTest, SetColorFilterModeToPaint002, TestSize.Level1)
 {
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->SetSecurityLayer(true);
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
+    RSRenderEngine::colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    std::unique_ptr<Drawing::Brush> brush = std::make_unique<Drawing::Brush>();
+    renderEngine->SetColorFilterModeToPaint(*brush);
+    ASSERT_NE(brush, nullptr);
 }
 
-/*
- * @tc.name: CaptureSurfaceInDisplayWithUni004
- * @tc.desc: Test RSRenderEngineTest.CaptureSurfaceInDisplayWithUni
+/**
+ * @tc.name: SetColorFilterModeToPaint003
+ * @tc.desc: test SetColorFilterModeToPaint, expect no error
  * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSRenderEngineTest, CaptureSurfaceInDisplayWithUni004, Function | SmallTest | Level2)
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSRenderEngineTest, SetColorFilterModeToPaint003, TestSize.Level1)
 {
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceNode->SetSecurityLayer(false);
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: CaptureSurfaceInDisplayWithUni001
- * @tc.desc: Test RSRenderEngineTest.CaptureSurfaceInDisplayWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSRenderEngineTest, CaptureSurfaceInDisplayWithUni001, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceNode->SetSecurityLayer(true);
-    if (isUnirender) {
-        visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-    }
-}
-
-/*
- * @tc.name: CaptureSurfaceInDisplayWithUni002
- * @tc.desc: Test RSRenderEngineTest.CaptureSurfaceInDisplayWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSRenderEngineTest, CaptureSurfaceInDisplayWithUni002, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->SetSecurityLayer(false);
-    if (isUnirender) {
-        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
-            visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-        }
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNodeWithUni001
- * @tc.desc: Test RSRenderEngineTest.ProcessSurfaceRenderNodeWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNodeWithUni001, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    surfaceNode->GetMutableRenderProperties().SetBackgroundFilter(nullptr);
-    if (isUnirender) {
-        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
-            visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-        }
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNodeWithUni002
- * @tc.desc: Test RSRenderEngineTest.ProcessSurfaceRenderNodeWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNodeWithUni002, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    visitor_->isDisplayNode_ = true;
-    if (isUnirender) {
-        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
-            visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-        }
-    }
-}
-
-/*
- * @tc.name: ProcessSurfaceRenderNodeWithUni003
- * @tc.desc: Test RSRenderEngineTest.ProcessSurfaceRenderNodeWithUni
- * @tc.type: FUNC
- * @tc.require: issueI794H6
-*/
-HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNodeWithUni003, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    visitor_->isDisplayNode_ = false;
-    if (isUnirender) {
-        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
-            visitor_->CaptureSurfaceInDisplayWithUni(*surfaceNode);
-        }
-    }
+    RSRenderEngine::colorFilterMode_ = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    std::unique_ptr<Drawing::Brush> brush = std::make_unique<Drawing::Brush>();
+    renderEngine->SetColorFilterModeToPaint(*brush);
+    ASSERT_NE(brush, nullptr);
 }
 
 /*
@@ -589,52 +524,6 @@ HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNode008, Function | SmallTest |
             RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
             visitor_->ProcessSurfaceRenderNode(*surfaceNode);
         }
-    }
-}
-
-/*
- * @tc.name: CaptureSingleSurfaceNodeWithUni001
- * @tc.desc: Test RSRenderEngineTest.CaptureSingleSurfaceNodeWithUni when SecurityLayer is true
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSRenderEngineTest, CaptureSingleSurfaceNodeWithUni001, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(nullptr, surfaceNode);
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->SetSecurityLayer(true);
-    if (isUnirender) {
-        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
-            visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);
-        }
-    }
-}
-
-/*
- * @tc.name: CaptureSingleSurfaceNodeWithUni002
- * @tc.desc: Test RSRenderEngineTest.CaptureSingleSurfaceNodeWithUni when SecurityLayer is false
- * @tc.type: FUNC
- * @tc.require: issueI7G9F0
- */
-HWTEST_F(RSRenderEngineTest, CaptureSingleSurfaceNodeWithUni002, Function | SmallTest | Level2)
-{
-    bool isUnirender = RSUniRenderJudgement::IsUniRender();
-    ASSERT_NE(nullptr, visitor_);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(nullptr, surfaceNode);
-    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
-    surfaceNode->SetSecurityLayer(false);
-    Vector4f cornerRadius(1.f, 2.f, 0.f, 0.f);
-    surfaceNode->GetMutableRenderProperties().SetCornerRadius(cornerRadius);
-    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(5.0f, 5.0f);
-    surfaceNode->GetMutableRenderProperties().SetFilter(filter);
-    if (isUnirender &&
-        RSSystemParameters::GetRsSurfaceCaptureType() == RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD) {
-        visitor_->CaptureSingleSurfaceNodeWithUni(*surfaceNode);
     }
 }
 }

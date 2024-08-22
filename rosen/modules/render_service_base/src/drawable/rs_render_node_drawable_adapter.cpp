@@ -25,6 +25,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_effect_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
@@ -173,7 +174,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         return;
     }
 
-    if (end > static_cast<int8_t>(drawCmdList_.size())) {
+    if (static_cast<uint32_t>(end) > drawCmdList_.size()) {
         ROSEN_LOGE("RSRenderNodeDrawableAdapter::DrawRangeImpl, end is invalid");
         return;
     }
@@ -200,7 +201,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
 
 void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const
 {
-    if (drawCmdList_.empty() || index < 0 || index >= static_cast<int8_t>(drawCmdList_.size())) {
+    if (drawCmdList_.empty() || index < 0 || static_cast<uint32_t>(index) >= drawCmdList_.size()) {
         return;
     }
 
@@ -270,6 +271,65 @@ void RSRenderNodeDrawableAdapter::DrawForeground(Drawing::Canvas& canvas, const 
 void RSRenderNodeDrawableAdapter::DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     DrawRangeImpl(canvas, rect, 0, drawCmdIndex_.endIndex_);
+}
+
+// can only run in sync mode
+void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const
+{
+    for (int32_t i = 0; i < depth; ++i) {
+        out += "  ";
+    }
+    auto renderNode = (depth == 0 && nodeId_ == INVALID_NODEID) ? context.GetGlobalRootRenderNode()
+                                                : context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId_);
+    if (renderNode == nullptr) {
+        out += "[" + std::to_string(nodeId_) + ": nullptr]\n";
+        return;
+    }
+    RSRenderNode::DumpNodeType(nodeType_, out);
+    out += "[" + std::to_string(nodeId_) + "]";
+    renderNode->DumpSubClassNode(out);
+    out += ", DrawableVec:[" + DumpDrawableVec(renderNode) + "]";
+    if (renderParams_ == nullptr) {
+        out += ", StagingParams null";
+    } else {
+        out += ", " + renderParams_->ToString();
+    }
+
+    if (skipType_ != SkipType::NONE) {
+        out += ", SkipType:" + std::to_string(static_cast<int>(skipType_));
+        out += ", SkipIndex:" + std::to_string(GetSkipIndex());
+    }
+    out += "\n";
+
+    auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
+        renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
+    if (childrenDrawable) {
+        for (const auto& renderNodeDrawable : childrenDrawable->childrenDrawableVec_) {
+            renderNodeDrawable->DumpDrawableTree(depth + 1, out, context);
+        }
+    }
+}
+
+// can only run in sync mode
+std::string RSRenderNodeDrawableAdapter::DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const
+{
+    if (renderNode == nullptr) {
+        return "";
+    }
+    const auto& drawableVec = renderNode->drawableVec_;
+    std::string str;
+    for (uint8_t i = 0; i < drawableVec.size(); ++i) {
+        if (drawableVec[i]) {
+            str += std::to_string(i) + ", ";
+        }
+    }
+    // str has more than 2 chars
+    if (str.length() > 2) {
+        str.pop_back();
+        str.pop_back();
+    }
+
+    return str;
 }
 
 bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect)

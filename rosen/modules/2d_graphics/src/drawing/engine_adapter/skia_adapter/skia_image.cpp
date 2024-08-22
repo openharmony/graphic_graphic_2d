@@ -15,12 +15,6 @@
 
 #include "skia_image.h"
 
-#include "skia_bitmap.h"
-#include "skia_data.h"
-#include "skia_image_info.h"
-#include "skia_pixmap.h"
-#include "skia_surface.h"
-#include "skia_texture_info.h"
 #include "src/core/SkAutoMalloc.h"
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
@@ -33,6 +27,13 @@
 #include "utils/data.h"
 #include "utils/log.h"
 #include "utils/system_properties.h"
+
+#include "skia_bitmap.h"
+#include "skia_data.h"
+#include "skia_image_info.h"
+#include "skia_pixmap.h"
+#include "skia_surface.h"
+#include "skia_texture_info.h"
 
 #ifdef ACE_ENABLE_GPU
 #include "include/core/SkYUVAPixmaps.h"
@@ -188,7 +189,7 @@ bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rec
 }
 
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
-    CompressedType type)
+    CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace)
 {
     if (data == nullptr) {
         LOGD("SkiaImage::BuildFromCompressed, build failed, data is invalid");
@@ -197,8 +198,14 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto skData = data->GetImpl<SkiaData>()->GetSkData();
     PostSkImgToTargetThread();
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr) {
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
+    }
     skiaImage_ = SkImage::MakeTextureFromCompressed(grContext_.get(),
-        skData, width, height, static_cast<SkImage::CompressionType>(type));
+        skData, width, height, static_cast<SkImage::CompressionType>(type),
+        GrMipmapped::kNo, GrProtected::kNo, skColorSpace);
     return (skiaImage_ != nullptr) ? true : false;
 }
 

@@ -16,6 +16,7 @@
 #include "memory/rs_memory_manager.h"
 
 #include <malloc.h>
+#include <string>
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
 
@@ -86,7 +87,7 @@ void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawi
 void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+    Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseAllGpuResource");
     ReleaseAllGpuResource(gpuContext, tag);
 #endif
 }
@@ -131,7 +132,7 @@ void MemoryManager::PurgeCacheBetweenFrames(Drawing::GPUContext* gpuContext, boo
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, NodeId surfaceNodeId)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
+    Drawing::GPUResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0, "ReleaseUnlockGpuResource");
     ReleaseUnlockGpuResource(grContext, tag);
 #endif
 }
@@ -139,7 +140,7 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, Nod
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+    Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
 #endif
 }
@@ -179,7 +180,8 @@ float MemoryManager::GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext)
     auto total = trace.GetGpuMemorySizeInMB();
     float rsMemSize = 0.f;
     for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
-        Drawing::GPUResourceTag resourceTag(0, 0, 0, tagtype);
+        Drawing::GPUResourceTag resourceTag(0, 0, 0, tagtype,
+            RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype)));
         Drawing::TraceMemoryDump gpuTrace("category", true);
         gpuContext->DumpMemoryStatisticsByTag(&gpuTrace, resourceTag);
         rsMemSize += gpuTrace.GetGpuMemorySizeInMB();
@@ -220,7 +222,7 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* 
     // Count mem of Skia GPU
     if (gpuContext) {
         Drawing::TraceMemoryDump gpuTracer("category", true);
-        Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+        Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
         gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, tag);
         float gpuMem = gpuTracer.GetGLMemorySize();
         totalMemGraphic.IncreaseGpuMemory(gpuMem);
@@ -254,14 +256,19 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
         (node->GetRenderProperties().GetBoundsGeometry())->GetAbsRect();
     // Obtain the window according to childId
     auto parent = node->GetParent().lock();
+    bool windowsNameFlag = false;
     while (parent) {
         if (parent->IsInstanceOf<RSSurfaceRenderNode>()) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parent);
             windowName = surfaceNode->GetName();
             windowId = surfaceNode->GetId();
+            windowsNameFlag = true;
             break;
         }
         parent = parent->GetParent().lock();
+    }
+    if (!windowsNameFlag) {
+        windowName = "EXISTS-BUT-NO-SURFACE";
     }
     return { windowId, windowName, nodeFrameRect };
 }
@@ -275,7 +282,16 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log)
 void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
 {
     // CPU
-    log.AppendFormat("\n----------\nSkia CPU caches:\n");
+    std::string cpuInfo = "Skia CPU caches : pid:" + std::to_string(getpid()) +
+        ", threadId:" + std::to_string(gettid());
+#ifdef ROSEN_OHOS
+    char threadName[16]; // thread name is restricted to 16 bytes
+    auto result = pthread_getname_np(pthread_self(), threadName, sizeof(threadName));
+    if (result == 0) {
+        cpuInfo = cpuInfo + ", threadName: " + threadName;
+    }
+#endif
+    log.AppendFormat("\n----------\n%s\n", cpuInfo.c_str());
     log.AppendFormat("Font Cache (CPU):\n");
     log.AppendFormat("  Size: %.2f kB \n", Drawing::SkiaGraphics::GetFontCacheUsed() / MEMUNIT_RATE);
     log.AppendFormat("  Glyph Count: %d \n", Drawing::SkiaGraphics::GetFontCacheCountUsed());
@@ -338,7 +354,7 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
     }
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     for (auto& nodeTag : nodeTags) {
-        Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0);
+        Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0, nodeTag.second);
         DumpGpuCache(log, gpuContext, &tag, nodeTag.second);
     }
 #endif
@@ -353,15 +369,22 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     }
     /* GPU */
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    std::string gpuInfo;
+    std::string gpuInfo = "pid:" + std::to_string(getpid()) + ", threadId:" + std::to_string(gettid());
+#ifdef ROSEN_OHOS
+    char threadName[16]; // thread name is restricted to 16 bytes
+    auto result = pthread_getname_np(pthread_self(), threadName, sizeof(threadName));
+    if (result == 0) {
+        gpuInfo = gpuInfo + ", threadName: " + threadName;
+    }
+#endif
     // total
     DumpGpuCache(log, gpuContext, nullptr, gpuInfo);
     // Get memory of window by tag
     DumpAllGpuInfo(log, gpuContext, nodeTags);
     for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
-        Drawing::GPUResourceTag tag(0, 0, 0, tagtype);
-        std::string tagType = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
-        DumpGpuCache(log, gpuContext, &tag, tagType);
+        std::string tagTypeName = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
+        Drawing::GPUResourceTag tag(0, 0, 0, tagtype, tagTypeName);
+        DumpGpuCache(log, gpuContext, &tag, tagTypeName);
     }
     // cache limit
     size_t cacheLimit = 0;
@@ -407,5 +430,17 @@ void MemoryManager::DumpMallocStat(std::string& log)
             }
         },
         &log, nullptr);
+}
+
+void MemoryManager::VmaDefragment(Drawing::GPUContext* gpuContext)
+{
+#if defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("VmaDefragment fail, gpuContext is nullptr");
+        return;
+    }
+    RS_TRACE_NAME_FMT("VmaDefragment");
+    gpuContext->VmaDefragment();
+#endif
 }
 } // namespace OHOS::Rosen

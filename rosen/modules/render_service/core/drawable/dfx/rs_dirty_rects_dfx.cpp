@@ -31,12 +31,14 @@
 #include "hgm_core.h"
 
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/rs_uni_render_util.h"
 
 namespace OHOS::Rosen {
 namespace {
 // DFX drawing alpha
 constexpr float DFXFillAlpha = 0.2f;
 constexpr float DFXFontSize = 24.f;
+constexpr float HWC_DFX_FILL_ALPHA = 0.3f;
 }
 
 static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
@@ -50,6 +52,7 @@ static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
     { DirtyRegionType::CANVAS_NODE_SKIP_RECT, "CANVAS_NODE_SKIP_RECT" },
     { DirtyRegionType::OUTLINE_RECT, "OUTLINE_RECT" },
     { DirtyRegionType::SUBTREE_SKIP_RECT, "SUBTREE_SKIP_RECT" },
+    { DirtyRegionType::SUBTREE_SKIP_OUT_OF_PARENT_RECT, "SUBTREE_SKIP_OUT_OF_PARENT_RECT" },
 };
 
 void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
@@ -88,6 +91,10 @@ void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
         DrawCurrentRefreshRate();
     }
 
+    if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
+        DrawHwcRegionForDFX();
+    }
+
     DrawableV2::RSRenderNodeDrawable::DrawDfxForCacheInfo(*canvas_);
 }
 
@@ -106,6 +113,30 @@ void RSDirtyRectsDfx::OnDrawVirtual(std::shared_ptr<RSPaintFilterCanvas> canvas)
     canvas_ = canvas;
     if (renderThreadParams->isVirtualDirtyDfxEnabled_) {
         DrawDirtyRegionInVirtual();
+    }
+}
+
+void RSDirtyRectsDfx::DrawHwcRegionForDFX() const
+{
+    auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    static uint32_t updateCnt = 0;
+    if (++updateCnt == UINT32_MAX) {
+        updateCnt = 0;
+    }
+    for (const auto& drawable : hardwareDrawables) {
+        if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+        std::string extraInfo = surfaceParams->GetName() + " UpdateCnt: " + std::to_string(updateCnt);
+        if (surfaceParams->GetHardwareEnabled()) {
+            RSUniRenderUtil::DrawRectForDfx(*canvas_, surfaceParams->GetDstRect(), Drawing::Color::COLOR_BLUE,
+                HWC_DFX_FILL_ALPHA, extraInfo);
+        } else {
+            RSUniRenderUtil::DrawRectForDfx(*canvas_, surfaceParams->GetDstRect(), Drawing::Color::COLOR_RED,
+                HWC_DFX_FILL_ALPHA, extraInfo);
+        }
     }
 }
 
@@ -313,6 +344,7 @@ bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(
         { DirtyRegionDebugType::RENDER_PROPERTIES_RECT, DirtyRegionType::RENDER_PROPERTIES_RECT },
         { DirtyRegionDebugType::CANVAS_NODE_SKIP_RECT, DirtyRegionType::CANVAS_NODE_SKIP_RECT },
         { DirtyRegionDebugType::OUTLINE_RECT, DirtyRegionType::OUTLINE_RECT },
+        { DirtyRegionDebugType::SUBTREE_SKIP_OUT_OF_PARENT_RECT, DirtyRegionType::SUBTREE_SKIP_OUT_OF_PARENT_RECT },
     };
     auto matchType = DIRTY_REGION_DEBUG_TYPE_MAP.find(dirtyRegionDebugType);
     if (matchType != DIRTY_REGION_DEBUG_TYPE_MAP.end()) {
@@ -383,7 +415,7 @@ void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
             for (auto& rect : visibleDirtyRects) {
                 rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
             }
-            const auto& visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
+            const auto visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
             auto displayDirtyRegion = dirtyManager->GetDirtyRegion();
             for (auto& rect : visibleRects) {
                 auto visibleRect = RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
@@ -408,7 +440,7 @@ void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX() const
             continue;
         }
         if (CheckIfSurfaceTargetedForDFX(surfaceParams->GetName())) {
-            const auto& visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
+            const auto visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
             std::vector<RectI> rects;
             for (auto& rect : visibleRects) {
                 rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);

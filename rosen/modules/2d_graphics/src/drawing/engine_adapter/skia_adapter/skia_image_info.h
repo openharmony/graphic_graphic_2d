@@ -56,6 +56,8 @@ public:
                 return kARGB_4444_SkColorType;
             case COLORTYPE_RGBA_8888:
                 return kRGBA_8888_SkColorType;
+            case COLORTYPE_RGB_888X:
+                return kRGB_888x_SkColorType;
             case COLORTYPE_BGRA_8888:
                 return kBGRA_8888_SkColorType;
             case COLORTYPE_RGBA_F16:
@@ -110,6 +112,8 @@ public:
                 return COLORTYPE_ARGB_4444;
             case kRGBA_8888_SkColorType:
                 return COLORTYPE_RGBA_8888;
+            case kRGB_888x_SkColorType:
+                return COLORTYPE_RGB_888X;
             case kBGRA_8888_SkColorType:
                 return COLORTYPE_BGRA_8888;
             case kRGBA_F16_SkColorType:

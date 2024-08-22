@@ -16,6 +16,7 @@
 #ifndef POINT3_H
 #define POINT3_H
 
+#include <string>
 #include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
@@ -52,6 +53,8 @@ public:
     friend inline const Point3 operator-(const Point3& p);
     friend inline bool operator==(const Point3& p1, const Point3& p2);
     friend inline bool operator!=(const Point3& p1, const Point3& p2);
+
+    inline void Dump(std::string& out) const;
 
 private:
     scalar x_;
@@ -179,6 +182,15 @@ inline bool operator!=(const Point3& p1, const Point3& p2)
 {
     return !IsScalarAlmostEqual(p1.x_, p2.x_) || !IsScalarAlmostEqual(p1.y_, p2.y_) ||
         !IsScalarAlmostEqual(p1.z_, p2.z_);
+}
+
+inline void Point3::Dump(std::string& out) const
+{
+    out += "[";
+    out += "x:" + std::to_string(x_);
+    out += " y:" + std::to_string(y_);
+    out += " z:" + std::to_string(z_);
+    out += "]";
 }
 } // namespace Drawing
 } // namespace Rosen

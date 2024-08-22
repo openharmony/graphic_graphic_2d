@@ -242,6 +242,24 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PatchTypefaceIds
+ * @tc.desc: Test the PatchTypefaceIds function.
+ * @tc.type: FUNC
+ * @tc.require: IAIBB4
+ */
+HWTEST_F(DrawCmdTest, PatchTypefaceIds001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    OpDataHandle opDataHandle;
+    uint64_t globalUniqueId = 1;
+    PaintHandle paintHandle;
+    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId, 0, 0, paintHandle};
+    GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
+    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle);
+    drawCmdList->PatchTypefaceIds();
+}
+
+/**
  * @tc.name: DrawShadowOpItem001
  * @tc.desc: Test DrawShadowOpItem
  * @tc.type: FUNC

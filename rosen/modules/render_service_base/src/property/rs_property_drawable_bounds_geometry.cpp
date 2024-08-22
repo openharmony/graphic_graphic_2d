@@ -423,7 +423,7 @@ void RSPixelMapMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterC
     canvas.SaveLayer(slrMask);
     {
         Drawing::AutoCanvasRestore acr(canvas, true);
-        if (mask_->GetImage()) {
+        if (mask_ && mask_->GetImage()) {
             canvas.DrawImage(*mask_->GetImage(), 0.f, 0.f, Drawing::SamplingOptions());
         }
     }
@@ -485,31 +485,6 @@ void RSShadowBaseDrawable::ClipShadowPath(
     }
 }
 
-RSColor RSShadowDrawable::GetColorForShadow(const RSRenderContent& content, RSPaintFilterCanvas& canvas,
-    Drawing::Path& skPath, Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds) const
-{
-    RSColor colorPicked;
-    const RSProperties& properties = content.GetRenderProperties();
-    // shadow alpha follow setting
-    auto shadowAlpha = color_.GetAlpha();
-    auto colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (colorPickerTask != nullptr &&
-        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        if (RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked)) {
-            RSPropertiesPainter::GetDarkColor(colorPicked);
-        } else {
-            shadowAlpha = 0;
-        }
-        if (!colorPickerTask->GetFirstGetColorFinished()) {
-            shadowAlpha = 0;
-        }
-    } else {
-        shadowAlpha = color_.GetAlpha();
-        colorPicked = color_;
-    }
-    return RSColor(colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue(), shadowAlpha);
-}
-
 void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     if (content.GetRenderProperties().GetNeedSkipShadow()) {
@@ -531,10 +506,9 @@ void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas&
     matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
-    RSColor colorPicked = GetColorForShadow(content, canvas, path, matrix, deviceClipBounds);
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(
-        colorPicked.GetAlpha(), colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
+        color_.GetAlpha(), color_.GetRed(), color_.GetGreen(), color_.GetBlue()));
     brush.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius_));
@@ -609,7 +583,7 @@ void RSColorfulShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilte
     // draw node content as shadow
     // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(node_.lock())) {
-        node->InternalDrawContent(canvas);
+        node->InternalDrawContent(canvas, false);
     }
 }
 
@@ -946,6 +920,10 @@ void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
 {
     auto& properties = content.GetRenderProperties();
     Drawing::Brush brush = brush_;
+    if (properties.IsBgBrightnessValid()) {
+        auto blender = RSPropertiesPainter::MakeDynamicBrightnessBlender(properties.GetBgBrightnessParams().value());
+        brush.SetBlender(blender);
+    }
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
@@ -1065,18 +1043,23 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
 std::unique_ptr<RSPropertyDrawable> BlendSaveDrawableGenerate(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
+    std::shared_ptr<Drawing::Blender> blender = nullptr;
+    if (properties.IsFgBrightnessValid()) {
+        blender = RSPropertiesPainter::MakeDynamicBrightnessBlender(properties.GetFgBrightnessParams().value());
+    }
+
     auto blendMode = properties.GetColorBlendMode();
     int blendModeApplyType = properties.GetColorBlendApplyType();
-    if (blendMode == 0) {
+    if (blendMode == 0 && blender == nullptr) {
         // no blend
         return nullptr;
     }
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "BlendSaveDrawableGenerate::BlendMode, blendMode: %d, blendModeApplyType: %d", blendMode, blendModeApplyType);
     if (blendModeApplyType == static_cast<int>(RSColorBlendApplyType::FAST)) {
-        return std::make_unique<RSBlendFastDrawable>(blendMode);
+        return std::make_unique<RSBlendFastDrawable>(blendMode, blender);
     }
-    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode);
+    return std::make_unique<RSBlendSaveLayerDrawable>(blendMode, blender);
 }
 
 std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderContent& content)
@@ -1084,7 +1067,7 @@ std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderC
     auto& properties = content.GetRenderProperties();
     auto blendMode = properties.GetColorBlendMode();
     int blendModeApplyType = properties.GetColorBlendApplyType();
-    if (blendMode == 0) {
+    if (blendMode == 0 && !properties.IsFgBrightnessValid()) {
         // no blend
         return nullptr;
     }
@@ -1094,9 +1077,13 @@ std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderC
     return std::make_unique<RSBlendFastRestoreDrawable>();
 }
 
-RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode)
+RSBlendSaveLayerDrawable::RSBlendSaveLayerDrawable(int blendMode, std::shared_ptr<Drawing::Blender> blender)
 {
-    blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
+    if (blender != nullptr) {
+        blendBrush_.SetBlender(blender);
+    } else {
+        blendBrush_.SetBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1)); // map blendMode to Drawing::BlendMode
+    }
 }
 
 void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
@@ -1117,19 +1104,24 @@ void RSBlendSaveLayerDrawable::Draw(const RSRenderContent& content, RSPaintFilte
     Drawing::SaveLayerOps maskLayerRec(nullptr, &brush, 0);
     canvas.SaveLayer(maskLayerRec);
     canvas.SetBlendMode(std::nullopt);
+    canvas.SetBlender(nullptr);
     canvas.SaveAlpha();
     canvas.SetAlpha(1.0f);
 }
 
 void RSBlendFastDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
-    if (!canvas.HasOffscreenLayer() &&
-        RSPropertiesPainter::IsDangerousBlendMode(blendMode_ - 1, static_cast<int>(RSColorBlendApplyType::FAST))) {
-        Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
-        canvas.SaveLayer(maskLayerRec);
-        ROSEN_LOGD("Dangerous fast blendmode may produce transparent pixels, add extra offscreen here.");
+    if (blender_ != nullptr) {
+        canvas.SetBlender(blender_);
+    } else {
+        if (!canvas.HasOffscreenLayer() &&
+            RSPropertiesPainter::IsDangerousBlendMode(blendMode_ - 1, static_cast<int>(RSColorBlendApplyType::FAST))) {
+            Drawing::SaveLayerOps maskLayerRec(nullptr, nullptr, 0);
+            canvas.SaveLayer(maskLayerRec);
+            ROSEN_LOGD("Dangerous fast blendmode may produce transparent pixels, add extra offscreen here.");
+        }
+        canvas.SetBlendMode({ blendMode_ - 1 }); // map blendMode to SkBlendMode
     }
-    canvas.SetBlendMode({ blendMode_ - 1 }); // map blendMode to SkBlendMode
 }
 
 void RSBlendSaveLayerRestoreDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const

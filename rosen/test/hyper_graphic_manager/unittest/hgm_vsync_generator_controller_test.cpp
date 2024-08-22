@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
+#include "hgm_core.h"
 #include "hgm_vsync_generator_controller.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
@@ -79,6 +80,21 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentOffset, TestSize.Level1)
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = {{1, 30}, {2, 60}, {3, 120}};
     controller->ChangeGeneratorRate(30, appChangeData);
     EXPECT_EQ(controller->GetCurrentOffset(), 0);
+
+    auto &hgm = HgmCore::Instance();
+    uint32_t savedAlignRate = hgm.GetAlignRate();
+    EXPECT_NE(savedAlignRate, 0);
+    hgm.alignRate_ = 0;
+    EXPECT_EQ(controller->GetAppOffset(50), 0);
+    EXPECT_EQ(controller->GetAppOffset(0), 0);
+
+    hgm.alignRate_ = savedAlignRate;
+    EXPECT_EQ(controller->GetAppOffset(savedAlignRate + 1), 0);
+    EXPECT_NE(savedAlignRate, 0);
+    controller->GetAppOffset(savedAlignRate);
+
+    EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 0), 0);
+    EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 1), 0);
 }
 
 /*
@@ -93,6 +109,8 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentRate, TestSize.Level1)
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = {{1, 30}, {2, 60}, {3, 120}};
     controller->ChangeGeneratorRate(60, appChangeData);
     EXPECT_EQ(controller->GetCurrentRate(), 60);
+    controller->ChangeGeneratorRate(60, appChangeData, 0, true);
+    controller->ChangeGeneratorRate(60, appChangeData, 0, false);
 }
 } // namespace Rosen
 } // namespace OHOS

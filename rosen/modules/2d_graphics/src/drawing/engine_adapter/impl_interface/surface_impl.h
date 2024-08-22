@@ -17,6 +17,7 @@
 #define DRAWING_SURFACE_IMPL_H
 
 #include "base_impl.h"
+#include "image/image_info.h"
 #include "utils/rect.h"
 #ifdef RS_ENABLE_VK
 #include "vulkan/vulkan.h"

@@ -44,6 +44,7 @@ public:
 
     bool IsInterfaceCodeAccessible(CodeUnderlyingType code);
     virtual bool IsAccessTimesVerificationPassed(CodeUnderlyingType code, uint32_t times) const;
+    static void GetAccessType(bool& isTokenTypeValid, bool& isNonSystemAppCalling);
 
 protected:
     /* this class cannot be instantiated */
@@ -54,7 +55,7 @@ protected:
 
     /* specify tools for verifying the access right */
 #ifdef ENABLE_IPC_SECURITY
-    Security::AccessToken::ATokenTypeEnum GetTokenType() const;
+    static Security::AccessToken::ATokenTypeEnum GetTokenType();
     Security::AccessToken::AccessTokenID GetTokenID() const;
     bool CheckNativePermission(const Security::AccessToken::AccessTokenID tokenID, const std::string& permission) const;
     bool CheckHapPermission(const Security::AccessToken::AccessTokenID tokenID, const std::string& permission) const;
@@ -63,9 +64,10 @@ protected:
     std::vector<std::string> GetPermissions(CodeUnderlyingType interfaceName) const;
     int GetInterfacePermissionSize() const;
 
-    bool IsSystemApp() const;
+    static bool IsSystemApp();
 #endif
     bool IsSystemCalling(const std::string& callingCode) const;
+    bool IsAncoCalling(const std::string& callingCode) const;
     bool CheckPermission(CodeUnderlyingType code) const;
 
 private:

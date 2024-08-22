@@ -56,8 +56,9 @@ public:
     void TraverseSurfaceNodes(std::function<void (const std::shared_ptr<RSSurfaceRenderNode>&)> func) const;
     void TraverseDisplayNodes(std::function<void (const std::shared_ptr<RSDisplayRenderNode>&)> func) const;
     void TraverseCanvasDrawingNodes(std::function<void (const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const;
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> GetResidentSurfaceNodeMap() const;
+    const std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetResidentSurfaceNodeMap() const;
     bool IsResidentProcessNode(NodeId id) const;
+    bool IsUIExtensionSurfaceNode(NodeId id) const;
     void CalCulateAbilityComponentNumsInProcess(NodeId id);
 
     NodeId GetEntryViewNodeId() const;
@@ -92,6 +93,11 @@ private:
 
     void Initialize(const std::weak_ptr<RSContext>& context);
     std::weak_ptr<RSContext> context_;
+
+    void AddUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    void RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    std::unordered_set<NodeId> uiExtensionSurfaceNodes_;
+    mutable std::mutex uiExtensionSurfaceNodesMutex_;
 
     friend class RSContext;
     friend class RSMainThread;

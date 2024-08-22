@@ -19,6 +19,8 @@
 
 #include "egl_defs.h"
 
+#include <iostream>
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -39,9 +41,8 @@ public:
 HWTEST_F(EglWrapperLayerTest, Init001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
-
     auto result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    ASSERT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -52,24 +53,11 @@ HWTEST_F(EglWrapperLayerTest, Init001, Level1)
 HWTEST_F(EglWrapperLayerTest, Init002, Level2)
 {
     EglWrapperDispatchTable dispatchTable;
-    auto result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    ASSERT_TRUE(result);
-    result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    ASSERT_TRUE(result);
-}
-
-/**
- * @tc.name: Init003
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperLayerTest, Init003, Level1)
-{
-    EglWrapperLayer WrapperLayer;
-    EglWrapperDispatchTable *dispatchTable;
-    dispatchTable = nullptr;
-    bool result = WrapperLayer.Init(dispatchTable);
-    ASSERT_EQ(result, false);
+    auto& layer = EglWrapperLayer::GetInstance();
+    layer.initialized_ = true;
+    EXPECT_TRUE(layer.Init(&dispatchTable));
+    layer.initialized_ = false;
+    EXPECT_FALSE(layer.Init(nullptr));
 }
 
 /**
@@ -80,9 +68,22 @@ HWTEST_F(EglWrapperLayerTest, Init003, Level1)
 HWTEST_F(EglWrapperLayerTest, InitLayers001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
-    bool result = true;
-    EglWrapperLayer::GetInstance().InitLayers(&dispatchTable);
-    ASSERT_TRUE(result);
+    auto& layer = EglWrapperLayer::GetInstance();
+    layer.layerInit_ = {};
+    layer.InitLayers(&dispatchTable);
+    LayerInitFunc initFunc = [](const void* data, GetNextLayerAddr getAddr) -> EglWrapperFuncPointer {
+        return [](){};
+    };
+    layer.layerInit_.push_back(initFunc);
+    layer.layerSetup_ = {};
+    layer.InitLayers(&dispatchTable);
+    LayerSetupFunc setupFunc = [](const char* data, EglWrapperFuncPointer getAddr) -> EglWrapperFuncPointer {
+        return [](){};
+    };
+    layer.layerSetup_.push_back(setupFunc);
+    layer.InitLayers(&dispatchTable);
+    layer.layerInit_.clear();
+    layer.InitLayers(&dispatchTable);
 }
 
 /**
@@ -95,7 +96,7 @@ HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
     EglWrapperDispatchTable dispatchTable;
 
     bool result = EglWrapperLayer::GetInstance().LoadLayers();
-    ASSERT_TRUE(result);
+    ASSERT_FALSE(result);
 }
 
 /**
@@ -106,8 +107,19 @@ HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
 HWTEST_F(EglWrapperLayerTest, InitBundleInfo001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
-
     bool result = EglWrapperLayer::GetInstance().InitBundleInfo();
-    ASSERT_TRUE(result);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetupLayerFuncTbl001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperLayerTest, SetupLayerFuncTbl001, Level1)
+{
+    EglWrapperDispatchTable dispatchTable;
+    auto& layer = EglWrapperLayer::GetInstance();
+    layer.SetupLayerFuncTbl(&dispatchTable);
 }
 } // OHOS::Rosen

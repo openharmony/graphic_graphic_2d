@@ -108,11 +108,7 @@ public:
 
 void VulkanLoaderUnitTest::DLOpenLibVulkan()
 {
-#if (defined(__aarch64__) || defined(__x86_64__))
-    const char *path = "/system/lib64/platformsdk/libvulkan.so";
-#else
-    const char *path = "/system/lib/platformsdk/libvulkan.so";
-#endif
+    const char *path = "libvulkan.so";
     libVulkan_ = dlopen(path, RTLD_NOW | RTLD_LOCAL);
     if (libVulkan_ == nullptr) {
         std::cout << "dlerror: " << dlerror() << std::endl;

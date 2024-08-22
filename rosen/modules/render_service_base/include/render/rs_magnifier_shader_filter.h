@@ -38,6 +38,8 @@ private:
     std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
     float offsetX_ = 0.f;
     float offsetY_ = 0.f;
+    float scaleX_ = 1.f;
+    float scaleY_ = 1.f;
     int32_t rotateDegree_ = 0;
 };
 } // namespace Rosen

@@ -33,7 +33,6 @@ public:
     void SetSurfaceBounds(const Vector4f& bounds);
     void SetSurfaceColor(const RSColor& color);
     void RegisterNode(std::shared_ptr<RSNode> node);
-    void SetImageSavePath(const std::string path);
 
     // overrides gtest functions
     static void SetUpTestCase();
@@ -46,6 +45,8 @@ public:
     virtual void AfterEach() {};
 
 private:
+    std::string GetImageSavePath(const std::string path);
+
     bool shouldRunTest_ = true;
     Vector4f surfaceBounds_;
     std::vector<std::shared_ptr<RSNode>> nodes_;

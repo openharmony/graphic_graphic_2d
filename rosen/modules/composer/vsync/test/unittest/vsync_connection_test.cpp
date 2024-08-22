@@ -31,6 +31,7 @@ public:
     static inline sptr<VSyncDistributor> vsyncDistributor = nullptr;
     static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
     static inline sptr<VSyncConnection> vsyncConnection = nullptr;
+    static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
 };
 
 void VSyncConnectionTest::SetUpTestCase()
@@ -43,6 +44,7 @@ void VSyncConnectionTest::SetUpTestCase()
 
 void VSyncConnectionTest::TearDownTestCase()
 {
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
     DestroyVSyncGenerator();
     vsyncController = nullptr;
     vsyncGenerator = nullptr;

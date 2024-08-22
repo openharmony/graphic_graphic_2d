@@ -106,12 +106,12 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImage(D
 
     if (GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
         // use faster LinearGradientBlur if valid
-        if (para->LinearGradientBlurFilter_ == nullptr) {
+        if (para->linearGradientBlurFilter_ == nullptr) {
             LOGE("RSPropertiesPainter::DrawLinearGradientBlur blurFilter null");
             return image;
         }
 
-        const auto& RSFilter = para->LinearGradientBlurFilter_;
+        const auto& RSFilter = para->linearGradientBlurFilter_;
         auto filter = RSFilter;
         return DrawMaskLinearGradientBlur(image, canvas, filter, alphaGradientShader, dst);
     } else {
@@ -434,6 +434,9 @@ std::string GELinearGradientBlurShaderFilter::GetDescription()
 
 std::string GELinearGradientBlurShaderFilter::GetDetailedDescription()
 {
+    if (!linearGradientBlurPara_) {
+        return "GELinearGradientBlurShaderFilterBlur, radius: unavailable";
+    }
     return "GELinearGradientBlurShaderFilterBlur, radius: " + std::to_string(linearGradientBlurPara_->blurRadius_);
 }
 } // namespace Rosen

@@ -14,8 +14,8 @@
  */
 
 #include "napi_async_work.h"
-#include "log_wrapper.h"
 #include "napi_common.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 ContextBase::~ContextBase()

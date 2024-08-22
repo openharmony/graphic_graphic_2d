@@ -212,7 +212,7 @@ RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node
 
 bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
-    nodeId_ = node.GetId();
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -504,7 +504,10 @@ void RSPointLightDrawable::OnSync()
     illuminatedType_ = properties_.GetIlluminated()->GetIlluminatedType();
     borderWidth_ = std::ceil(properties_.GetIlluminatedBorderWidth());
     auto& rrect = properties_.GetRRect();
-    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT || illuminatedType_ == IlluminatedType::BORDER) {
+    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT ||
+        illuminatedType_ == IlluminatedType::BORDER ||
+        illuminatedType_ == IlluminatedType::BLEND_BORDER ||
+        illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) {
         auto borderRect = rrect.rect_;
         float borderRadius = rrect.radius_[0].x_;
         // half width and half height requires divide by 2.0f
@@ -513,7 +516,10 @@ void RSPointLightDrawable::OnSync()
             borderRadius - borderWidth_ / 2.0f, borderRadius - borderWidth_ / 2.0f);
         borderRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect);
     }
-    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT || illuminatedType_ == IlluminatedType::CONTENT) {
+    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT ||
+        illuminatedType_ == IlluminatedType::CONTENT ||
+        illuminatedType_ == IlluminatedType::BLEND_CONTENT ||
+        illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) {
         contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(rrect);
     }
     if (properties_.GetBoundsGeometry()) {
@@ -561,12 +567,15 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
     ROSEN_LOGD("RSPointLightDrawable::DrawLight illuminatedType:%{public}d", illuminatedType_);
-    if (illuminatedType_ == IlluminatedType::BORDER_CONTENT) {
+    if ((illuminatedType_ == IlluminatedType::BORDER_CONTENT) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
         DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityArray);
         DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityArray);
-    } else if (illuminatedType_ == IlluminatedType::CONTENT) {
+    } else if ((illuminatedType_ == IlluminatedType::CONTENT) ||
+        (illuminatedType_ == IlluminatedType::BLEND_CONTENT)) {
         DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityArray);
-    } else if (illuminatedType_ == IlluminatedType::BORDER) {
+    } else if ((illuminatedType_ == IlluminatedType::BORDER) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER)) {
         DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityArray);
     }
 }
@@ -635,9 +644,21 @@ void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
     lightBuilder->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
     brush.SetShaderEffect(shader);
-    canvas.AttachBrush(brush);
-    canvas.DrawRoundRect(contentRRect_);
-    canvas.DetachBrush();
+    if ((illuminatedType_ == IlluminatedType::BLEND_CONTENT) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
+        brush.SetAntiAlias(true);
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
+        Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &brush);
+        canvas.SaveLayer(slo);
+        canvas.AttachBrush(brush);
+        canvas.DrawRoundRect(contentRRect_);
+        canvas.DetachBrush();
+        canvas.Restore();
+    } else {
+        canvas.AttachBrush(brush);
+        canvas.DrawRoundRect(contentRRect_);
+        canvas.DetachBrush();
+    }
 }
 
 void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
@@ -649,9 +670,21 @@ void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
     pen.SetShaderEffect(shader);
     float borderWidth = std::ceil(borderWidth_);
     pen.SetWidth(borderWidth);
-    canvas.AttachPen(pen);
-    canvas.DrawRoundRect(borderRRect_);
-    canvas.DetachPen();
+    if ((illuminatedType_ == IlluminatedType::BLEND_BORDER) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
+        Drawing::Brush maskPaint;
+        pen.SetBlendMode(Drawing::BlendMode::OVERLAY);
+        Drawing::SaveLayerOps slo(&borderRRect_.GetRect(), &maskPaint);
+        canvas.SaveLayer(slo);
+        canvas.AttachPen(pen);
+        canvas.DrawRoundRect(borderRRect_);
+        canvas.DetachPen();
+        canvas.Restore();
+    } else {
+        canvas.AttachPen(pen);
+        canvas.DrawRoundRect(borderRRect_);
+        canvas.DetachPen();
+    }
 }
 
 RSDrawable::Ptr RSParticleDrawable::OnGenerate(const RSRenderNode& node)

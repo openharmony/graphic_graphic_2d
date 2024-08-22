@@ -281,10 +281,10 @@ void SurfaceNodeCommandHelper::SetForceUIFirst(RSContext& context, NodeId nodeId
     }
 }
 
-void SurfaceNodeCommandHelper::SetAncoForceDoDirect(RSContext& context, NodeId nodeId, bool ancoForceDoDirect)
+void SurfaceNodeCommandHelper::SetAncoFlags(RSContext& context, NodeId nodeId, int32_t flags)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetAncoForceDoDirect(ancoForceDoDirect);
+        node->SetAncoFlags(flags);
     }
 }
 
@@ -299,6 +299,22 @@ void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bo
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetSkipDraw(skip);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetWatermark(RSContext& context, NodeId nodeId,
+    const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetWatermark(name, watermark);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId nodeId,
+    const std::string& name, bool isEnabled)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetWatermarkEnabled(name, isEnabled);
     }
 }
 } // namespace Rosen

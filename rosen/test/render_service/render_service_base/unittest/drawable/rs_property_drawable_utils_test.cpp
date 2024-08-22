@@ -22,6 +22,8 @@
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_info.h"
 #include "skia_adapter/skia_surface.h"
+#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_magnifier_shader_filter.h"
 
 namespace OHOS::Rosen {
 class RSPropertyDrawableUtilsTest : public testing::Test {
@@ -47,7 +49,9 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RRect2DrawingRRectAndCreateShadowPathTest0
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
-    std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
+    Drawing::Path path;
+    path.AddRect({0, 0, 10, 10});
+    std::shared_ptr<RSPath> rsPath = RSPath::CreateRSPath(path);
     EXPECT_NE(rsPath, nullptr);
     std::shared_ptr<RSPath> clipBounds = std::make_shared<RSPath>();
     RRect rrect(RectT<float>(0.0f, 0.0f, 1.0f, 1.0f), 0.0f, 1.0f);
@@ -79,29 +83,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetRRectForDrawingBorderTest002, testing::
     border = nullptr;
     rsPropertyDrawableUtils->GetRRectForDrawingBorder(properties, border, false);
     rsPropertyDrawableUtils->GetInnerRRectForDrawingBorder(properties, border, true);
-}
-
-/**
- * @tc.name: PickColorTest003
- * @tc.desc: PickColor test
- * @tc.type: FUNC
- * @tc.require:issueI9SCBR
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, PickColorTest003, testing::ext::TestSize.Level1)
-{
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    paintFilterCanvas.surface_ = nullptr;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask = nullptr;
-    Drawing::Path rsPath;
-    Drawing::Matrix matrix;
-    RSColor colorPicked;
-    EXPECT_FALSE(rsPropertyDrawableUtils->PickColor(paintFilterCanvas, colorPickerTask, rsPath, matrix, colorPicked));
-    Drawing::Surface surface;
-    paintFilterCanvas.surface_ = &surface;
-    EXPECT_FALSE(rsPropertyDrawableUtils->PickColor(paintFilterCanvas, colorPickerTask, rsPath, matrix, colorPicked));
 }
 
 /**
@@ -151,10 +132,13 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     Drawing::Canvas canvasTest1;
     RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest1);
     std::shared_ptr<RSDrawingFilter> rsFilter = nullptr;
-    std::unique_ptr<RSFilterCacheManager> cacheManager = nullptr;
+    std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
     paintFilterCanvasTest1.surface_ = nullptr;
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false, false);
-    std::shared_ptr<RSShaderFilter> rsFilterTest = std::make_shared<RSShaderFilter>();
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
+    auto rsFilterTest = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
+    rsFilterTest->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
     EXPECT_NE(rsFilterTest, nullptr);
     rsFilter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     EXPECT_NE(rsFilter, nullptr);
@@ -162,17 +146,21 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
     EXPECT_NE(rsFilter->imageFilter_, nullptr);
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, true, false);
-    cacheManager = std::make_unique<RSFilterCacheManager>();
-    EXPECT_NE(cacheManager, nullptr);
-    Drawing::Surface surfaceTest1;
-    paintFilterCanvasTest1.disableFilterCache_ = false;
-    paintFilterCanvasTest1.surface_ = &surfaceTest1;
-    std::shared_ptr<RSShaderFilter> rsShaderFilter = std::make_shared<RSShaderFilter>();
-    EXPECT_NE(rsShaderFilter, nullptr);
-    rsShaderFilter->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
-    rsFilter->shaderFilters_.emplace_back(rsShaderFilter);
-    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, true, true);
-    
+    rsPropertyDrawableUtils->DrawFilter(nullptr, rsFilter, cacheManager, false, false);
+    auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    paintFilterCanvasTest1.surface_ = surface.get();
+    paintFilterCanvasTest1.SetDisableFilterCache(false);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, true, false);
+    paintFilterCanvasTest1.SetDisableFilterCache(true);
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, true, false);
+    auto magnifierParams = std::make_shared<RSMagnifierParams>();
+    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierParams);
+    magnifierFilter->type_ = RSShaderFilter::MAGNIFIER;
+    rsFilter = std::make_shared<RSDrawingFilter>(magnifierFilter);
+    rsFilter->type_ = RSFilter::BLUR;
+    rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
+    rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, true, false);
+
     // second: BeginForegroundFilter test
     Drawing::Canvas canvasTest2;
     RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
@@ -182,8 +170,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     Drawing::Surface surfaceTest2;
     paintFilterCanvasTest2.surface_ = &surfaceTest2;
     rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
-    EXPECT_EQ(paintFilterCanvasTest2.surface_->Width(), 0);
-    EXPECT_EQ(paintFilterCanvasTest2.surface_->Height(), 0);
+    auto surfaceTest3 = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    paintFilterCanvasTest2.surface_ = surfaceTest3.get();
+    rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
+    EXPECT_NE(paintFilterCanvasTest2.surface_->Width(), 0);
+    EXPECT_NE(paintFilterCanvasTest2.surface_->Height(), 0);
 }
 
 /**
@@ -235,6 +226,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     paintFilterCanvas.surface_ = &surface;
     Drawing::Canvas canvasTest2;
     paintFilterCanvas.canvas_ = &canvasTest2;
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    paintFilterCanvas.SetDisableFilterCache(true);
+    auto surfaceTwo = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    paintFilterCanvas.surface_ = surfaceTwo.get();
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
 }
 
@@ -468,6 +463,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, IsDangerousBlendModeAndEndBlenderTest016, 
     Drawing::Canvas canvasTest;
     RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest);
     rsPropertyDrawableUtilsTest1->EndBlender(paintFilterCanvasTest1, 0);
+    rsPropertyDrawableUtilsTest1->EndBlender(paintFilterCanvasTest1, 1);
 }
 
 /**
@@ -487,8 +483,9 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetColorForShadowSynTest017, testing::ext:
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
     paintFilterCanvas.surface_ = nullptr;
     rsPropertyDrawableUtilsTest->GetColorForShadowSyn(&paintFilterCanvas, path, color, false);
-    Drawing::Surface surface;
-    paintFilterCanvas.surface_ = &surface;
+    path.AddRect({0, 0, 5, 5});
+    auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    paintFilterCanvas.surface_ = surface.get();
     rsPropertyDrawableUtilsTest->GetColorForShadowSyn(&paintFilterCanvas, path, color, false);
 
     Drawing::Canvas canvasTest2;
@@ -516,15 +513,84 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest018, testing::ext:
     Drawing::Matrix matrix;
     auto resultTest1 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
     EXPECT_EQ(resultTest1, nullptr);
-
-    Drawing::Surface surface;
-    std::shared_ptr<Drawing::SkiaSurface> skiaSurface = std::make_shared<Drawing::SkiaSurface>();
-    EXPECT_NE(skiaSurface, nullptr);
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(1, 1);
-    skiaSurface->skSurface_ = skSurface;
-    surface.impl_ = skiaSurface;
-    paintFilterCanvas.surface_ = &surface;
+    auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
+    paintFilterCanvas.surface_ = surface.get();
     auto resultTest2 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
     EXPECT_EQ(resultTest2, nullptr);
+    drPath.AddRect({0, 0, 5, 5});
+    auto resultTest3 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
+    EXPECT_NE(resultTest3, nullptr);
+}
+
+/**
+ * @tc.name: DrawShadowMaskFilterTest019
+ * @tc.desc: DrawShadowMaskFilter test
+ * @tc.type: FUNC
+ * @tc.require:issueIA5Y41
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    Drawing::Canvas canvasTest;
+    Drawing::Path path;
+    path.AddRect({0, 0, 5, 5});
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, false,
+        Color(255, 255, 255, 255));
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetGravityMatrixTest020
+ * @tc.desc: GetGravityMatrix test
+ * @tc.type: FUNC
+ * @tc.require:issueIA5Y41
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetGravityMatrixTest020, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    Drawing::Rect rect(0, 0, 10, 10);
+    Drawing::Rect rectTwo(0, 0, 0, 10);
+    Drawing::Rect rectThree(0, 0, 0, 0.0000001);
+    Drawing::Matrix matrix;
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::CENTER, rect, 10, 10, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::CENTER, rect, 20, 20, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::TOP, rect, 20, 20, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::BOTTOM, rect, 20, 20, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::LEFT, rect, 20, 20, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RIGHT, rect, 20, 20, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::TOP_LEFT, rect, 20, 20, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::TOP_RIGHT, rect, 20, 20, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::BOTTOM_LEFT, rect, 20, 20, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::BOTTOM_RIGHT, rect, 20, 20, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE, rect, 0, 0, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE, rect, 20, 20, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, 0, 0, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT, rectTwo, 10, 10, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT, rect, 20, 20, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_TOP_LEFT, rect, 0, 0, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_TOP_LEFT, rect, 20, 20, matrix));
+    ASSERT_FALSE(
+        rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, 0, 0, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(
+        Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rectTwo, 10, 10, matrix));
+    ASSERT_TRUE(
+        rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_BOTTOM_RIGHT, rect, 20, 20, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, 0, 0, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(
+        Gravity::RESIZE_ASPECT_FILL, rectThree, 10, 100000000, matrix));
+    ASSERT_TRUE(rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL, rect, 20, 20, matrix));
+    ASSERT_FALSE(
+        rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, rect, 0, 0, matrix));
+    ASSERT_TRUE(
+        rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_TOP_LEFT, rect, 20, 20, matrix));
+    ASSERT_FALSE(
+        rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, 0, 0, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(
+        Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rectThree, 10, 100000000, matrix));
+    ASSERT_TRUE(
+        rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, 20, 20, matrix));
+    ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(static_cast<Gravity>(22), rect, 20, 20, matrix));
 }
 } // namespace OHOS::Rosen

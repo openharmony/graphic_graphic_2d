@@ -350,6 +350,10 @@ std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::C
 bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const std::shared_ptr<Drawing::Image>& blurImage, const KawaseParameter& param) const
 {
+    if (!mixEffect_ || !image || !blurImage) {
+        ROSEN_LOGE("KawaseBlurFilter::ApplyBlur input error, use Gauss instead");
+        return false;
+    }
     auto src = param.src;
     auto dst = param.dst;
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);

@@ -64,13 +64,11 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
-#endif
-
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable);
 #endif
 
     void RemoveVirtualScreen(ScreenId id);
@@ -256,6 +254,8 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset);
+
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
@@ -272,6 +272,8 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
 
+    void SetVmaCacheStatus(bool flag);
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif
@@ -280,6 +282,8 @@ public:
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
+
+    bool SetAncoForceDoDirect(bool direct);
 
 private:
     RSInterfaces();

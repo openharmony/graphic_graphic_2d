@@ -117,4 +117,40 @@ HWTEST_F(TextStyleTest, TextStyleTest005, TestSize.Level1)
     textStyle_->backgroundRect = backgroundRect;
     EXPECT_EQ(textStyle_->backgroundRect == backgroundRect, true);
 }
+
+/*
+ * @tc.name: TextStyleTest006
+ * @tc.desc: get default font feature is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest006, TestSize.Level1)
+{
+    FontFeatures fontFeatures;
+    EXPECT_TRUE(fontFeatures.GetFeatureSettings().empty());
+}
+
+/*
+ * @tc.name: TextStyleTest007
+ * @tc.desc: get multi font features
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest007, TestSize.Level1)
+{
+    FontFeatures fontFeatures;
+    fontFeatures.SetFeature("a", 0);
+    fontFeatures.SetFeature("b", 1);
+    EXPECT_FALSE(fontFeatures.GetFeatureSettings().empty());
+}
+
+/*
+ * @tc.name: TextStyleTest008
+ * @tc.desc: text shadow equal test
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextStyleTest, TextStyleTest008, TestSize.Level1)
+{
+    TextShadow shadowA;
+    TextShadow shadowB;
+    EXPECT_TRUE(shadowA == shadowB);
+}
 } // namespace txt

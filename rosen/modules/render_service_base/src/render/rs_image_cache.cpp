@@ -93,6 +93,24 @@ void RSImageCache::IncreasePixelMapCacheRefCount(uint64_t uniqueId)
     }
 }
 
+void RSImageCache::CollectUniqueId(uint64_t uniqueId)
+{
+    std::unique_lock<std::mutex> lock(uniqueIdListMutex_);
+    uniqueIdList_.push_back(uniqueId);
+}
+
+void RSImageCache::ReleaseUniqueIdList()
+{
+    std::list<uint64_t> clearList;
+    {
+        std::unique_lock<std::mutex> lock(uniqueIdListMutex_);
+        uniqueIdList_.swap(clearList);
+    }
+    for (const auto& uniqueId : clearList) {
+        ReleasePixelMapCache(uniqueId);
+    }
+}
+
 void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
 {
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
@@ -110,6 +128,7 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
         }
     ReleaseDrawingImageCacheByPixelMapId(uniqueId);
     }
+    pixelMap.reset();
 }
 
 void RSImageCache::CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId,

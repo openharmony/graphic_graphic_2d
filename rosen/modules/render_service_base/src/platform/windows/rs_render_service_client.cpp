@@ -143,13 +143,6 @@ std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
     return {0};
 }
 
-#ifdef RS_ENABLE_VK
-bool RSRenderServiceClient::Set2DRenderCtrl(bool enable)
-{
-    return false;
-}
-#endif
-
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
 }
@@ -418,6 +411,13 @@ bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface
     return {};
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
+    ScreenId id,
+    const std::vector<NodeId>& securityExemptionList)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     return {};
@@ -527,6 +527,10 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
+void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+}
+
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
 }
@@ -551,6 +555,10 @@ HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
     return {};
 }
 
+void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
+{
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
 {
@@ -571,6 +579,11 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
 }
 
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 {
     return false;
 }

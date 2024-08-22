@@ -20,6 +20,7 @@
 #include <securec.h>
 
 #include "command/rs_display_node_command.h"
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,8 +28,6 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-int g_two = 2;
-int g_five = 5;
 } // namespace
 
 /*
@@ -51,7 +50,7 @@ T GetData()
     return object;
 }
 
-bool DoDisplayNode(const uint8_t* data, size_t size)
+bool DoDisplayNode(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -63,7 +62,6 @@ bool DoDisplayNode(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     NodeId id = GetData<NodeId>();
     uint64_t screenId = GetData<uint64_t>();
     bool isMirrored = GetData<bool>();
@@ -77,17 +75,18 @@ bool DoDisplayNode(const uint8_t* data, size_t size)
     ScreenRotation screenRotation = GetData<ScreenRotation>();
     uint32_t rogWidth = GetData<uint32_t>();
     uint32_t rogHeight = GetData<uint32_t>();
-    DisplayNodeCommandHelper::SetScreenId(*context, id, screenId);
-    DisplayNodeCommandHelper::SetDisplayOffset(*context, id, offsetX, offsetY);
-    DisplayNodeCommandHelper::SetSecurityDisplay(*context, id, isSecurityDisplay);
-    DisplayNodeCommandHelper::SetDisplayMode(*context, id, config);
-    DisplayNodeCommandHelper::SetBootAnimation(*context, id, isBootAnimation);
-    DisplayNodeCommandHelper::SetBootAnimation(*context, id2, isBootAnimation);
-    DisplayNodeCommandHelper::SetScreenRotation(*context, id, screenRotation);
-    DisplayNodeCommandHelper::SetRogSize(*context, id, rogWidth, rogHeight);
+    DisplayNodeCommandHelper::Create(context, id, config);
+    DisplayNodeCommandHelper::SetScreenId(context, id, screenId);
+    DisplayNodeCommandHelper::SetDisplayOffset(context, id, offsetX, offsetY);
+    DisplayNodeCommandHelper::SetSecurityDisplay(context, id, isSecurityDisplay);
+    DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+    DisplayNodeCommandHelper::SetBootAnimation(context, id, isBootAnimation);
+    DisplayNodeCommandHelper::SetBootAnimation(context, id2, isBootAnimation);
+    DisplayNodeCommandHelper::SetScreenRotation(context, id, screenRotation);
+    DisplayNodeCommandHelper::SetRogSize(context, id, rogWidth, rogHeight);
     return true;
 }
-bool DoSetDisplayMode(const uint8_t* data, size_t size)
+bool DoSetDisplayMode(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -98,8 +97,7 @@ bool DoSetDisplayMode(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
+    NodeId id = GetData<NodeId>();
     RSDisplayNodeConfig config { 0, false, 0 };
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 
@@ -109,13 +107,14 @@ bool DoSetDisplayMode(const uint8_t* data, size_t size)
     config.isMirrored = true;
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 
-    NodeId mirrorNodeId = static_cast<NodeId>(2);
+    NodeId mirrorNodeId = GetData<NodeId>();
     config.mirrorNodeId = mirrorNodeId;
     DisplayNodeCommandHelper::Create(context, mirrorNodeId, config);
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
+
     return true;
 }
-bool DoSetBootAnimation(const uint8_t* data, size_t size)
+bool DoSetBootAnimation(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -126,15 +125,16 @@ bool DoSetBootAnimation(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
+    NodeId id = GetData<NodeId>();
+    NodeId rID = GetData<NodeId>();
     RSDisplayNodeConfig config { 0, true, 0 };
     DisplayNodeCommandHelper::Create(context, id, config);
     DisplayNodeCommandHelper::SetBootAnimation(context, id, true);
-    DisplayNodeCommandHelper::SetBootAnimation(context, g_five, true);
+    DisplayNodeCommandHelper::SetBootAnimation(context, rID, true);
+
     return true;
 }
-bool DoSetScbNodePid(const uint8_t* data, size_t size)
+bool DoSetScbNodePid(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -145,14 +145,18 @@ bool DoSetScbNodePid(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
+    NodeId id = GetData<NodeId>();
     std::vector<int32_t> oldScbPids = {};
     int32_t currentScbPid = -1;
     DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
-    oldScbPids.push_back(1);
-    oldScbPids.push_back(g_two);
+    RSDisplayNodeConfig config { 0, true, 0 };
+    DisplayNodeCommandHelper::Create(context, id, config);
+    int32_t pid = GetData<int32_t>();
+    oldScbPids.push_back(pid);
+    pid = GetData<int32_t>();
+    oldScbPids.push_back(pid);
     DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);
+
     return true;
 }
 } // namespace Rosen
@@ -161,10 +165,16 @@ bool DoSetScbNodePid(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    std::shared_ptr<OHOS::Rosen::RSContext> context = std::make_shared<OHOS::Rosen::RSContext>();
+
     /* Run your code on data */
-    OHOS::Rosen::DoDisplayNode(data, size);
-    OHOS::Rosen::DoSetDisplayMode(data, size);
-    OHOS::Rosen::DoSetBootAnimation(data, size);
-    OHOS::Rosen::DoSetScbNodePid(data, size);
+    OHOS::Rosen::DoDisplayNode(data, size, *context);
+    OHOS::Rosen::DoSetDisplayMode(data, size, *context);
+    OHOS::Rosen::DoSetBootAnimation(data, size, *context);
+    OHOS::Rosen::DoSetScbNodePid(data, size, *context);
+
+    context = nullptr;
+    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeMemory();
+
     return 0;
 }

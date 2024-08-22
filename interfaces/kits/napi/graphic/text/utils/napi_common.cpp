@@ -278,14 +278,16 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
 
         napi_value pointValue = nullptr;
         if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
-            TEXT_LOGD("The parameter of as private point is unvaild");
+            TEXT_LOGE("The parameter of as private point is unvaild");
+            return;
         }
         GetPointFromJsValue(env, pointValue, offset);
 
         napi_value radius = nullptr;
         if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
             napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
-            TEXT_LOGD("The parameter of as private blur radius is unvaild");
+            TEXT_LOGE("The parameter of as private blur radius is unvaild");
+            return;
         }
         textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
     }
@@ -385,30 +387,40 @@ bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan
     double width = 0;
     if (tempValue != nullptr && napi_get_value_double(env, tempValue, &width) == napi_ok) {
         placeholderSpan.width = width;
+    } else {
+        return false;
     }
 
     napi_get_named_property(env, argValue, "height", &tempValue);
     double height = 0;
     if (tempValue != nullptr && napi_get_value_double(env, tempValue, &height) == napi_ok) {
         placeholderSpan.height = height;
+    } else {
+        return false;
     }
 
     napi_get_named_property(env, argValue, "align", &tempValue);
     uint32_t align = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &align) == napi_ok) {
         placeholderSpan.alignment = PlaceholderVerticalAlignment(align);
+    } else {
+        return false;
     }
 
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {
         placeholderSpan.baseline = TextBaseline(baseline);
+    } else {
+        return false;
     }
 
     napi_get_named_property(env, argValue, "baselineOffset", &tempValue);
     double baselineOffset = 0;
     if (tempValue != nullptr && napi_get_value_double(env, tempValue, &baselineOffset) == napi_ok) {
         placeholderSpan.baselineOffset = baselineOffset;
+    } else {
+        return false;
     }
     return true;
 }

@@ -58,7 +58,7 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation001, TestSize.Level1)
     bool flag3 = symbolAnimation.SetSymbolAnimation(nullptr);
     EXPECT_TRUE(flag3 == false);
     /**
-     * @tc.steps: step2.4 rsNode_ is not nullptr, symbolAnimationConfig is not nullptr
+     * @tc.steps: step2.4 effectStrategy is none type
      */
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::NONE;
     symbolAnimationConfig->symbolSpanId = 1996; // the 1996 is the unique ID of a symbol
@@ -96,7 +96,8 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation002, TestSize.Level1)
      */
     symbolAnimationConfig->symbolSpanId++;
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_APPEAR;
-    symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
+    bool flag2 = symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag2 == true);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetSymbolAnimation002 end";
 }
@@ -117,11 +118,11 @@ HWTEST_F(RSSymbolAnimationTest, SetPublicAnimation001, TestSize.Level1)
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     symbolAnimationConfig->symbolSpanId = 19; // the 19 is the unique ID of a symbol
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::SCALE;
-    symbolAnimationConfig->animationMode = 1; // 1 is wholeymbol
+    symbolAnimationConfig->animationMode = 1; // 1 is wholesymbol
     symbolAnimationConfig->animationStart = true;
     // init symbolNode
     Drawing::Path path;
-    path.AddCircle(100, 100, 50); // 100 x, 100y, 50 radius
+    path.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
     Drawing::DrawingHMSymbolData symbol;
     symbol.path_ = path;
     TextEngine::SymbolNode symbolNode1;
@@ -130,11 +131,12 @@ HWTEST_F(RSSymbolAnimationTest, SetPublicAnimation001, TestSize.Level1)
     symbolAnimationConfig->symbolNodes.push_back(symbolNode1);
     symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
     /**
-     * @tc.steps: step2.1 test SCALE animation withe wholeymbol
+     * @tc.steps: step2.1 test SCALE animation with wholesymbol
      */
-    symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    bool flag1 = symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag1 == true);
     /**
-     * @tc.steps: step2.2 test SCALE animation withe two symbolNode and maskLayer
+     * @tc.steps: step2.2 test SCALE animation with two symbolNode and maskLayer
      */
     symbolAnimationConfig->animationMode = 0; // 0 is bylayer
     TextEngine::SymbolNode symbolNode2;
@@ -142,7 +144,8 @@ HWTEST_F(RSSymbolAnimationTest, SetPublicAnimation001, TestSize.Level1)
     symbolNode2.isMask = true;
     symbolAnimationConfig->symbolNodes.push_back(symbolNode2);
     symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
-    symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    bool flag2 = symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag2 == true);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetPublicAnimation001 end";
 }
@@ -167,7 +170,7 @@ HWTEST_F(RSSymbolAnimationTest, SetPublicAnimation002, TestSize.Level1)
     symbolAnimationConfig->animationMode = 0; // 0 is bylayer
     // init symbolNode
     Drawing::Path path;
-    path.AddCircle(100, 100, 50); // 100 x, 100y, 50 radius
+    path.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
     Drawing::DrawingHMSymbolData symbol;
     symbol.path_ = path;
     TextEngine::SymbolNode symbolNode1;
@@ -178,13 +181,14 @@ HWTEST_F(RSSymbolAnimationTest, SetPublicAnimation002, TestSize.Level1)
     symbolNode2.animationIndex = 1;
     symbolAnimationConfig->symbolNodes.push_back(symbolNode2);
     TextEngine::SymbolNode symbolNode3;
-    symbolNode3.animationIndex = -1; // -1 is the symbolNode whitout effect
+    symbolNode3.animationIndex = -1; // -1 is the symbolNode without effect
     symbolAnimationConfig->symbolNodes.push_back(symbolNode3);
     symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
     /**
-     * @tc.steps: step2. start test SCALE animation withe three symbolnodes
+     * @tc.steps: step2. start test SCALE animation with three symbolnodes
      */
-    symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    bool flag = symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag == true);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetPublicAnimation002 end";
 }
@@ -219,14 +223,16 @@ HWTEST_F(RSSymbolAnimationTest, SetPublicAnimation003, TestSize.Level1)
     symbolAnimationConfig->symbolNodes.push_back(symbolNode);
     symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
     /**
-     * @tc.steps: step2.1 start test SCALE animation withe five symbolnodes
+     * @tc.steps: step2.1 start test SCALE animation with five symbolnodes
      */
-    symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    bool flag1 = symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag1 == true);
     /**
-     * @tc.steps: step2.2 start test VARIABLE_COLOR animation withe five symbolnodes
+     * @tc.steps: step2.2 start test VARIABLE_COLOR animation with five symbolnodes
      */
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::VARIABLE_COLOR;
-    symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    bool flag2 = symbolAnimation.SetPublicAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag2 == true);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetPublicAnimation003 end";
 }
@@ -285,7 +291,7 @@ HWTEST_F(RSSymbolAnimationTest, SetDisappearConfig002, TestSize.Level1)
     nodeMap.insert({1999, animationNodeConfig}); // 1999 is a nodeId
     rootNode->replaceNodesSwapMap.insert({APPEAR_STATUS, nodeMap});
     /**
-     * @tc.steps: step2 start test SetDisappearConfig
+     * @tc.steps: step2. start test SetDisappearConfig
      */
     bool flag1 = symbolAnimation.SetDisappearConfig(symbolAnimationConfig, disappearConfig);
     EXPECT_TRUE(flag1 == true);
@@ -312,7 +318,7 @@ HWTEST_F(RSSymbolAnimationTest, SetReplaceAnimation001, TestSize.Level1)
     symbolAnimationConfig->animationStart = true;
     // init symbolNode
     Drawing::Path path;
-    path.AddCircle(100, 100, 50); // 100 x, 100y, 50 radius
+    path.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
     Drawing::DrawingHMSymbolData symbol;
     symbol.path_ = path;
     TextEngine::SymbolNode symbolNode1;
@@ -323,12 +329,67 @@ HWTEST_F(RSSymbolAnimationTest, SetReplaceAnimation001, TestSize.Level1)
     /**
      * @tc.steps: step2.1 start test
      */
-    symbolAnimation.SetReplaceAnimation(symbolAnimationConfig);
+    bool flag1 = symbolAnimation.SetReplaceAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag1 == true);
     /**
      * @tc.steps: step2.2 start test replace two node
      */
-    symbolAnimation.SetReplaceAnimation(symbolAnimationConfig);
+    bool flag2 = symbolAnimation.SetReplaceAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag2 == true);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetReplaceAnimation001 end";
+}
+
+/**
+ * @tc.name: SetReplaceAnimation002
+ * @tc.desc: SetReplaceAnimation of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetReplaceAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetReplaceAnimation002 start";
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig->symbolSpanId = 96; // 96 is the unique ID of a symbol
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_APPEAR;
+    symbolAnimationConfig->animationMode = 0; // 1 is byLayer
+    symbolAnimationConfig->animationStart = true;
+    // init symbolNodes
+    Drawing::Path path1;
+    path1.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
+    Drawing::DrawingSColor color = {1, 255, 255, 0}; // the color 1 A, 255 R, 255 G, 0 B
+    TextEngine::SymbolNode symbolNode;
+    symbolNode.pathsInfo = {{path1, color}};
+    symbolNode.nodeBoundary = {100, 100, 50, 50}; // 100 x, 100 y, 50 width, 50 height
+    symbolNode.animationIndex = -1; // the layer is no animation
+    symbolAnimationConfig->symbolNodes.push_back(symbolNode); // the first node
+
+    symbolNode.animationIndex = 0; // the layer is a animation whith animationIndex 0
+    Drawing::Path path2;
+    path2.AddCircle(150, 150, 50); // 150 x, 150 y, 50 radius
+    symbolNode.pathsInfo = {{path2, color}};
+    symbolAnimationConfig->symbolNodes.push_back(symbolNode); // the second node
+
+    symbolNode.animationIndex = 1; // the layer is not animation whith animationIndex 0
+    Drawing::Path path3;
+    path3.AddCircle(200, 200, 50); // 200 x, 200 y, 50 radius
+    symbolNode.pathsInfo = {{path3, color}};
+    symbolAnimationConfig->symbolNodes.push_back(symbolNode); // the third node
+    symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
+    /**
+     * @tc.steps: step2.1 start test
+     */
+    bool flag1 = symbolAnimation.SetReplaceAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag1 == true);
+    /**
+     * @tc.steps: step2.2 start test replace two node
+     */
+    bool flag2 = symbolAnimation.SetReplaceAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag2 == true);
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetReplaceAnimation002 end";
 }
 
 /**
@@ -343,6 +404,7 @@ HWTEST_F(RSSymbolAnimationTest, ChooseAnimation001, TestSize.Level1)
      * @tc.steps: step1. init data
      */
     auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.InitSupportAnimationTable();
     symbolAnimation.SetNode(rootNode);
     auto newCanvasNode = RSCanvasNode::Create();
     std::vector<Drawing::DrawingPiecewiseParameter> parameters;
@@ -351,23 +413,26 @@ HWTEST_F(RSSymbolAnimationTest, ChooseAnimation001, TestSize.Level1)
      * @tc.steps: step2.1 test SCALE
      */
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::SCALE;
-    symbolAnimation.ChooseAnimation(newCanvasNode, parameters, symbolAnimationConfig);
+    bool flag1 = symbolAnimation.ChooseAnimation(newCanvasNode, parameters, symbolAnimationConfig);
+    EXPECT_TRUE(flag1 == true);
     /**
      * @tc.steps: step2.2 test VARIABLE_COLOR
      */
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::VARIABLE_COLOR;
-    symbolAnimation.ChooseAnimation(newCanvasNode, parameters, symbolAnimationConfig);
+    bool flag2 = symbolAnimation.ChooseAnimation(newCanvasNode, parameters, symbolAnimationConfig);
+    EXPECT_TRUE(flag2 == false);
     /**
      * @tc.steps: step2.3 test SYMBOL_PULSE
      */
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::PULSE;
-    symbolAnimation.ChooseAnimation(newCanvasNode, parameters, symbolAnimationConfig);
+    bool flag3 = symbolAnimation.ChooseAnimation(newCanvasNode, parameters, symbolAnimationConfig);
+    EXPECT_TRUE(flag3 == false);
         /**
      * @tc.steps: step2.4 test NONE
      */
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::NONE;
-    bool flag = symbolAnimation.ChooseAnimation(newCanvasNode, parameters, symbolAnimationConfig);
-    EXPECT_TRUE(flag == false);
+    bool flag4 = symbolAnimation.ChooseAnimation(newCanvasNode, parameters, symbolAnimationConfig);
+    EXPECT_TRUE(flag4 == false);
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest ChooseAnimation001 end";
 }
@@ -584,6 +649,35 @@ HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase002, TestSize.Level1)
     EXPECT_TRUE(groupAnimation.empty());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest ScaleAnimationBase002 end";
+}
+
+/**
+ * @tc.name: ScaleAnimationBase003
+ * @tc.desc: Verify the basic ability, ScaleAnimationBase of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, ScaleAnimationBase003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest ScaleAnimationBase003 start";
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
+    auto bounceSecondPhaseParas = BOUNCE_SECOND_PHASE_PARAS;
+    bounceSecondPhaseParas.curveType = Drawing::DrawingCurveType::SHARP;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
+    symbolAnimation.AddScaleBaseModifier(canvasNode, bounceSecondPhaseParas, scaleProperty);
+    symbolAnimation.ScaleAnimationBase(scaleProperty, bounceSecondPhaseParas, groupAnimation);
+    /**
+     * @tc.steps: step2. start ScaleAnimationBase test
+     */
+    EXPECT_FALSE(groupAnimation.empty());
+    EXPECT_FALSE(groupAnimation[0] == nullptr);
+    groupAnimation[0]->Start(canvasNode);
+    EXPECT_TRUE(groupAnimation[0]->IsRunning());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest ScaleAnimationBase003 end";
 }
 
 /**
@@ -1040,6 +1134,196 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest002, TestSize.Level1)
      */
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest002 end";
+}
+
+/**
+ * @tc.name: SpliceAnimation001
+ * @tc.desc: implement animation according to type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SpliceAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest SpliceAnimation001 start";
+    /**
+     * @tc.steps: step1. init data about various type
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<Drawing::DrawingPiecewiseParameter> parameters = {};
+    symbolAnimation.SpliceAnimation(canvasNode, parameters, Drawing::DrawingEffectStrategy::DISAPPEAR);
+    symbolAnimation.SpliceAnimation(canvasNode, parameters, Drawing::DrawingEffectStrategy::APPEAR);
+    symbolAnimation.SpliceAnimation(canvasNode, parameters, Drawing::DrawingEffectStrategy::BOUNCE);
+    symbolAnimation.SpliceAnimation(canvasNode, parameters, Drawing::DrawingEffectStrategy::SCALE);
+    symbolAnimation.SpliceAnimation(canvasNode, parameters, Drawing::DrawingEffectStrategy::NONE);
+    /**
+     * @tc.steps: step2. start SetNodePivot test
+     */
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest SpliceAnimation001 end";
+}
+
+/**
+ * @tc.name: DrawPathOnCanvas001
+ * @tc.desc: set brush&pen and draw path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest DrawPathOnCanvas001 start";
+    /**
+     * @tc.steps: step1. init data for symbolNode
+     */
+    Drawing::Path path;
+    path.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
+    Drawing::DrawingHMSymbolData symbol;
+    symbol.path_ = path;
+    Drawing::DrawingSColor color = {1, 255, 255, 0}; // the color 1 A, 255 R, 255 G, 0 B
+    TextEngine::NodeLayerInfo layerinfo;
+    layerinfo.path = path;
+    layerinfo.color = color;
+    TextEngine::SymbolNode symbolNode;
+    symbolNode.pathsInfo = {layerinfo};
+    symbolNode.nodeBoundary = {100, 100, 50, 50}; // 100 x, 100 y, 50 width, 50 height
+    symbolNode.symbolData = symbol;
+    symbolNode.animationIndex = 1;
+    symbolNode.isMask = true;
+    Vector4f vector4f = Vector4f(50.f, 50.f, 50.f, 50.f); // the offset of path
+    auto recordingCanvas = canvasNode->BeginRecording(CANVAS_NODE_BOUNDS_WIDTH,
+                                                      CANVAS_NODE_BOUNDS_HEIGHT);
+    auto symbolAnimation = RSSymbolAnimation();
+    /**
+     * @tc.steps: step2. start DrawPathOnCanvas test on nullptr
+     */
+    symbolAnimation.DrawPathOnCanvas(nullptr, symbolNode, vector4f);
+    /**
+     * @tc.steps: step3. start DrawPathOnCanvas test on recordingCanvas
+     */
+    symbolAnimation.DrawPathOnCanvas(recordingCanvas, symbolNode, vector4f);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest DrawPathOnCanvas001 end";
+}
+
+/**
+ * @tc.name: DrawSymbolOnCanvas001
+ * @tc.desc: set brush&pen and draw path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, DrawSymbolOnCanvas001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest DrawPathOnCanvas001 start";
+    /**
+     * @tc.steps: step1. init data for symbolNode
+     */
+    Drawing::Path path;
+    path.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
+    Drawing::DrawingHMSymbolData symbol;
+    symbol.path_ = path;
+    TextEngine::SymbolNode symbolNode;
+    symbolNode.nodeBoundary = {100, 100, 50, 50}; // 100 x, 100 y, 50 width, 50 height
+    symbolNode.symbolData = symbol;
+    Vector4f vector4f = Vector4f(50.f, 50.f, 50.f, 50.f); // the offset of path
+    auto recordingCanvas = canvasNode->BeginRecording(CANVAS_NODE_BOUNDS_WIDTH,
+                                                      CANVAS_NODE_BOUNDS_HEIGHT);
+    auto symbolAnimation = RSSymbolAnimation();
+    /**
+     * @tc.steps: step2. start DrawSymbolOnCanvas test on nullptr
+     */
+    symbolAnimation.DrawSymbolOnCanvas(nullptr, symbolNode, vector4f);
+    /**
+     * @tc.steps: step3. start DrawSymbolOnCanvas test on recordingCanvas
+     */
+    symbolAnimation.DrawSymbolOnCanvas(recordingCanvas, symbolNode, vector4f);
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest DrawPathOnCanvas001 end";
+}
+
+/**
+ * @tc.name: AlphaAnimationBase001
+ * @tc.desc: Verify the basic ability, AlphaAnimationBase of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, AlphaAnimationBase001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest AlphaAnimationBase001 start";
+    /**
+     * @tc.steps: step1. if parameters.size() < animationStageNum
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    Drawing::DrawingPiecewiseParameter groupPara1 = APPEAR_FIRST_PHASE_PARAS;
+    std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
+    /**
+     * @tc.steps: step2. start alphaAnimationBase test, no nullptr
+     */
+    symbolAnimation.AlphaAnimationBase(nullptr, groupPara1, groupAnimation);
+    /**
+     * @tc.steps: step2. start alphaAnimationBase test, on the size is 0 of alphas
+     */
+    symbolAnimation.AlphaAnimationBase(canvasNode, groupPara1, groupAnimation);
+    /**
+     * @tc.steps: step2. start alphaAnimationBase test, on the size < 2 of alphas
+     */
+    Drawing::DrawingPiecewiseParameter groupPara2;
+    groupPara2.properties = {{"alpha", {1}}}; // alpha is 1
+    symbolAnimation.AlphaAnimationBase(canvasNode, groupPara2, groupAnimation);
+    EXPECT_TRUE(groupAnimation.empty());
+    NotifyStartAnimation();
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest AlphaAnimationBase001 end";
+}
+
+/**
+ * @tc.name: GroupAnimationStart001
+ * @tc.desc: test GroupAnimationStart of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, GroupAnimationStart001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest GroupAnimationStart001 start";
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    auto newCanvasNode = RSCanvasNode::Create();
+    std::vector<std::shared_ptr<RSAnimation>> animations = {};
+    /**
+     * @tc.steps: step2.1 test node is nullptr, animations is empty;
+     */
+    symbolAnimation.GroupAnimationStart(nullptr, animations);
+    /**
+     * @tc.steps: step2.2 test node is nullptr, animations is empty;
+     */
+    symbolAnimation.GroupAnimationStart(newCanvasNode, animations);
+    /**
+     * @tc.steps: step2.3 test node is nullptr, animations not is empty;
+     */
+    std::shared_ptr<RSAnimation> animation = nullptr;
+    animations.push_back(animation);
+    symbolAnimation.GroupAnimationStart(nullptr, animations);
+    /**
+     * @tc.steps: step2.4 test node is nullptr, animations not is empty;
+     */
+    symbolAnimation.GroupAnimationStart(newCanvasNode, animations);
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest GroupAnimationStart001 end";
+}
+
+/**
+ * @tc.name: AddScaleBaseModifier001
+ * @tc.desc: test AddScaleBaseModifier of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, AddScaleBaseModifier001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest AddScaleBaseModifier001 start";
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    Drawing::DrawingPiecewiseParameter scaleParameter;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
+    /**
+     * @tc.steps: step2 test node is nullptr
+     */
+    auto flag = symbolAnimation.AddScaleBaseModifier(nullptr, scaleParameter, scaleProperty);
+    EXPECT_TRUE(flag == false);
+    GTEST_LOG_(INFO) << "RSSymbolAnimationTest AddScaleBaseModifier001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

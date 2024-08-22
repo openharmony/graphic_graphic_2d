@@ -33,8 +33,8 @@ public:
     VerticesImpl() noexcept {}
     ~VerticesImpl() override {}
 
-    virtual bool MakeCopy(VertexMode mode,
-        int vertexCount, const Point positions[], const Point texs[], const ColorQuad colors[],
+    virtual bool MakeCopy(VertexMode mode, int vertexCount,
+        const Point positions[], const Point texs[], const ColorQuad colors[],
         int indexCount, const uint16_t indices[]) = 0;
 
     virtual bool MakeCopy(VertexMode mode,

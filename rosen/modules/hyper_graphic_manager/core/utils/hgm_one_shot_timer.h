@@ -75,11 +75,43 @@ private:
     std::string name_;
 
     const Interval interval_;
-    const ResetCallback resetCallback_;
-    const ExpiredCallback expiredCallback_;
+    const ResetCallback resetCallback_ = nullptr;
+    const ExpiredCallback expiredCallback_ = nullptr;
 
     std::atomic<bool> resetFlag_ = false;
     std::atomic<bool> stopFlag_ = false;
+};
+
+class HgmSimpleTimer {
+public:
+    using Interval = std::chrono::milliseconds;
+    using ResetCallback = std::function<void()>;
+    using ExpiredCallback = std::function<void()>;
+
+    HgmSimpleTimer(std::string name, const Interval& interval, const ExpiredCallback& resetCallback,
+        const ExpiredCallback& expiredCallback,
+        std::unique_ptr<ChronoSteadyClock> clock = std::make_unique<ChronoSteadyClock>());
+    ~HgmSimpleTimer() = default;
+
+    // Initializes and turns on the idle timer.
+    void Start();
+    // Stops the idle timer and any held resources.
+    void Stop();
+    // Resets the wakeup time and fires the reset callback.
+    void Reset();
+private:
+    void Loop();
+
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+
+    std::string name_;
+    const Interval interval_;
+    const ResetCallback resetCallback_ = nullptr;
+    const ExpiredCallback expiredCallback_ = nullptr;
+    std::unique_ptr<ChronoSteadyClock> clock_ = nullptr;
+
+    std::atomic<std::chrono::steady_clock::time_point> resetTimePoint_;
+    std::atomic<bool> running_{false};
 };
 } // namespace OHOS::Rosen
 

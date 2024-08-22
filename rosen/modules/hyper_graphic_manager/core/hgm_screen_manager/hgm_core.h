@@ -28,6 +28,7 @@
 #include <event_handler.h>
 
 #include "hgm_screen.h"
+#include "hgm_task_handle_thread.h"
 #include "vsync_type.h"
 #include "vsync_generator.h"
 #include "xml_parser.h"
@@ -50,11 +51,6 @@ public:
         return isEnabled_;
     }
 
-    bool IsInit() const
-    {
-        return isInit_.load();
-    }
-
     int32_t GetScreenListSize() const
     {
         return screenList_.size();
@@ -62,7 +58,7 @@ public:
 
     ScreenId GetActiveScreenId() const
     {
-        return activeScreenId_;
+        return activeScreenId_.load();
     }
 
     const std::shared_ptr<PolicyConfigData>& GetPolicyConfigData() const
@@ -70,34 +66,40 @@ public:
         return mPolicyConfigData_;
     }
 
+    // called by RSMainThread
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
-        pendingScreenRefreshRate_ = rate;
+        pendingScreenRefreshRate_.store(rate);
     }
 
+    // called by RSMainThread/RSUniRenderThread
     uint32_t GetPendingScreenRefreshRate() const
     {
-        return pendingScreenRefreshRate_;
+        return pendingScreenRefreshRate_.load();
     }
 
+    // called by RSMainThread
     void SetPendingConstraintRelativeTime(uint64_t relativeTime)
     {
-        pendingConstraintRelativeTime_ = relativeTime;
+        pendingConstraintRelativeTime_.store(relativeTime);
     }
 
+    // called by RSMainThread/RSUniRenderThread
     uint64_t GetPendingConstraintRelativeTime() const
     {
-        return pendingConstraintRelativeTime_;
+        return pendingConstraintRelativeTime_.load();
     }
 
+    // called by RSMainThread
     void SetTimestamp(uint64_t timestamp)
     {
-        timestamp_ = timestamp;
+        timestamp_.store(timestamp);
     }
 
+    // called by RSMainThread/RSUniRenderThread
     uint64_t GetCurrentTimestamp() const
     {
-        return timestamp_;
+        return timestamp_.load();
     }
 
     bool GetLtpoEnabled() const
@@ -106,14 +108,20 @@ public:
             (maxTE_ == VSYNC_MAX_REFRESHRATE);
     }
 
+    bool GetAdaptiveSyncEnabled() const
+    {
+        return GetLtpoEnabled() && adaptiveSync_ == ADAPTIVE_SYNC_ENABLED;
+    }
+
+    // called by RSHardwareTHread
     bool IsVBlankIdleCorrectEnabled() const
     {
-        return vBlankIdleCorrectSwitch_;
+        return vBlankIdleCorrectSwitch_.load();
     }
 
     bool IsLowRateToHighQuickEnabled() const
     {
-        return lowRateToHighQuickSwitch_;
+        return lowRateToHighQuickSwitch_.load();
     }
 
     bool IsLTPOSwitchOn() const
@@ -147,14 +155,16 @@ public:
         maxTE_ = maxTE;
     }
 
+    // called by RSMainThread/RSUniRenderThread
     bool GetDirectCompositionFlag() const
     {
-        return doDirectComposition_;
+        return doDirectComposition_.load();
     }
 
+    // called by RSMainThread
     void SetDirectCompositionFlag(bool doDirectComposition)
     {
-        doDirectComposition_ = doDirectComposition;
+        doDirectComposition_.store(doDirectComposition);
     }
 
     // set refresh rates
@@ -176,6 +186,7 @@ public:
     sptr<HgmScreen> GetActiveScreen() const;
     std::vector<uint32_t> GetScreenSupportedRefreshRates(ScreenId id);
     std::vector<int32_t> GetScreenComponentRefreshRates(ScreenId id);
+    // called by RSHardwareTHread
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> GetModesToApply();
     void SetActiveScreenId(ScreenId id);
     std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return hgmFrameRateMgr_; };
@@ -213,15 +224,15 @@ private:
     HgmCore& operator=(const HgmCore&) = delete;
     HgmCore& operator=(const HgmCore&&) = delete;
 
-    bool Init();
+    void Init();
     void CheckCustomFrameRateModeValid();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
+    void SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting);
 
     bool isEnabled_ = true;
-    std::atomic<bool> isInit_{false};
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
-    std::unique_ptr<XMLParser> mParser_;
+    std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
 
     int32_t customFrameRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
@@ -233,23 +244,24 @@ private:
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeListToApply_ = nullptr;
 
     std::string currentBundleName_;
-    ScreenId activeScreenId_ = INVALID_SCREEN_ID;
+    std::atomic<ScreenId> activeScreenId_{ INVALID_SCREEN_ID };
     std::unordered_set<SceneType> screenSceneSet_;
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
 
     // for LTPO
-    uint32_t pendingScreenRefreshRate_ = 0;
-    uint64_t pendingConstraintRelativeTime_ = 0;
-    uint64_t timestamp_ = 0;
+    std::atomic<uint32_t> pendingScreenRefreshRate_{ 0 };
+    std::atomic<uint64_t> pendingConstraintRelativeTime_{ 0 };
+    std::atomic<uint64_t> timestamp_{ 0 };
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
+    int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
-    bool vBlankIdleCorrectSwitch_ = false;
-    bool lowRateToHighQuickSwitch_ = false;
+    std::atomic<bool> vBlankIdleCorrectSwitch_{ false };
+    std::atomic<bool> lowRateToHighQuickSwitch_{ false };
     RefreshRateModeChangeCallback refreshRateModeChangeCallback_ = nullptr;
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
-    bool doDirectComposition_ = false;
+    std::atomic<bool> doDirectComposition_{ false };
     bool enableDynamicMode_ = true;
 };
 } // namespace OHOS::Rosen

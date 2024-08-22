@@ -202,9 +202,6 @@ protected:
 class RSShadowDrawable : public RSShadowBaseDrawable {
 public:
     explicit RSShadowDrawable(const RSProperties& properties);
-    ~RSShadowDrawable() override = default;
-    RSColor GetColorForShadow(const RSRenderContent& content, RSPaintFilterCanvas& canvas,
-        Drawing::Path& skPath, Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds) const;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 
 protected:
@@ -422,7 +419,7 @@ std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderC
 
 class RSBlendSaveLayerDrawable : public RSPropertyDrawable {
 public:
-    explicit RSBlendSaveLayerDrawable(int blendMode);
+    explicit RSBlendSaveLayerDrawable(int blendMode, std::shared_ptr<Drawing::Blender> blender = nullptr);
     ~RSBlendSaveLayerDrawable() override = default;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 
@@ -432,12 +429,14 @@ private:
 
 class RSBlendFastDrawable : public RSPropertyDrawable {
 public:
-    explicit RSBlendFastDrawable(int blendMode) : blendMode_(blendMode) {}
+    explicit RSBlendFastDrawable(int blendMode, std::shared_ptr<Drawing::Blender> blender = nullptr)
+        : blendMode_(blendMode), blender_(blender) {}
     ~RSBlendFastDrawable() override = default;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 
 private:
     int blendMode_;
+    std::shared_ptr<Drawing::Blender> blender_ = nullptr;
 };
 
 class RSBlendSaveLayerRestoreDrawable : public RSPropertyDrawable {

@@ -69,16 +69,6 @@ private:
     int stagingColorStrategy_;
 };
 
-class RSMaskShadowDrawable : public RSPropertyDrawable {
-public:
-    RSMaskShadowDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
-    RSMaskShadowDrawable() = default;
-    bool OnUpdate(const RSRenderNode& node) override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-};
-
 class RSMaskDrawable : public RSPropertyDrawable {
 public:
     RSMaskDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList)) {}
@@ -128,6 +118,7 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 private:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat);
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
     void ReleaseNativeWindowBuffer();
     void SetCompressedDataForASTC();

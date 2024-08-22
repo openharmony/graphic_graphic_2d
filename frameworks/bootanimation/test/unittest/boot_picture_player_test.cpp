@@ -15,6 +15,10 @@
 
 #include <gtest/gtest.h>
 
+#include "event_handler.h"
+#include "vsync_receiver.h"
+#include "util.h"
+#include "boot_animation_operation.h"
 #include "boot_picture_player.h"
 
 using namespace testing;
@@ -72,5 +76,128 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_003, TestSize.Level1)
     std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
     int32_t frameRate = 30;
     EXPECT_EQ(player->CheckFrameRateValid(frameRate), true);
+}
+
+/**
+ * @tc.name: BootPicturePlayerTest_004
+ * @tc.desc: Verify the Play
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_004, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    handler->PostTask([&] {
+        player->Play();
+        runner->Stop();
+    });
+    runner->Run();
+    
+    player->receiver_ = nullptr;
+    auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
+    player->receiver_ = rsClient.CreateVSyncReceiver("BootAnimation", handler);
+    handler->PostTask([&] {
+        player->Play();
+        runner->Stop();
+    });
+    runner->Run();
+
+    ImageStructVec imgVec;
+    player->imageVector_ = imgVec;
+    handler->PostTask([&] {
+        player->Play();
+        runner->Stop();
+    });
+    runner->Run();
+}
+
+/**
+ * @tc.name: BootPicturePlayerTest_005
+ * @tc.desc: Verify the GetPicZipPath
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_005, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    params.resPath = "/system/etc/graphic/bootpic.zip";
+    EXPECT_EQ(player->GetPicZipPath(), "/system/etc/graphic/bootpic.zip");
+}
+
+/**
+ * @tc.name: BootPicturePlayerTest_006
+ * @tc.desc: Verify the Draw
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
+{
+    BootAnimationOperation operation;
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    int32_t degree = 0;
+    operation.InitRsSurfaceNode(degree);
+    operation.InitRsSurface();
+    ASSERT_NE(nullptr, operation.rsSurface_);
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    player->rsSurface_ = operation.rsSurface_;
+    player->picCurNo_ = 2;
+    player->imgVecSize_ = 0;
+    handler->PostTask([&] {
+        player->Draw();
+        runner->Stop();
+    });
+    runner->Run();
+
+    ImageStructVec imgVec;
+    player->imageVector_ = imgVec;
+    player->picCurNo_ = -2;
+    player->imgVecSize_ = 0;
+    handler->PostTask([&] {
+        player->Draw();
+        runner->Stop();
+    });
+    runner->Run();
+}
+
+/**
+ * @tc.name: BootPicturePlayerTest_007
+ * @tc.desc: Verify the OnDraw
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_007, TestSize.Level1)
+{
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    handler->PostTask([&] {
+        player->OnDraw(nullptr, 0);
+        runner->Stop();
+    });
+    runner->Run();
+
+    Rosen::Drawing::CoreCanvas canvas;
+    handler->PostTask([&] {
+        player->OnDraw(&canvas, 0);
+        runner->Stop();
+    });
+    runner->Run();
+
+    player->imgVecSize_ = 1;
+    handler->PostTask([&] {
+        player->OnDraw(&canvas, -1);
+        runner->Stop();
+    });
+    runner->Run();
+
+    player->imgVecSize_ = -1;
+    handler->PostTask([&] {
+        player->OnDraw(&canvas, -1);
+        runner->Stop();
+    });
+    runner->Run();
 }
 }

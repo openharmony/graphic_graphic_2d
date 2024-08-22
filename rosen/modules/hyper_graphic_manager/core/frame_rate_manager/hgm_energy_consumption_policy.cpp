@@ -19,6 +19,7 @@
 
 #include "hgm_core.h"
 #include "hgm_log.h"
+#include "hgm_task_handle_thread.h"
 #include "rs_trace.h"
 #include "xml_parser.h"
 
@@ -37,11 +38,14 @@ static const std::unordered_map<std::string, int32_t> UI_RATE_TYPE_NAME_MAP = {
 };
 constexpr int DEFAULT_ENERGY_ASSURANCE_IDLE_FPS = 60;
 constexpr int DEFAULT_ANIMATION_IDLE_DURATION = 2000;
+constexpr int64_t ENERGY_ASSURANCE_LOG_DELAY_TIME = 50;
+static const std::string ENERGY_ASSURANCE_LOG_TASK_ID = "ENERGY_ASSURANCE_LOG_TASK_ID";
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
-    RsCommonHook::Instance().RegisterStartNewAnimationListener(
-        std::bind(&HgmEnergyConsumptionPolicy::StartNewAnimation, this));
+    RsCommonHook::Instance().RegisterStartNewAnimationListener([this] () {
+        HgmTaskHandleThread::Instance().PostTask([this] () { StartNewAnimation(); });
+    });
 }
 
 HgmEnergyConsumptionPolicy& HgmEnergyConsumptionPolicy::Instance()
@@ -62,7 +66,6 @@ void HgmEnergyConsumptionPolicy::ConverStrToInt(int& targetNum, std::string sour
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig(
     std::unordered_map<std::string, std::string> animationPowerConfig)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (animationPowerConfig.count(IS_ANIMATION_ENERGY_ASSURANCE_ENABLE) == 0) {
         isAnimationEnergyAssuranceEnable_ = false;
     } else {
@@ -92,7 +95,6 @@ void HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig(
 void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
     std::unordered_map<std::string, std::string> uiPowerConfig)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     uiEnergyAssuranceMap_.clear();
     for (auto config : uiPowerConfig) {
         std::string rateTypeName = config.first;
@@ -109,7 +111,6 @@ void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
 
 void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ ||
         isAnimationEnergyConsumptionAssuranceMode_ == isEnergyConsumptionAssuranceMode) {
         return;
@@ -121,13 +122,11 @@ void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool
 
 void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     isUiEnergyConsumptionAssuranceMode_ = isEnergyConsumptionAssuranceMode;
 }
 
 void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
         return;
     }
@@ -136,7 +135,6 @@ void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
 
 void HgmEnergyConsumptionPolicy::StartNewAnimation()
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
         return;
     }
@@ -146,12 +144,14 @@ void HgmEnergyConsumptionPolicy::StartNewAnimation()
 
 void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    rsRange.isEnergyAssurance_ = false;
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
+        PrintLog(rsRange, false, 0);
         return;
     }
     if (lastAnimationTimestamp_ > firstAnimationTimestamp_ &&
         (lastAnimationTimestamp_ - firstAnimationTimestamp_) < static_cast<uint64_t>(animationIdleDuration_)) {
+        PrintLog(rsRange, false, 0);
         return;
     }
     SetEnergyConsumptionRateRange(rsRange, animationIdleFps_);
@@ -159,8 +159,9 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 
 void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    rsRange.isEnergyAssurance_ = false;
     if (!isUiEnergyConsumptionAssuranceMode_) {
+        PrintLog(rsRange, false, 0);
         return;
     }
     auto it = uiEnergyAssuranceMap_.find(rsRange.type_);
@@ -172,14 +173,53 @@ void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
     int idleFps = it->second.second;
     if (isEnergyAssuranceEnable) {
         SetEnergyConsumptionRateRange(rsRange, idleFps);
+    } else {
+        PrintLog(rsRange, false, 0);
     }
 }
 
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps)
 {
     RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s, maxFps:%d", rsRange.GetExtInfo().c_str(), idleFps);
+    if (rsRange.preferred_ > idleFps) {
+        PrintLog(rsRange, true, idleFps);
+        rsRange.isEnergyAssurance_ = true;
+    }
     rsRange.max_ = std::min(rsRange.max_, idleFps);
     rsRange.min_ = std::min(rsRange.min_, idleFps);
     rsRange.preferred_ = std::min(rsRange.preferred_, idleFps);
 }
+
+void HgmEnergyConsumptionPolicy::PrintLog(FrameRateRange &rsRange, bool state, int idleFps)
+{
+    const auto it = energyAssuranceState_.find(rsRange.type_);
+    const auto taskId = ENERGY_ASSURANCE_LOG_TASK_ID + std::to_string(rsRange.type_);
+    // Enter assurance solution
+    if (state) {
+        HgmTaskHandleThread::Instance().RemoveEvent(taskId);
+        if (it == energyAssuranceState_.end() || !it->second) {
+            energyAssuranceState_[rsRange.type_] = state;
+            HGM_LOGI("HgmEnergyConsumptionPolicy enter the energy consumption assurance mode, rateType:%{public}s, "
+                "maxFps:%{public}d", rsRange.GetExtInfo().c_str(), idleFps);
+        }
+
+        // Continued assurance status
+        auto task = [this, rsRange]() {
+            energyAssuranceState_[rsRange.type_] = false;
+            HGM_LOGI("HgmEnergyConsumptionPolicy exit the energy consumption assurance mode, rateType:%{public}s",
+                rsRange.GetExtInfo().c_str());
+        };
+        HgmTaskHandleThread::Instance().PostEvent(taskId, task, ENERGY_ASSURANCE_LOG_DELAY_TIME);
+        return;
+    }
+
+    // Exit assurance solution
+    if (it != energyAssuranceState_.end() && it->second && !state) {
+        HgmTaskHandleThread::Instance().RemoveEvent(taskId);
+        energyAssuranceState_[rsRange.type_] = state;
+        HGM_LOGI("HgmEnergyConsumptionPolicy exit the energy consumption assurance mode, rateType:%{public}s",
+            rsRange.GetExtInfo().c_str());
+    }
+}
+
 } // namespace OHOS::Rosen

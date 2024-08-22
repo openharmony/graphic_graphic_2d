@@ -45,6 +45,7 @@ struct ConnectionInfo {
         this->name_ = name;
     }
 };
+typedef void (*GCNotifyTask)(bool);
 
 class VSyncConnection : public VSyncConnectionStub {
 public:
@@ -62,6 +63,10 @@ public:
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
 
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
+    inline void SetGCNotifyTask(GCNotifyTask hook)
+    {
+        gcNotifyTask_ = hook;
+    }
 
     int32_t rate_; // used for LTPS
     int32_t highPriorityRate_ = -1;
@@ -88,6 +93,7 @@ private:
     private:
         wptr<VSyncConnection> conn_;
     };
+    GCNotifyTask gcNotifyTask_ = nullptr;
     sptr<VSyncConnectionDeathRecipient> vsyncConnDeathRecipient_ = nullptr;
     sptr<IRemoteObject> token_ = nullptr;
     // Circular reference， need check
@@ -115,8 +121,6 @@ public:
                                 int64_t lastVSyncTS = 0);
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
-    VsyncError GetVSyncConnectionInfos(std::vector<ConnectionInfo>& infos);
-    VsyncError GetQosVSyncRateInfos(std::vector<std::pair<uint32_t, int32_t>>& vsyncRateInfos);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);
 
     // used by DVSync
@@ -133,6 +137,7 @@ public:
     int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
+    int64_t GetVsyncCount();
 
 private:
 

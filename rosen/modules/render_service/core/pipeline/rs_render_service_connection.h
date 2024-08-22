@@ -95,13 +95,12 @@ private:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    int32_t SetVirtualScreenSecurityExemptionList(
+        ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
-
-#ifdef RS_ENABLE_VK
-    bool Set2DRenderCtrl(bool enable) override;
-#endif
 
     void RemoveVirtualScreen(ScreenId id) override;
 
@@ -267,6 +266,8 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
+
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
@@ -277,6 +278,8 @@ private:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
 
+    void SetVmaCacheStatus(bool flag) override;
+
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 
 #ifdef TP_FEATURE_ENABLE
@@ -285,6 +288,8 @@ private:
 
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
+
+    bool SetAncoForceDoDirect(bool direct) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

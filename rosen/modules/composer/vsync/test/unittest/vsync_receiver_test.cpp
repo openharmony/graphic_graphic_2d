@@ -31,6 +31,7 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     static inline void OnVSync(int64_t now, void* data);
+    static inline void OnVSync2(int64_t now, void* data);
 
     static inline sptr<VSyncController> vsyncController = nullptr;
     static inline sptr<VSyncDistributor> vsyncDistributor = nullptr;
@@ -43,6 +44,11 @@ public:
 void VsyncReceiverTest::OnVSync(int64_t now, void* data)
 {
     onVsyncCount ++;
+}
+
+void VsyncReceiverTest::OnVSync2(int64_t now, void* data)
+{
+    usleep(100000); // 100000us
 }
 
 void VsyncReceiverTest::SetUpTestCase()
@@ -324,6 +330,58 @@ HWTEST_F(VsyncReceiverTest, SetVSyncRate002, Function | MediumTest| Level3)
     };
     vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, 1), VSYNC_ERROR_OK);
+    ASSERT_EQ(VsyncReceiverTest::vsyncReceiver->SetVSyncRate(fcb, -1), VSYNC_ERROR_OK);
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: SendDataFailedTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SendData Failed
+ */
+HWTEST_F(VsyncReceiverTest, SendDataFailedTest, Function | MediumTest| Level3)
+{
+    VSyncReceiver::FrameCallback fcb = {
+        .userData_ = this,
+        .callback_ = OnVSync2,
+    };
+    vsyncDistributor->AddConnection(conn);
+    for (int i = 0; i < 10; i++) { // test 10 times
+        ASSERT_EQ(vsyncReceiver->RequestNextVSync(fcb), VSYNC_ERROR_OK);
+        usleep(10000); // 10000us
+    }
+    sleep(1); // 1s
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: SetUiDvsyncSwitchTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetUiDvsyncSwitch
+ */
+HWTEST_F(VsyncReceiverTest, SetUiDvsyncSwitchTest, Function | MediumTest| Level3)
+{
+    vsyncDistributor->AddConnection(conn);
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncSwitch(true), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncSwitch(false), VSYNC_ERROR_OK);
+    vsyncDistributor->RemoveConnection(conn);
+}
+
+/*
+* Function: SetUiDvsyncConfigTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetUiDvsyncConfig
+ */
+HWTEST_F(VsyncReceiverTest, SetUiDvsyncConfigTest, Function | MediumTest| Level3)
+{
+    vsyncDistributor->AddConnection(conn);
+    ASSERT_EQ(vsyncReceiver->SetUiDvsyncConfig(1), VSYNC_ERROR_OK);
     vsyncDistributor->RemoveConnection(conn);
 }
 } // namespace

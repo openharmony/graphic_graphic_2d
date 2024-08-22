@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_2d/opengl_wrapper"
 
@@ -21,17 +22,16 @@ group("unittest") {
   deps = [ ":opengl_wrapper_unit_test" ]
 }
 
-group("blobunittest") {
-  testonly = true
-
-  deps = [ ":opengl_wrapper_blob_unit_test" ]
-}
-
 ohos_unittest("opengl_wrapper_unit_test") {
   module_out_path = module_out_path
+
+  public_configs = [ ":opengl_wrapper_public_config" ]
+
   sources = [
+    "egl_blob_test.cpp",
     "egl_bundle_mgr_helper_test.cpp",
     "egl_core_test.cpp",
+    "egl_system_layers_manager_test.cpp",
     "egl_wrapper_context_test.cpp",
     "egl_wrapper_display_test.cpp",
     "egl_wrapper_entry_test.cpp",
@@ -39,26 +39,25 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "egl_wrapper_loader_test.cpp",
     "thread_private_data_ctl_test.cpp",
   ]
-  deps = [ ":opengl_wrapper_test_common" ]
+
+  deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "//third_party/googletest:gmock",
+    "//third_party/googletest:gtest_main",
+  ]
 
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
 }
 
-ohos_unittest("opengl_wrapper_blob_unit_test") {
-  module_out_path = module_out_path
-  sources = [ "egl_blob_test.cpp" ]
-  deps = [ ":opengl_wrapper_test_common" ]
-}
-
-config("opengl_wrapper_test_common_public_config") {
+config("opengl_wrapper_public_config") {
   include_dirs = [
-    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper/src",
-    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper/src/EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper/src",
+    "$graphic_2d_root/frameworks/opengl_wrapper/src/EGL",
   ]
 
   cflags = [
@@ -68,23 +67,4 @@ config("opengl_wrapper_test_common_public_config") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-}
-
-ohos_static_library("opengl_wrapper_test_common") {
-  visibility = [ ":*" ]
-  testonly = true
-
-  public_configs = [ ":opengl_wrapper_test_common_public_config" ]
-
-  public_deps = [
-    "//commonlibrary/c_utils/base:utils",
-    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
-  ]
-
-  external_deps = [ "hilog:libhilog" ]
-  subsystem_name = "graphic"
-  part_name = "graphic_2d"
 }

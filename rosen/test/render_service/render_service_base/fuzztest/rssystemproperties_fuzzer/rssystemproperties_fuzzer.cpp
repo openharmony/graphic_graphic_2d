@@ -95,6 +95,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetHardwareComposerEnabled();
     RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     RSSystemProperties::GetHwcRegionDfxEnabled();
+    RSSystemProperties::GetDrawMirrorCacheImageEnabled();
     RSSystemProperties::GetAFBCEnabled();
     RSSystemProperties::GetReleaseResourceEnabled();
     RSSystemProperties::GetRSScreenRoundCornerEnable();
@@ -112,7 +113,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetFilterCacheEnabled();
     RSSystemProperties::GetFilterCacheUpdateInterval();
     RSSystemProperties::GetFilterCacheSizeThreshold();
-    RSSystemProperties::GetColorPickerPartialEnabled();
     RSSystemProperties::GetMaskLinearBlurEnabled();
     RSSystemProperties::GetMotionBlurEnabled();
     RSSystemProperties::GetKawaseEnabled();
@@ -127,7 +127,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetAiInvertCoef();
     RSSystemProperties::GetSkipForAlphaZeroEnabled();
     RSSystemProperties::GetSkipGeometryNotChangeEnabled();
-    RSSystemProperties::GetQuickPrepareEnabled();
     RSSystemProperties::GetRenderParallelEnabled();
     RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled();
     RSSystemProperties::GetBlurExtraFilterEnabled();

@@ -269,7 +269,6 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
     instance.Render();
     EXPECT_TRUE(instance.rootNodeDrawable_);
 
-    RSMainThread::Instance()->markRenderFlag_ = true;
     instance.Render();
     EXPECT_TRUE(instance.rootNodeDrawable_);
 }
@@ -517,7 +516,7 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     auto surfaceDrawable =
         std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceRenderNode->renderDrawable_);
     surfaceDrawable->consumerOnDraw_ = IConsumerSurface::Create();
-    instance.renderThreadParams_->selfDrawingNodes_.push_back(surfaceRenderNode);
+    instance.renderThreadParams_->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->GetRenderParams().get());
     instance.ReleaseSelfDrawingNodeBuffer();
     EXPECT_FALSE(params->GetPreBuffer());

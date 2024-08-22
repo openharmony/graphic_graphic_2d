@@ -1,0 +1,80 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/ace_platforms.gni")
+
+module_output_path = "graphic/rosen_engine/render_service_base/ipc_callbacks"
+
+##############################  RSRenderServiceBaseIpcCallBacksTest  ##################################
+ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "buffer_available_callback_stub_test.cpp",
+    "buffer_clear_callback_stub_test.cpp",
+    "rs_occlusion_change_callback_stub_test.cpp",
+    "rs_rt_refresh_callback_test.cpp",
+    "rs_surface_occlusion_change_callback_stub_test.cpp",
+    "rs_uiextension_callback_stub_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "../../../../../modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "../../../../../modules/render_service_base:render_service_base_src",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+###############################################################################
+config("render_test") {
+  visibility = [ ":*" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base" ]
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":RSRenderServiceBaseIpcCallBacksTest" ]
+}

@@ -15,13 +15,13 @@
 
 #include "hgm_idle_detector.h"
 #include "rs_trace.h"
+#include "hgm_task_handle_thread.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     constexpr uint64_t MAX_CACHED_VALID_SURFACE_NAME_COUNT = 60;
-    constexpr uint32_t MAX_VALID_SURFACE_NAME_LENGTH = 10;
     constexpr uint32_t FPS_MAX = 120;
     const std::string ACE_ANIMATOR_NAME = "AceAnimato";
     const std::string OTHER_SURFACE = "Other_SF";
@@ -40,16 +40,14 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
         }
         return;
     }
-    auto validSurfaceName = surfaceName.size() > MAX_VALID_SURFACE_NAME_LENGTH ?
-        surfaceName.substr(0, MAX_VALID_SURFACE_NAME_LENGTH) : surfaceName;
-
+    std::string validSurfaceName = "";
     bool needHighRefresh = false;
     switch (uiFwkType) {
         case UIFWKType::FROM_UNKNOWN:
-            needHighRefresh = GetUnknownFrameworkState(validSurfaceName);
+            needHighRefresh = GetUnknownFrameworkState(surfaceName, validSurfaceName);
             break;
         case UIFWKType::FROM_SURFACE:
-            needHighRefresh = GetSurfaceFrameworkState(validSurfaceName);
+            needHighRefresh = GetSurfaceFrameworkState(surfaceName, validSurfaceName);
             break;
         default:
             break;
@@ -63,38 +61,32 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
     frameTimeMap_[validSurfaceName] = timestamp;
 }
 
-bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName)
+bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
+    std::string& uiFwkType)
 {
-    if (!std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), surfaceName)) {
-        return false;
-    }
-    return true;
-}
-
-bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName)
-{
-    if (!std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE) &&
-        !std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), surfaceName)) {
-        return false;
-    }
-    return true;
-}
-
-void HgmIdleDetector::ProcessUnknownUIFwkIdleState(const std::unordered_map<NodeId,
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>>& activeNodesInRoot, uint64_t timestamp)
-{
-    if (activeNodesInRoot.empty()) {
-        return;
-    }
-
-    for (const auto &[_, idToMap] : activeNodesInRoot) {
-        for (const auto &[_, weakPenderNode] : idToMap) {
-            auto renderNode = weakPenderNode.lock();
-            if (renderNode != nullptr) {
-                UpdateSurfaceTime(renderNode->GetNodeName(), timestamp, ExtractPid(renderNode->GetId()));
-            }
+    for (auto supportedAppBuffer : supportAppBufferList_) {
+        if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
+            uiFwkType = supportedAppBuffer;
+            return true;
         }
     }
+    return false;
+}
+
+bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName,
+    std::string& validSurfaceName)
+{
+    for (auto supportedAppBuffer : supportAppBufferList_) {
+        if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
+            validSurfaceName = supportedAppBuffer;
+            return true;
+        }
+    }
+    if (std::count(supportAppBufferList_.begin(), supportAppBufferList_.end(), OTHER_SURFACE)) {
+        validSurfaceName = OTHER_SURFACE;
+        return true;
+    }
+    return false;
 }
 
 bool HgmIdleDetector::GetSurfaceIdleState(uint64_t timestamp)
@@ -118,7 +110,6 @@ bool HgmIdleDetector::GetSurfaceIdleState(uint64_t timestamp)
 
 bool HgmIdleDetector::ThirdFrameNeedHighRefresh()
 {
-    std::lock_guard<std::mutex> lock(appBufferBlackListMutex_);
     if (appBufferBlackList_.empty() || (!aceAnimatorIdleState_ &&
         !std::count(appBufferBlackList_.begin(), appBufferBlackList_.end(), ACE_ANIMATOR_NAME))) {
         return true;
@@ -139,7 +130,6 @@ bool HgmIdleDetector::ThirdFrameNeedHighRefresh()
 
 int32_t HgmIdleDetector::GetTouchUpExpectedFPS()
 {
-    std::lock_guard<std::mutex> lock(appBufferListMutex_);
     if (appBufferList_.empty()) {
         return FPS_MAX;
     }

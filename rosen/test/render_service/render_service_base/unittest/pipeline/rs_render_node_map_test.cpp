@@ -263,4 +263,93 @@ HWTEST_F(RSRenderNodeMapTest, GetAnimationFallbackNode, TestSize.Level1)
     rsRenderNodeMap.renderNodeMap_.emplace(id, node);
     EXPECT_NE(rsRenderNodeMap.GetAnimationFallbackNode(), nullptr);
 }
+
+/**
+ * @tc.name: IsUIExtensionSurfaceNode001
+ * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode001, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
+    EXPECT_NE(node, nullptr);
+    RSRenderNodeMap rsRenderNodeMap;
+    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
+    EXPECT_TRUE(isRegisterSuccess);
+    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    rsRenderNodeMap.UnregisterRenderNode(id);
+    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_FALSE(isUIExtensionSurfaceNode);
+}
+
+/**
+ * @tc.name: IsUIExtensionSurfaceNode002
+ * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNodeConfig config = { .id = id };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_NE(node, nullptr);
+    RSRenderNodeMap rsRenderNodeMap;
+    bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
+    EXPECT_TRUE(isRegisterSuccess);
+    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_FALSE(isUIExtensionSurfaceNode);
+    rsRenderNodeMap.UnregisterRenderNode(id);
+    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_FALSE(isUIExtensionSurfaceNode);
+}
+
+/**
+ * @tc.name: IsUIExtensionSurfaceNode003
+ * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode003, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_NE(node, nullptr);
+    RSRenderNodeMap rsRenderNodeMap;
+    bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
+    EXPECT_TRUE(isRegisterSuccess);
+    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_TRUE(isUIExtensionSurfaceNode);
+    rsRenderNodeMap.UnregisterRenderNode(id);
+    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_FALSE(isUIExtensionSurfaceNode);
+}
+
+/**
+ * @tc.name: IsUIExtensionSurfaceNode004
+ * @tc.desc: test results of IsUIExtensionSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSRenderNodeMapTest, IsUIExtensionSurfaceNode004, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_NE(node, nullptr);
+    RSRenderNodeMap rsRenderNodeMap;
+    bool isRegisterSuccess = rsRenderNodeMap.RegisterRenderNode(node);
+    EXPECT_TRUE(isRegisterSuccess);
+    bool isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_TRUE(isUIExtensionSurfaceNode);
+    rsRenderNodeMap.UnregisterRenderNode(id);
+    isUIExtensionSurfaceNode = rsRenderNodeMap.IsUIExtensionSurfaceNode(id);
+    EXPECT_FALSE(isUIExtensionSurfaceNode);
+}
 } // namespace OHOS::Rosen

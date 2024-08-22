@@ -17,6 +17,7 @@
 #include "font_collection.h"
 #include "paragraph_builder.h"
 #include "paragraph_style.h"
+#include "text_style.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -25,6 +26,7 @@ using namespace OHOS::Rosen::Drawing;
 using namespace OHOS::Rosen::SPText;
 
 namespace txt {
+namespace skt = skia::textlayout;
 class ParagraphTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -51,7 +53,7 @@ void ParagraphTest::SetUpTestCase()
     paragraphBuilder->AddText(text);
     // 50 just for test
     PlaceholderRun placeholderRun(50, 50, PlaceholderAlignment::BASELINE,
-        SPText::TextBaseline::ALPHABETIC, 0.0);
+     SPText::TextBaseline::ALPHABETIC, 0.0);
     paragraphBuilder->AddPlaceholder(placeholderRun);
     paragraph_ = paragraphBuilder->Build();
     if (!paragraph_) {
@@ -308,7 +310,7 @@ HWTEST_F(ParagraphTest, ParagraphTest021, TestSize.Level1)
 {
     EXPECT_EQ(paragraph_ != nullptr, true);
     // 2 just for test
-    EXPECT_EQ(paragraph_->GetRectsForRange(0, 2, RectHeightStyle::MAX, RectWidthStyle::TIGHT).size(), 0);
+    EXPECT_EQ(paragraph_->GetRectsForRange(0, 2, RectHeightStyle::MAX, RectWidthStyle::TIGHT).size(), 1);
 }
 
 /*
@@ -459,5 +461,76 @@ HWTEST_F(ParagraphTest, ParagraphTest034, TestSize.Level1)
 {
     EXPECT_EQ(paragraph_ != nullptr, true);
     EXPECT_EQ(paragraph_->CloneSelf() != nullptr, true);
+}
+
+/*
+ * @tc.name: ParagraphTest035
+ * @tc.desc: test for GetLongestLineWithIndent
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest035, TestSize.Level1)
+{
+    EXPECT_EQ(paragraph_ != nullptr, true);
+    EXPECT_EQ(paragraph_->GetLongestLineWithIndent() > 0, true);
+}
+
+/*
+ * @tc.name: ParagraphTest036
+ * @tc.desc: test for SkStyleToTextStyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest036, TestSize.Level1)
+{
+    EXPECT_EQ(paragraph_ != nullptr, true);
+    skt::TextStyle skStyle;
+    skStyle.setColor(0xFF0000FF); // used for testing. Set the color to blue.
+    skStyle.setDecorationColor(0xFF000000); // used for testing. Set the color to black.
+    skStyle.setDecorationThicknessMultiplier(2.0f);
+    skStyle.setFontFamilies({ SkString("sans-serif")});
+    skStyle.setFontSize(12.0f);
+    skStyle.setHeight(1.5f);
+    SPText::TextStyle txt = paragraph_->SkStyleToTextStyle(skStyle);
+}
+
+/*
+ * @tc.name: ParagraphTest037
+ * @tc.desc: test for UpdateColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest037, TestSize.Level1)
+{
+    EXPECT_EQ(paragraph_ != nullptr, true);
+    RSColor color(255, 0, 0, 255);
+    std::u16string text(u"text");
+    paragraph_->UpdateColor(0, text.length(), color);
+}
+
+/*
+ * @tc.name: ParagraphTest038
+ * @tc.desc: test for UpdateColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest038, TestSize.Level1) {
+    EXPECT_EQ(paragraph_ != nullptr, true);
+    RSColor rsColor(10, 10, 10, 10);
+    paragraph_->UpdateColor(0, 10, rsColor);
+}
+
+/*
+ * @tc.name: ParagraphTest039
+ * @tc.desc: test for SkStyleToTextStyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest039, TestSize.Level1) {
+    EXPECT_EQ(paragraph_ != nullptr, true);
+    auto metrics = paragraph_->GetLineMetrics();
+    for (const skia::textlayout::LineMetrics &skLineMetrics : metrics) {
+        for (const auto& [index, styleMetrics] : skLineMetrics.fLineMetrics) {
+            OHOS::Rosen::SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMetrics.text_style);
+        }
+    }
+
+    EXPECT_EQ(paragraph_->GetLongestLine() <= 50, true);
+    EXPECT_EQ(paragraph_->GetLongestLineWithIndent() <= 50, true);
 }
 } // namespace txt

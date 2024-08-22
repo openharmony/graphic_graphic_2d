@@ -26,8 +26,6 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
-    // To be deleted after captureWindow being deleted
-    bool EnableRecordingOptimization(RSRenderParams& params);
 protected:
     explicit RSCanvasRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
 private:

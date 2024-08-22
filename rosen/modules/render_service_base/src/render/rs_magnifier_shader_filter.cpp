@@ -35,7 +35,7 @@ RSMagnifierShaderFilter::~RSMagnifierShaderFilter() = default;
 void RSMagnifierShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
-    if (magnifierPara_ == nullptr) {
+    if (magnifierPara_ == nullptr || scaleX_ < FLOAT_ZERO_THRESHOLD || scaleY_ < FLOAT_ZERO_THRESHOLD) {
         ROSEN_LOGD("RSMagnifierShaderFilter::GenerateGEVisualEffect magnifierPara_ is nullptr!");
         return;
     }
@@ -46,13 +46,13 @@ void RSMagnifierShaderFilter::GenerateGEVisualEffect(
         return;
     }
     magnifierFilter->SetParam("FACTOR", magnifierPara_->factor_);
-    magnifierFilter->SetParam("WIDTH", magnifierPara_->width_);
-    magnifierFilter->SetParam("HEIGHT", magnifierPara_->height_);
-    magnifierFilter->SetParam("CORNERRADIUS", magnifierPara_->cornerRadius_);
-    magnifierFilter->SetParam("BORDERWIDTH", magnifierPara_->borderWidth_);
-    magnifierFilter->SetParam("SHADOWOFFSETX", magnifierPara_->shadowOffsetX_);
-    magnifierFilter->SetParam("SHADOWOFFSETY", magnifierPara_->shadowOffsetY_);
-    magnifierFilter->SetParam("SHADOWSIZE", magnifierPara_->shadowSize_);
+    magnifierFilter->SetParam("WIDTH", magnifierPara_->width_ * scaleX_);
+    magnifierFilter->SetParam("HEIGHT", magnifierPara_->height_ * scaleY_);
+    magnifierFilter->SetParam("CORNERRADIUS", magnifierPara_->cornerRadius_ * scaleY_);
+    magnifierFilter->SetParam("BORDERWIDTH", magnifierPara_->borderWidth_ * scaleY_);
+    magnifierFilter->SetParam("SHADOWOFFSETX", magnifierPara_->shadowOffsetX_ * scaleX_);
+    magnifierFilter->SetParam("SHADOWOFFSETY", magnifierPara_->shadowOffsetY_ * scaleY_);
+    magnifierFilter->SetParam("SHADOWSIZE", magnifierPara_->shadowSize_ * scaleY_);
     magnifierFilter->SetParam("SHADOWSTRENGTH", magnifierPara_->shadowStrength_);
     magnifierFilter->SetParam("GRADIENTMASKCOLOR1", magnifierPara_->gradientMaskColor1_);
     magnifierFilter->SetParam("GRADIENTMASKCOLOR2", magnifierPara_->gradientMaskColor2_);
@@ -73,22 +73,30 @@ void RSMagnifierShaderFilter::SetMagnifierOffset(Drawing::Matrix& mat)
     // 1 and 3 represents index
     if ((mat.Get(1) > FLOAT_ZERO_THRESHOLD) && (mat.Get(3) < (0 - FLOAT_ZERO_THRESHOLD))) {
         rotateDegree_ = 90; // 90 represents rotate degree
-        offsetX_ = magnifierPara_->offsetY_;
-        offsetY_ = -magnifierPara_->offsetX_;
+        scaleX_ = mat.Get(1);
+        scaleY_ = -mat.Get(3); // 3 represents index
+        offsetX_ = magnifierPara_->offsetY_ * scaleX_;
+        offsetY_ = -magnifierPara_->offsetX_ * scaleY_;
     // 0 and 4 represents index
     } else if ((mat.Get(0) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(4) < (0 - FLOAT_ZERO_THRESHOLD))) {
         rotateDegree_ = 180; // 180 represents rotate degree
-        offsetX_ = -magnifierPara_->offsetX_;
-        offsetY_ = -magnifierPara_->offsetY_;
+        scaleX_ = -mat.Get(0);
+        scaleY_ = -mat.Get(4); // 4 represents index
+        offsetX_ = -magnifierPara_->offsetX_ * scaleX_;
+        offsetY_ = -magnifierPara_->offsetY_ * scaleY_;
     // 1 and 3 represents index
     } else if ((mat.Get(1) < (0 - FLOAT_ZERO_THRESHOLD)) && (mat.Get(3) > FLOAT_ZERO_THRESHOLD)) {
         rotateDegree_ = 270; // 270 represents rotate degree
-        offsetX_ = -magnifierPara_->offsetY_;
-        offsetY_ = magnifierPara_->offsetX_;
+        scaleX_ = -mat.Get(1);
+        scaleY_ = mat.Get(3); // 3 represents index
+        offsetX_ = -magnifierPara_->offsetY_ * scaleX_;
+        offsetY_ = magnifierPara_->offsetX_ * scaleY_;
     } else {
         rotateDegree_ = 0;
-        offsetX_ = magnifierPara_->offsetX_;
-        offsetY_ = magnifierPara_->offsetY_;
+        scaleX_ = mat.Get(0);
+        scaleY_ = mat.Get(4); // 4 represents index
+        offsetX_ = magnifierPara_->offsetX_ * scaleX_;
+        offsetY_ = magnifierPara_->offsetY_ * scaleY_;
     }
 }
 

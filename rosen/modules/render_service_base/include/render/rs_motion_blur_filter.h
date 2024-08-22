@@ -31,6 +31,8 @@ public:
 
     explicit MotionBlurParam(float r, Vector2f& s) : radius(r), scaleAnchor(s) {}
     ~MotionBlurParam() = default;
+
+    void Dump(std::string& out) const;
 };
 
 class RSB_EXPORT RSMotionBlurFilter : public RSDrawingFilterOriginal {
@@ -51,12 +53,9 @@ public:
         return nullptr;
     }
 
-    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight) override
+    void DisableMotionBlur(bool isDisableMotionBlur) override
     {
-        Drawing::Matrix mat = canvas.GetTotalMatrix();
-        Drawing::Rect rect = canvas.GetDeviceClipBounds();
-        mat.MapRect(rect, rect);
-        curRect_ = Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+        disableMotionBlur_ = isDisableMotionBlur;
     }
 
 private:
@@ -74,6 +73,7 @@ private:
     mutable Drawing::Rect lastRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
     mutable Drawing::Rect curRect_ = Drawing::Rect(0.f, 0.f, 0.f, 0.f);
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
+    bool disableMotionBlur_ = false;
 
     static std::shared_ptr<Drawing::RuntimeEffect> motionBlurShaderEffect_;
 };

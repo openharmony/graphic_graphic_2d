@@ -822,9 +822,9 @@ napi_value JsFont::OnTextToGlyphs(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    uint32_t glyphCount = m_font->CountText(text.c_str(), text.length(), TextEncoding::UTF8);
-    uint32_t inputCount = 0;
+    uint32_t glyphCount = static_cast<uint32_t>(m_font->CountText(text.c_str(), text.length(), TextEncoding::UTF8));
     if (argc == ARGC_TWO) {
+        uint32_t inputCount = 0;
         GET_UINT32_PARAM(ARGC_ONE, inputCount);
         if (glyphCount != inputCount) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");

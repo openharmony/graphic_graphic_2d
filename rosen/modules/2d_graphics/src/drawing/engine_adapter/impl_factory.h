@@ -52,8 +52,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class Matrix;
-class RuntimeEffect;
 class ImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl();
@@ -88,8 +86,6 @@ public:
     static std::unique_ptr<Matrix44Impl> CreateMatrix44Impl();
     static std::unique_ptr<CameraImpl> CreateCameraImpl();
     static std::unique_ptr<RegionImpl> CreateRegionImpl();
-    static std::unique_ptr<VerticesImpl> CreateVerticesImpl();
-    static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilderImpl();
     static std::unique_ptr<FontImpl> CreateFontImpl();
     static std::unique_ptr<FontImpl> CreateFontImpl(std::shared_ptr<Typeface> typeface,
         scalar size, scalar scaleX, scalar skewX);
@@ -99,6 +95,8 @@ public:
 #ifndef USE_TEXGINE
     static std::shared_ptr<FontMgrImpl> CreateDynamicFontMgrImpl();
 #endif
+    static std::unique_ptr<VerticesImpl> CreateVerticesImpl();
+    static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilderImpl();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl(const void* data, size_t length, bool copyData);
     static std::shared_ptr<ResourceHolderImpl> CreateResourceHolderImpl();

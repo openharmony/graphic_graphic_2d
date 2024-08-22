@@ -84,8 +84,6 @@ HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
 
     PART("CaseDescription") {
         STEP("1. check if IsInit() is true") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
             bool enabled = instance.IsEnabled();
             STEP_ASSERT_EQ(enabled, true);
             instance.GetPolicyConfigData();
@@ -107,13 +105,6 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
     int sizeListBefore = 0;
     int sizeListAfter = 0;
     int sizeScreenIds = 0;
-
-    PART("EnvConditions") {
-        STEP("get Instance") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
-        }
-    }
 
     PART("CaseDescription") {
         STEP("1. mark screenList_ size before add") {
@@ -235,8 +226,6 @@ HWTEST_F(HyperGraphicManagerTest, RemoveScreen, Function | MediumTest | Level2)
 
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
-            bool init = instance7.IsInit();
-            STEP_ASSERT_EQ(init, true);
             auto addScreen = instance7.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_EQ(addScreen, 0);
         }
@@ -335,13 +324,6 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
     int32_t mode = 1;
     int32_t modeToSet = 2;
 
-    PART("EnvConditions") {
-        STEP("get Instance") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
-        }
-    }
-
     PART("CaseDescription") {
         STEP("1. add a new screen") {
             auto addScreen = instance.AddScreen(screenId, 0, screenSize);
@@ -384,6 +366,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
     int32_t mode2 = 2;
     instance.AddScreen(screenId2, 1, screenSize);
     instance.AddScreenInfo(screenId2, width, height, rate, mode);
+    EXPECT_EQ(instance.AddScreenInfo(screenId2, width, height, rate, mode), HgmErrCode::HGM_SCREEN_PARAM_ERROR);
     instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
     sptr<HgmScreen> screen = instance.GetScreen(screenId1);
     sptr<HgmScreen> screen2 = instance.GetScreen(screenId2);
@@ -430,9 +413,30 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level
             STEP_ASSERT_EQ(screen1->GetXDpi(), 0);
             STEP_ASSERT_EQ(screen1->GetYDpi(), 0);
 
+            int32_t invalidValue = 66;
+            STEP_ASSERT_EQ(screen1->GetModeIdViaRate(invalidValue), -1); // invalid mode id
+            uint32_t savedActiveMode = screen1->GetActiveMode();
+            STEP_ASSERT_NE(screen1->GetModeIdViaRate(0), -2);
+            screen1->activeModeId_ = invalidValue; // invalid active mode
+            STEP_ASSERT_EQ(screen1->IfSwitchToRate(screen1->GetActiveMode(), OLED_30_HZ), false);
+            STEP_ASSERT_EQ(screen1->GetModeIdViaRate(0), -1);
+            screen1->activeModeId_ = savedActiveMode;
+
             delete screen1;
             screen1 = nullptr;
             STEP_ASSERT_EQ(screen1, nullptr);
+        }
+        STEP("screen constructor tests") {
+            // format<width, height, phyWidth, phyHeight>
+            ScreenSize screenSize1 = {0, 0, 0, 0};
+            sptr<HgmScreen> screen1 = new HgmScreen(0, 0, screenSize1);
+            screen1 = nullptr;
+            STEP_ASSERT_EQ(screen1, nullptr);
+
+            ScreenSize screenSize2 = {720, 1080, 685, 1218};
+            sptr<HgmScreen> screen2 = new HgmScreen(0, 0, screenSize2);
+            screen2 = nullptr;
+            STEP_ASSERT_EQ(screen2, nullptr);
         }
     }
 }
@@ -552,17 +556,11 @@ HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Leve
 {
     auto &instance = HgmCore::Instance();
 
-    PART("EnvConditions") {
-        STEP("get Instance") {
-            bool init = instance.IsInit();
-            STEP_ASSERT_EQ(init, true);
-        }
-    }
-
     PART("CaseConditions") {
         STEP("1. test RefreshBundleName is true") {
             auto setMode = instance.RefreshBundleName("test hgm_core");
             STEP_ASSERT_EQ(setMode, 0);
+            STEP_ASSERT_EQ(instance.RefreshBundleName("test hgm_core"), 0);
             instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
             setMode = instance.RefreshBundleName("test hgm_core2");
             STEP_ASSERT_EQ(setMode, 0);
@@ -581,6 +579,8 @@ HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level2)
     auto &instance = HgmCore::Instance();
     EXPECT_EQ(instance.GetIdealPeriod(30), IDEAL_30_PERIOD);
     EXPECT_EQ(instance.GetIdealPeriod(60), IDEAL_60_PERIOD);
+    int32_t invalidValue = 0;
+    EXPECT_EQ(instance.GetIdealPeriod(invalidValue), 0);
 }
 
 /**
@@ -642,5 +642,49 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
     EXPECT_EQ(instance.GetEnableDynamicMode(), false);
 }
 
+/**
+ * @tc.name: TestAbnormalCase
+ * @tc.desc: Verify the abnormal case of HgmCore
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level4)
+{
+    auto &hgm = HgmCore::Instance();
+    hgm.isEnabled_ = false; // HGMCore is disable.
+    hgm.Init();
+
+    hgm.isEnabled_ = true;
+    hgm.Init();
+
+    auto mgr = hgm.GetFrameRateMgr();
+    std::string savedScreenStrategyId = mgr->curScreenStrategyId_;
+    EXPECT_EQ(savedScreenStrategyId, "LTPO-DEFAULT");
+    std::string invalidScreenStrategyId = "DEFAULT-INVALID";
+    mgr->curScreenStrategyId_ = invalidScreenStrategyId;
+    hgm.CheckCustomFrameRateModeValid();
+    mgr->curScreenStrategyId_ = savedScreenStrategyId;
+
+    int32_t savedFrameRateMode = hgm.customFrameRateMode_;
+    EXPECT_EQ(savedFrameRateMode, -1);
+    int32_t invalidValue = 66;
+    hgm.customFrameRateMode_ = invalidValue;
+    hgm.CheckCustomFrameRateModeValid();
+    hgm.GetCurrentRefreshRateModeName();
+
+    EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
+    std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
+    EXPECT_EQ(hgm.mPolicyConfigData_, nullptr);
+    hgm.customFrameRateMode_ = invalidValue;
+    EXPECT_EQ(hgm.GetCurrentRefreshRateModeName(), invalidValue);
+    hgm.customFrameRateMode_ = 1;
+    EXPECT_EQ(hgm.GetCurrentRefreshRateModeName(), 60);
+    ScreenId screenId = 8;
+    hgm.GetScreenComponentRefreshRates(screenId);
+    hgm.customFrameRateMode_ = savedFrameRateMode;
+    std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
+    EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

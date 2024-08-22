@@ -272,6 +272,17 @@ HWTEST_F(RSSystemPropertiesTest, GetHwcRegionDfxEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDrawMirrorCacheImageEnabled
+ * @tc.desc: GetDrawMirrorCacheImageEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetDrawMirrorCacheImageEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetDrawMirrorCacheImageEnabled());
+}
+
+/**
  * @tc.name: GetAFBCEnabled
  * @tc.desc: GetAFBCEnabled Test
  * @tc.type:FUNC
@@ -446,6 +457,18 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDefaultDeviceRotationOffset
+ * @tc.desc: GetDefaultDeviceRotationOffset Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetDefaultDeviceRotationOffset, TestSize.Level1)
+{
+    RSSystemProperties::SetDefaultDeviceRotationOffset(90);
+    ASSERT_TRUE(RSSystemProperties::GetDefaultDeviceRotationOffset() == 90);
+}
+
+/**
  * @tc.name: GetPrepareParallelRenderingEnabled
  * @tc.desc: GetPrepareParallelRenderingEnabled Test
  * @tc.type:FUNC
@@ -568,17 +591,6 @@ HWTEST_F(RSSystemPropertiesTest, GetFilterCacheSizeThreshold, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetColorPickerPartialEnabled
- * @tc.desc: GetColorPickerPartialEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetColorPickerPartialEnabled, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetColorPickerPartialEnabled());
-}
-
-/**
  * @tc.name: GetMaskLinearBlurEnabled
  * @tc.desc: GetMaskLinearBlurEnabled Test
  * @tc.type:FUNC
@@ -668,17 +680,6 @@ HWTEST_F(RSSystemPropertiesTest, GetRandomColorEnabled, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, GetKawaseOriginalEnabled, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::GetKawaseOriginalEnabled());
-}
-
-/**
- * @tc.name: GetQuickPrepareEnabled
- * @tc.desc: GetQuickPrepareEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetQuickPrepareEnabled, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetQuickPrepareEnabled());
 }
 
 /**

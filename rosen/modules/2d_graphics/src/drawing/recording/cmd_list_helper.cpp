@@ -46,6 +46,7 @@ static int ColorTypeToBytesPerPixel(ColorType colorType)
             return 2;
         case ColorType::COLORTYPE_RGBA_8888:
         case ColorType::COLORTYPE_BGRA_8888:
+        case ColorType::COLORTYPE_RGB_888X:
         case ColorType::COLORTYPE_N32:
             return 4;
         case ColorType::COLORTYPE_RGBA_F16:
@@ -579,8 +580,7 @@ std::shared_ptr<ColorSpace> CmdListHelper::GetColorSpaceFromCmdList(const CmdLis
     return colorSpace;
 }
 
-FlattenableHandle CmdListHelper::AddShaderEffectToCmdList(CmdList& cmdList,
-    std::shared_ptr<ShaderEffect> shaderEffect)
+FlattenableHandle CmdListHelper::AddShaderEffectToCmdList(CmdList& cmdList, std::shared_ptr<ShaderEffect> shaderEffect)
 {
     if (shaderEffect == nullptr) {
         return { 0 };
@@ -640,8 +640,7 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
     return shaderEffect;
 }
 
-FlattenableHandle CmdListHelper::AddPathEffectToCmdList(CmdList& cmdList,
-    std::shared_ptr<PathEffect> pathEffect)
+FlattenableHandle CmdListHelper::AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathEffect> pathEffect)
 {
     if (pathEffect == nullptr) {
         return { 0 };
@@ -680,8 +679,7 @@ std::shared_ptr<PathEffect> CmdListHelper::GetPathEffectFromCmdList(const CmdLis
     return pathEffect;
 }
 
-FlattenableHandle CmdListHelper::AddMaskFilterToCmdList(CmdList& cmdList,
-    std::shared_ptr<MaskFilter> maskFilter)
+FlattenableHandle CmdListHelper::AddMaskFilterToCmdList(CmdList& cmdList, std::shared_ptr<MaskFilter> maskFilter)
 {
     if (maskFilter == nullptr) {
         return { 0 };
@@ -719,8 +717,7 @@ std::shared_ptr<MaskFilter> CmdListHelper::GetMaskFilterFromCmdList(const CmdLis
     return maskFilter;
 }
 
-FlattenableHandle CmdListHelper::AddColorFilterToCmdList(CmdList& cmdList,
-    std::shared_ptr<ColorFilter> colorFilter)
+FlattenableHandle CmdListHelper::AddColorFilterToCmdList(CmdList& cmdList, std::shared_ptr<ColorFilter> colorFilter)
 {
     if (colorFilter == nullptr) {
         return { 0 };
