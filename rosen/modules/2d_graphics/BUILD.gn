@@ -51,6 +51,8 @@ config("export_config") {
   }
 }
 
+defines = []
+
 template("graphics2d_source_set") {
   forward_variables_from(invoker, "*")
 

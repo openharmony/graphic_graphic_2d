@@ -25,6 +25,8 @@ config("export_config") {
   include_dirs = [ "$drawing_ndk_include_dir" ]
 }
 
+defines = []
+
 template("drawing_ndk_source_set") {
   forward_variables_from(invoker, "*")
 

@@ -33,6 +33,8 @@ if (enable_text_gine) {
     ]
   }
 
+  defines = []
+
   ohos_shared_library("rosen_text") {
     include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
     deps = [ ":rosen_text_inner" ]
