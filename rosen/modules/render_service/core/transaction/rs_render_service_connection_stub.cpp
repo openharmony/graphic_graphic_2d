@@ -230,7 +230,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         auto token = data.ReadInterfaceToken();
         if (token != RSIRenderServiceConnection::GetDescriptor()) {
             if (code == static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE)) {
-                reply.WriteInt32(0);
+                if (!reply.WriteInt32(0)) {
+                    return ERR_INVALID_REPLY;
+                }
             }
             return ERR_INVALID_STATE;
         }
@@ -305,7 +307,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED): {
-            reply.WriteBool(GetUniRenderEnabled());
+            if (!reply.WriteBool(GetUniRenderEnabled())) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE): {
@@ -314,7 +318,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto surfaceName = data.ReadString();
             auto bundleName = data.ReadString();
             RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName, .bundleName = bundleName};
-            reply.WriteBool(CreateNode(config));
+            if (!reply.WriteBool(CreateNode(config))) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
@@ -336,7 +342,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             auto producer = surface->GetProducer();
-            reply.WriteRemoteObject(producer->AsObject());
+            if (!reply.WriteRemoteObject(producer->AsObject())) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO): {
@@ -348,24 +356,36 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint64_t focusNodeId = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, focusNodeId);
             int32_t status = SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID): {
             ScreenId id = GetDefaultScreenId();
-            reply.WriteUint64(id);
+            if (!reply.WriteUint64(id)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID): {
             ScreenId id = GetActiveScreenId();
-            reply.WriteUint64(id);
+            if (!reply.WriteUint64(id)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS): {
             std::vector<ScreenId> ids = GetAllScreenIds();
-            reply.WriteUint32(ids.size());
+            if (!reply.WriteUint32(ids.size())) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             for (uint32_t i = 0; i < ids.size(); i++) {
-                reply.WriteUint64(ids[i]);
+                if (!reply.WriteUint64(ids[i])) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
             }
             break;
         }
@@ -386,7 +406,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<NodeId> whiteList;
             data.ReadUInt64Vector(&whiteList);
             ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
-            reply.WriteUint64(id);
+            if (!reply.WriteUint64(id)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST): {
@@ -395,7 +417,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<NodeId> blackListVector;
             data.ReadUInt64Vector(&blackListVector);
             int32_t status = SetVirtualScreenBlackList(id, blackListVector);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(
@@ -423,7 +447,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             bool enable = data.ReadBool();
             int32_t result = SetCastScreenEnableSkipWindow(id, enable);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
@@ -441,7 +467,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = SetVirtualScreenSurface(id, surface);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {
@@ -461,7 +489,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = SetScreenChangeCallback(cb);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -471,13 +501,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             int64_t interval = data.ReadInt64();
             int32_t rangeSize = data.ReadInt32();
             int32_t status = SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED): {
             bool enable = data.ReadBool();
             int32_t status = SetPointerColorInversionEnabled(enable);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK): {
@@ -492,12 +526,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = RegisterPointerLuminanceChangeCallback(cb);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_POINTER_LUMINANCE_CALLBACK): {
             int32_t status = UnRegisterPointerLuminanceChangeCallback();
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
 #endif
@@ -536,20 +574,30 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {
             ScreenId id = data.ReadUint64();
             uint32_t refreshRate = GetScreenCurrentRefreshRate(id);
-            reply.WriteUint32(refreshRate);
+            if (!reply.WriteUint32(refreshRate)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE): {
             int32_t refreshRateMode = GetCurrentRefreshRateMode();
-            reply.WriteInt32(refreshRateMode);
+            if (!reply.WriteInt32(refreshRateMode)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
             ScreenId id = data.ReadUint64();
             std::vector<int32_t> rates = GetScreenSupportedRefreshRates(id);
-            reply.WriteUint64(static_cast<uint64_t>(rates.size()));
+            if (!reply.WriteUint64(static_cast<uint64_t>(rates.size()))) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             for (auto ratesIter : rates) {
-                reply.WriteInt32(ratesIter);
+                if (!reply.WriteInt32(ratesIter)) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
             }
             break;
         }
@@ -560,7 +608,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 return ERR_INVALID_STATE;
             }
             bool enable = GetShowRefreshRateEnabled();
-            reply.WriteBool(enable);
+            if (!reply.WriteBool(enable)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED): {
@@ -581,7 +631,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             pid_t pid = data.ReadInt32();
             std::string refreshInfo = GetRefreshInfo(pid);
-            reply.WriteString(refreshInfo);
+            if (!reply.WriteString(refreshInfo)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION): {
@@ -589,7 +641,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t width = data.ReadUint32();
             uint32_t height = data.ReadUint32();
             int32_t status = SetVirtualScreenResolution(id, width, height);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME): {
@@ -655,21 +709,31 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION): {
             ScreenId id = data.ReadUint64();
             RSVirtualScreenResolution virtualScreenResolution = GetVirtualScreenResolution(id);
-            reply.WriteParcelable(&virtualScreenResolution);
+            if (!reply.WriteParcelable(&virtualScreenResolution)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE): {
             ScreenId id = data.ReadUint64();
             RSScreenModeInfo screenModeInfo = GetScreenActiveMode(id);
-            reply.WriteParcelable(&screenModeInfo);
+            if (!reply.WriteParcelable(&screenModeInfo)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES): {
             ScreenId id = data.ReadUint64();
             std::vector<RSScreenModeInfo> screenSupportedModes = GetScreenSupportedModes(id);
-            reply.WriteUint64(static_cast<uint64_t>(screenSupportedModes.size()));
+            if (!reply.WriteUint64(static_cast<uint64_t>(screenSupportedModes.size()))) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             for (uint32_t modeIndex = 0; modeIndex < screenSupportedModes.size(); modeIndex++) {
-                reply.WriteParcelable(&screenSupportedModes[modeIndex]);
+                if (!reply.WriteParcelable(&screenSupportedModes[modeIndex])) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
             }
             break;
         }
@@ -677,7 +741,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto pid = data.ReadInt32();
             RS_PROFILER_PATCH_PID(data, pid);
             MemoryGraphic memoryGraphic = GetMemoryGraphic(pid);
-            reply.WriteParcelable(&memoryGraphic);
+            if (!reply.WriteParcelable(&memoryGraphic)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS): {
@@ -687,9 +753,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 return ERR_INVALID_STATE;
             }
             std::vector<MemoryGraphic> memoryGraphics = GetMemoryGraphics();
-            reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()));
+            if (!reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()))) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             for (uint32_t index = 0; index < memoryGraphics.size(); index++) {
-                reply.WriteParcelable(&memoryGraphics[index]);
+                if (!reply.WriteParcelable(&memoryGraphics[index])) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
             }
             break;
         }
@@ -697,32 +769,41 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             float cpuMemSize = 0.f;
             float gpuMemSize = 0.f;
             GetTotalAppMemSize(cpuMemSize, gpuMemSize);
-            reply.WriteFloat(cpuMemSize);
-            reply.WriteFloat(gpuMemSize);
+            if (!reply.WriteFloat(cpuMemSize) || !reply.WriteFloat(gpuMemSize)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY): {
             ScreenId id = data.ReadUint64();
             RSScreenCapability screenCapability = GetScreenCapability(id);
-            reply.WriteParcelable(&screenCapability);
+            if (!reply.WriteParcelable(&screenCapability)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS): {
             ScreenId id = data.ReadUint64();
             ScreenPowerStatus status = GetScreenPowerStatus(id);
-            reply.WriteUint32(static_cast<uint32_t>(status));
+            if (!reply.WriteUint32(static_cast<uint32_t>(status))) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_DATA): {
             ScreenId id = data.ReadUint64();
             RSScreenData screenData = GetScreenData(id);
-            reply.WriteParcelable(&screenData);
+            if (!reply.WriteParcelable(&screenData)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT): {
             ScreenId id = data.ReadUint64();
             int32_t level = GetScreenBacklight(id);
-            reply.WriteInt32(level);
+            if (!reply.WriteInt32(level)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT): {
@@ -769,12 +850,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<uint32_t> modeSend;
             std::vector<ScreenColorGamut> mode;
             int32_t result = GetScreenSupportedColorGamuts(id, mode);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(mode.begin(), mode.end(), std::back_inserter(modeSend));
-            reply.WriteUInt32Vector(modeSend);
+            if (!reply.WriteUInt32Vector(modeSend)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS): {
@@ -782,46 +868,62 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<uint32_t> keySend;
             std::vector<ScreenHDRMetadataKey> keys;
             int32_t result = GetScreenSupportedMetaDataKeys(id, keys);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
             for (auto i : keys) {
                 keySend.push_back(i);
             }
-            reply.WriteUInt32Vector(keySend);
+            if (!reply.WriteUInt32Vector(keySend)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT): {
             ScreenId id = data.ReadUint64();
             ScreenColorGamut mode;
             int32_t result = GetScreenColorGamut(id, mode);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            reply.WriteUint32(mode);
+            if (!reply.WriteUint32(mode)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT): {
             ScreenId id = data.ReadUint64();
             int32_t modeIdx = data.ReadInt32();
             int32_t result = SetScreenColorGamut(id, modeIdx);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP): {
             ScreenId id = data.ReadUint64();
             ScreenGamutMap mode = static_cast<ScreenGamutMap>(data.ReadInt32());
             int32_t result = SetScreenGamutMap(id, mode);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION): {
             ScreenId id = data.ReadUint64();
             ScreenRotation screenRotation = static_cast<ScreenRotation>(data.ReadInt32());
             int32_t result = SetScreenCorrection(id, screenRotation);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(
@@ -829,7 +931,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             bool canvasRotation = data.ReadBool();
             bool result = SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
-            reply.WriteBool(result);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(
@@ -837,18 +941,25 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             ScreenScaleMode scaleMode = static_cast<ScreenScaleMode>(data.ReadUint32());
             bool result = SetVirtualMirrorScreenScaleMode(id, scaleMode);
-            reply.WriteBool(result);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP): {
             ScreenId id = data.ReadUint64();
             ScreenGamutMap mode;
             int32_t result = GetScreenGamutMap(id, mode);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            reply.WriteUint32(mode);
+            if (!reply.WriteUint32(mode)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION): {
@@ -877,20 +988,28 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
             securityUtils_.IncreaseAccessCounter(code);
 #endif
-            reply.WriteRemoteObject(conn->AsObject());
+            if (!reply.WriteRemoteObject(conn->AsObject())) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
-                reply.WriteInt32(0);
+                if (!reply.WriteInt32(0)) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
                 ret = ERR_NULL_OBJECT;
                 break;
             }
             auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
             sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bufferProducer);
             if (surface == nullptr) {
-                reply.WriteInt32(0);
+                if (!reply.WriteInt32(0)) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
                 ret = ERR_NULL_OBJECT;
                 break;
             }
@@ -906,12 +1025,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             };
             std::shared_ptr<Media::PixelMap> pixelMap = CreatePixelMapFromSurface(surface, srcRect);
             if (pixelMap) {
-                reply.WriteBool(true);
+                if (!reply.WriteBool(true)) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
                 if (!pixelMap->Marshalling(reply)) {
                     RS_LOGE("pixelMap Marshalling fail");
                 }
             } else {
-                reply.WriteBool(false);
+                if (!reply.WriteBool(false)) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
             }
             break;
         }
@@ -919,29 +1044,41 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             RSScreenHDRCapability screenHDRCapability;
             int32_t result = GetScreenHDRCapability(id, screenHDRCapability);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            reply.WriteParcelable(&screenHDRCapability);
+            if (!reply.WriteParcelable(&screenHDRCapability)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXEL_FORMAT): {
             ScreenId id = data.ReadUint64();
             GraphicPixelFormat pixelFormat;
             int32_t result = GetPixelFormat(id, pixelFormat);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            reply.WriteUint32(static_cast<uint32_t>(pixelFormat));
+            if (!reply.WriteUint32(static_cast<uint32_t>(pixelFormat))) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PIXEL_FORMAT): {
             ScreenId id = data.ReadUint64();
             GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(data.ReadInt32());
             int32_t result = SetPixelFormat(id, pixelFormat);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS): {
@@ -949,30 +1086,42 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<uint32_t> hdrFormatsSend;
             std::vector<ScreenHDRFormat> hdrFormats;
             int32_t result = GetScreenSupportedHDRFormats(id, hdrFormats);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
-            reply.WriteUInt32Vector(hdrFormatsSend);
+            if (!reply.WriteUInt32Vector(hdrFormatsSend)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT): {
             ScreenId id = data.ReadUint64();
             ScreenHDRFormat hdrFormat;
             int32_t result = GetScreenHDRFormat(id, hdrFormat);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            reply.WriteUint32(hdrFormat);
+            if (!reply.WriteUint32(hdrFormat)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_HDR_FORMAT): {
             ScreenId id = data.ReadUint64();
             int32_t modeIdx = data.ReadInt32();
             int32_t result = SetScreenHDRFormat(id, modeIdx);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES): {
@@ -980,41 +1129,58 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<uint32_t> colorSpacesSend;
             std::vector<GraphicCM_ColorSpaceType> colorSpaces;
             int32_t result = GetScreenSupportedColorSpaces(id, colorSpaces);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(colorSpaces.begin(), colorSpaces.end(), std::back_inserter(colorSpacesSend));
-            reply.WriteUInt32Vector(colorSpacesSend);
+            if (!reply.WriteUInt32Vector(colorSpacesSend)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE): {
             ScreenId id = data.ReadUint64();
             GraphicCM_ColorSpaceType colorSpace;
             int32_t result = GetScreenColorSpace(id, colorSpace);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            reply.WriteUint32(colorSpace);
+            if (!reply.WriteUint32(colorSpace)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE): {
             ScreenId id = data.ReadUint64();
             GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(data.ReadInt32());
             int32_t result = SetScreenColorSpace(id, colorSpace);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE): {
             ScreenId id = data.ReadUint64();
             RSScreenType type;
             int32_t result = GetScreenType(id, type);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result != StatusCode::SUCCESS) {
                 break;
             }
-            reply.WriteUint32(type);
+            if (!reply.WriteUint32(type)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP): {
@@ -1022,7 +1188,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RS_PROFILER_PATCH_NODE_ID(data, id);
             Drawing::Bitmap bm;
             bool result = GetBitmap(id, bm);
-            reply.WriteBool(result);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result) {
                 RSMarshallingHelper::Marshalling(reply, bm);
             }
@@ -1038,7 +1207,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
             RSMarshallingHelper::Unmarshalling(data, drawCmdList);
             bool result = GetPixelmap(id, pixelmap, &rect, drawCmdList);
-            reply.WriteBool(result);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             if (result) {
                 RSMarshallingHelper::Marshalling(reply, pixelmap);
             }
@@ -1052,7 +1224,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (result) {
                 RegisterTypeface(uniqueId, typeface);
             }
-            reply.WriteBool(result);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
@@ -1064,7 +1238,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             uint32_t skipFrameInterval = data.ReadUint32();
             int32_t result = SetScreenSkipFrameInterval(id, skipFrameInterval);
-            reply.WriteInt32(result);
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
@@ -1079,7 +1255,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = RegisterOcclusionChangeCallback(callback);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(
@@ -1103,7 +1281,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(
@@ -1111,7 +1291,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             NodeId id = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, id);
             int32_t status = UnRegisterSurfaceOcclusionChangeCallback(id);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM): {
@@ -1123,7 +1305,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES): {
             uint32_t systemAnimatedScenes = data.ReadUint32();
             bool result = SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
-            reply.WriteBool(result);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK): {
@@ -1138,7 +1322,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t width = data.ReadUint32();
             uint32_t height = data.ReadUint32();
             int32_t status = ResizeVirtualScreen(id, width, height);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_JANK_STATS): {
@@ -1249,7 +1435,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = RegisterHgmConfigChangeCallback(callback);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK) : {
@@ -1265,7 +1453,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = RegisterHgmRefreshRateModeChangeCallback(callback);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK) : {
@@ -1275,7 +1465,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
             }
             int32_t status = RegisterHgmRefreshRateUpdateCallback(callback);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED) : {
@@ -1290,27 +1482,37 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
-            reply.WriteInt32(activeDirtyRegionInfos.size());
+            if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             for (const auto& activeDirtyRegionInfo : activeDirtyRegionInfos) {
-                reply.WriteInt64(activeDirtyRegionInfo.activeDirtyRegionArea);
-                reply.WriteInt32(activeDirtyRegionInfo.activeFramesNumber);
-                reply.WriteInt32(activeDirtyRegionInfo.pidOfBelongsApp);
-                reply.WriteString(activeDirtyRegionInfo.windowName);
+                if (!reply.WriteInt64(activeDirtyRegionInfo.activeDirtyRegionArea) ||
+                    !reply.WriteInt32(activeDirtyRegionInfo.activeFramesNumber) ||
+                    !reply.WriteInt32(activeDirtyRegionInfo.pidOfBelongsApp) ||
+                    !reply.WriteString(activeDirtyRegionInfo.windowName)) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
             }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO) : {
             const auto& globalDirtyRegionInfo = GetGlobalDirtyRegionInfo();
-            reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas);
-            reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber);
-            reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber);
+            if (!reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO) : {
             const auto& LayerComposeInfo = GetLayerComposeInfo();
-            reply.WriteInt32(LayerComposeInfo.uniformRenderFrameNumber);
-            reply.WriteInt32(LayerComposeInfo.offlineComposeFrameNumber);
-            reply.WriteInt32(LayerComposeInfo.redrawFrameNumber);
+            if (!reply.WriteInt32(LayerComposeInfo.uniformRenderFrameNumber) ||
+                !reply.WriteInt32(LayerComposeInfo.offlineComposeFrameNumber) ||
+                !reply.WriteInt32(LayerComposeInfo.redrawFrameNumber)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::
@@ -1321,13 +1523,25 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             const auto& hwcDisabledReasonInfos = GetHwcDisabledReasonInfo();
-            reply.WriteInt32(hwcDisabledReasonInfos.size());
+            if (!reply.WriteInt32(hwcDisabledReasonInfos.size())) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             for (const auto& hwcDisabledReasonInfo : hwcDisabledReasonInfos) {
                 for (const auto& disabledReasonCount : hwcDisabledReasonInfo.disabledReasonStatistics) {
-                    reply.WriteInt32(disabledReasonCount);
+                    if (!reply.WriteInt32(disabledReasonCount)) {
+                        ret = ERR_INVALID_REPLY;
+                        break;
+                    }
                 }
-                reply.WriteInt32(hwcDisabledReasonInfo.pidOfBelongsApp);
-                reply.WriteString(hwcDisabledReasonInfo.nodeName);
+                if (ret == ERR_INVALID_REPLY) {
+                    break;
+                }
+                if (!reply.WriteInt32(hwcDisabledReasonInfo.pidOfBelongsApp) ||
+                    !reply.WriteString(hwcDisabledReasonInfo.nodeName)) {
+                    ret = ERR_INVALID_REPLY;
+                    break;
+                }
             }
             break;
         }
@@ -1367,7 +1581,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = RegisterUIExtensionCallback(userId, callback);
-            reply.WriteInt32(status);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS) : {
@@ -1378,7 +1594,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             VirtualScreenStatus screenStatus = static_cast<VirtualScreenStatus>(data.ReadUint8());
             bool result = SetVirtualScreenStatus(id, screenStatus);
-            reply.WriteBool(result);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         default: {
