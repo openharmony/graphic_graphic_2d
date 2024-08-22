@@ -504,9 +504,10 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest, TestSize.Level1)
     drawable->drawCmdIndex_.shadowIndex_ = 1;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(drawable->HasFilterOrEffect());
-    curCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    RSRenderNodeDrawable::isNeedOffScreenCache_ = true;
     params.foregroundFilterCache_ = std::make_shared<RSFilter>();
     drawable->CheckCacheTypeAndDraw(canvas, params);
+    RSRenderNodeDrawable::isNeedOffScreenCache_ = false;
     ASSERT_TRUE(params.GetForegroundFilterCache());
 
     drawable->SetCacheType(DrawableCacheType::NONE);
