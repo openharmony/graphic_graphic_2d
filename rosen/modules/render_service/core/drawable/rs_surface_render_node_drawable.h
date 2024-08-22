@@ -120,9 +120,13 @@ public:
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 
-    void ResetUifirst()
+    void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
-        ClearCacheSurfaceInThread();
+        if (isNotClearCompleteCacheSurface) {
+            ClearCacheSurfaceOnly();
+        } else {
+            ClearCacheSurfaceInThread();
+        }
     }
 
     bool IsCurFrameStatic(DeviceType deviceType);

@@ -820,8 +820,9 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
-    if (enableType == MultiThreadCacheType::NONE &&
-        GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) {
+    if ((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
+        GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) ||
+        (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lld, type %d",
