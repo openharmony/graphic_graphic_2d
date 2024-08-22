@@ -345,6 +345,11 @@ public:
         return isOverDrawEnabled_;
     }
 
+    bool IsDrawingCacheDfxEnabled() const
+    {
+        return isDrawingCacheDfxEnabled_;
+    }
+
 private:
     mutable std::mutex mutex_;
     std::unordered_set<NodeId> blackList_ = {};
@@ -383,6 +388,7 @@ private:
 
     bool needRequestNextVsyncAnimate_ = false;
     bool isOverDrawEnabled_ = false;
+    bool isDrawingCacheDfxEnabled_ = false;
 
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;

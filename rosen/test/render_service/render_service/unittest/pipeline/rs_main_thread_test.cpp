@@ -3751,6 +3751,21 @@ HWTEST_F(RSMainThreadTest, CollectClientNodeTreeResult, TestSize.Level2)
 }
 
 /**
+ * @tc.name: OnDrawingCacheDfxSwitchCallback
+ * @tc.desc: test OnDrawingCacheDfxSwitchCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIALU2Y
+ */
+HWTEST_F(RSMainThreadTest, OnDrawingCacheDfxSwitchCallback, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSMainThread::OnDrawingCacheDfxSwitchCallback("persist", "1", nullptr);
+    RSMainThread::OnDrawingCacheDfxSwitchCallback("rosen.drawingCache.enabledDfx", "1", nullptr);
+}
+
+
+/**
  * @tc.name: OnDumpClientNodeTree
  * @tc.desc: test OnDumpClientNodeTree
  * @tc.type: FUNC
