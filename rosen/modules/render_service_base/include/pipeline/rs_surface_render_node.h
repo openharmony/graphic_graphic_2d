@@ -716,12 +716,12 @@ public:
     bool CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const;
     bool CheckIfOcclusionChanged() const;
 
-    void SetVisibleRegion(Occlusion::Region region)
+    void SetVisibleRegion(const Occlusion::Region& region)
     {
         visibleRegion_ = region;
     }
 
-    void SetVisibleRegionInVirtual(Occlusion::Region region)
+    void SetVisibleRegionInVirtual(const Occlusion::Region& region)
     {
         visibleRegionInVirtual_ = region;
     }
@@ -802,7 +802,7 @@ public:
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
     const std::unordered_set<NodeId>& GetAbilityNodeIds() const;
-    void AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds);
+    void AddAbilityComponentNodeIds(const std::unordered_set<NodeId>& nodeIds);
     void ResetAbilityNodeIds();
 
     // manage appWindowNode's child hardware enabled nodes info
@@ -1082,7 +1082,7 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
-    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    void SetBufferRelMatrix(const Drawing::Matrix& matrix)
     {
         bufferRelMatrix_ = matrix;
     }

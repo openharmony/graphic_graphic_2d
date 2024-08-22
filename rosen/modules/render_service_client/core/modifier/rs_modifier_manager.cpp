@@ -38,7 +38,7 @@ void RSModifierManager::Draw()
     }
 
     RS_TRACE_NAME("RSModifierManager Draw num:[" + std::to_string(modifiers_.size()) + "]");
-    for (auto modifier : modifiers_) {
+    for (auto& modifier : modifiers_) {
         RS_TRACE_NAME("RSModifier::Draw");
         modifier->UpdateToRender();
         modifier->SetDirty(false);

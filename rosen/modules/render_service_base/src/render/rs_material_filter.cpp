@@ -192,8 +192,8 @@ std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialStyle(
     MATERIAL_BLUR_STYLE style, float dipScale, float ratio)
 {
     const auto& materialParams = KAWASE_BLUR_ENABLED ? KAWASE_MATERIAL_PARAM : MATERIAL_PARAM;
-    if (materialParams.find(style) != materialParams.end()) {
-        const auto& materialParam = materialParams.at(style);
+    if (auto iter = materialParams.find(style); iter != materialParams.end()) {
+        const auto& materialParam = iter->second;
         maskColor_ = RSColor(materialParam.maskColor.AsRgbaInt());
         maskColor_.MultiplyAlpha(ratio);
         radius_ = RSMaterialFilter::RadiusVp2Sigma(materialParam.radius, dipScale) * ratio;

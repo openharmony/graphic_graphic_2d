@@ -126,7 +126,9 @@ public:
 
     void RequestVsync() const
     {
-        vsyncRequestFunc_();
+        if (vsyncRequestFunc_) {
+            vsyncRequestFunc_();
+        }
     }
 
     void SetTaskRunner(const std::function<void(const std::function<void()>&, bool)>& taskRunner)

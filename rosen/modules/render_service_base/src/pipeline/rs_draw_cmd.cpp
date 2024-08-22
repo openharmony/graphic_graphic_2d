@@ -798,6 +798,7 @@ bool DrawSurfaceBufferOpItem::CreateEglTextureId()
     eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        nativeWindowBuffer_ = nullptr;
         LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
         return false;
     }
