@@ -1557,13 +1557,17 @@ void DrawTextBlobOpItem::DrawHighContrastEnabled(Canvas* canvas) const
         if (GetOffScreenSurfaceAndCanvas(*canvas, offScreenSurface, offScreenCanvas)) {
             DrawHighContrast(offScreenCanvas.get(), true);
             offScreenCanvas->Flush();
+            auto image = offScreenSurface->GetImageSnapshot();
+            if (image == nullptr) {
+                return;
+            }
             Drawing::Brush paint;
             paint.SetAntiAlias(true);
             canvas->AttachBrush(paint);
             Drawing::SamplingOptions sampling =
                 Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NEAREST);
-            canvas->DrawImage(*offScreenSurface->GetImageSnapshot().get(),
-                x_ + textBlob_->Bounds()->GetLeft(), y_ + textBlob_->Bounds()->GetTop(), sampling);
+            canvas->DrawImage(*image, x_ + textBlob_->Bounds()->GetLeft(),
+                y_ + textBlob_->Bounds()->GetTop(), sampling);
             canvas->DetachBrush();
             return;
         }
@@ -1632,6 +1636,9 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
     offscreenCanvas->DrawTextBlob(textBlob, x, y);
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    if (image == nullptr) {
+        return false;
+    }
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
         bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
@@ -1687,6 +1694,9 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cm
     offscreenCanvas->DrawTextBlob(textBlob_.get(), x, y);
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    if (image == nullptr) {
+        return false;
+    }
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
         bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
@@ -1738,6 +1748,9 @@ std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
     Playback(offscreenCanvas, nullptr);
 
     std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    if (image == nullptr) {
+        return nullptr;
+    }
     Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
     Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
     Paint fakePaint;

@@ -244,12 +244,20 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         RS_LOGE("RSSurfaceRenderNodeDrawable::FinishOffscreenRender, canvasBackup_ is nullptr");
         return;
     }
+    if (offscreenSurface_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::FinishOffscreenRender, offscreenSurface_ is nullptr");
+        return;
+    }
+    auto image = offscreenSurface_->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::FinishOffscreenRender, Surface::GetImageSnapshot is nullptr");
+        return;
+    }
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     paint.SetForceBrightnessDisable(true);
     canvasBackup_->AttachBrush(paint);
-    auto image = offscreenSurface_->GetImageSnapshot();
     canvasBackup_->DrawImage(*image, 0, 0, sampling);
     canvasBackup_->DetachBrush();
     arc_ = nullptr;

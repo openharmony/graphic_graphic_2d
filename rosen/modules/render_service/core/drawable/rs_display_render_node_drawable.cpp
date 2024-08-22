@@ -1441,12 +1441,21 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, canvasBackup_ is nullptr");
         return;
     }
+    if (offscreenSurface_ == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, offscreenSurface_ is nullptr");
+        return;
+    }
+    auto image = offscreenSurface_->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, Surface::GetImageSnapshot is nullptr");
+        return;
+    }
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     paint.SetForceBrightnessDisable(true);
     canvasBackup_->AttachBrush(paint);
-    canvasBackup_->DrawImage(*offscreenSurface_->GetImageSnapshot().get(), 0, 0, sampling);
+    canvasBackup_->DrawImage(*image, 0, 0, sampling);
     canvasBackup_->DetachBrush();
     // restore current canvas and cleanup
     if (!useFixedOffscreenSurfaceSize_) {
