@@ -856,6 +856,7 @@ void RSProfiler::RecordUpdate()
         captureData.SetProperty(RSCaptureData::KEY_RS_PIXEL_IMAGE_ADDED, GetImagesAdded());
         captureData.SetProperty(RSCaptureData::KEY_RS_DIRTY_REGION, floor(g_dirtyRegionPercentage));
         captureData.SetProperty(RSCaptureData::KEY_RS_CPU_ID, g_renderServiceCpuId.load());
+        captureData.SetProperty(RSCaptureData::KEY_RS_VSYNC_ID, g_mainThread ? g_mainThread->vsyncId_ : 0);
 
         std::vector<char> out;
         DataWriter archive(out);

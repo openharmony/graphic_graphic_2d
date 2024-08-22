@@ -473,7 +473,8 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, expectedRange);
         // The caculated drawing fps should be greater than or equal to preferred fps.
         // e.g. The preferred fps is 72, the refresh rate is 120, the drawing fps will be 120, not 60.
-        if (appFrameRate < expectedRange.preferred_ && (appFrameRate * MULTIPLE_TWO <= currRefreshRate_)) {
+        if (appFrameRate < static_cast<uint32_t>(expectedRange.preferred_) &&
+            (appFrameRate * MULTIPLE_TWO <= currRefreshRate_)) {
             appFrameRate = appFrameRate * MULTIPLE_TWO;
         }
         if (touchManager_.GetState() != TouchState::IDLE_STATE) {
@@ -1410,6 +1411,27 @@ void HgmFrameRateManager::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSki
         curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? " skip" : "");
     HGM_LOGI("Process: %{public}s(%{public}d):[%{public}d, %{public}d]%{public}s",
         curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? " skip" : "");
+}
+
+std::unordered_map<std::string, pid_t> HgmFrameRateManager::GetUiFrameworkDirtyNodes(
+    std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes)
+{
+    if (uiFwkDirtyNodes.empty()) {
+        return {};
+    }
+    std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeName;
+    for (auto iter = uiFwkDirtyNodes.begin(); iter != uiFwkDirtyNodes.end();) {
+        auto renderNode = iter->lock();
+        if (renderNode == nullptr) {
+            iter = uiFwkDirtyNodes.erase(iter);
+        } else {
+            if (renderNode->IsDirty()) {
+                uiFrameworkDirtyNodeName[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
+            }
+            ++iter;
+        }
+    }
+    return uiFrameworkDirtyNodeName;
 }
 } // namespace Rosen
 } // namespace OHOS

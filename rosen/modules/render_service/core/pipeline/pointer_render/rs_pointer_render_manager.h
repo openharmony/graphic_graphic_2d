@@ -75,7 +75,6 @@ private:
 private:
     RectI rect_;
     LayerInfoPtr target_;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
 #if defined (RS_ENABLE_VK)
     std::shared_ptr<RSVkImageManager> vkImageManager_ = nullptr;
 #endif

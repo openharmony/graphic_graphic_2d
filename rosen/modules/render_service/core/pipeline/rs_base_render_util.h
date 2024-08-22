@@ -43,10 +43,10 @@ struct ComposeInfo {
     int32_t gravity { 0 };
     int32_t zOrder { 0 };
     GraphicLayerAlpha alpha;
-    sptr<SurfaceBuffer> buffer;
-    sptr<SurfaceBuffer> preBuffer;
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    GraphicBlendType blendType;
+    GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };

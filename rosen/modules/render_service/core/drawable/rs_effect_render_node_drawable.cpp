@@ -15,7 +15,6 @@
 
 #include "drawable/rs_effect_render_node_drawable.h"
 
-#include "params/rs_effect_render_params.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 
@@ -52,22 +51,38 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         QuickReject(canvas, effectParams->GetLocalDrawRect())) {
         return;
     }
-    Drawing::Rect bounds = effectParams->GetFrameRect();
-    canvas.ClipIRect(Drawing::RectI(0, 0, bounds.GetWidth(), bounds.GetHeight()));
+    const Drawing::Rect& bounds = effectParams->GetFrameRect();
+    
+    if (!GenerateEffectDataOnDemand(effectParams, canvas, bounds, paintFilterCanvas)) {
+        return;
+    }
 
-    if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
+    RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);
+}
+
+bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams* effectParams,
+    Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas)
+{
+    if (drawCmdIndex_.childrenIndex_ == -1) {
+        // case 0: No children, skip
+        return false;
+    } else if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
         !effectParams->GetHasEffectChildren()) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content
         // case 3a: static blur with valid cache, reuse cache
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.ClipIRect(Drawing::RectI(0, 0, bounds.GetWidth(), bounds.GetHeight()));
         RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.backgroundFilterIndex_);
     } else {
         // case 3b: static blur without valid cache, draw background image and blur
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.ClipIRect(Drawing::RectI(0, 0, bounds.GetWidth(), bounds.GetHeight()));
         auto surface = canvas.GetSurface();
         if (!surface) {
             ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundImageAsEffect surface is null");
-            return;
+            return false;
         }
         // extract clip bounds
         auto currentRect = canvas.GetDeviceClipBounds();
@@ -75,7 +90,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         auto offscreenSurface = surface->MakeSurface(currentRect.GetWidth(), currentRect.GetHeight());
         if (!offscreenSurface) {
             ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundImageAsEffect offscreenSurface is null");
-            return;
+            return false;
         }
         auto offscreenCanvas = std::make_unique<RSPaintFilterCanvas>(offscreenSurface.get());
         // copy current matrix to offscreen canvas, while aligned with current rect
@@ -91,8 +106,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             paintFilterCanvas->SetEffectData(effectData);
         }
     }
-
-    RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);
+    return true;
 }
 
 void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)

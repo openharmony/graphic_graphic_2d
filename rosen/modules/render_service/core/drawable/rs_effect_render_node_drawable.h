@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_DRAWABLE_RS_EFFECT_RENDER_NODE_DRAWABLE_H
 
 #include "drawable/rs_render_node_drawable.h"
+#include "params/rs_effect_render_params.h"
 
 namespace OHOS::Rosen {
 class RSEffectRenderNode;
@@ -34,6 +35,8 @@ private:
     explicit RSEffectRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::EFFECT_NODE, OnGenerate>;
     static Registrar instance_;
+    bool GenerateEffectDataOnDemand(RSEffectRenderParams* effectParams,
+        Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

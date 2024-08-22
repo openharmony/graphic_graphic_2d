@@ -147,7 +147,7 @@ HWTEST_F(RSRenderParticleTest, InitProperty002, TestSize.Level1)
     particle = std::make_shared<RSRenderParticle>(params);
     ASSERT_TRUE(particle != nullptr);
     particle->InitProperty();
-    EXPECT_TRUE(particle != nullptr);
+    EXPECT_TRUE(particle->IsAlive() == true);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty002 end";
 }
 
@@ -185,7 +185,7 @@ HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
     particle = std::make_shared<RSRenderParticle>(params);
     ASSERT_TRUE(particle != nullptr);
     particle->InitProperty();
-    EXPECT_TRUE(particle != nullptr);
+    EXPECT_TRUE(particle->IsAlive() == true);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty003 end";
 }
 
@@ -197,7 +197,7 @@ HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
  */
 HWTEST_F(RSRenderParticleTest, InitProperty004, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty003 start";
+    GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty004 start";
     int emitRate = 20;
     ShapeType emitShape = ShapeType::ELLIPSE;
     Vector2f position = Vector2f(0.f, 0.f);
@@ -226,8 +226,30 @@ HWTEST_F(RSRenderParticleTest, InitProperty004, TestSize.Level1)
     particle = std::make_shared<RSRenderParticle>(params);
     ASSERT_TRUE(particle != nullptr);
     particle->InitProperty();
+    EXPECT_TRUE(particle->IsAlive() == true);
     EXPECT_TRUE(particle != nullptr);
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty004 end";
+}
+
+/**
+ * @tc.name: RSRenderParticle001
+ * @tc.desc: Verify the RSRenderParticle when particleParams_ is nullptr
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleTest, RSRenderParticle001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleTest RSRenderParticle001 start";
+    params = nullptr;
+    particle = std::make_shared<RSRenderParticle>(params);
+    ASSERT_TRUE(particle != nullptr);
+    particle->InitProperty();
+    particle->SetColor();
+    EXPECT_TRUE(particle->GetParticleRenderParams() == nullptr);
+    particle->activeTime_ = 0;
+    particle->lifeTime_ = 0;
+    EXPECT_TRUE(particle->IsAlive() == false);
+    GTEST_LOG_(INFO) << "RSRenderParticleTest RSRenderParticle001 end";
 }
 
 /**

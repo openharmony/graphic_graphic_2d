@@ -18,7 +18,8 @@ import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, Canvas
   CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetColor, CanvasSetMatrix, CanvasResetMatrix, CanvasClipRoundRect, CanvasIsClipEmpty,
   FontIsSubpixel, FontIsLinearMetrics, FontIsEmbolden, FontGetSkewX, FontGetScaleX, FontGetHinting, FontGetEdging,
   BrushGetColorFilter, BrushSetImageFilter, PenGetColorFilter, PenSetImageFilter,
-  CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasDrawImageRectWithSrc, CanvasClipRegion ,CanvasClear} from '../testcase/interface/canvastest';
+  CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasDrawImageRectWithSrc, CanvasClipRegion,CanvasClear,
+  CanvasDrawShadow,CanvasCreateLattice} from '../testcase/interface/canvastest';
 import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString, PathConstructor } from '../testcase/interface/pathtest';
 import { MatrixGetValue, MatrixPostRotate, MatrixPostTranslate, MatrixReset, MatrixGetAll, MatrixSetPolyToPoly, MatrixSetRectToRect, MatrixPreScale, MatrixPreTranslate, MatrixPreRotate, MatrixPostScale, MatrixMapPoints, MatrixMapRect } from '../testcase/interface/matrixtest';
 import { MakeFromRunBuffer, MakeFromString, TextBlobBounds, MakeFromPosText, MakeUniqueId} from '../testcase/interface/textblobtest';
@@ -34,6 +35,8 @@ const TAG = '[DrawingTest]';
 export class CaseFactory {
   static FunctionMap: Map<string, Function> = new Map(
     [
+      ['canvasdrawshadow', () => {return new CanvasDrawShadow();}],
+      ['canvascreatelattice', () => {return new CanvasCreateLattice();}],
       ['canvascliproundrect', () => { return new CanvasClipRoundRect(); }],
       ['canvasclear', () => { return new CanvasClear(); }],
       ['canvasdrawrect', () => { return new CanvasDrawRect(); }],
@@ -100,6 +103,8 @@ export class CaseFactory {
   );
   static PerformanceMap: Map<string, Function> = new Map(
     [
+      ['canvasdrawshadow', () => {return new CanvasDrawShadow();}],
+      ['canvascreatelattice', () => {return new CanvasCreateLattice();}],
       ['canvas_cliproundrect', () => { return new CanvasClipRoundRect(); }],
       ['canvasclear', () => { return new CanvasClear(); }],// 1000次耗时378ms
       ['canvas_drawrect', () => { return new CanvasDrawRect(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时109ms

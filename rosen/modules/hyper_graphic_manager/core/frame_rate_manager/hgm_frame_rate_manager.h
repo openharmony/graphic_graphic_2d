@@ -167,6 +167,8 @@ public:
     }
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
+        std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes);
 private:
     void Reset();
     void UpdateAppSupportedState();

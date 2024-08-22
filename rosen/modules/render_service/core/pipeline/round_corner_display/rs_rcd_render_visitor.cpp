@@ -127,7 +127,7 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
         return;
     }
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    if (node.GetConsumer()) {
+    if (node.GetConsumer() && node.GetBuffer()) {
         node.GetConsumer()->SetScalingMode(node.GetBuffer()->GetSeqNum(), scalingMode);
     }
 

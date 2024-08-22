@@ -136,5 +136,38 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticle001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle001 end";
 }
 
+/**
+ * @tc.name: EmitParticle002
+ * @tc.desc: Verify the EmitParticle when particleEmitter->particleParams_->opacity_.updator_ == NONE
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEmitterTest, EmitParticle002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle002 start";
+    ASSERT_TRUE(particleEmitter != nullptr);
+    ASSERT_TRUE(particleEmitter->particleParams_ != nullptr);
+    particleEmitter->particleParams_->opacity_.updator_ = ParticleUpdator::NONE;
+    particleEmitter->EmitParticle(NS_TO_S);
+    bool isFinish = particleEmitter->IsEmitterFinish();
+    EXPECT_TRUE(isFinish == false);
+    GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle002 end";
+}
+
+/**
+ * @tc.name: EmitParticle003
+ * @tc.desc: Verify the EmitParticle when particleEmitter->particleParams_ == nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEmitterTest, EmitParticle003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle003 start";
+    ASSERT_TRUE(particleEmitter != nullptr);
+    particleEmitter->particleParams_ = nullptr;
+    particleEmitter->EmitParticle(NS_TO_S);
+    bool isFinish = particleEmitter->IsEmitterFinish();
+    EXPECT_TRUE(isFinish == true);
+    GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle003 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

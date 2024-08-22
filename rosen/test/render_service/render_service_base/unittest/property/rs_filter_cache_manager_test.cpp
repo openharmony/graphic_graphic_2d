@@ -181,13 +181,11 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterTest, TestSize.Level1)
     RSPaintFilterCanvas filterCanvas(&canvas);
     auto shaderFilter = std::make_shared<RSShaderFilter>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
-    RSFilterCacheManager::DrawFilterParams params;
-    params.needSnapshotOutset = true;
-    params.shouldClearFilteredCache = false;
+    bool shouldClearFilteredCache = false;
     // for test
     std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
     std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
-    rsFilterCacheManager->DrawFilter(filterCanvas, filter, params, srcRect, dstRect);
+    rsFilterCacheManager->DrawFilter(filterCanvas, filter, shouldClearFilteredCache, srcRect, dstRect);
     EXPECT_TRUE(filterCanvas.GetDeviceClipBounds().IsEmpty());
 }
 
@@ -283,23 +281,25 @@ HWTEST_F(RSFilterCacheManagerTest, DrawCachedFilteredSnapshotTest, TestSize.Leve
     auto manager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto shaderFilter = std::make_shared<RSShaderFilter>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> imageFilter = std::make_shared<Drawing::ImageFilter>();
     Drawing::RectI dstRect;
-    manager->DrawCachedFilteredSnapshot(canvas, dstRect);
+    manager->DrawCachedFilteredSnapshot(canvas, dstRect, filter);
     EXPECT_TRUE(manager->cachedFilteredSnapshot_ == nullptr);
 
     manager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    manager->DrawCachedFilteredSnapshot(canvas, dstRect);
+    manager->DrawCachedFilteredSnapshot(canvas, dstRect, filter);
     EXPECT_TRUE(manager->cachedFilteredSnapshot_ != nullptr);
     EXPECT_TRUE(manager->cachedFilteredSnapshot_->cachedImage_ == nullptr);
 
     manager->cachedFilteredSnapshot_->cachedImage_ = std::make_shared<Drawing::Image>();
-    manager->DrawCachedFilteredSnapshot(canvas, dstRect);
+    manager->DrawCachedFilteredSnapshot(canvas, dstRect, filter);
     EXPECT_TRUE(manager->cachedFilteredSnapshot_->cachedImage_ != nullptr);
 
     canvas.visibleRect_.right_ = 10;
     canvas.visibleRect_.bottom_ = 10;
-    manager->DrawCachedFilteredSnapshot(canvas, dstRect);
+    manager->DrawCachedFilteredSnapshot(canvas, dstRect, filter);
     EXPECT_TRUE(manager->cachedFilteredSnapshot_->cachedImage_ != nullptr);
 }
 

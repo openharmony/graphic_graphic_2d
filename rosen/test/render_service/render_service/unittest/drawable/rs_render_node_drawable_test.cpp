@@ -374,6 +374,27 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
 }
 
 /**
+ @tc.name: AfterDrawCacheWithScreen
+ @tc.desc: Test AfterDrawCacheWithScreen delay cache
+ @tc.type: FUNC
+ @tc.require: issueIAL4RE
+ */
+HWTEST(RSRenderNodeDrawableTest, AfterDrawCacheWithScreen, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    bool isOpincDropNodeExt = true;
+    int opincRootTotalCount = 0;
+    drawable->rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
+    NodeStrategyType cacheStragy = NodeStrategyType::CACHE_NONE;
+    drawable->recordState_ = NodeRecordState::RECORD_CACHING;
+    RectI absRect = {10, 10, 10, 10};
+    params.SetAbsDrawRect(absRect);
+    drawable->AfterDrawCache(cacheStragy, canvas, params, isOpincDropNodeExt, opincRootTotalCount);
+}
+
+/**
  * @tc.name: DrawAutoCacheDfx
  * @tc.desc: Test DrawAutoCacheDfx
  * @tc.type: FUNC

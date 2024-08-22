@@ -65,7 +65,7 @@ private:
     uint32_t phyHeight_ = 0;
     uint32_t supportLayers_ = 0;
     uint32_t virtualDispCount_ = 0;
-    bool supportWriteBack_;
+    bool supportWriteBack_ = false;
     std::vector<RSScreenProps> props_;
 };
 } // namespace Rosen

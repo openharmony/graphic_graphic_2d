@@ -25,6 +25,7 @@ group("unittest") {
     ":RSComposerAdapterTest",
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
+    ":RSGraphic_Config_Test",
     ":RSHardwareThreadTest",
     ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
@@ -59,7 +60,6 @@ group("unittest") {
   }
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [
-      ":RSFilterSubThreadTest",
       ":RSRenderTaskTest",
       ":RSSubThreadManagerTest",
       ":RSSubThreadTest",
@@ -68,6 +68,10 @@ group("unittest") {
   }
   if (graphic_2d_feature_enable_rspipeline) {
     deps += [ ":RSUifirstManagerTest" ]
+  }
+  if (graphic_2d_feature_enable_vulkan &&
+      graphic_2d_feature_vkqueue_priority_enable) {
+    deps += [ ":RSFeatureVkQueuePriorityTest" ]
   }
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
@@ -614,7 +618,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
 ## Build RSPointerWindowManagerTest
 ohos_unittest("RSPointerWindowManagerTest") {
   module_out_path = module_output_path
-  sources = [ "rs_pointer_render_manager_test.cpp" ]
+  sources = [ "rs_pointer_window_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -871,10 +875,10 @@ ohos_unittest("RSSubThreadTest") {
   }
 }
 
-## Build RSFilterSubThreadTest
-ohos_unittest("RSFilterSubThreadTest") {
+## Build RSFeatureVkQueuePriorityTest
+ohos_unittest("RSFeatureVkQueuePriorityTest") {
   module_out_path = module_output_path
-  sources = [ "parallel_render/rs_filter_sub_thread_test.cpp" ]
+  sources = [ "feature_render/rs_feature_vkqueue_priority_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -887,13 +891,6 @@ ohos_unittest("RSFilterSubThreadTest") {
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
   }
 }
 
@@ -1210,6 +1207,20 @@ ohos_unittest("RSPointerRenderManagerTest") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
+}
+
+## Build RSGraphic_Config_Test
+ohos_unittest("RSGraphic_Config_Test") {
+  module_out_path = module_output_path
+  sources = [ "rs_graphic_config_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
   }
 }
 

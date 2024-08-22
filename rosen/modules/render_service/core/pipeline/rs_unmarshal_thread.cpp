@@ -63,8 +63,9 @@ void RSUnmarshalThread::PostTask(const std::function<void()>& task)
 
 void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling, pid_t callingPid)
 {
-    if (!handler_) {
-        RS_LOGE("RSUnmarshalThread::RecvParcel handler_ is nullptr");
+    if (!handler_ || !parcel) {
+        RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, handler: %{public}d, parcel: %{public}d",
+            (!handler_), (!parcel));
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);

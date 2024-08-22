@@ -73,6 +73,8 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_WATER_RIPPLE,
     UPDATE_MODIFIER_FLY_OUT,
     REMOVE_ALL_MODIFIERS,
+
+    DUMP_CLIENT_NODE_TREE,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -143,6 +145,11 @@ public:
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
+
+    using DumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t, const std::string&)>;
+    static void DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
+        const std::string& result);
+    static RSB_EXPORT void SetDumpNodeTreeProcessor(DumpNodeTreeProcessor processor);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -268,6 +275,9 @@ ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
     ARG(RS_NODE, UNREGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
 ADD_COMMAND(RSRemoveAllModifiers,
     ARG(RS_NODE, REMOVE_ALL_MODIFIERS, RSNodeCommandHelper::RemoveAllModifiers, NodeId))
+
+ADD_COMMAND(RSDumpClientNodeTree,
+    ARG(RS_NODE, DUMP_CLIENT_NODE_TREE, RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))
 } // namespace Rosen
 } // namespace OHOS
 

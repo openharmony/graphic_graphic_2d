@@ -18,6 +18,7 @@
 #include <chrono>
 #include "hdi_log.h"
 #include "vsync_sampler.h"
+#include <hdf_base.h>
 
 #define CHECK_DEVICE_NULL(sptrDevice)                                \
     do {                                                             \
@@ -127,10 +128,19 @@ int32_t HdiScreen::GetScreenMode(uint32_t &modeId) const
     return device_->GetScreenMode(screenId_, modeId);
 }
 
-int32_t HdiScreen::SetScreenMode(uint32_t modeId) const
+uint32_t HdiScreen::GetScreenModeId() const
+{
+    return modeId_;
+}
+
+int32_t HdiScreen::SetScreenMode(uint32_t modeId)
 {
     CHECK_DEVICE_NULL(device_);
-    return device_->SetScreenMode(screenId_, modeId);
+    auto ret = device_->SetScreenMode(screenId_, modeId);
+    if (ret == HDF_SUCCESS) {
+        modeId_ = modeId;
+    }
+    return ret;
 }
 
 int32_t HdiScreen::SetScreenOverlayResolution(uint32_t width, uint32_t height) const

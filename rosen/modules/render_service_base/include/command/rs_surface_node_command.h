@@ -60,6 +60,8 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ANCO_FLAGS,
     SURFACE_NODE_SET_HDR_PRESENT,
     SURFACE_NODE_SET_SKIP_DRAW,
+    SURFACE_NODE_SET_WATERMARK,
+    SURFACE_NODE_SET_WATERMARK_ENABLED,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -102,6 +104,9 @@ public:
     static void SetAncoFlags(RSContext& context, NodeId nodeId, int32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
+    static void SetWatermark(RSContext& context, NodeId nodeId, const std::string& name,
+            std::shared_ptr<Media::PixelMap> watermark);
+    static void SetWatermarkEnabled(RSContext& context, NodeId nodeId, const std::string& name, bool isEnabled);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -177,6 +182,12 @@ ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT, SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW, SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetWatermark,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_WATERMARK, SurfaceNodeCommandHelper::SetWatermark,
+    NodeId, std::string, std::shared_ptr<Media::PixelMap>))
+ADD_COMMAND(RSSurfaceNodeSetWatermarkEnabled,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED, SurfaceNodeCommandHelper::SetWatermarkEnabled,
+    NodeId, std::string, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

@@ -45,7 +45,7 @@ namespace OHOS::Rosen {
 RSSubThread::~RSSubThread()
 {
     RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
-    PostTask([this]() {
+    PostSyncTask([this]() {
         DestroyShareEglContext();
     });
 }
@@ -208,7 +208,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         }
 
         RSTagTracker nodeProcessTracker(grContext_.get(), surfaceNodePtr->GetId(),
-            RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+            RSTagTracker::TAGTYPE::TAG_SUB_THREAD, surfaceNodePtr->GetName());
         bool needNotify = !surfaceNodePtr->HasCachedTexture();
         nodeDrawable->Process(visitor);
         nodeProcessTracker.SetTagEnd();
@@ -216,7 +216,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         if (cacheSurface) {
             RS_TRACE_NAME_FMT("Rendercache skSurface flush and submit");
             RSTagTracker nodeFlushTracker(grContext_.get(), surfaceNodePtr->GetId(),
-                RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+                RSTagTracker::TAGTYPE::TAG_SUB_THREAD, surfaceNodePtr->GetName());
             cacheSurface->FlushAndSubmit(true);
             nodeFlushTracker.SetTagEnd();
         }
@@ -255,7 +255,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     nodeDrawable->SetSubThreadSkip(false);
 
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
-    RSTagTracker tagTracker(grContext_.get(), nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+    RSTagTracker tagTracker(grContext_.get(), nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
     if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount() &&
         nodeDrawable->HasCachedTexture()) {
@@ -317,9 +317,9 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         auto size = vulkanVersion.size();
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
         bool useHBackendContext = false;
-        if (RSSystemProperties::GetVkQueueDividedEnable()) {
-            useHBackendContext = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC;
-        }
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
+        useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+#endif
         if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(useHBackendContext),
             options)) {
             RS_LOGE("nullptr gpuContext is null");

@@ -3331,4 +3331,17 @@ HWTEST_F(RSUniRenderVisitorTest, UpdatePrepareClip003, TestSize.Level1)
     node->GetMutableRenderProperties().clipToFrame_ = false;
     rsUniRenderVisitor->UpdatePrepareClip(*node);
 }
+
+/**
+ * @tc.name: IsFirstFrameOfOverdrawSwitch
+ * @tc.desc: Test IsFirstFrameOfOverdrawSwitch
+ * @tc.type: FUNC
+ * @tc.require: issueIAJSIS
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->IsFirstFrameOfOverdrawSwitch(), false);
+}
 } // OHOS::Rosen

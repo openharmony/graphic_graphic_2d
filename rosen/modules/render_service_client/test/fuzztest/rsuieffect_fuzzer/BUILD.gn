@@ -1,0 +1,53 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/features.gni")
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import(
+    "${graphic_2d_root}/rosen/modules/render_service_client/render_service_client.gni")
+
+module_output_path = "graphic_2d/graphic_2d"
+
+ohos_fuzztest("RSUIEffectFuzzTest") {
+  fuzz_config_file = "${graphic_2d_root}/rosen/modules/render_service_client/test/fuzztest/rsuieffect_fuzzer"
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "${graphic_2d_root}/rosen/modules/render_service_client/core/ui_effect/effect/include",
+    "${graphic_2d_root}/rosen/modules/render_service_client/core/ui_effect/filter/include",
+  ]
+  cflags = [
+    "-fno-omit-frame-pointer",
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+  ]
+  sources = [ "rsuieffect_fuzzer.cpp" ]
+  deps = [ "${graphic_2d_root}/rosen/modules/render_service_client:librender_service_client" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+  ]
+}
+
+group("fuzztest") {
+  testonly = true
+  deps = []
+  deps += [
+    # deps file
+    ":RSUIEffectFuzzTest",
+  ]
+}

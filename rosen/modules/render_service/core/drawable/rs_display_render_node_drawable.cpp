@@ -103,7 +103,8 @@ class RSOverDrawDfx {
 public:
     explicit RSOverDrawDfx(std::shared_ptr<RSPaintFilterCanvas> curCanvas)
     {
-        enable_ = RSOverdrawController::GetInstance().IsEnabled() && curCanvas != nullptr;
+        bool isEnabled = RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsOverDrawEnabled();
+        enable_ = isEnabled && curCanvas != nullptr;
         curCanvas_ = curCanvas;
         StartOverDraw();
     }
@@ -438,8 +439,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
     RSScreenModeInfo modeInfo = {};
     ScreenId defaultScreenId = screenManager->GetDefaultScreenId();
-    screenManager->GetScreenActiveMode(defaultScreenId, modeInfo);
-    uint32_t refreshRate = modeInfo.GetScreenRefreshRate();
+    uint32_t refreshRate = screenManager->GetDefaultScreenRefreshRate();
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
     if (SkipFrame(refreshRate, curScreenInfo.skipFrameInterval)) {
         RS_TRACE_NAME("SkipFrame, screenId:" + std::to_string(paramScreenId));
@@ -571,6 +571,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         curCanvas_->SetBrightnessRatio(hdrBrightnessRatio);
         curCanvas_->SetHDRPresent(isHdrOn);
     }
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (autoCacheEnable_) {
+        screenRectInfo_ = {0, 0, screenInfo.width, screenInfo.height};
+    }
+#endif
 
     // canvas draw
     {

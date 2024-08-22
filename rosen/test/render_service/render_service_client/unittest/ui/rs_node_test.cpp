@@ -20,6 +20,7 @@
 #include "modifier/rs_property_modifier.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
+#include "ui_effect/effect/include/brightness_blender.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_implicit_animator.h"
@@ -5506,6 +5507,25 @@ HWTEST_F(RSNodeTest, SetDynamicLightUpDegree, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBlender
+ * @tc.desc: test results of SetBlender
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetBlender, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetBlender(nullptr);
+    EXPECT_NE(rsNode, nullptr);
+    Blender blender;
+    rsNode->SetBlender(&blender);
+    EXPECT_NE(rsNode, nullptr);
+    BrightnessBlender brightnessBlender;
+    rsNode->SetBlender(&brightnessBlender);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
  * @tc.name: SetFgBrightnessParams
  * @tc.desc: test results of SetFgBrightnessParams
  * @tc.type: FUNC
@@ -7181,6 +7201,7 @@ HWTEST_F(RSNodeTest, UpdateLocalGeometry, TestSize.Level1)
     rsNode->modifiers_[0] = modifier;
     ASSERT_TRUE(!rsNode->modifiers_.empty());
     rsNode->UpdateLocalGeometry();
+    EXPECT_NE(rsNode->GetLocalGeometry(), nullptr);
 }
 
 /**
@@ -7202,5 +7223,53 @@ HWTEST_F(RSNodeTest, UpdateGlobalGeometry, TestSize.Level1)
     rsNode->globalGeometry_ = parentGlobalGeometry;
     rsNode->UpdateGlobalGeometry(parentGlobalGeometry);
     EXPECT_NE(rsNode->GetGlobalGeometry(), nullptr);
+    EXPECT_EQ(rsNode->GetGlobalPositionX(), 0.f);
+    EXPECT_EQ(rsNode->GetGlobalPositionY(), 0.f);
+}
+
+/**
+ * @tc.name: DumpTree
+ * @tc.desc: test results of DumpTree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, DumpTree, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetNodeName("testNode");
+    rsNode->AddChild(RSCanvasNode::Create());
+    rsNode->AddChild(RSCanvasNode::Create());
+
+    string out;
+    rsNode->DumpTree(0, out);
+    ASSERT_TRUE(!out.empty());
+    rsNode->DumpTree(1, out);
+    ASSERT_TRUE(!out.empty());
+}
+
+/**
+ * @tc.name: Dump
+ * @tc.desc: test results of Dump
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config = {
+        .SurfaceNodeName = "testNoade"
+    };
+    RSSurfaceNode::SharedPtr rsNode = RSSurfaceNode::Create(config);
+    string out1;
+    rsNode->Dump(out1);
+    ASSERT_TRUE(!out1.empty());
+
+    rsNode->MarkAllExtendModifierDirty();
+    rsNode->MarkNodeGroup(true);
+    rsNode->MarkNodeSingleFrameComposer(true);
+    rsNode->MarkSuggestOpincNode(true);
+    rsNode->MarkUifirstNode(true);
+    rsNode->SetDrawRegion(std::make_shared<RectF>());
+    rsNode->AddAnimation(std::make_shared<RSAnimation>());
+    string out2;
+    rsNode->Dump(out2);
+    ASSERT_TRUE(!out2.empty());
 }
 } // namespace OHOS::Rosen

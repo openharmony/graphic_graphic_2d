@@ -205,7 +205,6 @@ bool DoRSShadowDrawable(const uint8_t* data, size_t size)
     int32_t height = GetData<int32_t>();
     Canvas canvas(width, height);
     RSPaintFilterCanvas cacheCanvas(&canvas);
-    rsShadowDrawable->GetColorForShadow(content, cacheCanvas, skPath, matrix, deviceClipBounds);
     rsShadowDrawable->Draw(content, cacheCanvas);
     return true;
 }

@@ -187,6 +187,10 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
 napi_value JsBrush::GetColor(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetColor jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetColor brush is nullptr");
@@ -265,6 +269,10 @@ napi_value JsBrush::SetAlpha(napi_env env, napi_callback_info info)
 napi_value JsBrush::IsAntiAlias(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::IsAntiAlias jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::IsAntiAlias brush is nullptr");
@@ -277,6 +285,10 @@ napi_value JsBrush::IsAntiAlias(napi_env env, napi_callback_info info)
 napi_value JsBrush::GetAlpha(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetAlpha jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::GetAlpha brush is nullptr");
@@ -427,6 +439,10 @@ napi_value JsBrush::SetShadowLayer(napi_env env, napi_callback_info info)
 napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::SetShaderEffect jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::SetShaderEffect brush is nullptr");
@@ -446,6 +462,10 @@ napi_value JsBrush::SetShaderEffect(napi_env env, napi_callback_info info)
 napi_value JsBrush::Reset(napi_env env, napi_callback_info info)
 {
     JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::Reset jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
     Brush* brush = jsBrush->GetBrush();
     if (brush == nullptr) {
         ROSEN_LOGE("JsBrush::Reset brush is nullptr");

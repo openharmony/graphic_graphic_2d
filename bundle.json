@@ -44,7 +44,8 @@
         "graphic_2d_feature_freemem_enable",
         "graphic_2d_feature_parallel_render_enable",
         "graphic_2d_feature_tp_switch_enbale",
-        "graphic_2d_feature_rs_enable_profiler"
+        "graphic_2d_feature_rs_enable_profiler",
+        "graphic_2d_feature_vkqueue_priority_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",

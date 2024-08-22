@@ -575,7 +575,7 @@ std::shared_ptr<Drawing::Image> RSUniRenderThread::GetWatermarkImg()
     return renderThreadParams->GetWatermarkImg();
 }
 
-bool RSUniRenderThread::GetWatermarkFlag()
+bool RSUniRenderThread::GetWatermarkFlag() const
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     return renderThreadParams->GetWatermarkFlag();
@@ -586,22 +586,68 @@ bool RSUniRenderThread::IsCurtainScreenOn() const
     return renderThreadParams_->IsCurtainScreenOn();
 }
 
+std::string FormatNumber(size_t number)
+{
+    constexpr uint8_t FORMATE_NUM_STEP = 3;
+    std::string strNumber = std::to_string(number);
+    int n = strNumber.length();
+    for (int i = n - FORMATE_NUM_STEP; i > 0; i -= FORMATE_NUM_STEP) {
+        strNumber.insert(i, ",");
+    }
+    return strNumber;
+}
+
+static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
+{
+    gpuContext->Flush();
+    SkGraphics::PurgeAllCaches();
+    gpuContext->FreeGpuResources();
+    gpuContext->PurgeUnlockedResources(true);
+#ifdef NEW_RENDER_CONTEXT
+    MemoryHandler::ClearShader();
+#else
+    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    rendercontext->CleanAllShaderCache();
+#endif
+    gpuContext->FlushAndSubmit(true);
+}
+
+static void TrimMemShaderType()
+{
+#ifdef NEW_RENDER_CONTEXT
+    MemoryHandler::ClearShader();
+#else
+    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    rendercontext->CleanAllShaderCache();
+#endif
+}
+
+static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,
+    std::string& type, const std::string& typeGpuLimit)
+{
+    size_t cacheLimit = 0;
+    int maxResources;
+    gpuContext->GetResourceCacheLimits(&maxResources, &cacheLimit);
+
+    std::string strM = type.substr(typeGpuLimit.length());
+    size_t sizeM = std::stoul(strM);
+    size_t maxResourcesBytes = sizeM * 1000 * 1000L; // max 4G
+
+    gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
+    dumpString.append("setgpulimit: " + FormatNumber(cacheLimit)
+        + "==>" + FormatNumber(maxResourcesBytes) + "\n");
+}
+
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 {
     auto task = [this, &dumpString, &type] {
+        std::string typeGpuLimit = "setgpulimit";
         auto gpuContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (gpuContext == nullptr) {
+            return;
+        }
         if (type.empty()) {
-            gpuContext->Flush();
-            SkGraphics::PurgeAllCaches();
-            gpuContext->FreeGpuResources();
-            gpuContext->PurgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-            MemoryHandler::ClearShader();
-#else
-            std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-            rendercontext->CleanAllShaderCache();
-#endif
-            gpuContext->FlushAndSubmit(true);
+            TrimMemEmptyType(gpuContext);
         } else if (type == "cpu") {
             gpuContext->Flush();
             SkGraphics::PurgeAllCaches();
@@ -619,18 +665,15 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
             gpuContext->PurgeUnlockedResources(false);
             gpuContext->FlushAndSubmit(true);
         } else if (type == "shader") {
-#ifdef NEW_RENDER_CONTEXT
-            MemoryHandler::ClearShader();
-#else
-            std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-            rendercontext->CleanAllShaderCache();
-#endif
+            TrimMemShaderType();
         } else if (type == "flushcache") {
             int ret = mallopt(M_FLUSH_THREAD_CACHE, 0);
             dumpString.append("flushcache " + std::to_string(ret) + "\n");
+        } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
+            TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
             uint32_t pid = static_cast<uint32_t>(std::stoll(type));
-            Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+            Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
         dumpString.append("trimMem: " + type + "\n");

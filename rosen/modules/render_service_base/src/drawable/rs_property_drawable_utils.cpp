@@ -23,6 +23,7 @@
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_color_picker.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -73,63 +74,6 @@ RRect RSPropertyDrawableUtils::GetInnerRRectForDrawingBorder(
         return {};
     }
     return isOutline ? properties.GetRRect() : properties.GetInnerRRect();
-}
-
-bool RSPropertyDrawableUtils::PickColor(Drawing::Canvas& canvas,
-    const std::shared_ptr<RSColorPickerCacheTask>& colorPickerTask, Drawing::Path& drPath, Drawing::Matrix& matrix,
-    RSColor& colorPicked)
-{
-    Drawing::Rect clipBounds = drPath.GetBounds();
-    Drawing::RectI clipIBounds = { static_cast<int>(clipBounds.GetLeft()), static_cast<int>(clipBounds.GetTop()),
-        static_cast<int>(clipBounds.GetRight()), static_cast<int>(clipBounds.GetBottom()) };
-    Drawing::Surface* drSurface = canvas.GetSurface();
-    if (drSurface == nullptr) {
-        return false;
-    }
-
-    if (!colorPickerTask) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::PickColor colorPickerTask is null");
-        return false;
-    }
-    colorPickerTask->SetIsShadow(true);
-    int deviceWidth = 0;
-    int deviceHeight = 0;
-    int deviceClipBoundsW = drSurface->Width();
-    int deviceClipBoundsH = drSurface->Height();
-    if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
-        colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
-        deviceWidth = deviceClipBoundsW;
-        deviceHeight = deviceClipBoundsH;
-    }
-    int32_t fLeft = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_X)), 0, deviceWidth - 1);
-    int32_t fTop = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_Y)), 0, deviceHeight - 1);
-    int32_t fRight = std::clamp(int(fLeft + clipIBounds.GetWidth()), 0, deviceWidth - 1);
-    int32_t fBottom = std::clamp(int(fTop + clipIBounds.GetHeight()), 0, deviceHeight - 1);
-    if (fLeft == fRight || fTop == fBottom) {
-        return false;
-    }
-
-    Drawing::RectI regionBounds = { fLeft, fTop, fRight, fBottom };
-    std::shared_ptr<Drawing::Image> shadowRegionImage = drSurface->GetImageSnapshot(regionBounds);
-
-    if (shadowRegionImage == nullptr) {
-        return false;
-    }
-
-    // when color picker task resource is waitting for release, use color picked last frame
-    if (colorPickerTask->GetWaitRelease()) {
-        colorPickerTask->GetColorAverage(colorPicked);
-        return true;
-    }
-
-    if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage) &&
-        colorPickerTask->GetColor(colorPicked)) {
-        colorPickerTask->GetColorAverage(colorPicked);
-        colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
-        return true;
-    }
-    colorPickerTask->GetColorAverage(colorPicked);
-    return true;
 }
 
 Color RSPropertyDrawableUtils::GetColorForShadowSyn(Drawing::Canvas* canvas, Drawing::Path& path, const Color& color,
@@ -374,14 +318,13 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     // Optional use cacheManager to draw filter
     if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
         std::shared_ptr<RSShaderFilter> rsShaderFilter =
-        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+            filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
             filter->SetSnapshotOutset(false);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter,
-            { false, shouldClearFilteredCache });
+        cacheManager->DrawFilter(*paintFilterCanvas, filter, shouldClearFilteredCache);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         return;
     }
@@ -980,8 +923,16 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 }
 
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-    const float& offsetY, const float& radius, Color spotColor)
+    const float& offsetY, const float& radius, const bool& isFilled, Color spotColor)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawShadowMaskFilter, Radius: %f, ShadowOffsetX: "
+        "%f, ShadowOffsetY: %f, bounds: %s",
+        radius, offsetX, offsetY, path.GetBounds().ToString().c_str());
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    if (!isFilled) {
+        canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+    }
     path.Offset(offsetX, offsetY);
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(

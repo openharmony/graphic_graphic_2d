@@ -33,12 +33,6 @@ static const int32_t CALCULATE_MIDDLE = 2;
 static std::unique_ptr<RSPointerRenderManager> g_pointerRenderManagerInstance =
     std::make_unique<RSPointerRenderManager>();
 
-
-RSPointerRenderManager::RSPointerRenderManager()
-{
-    colorPickerTask_ = std::make_shared<RSColorPickerCacheTask>();
-}
-
 RSPointerRenderManager& RSPointerRenderManager::GetInstance()
 {
     return *g_pointerRenderManagerInstance;

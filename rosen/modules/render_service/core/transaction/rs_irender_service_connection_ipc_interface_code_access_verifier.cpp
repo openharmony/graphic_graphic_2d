@@ -308,6 +308,42 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SKIP_FRAME_INTERVAL");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_PIXEL_FORMAT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_PIXEL_FORMAT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PIXEL_FORMAT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PIXEL_FORMAT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_HDR_FORMATS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_HDR_FORMATS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_HDR_FORMAT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_HDR_FORMAT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_HDR_FORMAT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_HDR_FORMAT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_COLORSPACES): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_COLORSPACES");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_COLORSPACE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_COLORSPACE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_COLORSPACE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_COLORSPACE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DEFAULT_DEVICE_ROTATION_OFFSET): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_DEFAULT_DEVICE_ROTATION_OFFSET");
+            break;
+        }
         default: {
             break;
         }
