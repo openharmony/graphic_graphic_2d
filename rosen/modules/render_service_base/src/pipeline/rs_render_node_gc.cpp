@@ -76,9 +76,12 @@ void RSRenderNodeGC::ReleaseNodeMemory()
         }
     }
     if (mainTask_) {
-        auto task = []() {
-            RSRenderNodeGC::Instance().ReleaseNodeBucket();
-            RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        auto task = [this]() {
+            if (isEnable_.load() == false) {
+                return;
+            }
+            ReleaseNodeBucket();
+            ReleaseNodeMemory();
         };
         mainTask_(task, DELETE_NODE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
     } else {

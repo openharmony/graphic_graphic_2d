@@ -196,6 +196,9 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     } else {
         ScopedBytrace failed("failed");
     }
+    if (gcNotifyTask_ != nullptr) {
+        gcNotifyTask_(false);
+    }
     return ret;
 }
 
