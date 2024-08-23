@@ -270,6 +270,7 @@ public:
 
     static int GetRSNodeLimit();
     static std::string GetVersionType();
+    static bool GetHwcDirtyRegionEnabled();
 
 private:
     RSSystemProperties() = default;

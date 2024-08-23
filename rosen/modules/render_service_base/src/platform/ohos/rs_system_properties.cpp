@@ -1076,5 +1076,12 @@ bool RSSystemProperties::GetDrmMarkedFilterEnabled()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
+
+bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    static bool hwcDirtyRegionEnabled =
+        std::atoi((system::GetParameter("persist.rosen.graphic.hwcdirtyregion.enabled", "1")).c_str()) != 0;
+    return hwcDirtyRegionEnabled;
+}
 } // namespace Rosen
 } // namespace OHOS
