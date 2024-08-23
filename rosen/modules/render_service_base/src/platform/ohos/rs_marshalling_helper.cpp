@@ -56,6 +56,7 @@
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "rs_trace.h"
 
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
@@ -1559,6 +1560,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             ret &= RSMarshallingHelper::Marshalling(parcel, rsObject);
             if (!ret) {
                 ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageObject");
+                RS_TRACE_NAME("RSMarshallingHelper pixelmap marshalling failed");
                 return ret;
             }
         }
