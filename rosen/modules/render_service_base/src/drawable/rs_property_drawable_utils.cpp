@@ -745,8 +745,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
             color = sat(color, ubo_baseSat, pos, neg);
             color = clamp(color, 0.0, 1.0);
             color = mix(color, getUnpremulRGB(src), ubo_fract);
-            half4 res = half4(mix(dst.rgb, color * ubo_ratio * dst.a, src.a), dst.a);
-            return res;
+            return half4(mix(dst.rgb, color * ubo_ratio * dst.a, src.a), dst.a);
         }
     )";
     if (dynamicBrightnessBlenderEffect_ == nullptr) {
