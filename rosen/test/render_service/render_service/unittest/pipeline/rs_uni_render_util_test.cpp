@@ -1475,7 +1475,7 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit001, TestSize.Level2)
  * @tc.name: OptimizedFlushAndSubmit002
  * @tc.desc: OptimizedFlushAndSubmit test when surface and gpuContext is multiple
  * @tc.type: FUNC
- * @tc.require: issueIAKA4Y
+ * @tc.require: issueIALXTP
  */
 HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit002, TestSize.Level2)
 {
@@ -1799,7 +1799,7 @@ HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer001, TestSize.Level2)
  * @tc.name: FlushDmaSurfaceBuffer002
  * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is not nullptr
  * @tc.type: FUNC
- * @tc.require: issueIAL5XA
+ * @tc.require: issueIALXTP
  */
 HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
 {
