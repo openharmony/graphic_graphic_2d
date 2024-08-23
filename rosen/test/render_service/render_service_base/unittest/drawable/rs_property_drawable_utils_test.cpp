@@ -373,6 +373,24 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest013, testing::ext::Tes
 }
 
 /**
+ * @tc.name: CreateColorFilterForHDRTest
+ * @tc.desc: CreateColorFilterForHDRTest test
+ * @tc.type:FUNC
+ * @tc.require: issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, CreateColorFilterForHDRTest, testing::ext::TestSize.Level1)
+{
+    auto rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    auto ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(1.f, 0.5f);
+    EXPECT_NE(ret, nullptr);
+    ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(0.5f, 0.5f);
+    EXPECT_EQ(ret, nullptr);
+    ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(0.0f, 0.5f);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
  * @tc.name: DrawShadowTestAndDrawUseEffectTest014
  * @tc.desc: DrawShadow and DrawUseEffect test
  * @tc.type: FUNC

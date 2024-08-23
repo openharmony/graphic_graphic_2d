@@ -203,6 +203,38 @@ HWTEST_F(RSDrawingFilterTest, ApplyColorFilter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetColorFilterForHDR
+ * @tc.desc: test results of SetColorFilterForHDR
+ * @tc.type: FUNC
+ * @tc.require: issuesIALVQH
+ */
+HWTEST_F(RSDrawingFilterTest, SetColorFilterForHDR001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, hash);
+    auto colorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX);
+    drawingFilter.SetColorFilterForHDR(colorFilter);
+}
+
+/**
+ * @tc.name: ResetColorFilterForHDR
+ * @tc.desc: test results of ResetColorFilterForHDR
+ * @tc.type: FUNC
+ * @tc.require: issuesIALVQH
+ */
+HWTEST_F(RSDrawingFilterTest, ResetColorFilterForHDR001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, hash);
+    drawingFilter.ResetColorFilterForHDR();
+    auto colorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX);
+    drawingFilter.SetColorFilterForHDR(colorFilter);
+    drawingFilter.ResetColorFilterForHDR();
+}
+
+/**
  * @tc.name: DrawImageRect001
  * @tc.desc: test results of DrawImageRect
  * @tc.type: FUNC

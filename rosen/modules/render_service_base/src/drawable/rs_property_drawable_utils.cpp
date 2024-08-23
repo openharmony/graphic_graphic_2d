@@ -480,7 +480,8 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect imageCache snapshot null");
         return;
     }
-    auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect));
+    auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect),
+        canvas->GetBrightnessRatio());
     canvas->SetEffectData(std::move(data));
 }
 
@@ -980,6 +981,14 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     }
     Drawing::Brush brush;
     brush.SetForceBrightnessDisable(true);
+    float cachedBrightnessRatio = effectData->cachedBrightnessRatio_;
+    float newBrightnessRatio = canvas->GetBrightnessRatio();
+    if (auto colorFilter = RSPropertyDrawableUtils::CreateColorFilterForHDR(
+        cachedBrightnessRatio, newBrightnessRatio)) {
+        Drawing::Filter filter;
+        filter.SetColorFilter(colorFilter);
+        brush.SetFilter(filter);
+    }
     canvas->AttachBrush(brush);
     // Draw the cached image in the coordinate system where the effect data is generated. The image content
     // outside the device clip bounds will be automatically clipped.
@@ -1206,6 +1215,20 @@ bool RSPropertyDrawableUtils::GetGravityMatrix(const Gravity& gravity, const Dra
             return false;
         }
     }
+}
+
+std::shared_ptr<Drawing::ColorFilter> RSPropertyDrawableUtils::CreateColorFilterForHDR(float cachedBrightnessRatio,
+    float newBrightnessRatio)
+{
+    if (ROSEN_EQ(cachedBrightnessRatio, newBrightnessRatio) || ROSEN_EQ(cachedBrightnessRatio, 0.f)) {
+        return nullptr;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::CreateColorFilterForHDR Create a colorfilter for hdr,"
+        " cached brightness ratio: %lf, new brightness ratio: %lf", cachedBrightnessRatio, newBrightnessRatio);
+    float ratio = newBrightnessRatio / cachedBrightnessRatio;
+    Drawing::ColorMatrix scaleMatrix;
+    scaleMatrix.SetScale(ratio, ratio, ratio, 1.f);
+    return std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX, scaleMatrix);
 }
 } // namespace Rosen
 } // namespace OHOS

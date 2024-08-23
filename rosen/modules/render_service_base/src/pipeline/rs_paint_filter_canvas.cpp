@@ -1475,7 +1475,14 @@ RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,
     const Drawing::RectI& rect)
-    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix()),
+    cachedBrightnessRatio_(1.f)
+{}
+
+RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,
+    const Drawing::RectI& rect, float brightnessRatio)
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix()),
+    cachedBrightnessRatio_(brightnessRatio)
 {}
 
 void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)
