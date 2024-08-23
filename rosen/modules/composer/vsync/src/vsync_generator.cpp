@@ -571,6 +571,9 @@ uint32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
         return 0;
     }
     int32_t actualRefreshRate = round(1.0/((double)period/1000000000.0)); // 1.0s == 1000000000.0ns
+    if (actualRefreshRate == 0) {
+        return 0;
+    }
     int32_t refreshRate = actualRefreshRate;
     int32_t diff = 0;
     // 在actualRefreshRate附近找一个能被VSYNC_MAX_REFRESHRATE整除的刷新率作为训练pulse的参考刷新率
