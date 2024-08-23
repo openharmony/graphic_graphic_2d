@@ -895,23 +895,6 @@ HWTEST_F(RSUniRenderUtilTest, IsNeedClientsTest, Function | SmallTest | Level2)
     EXPECT_FALSE(RSUniRenderUtil::IsNeedClient(node, info));
 }
 
-/**
- * @tc.name: ReleaseColorPickerResourceTest
- * @tc.desc: Verify function ReleaseColorPickerResource
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, ReleaseColorPickerResourceTest, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    std::shared_ptr<RSRenderNode> node = nullptr;
-    RSUniRenderUtil::ReleaseColorPickerResource(node);
-    node = std::make_shared<RSRenderNode>(id);
-    node->children_.emplace_back(std::make_shared<RSRenderNode>(id));
-    RSUniRenderUtil::ReleaseColorPickerResource(node);
-    EXPECT_FALSE(node->children_.empty());
-}
-
 /*
  * @tc.name: DrawRectForDfxTest
  * @tc.desc: Verify function DrawRectForDfx

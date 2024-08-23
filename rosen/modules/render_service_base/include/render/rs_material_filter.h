@@ -28,7 +28,6 @@
 #include "draw/color.h"
 #include "effect/color_matrix.h"
 #include "effect/image_filter.h"
-#include "property/rs_color_picker_cache_task.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -97,9 +96,6 @@ public:
     bool IsEqual(const std::shared_ptr<RSFilter>& other) const override;
     bool IsEqualZero() const override;
 
-    // color picker subthread
-    const std::shared_ptr<RSColorPickerCacheTask>& GetColorPickerCacheTask() const;
-    void ReleaseColorPickerFilter();
 private:
     BLUR_COLOR_MODE colorMode_;
     float radius_ {};
@@ -114,7 +110,6 @@ private:
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
 
     std::shared_ptr<Drawing::ColorFilter> colorFilter_;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask_;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

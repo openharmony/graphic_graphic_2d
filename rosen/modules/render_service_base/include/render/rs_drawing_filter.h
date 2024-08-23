@@ -23,7 +23,6 @@
 #include "effect/color_matrix.h"
 #include "effect/image_filter.h"
 #include "effect/runtime_shader_builder.h"
-#include "property/rs_color_picker_cache_task.h"
 #include "render/rs_filter.h"
 #include "render/rs_kawase_blur.h"
 #include "render/rs_shader_filter.h"

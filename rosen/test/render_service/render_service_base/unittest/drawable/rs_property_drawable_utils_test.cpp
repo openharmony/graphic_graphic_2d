@@ -82,29 +82,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetRRectForDrawingBorderTest002, testing::
 }
 
 /**
- * @tc.name: PickColorTest003
- * @tc.desc: PickColor test
- * @tc.type: FUNC
- * @tc.require:issueI9SCBR
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, PickColorTest003, testing::ext::TestSize.Level1)
-{
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    paintFilterCanvas.surface_ = nullptr;
-    std::shared_ptr<RSColorPickerCacheTask> colorPickerTask = nullptr;
-    Drawing::Path rsPath;
-    Drawing::Matrix matrix;
-    RSColor colorPicked;
-    EXPECT_FALSE(rsPropertyDrawableUtils->PickColor(paintFilterCanvas, colorPickerTask, rsPath, matrix, colorPicked));
-    Drawing::Surface surface;
-    paintFilterCanvas.surface_ = &surface;
-    EXPECT_FALSE(rsPropertyDrawableUtils->PickColor(paintFilterCanvas, colorPickerTask, rsPath, matrix, colorPicked));
-}
-
-/**
  * @tc.name: GetDarkColorTest004
  * @tc.desc: GetDarkColor test
  * @tc.type: FUNC

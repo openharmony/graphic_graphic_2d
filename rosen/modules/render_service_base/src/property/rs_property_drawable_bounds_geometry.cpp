@@ -485,31 +485,6 @@ void RSShadowBaseDrawable::ClipShadowPath(
     }
 }
 
-RSColor RSShadowDrawable::GetColorForShadow(const RSRenderContent& content, RSPaintFilterCanvas& canvas,
-    Drawing::Path& skPath, Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds) const
-{
-    RSColor colorPicked;
-    const RSProperties& properties = content.GetRenderProperties();
-    // shadow alpha follow setting
-    auto shadowAlpha = color_.GetAlpha();
-    auto colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (colorPickerTask != nullptr &&
-        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        if (RSPropertiesPainter::PickColor(properties, canvas, skPath, matrix, deviceClipBounds, colorPicked)) {
-            RSPropertiesPainter::GetDarkColor(colorPicked);
-        } else {
-            shadowAlpha = 0;
-        }
-        if (!colorPickerTask->GetFirstGetColorFinished()) {
-            shadowAlpha = 0;
-        }
-    } else {
-        shadowAlpha = color_.GetAlpha();
-        colorPicked = color_;
-    }
-    return RSColor(colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue(), shadowAlpha);
-}
-
 void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     if (content.GetRenderProperties().GetNeedSkipShadow()) {
@@ -531,10 +506,9 @@ void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas&
     matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
-    RSColor colorPicked = GetColorForShadow(content, canvas, path, matrix, deviceClipBounds);
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(
-        colorPicked.GetAlpha(), colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
+        color_.GetAlpha(), color_.GetRed(), color_.GetGreen(), color_.GetBlue()));
     brush.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius_));

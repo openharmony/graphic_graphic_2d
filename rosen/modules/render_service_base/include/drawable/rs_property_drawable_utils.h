@@ -28,8 +28,6 @@ public:
         const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     static RRect GetInnerRRectForDrawingBorder(
         const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline);
-    static bool PickColor(Drawing::Canvas& canvas, const std::shared_ptr<RSColorPickerCacheTask>& colorPickerTask,
-        Drawing::Path& drPath, Drawing::Matrix& matrix, RSColor& colorPicked);
     static Color GetColorForShadowSyn(Drawing::Canvas* canvas, Drawing::Path& path, const Color& color,
         const int& colorStrategy);
     static std::shared_ptr<Drawing::Image> GetShadowRegionImage(Drawing::Canvas* canvas,

@@ -177,7 +177,6 @@ public:
     static bool GetFilterCacheEnabled();
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
-    static bool GetColorPickerPartialEnabled();
     static bool GetMaskLinearBlurEnabled();
     static bool GetMotionBlurEnabled();
     static bool GetMagnifierEnabled();
