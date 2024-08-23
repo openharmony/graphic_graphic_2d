@@ -21,6 +21,10 @@ group("color_manager") {
   ]
 }
 
+group("scoped_bytrace") {
+  public_deps = [ "scoped_bytrace:scoped_bytrace" ]
+}
+
 group("socketpair") {
   public_deps = [ "socketpair:socketpair" ]
 }
@@ -56,6 +60,7 @@ ohos_shared_library("libgraphic_utils") {
   deps = [
     ":color_manager",
     ":sandbox_utils",
+    ":scoped_bytrace",
     ":test_header",
   ]
 
