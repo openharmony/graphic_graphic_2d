@@ -825,7 +825,6 @@ void OH_Drawing_SetTextStyleDecorationThicknessScale(OH_Drawing_TextStyle* style
     if (!style) {
         return;
     }
-
     ConvertToOriginalText<TextStyle>(style)->decorationThicknessScale = decorationThicknessScale;
 }
 

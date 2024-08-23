@@ -117,7 +117,6 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& s
         textStyle.decorationStyle = TextDecorationStyle(decorationStyle);
     }
     SetDoubleValueFromJS(env, tempValue, "decorationThicknessScale", textStyle.decorationThicknessScale);
-    textStyle.decorationThicknessScale = textStyle.decorationThicknessScale;
     return true;
 }
 
@@ -134,7 +133,7 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
         textStyle.fontStyle = FontStyle(fontStyle);
 
-        // Let OBLIQUE be equal to ITALIC
+        // Let OBLIQUE be equal to ITALIC, it's a temp modify.
         if (textStyle.fontStyle == FontStyle::OBLIQUE) {
             textStyle.fontStyle = FontStyle::ITALIC;
         }
