@@ -217,6 +217,42 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     }
     return parcelCopied;
 }
+
+bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWindowType windowType)
+{
+    constexpr int nodeTypeMin = static_cast<int>(RSSurfaceNodeType::DEFAULT);
+    constexpr int nodeTypeMax = static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+
+    int typeNum = static_cast<int>(nodeType);
+    if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
+        RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
+        return false;
+    }
+    if (windowType != SurfaceWindowType::DEFAULT_WINDOW && windowType != SurfaceWindowType::SYSTEM_SCB_WINDOW) {
+        RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
+        return false;
+    }
+
+    bool isTokenTypeValid = true;
+    bool isNonSystemAppCalling = false;
+    RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+    if (isNonSystemAppCalling) {
+        if (nodeType != RSSurfaceNodeType::DEFAULT &&
+            nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
+            nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE) {
+            RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
+                typeNum, pid);
+            return false;
+        }
+        if (windowType != SurfaceWindowType::DEFAULT_WINDOW) {
+            RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid SurfaceWindowType %{public}d, pid %d",
+                static_cast<int>(windowType), pid);
+            return false;
+        }
+    }
+
+    return true;
+}
 }
 
 int RSRenderServiceConnectionStub::OnRemoteRequest(
@@ -330,6 +366,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
             auto nodeId = data.ReadUint64();
+            if (ExtractPid(nodeId) != callingPid) {
+                RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             auto surfaceName = data.ReadString();
             auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
@@ -337,6 +378,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool isTextureExportNode = data.ReadBool();
             bool isSync = data.ReadBool();
             auto surfaceWindowType = static_cast<SurfaceWindowType>(data.ReadUint8());
+            if (!CheckCreateNodeAndSurface(callingPid, type, surfaceWindowType)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RSSurfaceRenderNodeConfig config = {
                 .id = nodeId, .name = surfaceName, .bundleName = bundleName, .nodeType = type,
                 .isTextureExportNode = isTextureExportNode, .isSync = isSync,
