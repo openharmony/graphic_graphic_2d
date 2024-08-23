@@ -127,6 +127,10 @@ VSyncGenerator::~VSyncGenerator()
         std::unique_lock<std::mutex> locker(mutex_);
         vsyncThreadRunning_ = false;
     }
+    if (std::this_thread::get_id() == thread_.get_id()) {
+        return;
+    }
+
     if (thread_.joinable()) {
         con_.notify_all();
         thread_.join();
