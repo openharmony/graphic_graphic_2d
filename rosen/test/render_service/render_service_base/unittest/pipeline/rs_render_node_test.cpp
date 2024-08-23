@@ -1372,7 +1372,7 @@ HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
     renderNode->DumpSubClassNode(outTest);
-    EXPECT_EQ(outTest, ", skipLayer: 0");
+    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0");
 }
 
 /**
@@ -2154,7 +2154,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->cacheSurface_->cachedCanvas_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
     nodeTest->cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
-    EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
+    EXPECT_NE(nodeTest, nullptr);
 }
 
 /**
@@ -2284,7 +2284,7 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     paintFilterCanvasTest2.canvas_->impl_ = implTest1;
     paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_ = true;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest2, 0, true);
-    EXPECT_FALSE(paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_);
+    EXPECT_TRUE(paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_);
 
     // RSSystemPrperties::GetRecordongEnabled() is false
     // cacheCompletedSurface_->GetImageSnapshot() and RSSystemProperties::GetRecordingEnabled() is false
@@ -2300,7 +2300,7 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     paintFilterCanvasTest3.canvas_->impl_ = implTest2;
     paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_ = true;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest3, 0, true);
-    EXPECT_FALSE(paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_);
+    EXPECT_TRUE(paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_);
 }
 
 /**

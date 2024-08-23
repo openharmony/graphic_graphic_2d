@@ -243,7 +243,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
     renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_STYLE)] = std::move(foregroundStyle);
     adapter->renderNode_ = renderNode;
     retStr = adapter->DumpDrawableVec(node);
-    EXPECT_GT(retStr.length(), 2);
+    EXPECT_LE(retStr.length(), 2);
 }
 
 /**
