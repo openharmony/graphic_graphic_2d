@@ -132,7 +132,14 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
             }
             iterator->second.pop_back();
         }
+        typefaceHashQueue_.erase(iterator);
     }
+}
+
+static bool EmptyAfterErase(std::vector<uint64_t>& vec, size_t ix)
+{
+    vec.erase(vec.begin() + ix);
+    return vec.empty();
 }
 
 static void RemoveHashQueue(
@@ -162,12 +169,6 @@ static void RemoveHashMap(std::unordered_map<uint64_t, TypefaceTuple>& typefaceH
             typefaceHashMap[hash_value] = std::make_tuple(typeface, ref - 1);
         }
     }
-}
-
-static bool EmptyAfterErase(std::vector<uint64_t>& vec, size_t ix)
-{
-    vec.erase(vec.begin() + ix);
-    return vec.empty();
 }
 
 void RSTypefaceCache::RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqueId)
@@ -208,10 +209,14 @@ static void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::vector<
         size_t ix { 0 };
         for (auto uid : ref.second) {
             pid_t pidCache = static_cast<pid_t>(uid >> 32);
-            if (pid == pidCache && EmptyAfterErase(ref.second, ix)) {
+            if (pid != pidCache) {
+                ix++;
+                continue;
+            }
+            if (EmptyAfterErase(ref.second, ix)) {
                 removeList.push_back(ref.first);
             }
-            ix++;
+            break;
         }
     }
 
