@@ -121,7 +121,11 @@ const std::shared_ptr<RSRenderPropertyBase> RSRenderPropertyAnimation::GetProper
         return property_->Clone();
     }
 
-    return lastValue_->Clone();
+    if (lastValue_ != nullptr) {
+        return lastValue_->Clone();
+    }
+
+    return nullptr;
 }
 
 const std::shared_ptr<RSRenderPropertyBase>& RSRenderPropertyAnimation::GetOriginValue() const
