@@ -201,14 +201,12 @@ private:
     static void StartBetaRecord();
     static bool IsBetaRecordStarted();
     static void UpdateBetaRecord();
-    static bool SaveBetaRecord();
+    static void SaveBetaRecord();
     static bool IsBetaRecordInactive();
     static void RequestVSyncOnBetaRecordInactivity();
-    static void SendBetaRecordPath();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
     static void WriteBetaRecordFileThread(RSFile& file, const std::string& path);
-    static void RenameAndSendFilenameThread();
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);

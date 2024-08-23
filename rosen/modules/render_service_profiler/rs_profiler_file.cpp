@@ -281,8 +281,6 @@ void RSFile::LayerAddHeaderProperty(uint32_t layer, const std::string& name, con
 
 void RSFile::LayerWriteHeader(uint32_t layer)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-
     if (!file_ || !HasLayer(layer)) {
         return;
     }
@@ -507,6 +505,8 @@ bool RSFile::ReadGFXMetrics(double untilTime, uint32_t layer, std::vector<uint8_
 
 bool RSFile::GetDataCopy(std::vector<uint8_t>& data)
 {
+    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+
     WriteHeaders(); // Make sure the header is written
 
     size_t fileSize = Utils::FileSize(file_);
@@ -565,9 +565,9 @@ void RSFile::Close()
         return;
     }
 
-    WriteHeaders();
-
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+
+    WriteHeaders();
 
     Utils::FileClose(file_);
     file_ = nullptr;

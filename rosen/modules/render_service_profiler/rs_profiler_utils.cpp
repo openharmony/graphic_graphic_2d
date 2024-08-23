@@ -452,11 +452,9 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
 
     if (ShouldFileBeCreated(options) && !FileExists(realPath)) {
         auto file = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-        if (file == -1) {
-            HRPE("FileOpen: Cannot create '%s' with options '%s'!", realPath.data(), options.data()); // NOLINT
-            return nullptr;
+        if (file != -1) {
+            close(file);
         }
-        close(file);
     }
 
     auto file = fopen(realPath.data(), options.data());
@@ -547,8 +545,8 @@ void Utils::FileSeek(FILE* file, int64_t offset, int origin)
 
 void Utils::FileRead(FILE* file, void* data, size_t size)
 {
-    if (!data || (size == 0)) {
-        HRPE("FileRead: data or size is invalid"); // NOLINT
+    if (!data) {
+        HRPE("FileRead: Data is null"); // NOLINT
         return;
     }
 
