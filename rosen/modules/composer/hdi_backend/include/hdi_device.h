@@ -53,8 +53,6 @@ public:
     virtual int32_t SetScreenClientBufferCacheCount(uint32_t screen, uint32_t count) = 0;
     virtual int32_t SetScreenClientDamage(uint32_t screenId, const std::vector<GraphicIRect> &damageRect) = 0;
     virtual int32_t SetScreenVsyncEnabled(uint32_t screenId, bool enabled) = 0;
-    virtual int32_t GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layersId,
-                                          std::vector<sptr<SyncFence>> &fences) = 0;
     virtual int32_t GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<GraphicColorGamut> &gamuts) = 0;
     virtual int32_t SetScreenColorGamut(uint32_t screenId, GraphicColorGamut gamut) = 0;
     virtual int32_t GetScreenColorGamut(uint32_t screenId, GraphicColorGamut &gamut) = 0;

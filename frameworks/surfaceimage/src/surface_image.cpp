@@ -209,7 +209,7 @@ int64_t SurfaceImage::GetTimeStamp()
 SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrix_),
+    auto ret = memcpy_s(matrix, sizeof(float) * 16,  // 16 is the length of array,
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
@@ -221,7 +221,7 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 SurfaceError SurfaceImage::GetTransformMatrixV2(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrixV2_),
+    auto ret = memcpy_s(matrix, sizeof(float) * 16, // 16 is the length of array
                         currentTransformMatrixV2_, sizeof(currentTransformMatrixV2_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrixV2: currentTransformMatrixV2_ memcpy_s failed");
