@@ -220,7 +220,6 @@ void RSPathAnimation::OnUpdateStagingValue(bool isFirstStart)
     }
 
     float targetRotation = 0.0f;
-    float byRotation = endTangent - startTangent;
     if (isFirstStart) {
         if (GetAutoReverse() && GetRepeatCount() % NUMBER_FOR_HALF == 0) {
             targetRotation = startTangent;
@@ -228,6 +227,7 @@ void RSPathAnimation::OnUpdateStagingValue(bool isFirstStart)
             targetRotation = endTangent;
         }
     } else {
+        float byRotation = endTangent - startTangent;
         float currentRotation = target->GetStagingProperties().GetRotation();
         if (GetAutoReverse() && GetRepeatCount() % NUMBER_FOR_HALF == 0) {
             targetRotation = IsReversed() ? currentRotation + byRotation
@@ -340,6 +340,10 @@ const std::shared_ptr<RSPath> RSPathAnimation::PreProcessPath(const std::string&
 void RSPathAnimation::InitNeedPath(const std::shared_ptr<RSPropertyBase>& startValue,
     const std::shared_ptr<RSPropertyBase>& endValue)
 {
+    if (startValue == nullptr || endValue == nullptr) {
+        ROSEN_LOGD("Input is invaild, failed to InitNeedPath.");
+        return;
+    }
     auto startVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(startValue);
     auto endVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(endValue);
     if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR4F &&
