@@ -205,6 +205,7 @@ private:
     bool CheckLuminanceStatusChange() const;
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
+    bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
     bool IsWatermarkFlagChanged() const;
     bool IsDisplayZoomStateChange() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,

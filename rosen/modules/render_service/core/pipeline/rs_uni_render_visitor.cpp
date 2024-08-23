@@ -465,7 +465,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     }
     bool ret = CheckScreenPowerChange() || CheckColorFilterChange() || CheckCurtainScreenUsingStatusChange() ||
                IsFirstFrameOfPartialRender() || IsWatermarkFlagChanged() || IsDisplayZoomStateChange() ||
-               isCompleteRenderEnabled_ || CheckLuminanceStatusChange() || IsFirstFrameOfOverdrawSwitch();
+               isCompleteRenderEnabled_ || CheckLuminanceStatusChange() || IsFirstFrameOfOverdrawSwitch() ||
+               IsFirstFrameOfDrawingCacheDfxSwitch();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -506,6 +507,11 @@ bool RSUniRenderVisitor::IsFirstFrameOfPartialRender() const
     }
     RS_LOGD("FirstFrameOfPartialRender");
     return true;
+}
+
+bool RSUniRenderVisitor::IsFirstFrameOfDrawingCacheDfxSwitch() const
+{
+    return RSMainThread::Instance()->IsFirstFrameOfDrawingCacheDFXSwitch();
 }
 
 bool RSUniRenderVisitor::IsFirstFrameOfOverdrawSwitch() const

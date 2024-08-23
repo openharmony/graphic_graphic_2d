@@ -300,7 +300,10 @@ void RSRenderNodeDrawable::UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const 
 void RSRenderNodeDrawable::InitDfxForCacheInfo()
 {
     isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
-    isDrawingCacheDfxEnabled_ = RSSystemParameters::GetDrawingCacheEnabledDfx();
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (LIKELY(uniParam)) {
+        isDrawingCacheDfxEnabled_ = uniParam->IsDrawingCacheDfxEnabled();
+    }
     if (isDrawingCacheDfxEnabled_) {
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         drawingCacheInfos_.clear();
