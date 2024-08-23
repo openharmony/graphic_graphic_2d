@@ -59,11 +59,7 @@ void OH_Drawing_FontMgrDestroy(OH_Drawing_FontMgr* drawingFontMgr)
         return;
     }
     std::lock_guard<std::mutex> lock(g_fontMgrLockMutex);
-    auto it = g_fontMgrMap.find(drawingFontMgr);
-    if (it == g_fontMgrMap.end()) {
-        return;
-    }
-    g_fontMgrMap.erase(it);
+    g_fontMgrMap.erase(drawingFontMgr);
 }
 
 int OH_Drawing_FontMgrGetFamilyCount(OH_Drawing_FontMgr* drawingFontMgr)
@@ -133,6 +129,9 @@ OH_Drawing_FontStyleSet* OH_Drawing_FontMgrCreateFontStyleSet(OH_Drawing_FontMgr
         return nullptr;
     }
     FontStyleSet* fontStyleSet = fontMgr->CreateStyleSet(index);
+    if (fontStyleSet == nullptr) {
+        return nullptr;
+    }
     std::shared_ptr<FontStyleSet> sharedFontStyleSet(fontStyleSet);
     std::lock_guard<std::mutex> lock(g_fontStyleSetLockMutex);
     g_fontStyleSetMap.insert({ sharedFontStyleSet.get(), sharedFontStyleSet });
@@ -145,11 +144,7 @@ void OH_Drawing_FontMgrDestroyFontStyleSet(OH_Drawing_FontStyleSet* drawingFontS
         return;
     }
     std::lock_guard<std::mutex> lock(g_fontStyleSetLockMutex);
-    auto it = g_fontStyleSetMap.find(drawingFontStyleSet);
-    if (it == g_fontStyleSetMap.end()) {
-        return;
-    }
-    g_fontStyleSetMap.erase(it);
+    g_fontStyleSetMap.erase(drawingFontStyleSet);
 }
 
 OH_Drawing_FontStyleSet* OH_Drawing_FontMgrMatchFamily(OH_Drawing_FontMgr* drawingFontMgr, const char* familyName)

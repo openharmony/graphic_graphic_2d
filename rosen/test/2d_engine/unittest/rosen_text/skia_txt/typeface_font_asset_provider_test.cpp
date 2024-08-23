@@ -66,9 +66,9 @@ HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest002, TestSi
 {
     EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
     EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(0).empty(), false);
-    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(-1).empty(), True);
+    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(-1).empty(), true);
     int index = typefaceFontAssetProvider_->GetFamilyCount() + 1;
-    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(index).empty(), True);
+    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(index).empty(), true);
 }
 
 /*
