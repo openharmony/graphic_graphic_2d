@@ -1650,12 +1650,12 @@ std::optional<RSDynamicBrightnessPara> RSProperties::GetBgBrightnessParams() con
 
 bool RSProperties::IsFgBrightnessValid() const
 {
-    return fgBrightnessParams_.has_value() && ROSEN_LNE(fgBrightnessParams_->fraction_, 1.0);
+    return fgBrightnessParams_.has_value() && fgBrightnessParams_->IsValid();
 }
 
 bool RSProperties::IsBgBrightnessValid() const
 {
-    return bgBrightnessParams_.has_value() && ROSEN_LNE(bgBrightnessParams_->fraction_, 1.0);
+    return bgBrightnessParams_.has_value() && bgBrightnessParams_->IsValid();
 }
 
 std::string RSProperties::GetFgBrightnessDescription() const
