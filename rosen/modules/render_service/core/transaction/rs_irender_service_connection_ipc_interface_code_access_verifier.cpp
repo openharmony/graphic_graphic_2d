@@ -120,6 +120,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
                 "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SKIP_FRAME_INTERVAL): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SKIP_FRAME_INTERVAL");
+            break;
+        }
         default: {
             break;
         }
