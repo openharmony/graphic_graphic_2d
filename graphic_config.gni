@@ -48,6 +48,7 @@ declare_args() {
   graphic_2d_feature_use_aps_igameservice_func = false
   graphic_2d_feature_enable_chipset_vsync = false
   graphic_2d_feature_enable_rspipeline = true
+  graphic_2d_feature_enable_prefetch = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     use_new_render_context = false
@@ -359,4 +360,8 @@ if (defined(use_clang_coverage) && use_clang_coverage) {
 
 if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
   gpu_defines += [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+}
+
+if (defined(graphic_2d_feature_enable_prefetch)) {
+  gpu_defines += [ "RS_ENABLE_PREFETCH" ]
 }

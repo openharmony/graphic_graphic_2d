@@ -91,6 +91,12 @@ void SKResourceManager::ReleaseResource()
                 std::scoped_lock<std::recursive_mutex> lock(mutex_);
                 size_t size = skSurfaces_[tid].size();
                 while (size-- > 0) {
+#ifdef RS_ENABLE_PREFETCH
+                    int prefetchStep = 2
+                    if (size > prefetchStep) {
+                        __builtin_prefetch(&*(skSurfaces_[tid].begin()++++), 0, 1);
+                    }
+#endif
                     auto surface = skSurfaces_[tid].front();
                     skSurfaces_[tid].pop_front();
                     if (surface == nullptr) {

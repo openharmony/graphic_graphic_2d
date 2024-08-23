@@ -195,6 +195,12 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
     }
 
     for (auto i = start; i < end; i++) {
+#ifdef RS_ENABLE_PREFETCH
+            int prefetchIndex = i + 2;
+            if (prefetchIndex < end) {
+                __builtin_prefetch(&drawCmdList_[prefetchIndex], 0, 1);
+            }
+#endif
         drawCmdList_[i](&canvas, &rect);
     }
 }

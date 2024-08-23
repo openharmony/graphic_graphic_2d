@@ -278,6 +278,9 @@ void RSUifirstManager::ProcessDoneNodeInner()
 }
 void RSUifirstManager::ProcessDoneNode()
 {
+#ifdef RS_ENABLE_PREFETCH
+    __builtin_prefetch(&pendingResetNodes_, 0, 1);
+#endif
     SetHasDoneNodeFlag(false);
     ProcessDoneNodeInner();
 

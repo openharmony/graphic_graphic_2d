@@ -251,6 +251,9 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
             break;
         }
         case DrawableCacheType::CONTENT: {
+#ifdef RS_ENABLE_PREFETCH
+            __builtin_prefetch(&cachedImage_, 0, 1);
+#endif
             RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
             RS_LOGD("RSRenderNodeDrawable::CheckCacheTAD drawingCacheIncludeProperty is %{public}d",
                 params.GetDrawingCacheIncludeProperty());

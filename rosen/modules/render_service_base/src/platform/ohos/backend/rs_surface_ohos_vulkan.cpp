@@ -151,6 +151,9 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 
     mSurfaceList.emplace_back(nativeWindowBuffer);
     NativeBufferUtils::NativeSurfaceInfo& nativeSurface = mSurfaceMap[nativeWindowBuffer];
+#ifdef RS_ENABLE_PREFETCH
+    __builtin_prefetch(&(nativeSurface.lastPresentedCount), 0, 1);
+#endif
     if (nativeSurface.drawingSurface == nullptr) {
         NativeObjectReference(mNativeWindow);
         nativeSurface.window = mNativeWindow;
@@ -215,6 +218,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     if (mSurfaceList.empty()) {
         return false;
     }
+#ifdef RS_ENABLE_PREFETCH
+    __builtin_prefetch(&mSkContext, 0, 1);
+#endif
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
 
     VkSemaphore semaphore = vkContext.RequireSemaphore();
