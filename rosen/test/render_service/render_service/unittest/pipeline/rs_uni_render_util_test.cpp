@@ -1483,11 +1483,12 @@ HWTEST_F(RSUniRenderUtilTest, OptimizedFlushAndSubmit002, TestSize.Level2)
     bool optFenceWait = false;
     std::shared_ptr<Drawing::Surface> surface = nullptr;
     rsUniRenderUtil.OptimizedFlushAndSubmit(surface, nullptr, optFenceWait);
-    Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
-    rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext, optFenceWait);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = std::make_shared<Drawing::GPUContext>();
+    ASSERT_NE(gpuContext, nullptr);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext.get(), optFenceWait);
     surface = std::make_shared<Drawing::Surface>();
     ASSERT_NE(surface, nullptr);
-    rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext, optFenceWait);
+    rsUniRenderUtil.OptimizedFlushAndSubmit(surface, gpuContext.get(), optFenceWait);
 }
 
 /*
@@ -1812,7 +1813,7 @@ HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
     RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap.get());
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     DmaMem dmaMem;
-    Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
+    Drawing::ImageInfo info = Drawing::ImageInfo{ pixelMap->GetWidth(), pixelMap->GetHeight(),
         Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     sptr<SurfaceBuffer> surFaceBuffer = dmaMem.DmaMemAlloc(info, pixelMap);
     RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap.get());
