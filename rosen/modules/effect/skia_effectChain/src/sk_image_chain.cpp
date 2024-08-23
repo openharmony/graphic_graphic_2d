@@ -160,20 +160,20 @@ std::shared_ptr<Media::PixelMap> SKImageChain::GetPixelMap()
     return dstPixelMap_;
 }
 
-void SKImageChain::Draw()
+DrawError SKImageChain::Draw()
 {
     if (canvas_ == nullptr) {
         InitWithoutCanvas();
         if (forceCPU_) {
             if (!CreateCPUCanvas()) {
                 LOGE("Failed to create canvas for CPU.");
-                return;
+                return DrawError::ERR_CPU_CANVAS;
             }
         } else {
             if (!CreateGPUCanvas()) {
                 LOGE("Failed to create canvas for GPU.");
                 DestroyGPUCanvas();
-                return;
+                return DrawError::ERR_GPU_CANVAS;
             }
         }
     }
@@ -214,6 +214,7 @@ void SKImageChain::Draw()
         DestroyGPUCanvas();
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawError::ERR_OK;
 }
 
 SkColorType SKImageChain::PixelFormatConvert(const Media::PixelFormat& pixelFormat)
