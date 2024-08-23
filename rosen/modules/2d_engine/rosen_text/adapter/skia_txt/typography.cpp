@@ -152,7 +152,7 @@ double Typography::GetGlyphsBoundsRight()
 
 Drawing::FontMetrics Typography::MeasureText()
 {
-    std::shared_lock<std::shared_mutex> writeLock(mutex_);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     return paragraph_->MeasureText();
 }
 
