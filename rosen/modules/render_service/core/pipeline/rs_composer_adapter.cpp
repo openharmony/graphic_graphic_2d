@@ -461,7 +461,7 @@ void RSComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const 
                                                const sptr<IConsumerSurface>& surface) const
 {
     HDRMetaDataType type;
-    if (!info.buffer || surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
+    if (!surface || !info.buffer || surface->QueryMetaDataType(info.buffer->GetSeqNum(), type) != GSERROR_OK) {
         RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer: QueryMetaDataType failed");
         return;
     }
