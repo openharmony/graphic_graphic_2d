@@ -37,12 +37,21 @@
 
 namespace OHOS {
 namespace Rosen {
+   
+enum class DrawError {
+    ERR_OK = 0,
+    ERR_CPU_CANVAS,
+    ERR_GPU_CANVAS,
+    ERR_IMAGE_NULL,
+    ERR_READ_PIXEL
+};
+
 class SKImageChain {
 public:
     SKImageChain(SkCanvas* canvas, sk_sp<SkImage> image);
     SKImageChain(std::shared_ptr<Media::PixelMap> srcPxielMap);
     virtual ~SKImageChain() = default;
-    void Draw();
+    DrawError Draw();
     void ForceCPU(bool forceCPU);
     void SetFilters(sk_sp<SkImageFilter> filter);
     void SetClipRect(SkRect* rect);
