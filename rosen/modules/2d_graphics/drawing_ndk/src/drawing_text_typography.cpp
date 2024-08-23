@@ -157,6 +157,7 @@ void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle* style, int
     if (!style) {
         return;
     }
+    lineNumber = lineNumber < 0 ? 0: lineNumber;
     ConvertToOriginalText<TypographyStyle>(style)->maxLines = static_cast<size_t>(lineNumber);
 }
 
@@ -824,6 +825,11 @@ void OH_Drawing_SetTextStyleDecorationThicknessScale(OH_Drawing_TextStyle* style
     if (!style) {
         return;
     }
+
+    if (decorationThicknessScale < 0) {
+        decorationThicknessScale = 0;
+    }
+
     ConvertToOriginalText<TextStyle>(style)->decorationThicknessScale = decorationThicknessScale;
 }
 
@@ -1511,7 +1517,7 @@ void OH_Drawing_SetTypographyTextFontSize(OH_Drawing_TypographyStyle* style, dou
 void OH_Drawing_SetTypographyTextFontHeight(OH_Drawing_TypographyStyle* style, double fontHeight)
 {
     if (style) {
-        ConvertToOriginalText<TypographyStyle>(style)->heightScale = fontHeight;
+        ConvertToOriginalText<TypographyStyle>(style)->heightScale = fontHeight < 0 ? 0: fontHeight;
         ConvertToOriginalText<TypographyStyle>(style)->heightOnly = true;
     }
 }
