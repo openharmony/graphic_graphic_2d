@@ -150,7 +150,7 @@ static void g_removeHashQueue(
         auto it = std::find(ref.second.begin(), ref.second.end(), globalUniqueId);
         if (it != ref.second.end()) {
             size_t ix = std::distance(ref.second.begin(), it);
-            if (EmptyAfterErase(ref.second, ix)) {
+            if (g_emptyAfterErase(ref.second, ix)) {
                 typefaceHashQueue.erase(ref.first);
             }
             return;
