@@ -722,7 +722,6 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
 
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
         const float eps = 1e-6;
-
         half3 getUnpremulRGB(half4 color) {
             half factor = 1.0 / (max(ubo_ratio, eps) * max(color.a, eps));
             return clamp(color.rgb * factor, 0.0, 1.0);
