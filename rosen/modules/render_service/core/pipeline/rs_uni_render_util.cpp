@@ -557,7 +557,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams)
 {
     BufferDrawParam params;
-    params.threadIndex = gettid();
+    params.threadIndex = static_cast<uint32_t>(gettid());
     params.useBilinearInterpolation = renderParams.NeedBilinearInterpolation();
     params.useCPU = false;
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

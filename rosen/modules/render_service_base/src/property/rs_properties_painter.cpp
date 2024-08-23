@@ -1013,12 +1013,10 @@ bool RSPropertiesPainter::ProcessPixelStretch(RSPaintFilterCanvas& canvas, Drawi
         Drawing::Rect(clipBounds.GetLeft(), clipBounds.GetTop(), clipBounds.GetRight(), clipBounds.GetBottom());
     if (!worldToLocalMat.MapRect(localClipBounds, fClipBounds)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch map rect failed.");
-        return false;
     }
 
     if (!bounds.Intersect(localClipBounds)) {
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch intersect clipbounds failed");
-        return false;
     }
 
     scaledBounds = Drawing::Rect(bounds.GetLeft() - pixelStretch->x_, bounds.GetTop() - pixelStretch->y_,
