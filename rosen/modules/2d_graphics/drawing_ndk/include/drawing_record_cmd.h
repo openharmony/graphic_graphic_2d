@@ -56,7 +56,7 @@ extern "C" {
 OH_Drawing_RecordCmdUtils* OH_Drawing_RecordCmdUtilsCreate(void);
 
 /**
- * @brief Destroys an <b>OH_Drawing_RecordCmdUtils</b> object.
+ * @brief Destroys an <b>OH_Drawing_RecordCmdUtils</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param recordCmdUtils Indicates the pointer to an <b>OH_Drawing_RecordCmdUtils</b> object.
@@ -69,13 +69,13 @@ OH_Drawing_RecordCmdUtils* OH_Drawing_RecordCmdUtilsCreate(void);
 OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsDestroy(OH_Drawing_RecordCmdUtils* recordCmdUtils);
 
 /**
- * @brief Get the canvas that records the drawing commands.
+ * @brief Get the canvas that records the drawing command.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param recordCmdUtils Indicates the pointer to an <b>OH_Drawing_RecordCmdUtils</b> object.
  * @param width Width of canvas object.
  * @param height Height of canvas object.
- * @param canvas** Indicates a secondary pointer to an <b>OH_Srawing_Canvas</b>object.
+ * @param canvas Indicates a secondary pointer to an <b>OH_Drawing_Canvas</b>object.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if recordCmdUtils or canvas is nullptr,
@@ -91,7 +91,7 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsBeginRecording(OH_Drawing_RecordCm
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param recordCmdUtils Indicates the pointer to an <b>OH_Drawing_RecordCmdUtils</b> object.
- * @param recordCmd** Indicates a secondary pointer to an <b>OH_Drawing_RecordCmd</b> object.
+ * @param recordCmd Indicates a secondary pointer to an <b>OH_Drawing_RecordCmd</b> object.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if recordCmdUtils or recordCmd is nullptr.
@@ -102,7 +102,7 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsFinishingRecording(OH_Drawing_Reco
     OH_Drawing_RecordCmd** recordCmd);
 
 /**
- * @brief Destroys an <b>OH_Drawing_RecordCmd</b> object.
+ * @brief Destroys an <b>OH_Drawing_RecordCmd</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param recordCmd Indicates the pointer to an <b>OH_Drawing_RecordCmd</b> object.

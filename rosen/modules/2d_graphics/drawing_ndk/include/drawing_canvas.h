@@ -826,7 +826,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasIsClipEmpty(OH_Drawing_Canvas* canvas, boo
 OH_Drawing_ErrorCode OH_Drawing_CanvasGetImageInfo(OH_Drawing_Canvas* canvas, OH_Drawing_Image_Info* imageInfo);
 
 /**
- * @brief Replay drawing commands.
+ * @brief Replay drawing command.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.

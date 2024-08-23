@@ -32,7 +32,7 @@ static RSRecordCmdUtils* CastToCmdUtils(OH_Drawing_RecordCmdUtils* cRecordCmdUti
 
 OH_Drawing_RecordCmdUtils* OH_Drawing_RecordCmdUtilsCreate()
 {
-    return (OH_Drawing_RecordCmdUtils*)new (std::nothrow) RecordCmdUtils;
+    return (OH_Drawing_RecordCmdUtils*)new (std::nothrow) RSRecordCmdUtils;
 }
 
 OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsDestroy(OH_Drawing_RecordCmdUtils* recordCmdUtils)
@@ -51,10 +51,10 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsBeginRecording(OH_Drawing_RecordCm
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     RSRecordCmdUtils* recordCmdUtils = CastToCmdUtils(cRecordCmdUtils);
-    const Drawing::Rect& bounds = Drawing::Rect(0, 0, width, height);
+    auto bounds = Drawing::Rect(0, 0, width, height);
     Drawing::Canvas* canvasPtr = recordCmdUtils->BeginRecording(bounds);
     if (canvasPtr == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
     }
     *cCanvas = reinterpret_cast<OH_Drawing_Canvas*>(canvasPtr);
     return OH_DRAWING_SUCCESS;
@@ -69,12 +69,12 @@ OH_Drawing_ErrorCode OH_Drawing_RecordCmdUtilsFinishingRecording(OH_Drawing_Reco
     RSRecordCmdUtils* recordCmdUtils = CastToCmdUtils(cRecordCmdUtils);
     NativeHandle<RecordCmd>* recordCmdHandle = new(std::nothrow) NativeHandle<RecordCmd>;
     if (recordCmdHandle == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
     }
     recordCmdHandle->value = recordCmdUtils->FinishRecording();
     if (recordCmdHandle->value == nullptr) {
         delete recordCmdHandle;
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
     }
     *cRecordCmd = Helper::CastTo<NativeHandle<RecordCmd>*, OH_Drawing_RecordCmd*>(recordCmdHandle);
     return OH_DRAWING_SUCCESS;
