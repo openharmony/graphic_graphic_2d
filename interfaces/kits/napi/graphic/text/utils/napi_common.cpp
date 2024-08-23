@@ -117,7 +117,7 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& s
         textStyle.decorationStyle = TextDecorationStyle(decorationStyle);
     }
     SetDoubleValueFromJS(env, tempValue, "decorationThicknessScale", textStyle.decorationThicknessScale);
-    textStyle.decorationThicknessScale = textStyle.decorationThicknessScale < 0 ? 0:textStyle.decorationThicknessScale;
+    textStyle.decorationThicknessScale = textStyle.decorationThicknessScale;
     return true;
 }
 
@@ -132,12 +132,12 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     napi_get_named_property(env, argValue, "fontStyle", &tempValue);
     uint32_t fontStyle = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
-        // Let OBLIQUE be equal to ITALIC
-        if (fontStyle == 2) {
-            fontStyle = 1;
-        }
-
         textStyle.fontStyle = FontStyle(fontStyle);
+
+        // Let OBLIQUE be equal to ITALIC
+        if (textStyle.fontStyle == FontStyle::OBLIQUE) {
+            textStyle.fontStyle = FontStyle::ITALIC;
+        }
     }
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
@@ -263,14 +263,11 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
     SetDoubleValueFromJS(env, argValue, "letterSpacing", textStyle.letterSpacing);
     SetDoubleValueFromJS(env, argValue, "wordSpacing", textStyle.wordSpacing);
     SetDoubleValueFromJS(env, argValue, "baselineShift", textStyle.baseLineShift);
-    SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
     SetDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
+    SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
+    SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
 
-    if (textStyle.heightScale < 0) {
-        textStyle.heightOnly = false;
-    }else {
-        SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
-    }
+    textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
 }
 
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
@@ -366,7 +363,7 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
     uint32_t maxLines = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &maxLines) == napi_ok) {
-        pographyStyle.maxLines = maxLines < 0 ? 0: maxLines;
+        pographyStyle.maxLines = maxLines < 0 ? 0 : maxLines;
     }
 
     napi_get_named_property(env, argValue, "breakStrategy", &tempValue);
