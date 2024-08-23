@@ -196,11 +196,13 @@ public:
 private:
     bool needSync_ = false;
     std::shared_ptr<Drawing::Blender> blender_ = nullptr;
+    RSDynamicBrightnessPara fgBrightnessParams_ = {};
     int blendApplyType_ = 0;
     bool isDangerous_ = false;
     std::string propertyDescription_;
 
     std::shared_ptr<Drawing::Blender> stagingBlender_ = nullptr;
+    RSDynamicBrightnessPara stagingFgBrightnessParams_ = {};
     int stagingBlendApplyType_ = 0;
     bool stagingIsDangerous_ = false;
     std::string stagingPropertyDescription_;
