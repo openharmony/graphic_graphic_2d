@@ -162,59 +162,59 @@ std::shared_ptr<Media::PixelMap> SKImageChain::GetPixelMap()
 
 DrawError SKImageChain::Draw()
 {
-    DrawError ret = DrawError::ERR_OK;
     if (canvas_ == nullptr) {
         InitWithoutCanvas();
         if (forceCPU_) {
             if (!CreateCPUCanvas()) {
                 LOGE("Failed to create canvas for CPU.");
-                ret = DrawError::ERR_CPU_CANVAS;
+                return DrawError::ERR_CPU_CANVAS;
             }
         } else {
             if (!CreateGPUCanvas()) {
                 LOGE("Failed to create canvas for GPU.");
-                ret = DrawError::ERR_GPU_CANVAS;
+                DestroyGPUCanvas();
+                return DrawError::ERR_GPU_CANVAS;
             }
         }
     }
     if (image_ == nullptr) {
         LOGE("The image_ is nullptr, nothing to draw.");
-        ret = DrawError::ERR_IMAGE_NULL;
+        if (!forceCPU_) {
+            DestroyGPUCanvas();
+        }
+        return DrawError::ERR_IMAGE_NULL;
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SKImageChain::Draw");
-    if (ret == DrawError::ERR_OK) {
-        SkPaint paint;
-        paint.setAntiAlias(true);
-        paint.setBlendMode(SkBlendMode::kSrc);
-        paint.setImageFilter(filters_);
-        if (rect_ != nullptr) {
-            canvas_->clipRect(*rect_, true);
-        } else if (path_ != nullptr) {
-            canvas_->clipPath(*path_, true);
-        } else if (rRect_ != nullptr) {
-            canvas_->clipRRect(*rRect_, true);
-        }
-        canvas_->save();
-        canvas_->resetMatrix();
-#if defined(NEW_SKIA)
-        canvas_->drawImage(image_.get(), 0, 0, SkSamplingOptions(), &paint);
-#else
-        canvas_->drawImage(image_.get(), 0, 0, &paint);
-#endif
-        if (!forceCPU_ && dstPixmap_ != nullptr) {
-            if (!canvas_->readPixels(*dstPixmap_.get(), 0, 0)) {
-                LOGE("Failed to readPixels to target Pixmap.");
-                ret = DrawError::ERR_READ_PIXEL;
-            }
-        }
-        canvas_->restore();
+    SkPaint paint;
+    paint.setAntiAlias(true);
+    paint.setBlendMode(SkBlendMode::kSrc);
+    paint.setImageFilter(filters_);
+    if (rect_ != nullptr) {
+        canvas_->clipRect(*rect_, true);
+    } else if (path_ != nullptr) {
+        canvas_->clipPath(*path_, true);
+    } else if (rRect_ != nullptr) {
+        canvas_->clipRRect(*rRect_, true);
     }
+    canvas_->save();
+    canvas_->resetMatrix();
+#if defined(NEW_SKIA)
+    canvas_->drawImage(image_.get(), 0, 0, SkSamplingOptions(), &paint);
+#else
+    canvas_->drawImage(image_.get(), 0, 0, &paint);
+#endif
+    if (!forceCPU_ && dstPixmap_ != nullptr) {
+        if (!canvas_->readPixels(*dstPixmap_.get(), 0, 0)) {
+            LOGE("Failed to readPixels to target Pixmap.");
+        }
+    }
+    canvas_->restore();
 
     if (!forceCPU_) {
         DestroyGPUCanvas();
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-    return ret;
+    return DrawError::ERR_OK;
 }
 
 SkColorType SKImageChain::PixelFormatConvert(const Media::PixelFormat& pixelFormat)
