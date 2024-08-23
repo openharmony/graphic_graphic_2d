@@ -613,6 +613,30 @@ HWTEST_F(VSyncGeneratorTest, SetVSyncModeTest, Function | MediumTest| Level0)
 }
 
 /*
+* Function: SetVSyncMaxRefreshRateTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test SetVSyncMaxRefreshRateTest and GetVSyncMaxRefreshRateTest
+ */
+HWTEST_F(VSyncGeneratorTest, SetVSyncMaxRefreshRateTest, Function | MediumTest| Level0)
+{
+    // set invalid value 30 smaller than VSYNC_MAX_REFRESHRATE_RANGE_MIN
+    VsyncError ret = vsyncGenerator_->SetVSyncMaxRefreshRate(30);
+    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+
+    // set invalid value 600 greater than VSYNC_MAX_REFRESHRATE_RANGE_MAX
+    ret = vsyncGenerator_->SetVSyncMaxRefreshRate(600);
+    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+
+    // set valid value
+    ret = vsyncGenerator_->SetVSyncMaxRefreshRate(240);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    uint32_t vsyncMaxRefreshRate = vsyncGenerator_->GetVSyncMaxRefreshRate();
+    ASSERT_EQ(vsyncMaxRefreshRate, 240);
+}
+
+/*
 * Function: SetHighPriorityVSyncRateTest
 * Type: Function
 * Rank: Important(2)

@@ -593,10 +593,10 @@ HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level2)
 {
     auto &instance = HgmCore::Instance();
     instance.SetLtpoEnabled(true);
-    instance.SetSupportedMaxTE(VSYNC_MAX_REFRESHRATE);
+    instance.SetSupportedMaxTE(360);
     instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
     EXPECT_EQ(instance.IsLTPOSwitchOn(), true);
-    EXPECT_EQ(instance.GetSupportedMaxTE(), VSYNC_MAX_REFRESHRATE);
+    EXPECT_EQ(instance.GetSupportedMaxTE(), 360);
     EXPECT_EQ(instance.GetCurrentRefreshRateMode(), static_cast<int32_t>(HGM_REFRESHRATE_MODE_AUTO));
     EXPECT_EQ(instance.GetLtpoEnabled(), true);
 }
