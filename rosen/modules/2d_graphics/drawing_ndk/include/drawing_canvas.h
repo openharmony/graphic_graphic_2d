@@ -825,6 +825,19 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasIsClipEmpty(OH_Drawing_Canvas* canvas, boo
  */
 OH_Drawing_ErrorCode OH_Drawing_CanvasGetImageInfo(OH_Drawing_Canvas* canvas, OH_Drawing_Image_Info* imageInfo);
 
+/**
+ * @brief Replay drawing command.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param recordCmd Indicates the pointer to an <b>OH_Drawing_RecordCmd</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if canvas or recordCmd is nullptr.
+ * @since 13
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* canvas, OH_Drawing_RecordCmd* recordCmd);
 #ifdef __cplusplus
 }
 #endif

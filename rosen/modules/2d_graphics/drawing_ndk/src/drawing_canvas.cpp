@@ -18,6 +18,7 @@
 #include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_helper.h"
 #include "image_pixel_map_mdk.h"
 #include "native_pixel_map.h"
 #include "native_pixel_map_manager.h"
@@ -863,5 +864,20 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawColor(OH_Drawing_Canvas* cCanvas, uint
     }
 
     canvas->DrawColor(color, static_cast<BlendMode>(cBlendMode));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* cCanvas,
+    OH_Drawing_RecordCmd* cRecordCmd)
+{
+    if (cCanvas == nullptr || cRecordCmd == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    auto recordCmdHandle = Helper::CastTo<OH_Drawing_RecordCmd*, NativeHandle<RecordCmd>*>(cRecordCmd);
+    if (recordCmdHandle->value == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->DrawRecordCmd(recordCmdHandle->value);
     return OH_DRAWING_SUCCESS;
 }
