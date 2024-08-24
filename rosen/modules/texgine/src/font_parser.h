@@ -24,7 +24,7 @@
 #include "opentype_parser/name_table_parser.h"
 #include "opentype_parser/post_table_parser.h"
 
-#include "typeface.h"
+#include "texgine_typeface.h"
 
 namespace OHOS {
 namespace Rosen {

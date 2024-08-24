@@ -70,10 +70,8 @@ ohos_source_set("libtexgine_source") {
       "src/opentype_parser/opentype_basic_type.cpp",
       "src/opentype_parser/post_table_parser.cpp",
       "src/opentype_parser/ranges.cpp",
-      "src/typography_types.cpp",
       "src/utils/exlog.cpp",
       "src/utils/logger.cpp",
-      "src/utils/trace_ohos.cpp",
     ]
 
     configs = [
@@ -133,7 +131,6 @@ ohos_source_set("libtexgine_source") {
       public_deps +=
           [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
     } else {
-      sources -= [ "src/utils/trace_ohos.cpp" ]
       if (platform == "mac") {
         defines += [ "BUILD_SDK_MAC" ]
         public_deps += [
