@@ -107,7 +107,7 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         std::shared_ptr<Drawing::Data> data = typeface->Serialize();
         const void* stream = data->GetData();
         size_t size = data->GetSize();
-        hash_value = SkOpts::hash_fn(stream, std::min(size, 20000u), 0);
+        hash_value = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(20000)), 0);
     }
     typefaceHashCode_[uniqueId] = hash_value;
     if (typefaceHashMap_.find(hash_value) != typefaceHashMap_.end()) {
