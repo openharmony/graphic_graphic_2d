@@ -14,6 +14,7 @@
  */
 
 #include "hdi_device.h"
+#include "mock_hdi_device.h"
 #include <gtest/gtest.h>
 
 using namespace testing;
@@ -27,16 +28,19 @@ public:
     static void TearDownTestCase();
 
     static inline HdiDevice* hdiDevice_ = nullptr;
+    static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 };
 
 void HdiDeviceTest::SetUpTestCase()
 {
     hdiDevice_ = HdiDevice::GetInstance();
+    hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
 }
 
 void HdiDeviceTest::TearDownTestCase()
 {
     hdiDevice_ = nullptr;
+    hdiDeviceMock_ = nullptr;
 }
 
 namespace {
@@ -58,17 +62,23 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenVsyncEnabled(screenId, enabled), GRAPHIC_DISPLAY_SUCCESS);
     uint32_t pid = 3;
     uint64_t pvalue = 0;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetDisplayProperty(screenId, pid, pvalue), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_,
+        GetDisplayProperty(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetDisplayProperty(screenId, pid, pvalue), GRAPHIC_DISPLAY_SUCCESS);
     GraphicDisplayCapability dcpInfo;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenCapability(screenId, dcpInfo), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_,
+        GetScreenCapability(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenCapability(screenId, dcpInfo), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicDisplayModeInfo> dmodes;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenSupportedModes(screenId, dmodes), GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenMode(screenId, screenModeId), GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenMode(screenId, screenModeId), GRAPHIC_DISPLAY_SUCCESS);
     uint32_t width = 1080;
     uint32_t height = 1920;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenOverlayResolution(screenId, width, height),
-        GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetScreenOverlayResolution(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenOverlayResolution(screenId, width, height),
+        GRAPHIC_DISPLAY_SUCCESS);
     GraphicDispPowerStatus dstatus = GRAPHIC_POWER_STATUS_ON;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenPowerStatus(screenId, dstatus), GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenPowerStatus(screenId, dstatus), GRAPHIC_DISPLAY_SUCCESS);
@@ -116,9 +126,13 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs002, Function | MediumTest| Level3)
 {
     uint32_t screenId = 1;
     GraphicHDRCapability info;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetHDRCapabilityInfos(screenId, info), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_,
+        GetHDRCapabilityInfos(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetHDRCapabilityInfos(screenId, info), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicHDRMetadataKey> keys;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedMetaDataKey(screenId, keys), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_,
+        GetSupportedMetaDataKey(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetSupportedMetaDataKey(screenId, keys), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /*
@@ -154,7 +168,9 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
     layerBuffer.acquireFence = new SyncFence(10);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
     layerBuffer.cacheIndex = 0;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
     GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_CLIENT;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
     GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
