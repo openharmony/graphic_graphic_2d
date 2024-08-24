@@ -266,6 +266,19 @@ int32_t OH_NativeImage_AcquireNativeWindowBuffer(OH_NativeImage* image,
 int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer* nativeWindowBuffer, int fenceFd);
 
+/**
+ * @brief Create a <b>OH_NativeImage</b> as surface consumer. \n
+ * This method can not be used at the same time with <b>OH_NativeImage_UpdateSurfaceImage</b>.\n
+ * This interface needs to be used in conjunction with <b>OH_NativeImage_Destroy<\b>,
+ * otherwise memory leaks will occur.\n
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n
+ * returns <b>NULL</b> otherwise.
+ * @since 12
+ * @version 1.0
+ */
+OH_NativeImage* OH_ConsumerSurface_Create();
+
 #ifdef __cplusplus
 }
 #endif

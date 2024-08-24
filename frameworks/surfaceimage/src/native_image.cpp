@@ -40,6 +40,18 @@ OH_NativeImage* OH_NativeImage_Create(uint32_t textureId, uint32_t textureTarget
     return nativeImage;
 }
 
+OH_NativeImage* OH_ConsumerSurface_Create()
+{
+    OHOS::sptr<OHOS::SurfaceImage> surfaceImage = new SurfaceImage();
+    sptr<OHOS::IBufferProducer> producer = surfaceImage->GetProducer();
+    OH_NativeImage* nativeImage = new OH_NativeImage();
+    nativeImage->consumer = surfaceImage;
+    nativeImage->producer = producer;
+    sptr<IBufferConsumerListener> listener = new SurfaceImageListener(surfaceImage);
+    nativeImage->consumer->RegisterConsumerListener(listener);
+    return nativeImage;
+}
+
 OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
 {
     if (image == nullptr) {
