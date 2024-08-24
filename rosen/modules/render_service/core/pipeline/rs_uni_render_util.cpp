@@ -292,9 +292,6 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     }
     uint32_t srcWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
     uint32_t srcHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
-    if (srcHeight == 0 || srcWidth == 0) {
-        return;
-    }
     uint32_t newWidth = 0;
     uint32_t newHeight = 0;
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
@@ -303,6 +300,13 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     if (boundsWidth == 0 || boundsHeight == 0 || srcWidth == 0 || srcHeight == 0) {
         return;
     }
+    // If transformType is not a multiple of 180, need to change the correspondence between width & height.
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
+    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
+        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
+        std::swap(boundsWidth, boundsHeight);
+    }
+
     if (srcWidth * boundsHeight > srcHeight * boundsWidth) {
         newWidth = boundsWidth;
         newHeight = srcHeight * newWidth / srcWidth;
@@ -572,7 +576,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
 }
 
 void RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed(GraphicTransformType transform, Gravity gravity,
-    RectF& localBounds, BufferDrawParam& params)
+    RectF localBounds, BufferDrawParam& params)
 {
     auto rotationTransform = RSBaseRenderUtil::GetRotateTransform(transform);
     params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
