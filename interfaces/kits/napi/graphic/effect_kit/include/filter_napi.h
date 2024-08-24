@@ -32,6 +32,7 @@ public:
     ~FilterNapi();
     static napi_value Init(napi_env env, napi_value exports);
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();
+    std::shared_ptr<Media::PixelMap> GetSrcPixelMap();
 private:
     static thread_local napi_ref sConstructor_;
     static void Destructor(napi_env env, void* nativeObject, void* finalize_hint);
