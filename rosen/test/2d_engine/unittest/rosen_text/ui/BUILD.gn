@@ -38,6 +38,7 @@ ohos_unittest("2d_engine_rosen_text_ui_test") {
   }
 
   if (enable_text_gine) {
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     include_dirs -= [ "$rosen_2d_engine_root/rosen_text/ui" ]
     include_dirs += [
       "$rosen_2d_engine_root/rosen_text/export/rosen_text",

@@ -51,7 +51,9 @@ config("export_config") {
   }
 }
 
-defines = []
+if (enable_text_gine) {
+  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+}
 
 template("graphics2d_source_set") {
   forward_variables_from(invoker, "*")
@@ -226,6 +228,7 @@ template("graphics2d_source_set") {
     }
 
     if (enable_text_gine) {
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_texgine) {
         defines += [ "USE_TEXGINE" ]
       }
@@ -265,6 +268,7 @@ template("graphics2d_source_set") {
         "skia:skia_canvaskit",
       ]
 
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       deps = [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
       defines += [
         "SUPPORT_OHOS_PIXMAP",
@@ -298,9 +302,12 @@ template("graphics2d_source_set") {
         defines += [ "CROSS_PLATFORM" ]
         deps += [ "//foundation/graphic/graphic_2d/rosen/build/icu:rosen_libicu_$platform" ]
       }
+
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
     if (enable_text_gine) {
       deps += [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_skia_txt) {
         include_dirs +=
             [ "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt" ]
@@ -413,6 +420,7 @@ if (enable_text_gine) {
     }
     external_deps = [ "hilog:libhilog" ]
     public_external_deps = [ "bounds_checking_function:libsec_static" ]
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     public_configs = [ ":2d_graphics_config" ]
     innerapi_tags = [ "platformsdk_indirect" ]
     part_name = "graphic_2d"
@@ -498,6 +506,10 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
       # "//third_party/skia_canvaskit0310:skia",
     ]
     external_deps += [ "graphic_surface:surface" ]
+  }
+
+  if (enable_text_gine) {
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   }
 
   part_name = "graphic_2d"
