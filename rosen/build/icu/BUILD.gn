@@ -116,6 +116,9 @@ template("rosen_libicu") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
+    if (enable_text_gine) {
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+    }
     public_configs = [ ":icu_config_$platform" ]
     configs = [ ":icu_compile_flags" ]
     defines += invoker.defines
@@ -559,6 +562,9 @@ template("rosen_libicu") {
         "$skia_root/third_party/externals/icu/source/i18n/zrule.cpp",
         "$skia_root/third_party/externals/icu/source/i18n/ztrans.cpp",
       ]
+      if (enable_text_gine) {
+        defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+      }
       sources += [
         "$skia_root/third_party/externals/icu/source/common/localebuilder.cpp",
         "$skia_root/third_party/externals/icu/source/common/localematcher.cpp",

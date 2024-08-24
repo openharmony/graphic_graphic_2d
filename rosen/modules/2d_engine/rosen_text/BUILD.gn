@@ -33,7 +33,7 @@ if (enable_text_gine) {
     ]
   }
 
-  defines = []
+  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
 
   ohos_shared_library("rosen_text") {
     include_dirs = [ "$graphic_2d_root/rosen/modules/2d_graphics/include" ]
@@ -74,6 +74,7 @@ if (enable_text_gine) {
     public_configs = [ ":rosen_text_public_config" ]
     public_external_deps = [ "bounds_checking_function:libsec_shared" ]
 
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     cflags = [ "-std=c++17" ]
 
     include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
@@ -107,7 +108,10 @@ if (enable_text_gine) {
 
     include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
-    defines += [ "WINDOWS_PLATFORM" ]
+    defines += [
+      "USE_GRAPHIC_TEXT_GINE",
+      "WINDOWS_PLATFORM",
+    ]
     cflags = [ "-std=c++17" ]
 
     if (!defined(use_new_skia)) {
@@ -159,7 +163,10 @@ if (enable_text_gine) {
       include_dirs += [ "//third_party/bounds_checking_function/include" ]
     }
 
-    defines += [ "WINDOWS_PLATFORM" ]
+    defines += [
+      "USE_GRAPHIC_TEXT_GINE",
+      "WINDOWS_PLATFORM",
+    ]
     cflags = [ "-std=c++17" ]
 
     sources = [

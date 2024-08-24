@@ -47,6 +47,7 @@ ohos_unittest("2d_engine_rosen_text_prop_test") {
       "$rosen_2d_engine_root/rosen_text/export",
       "$rosen_root/modules/render_service_base/include",
     ]
+    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   }
 
   deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]

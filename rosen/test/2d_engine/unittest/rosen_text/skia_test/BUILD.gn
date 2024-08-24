@@ -47,6 +47,8 @@ ohos_unittest("2d_engine_rosen_text_skia_test") {
     "//third_party/googletest:gtest_main",
   ]
 
+  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

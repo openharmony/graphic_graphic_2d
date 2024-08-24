@@ -102,7 +102,9 @@ ohos_source_set("libtexgine_source") {
         defines += [ "ACE_ENABLE_GPU" ]
       }
     }
-
+    if (enable_text_gine) {
+      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+    }
     if (is_arkui_x) {
       deps = [ "//third_party/bounds_checking_function:libsec_static" ]
       deps += [ "//third_party/cJSON:cjson_static" ]
