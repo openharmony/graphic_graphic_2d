@@ -31,7 +31,7 @@
 
 using namespace OHOS::Rosen::Drawing;
 
-static std::shared_ptr<ObjectMgr> objectMgr = ObjectMgr::GetInstance();
+static std::shared_ptr<ObjectMgr> g_objectMgr = ObjectMgr::GetInstance();
 
 template<typename T1, typename T2>
 inline T1* ConvertToFontCollection(T2* ptr)
@@ -54,7 +54,7 @@ OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
         return nullptr;
     }
 #endif
-    objectMgr->AddObject(fc);
+    g_objectMgr->AddObject(fc);
     return fc;
 }
 
@@ -79,7 +79,7 @@ void OH_Drawing_DestroyFontCollection(OH_Drawing_FontCollection* fontCollection)
     if (FontCollectionMgr::GetInstance().Remove(fontCollection)) {
         return;
     }
-    if (!objectMgr->RemoveObject(fontCollection)) {
+    if (!g_objectMgr->RemoveObject(fontCollection)) {
         return;
     }
 
@@ -121,7 +121,7 @@ void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection* fontCollection)
         return;
     }
 
-    if (objectMgr->HasObject(fontCollection)) {
+    if (g_objectMgr->HasObject(fontCollection)) {
         ConvertToFontCollection<OHOS::Rosen::AdapterTxt::FontCollection>(fontCollection)->ClearCaches();
         return;
     }

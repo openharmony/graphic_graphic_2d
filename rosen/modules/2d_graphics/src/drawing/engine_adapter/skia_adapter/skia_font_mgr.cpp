@@ -90,16 +90,16 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
         LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
         return nullptr;
     }
-    if (familyName.empty() || data == nullptr) {
+    if (familyName.empty() || data == nullptr || dataLength == 0) {
         dynamicFontMgr->font_provider().RegisterTypeface(nullptr, themeName);
         return nullptr;
     } else {
         auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
         auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-        dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
         if (!typeface) {
             return nullptr;
         } else {
+            dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
             typeface->setIsCustomTypeface(true);
             std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
             return new Typeface(typefaceImpl);
