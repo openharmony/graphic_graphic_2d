@@ -50,6 +50,58 @@ group("common_deps") {
   }
 }
 
+ohos_unittest("texgine_unittest_part1") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+  sources = [
+    "bidi_processer_test.cpp",
+    "char_groups_test.cpp",
+    "dynamic_file_font_provider_test.cpp",
+    "dynamic_font_style_set_test.cpp",
+    "font_features_test.cpp",
+    "font_styles_test.cpp",
+    "text_converter_test.cpp",
+    "text_merger_test.cpp",
+    "text_reverser_test.cpp",
+    "typography_builder_impl_test.cpp",
+    "typography_style_test.cpp",
+    "variant_span_test.cpp",
+  ]
+
+  public_configs = [ ":texgine_test_config" ]
+
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part2") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+  sources = [
+    "dynamic_font_provider_test.cpp",
+    "system_font_load_test.cpp",
+    "system_font_provider_test.cpp",
+    "text_shaper_test.cpp",
+    "typeface_test.cpp",
+  ]
+
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
 ohos_unittest("texgine_unittest_part3") {
   module_out_path = module_output_path
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -66,10 +118,70 @@ ohos_unittest("texgine_unittest_part3") {
   subsystem_name = "graphic"
 }
 
+ohos_unittest("texgine_unittest_part4") {
+  module_out_path = module_output_path
+
+  sources = [
+    "font_providers_test.cpp",
+    "measurer_test.cpp",
+  ]
+
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part5") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+  sources = [
+    "measurer_impl_test.cpp",
+    "texgine_canvas_test.cpp",
+    "texgine_dash_path_effect_test.cpp",
+    "texgine_data_test.cpp",
+    "texgine_font_manager_test.cpp",
+    "texgine_font_metrics_test.cpp",
+    "texgine_font_style_set_test.cpp",
+    "typography_impl_test.cpp",
+  ]
+
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  if (enable_text_gine) {
+    sources -= [
+      "texgine_canvas_test.cpp",
+      "texgine_font_manager_test.cpp",
+      "typography_impl_test.cpp",
+    ]
+    sources += [
+      "texgine_font_style_test.cpp",
+      "texgine_font_test.cpp",
+      "texgine_mask_filter_test.cpp",
+      "texgine_paint_test.cpp",
+      "texgine_path_1d_path_effect_test.cpp",
+      "texgine_path_test.cpp",
+    ]
+  }
+}
+
 ohos_unittest("texgine_unittest_part6") {
   module_out_path = module_output_path
 
-  sources = [ "font_parser_test.cpp" ]
+  sources = [
+    "font_manager_test.cpp",
+    "font_parser_test.cpp",
+  ]
 
   public_configs = [ ":texgine_test_config" ]
   public_deps = [ ":common_deps" ]
