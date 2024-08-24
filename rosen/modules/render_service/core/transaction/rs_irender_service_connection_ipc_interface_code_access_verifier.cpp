@@ -120,6 +120,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
                 "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROTATION_CACHE_ENABLED): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_ROTATION_CACHE_ENABLED");
+            break;
+        }
         default: {
             break;
         }
