@@ -28,7 +28,7 @@ napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info
     napi_value jsThis = nullptr;
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argCount, argv, &jsThis, nullptr);
-    if (status != napi_ok || argCount < ARGC_ONE || argCount > ARGC_TWO
+    if (status != napi_ok || argCount < ARGC_ONE || argCount > ARGC_TWO){
         TEXT_LOGE("JsParagraphBuilder::Constructor Argc is invalid: %{public}zu", argCount);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
