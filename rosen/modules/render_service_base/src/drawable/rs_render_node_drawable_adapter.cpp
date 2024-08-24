@@ -346,9 +346,12 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
     if (originalCanvas && !paintFilterCanvas->GetOffscreenDataList().empty()) {
         originalCanvas->GetTotalMatrix().MapRect(dst, dst);
     }
+    if (dst.IsEmpty()) {
+        return true;
+    }
     auto deviceClipRegion = paintFilterCanvas->GetCurDirtyRegion();
     Drawing::Region dstRegion;
-    if (!dstRegion.SetRect(dst.RoundOut()) && !dst.IsEmpty()) {
+    if (!dstRegion.SetRect(dst.RoundOut())) {
         RS_LOGW("invalid dstDrawRect: %{public}s, RoundOut: %{public}s",
             dst.ToString().c_str(), dst.RoundOut().ToString().c_str());
         RS_OPTIONAL_TRACE_NAME_FMT("invalid dstDrawRect: %s, RoundOut: %s",

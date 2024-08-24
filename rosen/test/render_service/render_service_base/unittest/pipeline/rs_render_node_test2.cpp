@@ -736,6 +736,29 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect004, TestSize.Level1)
     surfaceNode->MapAndUpdateChildrenRect();
     ASSERT_TRUE(true);
 }
+/**
+ * @tc.name: MapAndUpdateChildrenRect005
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueIAM93Q
+ */
+HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect005, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSBaseRenderNode>(id, context);
+    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+    parentNode->GetRenderProperties().GetBoundsGeometry()->absMatrix_ = Drawing::Matrix();
+    inNode->parent_ = parentNode;
+    inNode->shouldPaint_ = true;
+    inNode->GetMutableRenderProperties().sandbox_ = std::make_unique<Sandbox>();
+    Vector2f vec2f(1.0f, 1.0f);
+    inNode->GetMutableRenderProperties().sandbox_->position_ = vec2f;
+    inNode->SetSharedTransitionParam(sharedTransitionParam);
+    inNode->selfDrawRect_ = {0, 0, 1000, 1000};
+    inNode->MapAndUpdateChildrenRect();
+    ASSERT_TRUE(true);
+}
 
 /**
  * @tc.name: IsFilterCacheValid001

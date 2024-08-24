@@ -2089,6 +2089,7 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     nodeTest->renderContent_->renderProperties_.alpha_ = -1.0f;
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(0.0f, 0.1f);
     nodeTest->renderContent_->renderProperties_.filter_ = filter;
+    nodeTest->sharedTransitionParam_ = nullptr;
     nodeTest->UpdateShouldPaint();
 
     // SetSharedTransitionParam test
