@@ -347,7 +347,7 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 }
 
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message = std::string());
-napi_value BindNativeFunction(napi_env env, napi_value object, const char* name,
+napi_status BindNativeFunction(napi_env env, napi_value object, const char* name,
     const char* moduleName, napi_callback func);
 bool CheckParamMinimumValid(napi_env env, const size_t paramNum, const size_t minNum);
 

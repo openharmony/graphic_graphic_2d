@@ -25,7 +25,7 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
     return result;
 }
 
-napi_value BindNativeFunction(napi_env env, napi_value object, const char* name,
+napi_status BindNativeFunction(napi_env env, napi_value object, const char* name,
     const char* moduleName, napi_callback func)
 {
     std::string fullName;
@@ -35,10 +35,16 @@ napi_value BindNativeFunction(napi_env env, napi_value object, const char* name,
     }
     fullName += name;
     napi_value funcValue = nullptr;
-    NAPI_CALL_DEFAULT(napi_create_function(env, fullName.c_str(), fullName.size(),
-        func, nullptr, &funcValue));
-    NAPI_CALL_DEFAULT(napi_set_named_property(env, object, fullName.c_str(), funcValue));
-    return nullptr;
+    napi_status status = napi_ok;
+    status = napi_create_function(env, fullName.c_str(), fullName.size(), func, nullptr, &funcValue);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = napi_set_named_property(env, object, fullName.c_str(), funcValue);
+    if (status != napi_ok) {
+        return status;
+    }
+    return status;
 }
 
 bool CheckParamMinimumValid(napi_env env, const size_t paramNum, const size_t minNum)

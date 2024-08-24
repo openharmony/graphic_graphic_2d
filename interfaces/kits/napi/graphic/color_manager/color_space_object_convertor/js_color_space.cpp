@@ -233,11 +233,22 @@ napi_value JsColorSpace::OnGetSendableGamma(napi_env env, napi_callback_info inf
     return CreateJsValue(env, gamma);
 }
 
-void BindFunctions(napi_env env, napi_value object)
+napi_status BindFunctions(napi_env env, napi_value object)
 {
-    BindNativeFunction(env, object, "getColorSpaceName", nullptr, JsColorSpace::GetColorSpaceName);
-    BindNativeFunction(env, object, "getWhitePoint", nullptr, JsColorSpace::GetWhitePoint);
-    BindNativeFunction(env, object, "getGamma", nullptr, JsColorSpace::GetGamma);
+    napi_status status = napi_ok;
+    status = BindNativeFunction(env, object, "getColorSpaceName", nullptr, JsColorSpace::GetColorSpaceName);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = BindNativeFunction(env, object, "getWhitePoint", nullptr, JsColorSpace::GetWhitePoint);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = BindNativeFunction(env, object, "getGamma", nullptr, JsColorSpace::GetGamma);
+    if (status != napi_ok) {
+        return status;
+    }
+    return status;
 }
 } // namespace ColorManager
 } // namespace OHOS

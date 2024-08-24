@@ -170,7 +170,9 @@ napi_value JsColorSpaceManagerInit(napi_env env, napi_value exportObj)
     NAPI_CALL_DEFAULT(napi_set_named_property(env, exportObj, "ColorSpace", valueColorSpace));
     NAPI_CALL_DEFAULT(napi_set_named_property(env, exportObj, "CMError", valueCmError));
     NAPI_CALL_DEFAULT(napi_set_named_property(env, exportObj, "CMErrorCode", valueCmErrorCode));
-    BindNativeFunction(env, exportObj, "create", nullptr, JsColorSpaceManager::CreateColorSpace);
+    if (BindNativeFunction(env, exportObj, "create", nullptr, JsColorSpaceManager::CreateColorSpace) != napi_ok) {
+        return nullptr;
+    }
     return exportObj;
 }
 }  // namespace ColorManager
