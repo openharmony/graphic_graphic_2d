@@ -119,6 +119,8 @@ public:
 
     virtual RSScreenData GetScreenData(ScreenId id) const = 0;
 
+    virtual ScreenInfo QueryDefaultScreenInfo() const = 0;
+
     virtual ScreenInfo QueryScreenInfo(ScreenId id) const = 0;
 
     // Can only be called after QueryScreenState and the state is ScreenState::SOFTWARE_OUTPUT_ENABLE;
@@ -319,6 +321,8 @@ public:
 
     RSScreenData GetScreenData(ScreenId id) const  override;
 
+    ScreenInfo QueryDefaultScreenInfo() const override;
+
     ScreenInfo QueryScreenInfo(ScreenId id) const override;
 
     sptr<Surface> GetProducerSurface(ScreenId id) const override;
@@ -486,6 +490,7 @@ private:
     int32_t GetScreenSupportedColorSpacesLocked(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
     int32_t GetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) const;
     int32_t SetScreenColorSpaceLocked(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
+    ScreenInfo QueryScreenInfoLocked(ScreenId id) const;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void RegisterSensorCallback();
@@ -500,7 +505,8 @@ private:
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
     std::map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>> screens_;
     std::queue<ScreenId> freeVirtualScreenIds_;
-    uint32_t maxVirtualScreenNum_ = 0;
+    uint32_t virtualScreenCount_ = 0;
+    uint32_t currentVirtualScreenNum_ = 0;
     std::vector<sptr<RSIScreenChangeCallback>> screenChangeCallbacks_;
     bool mipiCheckInFirstHotPlugEvent_ = false;
     bool isHwcDead_ = false;
