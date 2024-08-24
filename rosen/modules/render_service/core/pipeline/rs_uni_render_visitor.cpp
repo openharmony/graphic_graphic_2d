@@ -463,10 +463,19 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (!curDisplayDirtyManager_) {
         return;
     }
-    bool ret = CheckScreenPowerChange() || CheckColorFilterChange() || CheckCurtainScreenUsingStatusChange() ||
-               IsFirstFrameOfPartialRender() || IsWatermarkFlagChanged() || IsDisplayZoomStateChange() ||
-               isCompleteRenderEnabled_ || CheckLuminanceStatusChange() || IsFirstFrameOfOverdrawSwitch() ||
-               IsFirstFrameOfDrawingCacheDfxSwitch();
+    bool isNeedNotchUpdate = RSSingleton<RoundCornerDisplay>::GetInstance().IsNotchNeedUpdate(
+        RSSystemParameters::GetHideNotchStatus());
+    bool ret = CheckScreenPowerChange() ||
+        CheckColorFilterChange() ||
+        CheckCurtainScreenUsingStatusChange() ||
+        IsFirstFrameOfPartialRender() ||
+        IsWatermarkFlagChanged() ||
+        IsDisplayZoomStateChange() ||
+        isCompleteRenderEnabled_ ||
+        CheckLuminanceStatusChange() ||
+        IsFirstFrameOfOverdrawSwitch() ||
+        IsFirstFrameOfDrawingCacheDfxSwitch() ||
+        isNeedNotchUpdate;
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -491,9 +500,9 @@ bool RSUniRenderVisitor::CheckCurtainScreenUsingStatusChange() const
     return true;
 }
 
-bool RSUniRenderVisitor::CheckLuminanceStatusChange() const
+bool RSUniRenderVisitor::CheckLuminanceStatusChange()
 {
-    if (!RSMainThread::Instance()->IsLuminanceChanged()) {
+    if (!RSMainThread::Instance()->ExchangeLuminanceChangingStatus()) {
         return false;
     }
     RS_LOGD("RSUniRenderVisitor::CheckLuminanceStatusChange changed");

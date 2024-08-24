@@ -2893,23 +2893,6 @@ HWTEST_F(RSMainThreadTest, ReleaseSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCurtainScreenUsingStatus
- * @tc.desc: SetCurtainScreenUsingStatus Test
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetCurtainScreenUsingStatus(true);
-    ASSERT_EQ(mainThread->IsCurtainScreenOn(), true);
-
-    // restore curtain screen status
-    mainThread->SetCurtainScreenUsingStatus(false);
-}
-
-/**
  * @tc.name: SetLuminanceChangingStatus
  * @tc.desc: SetLuminanceChangingStatus Test
  * @tc.type: FUNC
@@ -2919,9 +2902,24 @@ HWTEST_F(RSMainThreadTest, SetLuminanceChangingStatus, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    ASSERT_EQ(mainThread->IsLuminanceChanged(), false);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), false);
     mainThread->SetLuminanceChangingStatus(true);
-    ASSERT_EQ(mainThread->IsLuminanceChanged(), true);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), true);
+}
+
+/**
+ * @tc.name: ExchangeLuminanceChangingStatus
+ * @tc.desc: ExchangeLuminanceChangingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, ExchangeLuminanceChangingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetLuminanceChangingStatus(true);
+    ASSERT_EQ(mainThread->ExchangeLuminanceChangingStatus(), true);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), false);
 }
 
 /**

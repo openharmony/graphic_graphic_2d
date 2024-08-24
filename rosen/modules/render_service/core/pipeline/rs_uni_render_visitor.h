@@ -202,7 +202,7 @@ private:
     bool CheckScreenPowerChange() const;
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
-    bool CheckLuminanceStatusChange() const;
+    bool CheckLuminanceStatusChange();
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;

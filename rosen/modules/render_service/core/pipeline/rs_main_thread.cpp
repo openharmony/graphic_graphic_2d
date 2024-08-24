@@ -1762,7 +1762,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
         return;
     }
-    
+
     static std::once_flag initUIFwkTableFlag;
     std::call_once(initUIFwkTableFlag, [this, &frameRateMgr]() {
         GetContext().SetUiFrameworkTypeTable(frameRateMgr->GetIdleDetector().GetUiFrameworkTypeTable());
@@ -1770,7 +1770,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     // Check and processing refresh rate task.
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();
     frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, info);
-    
+
     HgmTaskHandleThread::Instance().PostTask([timestamp, info, rsCurrRange = rsCurrRange_,
                                             rsFrameRateLinker = rsFrameRateLinker_,
                                             appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
@@ -1915,7 +1915,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
-        isLuminanceChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
@@ -3467,11 +3466,6 @@ bool RSMainThread::IsCurtainScreenUsingStatusChanged() const
     return isCurtainScreenUsingStatusChanged_;
 }
 
-bool RSMainThread::IsLuminanceChanged() const
-{
-    return isLuminanceChanged_;
-}
-
 void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 {
     if (!isUniRender_) {
@@ -4041,7 +4035,17 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSMainThread::SetLuminanceChangingStatus(bool isLuminanceChanged)
 {
-    isLuminanceChanged_ = isLuminanceChanged;
+    isLuminanceChanged_.store(isLuminanceChanged);
+}
+
+bool RSMainThread::ExchangeLuminanceChangingStatus()
+{
+    bool expectChanged = true;
+    if (!isLuminanceChanged_.compare_exchange_weak(expectChanged, false)) {
+        return false;
+    }
+    RS_LOGD("RSMainThread::ExchangeLuminanceChangingStatus changed");
+    return true;
 }
 
 bool RSMainThread::IsCurtainScreenOn() const
