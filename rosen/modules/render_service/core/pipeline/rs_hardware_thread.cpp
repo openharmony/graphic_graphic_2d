@@ -379,7 +379,6 @@ void RSHardwareThread::OnPrepareComplete(sptr<Surface>& surface,
     (void)(data);
 
     if (!param.needFlushFramebuffer) {
-        RS_LOGE("RSHardwareThread::OnPreComplete fail, needFlushFramebuffer is nullptr");
         return;
     }
 

@@ -246,6 +246,13 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+    } else {
+        if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            ROSEN_LOGI("RSRenderNode:: add child surfaceNode[id:%{public}" PRIu64 " name:%{public}s]"
+            " parent'S isOnTheTree_:%{public}d", surfaceNode->GetId(), surfaceNode->GetNodeName().c_str(),
+            isOnTheTree_);
+        }
     }
     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node add child", GetId());
     SetContentDirty();
