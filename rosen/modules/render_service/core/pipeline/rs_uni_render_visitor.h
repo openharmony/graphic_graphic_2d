@@ -379,6 +379,8 @@ private:
     bool isUIFirstDebugEnable_ = false;
     bool ancestorNodeHasAnimation_ = false;
     bool hasAccumulatedClip_ = false;
+    // [planning] this will be deleted by hdr solution
+    bool hasNotFullScreenWindow_ = false;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
 
     bool isPrevalidateHwcNodeEnable_ = false;
