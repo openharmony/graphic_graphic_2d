@@ -296,6 +296,14 @@ public:
     void SetOccludedByFilterCache(bool val);
     bool GetOccludedByFilterCache() const;
 
+    void SetFilterCacheFullyCovered(bool val);
+    bool GetFilterCacheFullyCovered() const;
+
+    const std::vector<NodeId>& GetVisibleFilterChild() const;
+    bool IsTransparent() const;
+    void CheckValidFilterCacheFullyCoverTarget(
+        bool isFilterCacheValidForOcclusion, const RectI& filterCachedRect, const RectI& targetRect);
+
     void SetLayerInfo(const RSLayerInfo& layerInfo);
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
@@ -397,18 +405,6 @@ public:
     {
         return totalMatrix_;
     }
-    void SetGlobalAlpha(float alpha) override
-    {
-        if (globalAlpha_ == alpha) {
-            return;
-        }
-        globalAlpha_ = alpha;
-        needSync_ = true;
-    }
-    float GetGlobalAlpha() override
-    {
-        return globalAlpha_;
-    }
     void SetFingerprint(bool hasFingerprint) override
     {
         if (hasFingerprint_ == hasFingerprint) {
@@ -459,6 +455,9 @@ private:
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
+    // if current surfaceNode has filter cache to occlude the back surfaceNode
+    bool isFilterCacheFullyCovered_ = false;
+    std::vector<NodeId> visibleFilterChild_;
     RSLayerInfo layerInfo_;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;

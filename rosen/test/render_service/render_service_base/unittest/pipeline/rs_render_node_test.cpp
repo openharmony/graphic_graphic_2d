@@ -999,13 +999,12 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderParamsTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, UpdateCurCornerRadiusTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
-    bool isSubNodeInSurface = false;
     auto maxFloatData = std::numeric_limits<float>::max();
     auto minFloatData = std::numeric_limits<float>::min();
     Vector4f curCornerRadius(floatData[0], floatData[1], floatData[2], minFloatData);
     Vector4f cornerRadius(floatData[0], floatData[1], floatData[2], maxFloatData);
     node->GetMutableRenderProperties().SetCornerRadius(cornerRadius);
-    node->UpdateCurCornerRadius(curCornerRadius, isSubNodeInSurface);
+    node->UpdateCurCornerRadius(curCornerRadius);
     EXPECT_TRUE(curCornerRadius[3] == maxFloatData);
 }
 
