@@ -43,6 +43,9 @@ static sptr<SurfaceBuffer> DmaMemAlloc(const int32_t& width, const int32_t& heig
     return nullptr;
 #else
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+    if (!surfaceBuffer) {
+        return nullptr;
+    }
     BufferRequestConfig requestConfig = {
         .width = width,
         .height = height,

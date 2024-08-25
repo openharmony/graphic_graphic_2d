@@ -22,12 +22,6 @@
 #include <unistd.h>
 #include <unordered_set>
 
-#include "include/utils/SkCamera.h"
-#include "png.h"
-#include "rs_frame_rate_vote.h"
-#include "rs_trace.h"
-#include "system/rs_system_parameters.h"
-
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
@@ -35,11 +29,16 @@
 #include "draw/clip.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
+#include "include/utils/SkCamera.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
+#include "png.h"
+#include "rs_frame_rate_vote.h"
+#include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 #include "utils/camera3d.h"
 
@@ -48,6 +47,15 @@ namespace Rosen {
 namespace {
 constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
+
+inline int64_t GenerateCurrentTimeStamp()
+{
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int64_t secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    return nowVal;
+}
 }
 namespace Detail {
 // [PLANNING]: Use GPU to do the gamut conversion instead of these following works.
@@ -84,7 +92,7 @@ inline float SafePow(float x, float e)
 
 inline PixelTransformFunc GenOETF(float gamma)
 {
-    if (gamma == 1.0f || gamma == 0.0f) {
+    if (ROSEN_EQ(gamma, 1.0f) || ROSEN_EQ(gamma, 0.0f)) {
         return PassThrough;
     }
 
@@ -93,7 +101,7 @@ inline PixelTransformFunc GenOETF(float gamma)
 
 inline PixelTransformFunc GenEOTF(float gamma)
 {
-    if (gamma == 1.0f) {
+    if (ROSEN_EQ(gamma, 1.0f)) {
         return PassThrough;
     }
 
@@ -145,11 +153,11 @@ inline constexpr float FullResponse(float x, const TransferParameters& p)
 
 inline PixelTransformFunc GenOETF(const TransferParameters& params)
 {
-    if (params.g < 0) { // HDR
+    if (params.g < 0.0f) { // HDR
         return [params](float x) { return RcpResponsePq(x, params); };
     }
 
-    if (params.e == 0.0f && params.f == 0.0f) {
+    if (ROSEN_EQ(params.e, 0.0f) && ROSEN_EQ(params.f, 0.0f)) {
         return [params](float x) { return RcpResponse(x, params); };
     }
 
@@ -158,11 +166,11 @@ inline PixelTransformFunc GenOETF(const TransferParameters& params)
 
 inline PixelTransformFunc GenEOTF(const TransferParameters& params)
 {
-    if (params.g < 0) {
+    if (params.g < 0.0f) {
         return [params](float x) { return ResponsePq(x, params); };
     }
 
-    if (params.e == 0.0f && params.f == 0.0f) {
+    if (ROSEN_EQ(params.e, 0.0f) && ROSEN_EQ(params.f, 0.0f)) {
         return [params](float x) { return Response(x, params); };
     }
 
@@ -312,7 +320,7 @@ public:
     SimpleColorSpace(
         const std::array<Vector2f, 3>& basePoints,
         const Vector2f& whitePoint,
-        float gamma,
+        float gamma = 0.0f,
         PixelTransformFunc clamper = Saturate<float>
     ) noexcept
         : rgbToXyz_(GenRGBToXYZMatrix(basePoints, whitePoint)),
@@ -424,7 +432,7 @@ SimpleColorSpace &GetBT2020ColorSpace()
 bool IsValidMetaData(const std::vector<GraphicHDRMetaData> &metaDatas)
 {
     uint16_t validFlag = 0;
-    for (auto metaData : metaDatas) {
+    for (const auto& metaData : metaDatas) {
         validFlag ^= 1 << metaData.key;
     }
 
@@ -979,7 +987,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         consumer->SetBufferHold(false);
         RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") consume hold buffer", surfaceHandler.GetNodeId());
     }
-    if (surfaceBuffer->buffer == nullptr) {
+    if (surfaceBuffer == nullptr || surfaceBuffer->buffer == nullptr) {
         RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") no buffer to consume", surfaceHandler.GetNodeId());
         return false;
     }
@@ -1151,7 +1159,7 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     auto frameHeight = static_cast<float>(buffer->GetSurfaceBufferHeight());
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
-    if (frameWidth == boundsWidth && frameHeight == boundsHeight) {
+    if (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight)) {
         return gravityMatrix;
     }
 
@@ -1348,10 +1356,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
         return false;
     }
 
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = GenerateCurrentTimeStamp();
     std::string filename = "/data/SurfaceRenderNode_" +
         node.GetName() + "_"  +
         std::to_string(node.GetId()) + "_" +
@@ -1381,10 +1386,7 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
         return false;
     }
 
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = GenerateCurrentTimeStamp();
     std::string filename = "/data/CacheRenderNode_" +
         std::to_string(node.GetId()) + "_" +
         std::to_string(nowVal) + ".png";
@@ -1497,10 +1499,7 @@ bool RSBaseRenderUtil::WritePixelMapToPng(Media::PixelMap& pixelMap)
     if (type != DumpSurfaceType::PIXELMAP) {
         return false;
     }
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = GenerateCurrentTimeStamp();
     std::string filename = "/data/PixelMap_" + std::to_string(nowVal) + ".png";
 
     WriteToPngParam param;
@@ -1524,10 +1523,7 @@ bool RSBaseRenderUtil::WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint
         return false;
     }
 
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = GenerateCurrentTimeStamp();
     std::string filename = "/data/SurfaceBuffer_" + std::to_string(id) + "_" + std::to_string(nowVal) + ".png";
     BufferHandle *bufferHandle = buffer->GetBufferHandle();
     if (bufferHandle == nullptr) {
