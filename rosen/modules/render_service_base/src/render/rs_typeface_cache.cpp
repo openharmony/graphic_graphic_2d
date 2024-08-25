@@ -29,6 +29,7 @@ namespace OHOS {
 namespace Rosen {
 // modify the RSTypefaceCache instance as global to extend life cycle, fix destructor crash
 static RSTypefaceCache gRSTypefaceCacheInstance;
+static const int MAX_CHUNK_SIZE = 20000;
 
 RSTypefaceCache& RSTypefaceCache::Instance()
 {
@@ -107,7 +108,7 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         std::shared_ptr<Drawing::Data> data = typeface->Serialize();
         const void* stream = data->GetData();
         size_t size = data->GetSize();
-        hash_value = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(20000)), 0);
+        hash_value = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)), 0);
     }
     typefaceHashCode_[uniqueId] = hash_value;
     if (typefaceHashMap_.find(hash_value) != typefaceHashMap_.end()) {
