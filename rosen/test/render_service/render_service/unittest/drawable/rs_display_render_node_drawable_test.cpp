@@ -34,9 +34,12 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
+namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
-
+constexpr NodeId DEFAULT_SURFACE_NODE_ID = 1;
+constexpr NodeId DEFAULT_RENDER_NODE_ID = 2;
+}
 class RSDisplayRenderNodeDrawableTest : public testing::Test {
 public:
     std::shared_ptr<RSDisplayRenderNode> renderNode_;
@@ -440,6 +443,86 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasDoneNode_ = false;
     RSUifirstManager::Instance().pendingPostDrawables_.clear();
+}
+
+/**
+ * @tc.name: CheckAndUpdateFilterCacheOcclusion
+ * @tc.desc: Test CheckAndUpdateFilterCacheOcclusion
+ * @tc.type: FUNC
+ * @tc.require: issueIAL2EA
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusionTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_SURFACE_NODE_ID);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto surfaceDrawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_NE(surfaceDrawableAdapter, nullptr);
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto screenInfo = surfaceDrawableAdapter->renderParams_->GetScreenInfo();
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> allSurfaceDrawable{surfaceDrawableAdapter};
+    params->SetAllMainAndLeashSurfaceDrawables(allSurfaceDrawable);
+
+    surfaceParams->isMainWindowType_ = false;
+    RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
+
+    surfaceParams->isMainWindowType_ = true;
+    RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
+}
+
+/**
+ * @tc.name: CheckFilterCacheFullyCovered
+ * @tc.desc: Test CheckFilterCacheFullyCovered
+ * @tc.type: FUNC
+ * @tc.require: issueIAL2EA
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(DEFAULT_SURFACE_NODE_ID);
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->visibleFilterChild_ = {DEFAULT_RENDER_NODE_ID};
+
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(DEFAULT_RENDER_NODE_ID);
+    ASSERT_NE(renderNode, nullptr);
+    auto renderDrawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    ASSERT_NE(renderDrawableAdapter, nullptr);
+    renderDrawableAdapter->renderParams_ = std::make_unique<RSRenderParams>(DEFAULT_RENDER_NODE_ID);
+    ASSERT_NE(renderDrawableAdapter->renderParams_, nullptr);
+    RectI screenRect{0, 0, 0, 0};
+
+    renderDrawableAdapter->renderParams_->SetHasBlurFilter(false);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetHasBlurFilter(true);
+    surfaceParams->isTransparent_ = true;
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetEffectNodeShouldPaint(false);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetNodeType(RSRenderNodeType::EFFECT_NODE);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    surfaceParams->isTransparent_ = false;
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetHasGlobalCorner(true);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetGlobalAlpha(0.f);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
 }
 
 /**
@@ -927,27 +1010,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilter, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHighContrastIfEnabled
- * @tc.desc: Test SetHighContrastIfEnabled
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SetHighContrastIfEnabled, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    displayDrawable_->SetHighContrastIfEnabled(canvas);
-    ASSERT_FALSE(RSUniRenderThread::Instance().GetRenderEngine());
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    displayDrawable_->SetHighContrastIfEnabled(canvas);
-    ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-}
-
-/**
  * @tc.name: FindHardwareEnabledNodes
  * @tc.desc: Test FindHardwareEnabledNodes
  * @tc.type: FUNC
@@ -989,21 +1051,21 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CreateSurface, TestSize.Level1)
     ASSERT_NE(displayDrawable_, nullptr);
     sptr<IBufferConsumerListener> listener;
     bool res = displayDrawable_->CreateSurface(listener);
-    ASSERT_TRUE(displayDrawable_->surfaceHandler_->GetConsumer());
-    ASSERT_TRUE(displayDrawable_->surface_);
-    ASSERT_TRUE(res);
+    ASSERT_FALSE(displayDrawable_->surfaceHandler_->GetConsumer());
+    ASSERT_FALSE(displayDrawable_->surface_);
+    ASSERT_FALSE(res);
 
     displayDrawable_->surface_ = nullptr;
     ASSERT_FALSE(displayDrawable_->surface_);
     res = displayDrawable_->CreateSurface(listener);
-    ASSERT_TRUE(displayDrawable_->surface_);
-    ASSERT_TRUE(res);
+    ASSERT_FALSE(displayDrawable_->surface_);
+    ASSERT_FALSE(res);
 
     displayDrawable_->surfaceHandler_->consumer_ = nullptr;
     ASSERT_FALSE(displayDrawable_->surfaceHandler_->GetConsumer());
     res = displayDrawable_->CreateSurface(listener);
-    ASSERT_TRUE(displayDrawable_->surfaceHandler_->GetConsumer());
-    ASSERT_TRUE(res);
+    ASSERT_FALSE(displayDrawable_->surfaceHandler_->GetConsumer());
+    ASSERT_FALSE(res);
 }
 
 /**

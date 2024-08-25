@@ -267,74 +267,9 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
 namespace Drawing {
 thread_local napi_ref JsCanvas::constructor_ = nullptr;
 static std::mutex g_constructorInitMutex;
-
-Canvas* g_drawingCanvas = nullptr;
 const std::string CLASS_NAME = "Canvas";
-napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
-{
-    DRAWING_PERFORMANCE_START_CACULATE;
-    napi_value jsThis = nullptr;
-    size_t argc = ARGC_ONE;
-    napi_value argv[ARGC_ONE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, &jsThis, nullptr);
-    if (status != napi_ok) {
-        ROSEN_LOGE("Drawing_napi: failed to napi_get_cb_info");
-        return nullptr;
-    }
-    if (argc == 0) {
-        if (g_drawingCanvas == nullptr) {
-            ROSEN_LOGE("Drawing_napi: m_canvas is nullptr");
-            return nullptr;
-        }
-        JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(g_drawingCanvas);
-        if (!jsCanvas) {
-            ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
-            return nullptr;
-        }
-        status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
-        if (status != napi_ok) {
-            delete jsCanvas;
-            ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
-            return nullptr;
-        }
-    } else {
-#ifdef ROSEN_OHOS
-        napi_value argv[ARGC_ONE] = {nullptr};
-        CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
-        PixelMapNapi* pixelMapNapi = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
-
-        if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
-            return nullptr;
-        }
-
-        Bitmap bitmap;
-        if (!ExtracetDrawingBitmap(pixelMapNapi->GetPixelNapiInner(), bitmap)) {
-            return nullptr;
-        }
-
-        Canvas* canvas = new Canvas();
-        canvas->Bind(bitmap);
-        JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(canvas, true);
-        if (!jsCanvas) {
-            ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
-            return nullptr;
-        }
-        status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
-        if (status != napi_ok) {
-            delete jsCanvas;
-            ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
-            return nullptr;
-        }
-#else
-        return nullptr;
-#endif
-    }
-    return jsThis;
-}
-
-napi_property_descriptor JsCanvas::properties_[] = {
+static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("clear", JsCanvas::Clear),
     DECLARE_NAPI_FUNCTION("drawArc", JsCanvas::DrawArc),
     DECLARE_NAPI_FUNCTION("drawRect", JsCanvas::DrawRect),
@@ -383,11 +318,57 @@ napi_property_descriptor JsCanvas::properties_[] = {
     DECLARE_NAPI_FUNCTION("isClipEmpty", JsCanvas::IsClipEmpty),
 };
 
+napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_START_CACULATE;
+    napi_value jsThis = nullptr;
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, &jsThis, nullptr);
+    if (status != napi_ok) {
+        ROSEN_LOGE("Drawing_napi: failed to napi_get_cb_info");
+        return nullptr;
+    }
+
+#ifdef ROSEN_OHOS
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    PixelMapNapi* pixelMapNapi = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
+
+    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+        return nullptr;
+    }
+
+    Bitmap bitmap;
+    if (!ExtracetDrawingBitmap(pixelMapNapi->GetPixelNapiInner(), bitmap)) {
+        return nullptr;
+    }
+
+    Canvas* canvas = new Canvas();
+    canvas->Bind(bitmap);
+    JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(canvas, true);
+    if (!jsCanvas) {
+        ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
+        return nullptr;
+    }
+    status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsCanvas;
+        ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
+        return nullptr;
+    }
+#else
+    return nullptr;
+#endif
+    return jsThis;
+}
+
 bool JsCanvas::CreateConstructor(napi_env env)
 {
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-        sizeof(properties_) / sizeof(properties_[0]), properties_, &constructor);
+        sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("Drawing_napi: CreateConstructor Failed, define class fail");
         return false;
@@ -421,12 +402,29 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
         ROSEN_LOGE("Drawing_napi: CreateJsCanvas napi_get_reference_value failed");
         return nullptr;
     }
-    g_drawingCanvas = canvas;
-    status = napi_new_instance(env, constructor, 0, nullptr, &result);
-    if (status != napi_ok) {
-        ROSEN_LOGE("Drawing_napi: New instance could not be obtained");
+
+    if (canvas == nullptr) {
+        ROSEN_LOGE("Drawing_napi: canvas is nullptr");
         return nullptr;
     }
+    JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(canvas);
+    if (!jsCanvas) {
+        ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
+        return nullptr;
+    }
+    napi_create_object(env, &result);
+    if (result == nullptr) {
+        delete jsCanvas;
+        ROSEN_LOGE("jsCanvas::CreateJsCanvas Create canvas object failed!");
+        return nullptr;
+    }
+    status = napi_wrap(env, result, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsCanvas;
+        ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
+        return nullptr;
+    }
+    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
     return result;
 }
 
@@ -473,7 +471,6 @@ JsCanvas::~JsCanvas()
         delete m_canvas;
     }
     m_canvas = nullptr;
-    g_drawingCanvas = nullptr;
 }
 
 napi_value JsCanvas::Clear(napi_env env, napi_callback_info info)
@@ -810,9 +807,9 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
             m_canvas->DrawColor(color);
         } else {
             int32_t jsMode = 0;
-            GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsMode);
+            GET_ENUM_PARAM(ARGC_ONE, jsMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
             DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-            m_canvas->DrawColor(color, BlendMode(jsMode));
+            m_canvas->DrawColor(color, static_cast<BlendMode>(jsMode));
         }
     } else if (argc == ARGC_FOUR || argc == ARGC_FIVE) {
         int32_t alpha = 0;
@@ -829,9 +826,9 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
             m_canvas->DrawColor(color);
         } else {
             int32_t jsMode = 0;
-            GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, jsMode);
+            GET_ENUM_PARAM(ARGC_FOUR, jsMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
             DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-            m_canvas->DrawColor(color, BlendMode(jsMode));
+            m_canvas->DrawColor(color, static_cast<BlendMode>(jsMode));
         }
     } else {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -934,6 +931,25 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
     if (napi_get_array_length(env, array, &size) != napi_ok || (size == 0)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array size.");
     }
+
+    if (argc == ARGC_ONE) {
+        Point* points = new(std::nothrow) Point[size];
+        if (points == nullptr) {
+            return nullptr;
+        }
+        if (!OnMakePoints(env, points, size, array)) {
+            delete [] points;
+            ROSEN_LOGE("JsCanvas::OnDrawPoints Argv[ARGC_ZERO] is invalid");
+            return nullptr;
+        }
+        JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode::POINTS_POINTMODE, size, points));
+        delete [] points;
+        return nullptr;
+    }
+
+    int32_t pointMode = 0;
+    GET_ENUM_PARAM(ARGC_ONE, pointMode, 0, static_cast<int32_t>(PointMode::POLYGON_POINTMODE));
+
     Point* points = new(std::nothrow) Point[size];
     if (points == nullptr) {
         return nullptr;
@@ -943,16 +959,6 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnDrawPoints Argv[ARGC_ZERO] is invalid");
         return nullptr;
     }
-
-    if (argc == ARGC_ONE) {
-        JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode::POINTS_POINTMODE, size, points));
-        delete [] points;
-        return nullptr;
-    }
-
-    int32_t pointMode = 0;
-    GET_ENUM_PARAM(ARGC_ONE, pointMode, 0, static_cast<int32_t>(PointMode::POLYGON_POINTMODE));
-
     JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(static_cast<PointMode>(pointMode), size, points));
     delete [] points;
     return nullptr;
@@ -1956,7 +1962,6 @@ Canvas* JsCanvas::GetCanvas()
 
 void JsCanvas::ResetCanvas()
 {
-    g_drawingCanvas = nullptr;
     m_canvas = nullptr;
 }
 

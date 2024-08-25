@@ -47,6 +47,10 @@ config("vsync_public_config") {
   if (graphic_2d_feature_enable_dvsync) {
     include_dirs += [ "$graphic_2d_ext_root/dvsync/include" ]
   }
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    include_dirs += [ "$graphic_2d_root/rosen/modules/ressched/include" ]
+  }
 }
 
 ohos_shared_library("libvsync") {
@@ -108,19 +112,13 @@ ohos_shared_library("libvsync") {
   ]
   public_external_deps = [ "c_utils:utils" ]
 
-  if (defined(graphic_2d_ext_configs.vendor_root)) {
-    include_dirs += graphic_2d_ext_configs.libvsync_ext_include_dirs
-
-    sources += graphic_2d_ext_configs.libvsync_ext_sources
-
-    public_deps += [ "//foundation/graphic/graphic_2d_ext/ohcore/graphic_compat_layer:libgraphic_compat_layer" ]
-  }
-
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "COMPOSER_SCHED_ENABLE" ]
-    sources += [ "src/vsync_res_event_listener.cpp" ]
+    sources += [
+      "$graphic_2d_root/rosen/modules/ressched/src/ressched_event_listener.cpp",
+    ]
   }
 
   part_name = "graphic_2d"

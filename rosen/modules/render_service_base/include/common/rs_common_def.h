@@ -208,6 +208,12 @@ struct RSSurfaceCaptureConfig {
     bool isSync = false;
 };
 
+struct RSSurfaceCapturePermissions {
+    bool screenCapturePermission = false;
+    bool isSystemCalling = false;
+    bool selfCapture = false;
+};
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,

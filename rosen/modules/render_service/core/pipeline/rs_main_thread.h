@@ -44,6 +44,7 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_draw_frame.h"
+#include "pipeline/rs_graphic_config.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -105,6 +106,8 @@ public:
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true);
+    void SendClientDumpNodeTreeCommands(uint32_t taskId);
+    void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
     void UpdateAnimateNodeFlag();
@@ -152,7 +155,7 @@ public:
      */
     bool CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot);
     // check if active app has static drawing cache
-    bool IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const;
+    bool IsDrawingGroupChanged(const RSRenderNode& cacheRootNode) const;
     // check if active instance only move or scale it's main window surface without rearrangement
     // instanceNodeId should be MainWindowType, or it cannot grep correct app's info
     void CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSSurfaceRenderNode> instanceNode) const;
@@ -204,7 +207,7 @@ public:
     bool IsLuminanceChanged() const;
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0);
     void DumpNode(std::string& result, uint64_t nodeId) const;
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
@@ -314,6 +317,16 @@ public:
         return skipJankAnimatorFrame_.load();
     }
 
+    bool IsFirstFrameOfDrawingCacheDFXSwitch() const
+    {
+        return isDrawingCacheDfxEnabledOfCurFrame_ != isDrawingCacheDfxEnabledOfLastFrame_;
+    }
+
+    void SetDrawingCacheDfxEnabledOfCurFrame(bool isDrawingCacheDfxEnabledOfCurFrame)
+    {
+        isDrawingCacheDfxEnabledOfCurFrame_ = isDrawingCacheDfxEnabledOfCurFrame;
+    }
+
     void SetSkipJankAnimatorFrame(bool skipJankAnimatorFrame)
     {
         skipJankAnimatorFrame_.store(skipJankAnimatorFrame);
@@ -341,6 +354,8 @@ public:
 
     void SetAncoForceDoDirect(bool direct);
 
+    bool IsBlurSwitchOpen() const;
+    
     bool IsSystemAnimatedScenesListEmpty() const
     {
         return systemAnimatedScenesList_.empty();
@@ -348,7 +363,7 @@ public:
 
     bool IsFirstFrameOfOverdrawSwitch() const
     {
-        return isFirstFrameOfOverdrawSwitch_;
+        return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
     }
 
 private:
@@ -399,6 +414,7 @@ private:
     uint32_t GetDynamicRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
     static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);
+    static void OnDrawingCacheDfxSwitchCallback(const char *key, const char *value, void *context);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
@@ -437,8 +453,6 @@ private:
 
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
-    void SetUiFrameworkTypeTable();
-    std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes();
     bool IsLastFrameUIFirstEnabled(NodeId appNodeId) const;
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
@@ -469,6 +483,9 @@ private:
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
+    void ConfigureRenderService();
+
+    void OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -586,6 +603,16 @@ private:
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
 
+    // for client node tree dump
+    struct NodeTreeDumpTask {
+        size_t count = 0;
+        size_t completionCount = 0;
+        std::map<pid_t, std::optional<std::string>> data;
+    };
+    std::mutex nodeTreeDumpMutex_;
+    std::condition_variable nodeTreeDumpCondVar_;
+    std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
+
     // used for watermark
     std::mutex watermarkMutex_;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
@@ -636,6 +663,10 @@ private:
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
     uint32_t leashWindowCount_ = 0;
 
+    // for drawing cache dfx
+    bool isDrawingCacheDfxEnabledOfCurFrame_ = false;
+    bool isDrawingCacheDfxEnabledOfLastFrame_ = false;
+
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
@@ -653,7 +684,6 @@ private:
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
 
     // overDraw
-    bool isFirstFrameOfOverdrawSwitch_ = false;
     bool isOverDrawEnabledOfCurFrame_ = false;
     bool isOverDrawEnabledOfLastFrame_ = false;
 
@@ -682,7 +712,9 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
-    bool initUiFwkTable_ = false;
+
+    // graphic config
+    bool isBlurSwitchOpen_ = true;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

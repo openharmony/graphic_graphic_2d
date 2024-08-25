@@ -1254,7 +1254,7 @@ float RSProperties::GetForegroundEffectRadius() const
 
 bool RSProperties::IsForegroundEffectRadiusValid() const
 {
-    return ROSEN_GNE(foregroundEffectRadius_, 0.0);
+    return ROSEN_GNE(foregroundEffectRadius_, 0.999); // if blur radius < 1, no need to draw
 }
 
 void RSProperties::SetForegroundEffectDirty(bool dirty)
@@ -1651,12 +1651,12 @@ std::optional<RSDynamicBrightnessPara> RSProperties::GetBgBrightnessParams() con
 
 bool RSProperties::IsFgBrightnessValid() const
 {
-    return fgBrightnessParams_.has_value() && ROSEN_LNE(fgBrightnessParams_->fraction_, 1.0);
+    return fgBrightnessParams_.has_value() && fgBrightnessParams_->IsValid();
 }
 
 bool RSProperties::IsBgBrightnessValid() const
 {
-    return bgBrightnessParams_.has_value() && ROSEN_LNE(bgBrightnessParams_->fraction_, 1.0);
+    return bgBrightnessParams_.has_value() && bgBrightnessParams_->IsValid();
 }
 
 std::string RSProperties::GetFgBrightnessDescription() const
@@ -4224,7 +4224,12 @@ void RSProperties::OnApplyModifiers()
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
-        needFilter_ = needFilter_ || (colorFilter_ != nullptr);
+        if (colorFilter_ != nullptr) {
+            needFilter_ = true;
+        } else {
+            // colorFilter generation failed, need to update needFilter
+            filterNeedUpdate_ = true;
+        }
     }
     if (pixelStretchNeedUpdate_ || geoDirty_) {
         CalculatePixelStretch();

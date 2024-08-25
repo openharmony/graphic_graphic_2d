@@ -20,9 +20,9 @@
 #include <parameters.h>
 #include <sstream>
 
+#include "wrapper_log.h"
 #include "directory_ex.h"
 #include "egl_bundle_mgr_helper.h"
-#include "wrapper_log.h"
 
 namespace OHOS {
 namespace {

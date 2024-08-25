@@ -227,6 +227,7 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void SetPixelStretch(const std::optional<Vector4f>& pixelStretch);
 
 private:
     bool needSync_ = false;

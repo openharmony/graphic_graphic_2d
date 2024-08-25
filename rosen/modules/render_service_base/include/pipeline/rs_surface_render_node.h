@@ -724,12 +724,12 @@ public:
     bool CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const;
     bool CheckIfOcclusionChanged() const;
 
-    void SetVisibleRegion(Occlusion::Region region)
+    void SetVisibleRegion(const Occlusion::Region& region)
     {
         visibleRegion_ = region;
     }
 
-    void SetVisibleRegionInVirtual(Occlusion::Region region)
+    void SetVisibleRegionInVirtual(const Occlusion::Region& region)
     {
         visibleRegionInVirtual_ = region;
     }
@@ -810,7 +810,7 @@ public:
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
     const std::unordered_set<NodeId>& GetAbilityNodeIds() const;
-    void AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds);
+    void AddAbilityComponentNodeIds(std::unordered_set<NodeId>& nodeIds);
     void ResetAbilityNodeIds();
 
     // manage appWindowNode's child hardware enabled nodes info
@@ -1103,7 +1103,7 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
-    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    void SetBufferRelMatrix(const Drawing::Matrix& matrix)
     {
         bufferRelMatrix_ = matrix;
     }
@@ -1214,6 +1214,19 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
+    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
+    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> GetWatermark() const;
+    size_t GetWatermarkSize() const;
+    bool GetIsIntersectWithRoundCorner() const
+    {
+        return isIntersectWithRoundCorner_;
+    }
+
+    void SetIsIntersectWithRoundCorner(bool isIntersectWithRoundCorner)
+    {
+        isIntersectWithRoundCorner_ = isIntersectWithRoundCorner;
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1267,6 +1280,7 @@ private:
     bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
+    bool isIntersectWithRoundCorner_ = false;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
@@ -1483,6 +1497,7 @@ private:
     bool isSkipDraw_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
+    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> watermarkHandles_ = {};
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

@@ -64,7 +64,6 @@ private:
     RSSubThreadManager &operator = (const RSSubThreadManager &) = delete;
     RSSubThreadManager &operator = (const RSSubThreadManager &&) = delete;
 
-    RenderContext* renderContext_ = nullptr;
     uint32_t minLoadThreadIndex_ = 0;
     uint32_t defaultThreadIndex_ = 0;
     std::mutex parallelRenderMutex_;

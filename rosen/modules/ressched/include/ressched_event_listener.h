@@ -23,19 +23,21 @@
 
 namespace OHOS {
 namespace Rosen {
-class VSyncResEventListener : public ResourceSchedule::ResSchedEventListener {
+class ResschedEventListener : public ResourceSchedule::ResSchedEventListener {
 public:
-    static sptr<VSyncResEventListener> GetInstance() noexcept;
+    static sptr<ResschedEventListener> GetInstance() noexcept;
     void OnReceiveEvent(uint32_t eventType, uint32_t eventValue,
         std::unordered_map<std::string, std::string> extInfo) override;
-    bool GetIsNeedReport();
-    bool GetIsFirstReport();
+    bool GetIsNeedReport() const;
+    bool GetIsFirstReport() const;
     void SetIsFirstReport(bool value);
+    void ReportFrameToRSS();
 private:
     static std::once_flag createFlag_;
-    static sptr<VSyncResEventListener> instance_;
+    static sptr<ResschedEventListener> instance_;
     std::atomic<bool> isNeedReport_ = {false};
     std::atomic<bool> isFirstReport_ = {false};
+    uint64_t lastReportTime_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

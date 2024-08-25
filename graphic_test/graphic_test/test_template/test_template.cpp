@@ -27,7 +27,6 @@ public:
         auto size = GetScreenSize();
         SetSurfaceBounds({0, 0, size.x_ / 2.0f, size.y_ / 2.0f});
         SetSurfaceColor(RSColor(0xffff0000));
-        SetImageSavePath("/data/local/graphic_test/test_template/");
     }
 
     // called after each tests

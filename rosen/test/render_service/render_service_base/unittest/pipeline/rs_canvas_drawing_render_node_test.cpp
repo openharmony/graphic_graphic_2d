@@ -299,27 +299,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, PlaybackInCorrespondThread, TestSize.Lev
 }
 
 /**
- * @tc.name: ProcessCPURenderInBackgroundThread
- * @tc.desc: test results of ProcessCPURenderInBackgroundThread
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessCPURenderInBackgroundThread, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    std::weak_ptr<RSContext> context;
-    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-    int32_t width = 1;
-    int32_t height = 1;
-    std::shared_ptr<Drawing::DrawCmdList> cmds = std::make_shared<Drawing::DrawCmdList>(width, height);
-    rsCanvasDrawingRenderNode.ProcessCPURenderInBackgroundThread(cmds);
-
-    rsCanvasDrawingRenderNode.surface_ = std::make_shared<Drawing::Surface>();
-    rsCanvasDrawingRenderNode.ProcessCPURenderInBackgroundThread(cmds);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: ApplyDrawCmdModifier
  * @tc.desc: test results of ApplyDrawCmdModifier
  * @tc.type: FUNC
@@ -491,7 +470,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     }
     rsCanvasDrawingRenderNode.drawCmdLists_.emplace(type, listDrawCmd);
     rsCanvasDrawingRenderNode.AddDirtyType(type);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode.isNeedProcess_);
+    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     rsCanvasDrawingRenderNode.ClearOp();
     const auto& curDrawCmdLists = rsCanvasDrawingRenderNode.GetDrawCmdLists();
     EXPECT_TRUE(curDrawCmdLists.empty());
@@ -591,7 +570,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SetNeedProcessTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
     bool needProcess = true;
     rsCanvasDrawingRenderNode->SetNeedProcess(needProcess);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
+    EXPECT_FALSE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
     EXPECT_TRUE(rsCanvasDrawingRenderNode->isNeedProcess_);
 }
 

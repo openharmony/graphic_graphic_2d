@@ -75,7 +75,8 @@ static std::vector<uint8_t> GenerateMiniature(const uint8_t* data, size_t size, 
     constexpr uint32_t sampleCount = 100u;
     for (uint32_t sample = 0; sample < sampleCount; sample++) {
         for (uint32_t channel = 0; channel < bytesPerPixel; channel++) {
-            averageValue[channel] += data[(sample * pixelCount / sampleCount) * bytesPerPixel + channel];
+            const size_t dataIdx = (sample * pixelCount / sampleCount) * bytesPerPixel + channel;
+            averageValue[channel] += (dataIdx < size) ? data[dataIdx] : 0;
         }
     }
 

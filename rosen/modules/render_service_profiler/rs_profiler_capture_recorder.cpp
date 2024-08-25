@@ -33,7 +33,6 @@
 #include "draw/canvas.h"
 #include "drawing/engine_adapter/skia_adapter/skia_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
-#include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_marshalling_helper.h"
 

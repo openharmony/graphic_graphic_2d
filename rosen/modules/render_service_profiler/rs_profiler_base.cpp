@@ -431,15 +431,20 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
     const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
     const uint32_t count = map.renderNodeMap_.size();
     data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    const auto& rootRenderNode = context.GetGlobalRootRenderNode();
+    if (rootRenderNode == nullptr) {
+        RS_LOGE("RSProfiler::MarshalNodes rootRenderNode is nullptr");
+        return;
+    }
 
     std::vector<std::shared_ptr<RSRenderNode>> nodes;
-    nodes.emplace_back(context.GetGlobalRootRenderNode());
+    nodes.emplace_back(rootRenderNode);
 
     for (const auto& item : map.renderNodeMap_) {
         if (const auto& node = item.second) {
             MarshalNode(*node, data, fileVersion);
             std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
-            if (!parent && (node != context.GetGlobalRootRenderNode())) {
+            if (!parent && (node != rootRenderNode)) {
                 nodes.emplace_back(node);
             }
         }

@@ -192,6 +192,7 @@ void HgmCore::SetLtpoConfig()
 
     if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end()) {
         maxTE_ = std::stoul(curScreenSetting.ltpoConfig["maxTE"]);
+        CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
     } else {
         maxTE_ = 0;
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");

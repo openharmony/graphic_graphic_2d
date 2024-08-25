@@ -52,6 +52,13 @@ namespace Rosen {
 namespace {
 constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
 const std::string BOOTEVENT_RENDER_SERVICE_READY = "bootevent.renderservice.ready";
+constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
+
+uint32_t GenerateTaskId()
+{
+    static std::atomic<uint32_t> id;
+    return id.fetch_add(1, std::memory_order::memory_order_relaxed);
+}
 }
 RSRenderService::RSRenderService() {}
 
@@ -147,6 +154,10 @@ bool RSRenderService::Init()
 
 void RSRenderService::Run()
 {
+    if (!mainThread_) {
+        RS_LOGE("RSRenderService::Run failed, mainThread is nullptr");
+        return;
+    }
     RS_LOGE("RSRenderService::Run");
     mainThread_->Start();
 }
@@ -177,6 +188,10 @@ void RSRenderService::RegisterRcdMsg()
 
 sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
+    if (!mainThread_ || !token) {
+        RS_LOGE("RSRenderService::CreateConnection failed, mainThread or token is nullptr");
+        return nullptr;
+    }
     pid_t remotePid = GetCallingPid();
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
@@ -187,8 +202,9 @@ sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RS
     sptr<RSIRenderServiceConnection> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
-    if (connections_.count(tokenObj) > 0) {
-        tmp = connections_.at(tokenObj);
+    auto it = connections_.find(tokenObj);
+    if (it != connections_.end()) {
+        tmp = it->second;
     }
     connections_[tokenObj] = newConn;
     lock.unlock();
@@ -222,7 +238,10 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
     if (dumpString.size() == 0) {
         return OHOS::INVALID_OPERATION;
     }
-    write(fd, dumpString.c_str(), dumpString.size());
+    if (write(fd, dumpString.c_str(), dumpString.size()) < 0) {
+        RS_LOGE("RSRenderService::DumpNodesNotOnTheTree write failed");
+        return UNKNOWN_ERROR;
+    }
     return OHOS::NO_ERROR;
 }
 
@@ -531,6 +550,10 @@ void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
 
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
+    if (!mainThread_ || !screenManager_) {
+        RS_LOGE("RSRenderService::DoDump failed, mainThread or screenManager is nullptr");
+        return;
+    }
     std::u16string arg1(u"screen");
     std::u16string arg2(u"surface");
     std::u16string arg3(u"fps");
@@ -551,6 +574,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg17(u"hitchs");
     std::u16string arg18(u"rsLogFlag");
     std::u16string arg19(u"flushJankStatsRs");
+    std::u16string arg20(u"clientNodeTree");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -634,6 +658,14 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (argSets.count(arg19) != 0) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
+    }
+    if (argSets.count(arg9) || argSets.count(arg20)) {
+        auto taskId = GenerateTaskId();
+        mainThread_->ScheduleTask(
+            [this, taskId]() {
+                mainThread_->SendClientDumpNodeTreeCommands(taskId);
+            }).wait();
+        mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
     }
 }
 } // namespace Rosen

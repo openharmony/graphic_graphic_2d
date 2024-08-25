@@ -21,7 +21,7 @@
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_utils.h"
 
-#ifdef REPLAY_TOOL_CLIENT // adapt to windows on client side
+#ifdef RENDER_PROFILER_APPLICATION
 #include <memory>
 
 #include "rs_adapt.h"

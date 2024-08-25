@@ -46,6 +46,7 @@ static int ColorTypeToBytesPerPixel(ColorType colorType)
             return 2;
         case ColorType::COLORTYPE_RGBA_8888:
         case ColorType::COLORTYPE_BGRA_8888:
+        case ColorType::COLORTYPE_RGB_888X:
         case ColorType::COLORTYPE_N32:
             return 4;
         case ColorType::COLORTYPE_RGBA_F16:
@@ -142,6 +143,19 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
     bitmap->SetPixels(const_cast<void*>(cmdList.GetBitmapData(bitmapHandle.offset)));
 
     return bitmap;
+}
+
+OpDataHandle DRAWING_API CmdListHelper::AddRecordCmdToCmdList(
+    CmdList& cmdList, const std::shared_ptr<RecordCmd>& recordCmd)
+{
+    auto index = cmdList.AddRecordCmd(recordCmd);
+    return { index };
+}
+
+std::shared_ptr<RecordCmd> CmdListHelper::GetRecordCmdFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& recordCmdHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetRecordCmd(recordCmdHandle.offset);
 }
 
 OpDataHandle CmdListHelper::AddImageObjectToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object)

@@ -82,8 +82,8 @@ std::string RSMESABlurShaderFilter::GetDetailedDescription() const
         filterString = filterString + ", offsetZ: " + std::to_string(pixelStretchParam_->offsetZ_);
         filterString = filterString + ", offsetW: " + std::to_string(pixelStretchParam_->offsetW_);
         filterString = filterString + ", tileMode: " + std::to_string(pixelStretchParam_->tileMode_);
-        filterString = filterString + ", width percent: " + std::to_string(pixelStretchParam_->width_);
-        filterString = filterString + ", height percent: " + std::to_string(pixelStretchParam_->height_);
+        filterString = filterString + ", width: " + std::to_string(pixelStretchParam_->width_);
+        filterString = filterString + ", height: " + std::to_string(pixelStretchParam_->height_);
     }
     return filterString;
 }

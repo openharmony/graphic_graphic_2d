@@ -112,20 +112,21 @@ class RSFilterDrawable : public RSDrawable {
 public:
     RSFilterDrawable();
     ~RSFilterDrawable() override = default;
- 
+
     virtual bool IsForeground() const
     {
         return false;
     }
- 
+
     // set flags for clearing filter cache
+    // All MarkXXX function should be called from render_service thread
     void MarkFilterRegionChanged();
     void MarkFilterRegionInteractWithDirty();
     void MarkFilterRegionIsLargeArea();
     void MarkFilterForceUseCache(bool forceUseCache = true);
     void MarkFilterForceClearCache();
     void MarkEffectNode();
-    void ForceClearCacheWithLastFrame();
+    void MarkForceClearCacheWithLastFrame();
     void MarkRotationChanged();
     void MarkNodeIsOccluded(bool isOccluded);
     void MarkNeedClearFilterCache();
@@ -136,15 +137,17 @@ public:
     bool NeedPendingPurge() const;
     bool IsSkippingFrame() const;
     bool IsAIBarCacheValid();
- 
+
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
     const RectI GetFilterCachedRegion() const;
 
+    bool IsFilterCacheValidForOcclusion();
+
 private:
     void ClearFilterCache();
     void UpdateFlags(FilterCacheType type, bool cacheValid);
- 
+
 protected:
     void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
 
@@ -153,29 +156,32 @@ protected:
     std::shared_ptr<RSFilter> stagingFilter_;
 
     // flags for clearing filter cache
+    // All stagingXXX variables should be read & written by render_service thread
     bool stagingForceUseCache_ = false;
     bool stagingForceClearCache_ = false;
-    uint32_t cachedFilterHash_ = 0;
+    uint32_t stagingCachedFilterHash_ = 0;
     bool stagingFilterHashChanged_ = false;
     bool stagingFilterRegionChanged_ = false;
     bool stagingFilterInteractWithDirty_ = false;
     bool stagingRotationChanged_ = false;
     bool stagingForceClearCacheForLastFrame_ = false;
-    bool isAIBarInteractWithHWC_ = false;
+    bool stagingIsAIBarInteractWithHWC_ = false;
     bool stagingIsEffectNode_ = false;
-    bool renderIsSkipFrame_ = false;
- 
+
     // clear one of snapshot cache and filtered cache after drawing
+    // All renderXXX variables should be read & written by render_thread or OnSync() function
     bool renderClearFilteredCacheAfterDrawing_ = false;
     bool renderFilterHashChanged_ = false;
     bool renderForceClearCacheForLastFrame_ = false;
     bool renderIsEffectNode_ = false;
- 
+    bool renderIsSkipFrame_ = false;
+
     // the type cache needed clear before drawing
-    FilterCacheType clearType_ = FilterCacheType::NONE;
+    FilterCacheType stagingClearType_ = FilterCacheType::NONE;
+    FilterCacheType renderClearType_ = FilterCacheType::NONE;
     FilterCacheType lastCacheType_ = FilterCacheType::NONE;
     bool stagingIsOccluded_ = false;
- 
+
     // force cache with cacheUpdateInterval_
     bool stagingIsLargeArea_ = false;
     bool canSkipFrame_ = false;
@@ -186,7 +192,8 @@ protected:
     bool pendingPurge_ = false;
 
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
-    NodeId nodeId_ = INVALID_NODEID;
+    NodeId stagingNodeId_ = INVALID_NODEID;
+    NodeId renderNodeId_ = INVALID_NODEID;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -143,11 +143,6 @@ template("render_service_client_source_set") {
       defines += [ "CROSS_PLATFORM" ]
     }
 
-    if (defined(graphic_2d_ext_configs.vendor_root)) {
-      sources += graphic_2d_ext_configs.librender_service_client_ext_sources
-      sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
-    }
-
     if (rosen_is_ohos) {
       sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
     } else if (!is_arkui_x) {

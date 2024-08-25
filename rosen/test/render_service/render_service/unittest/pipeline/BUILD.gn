@@ -25,6 +25,7 @@ group("unittest") {
     ":RSComposerAdapterTest",
     ":RSDividedRenderUtilTest",
     ":RSDropFrameProcessorTest",
+    ":RSGraphic_Config_Test",
     ":RSHardwareThreadTest",
     ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
@@ -74,7 +75,7 @@ group("unittest") {
   }
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
-    deps += [ ":RSPointerRenderManagerTest" ]
+    deps += [ ":RSMagicPointerRenderManagerTest" ]
   }
   if (graphic_2d_feature_product == "pc") {
     deps += [ ":RSPointerWindowManagerTest" ]
@@ -1183,10 +1184,10 @@ ohos_unittest("RSUifirstManagerTest") {
   }
 }
 
-## Build RSPointerRenderManagerTest
-ohos_unittest("RSPointerRenderManagerTest") {
+## Build RSMagicPointerRenderManagerTest
+ohos_unittest("RSMagicPointerRenderManagerTest") {
   module_out_path = module_output_path
-  sources = [ "pointer_render/rs_pointer_render_manager_test.cpp" ]
+  sources = [ "magic_pointer_render/rs_magic_pointer_render_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -1206,6 +1207,20 @@ ohos_unittest("RSPointerRenderManagerTest") {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps +=
         [ "drivers_interface_display:display_commontype_idl_headers" ]
+  }
+}
+
+## Build RSGraphic_Config_Test
+ohos_unittest("RSGraphic_Config_Test") {
+  module_out_path = module_output_path
+  sources = [ "rs_graphic_config_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
   }
 }
 

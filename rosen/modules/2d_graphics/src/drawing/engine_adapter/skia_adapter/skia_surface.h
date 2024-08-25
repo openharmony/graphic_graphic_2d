@@ -63,6 +63,9 @@ public:
     void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
     void Flush(FlushInfo *drawingflushInfo = nullptr) override;
+#ifdef RS_ENABLE_GL
+    void Wait(const std::vector<GrGLsync>& syncs) override;
+#endif
 #ifdef RS_ENABLE_VK
     void Wait(int32_t time, const VkSemaphore& semaphore) override;
     void SetDrawingArea(const std::vector<RectI>& rects) override;

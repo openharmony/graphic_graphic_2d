@@ -113,7 +113,7 @@ int32_t VSync60To30Test::JudgeRefreshRate(int64_t period)
     int32_t refreshRate = actualRefreshRate;
     int32_t diff = 0;
     while ((abs(refreshRate - actualRefreshRate) < 5) && // ±5Hz
-           (VSYNC_MAX_REFRESHRATE % refreshRate != 0)) {
+           (CreateVSyncGenerator()->GetVSyncMaxRefreshRate() % refreshRate != 0)) {
         if (diff < 0) {
             diff = -diff;
         } else {

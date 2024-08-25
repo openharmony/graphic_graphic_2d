@@ -127,6 +127,10 @@ VSyncGenerator::~VSyncGenerator()
         std::unique_lock<std::mutex> locker(mutex_);
         vsyncThreadRunning_ = false;
     }
+    if (std::this_thread::get_id() == thread_.get_id()) {
+        return;
+    }
+
     if (thread_.joinable()) {
         con_.notify_all();
         thread_.join();
@@ -341,7 +345,7 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
     // update generate refreshRate
     if (needChangeGeneratorRefreshRate_) {
         currRefreshRate_ = changingGeneratorRefreshRate_;
-        period_ = pulse_ * static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / currRefreshRate_);
+        period_ = pulse_ * static_cast<int64_t>(vsyncMaxRefreshRate_ / currRefreshRate_);
         referenceTime_ = nextVSyncTime;
         changingGeneratorRefreshRate_ = 0; // reset
         needChangeGeneratorRefreshRate_ = false;
@@ -571,11 +575,14 @@ uint32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
         return 0;
     }
     int32_t actualRefreshRate = round(1.0/((double)period/1000000000.0)); // 1.0s == 1000000000.0ns
+    if (actualRefreshRate == 0) {
+        return 0;
+    }
     int32_t refreshRate = actualRefreshRate;
     int32_t diff = 0;
-    // 在actualRefreshRate附近找一个能被VSYNC_MAX_REFRESHRATE整除的刷新率作为训练pulse的参考刷新率
+    // 在actualRefreshRate附近找一个能被vsyncMaxRefreshRate_整除的刷新率作为训练pulse的参考刷新率
     while ((abs(refreshRate - actualRefreshRate) < MAX_REFRESHRATE_DEVIATION) &&
-           (VSYNC_MAX_REFRESHRATE % refreshRate != 0)) {
+           (vsyncMaxRefreshRate_ % refreshRate != 0)) {
         if (diff < 0) {
             diff = -diff;
         } else {
@@ -583,11 +590,11 @@ uint32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
         }
         refreshRate = actualRefreshRate + diff;
     }
-    if (VSYNC_MAX_REFRESHRATE % refreshRate != 0) {
+    if (vsyncMaxRefreshRate_ % refreshRate != 0) {
         VLOGE("Not Support this refresh rate: %{public}d, update pulse failed.", actualRefreshRate);
         return 0;
     }
-    pulse_ = period / (VSYNC_MAX_REFRESHRATE / refreshRate);
+    pulse_ = period / (vsyncMaxRefreshRate_ / refreshRate);
     return static_cast<uint32_t>(refreshRate);
 }
 
@@ -647,7 +654,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
     VsyncError ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
 
-    if ((generatorRefreshRate <= 0 || (VSYNC_MAX_REFRESHRATE % generatorRefreshRate != 0))) {
+    if ((generatorRefreshRate <= 0 || (vsyncMaxRefreshRate_ % generatorRefreshRate != 0))) {
         RS_TRACE_NAME_FMT("Not support this refresh rate: %u", generatorRefreshRate);
         VLOGE("Not support this refresh rate: %{public}u", generatorRefreshRate);
         return VSYNC_ERROR_NOT_SUPPORT;
@@ -718,6 +725,22 @@ VsyncError VSyncGenerator::SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum)
     std::lock_guard<std::mutex> locker(mutex_);
     referenceTimeOffsetPulseNum_ = phaseByPulseNum;
     defaultReferenceTimeOffsetPulseNum_ = phaseByPulseNum;
+    return VSYNC_ERROR_OK;
+}
+
+uint32_t VSyncGenerator::GetVSyncMaxRefreshRate()
+{
+    return vsyncMaxRefreshRate_;
+}
+
+VsyncError VSyncGenerator::SetVSyncMaxRefreshRate(uint32_t refreshRate)
+{
+    if (refreshRate < VSYNC_MAX_REFRESHRATE_RANGE_MIN ||
+        refreshRate > VSYNC_MAX_REFRESHRATE_RANGE_MAX) {
+        VLOGE("Not support max refresh rate: %{public}u", refreshRate);
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    vsyncMaxRefreshRate_ = refreshRate;
     return VSYNC_ERROR_OK;
 }
 

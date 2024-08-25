@@ -259,7 +259,7 @@ public:
     void ResetChildRelevantFlags();
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
-    void UpdateCurCornerRadius(Vector4f& curCornerRadius, bool isSubNodeInSurface);
+    void UpdateCurCornerRadius(Vector4f& curCornerRadius);
     void SetDirty(bool forceAddToActiveList = false);
 
     virtual void AddDirtyType(RSModifierType type)
@@ -273,6 +273,7 @@ public:
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     const RectF& GetSelfDrawRect() const;
     const RectI& GetAbsDrawRect() const;
+    void UpdateAbsDrawRect();
 
     void ResetChangeState();
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
@@ -315,8 +316,13 @@ public:
         return shouldPaint_;
     }
 
+    // dirty rect of current frame after update dirty, last frame before update
     RectI GetOldDirty() const;
+    // dirty rect in display of current frame after update dirty, last frame before update
     RectI GetOldDirtyInSurface() const;
+    // clip rect of last frame before post prepare, current frame after post prepare
+    RectI GetOldClipRect() const;
+
     bool IsDirtyRegionUpdated() const;
     void CleanDirtyRegionUpdated();
 

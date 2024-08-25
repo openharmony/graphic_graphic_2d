@@ -15,12 +15,15 @@
 #include "gtest/gtest.h"
 #include "rs_test_util.h"
 #include "surface_buffer_impl.h"
+#include "surface_type.h"
 
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pixel_map.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
 
@@ -1741,4 +1744,43 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixOfBufferToRelRect_003, TestSize.Level2)
     auto matrix = RSUniRenderUtil::GetMatrixOfBufferToRelRect(node);
     ASSERT_EQ(matrix, Drawing::Matrix());
 }
+
+/*
+ * @tc.name: FlushDmaSurfaceBuffer001
+ * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAL5XA
+ */
+HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer001, TestSize.Level2)
+{
+    Media::PixelMap* pixelMap = nullptr;
+    ASSERT_EQ(pixelMap, nullptr);
+    RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap);
+}
+
+/*
+ * @tc.name: FlushDmaSurfaceBuffer002
+ * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAL5XA
+ */
+HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
+{
+    Media::InitializationOptions opts;
+    const double width = 100;
+    const double height = 100;
+    opts.size.width = width;
+    opts.size.height = height;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap.get());
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    DmaMem dmaMem;
+    Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    sptr<SurfaceBuffer> surFaceBuffer = dmaMem.DmaMemAlloc(info, pixelMap);
+    RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap.get());
+#endif
+}
+
 } // namespace OHOS::Rosen

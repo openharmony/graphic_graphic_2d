@@ -53,7 +53,8 @@ public:
     static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high, float thresholdLow,
         float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::RuntimeBlenderBuilder> MakeDynamicBrightnessBuilder();
-    static std::shared_ptr<Drawing::Blender> MakeDynamicBrightnessBlender(const RSDynamicBrightnessPara& params);
+    static std::shared_ptr<Drawing::Blender> MakeDynamicBrightnessBlender(const RSDynamicBrightnessPara& params,
+        float ratio = 1.0f);
     static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
         const RectF& boundsRect, const bool boundsGeoValid);
@@ -62,7 +63,7 @@ public:
     static void DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX, const float& offsetY,
         const float& elevation, const bool& isFilled, Color spotColor);
     static void DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-        const float& offsetY, const float& radius, Color spotColor);
+        const float& offsetY, const float& radius, const bool& isFilled, Color spotColor);
     static void DrawUseEffect(RSPaintFilterCanvas* canvas);
 
     static bool IsDangerousBlendMode(int blendMode, int blendApplyType);
@@ -79,6 +80,9 @@ public:
     static bool RSFilterSetPixelStretch(const RSProperties& property, const std::shared_ptr<RSFilter>& filter);
     static void RSFilterRemovePixelStretch(const std::shared_ptr<RSFilter>& filter);
 
+    // Create a colorfilter if the brightness ratio of the cached image is different from that of the canvas.
+    static std::shared_ptr<Drawing::ColorFilter> CreateColorFilterForHDR(float cachedBrightnessRatio,
+        float newBrightnessRatio);
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;

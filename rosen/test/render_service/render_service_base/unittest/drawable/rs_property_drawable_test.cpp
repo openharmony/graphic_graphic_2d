@@ -184,7 +184,6 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest006, TestSize.Level1)
 {
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_EQ(filterDrawable->cacheManager_, nullptr);
 
     filterDrawable->needSync_ = true;
     filterDrawable->stagingFilter_ = nullptr;
@@ -272,10 +271,10 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->RecordFilterInfos(rsFilter);
     std::shared_ptr<RSShaderFilter> shaderFilter = std::make_shared<RSShaderFilter>();
     EXPECT_NE(shaderFilter, nullptr);
-    filterDrawable->cachedFilterHash_ = 1;
+    filterDrawable->stagingCachedFilterHash_ = 1;
     rsFilter = std::make_shared<RSDrawingFilter>(shaderFilter);
     filterDrawable->RecordFilterInfos(rsFilter);
-    EXPECT_EQ(filterDrawable->cachedFilterHash_, rsFilter->Hash());
+    EXPECT_EQ(filterDrawable->stagingCachedFilterHash_, rsFilter->Hash());
 
     // RSProperties::FilterCacheEnabled is true
     filterDrawable->ClearFilterCache();
@@ -288,7 +287,7 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->ClearFilterCache();
     filterDrawable->stagingIsOccluded_ = false;
     filterDrawable->stagingFilterRegionChanged_ = true;
-    filterDrawable->clearType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    filterDrawable->stagingClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
     filterDrawable->cacheManager_->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     filterDrawable->ClearFilterCache();
 
@@ -307,12 +306,12 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->filterType_ = RSFilter::AIBAR;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 1);
-    filterDrawable->isAIBarInteractWithHWC_ = true;
+    filterDrawable->stagingIsAIBarInteractWithHWC_ = true;
     filterDrawable->cacheUpdateInterval_ = 0;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 0);
     filterDrawable->cacheUpdateInterval_ = 3;
-    filterDrawable->isAIBarInteractWithHWC_ = true;
+    filterDrawable->stagingIsAIBarInteractWithHWC_ = true;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 2);
 }
@@ -370,4 +369,52 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest010, TestSize.Level1)
     drawable->CreateDrawFunc()(&canvas, &rect);
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: RSFilterDrawableTest011
+ * @tc.desc: IsFilterCacheValidForOcclusion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest011, TestSize.Level1)
+{
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    ASSERT_NE(filterDrawable, nullptr);
+
+    auto &cacheManager = filterDrawable->cacheManager_;
+    cacheManager = std::make_unique<RSFilterCacheManager>();
+    ASSERT_NE(cacheManager, nullptr);
+
+    // cacheType: FilterCacheType::NONE
+    cacheManager->cachedSnapshot_ = nullptr;
+    cacheManager->cachedFilteredSnapshot_ = nullptr;
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
+
+    // cacheType: FilterCacheType::SNAPSHOT
+    cacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(cacheManager->cachedSnapshot_, nullptr);
+
+    filterDrawable->renderClearType_ = FilterCacheType::SNAPSHOT;
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
+
+    filterDrawable->renderClearType_ = FilterCacheType::BOTH;
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
+
+    filterDrawable->renderClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
+
+    // cacheType: FilterCacheType::FILTERED_SNAPSHOT
+    cacheManager->cachedSnapshot_ = nullptr;
+    cacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(cacheManager->cachedFilteredSnapshot_, nullptr);
+
+    filterDrawable->renderClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
+
+    filterDrawable->renderClearType_ = FilterCacheType::BOTH;
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
+
+    filterDrawable->renderClearType_ = FilterCacheType::SNAPSHOT;
+    EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
+}
+
 } // namespace OHOS::Rosen

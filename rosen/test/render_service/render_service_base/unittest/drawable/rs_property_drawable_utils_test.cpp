@@ -373,6 +373,24 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest013, testing::ext::Tes
 }
 
 /**
+ * @tc.name: CreateColorFilterForHDRTest
+ * @tc.desc: CreateColorFilterForHDRTest test
+ * @tc.type:FUNC
+ * @tc.require: issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, CreateColorFilterForHDRTest, testing::ext::TestSize.Level1)
+{
+    auto rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    auto ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(1.f, 0.5f);
+    EXPECT_NE(ret, nullptr);
+    ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(0.5f, 0.5f);
+    EXPECT_EQ(ret, nullptr);
+    ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(0.0f, 0.5f);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
  * @tc.name: DrawShadowTestAndDrawUseEffectTest014
  * @tc.desc: DrawShadow and DrawUseEffect test
  * @tc.type: FUNC
@@ -535,7 +553,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     Drawing::Canvas canvasTest;
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
-    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, Color(255, 255, 255, 255));
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, false,
+        Color(255, 255, 255, 255));
     ASSERT_TRUE(true);
 }
 
@@ -617,9 +636,15 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::e
     std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(rsFilterTest2);
     EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
 
-    Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
+    // -1.0f: stretch offset param
+    Vector4f pixelStretchTest(-1.0f, -1.0f, -1.0f, -1.0f);
     properties.pixelStretch_ = pixelStretchTest;
     EXPECT_TRUE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
+
+    // 1.0f: stretch offset param
+    Vector4f pixelStretchTest2(1.0f, 1.0f, 1.0f, 1.0f);
+    properties.pixelStretch_ = pixelStretchTest2;
+    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
 }
 
 /**

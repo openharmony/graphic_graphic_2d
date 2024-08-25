@@ -84,7 +84,7 @@
 #define RS_PROFILER_SHOULD_BLOCK_HWCNODE() false
 #define RS_PROFILER_ANIME_SET_START_TIME(id, time) time
 #define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex)
-#define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val) 
+#define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val)
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -201,14 +201,12 @@ private:
     static void StartBetaRecord();
     static bool IsBetaRecordStarted();
     static void UpdateBetaRecord();
-    static bool SaveBetaRecord();
+    static void SaveBetaRecord();
     static bool IsBetaRecordInactive();
     static void RequestVSyncOnBetaRecordInactivity();
-    static void SendBetaRecordPath();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
     static void WriteBetaRecordFileThread(RSFile& file, const std::string& path);
-    static void RenameAndSendFilenameThread();
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);
@@ -336,6 +334,7 @@ private:
     static void Respond(const std::string& message);
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
+    static void Reset(const ArgList& args);
     static void DumpSystemParameters(const ArgList& args);
     static void DumpNodeModifiers(const ArgList& args);
     static void DumpConnections(const ArgList& args);
@@ -369,7 +368,7 @@ private:
 
     static void PlaybackStart(const ArgList& args);
     static void PlaybackStop(const ArgList& args);
-    static double PlaybackUpdate(const double deltaTime);
+    static double PlaybackUpdate(double deltaTime);
 
     static void PlaybackPrepare(const ArgList& args);
     static void PlaybackPrepareFirstFrame(const ArgList& args);

@@ -86,8 +86,6 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     ASSERT_FALSE(RSDrawable::UpdateDirtySlots(node, drawableVec, dirtySlots));
     node.GetMutableRenderProperties().SetBackgroundShader(nullptr);
     ASSERT_TRUE(RSDrawable::UpdateDirtySlots(node, drawableVec, dirtySlots));
-    dirtySlots.emplace(RSDrawableSlot::PIXEL_STRETCH);
-    ASSERT_TRUE(RSDrawable::UpdateDirtySlots(node, drawableVec, dirtySlots));
 
     NodeId idTwo = 2;
     RSRenderNode nodeTwo(idTwo);
@@ -101,6 +99,39 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     ASSERT_FALSE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
     nodeTwo.GetMutableRenderProperties().SetBackgroundColor(Color(255, 255, 255, 255));
     ASSERT_TRUE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
+}
+
+/**
+ * @tc.name: FuzeDrawableSlots
+ * @tc.desc: Test FuzeDrawableSlots
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    RSDrawable::Vec drawableVec;
+    ASSERT_FALSE(RSDrawable::FuzeDrawableSlots(node, drawableVec));
+
+    node.renderContent_->GetMutableRenderProperties().SetBackgroundBlurRadius(10.f);  // 10.f: radius
+    std::optional<Vector2f> greyPara = { Vector2f(1.f, 1.f) };  // 1.f: grey coef
+    node.renderContent_->GetMutableRenderProperties().SetGreyCoef(greyPara);
+    node.renderContent_->GetMutableRenderProperties().GenerateBackgroundMaterialBlurFilter();
+    std::shared_ptr<RSDrawable> bgDrawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
+    drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] = bgDrawable;
+    auto stretchDrawable = std::make_shared<DrawableV2::RSPixelStretchDrawable>();
+    drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)] = stretchDrawable;
+    ASSERT_FALSE(RSDrawable::FuzeDrawableSlots(node, drawableVec));
+    
+    // -1.f: stretch param
+    std::optional<Vector4f> pixelStretchPara = { Vector4f(-1.f, -1.f, -1.f, -1.f) };
+    node.renderContent_->GetMutableRenderProperties().SetPixelStretch(pixelStretchPara);
+    ASSERT_TRUE(RSDrawable::FuzeDrawableSlots(node, drawableVec));
+
+    auto colorFilterDrawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
+    drawableVec[static_cast<size_t>(RSDrawableSlot::COLOR_FILTER)] = colorFilterDrawable;
+    ASSERT_FALSE(RSDrawable::FuzeDrawableSlots(node, drawableVec));
 }
 
 /**

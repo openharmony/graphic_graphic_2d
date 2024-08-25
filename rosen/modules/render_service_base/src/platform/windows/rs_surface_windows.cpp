@@ -106,7 +106,9 @@ bool RSSurfaceWindows::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
     bitmap.SetPixels(addr);
     if (frameWindows->surface_ != nullptr) {
         auto image = frameWindows->surface_->GetImageSnapshot();
-        image->ReadPixels(bitmap, 0, 0);
+        if (image) {
+            image->ReadPixels(bitmap, 0, 0);
+        }
     }
 #ifdef USE_GLFW_WINDOW
     if (frameWindows->surface_ != nullptr) {

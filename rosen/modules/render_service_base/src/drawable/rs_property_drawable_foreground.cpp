@@ -212,7 +212,7 @@ RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node
 
 bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
-    nodeId_ = node.GetId();
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -337,6 +337,11 @@ bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
     stagingBoundsGeoValid_ = boundsGeo && !boundsGeo->IsEmpty();
     stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();
     return true;
+}
+
+void RSPixelStretchDrawable::SetPixelStretch(const std::optional<Vector4f>& pixelStretch)
+{
+    stagingPixelStretch_ = pixelStretch;
 }
 
 void RSPixelStretchDrawable::OnSync()

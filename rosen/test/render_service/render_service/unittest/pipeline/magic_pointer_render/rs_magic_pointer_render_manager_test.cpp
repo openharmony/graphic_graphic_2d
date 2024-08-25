@@ -16,12 +16,12 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSPointerRenderManagerTest : public testing::Test {
+class RSMagicPointerRenderManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -29,37 +29,37 @@ public:
     void TearDown() override;
     static std::shared_ptr<RenderContext> renderContext_;
 };
-std::shared_ptr<RenderContext> RSPointerRenderManagerTest::renderContext_ = std::make_shared<RenderContext>();
+std::shared_ptr<RenderContext> RSMagicPointerRenderManagerTest::renderContext_ = std::make_shared<RenderContext>();
 
-void RSPointerRenderManagerTest::SetUpTestCase()
+void RSMagicPointerRenderManagerTest::SetUpTestCase()
 {
     renderContext_->InitializeEglContext();
     renderContext_->SetUpGpuContext();
 #if defined (RS_ENABLE_VK)
     auto vkImageManager = std::make_shared<RSVkImageManager>();
-    RSPointerRenderManager::InitInstance(vkImageManager);
+    RSMagicPointerRenderManager::InitInstance(vkImageManager);
 #endif
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
     auto eglImageManager = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
-    RSPointerRenderManager::InitInstance(eglImageManager);
+    RSMagicPointerRenderManager::InitInstance(eglImageManager);
 #endif
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(true);
+    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(true);
 }
-void RSPointerRenderManagerTest::TearDownTestCase()
+void RSMagicPointerRenderManagerTest::TearDownTestCase()
 {
     renderContext_ = nullptr;
 }
-void RSPointerRenderManagerTest::SetUp() {}
-void RSPointerRenderManagerTest::TearDown() {}
+void RSMagicPointerRenderManagerTest::SetUp() {}
+void RSMagicPointerRenderManagerTest::TearDown() {}
 
 /**
  * @tc.name: ColorPicker with image
- * @tc.desc: Test RSPointerRenderManager.ColorPicker
+ * @tc.desc: Test RSMagicPointerRenderManager.ColorPicker
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSPointerRenderManagerTest, ColorPickerWithImage, TestSize.Level1)
+HWTEST_F(RSMagicPointerRenderManagerTest, ColorPickerWithImage, TestSize.Level1)
 {
     const Drawing::ImageInfo info =
     Drawing::ImageInfo{200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
@@ -92,18 +92,19 @@ HWTEST_F(RSPointerRenderManagerTest, ColorPickerWithImage, TestSize.Level1)
     node3->isLastFrameHardwareEnabled_ = true;
     nodeMap.surfaceNodeMap_[3] = node3;
 
-    RSPointerRenderManager::GetInstance().SetCacheImgForPointer(surface->GetImageSnapshot());
-    RSPointerRenderManager::GetInstance().ProcessColorPicker(rsUniRenderProcessor, paintFilterCanvas.GetGPUContext());
-    RSPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
+    RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(surface->GetImageSnapshot());
+    RSMagicPointerRenderManager::GetInstance().ProcessColorPicker(rsUniRenderProcessor,
+        paintFilterCanvas.GetGPUContext());
+    RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
 }
 
 /**
  * @tc.name: ColorPicker without image
- * @tc.desc: Test RSPointerRenderManager.ColorPicker
+ * @tc.desc: Test RSMagicPointerRenderManager.ColorPicker
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSPointerRenderManagerTest, ColorPickerWithoutImage, TestSize.Level1)
+HWTEST_F(RSMagicPointerRenderManagerTest, ColorPickerWithoutImage, TestSize.Level1)
 {
     const Drawing::ImageInfo info =
     Drawing::ImageInfo{200, 200, Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE };
@@ -136,8 +137,9 @@ HWTEST_F(RSPointerRenderManagerTest, ColorPickerWithoutImage, TestSize.Level1)
     node3->isLastFrameHardwareEnabled_ = true;
     nodeMap.surfaceNodeMap_[3] = node3;
 
-    RSPointerRenderManager::GetInstance().SetCacheImgForPointer(surface->GetImageSnapshot());
-    RSPointerRenderManager::GetInstance().ProcessColorPicker(rsUniRenderProcessor, paintFilterCanvas.GetGPUContext());
-    RSPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
+    RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(surface->GetImageSnapshot());
+    RSMagicPointerRenderManager::GetInstance().ProcessColorPicker(rsUniRenderProcessor,
+        paintFilterCanvas.GetGPUContext());
+    RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
 }
 } // namespace OHOS::Rosen

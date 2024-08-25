@@ -18,6 +18,7 @@
 #include "include/core/SkPath.h"
 
 #include "skia_adapter/skia_path.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,8 +26,13 @@ namespace Drawing {
 void SkiaHMSymbol::PathOutlineDecompose(const Path& path, std::vector<Path>& paths)
 {
     // paths only call push_back, Improve performance!
+    auto skiaPath = path.GetImpl<SkiaPath>();
+    if (!skiaPath) {
+        LOGD("SkiaHMSymbol::PathOutlineDecompose, skiaPath nullptr");
+        return;
+    }
+    const SkPath& skPath = skiaPath->GetPath();
     std::vector<SkPath> skPaths;
-    const SkPath& skPath = path.GetImpl<SkiaPath>()->GetPath();
     HMSymbol::PathOutlineDecompose(skPath, skPaths);
     for (const SkPath& skPathTmp : skPaths) {
         Path pathTmp;
@@ -42,7 +48,12 @@ void SkiaHMSymbol::MultilayerPath(const std::vector<std::vector<size_t>>& multMa
     std::vector<SkPath> skMultPaths;
     std::vector<SkPath> skPaths;
     for (const Path& pathTmp : paths) {
-        skPaths.push_back(pathTmp.GetImpl<SkiaPath>()->GetPath());
+        auto skiaPath = pathTmp.GetImpl<SkiaPath>();
+        if (!skiaPath) {
+            LOGD("SkiaHMSymbol::MultilayerPath, skiaPath nullptr");
+            return;
+        }
+        skPaths.push_back(skiaPath->GetPath());
     }
     HMSymbol::MultilayerPath(multMap, skPaths, skMultPaths);
     for (const SkPath& skPathTmp : skMultPaths) {

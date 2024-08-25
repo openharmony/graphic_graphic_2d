@@ -20,7 +20,7 @@
 #include <mutex>
 #include <sstream>
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
 #include <vector>
 #else
 #include "common/rs_macros.h"

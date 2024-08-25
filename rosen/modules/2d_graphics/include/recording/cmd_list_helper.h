@@ -21,6 +21,7 @@
 
 #include "image/image.h"
 #include "recording/cmd_list.h"
+#include "recording/record_cmd.h"
 #include "text/hm_symbol.h"
 #include "text/text_blob.h"
 #include "utils/log.h"
@@ -43,6 +44,10 @@ public:
         const OpDataHandle& opDataHandle);
     static ImageHandle AddBitmapToCmdList(CmdList& cmdList, const Bitmap& bitmap);
     static std::shared_ptr<Bitmap> GetBitmapFromCmdList(const CmdList& cmdList, const ImageHandle& bitmapHandle);
+    static OpDataHandle DRAWING_API AddRecordCmdToCmdList(
+        CmdList& cmdList, const std::shared_ptr<RecordCmd>& recordCmd);
+    static std::shared_ptr<RecordCmd> GetRecordCmdFromCmdList(
+        const CmdList& cmdList, const OpDataHandle& recordCmdHandle);
     static OpDataHandle DRAWING_API AddImageObjectToCmdList(
         CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object);
     static std::shared_ptr<ExtendImageObject> GetImageObjectFromCmdList(

@@ -19,6 +19,7 @@ namespace {
     constexpr uint32_t NUM_1 = 1;
     constexpr uint32_t NUM_3 = 3;
     constexpr uint32_t NUM_8 = 8;
+    constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 }
 
 namespace OHOS {
@@ -176,6 +177,12 @@ bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
 
 napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("CreateBrightnessBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateBrightnessBlender failed, is not system app");
+        return nullptr;
+    }
     BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
     if (blender == nullptr) {
         UIEFFECT_LOG_E("CreateBrightnessBlender blender is nullptr");
@@ -349,6 +356,12 @@ bool EffectNapi::ParseBrightnessBlender(napi_env env, napi_value jsObject, Brigh
  
 napi_value EffectNapi::SetbackgroundColorBlender(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("SetbackgroundColorBlender failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi SetbackgroundColorBlender failed, is not system app");
+        return nullptr;
+    }
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};

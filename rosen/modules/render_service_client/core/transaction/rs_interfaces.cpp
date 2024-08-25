@@ -614,6 +614,11 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
+void RSInterfaces::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    renderServiceClient_->SetDefaultDeviceRotationOffset(offset);
+}
+
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
 {
     renderServiceClient_->NotifyLightFactorStatus(isSafe);

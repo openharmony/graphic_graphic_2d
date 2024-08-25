@@ -108,6 +108,137 @@ HWTEST_F(InputUnittest, SetValue003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetValue004
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputUnittest, SetValue004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "InputUnittest SetValue004 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto input = std::make_shared<Input>();
+    bool testResult = input != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call SetValue to set the necessary values
+     */
+    auto inputFormat = std::make_shared<std::string>("buffer");
+    std::weak_ptr<void> vInputFormat = inputFormat;
+    input->SetValue("format", vInputFormat.lock(), 1);
+
+    ProcessData data;
+    input->DoProcess(data);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 512;
+    opts.size.height = 512;
+    opts.editable = true;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    auto shpPixelMap =  std::shared_ptr<Media::PixelMap>(pixelMap.release());
+    std::weak_ptr<void> vPixelMap = shpPixelMap;
+    input->SetValue("src", vPixelMap.lock(), 1);
+    input->DecodeFromBuffer(data);
+
+    EXPECT_TRUE(input->GetFilterType() == FILTER_TYPE::INPUT);
+}
+
+/**
+ * @tc.name: SetValue005
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputUnittest, SetValue005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "InputUnittest SetValue005 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto input = std::make_shared<Input>();
+    bool testResult = input != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call SetValue to set the necessary values
+     */
+    auto inputFormat = std::make_shared<std::string>("buffer");
+    std::weak_ptr<void> vInputFormat = inputFormat;
+    input->SetValue("bufferWidth", vInputFormat.lock(), 1);
+
+    Media::InitializationOptions opts;
+    opts.size.width = 512;
+    opts.size.height = 512;
+    opts.editable = true;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    auto shpPixelMap =  std::shared_ptr<Media::PixelMap>(pixelMap.release());
+    std::weak_ptr<void> vPixelMap = shpPixelMap;
+    input->SetValue("bufferHeight", vPixelMap.lock(), 1);
+
+    EXPECT_TRUE(input->GetFilterType() != FILTER_TYPE::OUTPUT);
+}
+
+/**
+ * @tc.name: DoProcess001
+ * @tc.desc: Obtain the type of filter according to different implementations of the interface
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputUnittest, DoProcess001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "InputUnittest DoProcess001 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto input = std::make_shared<Input>();
+    bool testResult = input != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call GetFilterType to get the type of Filter
+     */
+    auto inputFormat = std::make_shared<std::string>("jpg");
+    std::weak_ptr<void> vInputFormat = inputFormat;
+    input->SetValue("format", vInputFormat.lock(), 1);
+
+    ProcessData data;
+    input->DoProcess(data);
+    input->DecodeFromFile(data);
+
+    EXPECT_TRUE(input->GetFilterType() != FILTER_TYPE::OUTPUT);
+}
+
+/**
+ * @tc.name: DecodeFrom001
+ * @tc.desc: Obtain the type of filter according to different implementations of the interface
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(InputUnittest, DecodeFrom001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "InputUnittest DecodeFrom001 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto input = std::make_shared<Input>();
+    bool testResult = input != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call GetFilterType to get the type of Filter
+     */
+
+    ProcessData data;
+    input->DecodeFromBuffer(data);
+    input->DecodeFromPixelMap(data);
+
+    EXPECT_TRUE(input->GetFilterType() == FILTER_TYPE::INPUT);
+}
+
+/**
  * @tc.name: GetFilterType001
  * @tc.desc: Obtain the type of filter according to different implementations of the interface
  * @tc.type: FUNC

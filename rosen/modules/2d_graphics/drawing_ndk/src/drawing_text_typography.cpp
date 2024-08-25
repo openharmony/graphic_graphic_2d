@@ -16,35 +16,27 @@
 
 #include "drawing_text_typography.h"
 
-#include "utils/log.h"
-#include "utils/object_mgr.h"
+#include <codecvt>
+#include <locale>
+#include <shared_mutex>
+#include <string>
+#include <unicode/brkiter.h>
+#include <vector>
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-#include "rosen_text/ui/font_collection.h"
-#include "rosen_text/ui/typography.h"
-#include "rosen_text/ui/typography_create.h"
-#else
+#include "font_config.h"
+#include "font_parser.h"
 #include "rosen_text/font_collection.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
 #include "unicode/putil.h"
-#endif
-#include "font_config.h"
-#include "font_parser.h"
-#include <codecvt>
-#include <locale>
-#include <vector>
-#include <string>
-#include <unicode/brkiter.h>
-#include <shared_mutex>
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-using namespace rosen;
-#else
+#include "utils/log.h"
+#include "utils/object_mgr.h"
+
 using namespace OHOS::Rosen;
 
 namespace {
-__attribute__((constructor)) void init()
+__attribute__((constructor)) void Init()
 {
 #ifndef _WIN32
     u_setDataDirectory("/system/usr/ohos_icu");
@@ -53,7 +45,6 @@ __attribute__((constructor)) void init()
 #endif
 }
 } // namespace
-#endif
 
 static std::shared_ptr<OHOS::Rosen::Drawing::ObjectMgr> objectMgr = OHOS::Rosen::Drawing::ObjectMgr::GetInstance();
 static std::map<void*, size_t> arrSizeMgr;
@@ -120,11 +111,7 @@ void OH_Drawing_SetTypographyTextDirection(OH_Drawing_TypographyStyle* style, in
             break;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyStyle>(style)->textDirection_ = textDirection;
-#else
     ConvertToOriginalText<TypographyStyle>(style)->textDirection = textDirection;
-#endif
 }
 
 void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle* style, int align)
@@ -162,11 +149,7 @@ void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle* style, int al
             textAlign = TextAlign::LEFT;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyStyle>(style)->textAlign_ = textAlign;
-#else
     ConvertToOriginalText<TypographyStyle>(style)->textAlign = textAlign;
-#endif
 }
 
 void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle* style, int lineNumber)
@@ -174,11 +157,8 @@ void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle* style, int
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyStyle>(style)->maxLines_ = static_cast<size_t>(lineNumber);
-#else
+    lineNumber = lineNumber < 0 ? 0 : lineNumber;
     ConvertToOriginalText<TypographyStyle>(style)->maxLines = static_cast<size_t>(lineNumber);
-#endif
 }
 
 OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void)
@@ -196,11 +176,7 @@ void OH_Drawing_SetTextStyleColor(OH_Drawing_TextStyle* style, uint32_t color)
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->color_.SetColorQuad(color);
-#else
     ConvertToOriginalText<TextStyle>(style)->color.SetColorQuad(color);
-#endif
 }
 
 void OH_Drawing_SetTextStyleFontSize(OH_Drawing_TextStyle* style, double fontSize)
@@ -208,11 +184,7 @@ void OH_Drawing_SetTextStyleFontSize(OH_Drawing_TextStyle* style, double fontSiz
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->fontSize_ = fontSize;
-#else
     ConvertToOriginalText<TextStyle>(style)->fontSize = fontSize;
-#endif
 }
 
 static FontWeight GetFontWeight(int fontWeight)
@@ -268,11 +240,7 @@ void OH_Drawing_SetTextStyleFontWeight(OH_Drawing_TextStyle* style, int fontWeig
         return;
     }
     FontWeight rosenFontWeight = GetFontWeight(fontWeight);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->fontWeight_ = rosenFontWeight;
-#else
     ConvertToOriginalText<TextStyle>(style)->fontWeight = rosenFontWeight;
-#endif
 }
 
 void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle* style, int baseline)
@@ -294,11 +262,7 @@ void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle* style, int baseline)
             rosenBaseLine = TextBaseline::ALPHABETIC;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->textBaseline_ = rosenBaseLine;
-#else
     ConvertToOriginalText<TextStyle>(style)->baseline = rosenBaseLine;
-#endif
 }
 
 void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
@@ -321,11 +285,7 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
             break;
         }
         case TEXT_DECORATION_LINE_THROUGH: {
-#ifndef USE_GRAPHIC_TEXT_GINE
-            rosenDecoration = TextDecoration::LINETHROUGH;
-#else
             rosenDecoration = TextDecoration::LINE_THROUGH;
-#endif
             break;
         }
         case TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH: {
@@ -336,11 +296,7 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
             rosenDecoration = TextDecoration::NONE;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->decoration_ = rosenDecoration;
-#else
     ConvertToOriginalText<TextStyle>(style)->decoration = rosenDecoration;
-#endif
 }
 
 void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle* style, uint32_t color)
@@ -348,11 +304,7 @@ void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle* style, uint32_
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->decorationColor_.SetColorQuad(color);
-#else
     ConvertToOriginalText<TextStyle>(style)->decorationColor.SetColorQuad(color);
-#endif
 }
 
 void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle* style, double fontHeight)
@@ -360,13 +312,8 @@ void OH_Drawing_SetTextStyleFontHeight(OH_Drawing_TextStyle* style, double fontH
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->height_ = fontHeight;
-    ConvertToOriginalText<TextStyle>(style)->hasHeightOverride_ = true;
-#else
     ConvertToOriginalText<TextStyle>(style)->heightScale = fontHeight;
     ConvertToOriginalText<TextStyle>(style)->heightOnly = true;
-#endif
 }
 
 void OH_Drawing_SetTextStyleFontFamilies(
@@ -384,11 +331,7 @@ void OH_Drawing_SetTextStyleFontFamilies(
             return;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->fontFamilies_ = rosenFontFamilies;
-#else
     ConvertToOriginalText<TextStyle>(style)->fontFamilies = rosenFontFamilies;
-#endif
 }
 
 void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle)
@@ -396,23 +339,6 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    rosen::FontStyle rosenFontStyle;
-    switch (fontStyle) {
-        case FONT_STYLE_NORMAL: {
-            rosenFontStyle = rosen::FontStyle::NORMAL;
-            break;
-        }
-        case FONT_STYLE_ITALIC: {
-            rosenFontStyle = rosen::FontStyle::ITALIC;
-            break;
-        }
-        default: {
-            rosenFontStyle = rosen::FontStyle::NORMAL;
-        }
-    }
-    ConvertToOriginalText<TextStyle>(style)->fontStyle_ = rosenFontStyle;
-#else
     FontStyle rosenFontStyle;
     switch (fontStyle) {
         case FONT_STYLE_NORMAL: {
@@ -429,7 +355,6 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
         }
     }
     ConvertToOriginalText<TextStyle>(style)->fontStyle = rosenFontStyle;
-#endif
 }
 
 void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle* style, const char* locale)
@@ -437,11 +362,7 @@ void OH_Drawing_SetTextStyleLocale(OH_Drawing_TextStyle* style, const char* loca
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->locale_ = locale;
-#else
     ConvertToOriginalText<TextStyle>(style)->locale = locale;
-#endif
 }
 
 OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(
@@ -455,21 +376,12 @@ OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(
     const TypographyStyle* typoStyle = ConvertToOriginalText<TypographyStyle>(style);
 
     if (auto fc = OHOS::Rosen::Drawing::FontCollectionMgr::GetInstance().Find(fontCollection)) {
-#ifndef USE_GRAPHIC_TEXT_GINE
-        handler = TypographyCreate::CreateRosenBuilder(*typoStyle, fc);
-#else
         handler = TypographyCreate::Create(*typoStyle, fc);
-#endif
     } else {
         objectMgr->RemoveObject(fontCollection);
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-        handler = TypographyCreate::CreateRosenBuilder(
-            *typoStyle, std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
-#else
         handler = TypographyCreate::Create(
             *typoStyle, std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));
-#endif
     }
 
     return ConvertToNDKText<OH_Drawing_TypographyCreate>(handler.release());
@@ -531,11 +443,7 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
 
     const std::u16string wideText =
         std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyCreate>(handler)->AddText(wideText);
-#else
     ConvertToOriginalText<TypographyCreate>(handler)->AppendText(wideText);
-#endif
 }
 
 void OH_Drawing_TypographyHandlerPopTextStyle(OH_Drawing_TypographyCreate* handler)
@@ -543,11 +451,7 @@ void OH_Drawing_TypographyHandlerPopTextStyle(OH_Drawing_TypographyCreate* handl
     if (!handler) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyCreate>(handler)->Pop();
-#else
     ConvertToOriginalText<TypographyCreate>(handler)->PopStyle();
-#endif
 }
 
 OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate* handler)
@@ -556,11 +460,7 @@ OH_Drawing_Typography* OH_Drawing_CreateTypography(OH_Drawing_TypographyCreate* 
         return nullptr;
     }
     TypographyCreate* rosenHandler = ConvertToOriginalText<TypographyCreate>(handler);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::unique_ptr<Typography> typography = rosenHandler->Build();
-#else
     std::unique_ptr<Typography> typography = rosenHandler->CreateTypography();
-#endif
     return ConvertToNDKText<OH_Drawing_Typography>(typography.release());
 }
 
@@ -625,11 +525,7 @@ double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography* typography)
     if (!typography) {
         return 0.0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    return ConvertToOriginalText<Typography>(typography)->GetLongestLine();
-#else
     return ConvertToOriginalText<Typography>(typography)->GetActualWidth();
-#endif
 }
 
 double OH_Drawing_TypographyGetMinIntrinsicWidth(OH_Drawing_Typography* typography)
@@ -669,16 +565,8 @@ void OH_Drawing_TypographyHandlerAddPlaceholder(OH_Drawing_TypographyCreate* han
     if (!handler || !span) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    auto originalAlignment = ConvertToOriginalText<PlaceholderAlignment>(&span->alignment);
-    auto originalBaseline = ConvertToOriginalText<TextBaseline>(&span->baseline);
-    PlaceholderRun rosenPlaceholderRun(
-        span->width, span->height, originalAlignment, originalBaseline, span->baselineOffset);
-    ConvertToOriginalText<TypographyCreate>(handler)->AddPlaceholder(rosenPlaceholderRun);
-#else
     auto originalPlaceholderSpan = ConvertToOriginalText<PlaceholderSpan>(span);
     ConvertToOriginalText<TypographyCreate>(handler)->AppendPlaceholder(*originalPlaceholderSpan);
-#endif
 }
 
 bool OH_Drawing_TypographyDidExceedMaxLines(OH_Drawing_Typography* typography)
@@ -695,26 +583,14 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForRange(OH_Drawing_Typography*
     if (!typography) {
         return nullptr;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* originalVector =
-        new (std::nothrow) std::vector<TypographyProperties::TextBox>;
-    if (originalVector == nullptr) {
-        return nullptr;
-    }
-    auto originalRectHeightStyle = ConvertToOriginalText<TypographyProperties::RectHeightStyle>(&heightStyle);
-    auto originalRectWidthStyle = ConvertToOriginalText<TypographyProperties::RectWidthStyle>(&widthStyle);
-    *originalVector = ConvertToOriginalText<Typography>(typography)
-                          ->GetRectsForRange(start, end, *originalRectHeightStyle, *originalRectWidthStyle);
-#else
     std::vector<TextRect>* originalVector = new (std::nothrow) std::vector<TextRect>;
     if (originalVector == nullptr) {
         return nullptr;
     }
     auto originalRectHeightStyle = ConvertToOriginalText<TextRectHeightStyle>(&heightStyle);
     auto originalRectWidthStyle = ConvertToOriginalText<TextRectWidthStyle>(&widthStyle);
-    *originalVector = ConvertToOriginalText<Typography>(typography)
-                          ->GetTextRectsByBoundary(start, end, *originalRectHeightStyle, *originalRectWidthStyle);
-#endif
+    *originalVector = ConvertToOriginalText<Typography>(typography)->GetTextRectsByBoundary(start, end,
+        *originalRectHeightStyle, *originalRectWidthStyle);
     return (OH_Drawing_TextBox*)originalVector;
 }
 
@@ -723,20 +599,11 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForPlaceholders(OH_Drawing_Typo
     if (!typography) {
         return nullptr;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* originalVector =
-        new (std::nothrow) std::vector<TypographyProperties::TextBox>;
-    if (originalVector == nullptr) {
-        return nullptr;
-    }
-    *originalVector = ConvertToOriginalText<Typography>(typography)->GetRectsForPlaceholders();
-#else
     std::vector<TextRect>* originalVector = new (std::nothrow) std::vector<TextRect>;
     if (originalVector == nullptr) {
         return nullptr;
     }
     *originalVector = ConvertToOriginalText<Typography>(typography)->GetTextRectsOfPlaceholders();
-#endif
     return (OH_Drawing_TextBox*)originalVector;
 }
 
@@ -745,22 +612,12 @@ float OH_Drawing_GetLeftFromTextBox(OH_Drawing_TextBox* textbox, int index)
     if (!textbox) {
         return 0.0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* textboxVector =
-        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
-        return (*textboxVector)[index].rect_.left_;
-    } else {
-        return 0.0;
-    }
-#else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
     if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect.left_;
     } else {
         return 0.0;
     }
-#endif
 }
 
 float OH_Drawing_GetRightFromTextBox(OH_Drawing_TextBox* textbox, int index)
@@ -768,22 +625,12 @@ float OH_Drawing_GetRightFromTextBox(OH_Drawing_TextBox* textbox, int index)
     if (!textbox) {
         return 0.0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* textboxVector =
-        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
-        return (*textboxVector)[index].rect_.right_;
-    } else {
-        return 0.0;
-    }
-#else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
     if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect.right_;
     } else {
         return 0.0;
     }
-#endif
 }
 
 float OH_Drawing_GetTopFromTextBox(OH_Drawing_TextBox* textbox, int index)
@@ -791,22 +638,12 @@ float OH_Drawing_GetTopFromTextBox(OH_Drawing_TextBox* textbox, int index)
     if (!textbox) {
         return 0.0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* textboxVector =
-        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
-        return (*textboxVector)[index].rect_.top_;
-    } else {
-        return 0.0;
-    }
-#else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
     if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect.top_;
     } else {
         return 0.0;
     }
-#endif
 }
 
 float OH_Drawing_GetBottomFromTextBox(OH_Drawing_TextBox* textbox, int index)
@@ -814,22 +651,12 @@ float OH_Drawing_GetBottomFromTextBox(OH_Drawing_TextBox* textbox, int index)
     if (!textbox) {
         return 0.0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* textboxVector =
-        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
-        return (*textboxVector)[index].rect_.bottom_;
-    } else {
-        return 0.0;
-    }
-#else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
     if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         return (*textboxVector)[index].rect.bottom_;
     } else {
         return 0.0;
     }
-#endif
 }
 
 int OH_Drawing_GetTextDirectionFromTextBox(OH_Drawing_TextBox* textbox, int index)
@@ -837,26 +664,6 @@ int OH_Drawing_GetTextDirectionFromTextBox(OH_Drawing_TextBox* textbox, int inde
     if (!textbox) {
         return 0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* textboxVector =
-        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
-        TextDirection textDirection = (*textboxVector)[index].direction_;
-        switch (textDirection) {
-            case TextDirection::RTL: {
-                return 0;
-            }
-            case TextDirection::LTR: {
-                return 1;
-            }
-            default: {
-                return 0;
-            }
-        }
-    } else {
-        return 0;
-    }
-#else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
     if (index >= 0 && index < static_cast<int>(textboxVector->size())) {
         TextDirection textDirection = (*textboxVector)[index].direction;
@@ -874,7 +681,6 @@ int OH_Drawing_GetTextDirectionFromTextBox(OH_Drawing_TextBox* textbox, int inde
     } else {
         return 0;
     }
-#endif
 }
 
 size_t OH_Drawing_GetSizeOfTextBox(OH_Drawing_TextBox* textbox)
@@ -882,14 +688,8 @@ size_t OH_Drawing_GetSizeOfTextBox(OH_Drawing_TextBox* textbox)
     if (!textbox) {
         return 0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* textboxVector =
-        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textbox);
-    return textboxVector->size();
-#else
     std::vector<TextRect>* textboxVector = ConvertToOriginalText<std::vector<TextRect>>(textbox);
     return textboxVector->size();
-#endif
 }
 
 OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetGlyphPositionAtCoordinate(
@@ -898,19 +698,10 @@ OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetGlyphPositionAtCoordinat
     if (!typography) {
         return nullptr;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TypographyProperties::PositionAndAffinity* originalPositionAndAffinity =
-        new (std::nothrow) TypographyProperties::PositionAndAffinity(0, TypographyProperties::Affinity::UPSTREAM);
-    if (originalPositionAndAffinity == nullptr) {
-        return nullptr;
-    }
-    *originalPositionAndAffinity = ConvertToOriginalText<Typography>(typography)->GetGlyphPositionAtCoordinate(dx, dy);
-#else
     IndexAndAffinity* originalPositionAndAffinity = new (std::nothrow) IndexAndAffinity(0, Affinity::PREV);
     if (originalPositionAndAffinity == nullptr) {
         return nullptr;
     }
-#endif
     return (OH_Drawing_PositionAndAffinity*)originalPositionAndAffinity;
 }
 
@@ -920,21 +711,11 @@ OH_Drawing_PositionAndAffinity* OH_Drawing_TypographyGetGlyphPositionAtCoordinat
     if (!typography) {
         return nullptr;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TypographyProperties::PositionAndAffinity* originalPositionAndAffinity =
-        new (std::nothrow) TypographyProperties::PositionAndAffinity(0, TypographyProperties::Affinity::UPSTREAM);
-    if (originalPositionAndAffinity == nullptr) {
-        return nullptr;
-    }
-    *originalPositionAndAffinity =
-        ConvertToOriginalText<Typography>(typography)->GetGlyphPositionAtCoordinateWithCluster(dx, dy);
-#else
     IndexAndAffinity* originalPositionAndAffinity = new (std::nothrow) IndexAndAffinity(0, Affinity::PREV);
     if (originalPositionAndAffinity == nullptr) {
         return nullptr;
     }
     *originalPositionAndAffinity = ConvertToOriginalText<Typography>(typography)->GetGlyphIndexByCoordinate(dx, dy);
-#endif
     return (OH_Drawing_PositionAndAffinity*)originalPositionAndAffinity;
 }
 
@@ -943,14 +724,8 @@ size_t OH_Drawing_GetPositionFromPositionAndAffinity(OH_Drawing_PositionAndAffin
     if (!positionandaffinity) {
         return 0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TypographyProperties::PositionAndAffinity* textPositionAndAffinity =
-        ConvertToOriginalText<TypographyProperties::PositionAndAffinity>(positionandaffinity);
-    return textPositionAndAffinity->pos_;
-#else
     IndexAndAffinity* textIndexAndAffinity = ConvertToOriginalText<IndexAndAffinity>(positionandaffinity);
     return textIndexAndAffinity->index;
-#endif
 }
 
 int OH_Drawing_GetAffinityFromPositionAndAffinity(OH_Drawing_PositionAndAffinity* positionandaffinity)
@@ -958,21 +733,6 @@ int OH_Drawing_GetAffinityFromPositionAndAffinity(OH_Drawing_PositionAndAffinity
     if (!positionandaffinity) {
         return 0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TypographyProperties::PositionAndAffinity* textPositionAndAffinity =
-        ConvertToOriginalText<TypographyProperties::PositionAndAffinity>(positionandaffinity);
-    switch (textPositionAndAffinity->affinity_) {
-        case TypographyProperties::Affinity::UPSTREAM: {
-            return 0;
-        }
-        case TypographyProperties::Affinity::DOWNSTREAM: {
-            return 1;
-        }
-        default: {
-            return 0;
-        }
-    }
-#else
     IndexAndAffinity* textIndexAndAffinity = ConvertToOriginalText<IndexAndAffinity>(positionandaffinity);
     switch (textIndexAndAffinity->affinity) {
         case Affinity::PREV: {
@@ -985,7 +745,6 @@ int OH_Drawing_GetAffinityFromPositionAndAffinity(OH_Drawing_PositionAndAffinity
             return 0;
         }
     }
-#endif
 }
 
 OH_Drawing_Range* OH_Drawing_TypographyGetWordBoundary(OH_Drawing_Typography* typography, size_t offset)
@@ -993,19 +752,11 @@ OH_Drawing_Range* OH_Drawing_TypographyGetWordBoundary(OH_Drawing_Typography* ty
     if (!typography) {
         return nullptr;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TypographyProperties::Range<size_t>* originalRange = new (std::nothrow) TypographyProperties::Range<size_t>;
-    if (originalRange == nullptr) {
-        return nullptr;
-    }
-    *originalRange = ConvertToOriginalText<Typography>(typography)->GetWordBoundary(offset);
-#else
     Boundary* originalRange = new (std::nothrow) Boundary(0, 0);
     if (originalRange == nullptr) {
         return nullptr;
     }
     *originalRange = ConvertToOriginalText<Typography>(typography)->GetWordBoundaryByIndex(offset);
-#endif
     return (OH_Drawing_Range*)originalRange;
 }
 
@@ -1014,13 +765,8 @@ size_t OH_Drawing_GetStartFromRange(OH_Drawing_Range* range)
     if (!range) {
         return 0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TypographyProperties::Range<size_t>* textRange = ConvertToOriginalText<TypographyProperties::Range<size_t>>(range);
-    return textRange->start_;
-#else
     Boundary* boundary = ConvertToOriginalText<Boundary>(range);
     return boundary->leftIndex;
-#endif
 }
 
 size_t OH_Drawing_GetEndFromRange(OH_Drawing_Range* range)
@@ -1028,13 +774,8 @@ size_t OH_Drawing_GetEndFromRange(OH_Drawing_Range* range)
     if (!range) {
         return 0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TypographyProperties::Range<size_t>* textRange = ConvertToOriginalText<TypographyProperties::Range<size_t>>(range);
-    return textRange->end_;
-#else
     Boundary* boundary = ConvertToOriginalText<Boundary>(range);
     return boundary->rightIndex;
-#endif
 }
 
 size_t OH_Drawing_TypographyGetLineCount(OH_Drawing_Typography* typography)
@@ -1076,11 +817,7 @@ void OH_Drawing_SetTextStyleDecorationStyle(OH_Drawing_TextStyle* style, int dec
             rosenDecorationStyle = TextDecorationStyle::SOLID;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->decorationStyle_ = rosenDecorationStyle;
-#else
     ConvertToOriginalText<TextStyle>(style)->decorationStyle = rosenDecorationStyle;
-#endif
 }
 
 void OH_Drawing_SetTextStyleDecorationThicknessScale(OH_Drawing_TextStyle* style, double decorationThicknessScale)
@@ -1088,11 +825,7 @@ void OH_Drawing_SetTextStyleDecorationThicknessScale(OH_Drawing_TextStyle* style
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->decorationThicknessMultiplier_ = decorationThicknessScale;
-#else
     ConvertToOriginalText<TextStyle>(style)->decorationThicknessScale = decorationThicknessScale;
-#endif
 }
 
 void OH_Drawing_SetTextStyleLetterSpacing(OH_Drawing_TextStyle* style, double letterSpacing)
@@ -1100,11 +833,7 @@ void OH_Drawing_SetTextStyleLetterSpacing(OH_Drawing_TextStyle* style, double le
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->letterSpacing_ = letterSpacing;
-#else
     ConvertToOriginalText<TextStyle>(style)->letterSpacing = letterSpacing;
-#endif
 }
 
 void OH_Drawing_SetTextStyleWordSpacing(OH_Drawing_TextStyle* style, double wordSpacing)
@@ -1112,11 +841,7 @@ void OH_Drawing_SetTextStyleWordSpacing(OH_Drawing_TextStyle* style, double word
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->wordSpacing_ = wordSpacing;
-#else
     ConvertToOriginalText<TextStyle>(style)->wordSpacing = wordSpacing;
-#endif
 }
 
 void OH_Drawing_SetTextStyleHalfLeading(OH_Drawing_TextStyle* style, bool halfLeading)
@@ -1124,10 +849,7 @@ void OH_Drawing_SetTextStyleHalfLeading(OH_Drawing_TextStyle* style, bool halfLe
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-#else
     ConvertToOriginalText<TextStyle>(style)->halfLeading = halfLeading;
-#endif
 }
 
 void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle* style, const char* ellipsis)
@@ -1137,11 +859,7 @@ void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle* style, const char* el
     }
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
     std::u16string u16Ellipsis = converter.from_bytes(ellipsis);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->ellipsis_ = u16Ellipsis;
-#else
     ConvertToOriginalText<TextStyle>(style)->ellipsis = u16Ellipsis;
-#endif
 }
 
 void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle* style, int ellipsisModal)
@@ -1167,11 +885,7 @@ void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle* style, int ellip
             rosenEllipsisModal = EllipsisModal::TAIL;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TextStyle>(style)->ellipsisModal_ = rosenEllipsisModal;
-#else
     ConvertToOriginalText<TextStyle>(style)->ellipsisModal = rosenEllipsisModal;
-#endif
 }
 
 void OH_Drawing_SetTypographyTextBreakStrategy(OH_Drawing_TypographyStyle* style, int breakStrategy)
@@ -1180,26 +894,6 @@ void OH_Drawing_SetTypographyTextBreakStrategy(OH_Drawing_TypographyStyle* style
         return;
     }
     BreakStrategy rosenBreakStrategy;
-#ifndef USE_GRAPHIC_TEXT_GINE
-    switch (breakStrategy) {
-        case BREAK_STRATEGY_GREEDY: {
-            rosenBreakStrategy = BreakStrategy::BreakStrategyGreedy;
-            break;
-        }
-        case BREAK_STRATEGY_HIGH_QUALITY: {
-            rosenBreakStrategy = BreakStrategy::BreakStrategyHighQuality;
-            break;
-        }
-        case BREAK_STRATEGY_BALANCED: {
-            rosenBreakStrategy = BreakStrategy::BreakStrategyBalanced;
-            break;
-        }
-        default: {
-            rosenBreakStrategy = BreakStrategy::BreakStrategyGreedy;
-        }
-    }
-    ConvertToOriginalText<TypographyStyle>(style)->breakStrategy_ = rosenBreakStrategy;
-#else
     switch (breakStrategy) {
         case BREAK_STRATEGY_GREEDY: {
             rosenBreakStrategy = BreakStrategy::GREEDY;
@@ -1218,7 +912,6 @@ void OH_Drawing_SetTypographyTextBreakStrategy(OH_Drawing_TypographyStyle* style
         }
     }
     ConvertToOriginalText<TypographyStyle>(style)->breakStrategy = rosenBreakStrategy;
-#endif
 }
 
 void OH_Drawing_SetTypographyTextWordBreakType(OH_Drawing_TypographyStyle* style, int wordBreakType)
@@ -1227,26 +920,6 @@ void OH_Drawing_SetTypographyTextWordBreakType(OH_Drawing_TypographyStyle* style
         return;
     }
     WordBreakType rosenWordBreakType;
-#ifndef USE_GRAPHIC_TEXT_GINE
-    switch (wordBreakType) {
-        case WORD_BREAK_TYPE_NORMAL: {
-            rosenWordBreakType = WordBreakType::WordBreakTypeNormal;
-            break;
-        }
-        case WORD_BREAK_TYPE_BREAK_ALL: {
-            rosenWordBreakType = WordBreakType::WordBreakTypeBreakAll;
-            break;
-        }
-        case WORD_BREAK_TYPE_BREAK_WORD: {
-            rosenWordBreakType = WordBreakType::WordBreakTypeBreakWord;
-            break;
-        }
-        default: {
-            rosenWordBreakType = WordBreakType::WordBreakTypeBreakWord;
-        }
-    }
-    ConvertToOriginalText<TypographyStyle>(style)->wordBreakType_ = rosenWordBreakType;
-#else
     switch (wordBreakType) {
         case WORD_BREAK_TYPE_NORMAL: {
             rosenWordBreakType = WordBreakType::NORMAL;
@@ -1265,7 +938,6 @@ void OH_Drawing_SetTypographyTextWordBreakType(OH_Drawing_TypographyStyle* style
         }
     }
     ConvertToOriginalText<TypographyStyle>(style)->wordBreakType = rosenWordBreakType;
-#endif
 }
 
 void OH_Drawing_SetTypographyTextEllipsisModal(OH_Drawing_TypographyStyle* style, int ellipsisModal)
@@ -1291,11 +963,7 @@ void OH_Drawing_SetTypographyTextEllipsisModal(OH_Drawing_TypographyStyle* style
             rosenEllipsisModal = EllipsisModal::TAIL;
         }
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyStyle>(style)->ellipsisModal_ = rosenEllipsisModal;
-#else
     ConvertToOriginalText<TypographyStyle>(style)->ellipsisModal = rosenEllipsisModal;
-#endif
 }
 
 double OH_Drawing_TypographyGetLineHeight(OH_Drawing_Typography* typography, int lineNumber)
@@ -1322,19 +990,11 @@ OH_Drawing_Range* OH_Drawing_TypographyGetLineTextRange(
     if (!typography) {
         return nullptr;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TypographyProperties::Range<size_t>* originalRange = new (std::nothrow) TypographyProperties::Range<size_t>;
-    if (originalRange == nullptr) {
-        return nullptr;
-    }
-    *originalRange = ConvertToOriginalText<Typography>(typography)->GetActualTextRange(lineNumber, includeSpaces);
-#else
     Boundary* originalRange = new (std::nothrow) Boundary(0, 0);
     if (originalRange == nullptr) {
         return nullptr;
     }
     *originalRange = ConvertToOriginalText<Typography>(typography)->GetActualTextRange(lineNumber, includeSpaces);
-#endif
     return (OH_Drawing_Range*)originalRange;
 }
 
@@ -1852,7 +1512,7 @@ void OH_Drawing_SetTypographyTextFontSize(OH_Drawing_TypographyStyle* style, dou
 void OH_Drawing_SetTypographyTextFontHeight(OH_Drawing_TypographyStyle* style, double fontHeight)
 {
     if (style) {
-        ConvertToOriginalText<TypographyStyle>(style)->heightScale = fontHeight;
+        ConvertToOriginalText<TypographyStyle>(style)->heightScale = fontHeight < 0 ? 0 : fontHeight;
         ConvertToOriginalText<TypographyStyle>(style)->heightOnly = true;
     }
 }
@@ -2039,11 +1699,7 @@ void OH_Drawing_SetTypographyTextLocale(OH_Drawing_TypographyStyle* style, const
     if (!style) {
         return;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyStyle>(style)->locale_ = locale;
-#else
     ConvertToOriginalText<TypographyStyle>(style)->locale = locale;
-#endif
 }
 
 void OH_Drawing_SetTypographyTextSplitRatio(OH_Drawing_TypographyStyle* style, float textSplitRatio)
@@ -2059,19 +1715,11 @@ OH_Drawing_TextStyle* OH_Drawing_TypographyGetTextStyle(OH_Drawing_TypographySty
     if (!style) {
         return nullptr;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
     TextStyle* originalTextStyle = new (std::nothrow) TextStyle;
     if (!originalTextStyle) {
         return nullptr;
     }
     *originalTextStyle = ConvertToOriginalText<TypographyStyle>(style)->GetTextStyle();
-#else
-    TextStyle* originalTextStyle = new (std::nothrow) TextStyle;
-    if (!originalTextStyle) {
-        return nullptr;
-    }
-    *originalTextStyle = ConvertToOriginalText<TypographyStyle>(style)->GetTextStyle();
-#endif
     return (OH_Drawing_TextStyle*)originalTextStyle;
 }
 
@@ -2080,11 +1728,7 @@ int OH_Drawing_TypographyGetEffectiveAlignment(OH_Drawing_TypographyStyle* style
     if (!style) {
         return 0;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    TextAlign originalTextAlign = ConvertToOriginalText<TypographyStyle>(style)->EffectiveAlign();
-#else
     TextAlign originalTextAlign = ConvertToOriginalText<TypographyStyle>(style)->GetEffectiveAlign();
-#endif
     return static_cast<int>(originalTextAlign);
 }
 
@@ -2093,11 +1737,7 @@ bool OH_Drawing_TypographyIsLineUnlimited(OH_Drawing_TypographyStyle* style)
     if (!style) {
         return false;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    return ConvertToOriginalText<TypographyStyle>(style)->UnlimitedLines();
-#else
     return ConvertToOriginalText<TypographyStyle>(style)->IsUnlimitedLines();
-#endif
 }
 
 bool OH_Drawing_TypographyIsEllipsized(OH_Drawing_TypographyStyle* style)
@@ -2105,11 +1745,7 @@ bool OH_Drawing_TypographyIsEllipsized(OH_Drawing_TypographyStyle* style)
     if (!style) {
         return false;
     }
-#ifndef USE_GRAPHIC_TEXT_GINE
-    return ConvertToOriginalText<TypographyStyle>(style)->Ellipsized();
-#else
     return ConvertToOriginalText<TypographyStyle>(style)->IsEllipsized();
-#endif
 }
 
 void OH_Drawing_SetTypographyTextEllipsis(OH_Drawing_TypographyStyle* style, const char* ellipsis)
@@ -2119,11 +1755,7 @@ void OH_Drawing_SetTypographyTextEllipsis(OH_Drawing_TypographyStyle* style, con
     }
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
     std::u16string u16Ellipsis = converter.from_bytes(ellipsis);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyStyle>(style)->ellipsis_ = u16Ellipsis;
-#else
     ConvertToOriginalText<TypographyStyle>(style)->ellipsis = u16Ellipsis;
-#endif
 }
 
 void OH_Drawing_TextStyleSetBackgroundRect(
@@ -2236,7 +1868,7 @@ void OH_Drawing_TextStyleDestroyFontFeatures(OH_Drawing_FontFeature* fontFeature
         if ((fontFeature + i)->tag == nullptr) {
             continue;
         }
-        delete[] (fontFeature + i)->tag;
+        delete[](fontFeature + i)->tag;
         (fontFeature + i)->tag = nullptr;
     }
     delete[] fontFeature;
@@ -2731,7 +2363,7 @@ static void ResetString(char** ptr)
     if (!ptr || !(*ptr)) {
         return;
     }
-    delete[] (*ptr);
+    delete[](*ptr);
     (*ptr) = nullptr;
 }
 
@@ -2745,7 +2377,7 @@ static void ResetDrawingAliasInfoSet(OH_Drawing_FontAliasInfo** aliasInfoArray, 
         ResetString(&((*aliasInfoArray)[i].familyName));
     }
 
-    delete[] (*aliasInfoArray);
+    delete[](*aliasInfoArray);
     (*aliasInfoArray) = nullptr;
     aliasInfoSize = 0;
 }
@@ -2781,7 +2413,7 @@ static void ResetDrawingAdjustInfo(OH_Drawing_FontAdjustInfo** adjustInfoArray, 
     if (adjustInfoArray == nullptr || *adjustInfoArray == nullptr) {
         return;
     }
-    delete[] (*adjustInfoArray);
+    delete[](*adjustInfoArray);
     (*adjustInfoArray) = nullptr;
     adjustInfoSize = 0;
 }
@@ -2835,7 +2467,7 @@ static void ResetDrawingFontGenericInfoSet(
         ResetDrawingFontGenericInfo((*fontGenericInfoArray)[i]);
     }
 
-    delete[] (*fontGenericInfoArray);
+    delete[](*fontGenericInfoArray);
     (*fontGenericInfoArray) = nullptr;
     fontGenericInfoSize = 0;
 }
@@ -2881,7 +2513,7 @@ static void ResetDrawingFallbackInfoSet(OH_Drawing_FontFallbackInfo** fallbackIn
     for (size_t i = 0; i < fallbackInfoSize; i++) {
         ResetDrawingFallbackInfo((*fallbackInfoArray)[i]);
     }
-    delete[] (*fallbackInfoArray);
+    delete[](*fallbackInfoArray);
     (*fallbackInfoArray) = nullptr;
     fallbackInfoSize = 0;
 }
@@ -2929,7 +2561,7 @@ static void ResetDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** fallback
     for (size_t i = 0; i < fallbackGroupSize; i++) {
         ResetDrawingFallbackGroup((*fallbackGroupArray)[i]);
     }
-    delete[] (*fallbackGroupArray);
+    delete[](*fallbackGroupArray);
     (*fallbackGroupArray) = nullptr;
     fallbackGroupSize = 0;
 }
@@ -2977,10 +2609,10 @@ static void ResetStringArray(char*** ptr, size_t& charArraySize)
         if (!((*ptr)[i])) {
             continue;
         }
-        delete[] ((*ptr)[i]);
+        delete[]((*ptr)[i]);
         ((*ptr)[i]) = nullptr;
     }
-    delete[] (*ptr);
+    delete[](*ptr);
     (*ptr) = nullptr;
     charArraySize = 0;
 }
@@ -3732,12 +3364,7 @@ void OH_Drawing_TypographyDestroyTextBox(OH_Drawing_TextBox* textBox)
         return;
     }
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-    std::vector<TypographyProperties::TextBox>* textRectArr =
-        ConvertToOriginalText<std::vector<TypographyProperties::TextBox>>(textBox);
-#else
     std::vector<TextRect>* textRectArr = ConvertToOriginalText<std::vector<TextRect>>(textBox);
-#endif
 
     if (!textRectArr) {
         return;

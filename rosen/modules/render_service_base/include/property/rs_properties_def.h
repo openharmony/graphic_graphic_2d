@@ -136,6 +136,11 @@ struct RSDynamicBrightnessPara {
         fraction_ = 1.0f;
     }
 
+    inline bool IsValid() const
+    {
+        return ROSEN_LNE(fraction_, 1.0);
+    }
+
     bool operator==(const RSDynamicBrightnessPara& other) const
     {
         return (rates_ == other.rates_ && saturation_ == other.saturation_ && posCoeff_ == other.posCoeff_ &&

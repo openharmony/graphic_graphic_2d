@@ -482,27 +482,12 @@ constexpr std::array borderDirtyTypes = {
     RSDrawableSlot::BACKGROUND_SHADER,
     RSDrawableSlot::BACKGROUND_IMAGE,
 };
-constexpr std::array fuzeSkipDirtyTypes = {
-    RSDrawableSlot::USE_EFFECT,
-    RSDrawableSlot::BACKGROUND_STYLE,
-    RSDrawableSlot::DYNAMIC_LIGHT_UP,
-    RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY,
-    RSDrawableSlot::FRAME_OFFSET,
-    RSDrawableSlot::CLIP_TO_FRAME,
-    RSDrawableSlot::CONTENT_STYLE,
-    RSDrawableSlot::CHILDREN,
-    RSDrawableSlot::FOREGROUND_STYLE,
-    RSDrawableSlot::FG_CLIP_TO_BOUNDS,
-    RSDrawableSlot::BINARIZATION,
-    RSDrawableSlot::COLOR_FILTER,
-    RSDrawableSlot::LIGHT_UP_EFFECT,
-    RSDrawableSlot::DYNAMIC_DIM,
-    RSDrawableSlot::COMPOSITING_FILTER,
-    RSDrawableSlot::FOREGROUND_COLOR,
-    RSDrawableSlot::POINT_LIGHT,
-    RSDrawableSlot::BORDER,
-    RSDrawableSlot::OVERLAY,
-    RSDrawableSlot::PARTICLE_EFFECT,
+const std::unordered_set<RSDrawableSlot> fuzeStretchBlurSafeList = {
+    RSDrawableSlot::BG_RESTORE_BOUNDS,
+    RSDrawableSlot::SAVE_FRAME,
+    RSDrawableSlot::RESTORE_FRAME,
+    RSDrawableSlot::FG_SAVE_BOUNDS,
+    RSDrawableSlot::FG_RESTORE_BOUNDS,
 };
 template<std::size_t SIZE>
 inline void MarkAffectedSlots(const std::array<RSDrawableSlot, SIZE>& affectedSlots, const RSDrawable::Vec& drawableVec,
@@ -576,63 +561,12 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     return dirtySlots;
 }
 
-void AddPixelStretchDrawableSlot(const RSRenderNode& node, std::unordered_set<RSDrawableSlot>& dirtySlots,
-                                 RSDrawable::Vec& drawableVec, bool& drawableAddedOrRemoved)
-{
-    dirtySlots.emplace(RSDrawableSlot::PIXEL_STRETCH);
-    auto& filterDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)];
-    auto bgFilterDrawable = std::static_pointer_cast<RSBackgroundFilterDrawable>(filterDrawable);
-    
-    // If pixel stretch and background filter both exist and there is no slot in fuzeSkipDirtyTypes,
-    // and the grey adjustment exists, we fuze the blur with pixel stretch using the MESA algorithm.
-    // These restrictions guarantee the specifications unchanged when fusing.
-    bool canFuze = RSSystemProperties::GetMESABlurFuzedEnabled() &&
-                   dirtySlots.count(RSDrawableSlot::BACKGROUND_FILTER) &&
-                   bgFilterDrawable && bgFilterDrawable->CheckIsMESABlur();
-    if (canFuze) {
-        for (const auto& slot : fuzeSkipDirtyTypes) {
-            if (drawableVec[static_cast<size_t>(slot)]) {
-                canFuze = false;
-                break;
-            }
-        }
-    }
-    // update pixelStretch drawable slot
-    if (auto& drawable = drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
-        // If the slot is already created, call OnUpdate
-        if (canFuze || !drawable->OnUpdate(node)) {
-            // If the slot is no longer needed or can be fuzed with the blur, destroy it
-            drawable.reset();
-            drawableAddedOrRemoved = true;
-        }
-    } else if (!canFuze) {
-        auto& generator = g_drawableGeneratorLut[static_cast<int>(RSDrawableSlot::PIXEL_STRETCH)];
-        // If the slot is not created and not fuzed with the blur, call OnGenerate
-        // In this case, we draw pixel stretch in the original way
-        if (auto drawable = generator(node)) {
-            drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)] = std::move(drawable);
-            drawableAddedOrRemoved = true;
-        }
-        if (bgFilterDrawable && bgFilterDrawable->CheckIsMESABlur()) {
-            // remove pixel stretch params in the background filter
-            bgFilterDrawable->RemovePixelStretchParams();
-        }
-    }
-
-    return;
-}
-
 bool RSDrawable::UpdateDirtySlots(
     const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots)
 {
     // Step 2: Update or generate all dirty slots
     bool drawableAddedOrRemoved = false;
-    // Deal with the pixel stretch at the end if MESABlurFuzed is enabled
-    bool pixelStretchDirty = false;
-    if (RSSystemProperties::GetMESABlurFuzedEnabled() && dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH)) {
-        pixelStretchDirty = true;
-        dirtySlots.erase(RSDrawableSlot::PIXEL_STRETCH);
-    }
+
     for (const auto& slot : dirtySlots) {
         if (auto& drawable = drawableVec[static_cast<size_t>(slot)]) {
             // If the slot is already created, call OnUpdate
@@ -649,12 +583,41 @@ bool RSDrawable::UpdateDirtySlots(
             }
         }
     }
-    // deal with the pixel stretch when MESABlurFuzed is enabled
-    if (pixelStretchDirty) {
-        AddPixelStretchDrawableSlot(node, dirtySlots, drawableVec, drawableAddedOrRemoved);
-    }
 
     return drawableAddedOrRemoved;
+}
+
+bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
+{
+    // fuze the pixel stretch with MESA blur
+    if (!RSSystemProperties::GetMESABlurFuzedEnabled() ||
+        !drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] ||
+        !drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
+        return false;
+    }
+    
+    auto &filterDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)];
+    auto bgFilterDrawable = std::static_pointer_cast<RSBackgroundFilterDrawable>(filterDrawable);
+    bgFilterDrawable->RemovePixelStretch();
+
+    auto &stretchDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)];
+    auto pixelStretchDrawable = std::static_pointer_cast<RSPixelStretchDrawable>(stretchDrawable);
+    pixelStretchDrawable->OnUpdate(node);
+
+    size_t start = static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
+    size_t end = static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH);
+    // We do not fuze if drawableSlots between BACKGROUND_FILTER and PIXEL_STRETCH exist
+    for (size_t ptr = start; ptr < end; ptr++) {
+        if (!fuzeStretchBlurSafeList.count(static_cast<RSDrawableSlot>(ptr)) && drawableVec[ptr]) {
+            return false;
+        }
+    }
+    if (bgFilterDrawable->FuzePixelStretch(node)) {
+        pixelStretchDrawable->SetPixelStretch(std::nullopt);
+        return true;
+    }
+
+    return false;
 }
 
 void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus)

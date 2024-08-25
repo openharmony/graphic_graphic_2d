@@ -320,14 +320,13 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     // Optional use cacheManager to draw filter
     if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
         std::shared_ptr<RSShaderFilter> rsShaderFilter =
-        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+            filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
             filter->SetSnapshotOutset(false);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter,
-            { false, shouldClearFilteredCache });
+        cacheManager->DrawFilter(*paintFilterCanvas, filter, shouldClearFilteredCache);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         return;
     }
@@ -405,6 +404,13 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         return;
     }
     auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
+    if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
+        if (canvas.GetDisableFilterCache()) {
+            foregroundFilter->DisableMotionBlur(true);
+        } else {
+            foregroundFilter->DisableMotionBlur(false);
+        }
+    }
 
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
         imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
@@ -476,7 +482,8 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect imageCache snapshot null");
         return;
     }
-    auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect));
+    auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect),
+        canvas->GetBrightnessRatio());
     canvas->SetEffectData(std::move(data));
 }
 
@@ -669,7 +676,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeBinarization
 }
 
 std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
-    const RSDynamicBrightnessPara& params)
+    const RSDynamicBrightnessPara& params, float ratio)
 {
     if (!RSSystemProperties::GetDynamicBrightnessEnabled()) {
         return nullptr;
@@ -682,6 +689,7 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightness
     }
 
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender");
+    builder->SetUniform("ubo_ratio", ratio);
     builder->SetUniform("ubo_fract", std::clamp(params.fraction_, 0.0f, 1.0f));
     builder->SetUniform("ubo_cubic", params.rates_.x_);
     builder->SetUniform("ubo_quad", params.rates_.y_);
@@ -701,6 +709,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
 {
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBuilder");
     static constexpr char prog[] = R"(
+        uniform half ubo_ratio;
         uniform half ubo_fract;
         uniform half ubo_rate;
         uniform half ubo_degree;
@@ -715,7 +724,11 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         uniform half ubo_negb;
 
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
-
+        const float eps = 1e-6;
+        half3 getUnpremulRGB(half4 color) {
+            half factor = 1.0 / (max(ubo_ratio, eps) * max(color.a, eps));
+            return clamp(color.rgb * factor, 0.0, 1.0);
+        }
         half3 gray(half3 x, half4 coeff) {
             return coeff.x * x * x * x + coeff.y * x * x + coeff.z * x + coeff.w;
         }
@@ -729,14 +742,13 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         }
         half4 main(half4 src, half4 dst) {
             half4 coeff = half4(ubo_cubic, ubo_quad, ubo_rate, ubo_degree);
-            half3 color = gray(dst.rgb / (dst.a + 0.000001), coeff); // restore alpha-premul first
+            half3 color = gray(getUnpremulRGB(dst), coeff);
             half3 pos = half3(ubo_posr, ubo_posg, ubo_posb);
             half3 neg = half3(ubo_negr, ubo_negg, ubo_negb);
             color = sat(color, ubo_baseSat, pos, neg);
             color = clamp(color, 0.0, 1.0);
-            color = mix(color, src.rgb, ubo_fract);
-            half4 res = half4(mix(dst.rgb, color, src.a), 1.0);
-            return dst.a * res; // alpha-premul
+            color = mix(color, getUnpremulRGB(src), ubo_fract);
+            return half4(mix(dst.rgb, color * ubo_ratio * dst.a, src.a), dst.a);
         }
     )";
     if (dynamicBrightnessBlenderEffect_ == nullptr) {
@@ -926,8 +938,16 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 }
 
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-    const float& offsetY, const float& radius, Color spotColor)
+    const float& offsetY, const float& radius, const bool& isFilled, Color spotColor)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawShadowMaskFilter, Radius: %f, ShadowOffsetX: "
+        "%f, ShadowOffsetY: %f, bounds: %s",
+        radius, offsetX, offsetY, path.GetBounds().ToString().c_str());
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    if (!isFilled) {
+        canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+    }
     path.Offset(offsetX, offsetY);
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(
@@ -963,6 +983,14 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
     }
     Drawing::Brush brush;
     brush.SetForceBrightnessDisable(true);
+    float cachedBrightnessRatio = effectData->cachedBrightnessRatio_;
+    float newBrightnessRatio = canvas->GetBrightnessRatio();
+    if (auto colorFilter = RSPropertyDrawableUtils::CreateColorFilterForHDR(
+        cachedBrightnessRatio, newBrightnessRatio)) {
+        Drawing::Filter filter;
+        filter.SetColorFilter(colorFilter);
+        brush.SetFilter(filter);
+    }
     canvas->AttachBrush(brush);
     // Draw the cached image in the coordinate system where the effect data is generated. The image content
     // outside the device clip bounds will be automatically clipped.
@@ -1209,6 +1237,12 @@ bool RSPropertyDrawableUtils::RSFilterSetPixelStretch(const RSProperties& proper
         return false;
     }
 
+    constexpr static float EPS = 1e-5f;
+    // The pixel stretch is fuzed only when the stretch factors are negative
+    if (pixelStretch->x_ > EPS || pixelStretch->y_ > EPS || pixelStretch->z_ > EPS || pixelStretch->w_ > EPS) {
+        return false;
+    }
+
     ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch fuzed with MESABlur.");
     const auto& boundsRect = property.GetBoundsRect();
     auto tileMode = property.GetPixelStretchTileMode();
@@ -1240,6 +1274,20 @@ void RSPropertyDrawableUtils::RSFilterRemovePixelStretch(const std::shared_ptr<R
     std::shared_ptr<RSPixelStretchParams> pixelStretchParams = nullptr;
     mesaBlurFilter->SetPixelStretchParams(pixelStretchParams);
     return;
+}
+
+std::shared_ptr<Drawing::ColorFilter> RSPropertyDrawableUtils::CreateColorFilterForHDR(float cachedBrightnessRatio,
+    float newBrightnessRatio)
+{
+    if (ROSEN_EQ(cachedBrightnessRatio, newBrightnessRatio) || ROSEN_EQ(cachedBrightnessRatio, 0.f)) {
+        return nullptr;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::CreateColorFilterForHDR Create a colorfilter for hdr,"
+        " cached brightness ratio: %lf, new brightness ratio: %lf", cachedBrightnessRatio, newBrightnessRatio);
+    float ratio = newBrightnessRatio / cachedBrightnessRatio;
+    Drawing::ColorMatrix scaleMatrix;
+    scaleMatrix.SetScale(ratio, ratio, ratio, 1.f);
+    return std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX, scaleMatrix);
 }
 } // namespace Rosen
 } // namespace OHOS

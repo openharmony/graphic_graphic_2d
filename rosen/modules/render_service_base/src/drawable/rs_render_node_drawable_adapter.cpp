@@ -211,7 +211,7 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
             return;
         }
     }
-    
+
     drawCmdList_[index](&canvas, &rect);
 }
 
@@ -475,4 +475,29 @@ void RSRenderNodeDrawableAdapter::TryClearSurfaceOnSync()
     }
     clearSurfaceTask_();
 }
+
+bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
+{
+    bool val = false;
+    if (backgroundFilterDrawable_) {
+        val = val || backgroundFilterDrawable_->IsFilterCacheValidForOcclusion();
+    }
+    if (compositingFilterDrawable_) {
+        val = val || compositingFilterDrawable_->IsFilterCacheValidForOcclusion();
+    }
+    return val;
+}
+
+const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
+{
+    RectI rect{0, 0, 0, 0};
+    if (compositingFilterDrawable_) {
+        return compositingFilterDrawable_->GetFilterCachedRegion();
+    } else if (backgroundFilterDrawable_) {
+        return backgroundFilterDrawable_->GetFilterCachedRegion();
+    } else {
+        return rect;
+    }
+}
+
 } // namespace OHOS::Rosen::DrawableV2

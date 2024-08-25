@@ -85,10 +85,6 @@ template("skia_libtxt") {
         current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
         current_os == "android" || current_os == "ios"
 
-    if (is_cross_platform) {
-      defines += [ "TXT_TRACE_DISABLE" ]
-    }
-
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [
         "USE_ROSEN_DRAWING",

@@ -236,5 +236,90 @@ HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest008, TestSize.Level1)
     EXPECT_EQ(imageChain, nullptr);
     system("rm -rf test.json");
 }
+
+/**
+ * @tc.name: BuilderCreateFromConfigTest009
+ * @tc.desc: Ensure the ability of creating effect chain from config file.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest009, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectChainUnittest BuilderCreateFromConfigTest009 start";
+    /**
+     * @tc.steps: step1. Create a builder pointer
+     */
+    std::unique_ptr<Builder> builder = std::make_unique<Builder>();
+    /**
+     * @tc.steps: step2. Call createFromConfig to load file
+     */
+    const std::string jsonStr = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput", "params":
+        [ { "format": "png", "src": "/data/accounts/account_0/appdata/com.example.myapplication/files/
+        milk.png" }, { "format": "jpg", "src": "/data/accounts/account_0/appdata/com.example.myapplication/files/
+        milk.jpg" } ] } ], "connections" : [ {} ] })";
+    std::ofstream outFile;
+    outFile.open("test.json");
+    outFile << jsonStr.c_str() << std::endl;
+    outFile.close();
+
+    ImageChain* imageChain = builder->CreateFromConfig("test.json");
+    EXPECT_EQ(imageChain, nullptr);
+    system("rm -rf test.json");
+}
+
+/**
+ * @tc.name: BuilderCreateFromConfigTest010
+ * @tc.desc: Ensure the ability of creating effect chain from config file.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest010, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectChainUnittest BuilderCreateFromConfigTest010 start";
+    /**
+     * @tc.steps: step1. Create a builder pointer
+     */
+    std::unique_ptr<Builder> builder = std::make_unique<Builder>();
+    builder->ParseArray(nullptr, nullptr);
+
+    FilterFactory filterFactory;
+    auto tempFilter = filterFactory.GetFilter("Input");
+    builder->ParseArray(tempFilter, nullptr);
+
+    ImageChain* imageChain = builder->CreateFromConfig("");
+    EXPECT_EQ(imageChain, nullptr);
+}
+
+/**
+ * @tc.name: BuilderCreateFromConfigTest011
+ * @tc.desc: Ensure the ability of creating effect chain from config file.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(EffectChainUnittest, BuilderCreateFromConfigTest011, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectChainUnittest BuilderCreateFromConfigTest011 start";
+    /**
+     * @tc.steps: step1. Create a builder pointer
+     */
+    std::unique_ptr<Builder> builder = std::make_unique<Builder>();
+    /**
+     * @tc.steps: step2. Call createFromConfig to load file
+     */
+    const std::string jsonStr = R"({ "filters": [ { "type" : "Input", "name" : "myJPGInput", "params":
+        1 } ], "connections" : [ {} ] })";
+    std::ofstream outFile;
+    outFile.open("test.json");
+    outFile << jsonStr.c_str() << std::endl;
+    outFile.close();
+
+    ImageChain* imageChain = builder->CreateFromConfig("test.json");
+    EXPECT_EQ(imageChain, nullptr);
+    system("rm -rf test.json");
+}
+
 } // namespace Rosen
 } // namespace OHOS

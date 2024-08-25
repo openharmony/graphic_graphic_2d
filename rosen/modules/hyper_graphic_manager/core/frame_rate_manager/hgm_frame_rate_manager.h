@@ -167,6 +167,8 @@ public:
     }
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
+        std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -189,7 +191,6 @@ private:
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
-    static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange(const std::string& voter = "");
     bool IsCurrentScreenSupportAS();
     void ProcessAdaptiveSync(std::string voterName);

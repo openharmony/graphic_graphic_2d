@@ -431,6 +431,16 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    defaultDeviceRotationOffset_ = offset;
+}
+
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+{
+    return defaultDeviceRotationOffset_;
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
@@ -881,9 +891,9 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
 
 bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
 {
-    static bool drawFilterWithoutSnahpshotEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.drawFilterWithoutSnahpshot", "0").c_str()) != 0);
-        return drawFilterWithoutSnahpshotEnabled;
+    static bool drawFilterWithoutSnapshotEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.drawFilterWithoutSnapshot", "0").c_str()) != 0);
+    return drawFilterWithoutSnapshotEnabled;
 }
 
 bool RSSystemProperties::GetBlurExtraFilterEnabled()
@@ -891,6 +901,13 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     static bool blurExtraFilterEnabled =
         (std::atoi(system::GetParameter("persist.sys.graphic.blurExtraFilter", "0").c_str()) != 0);
     return blurExtraFilterEnabled;
+}
+
+bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
+{
+    static bool discardCanvasBeforeFilterEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.discardCanvasBeforeFilter", "1").c_str()) != 0);
+    return discardCanvasBeforeFilterEnabled;
 }
 
 bool RSSystemProperties::GetPurgeBetweenFramesEnabled()

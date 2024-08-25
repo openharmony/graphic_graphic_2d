@@ -22,13 +22,14 @@
 #include "common/rs_rect.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier/rs_modifier_type.h"
-#include "property/rs_properties_def.h"
 #include "recording/draw_cmd_list.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
+enum class ForegroundColorStrategyType;
+enum class Gravity;
 
 enum PropertyUpdateType : int8_t {
     UPDATE_TYPE_OVERWRITE,       // overwrite by given value

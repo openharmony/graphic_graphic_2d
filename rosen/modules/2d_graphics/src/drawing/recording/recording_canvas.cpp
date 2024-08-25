@@ -66,10 +66,12 @@ void RecordingCanvas::Reset(int32_t width, int32_t height, bool addDrawOpImmedia
     cmdList_ = std::make_shared<DrawCmdList>(width, height, mode);
     addDrawOpImmediate_ = addDrawOpImmediate;
     isCustomTextType_ = false;
+    isCustomTypeface_ = false;
     customTextBrush_ = std::nullopt;
     customTextPen_ = std::nullopt;
     saveOpStateStack_ = std::stack<SaveOpState>();
     gpuContext_ = nullptr;
+    opCount = 0;
     RemoveAll();
     DetachBrush();
     DetachPen();
@@ -217,6 +219,9 @@ void RecordingCanvas::DrawShadowStyle(const Path& path, const Point3& planeParam
 
 void RecordingCanvas::DrawRegion(const Region& region)
 {
+    if (region.IsEmpty()) {
+        return;
+    }
     if (!addDrawOpImmediate_) {
         AddDrawOpDeferred<DrawRegionOpItem>(region);
         return;
@@ -286,6 +291,9 @@ void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
 void RecordingCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
 {
+    if (!atlas) {
+        return;
+    }
     std::vector<RSXform> xformVec(xform, xform + count);
     std::vector<Rect> texVec(tex, tex + count);
     std::vector<ColorQuad> colorVec;
@@ -353,6 +361,36 @@ void RecordingCanvas::DrawImageRect(const Image& image, const Rect& dst, const S
     Rect src(0, 0, image.GetWidth(), image.GetHeight());
     AddDrawOpImmediate<DrawImageRectOpItem::ConstructorHandle>(
         imageHandle, src, dst, sampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+}
+
+void RecordingCanvas::DrawRecordCmd(const std::shared_ptr<RecordCmd> recordCmd,
+    const Matrix* matrix, const Brush* brush)
+{
+    if (recordCmd == nullptr) {
+        LOGE("RecordingCanvas::DrawRecordCmd, recordCmd is nullptr!");
+        return;
+    }
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<DrawRecordCmdOpItem>(recordCmd, matrix, brush));
+        return;
+    }
+
+    BrushHandle brushHandle;
+    bool hasBrush = false;
+    if (brush != nullptr) {
+        hasBrush = true;
+        DrawOpItem::BrushToBrushHandle(*brush, *cmdList_, brushHandle);
+    }
+
+    Matrix layerMatrix;
+    Matrix::Buffer layerMatrixBuffer;
+    if (matrix != nullptr) {
+        layerMatrix = *matrix;
+    }
+    layerMatrix.GetAll(layerMatrixBuffer);
+    auto recordCmdHandle = CmdListHelper::AddRecordCmdToCmdList(*cmdList_, recordCmd);
+    cmdList_->AddDrawOp<DrawRecordCmdOpItem::ConstructorHandle>(recordCmdHandle,
+        layerMatrixBuffer, hasBrush, brushHandle);
 }
 
 void RecordingCanvas::DrawPicture(const Picture& picture)

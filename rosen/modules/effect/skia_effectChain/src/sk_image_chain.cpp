@@ -94,6 +94,17 @@ bool SKImageChain::CreateGPUCanvas()
 #endif
 }
 
+void SKImageChain::DestroyGPUCanvas()
+{
+#ifdef ACE_ENABLE_GL
+    if (gpuSurface_) {
+        canvas_ = nullptr;
+        gpuSurface_ = nullptr;
+    }
+    EglManager::GetInstance().Deinit();
+#endif
+}
+
 void SKImageChain::ForceCPU(bool forceCPU)
 {
     if (forceCPU_ == forceCPU) {
@@ -149,25 +160,29 @@ std::shared_ptr<Media::PixelMap> SKImageChain::GetPixelMap()
     return dstPixelMap_;
 }
 
-void SKImageChain::Draw()
+DrawError SKImageChain::Draw()
 {
     if (canvas_ == nullptr) {
         InitWithoutCanvas();
         if (forceCPU_) {
             if (!CreateCPUCanvas()) {
                 LOGE("Failed to create canvas for CPU.");
-                return;
+                return DrawError::ERR_CPU_CANVAS;
             }
         } else {
             if (!CreateGPUCanvas()) {
                 LOGE("Failed to create canvas for GPU.");
-                return;
+                DestroyGPUCanvas();
+                return DrawError::ERR_GPU_CANVAS;
             }
         }
     }
     if (image_ == nullptr) {
         LOGE("The image_ is nullptr, nothing to draw.");
-        return;
+        if (!forceCPU_) {
+            DestroyGPUCanvas();
+        }
+        return DrawError::ERR_IMAGE_NULL;
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SKImageChain::Draw");
     SkPaint paint;
@@ -194,7 +209,12 @@ void SKImageChain::Draw()
         }
     }
     canvas_->restore();
+
+    if (!forceCPU_) {
+        DestroyGPUCanvas();
+    }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawError::ERR_OK;
 }
 
 SkColorType SKImageChain::PixelFormatConvert(const Media::PixelFormat& pixelFormat)

@@ -39,5 +39,7 @@ ohos_shared_library("libbootanimation_utils") {
   ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+
+  branch_protector_ret = "pac_ret"
 }
 ## Build libbootanimation_utils.so }}}

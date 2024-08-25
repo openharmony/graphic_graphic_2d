@@ -21,6 +21,7 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -63,6 +64,17 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
     (void)(count);
     return nullptr;
 }
+
+class ApplicationAgentImpl : public IRemoteStub<IApplicationAgent> {
+public:
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override
+    {
+        return 0;
+    }
+    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override
+    {
+    }
+};
 
 /**
  * @tc.name: Start001
@@ -3655,9 +3667,128 @@ HWTEST_F(RSMainThreadTest, ResetAnimateNodeFlag, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->context_ = std::make_shared<RSContext>();
+    auto context = mainThread->context_;
     mainThread->ResetAnimateNodeFlag();
     mainThread->context_ = nullptr;
     mainThread->ResetAnimateNodeFlag();
+    mainThread->context_ = context;
+}
+
+/**
+ * @tc.name: ConfigureRenderService
+ * @tc.desc: test ConfigureRenderService before and after LoadConfigXml
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ConfigureRenderService, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ConfigureRenderService();
+    ASSERT_TRUE(RSGraphicConfig::LoadConfigXml());
+    mainThread->ConfigureRenderService();
+}
+
+/**
+ * @tc.name: SendClientDumpNodeTreeCommands
+ * @tc.desc: test SendClientDumpNodeTreeCommands
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, SendClientDumpNodeTreeCommands, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    NodeId testId = 1;
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(testId++, RSDisplayNodeConfig {});
+    rootNode->AddChild(displayNode);
+    auto node1 = std::make_shared<RSRenderNode>(testId++);
+    displayNode->AddChild(node1);
+    rootNode->GenerateFullChildrenList();
+    displayNode->GenerateFullChildrenList();
+
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(testId++, mainThread->context_);
+    node1->AddChild(node2);
+    auto node3 = std::make_shared<RSRootRenderNode>(testId++, mainThread->context_);
+    node2->AddChild(node3);
+    node3->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().FilterNodeByPid(0);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+
+    uint32_t taskId = 0;
+    sptr<ApplicationAgentImpl> agent = new ApplicationAgentImpl();
+    mainThread->RegisterApplicationAgent(0, agent);
+    mainThread->SendClientDumpNodeTreeCommands(taskId);
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_[taskId].count > 0);
+
+    mainThread->SendClientDumpNodeTreeCommands(taskId);
+    rootNode->RemoveChild(displayNode);
+}
+
+/**
+ * @tc.name: CollectClientNodeTreeResult
+ * @tc.desc: test CollectClientNodeTreeResult
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, CollectClientNodeTreeResult, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    uint32_t taskId = 0;
+    auto& task = mainThread->nodeTreeDumpTasks_[taskId];
+    task.data[0] = "testData";
+    task.count++;
+
+    std::string out;
+    mainThread->CollectClientNodeTreeResult(taskId, out, 1);
+    ASSERT_TRUE(!out.empty());
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
+}
+
+/**
+ * @tc.name: OnDrawingCacheDfxSwitchCallback
+ * @tc.desc: test OnDrawingCacheDfxSwitchCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIALU2Y
+ */
+HWTEST_F(RSMainThreadTest, OnDrawingCacheDfxSwitchCallback, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSMainThread::OnDrawingCacheDfxSwitchCallback("persist", "1", nullptr);
+    RSMainThread::OnDrawingCacheDfxSwitchCallback("rosen.drawingCache.enabledDfx", "1", nullptr);
+}
+
+
+/**
+ * @tc.name: OnDumpClientNodeTree
+ * @tc.desc: test OnDumpClientNodeTree
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, OnDumpClientNodeTree, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    uint32_t taskId = 0;
+    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
+
+    auto& task = mainThread->nodeTreeDumpTasks_[taskId];
+    task.count++;
+
+    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
+    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_[taskId].data.empty());
 }
 } // namespace OHOS::Rosen

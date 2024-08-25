@@ -69,16 +69,6 @@ private:
     int stagingColorStrategy_;
 };
 
-class RSMaskShadowDrawable : public RSPropertyDrawable {
-public:
-    RSMaskShadowDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
-    RSMaskShadowDrawable() = default;
-    bool OnUpdate(const RSRenderNode& node) override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-};
-
 class RSMaskDrawable : public RSPropertyDrawable {
 public:
     RSMaskDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList)) {}
@@ -151,10 +141,8 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    void RemovePixelStretchParams();
-    bool CheckIsMESABlur();
-private:
-    bool isMESABlur_ = false;
+    void RemovePixelStretch();
+    bool FuzePixelStretch(const RSRenderNode& node);
 };
 
 class RSBackgroundEffectDrawable : public RSFilterDrawable {

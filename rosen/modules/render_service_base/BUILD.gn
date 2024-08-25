@@ -206,6 +206,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_occlusion_config.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
+    "src/pipeline/rs_record_cmd_utils.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
     "src/pipeline/rs_render_content.cpp",
     "src/pipeline/rs_render_display_sync.cpp",
@@ -567,11 +568,6 @@ ohos_source_set("render_service_base_src") {
     ]
   }
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
-
-  if (defined(graphic_2d_ext_configs.vendor_root)) {
-    sources -= graphic_2d_ext_configs.librender_service_base_ext_sources_del
-    sources += graphic_2d_ext_configs.librender_service_base_ext_sources
-  }
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {

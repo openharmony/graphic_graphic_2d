@@ -126,7 +126,6 @@ private:
 #define RS_LOGF(format, ...) \
     HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
 
-#ifdef NOT_BUILD_FOR_OHOS_SDK
 #define CONDITION(cond)     (__builtin_expect((cond) != 0, 0))
 
 #ifndef RS_LOGD_IF
@@ -162,13 +161,6 @@ private:
     ( (CONDITION(cond)) \
     ? ((void)HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)) \
     : (void)0)
-#endif
-#else
-#define RS_LOGD_IF(cond, format, ...) ((void)0)
-#define RS_LOGI_IF(cond, format, ...) ((void)0)
-#define RS_LOGW_IF(cond, format, ...) ((void)0)
-#define RS_LOGE_IF(cond, format, ...) ((void)0)
-#define RS_LOGF_IF(cond, format, ...) ((void)0)
 #endif
 
 #ifndef ROSEN_LOGD_IF

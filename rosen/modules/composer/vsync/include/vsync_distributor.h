@@ -45,6 +45,7 @@ struct ConnectionInfo {
         this->name_ = name;
     }
 };
+typedef void (*GCNotifyTask)(bool);
 
 class VSyncConnection : public VSyncConnectionStub {
 public:
@@ -62,6 +63,10 @@ public:
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
 
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
+    inline void SetGCNotifyTask(GCNotifyTask hook)
+    {
+        gcNotifyTask_ = hook;
+    }
 
     int32_t rate_; // used for LTPS
     int32_t highPriorityRate_ = -1;
@@ -88,6 +93,7 @@ private:
     private:
         wptr<VSyncConnection> conn_;
     };
+    GCNotifyTask gcNotifyTask_ = nullptr;
     sptr<VSyncConnectionDeathRecipient> vsyncConnDeathRecipient_ = nullptr;
     sptr<IRemoteObject> token_ = nullptr;
     // Circular reference， need check
