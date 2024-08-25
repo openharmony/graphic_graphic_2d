@@ -16,9 +16,9 @@
 #ifndef TYPEFACE_H
 #define TYPEFACE_H
 
-#include <cstdint>
 #include <functional>
 #include <memory>
+#include <cstdint>
 
 #include "impl_interface/typeface_impl.h"
 #include "text/font_arguments.h"

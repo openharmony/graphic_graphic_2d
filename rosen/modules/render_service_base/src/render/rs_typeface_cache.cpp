@@ -55,7 +55,7 @@ uint32_t RSTypefaceCache::GetTypefaceId(uint64_t uniqueId)
 
 bool RSTypefaceCache::AddIfFound(uint64_t uniqueId, uint32_t hash)
 {
-    auto iterator = typefaceHashMap_.find(hash);
+    std::unordered_map<uint64_t, TypefaceTuple>::iterator iterator = typefaceHashMap_.find(hash);
     if (iterator != typefaceHashMap_.end()) {
         typefaceHashCode_[uniqueId] = hash;
         std::get<1>(iterator->second)++;
@@ -80,7 +80,7 @@ bool RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
         }
 
         // check if someone else is about to register this typeface -> queue uid
-        auto iterator = typefaceHashQueue_.find(hash);
+        std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash);
         if (iterator != typefaceHashQueue_.end()) {
             iterator->second.push_back(uniqueId);
             return true;
@@ -125,10 +125,10 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
     }
     typefaceHashMap_[hash_value] = std::make_tuple(typeface, 1);
     // register queued entries
-    auto iterator = typefaceHashQueue_.find(hash_value);
+    std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash_value);
     if (iterator != typefaceHashQueue_.end()) {
         while (iterator->second.size()) {
-            auto back = iterator->second.back();
+            uint64_t back = iterator->second.back();
             if (back != uniqueId) {
                 AddIfFound(back, hash_value);
             }
@@ -163,7 +163,7 @@ static void g_removeHashMap(std::unordered_map<uint64_t, TypefaceTuple>& typefac
 {
     if (typefaceHashMap.find(hash_value) != typefaceHashMap.end()) {
         auto [typeface, ref] = typefaceHashMap[hash_value];
-        if (ref == 1) {
+        if (ref <= 1) {
             typefaceHashMap.erase(hash_value);
         } else {
             typefaceHashMap[hash_value] = std::make_tuple(typeface, ref - 1);

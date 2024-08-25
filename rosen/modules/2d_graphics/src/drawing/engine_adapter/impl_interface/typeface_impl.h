@@ -42,12 +42,8 @@ public:
     virtual bool IsCustomTypeface() const = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     // provide default implementation for hashes
-    virtual uint32_t GetHash() const
-    {
-        return 0;
-    }
-
-    virtual void SetHash(uint32_t) {}
+    virtual uint32_t GetHash() const = 0;
+    virtual void SetHash(uint32_t) const = 0;
 
 protected:
     TypefaceImpl() noexcept = default;

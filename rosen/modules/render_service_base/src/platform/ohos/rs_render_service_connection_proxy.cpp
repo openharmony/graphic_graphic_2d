@@ -1881,7 +1881,7 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
         return false;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    auto hash = typeface->GetHash();
+    uint32_t hash = typeface->GetHash();
     data.WriteUint64(globalUniqueId);
     data.WriteUint32(hash);
 

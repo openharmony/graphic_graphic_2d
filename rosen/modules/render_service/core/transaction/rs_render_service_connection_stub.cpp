@@ -1212,7 +1212,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
             uint64_t uniqueId = data.ReadUint64();
             uint32_t hash = data.ReadUint32();
-            auto ret = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
+            bool ret = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
             reply.WriteBool(ret);
             break;
         }
