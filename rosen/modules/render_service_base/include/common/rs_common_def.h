@@ -407,7 +407,7 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
     return oldSize - container.size();
 }
 
-enum class AncoFlags : int32_t {
+enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001
 };
 
