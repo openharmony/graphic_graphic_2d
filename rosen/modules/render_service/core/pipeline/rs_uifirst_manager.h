@@ -138,6 +138,8 @@ public:
     void PostReleaseCacheSurfaceSubTasks();
     void PostReleaseCacheSurfaceSubTask(NodeId id);
     void TryReleaseTextureForIdleThread();
+    void CollectSkipSyncBuffer(std::vector<std::function<void()>>& tasks, NodeId id);
+    void ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks);
 
 private:
     RSUifirstManager();

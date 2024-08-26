@@ -50,8 +50,8 @@ public:
 
 #ifndef ROSEN_CROSS_PLATFORM
     struct BufferInfo {
-        const sptr<SurfaceBuffer> buffer;
-        const sptr<IConsumerSurface> consumer;
+        sptr<SurfaceBuffer> buffer;
+        sptr<IConsumerSurface> consumer;
         bool useFence = false;
     };
 #endif
@@ -93,7 +93,7 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    std::vector<BufferInfo>& GetMutableSkipSyncBuffer()
+    std::unordered_map<NodeId, BufferInfo>& GetMutableSkipSyncBuffer()
     {
         return skipSyncBuffer_;
     }
@@ -206,7 +206,7 @@ private:
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
 #ifndef ROSEN_CROSS_PLATFORM
-    std::vector<BufferInfo> skipSyncBuffer_;
+    std::unordered_map<NodeId, BufferInfo> skipSyncBuffer_;
 #endif
 
     friend class RSRenderThread;

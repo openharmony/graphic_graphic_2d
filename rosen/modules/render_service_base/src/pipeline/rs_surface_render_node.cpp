@@ -1062,8 +1062,8 @@ void RSSurfaceRenderNode::OnSkipSync()
         }
         auto context = GetContext().lock();
         if (context && !surfaceParams->GetHardwareEnabled()) {
-            context->GetMutableSkipSyncBuffer().push_back(
-                { preBuffer, GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
+            context->GetMutableSkipSyncBuffer()[GetFirstLevelNodeId()] = { preBuffer,
+                GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() };
             surfaceParams->SetPreBuffer(nullptr);
         }
     }
