@@ -1720,8 +1720,8 @@ void RSRenderNode::MapAndUpdateChildrenRect()
     if (auto parentNode = parent_.lock()) {
         auto childRelativeToParentMatrix = Drawing::Matrix();
         const auto& parentProperties = parentNode->GetRenderProperties();
-        auto parentGeoPtr = parentProperties.GetBoundsGeometry();
-        auto sandbox = GetRenderProperties().GetSandBox();
+        const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
+        const auto& sandbox = GetRenderProperties().GetSandBox();
         auto invertAbsParentMatrix = Drawing::Matrix();
         if (sandbox.has_value() && sharedTransitionParam_ &&
             parentGeoPtr->GetAbsMatrix().Invert(invertAbsParentMatrix)) {

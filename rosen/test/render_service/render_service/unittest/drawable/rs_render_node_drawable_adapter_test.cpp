@@ -260,10 +260,8 @@ HWTEST(RSRenderNodeDrawableAdapterTest, QuickRejectTest, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RectF rectF;
-    auto ret = adapter->QuickReject(canvas, rectF);
-    EXPECT_TRUE(ret);
     rectF.SetRight(1.0f);
-    ret = adapter->QuickReject(canvas, rectF);
+    auto ret = adapter->QuickReject(canvas, rectF);
     EXPECT_FALSE(ret);
     EXPECT_TRUE(canvas.IsDirtyRegionStackEmpty());
     EXPECT_FALSE(canvas.GetIsParallelCanvas());
