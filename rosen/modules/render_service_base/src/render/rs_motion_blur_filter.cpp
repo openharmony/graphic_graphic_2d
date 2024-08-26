@@ -120,6 +120,7 @@ void RSMotionBlurFilter::DrawMotionBlur(Drawing::Canvas& canvas, const std::shar
 
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();
@@ -241,6 +242,7 @@ void RSMotionBlurFilter::OutputOriginalImage(Drawing::Canvas& canvas, const std:
 
     Drawing::Brush brush;
     brush.SetShaderEffect(inputShader);
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();

@@ -135,7 +135,9 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                 ApplyCanvasClip(canvas);
             }
             if (innerRect_.has_value()) {
-                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+                Drawing::Brush brush;
+                ApplyHdrColorFilter(canvas, brush);
+                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
             } else if (HDRConvert(samplingOptions, canvas)) {
                 canvas.DrawRect(dst_);
             } else {
@@ -322,6 +324,16 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
     canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
 }
 
+void RSImage::ApplyHdrColorFilter(Drawing::Canvas& canvas, Drawing::Brush& brush)
+{
+    RSPaintFilterCanvas& paintFilterCanvas = static_cast<RSPaintFilterCanvas&>(canvas);
+    if (canvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
+        if (paintFilterCanvas.GetHDRPresent()) {
+            paintFilterCanvas.PaintFilter(brush);
+        }
+    }
+}
+
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pixelFormat)
 {
@@ -461,7 +473,9 @@ void RSImage::DrawImageOnCanvas(
         dst_.MakeOutset(1, 1);
     }
     if (innerRect_.has_value()) {
-        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+        Drawing::Brush brush;
+        ApplyHdrColorFilter(canvas, brush);
+        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
     } else if (hdrImageDraw) {
         canvas.DrawRect(dst_);
     } else {

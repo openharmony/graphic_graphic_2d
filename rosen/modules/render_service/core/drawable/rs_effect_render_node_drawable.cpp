@@ -93,6 +93,11 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
             return false;
         }
         auto offscreenCanvas = std::make_unique<RSPaintFilterCanvas>(offscreenSurface.get());
+        if (!offscreenCanvas || !paintFilterCanvas) {
+            return false;
+        }
+        offscreenCanvas->SetHDRPresent(paintFilterCanvas->GetHDRPresent());
+        offscreenCanvas->SetBrightnessRatio(paintFilterCanvas->GetBrightnessRatio());
         // copy current matrix to offscreen canvas, while aligned with current rect
         auto currentMatrix = canvas.GetTotalMatrix();
         currentMatrix.PostTranslate(-currentRect.GetLeft(), -currentRect.GetTop());
