@@ -434,6 +434,9 @@ std::string GELinearGradientBlurShaderFilter::GetDescription()
 
 std::string GELinearGradientBlurShaderFilter::GetDetailedDescription()
 {
+    if (!linearGradientBlurPara_) {
+        return "GELinearGradientBlurShaderFilterBlur, radius: unavailable";
+    }
     return "GELinearGradientBlurShaderFilterBlur, radius: " + std::to_string(linearGradientBlurPara_->blurRadius_);
 }
 } // namespace Rosen
