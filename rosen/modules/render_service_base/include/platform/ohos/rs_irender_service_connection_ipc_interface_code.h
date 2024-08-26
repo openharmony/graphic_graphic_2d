@@ -128,6 +128,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_VIRTUAL_SCREEN_STATUS,
     SET_ANCO_FORCE_DO_DIRECT,
     SET_VMA_CACHE_STATUS,
+    NEED_REGISTER_TYPEFACE,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

@@ -15,13 +15,14 @@
 
 #include "skia_typeface.h"
 
+#include "include/core/SkFontStyle.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkString.h"
-#include "include/core/SkFontStyle.h"
-
+#include "include/private/SkTHash.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_memory_stream.h"
+
 #include "utils/log.h"
 
 namespace OHOS {
@@ -279,6 +280,27 @@ std::shared_ptr<Typeface> SkiaTypeface::Deserialize(const void* data, size_t siz
     auto typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }
+
+uint32_t SkiaTypeface::GetHash() const
+{
+    if (hash_ != 0) {
+        return hash_;
+    }
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return hash_;
+    }
+
+    auto skData = skTypeface_->serialize(SkTypeface::SerializeBehavior::kDontIncludeData);
+    hash_ = SkOpts::hash_fn(skData->data(), skData->size(), 0);
+    return hash_;
+}
+
+void SkiaTypeface::SetHash(uint32_t hash)
+{
+    hash_ = hash;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
