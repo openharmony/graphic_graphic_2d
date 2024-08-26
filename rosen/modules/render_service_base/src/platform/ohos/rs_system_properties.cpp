@@ -719,6 +719,13 @@ bool RSSystemProperties::GetDumpImgEnabled()
     return dumpImgEnabled;
 }
 
+bool RSSystemProperties::GetTransactionTerminateEnabled()
+{
+    static bool terminateEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.transactionTerminateEnabled", "0")).c_str()) != 0;
+    return terminateEnabled;
+}
+
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
 {
     static std::string targetStr = system::GetParameter("persist.sys.graphic.traceTargetList", "");

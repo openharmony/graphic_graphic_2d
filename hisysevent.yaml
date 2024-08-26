@@ -170,3 +170,10 @@ GPU_SUBHEALTH_MONITORING:
   __BASE: {type: STATISTIC, level: MINOR, desc: GPU subhealth monitoring statistics}
   WAIT_ACQUIRE_FENCE_TIME: {type: UINT64, desc: wait acquire fence time}
   FRAME_RATE: {type: INT32, desc: real frame rate}
+
+COMMIT_TRANSACTION_DATA:
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: receive large commit transaction data}
+  PID: {type: INT32, desc: application pid}
+  UID: {type: INT32, desc: application uid}
+  BUNDLE_NAME: {type: STRING, desc: application package name}
+  TRANSACTION_DATA_SIZE: {type: UINT64, desc: total received transaction data size}

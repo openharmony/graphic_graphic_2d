@@ -17,6 +17,7 @@
 #define RS_UNMARSHAL_THREAD_H
 
 #include <mutex>
+#include <unordered_map>
 
 #include "event_handler.h"
 #include "ffrt_inner.h"
@@ -34,6 +35,9 @@ public:
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();
     void Wait();
+
+    bool ReportTransactionDataStatistics(pid_t pid, size_t dataSize, bool isNonSystemAppCalling);
+    void ClearTransactionDataStatistics();
 
 private:
     RSUnmarshalThread() = default;
@@ -56,6 +60,9 @@ private:
     int unmarshalTid_ = -1;
     int unmarshalLoad_ = 0;
     std::vector<ffrt::dependence> cachedDeps_;
+
+    std::mutex statisticsMutex_;
+    std::unordered_map<pid_t, size_t> transactionDataStatistics_;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H
