@@ -634,9 +634,6 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(DrawableV2::RSSurfaceRe
     }
     const auto& srcGraphicRect = params->GetLayerInfo().srcRect;
     RectI srcRect = {srcGraphicRect.x, srcGraphicRect.y, srcGraphicRect.w, srcGraphicRect.h};
-    if (surfaceDrawable.GetConsumerOnDraw() == nullptr) {
-        return srcRect;
-    }
     int left = srcRect.GetLeft();
     int top = srcRect.GetTop();
     int width = srcRect.GetWidth();

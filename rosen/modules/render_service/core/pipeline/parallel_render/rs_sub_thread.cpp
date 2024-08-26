@@ -45,7 +45,7 @@ namespace OHOS::Rosen {
 RSSubThread::~RSSubThread()
 {
     RS_LOGI("~RSSubThread():%{public}d", threadIndex_);
-    PostTask([this]() {
+    PostSyncTask([this]() {
         DestroyShareEglContext();
     });
 }
