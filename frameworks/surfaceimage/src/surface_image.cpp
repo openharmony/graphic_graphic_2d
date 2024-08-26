@@ -114,10 +114,10 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrix(currentTransformMatrix_, currentSurfaceBuffer_,
-        currentTransformType_, currentCrop_);
-    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, currentSurfaceBuffer_,
-        currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrix(currentTransformMatrix_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
 
     // wait on this acquireFence.
     if (acquireFence != nullptr) {
@@ -425,8 +425,8 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     currentCrop_ = damage;
     currentTransformType_ = ConsumerSurface::GetTransform();
     auto utils = SurfaceUtils::GetInstance();
-    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, currentSurfaceBuffer_,
-        currentTransformType_, currentCrop_);
+    utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, TRANSFORM_MATRIX_ELE_COUNT,
+        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
 
     *fenceFd = acquireFence->Dup();
     OHNativeWindowBuffer *nwBuffer = new(std::nothrow) OHNativeWindowBuffer();

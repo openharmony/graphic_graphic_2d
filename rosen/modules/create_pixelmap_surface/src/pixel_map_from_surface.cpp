@@ -520,7 +520,7 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
         0, 0, 1, 0,
         0, 0, 0, 1
     };
-    int ret = surface->AcquireLastFlushedBuffer(surfaceBuffer, fence, matrix, false);
+    int ret = surface->AcquireLastFlushedBuffer(surfaceBuffer, fence, matrix, 16, false); // 16 : matrix size
     if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
         RS_LOGE("GetLastFlushedBuffer fail");
         return nullptr;
