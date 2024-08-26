@@ -66,6 +66,7 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+}
 
 RSHardwareThread& RSHardwareThread::Instance()
 {
