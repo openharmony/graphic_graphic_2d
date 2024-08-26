@@ -1172,7 +1172,7 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 }
 
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-    RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams)
+    RectF localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams)
 {
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
