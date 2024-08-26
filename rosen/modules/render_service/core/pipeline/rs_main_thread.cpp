@@ -859,20 +859,23 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
             }
             RS_LOGD("RSMainThread::CheckParallelSubThreadNodesStatus pid = %{public}s, node name: %{public}s,"
                 "id: %{public}" PRIu64 "", std::to_string(pid).c_str(), node->GetName().c_str(), node->GetId());
-            if (cacheCmdSkippedInfo_.count(pid) == 0) {
-                cacheCmdSkippedInfo_[pid] = std::make_pair(std::vector<NodeId>{node->GetId()}, false);
+            auto it = cacheCmdSkippedInfo_.find(pid);
+            if (it == cacheCmdSkippedInfo_.end()) {
+                cacheCmdSkippedInfo_.emplace(pid, std::make_pair(std::vector<NodeId>{node->GetId()}, false));
             } else {
-                cacheCmdSkippedInfo_[pid].first.push_back(node->GetId());
+                it->second.first.push_back(node->GetId());
             }
             if (!node->HasAbilityComponent()) {
                 continue;
             }
             for (auto& nodeId : node->GetAbilityNodeIds()) {
                 pid_t abilityNodePid = ExtractPid(nodeId);
-                if (cacheCmdSkippedInfo_.count(abilityNodePid) == 0) {
-                    cacheCmdSkippedInfo_[abilityNodePid] = std::make_pair(std::vector<NodeId>{node->GetId()}, true);
+                it = cacheCmdSkippedInfo_.find(abilityNodePid);
+                if (it == cacheCmdSkippedInfo_.end()) {
+                    cacheCmdSkippedInfo_.emplace(abilityNodePid,
+                        std::make_pair(std::vector<NodeId>{node->GetId()}, true));
                 } else {
-                    cacheCmdSkippedInfo_[abilityNodePid].first.push_back(node->GetId());
+                    it->second.first.push_back(node->GetId());
                 }
             }
         }
@@ -1591,14 +1594,17 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             this->clearMemDeeply_ = false;
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         };
-    if (!isUniRender_ || rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
-        PostTask(task, CLEAR_GPU_CACHE,
-            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
-            AppExecFwk::EventQueue::Priority::HIGH);
-    } else {
-        RSUniRenderThread::Instance().PostTask(task, CLEAR_GPU_CACHE,
-            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
-            AppExecFwk::EventQueue::Priority::HIGH);
+    auto refreshRate = GetRefreshRate();
+    if (refreshRate > 0) {
+        if (!isUniRender_ || rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+            PostTask(task, CLEAR_GPU_CACHE,
+                (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / refreshRate,
+                AppExecFwk::EventQueue::Priority::HIGH);
+        } else {
+            RSUniRenderThread::Instance().PostTask(task, CLEAR_GPU_CACHE,
+                (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / refreshRate,
+                AppExecFwk::EventQueue::Priority::HIGH);
+        }
     }
 }
 
@@ -3137,11 +3143,13 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         return;
     }
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
-    if (effectiveTransactionDataIndexMap_.count(remotePid) > 0 &&
-        !effectiveTransactionDataIndexMap_[remotePid].second.empty()) {
-        RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%{public}d destroyed, skip commands", remotePid);
+    auto it = effectiveTransactionDataIndexMap_.find(remotePid);
+    if (it != effectiveTransactionDataIndexMap_.end()) {
+        if (!it->second.second.empty()) {
+            RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%{public}d destroyed, skip commands", remotePid);
+        }
+        effectiveTransactionDataIndexMap_.erase(it);
     }
-    effectiveTransactionDataIndexMap_.erase(remotePid);
     transactionDataLastWaitTime_.erase(remotePid);
 
     // clear cpu cache when process exit
@@ -3263,10 +3271,14 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
         return;
     }
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
-    if (effectiveTransactionDataIndexMap_.count(remotePid) > 0) {
+    auto it = effectiveTransactionDataIndexMap_.find(remotePid);
+    if (it != effectiveTransactionDataIndexMap_.end()) {
         RS_LOGW("RSMainThread::AddTransactionDataPidInfo remotePid:%{public}d already exists", remotePid);
+        it->second.first = 0;
+    } else {
+        effectiveTransactionDataIndexMap_.emplace(remotePid,
+            std::make_pair(0, std::vector<std::unique_ptr<RSTransactionData>>()));;
     }
-    effectiveTransactionDataIndexMap_[remotePid].first = 0;
 }
 
 void RSMainThread::SetDirtyFlag(bool isDirty)

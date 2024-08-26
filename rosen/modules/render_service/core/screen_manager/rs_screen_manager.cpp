@@ -254,7 +254,7 @@ bool RSScreenManager::IsAllScreensPowerOff() const
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-float RSScreenManager::GetScreenBrightnessNits(ScreenId id)
+float RSScreenManager::GetScreenBrightnessNits(ScreenId id) const
 {
     constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500.0;
     constexpr float DEFAULT_SCREEN_LIGHT_MAX_NITS = 1200.0;
@@ -434,6 +434,10 @@ void RSScreenManager::CleanAndReinit()
         }
         mainThread->PostTask([screenManager, this]() {
             screenManager->OnHwcDeadEvent();
+            if (!composer_) {
+                RS_LOGE("RSScreenManager %{public}s: Failed to get composer.", __func__);
+                return;
+            }
             composer_->ResetDevice();
             if (!screenManager->Init()) {
                 RS_LOGE("RSScreenManager %{public}s: Reinit failed, screenManager init failed in mainThread.",
@@ -445,6 +449,10 @@ void RSScreenManager::CleanAndReinit()
         RSHardwareThread::Instance().PostTask([screenManager, this]() {
             RS_LOGW("RSScreenManager %{public}s: clean and reinit in hardware thread.", __func__);
             screenManager->OnHwcDeadEvent();
+            if (!composer_) {
+                RS_LOGE("RSScreenManager %{public}s: Failed to get composer.", __func__);
+                return;
+            }
             composer_->ResetDevice();
             if (!screenManager->Init()) {
                 RS_LOGE("RSScreenManager %{public}s: Reinit failed, screenManager init failed in HardwareThread.",
@@ -861,7 +869,7 @@ ScreenRotation RSScreenManager::GetScreenCorrectionLocked(ScreenId id) const
     return screenRotation;
 }
 
-std::vector<ScreenId> RSScreenManager::GetAllScreenIds()
+std::vector<ScreenId> RSScreenManager::GetAllScreenIds() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     std::vector<ScreenId> ids;
@@ -1011,7 +1019,7 @@ int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(
     return SUCCESS;
 }
 
-const std::vector<uint64_t> RSScreenManager::GetVirtualScreenSecurityExemptionList(ScreenId id)
+const std::vector<uint64_t> RSScreenManager::GetVirtualScreenSecurityExemptionList(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto virtualScreen = screens_.find(id);
@@ -1112,7 +1120,7 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
     return SUCCESS;
 }
 
-bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id)
+bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto virtualScreen = screens_.find(id);
@@ -1360,7 +1368,7 @@ int32_t RSScreenManager::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32
     return SUCCESS;
 }
 
-int32_t RSScreenManager::GetScreenBacklight(ScreenId id)
+int32_t RSScreenManager::GetScreenBacklight(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return GetScreenBacklightLocked(id);
