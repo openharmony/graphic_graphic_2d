@@ -867,7 +867,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawColor(OH_Drawing_Canvas* cCanvas, uint
     return OH_DRAWING_SUCCESS;
 }
 
-OH_Drawing_ErrorCode OH_Drawing_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* cCanvas,
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* cCanvas,
     OH_Drawing_RecordCmd* cRecordCmd)
 {
     if (cCanvas == nullptr || cRecordCmd == nullptr) {

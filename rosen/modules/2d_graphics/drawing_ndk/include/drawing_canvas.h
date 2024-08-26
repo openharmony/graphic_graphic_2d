@@ -837,7 +837,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasGetImageInfo(OH_Drawing_Canvas* canvas, OH
  * @since 13
  * @version 1.0
  */
-OH_Drawing_ErrorCode OH_Drawing_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* canvas, OH_Drawing_RecordCmd* recordCmd);
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* canvas, OH_Drawing_RecordCmd* recordCmd);
 #ifdef __cplusplus
 }
 #endif
