@@ -44,7 +44,7 @@ private:
     void ClosePerf(uint32_t layerLevel);
     void RequestPerf(uint32_t layerLevel);
 
-    std::unique_ptr<RSComposerAdapter> composerAdapter_;
+    std::unique_ptr<RSComposerAdapter> composerAdapter_ = nullptr;
     std::vector<LayerInfoPtr> layers_;
 };
 } // namespace Rosen

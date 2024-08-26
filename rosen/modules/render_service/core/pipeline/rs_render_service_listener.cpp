@@ -40,11 +40,13 @@ void RSRenderServiceListener::OnBufferAvailable()
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
     surfaceHandler->IncreaseAvailableBuffer();
-    uint64_t uniqueId = surfaceHandler->GetConsumer()->GetUniqueId();
-    bool isActiveGame = FrameReport::GetInstance().IsActiveGameWithUniqueId(uniqueId);
-    if (isActiveGame) {
-        std::string name = node->GetName();
-        FrameReport::GetInstance().SetPendingBufferNum(name, surfaceHandler->GetAvailableBufferCount());
+    if (auto consumer = surfaceHandler->GetConsumer()) {
+        uint64_t uniqueId = consumer->GetUniqueId();
+        bool isActiveGame = FrameReport::GetInstance().IsActiveGameWithUniqueId(uniqueId);
+        if (isActiveGame) {
+            std::string name = node->GetName();
+            FrameReport::GetInstance().SetPendingBufferNum(name, surfaceHandler->GetAvailableBufferCount());
+        }
     }
 
     if (!node->IsNotifyUIBufferAvailable()) {

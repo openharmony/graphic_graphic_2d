@@ -67,6 +67,10 @@ static inline void DrawCapturedImg(Drawing::Image& image,
 void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
+    if (callback == nullptr) {
+        RS_LOGE("RSUiCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
+        return;
+    }
     RS_LOGI("RSUiCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "]", id);
     captureCount_++;
     std::shared_ptr<RSUiCaptureTaskParallel> captureHandle =
