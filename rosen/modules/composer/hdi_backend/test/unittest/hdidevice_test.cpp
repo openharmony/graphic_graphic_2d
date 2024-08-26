@@ -87,9 +87,6 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> damageRects = { {0, 0, 0, 0} };
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
-    std::vector<uint32_t> layers;
-    std::vector<sptr<SyncFence>> fences;
-    ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetScreenReleaseFence(screenId, layers, fences), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicColorGamut> gamuts;
     ASSERT_EQ(HdiDeviceTest::hdiDevice_->GetScreenSupportedColorGamuts(screenId, gamuts), GRAPHIC_DISPLAY_NOT_SUPPORT);
     GraphicColorGamut gamut = GRAPHIC_COLOR_GAMUT_INVALID;

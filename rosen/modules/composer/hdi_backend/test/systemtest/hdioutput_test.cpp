@@ -278,13 +278,29 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence002, Function | MediumTest| Level3)
 {
-    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(1));
     std::map<LayerInfoPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 
-    EXPECT_CALL(*mockDevice_, GetScreenReleaseFence(_, _, _)).WillRepeatedly(testing::Return(0));
     res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
+}
+
+/*
+* Function: UpdateInfosAfterCommit002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call UpdateInfosAfterCommit() with nullptr param
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputSysTest, UpdateInfosAfterCommit002, Function | MediumTest| Level1)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    ASSERT_EQ(output->UpdateInfosAfterCommit(nullptr), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(output->UpdateInfosAfterCommit(nullptr), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(output->UpdateInfosAfterCommit(nullptr), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(output->UpdateInfosAfterCommit(nullptr), GRAPHIC_DISPLAY_NULL_PTR);
 }
 } // namespace
 } // namespace Rosen

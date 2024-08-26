@@ -115,13 +115,6 @@ int32_t HdiLayer::SetHdiDeviceMock(HdiDevice* hdiDeviceMock)
 
 int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
 {
-    GraphicLayerInfo hdiLayerInfo = {
-        .width = layerInfo->GetLayerSize().w,
-        .height = layerInfo->GetLayerSize().h,
-        .type = layerInfo->GetType(),
-        .pixFormat = GRAPHIC_PIXEL_FMT_RGBA_8888,
-    };
-
     int32_t retCode = InitDevice();
     if (retCode != GRAPHIC_DISPLAY_SUCCESS) {
         return GRAPHIC_DISPLAY_NULL_PTR;
@@ -134,6 +127,12 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
     }
     bufferCacheCountMax_ = surface->GetQueueSize();
     uint32_t layerId = INT_MAX;
+    GraphicLayerInfo hdiLayerInfo = {
+        .width = layerInfo->GetLayerSize().w,
+        .height = layerInfo->GetLayerSize().h,
+        .type = layerInfo->GetType(),
+        .pixFormat = GRAPHIC_PIXEL_FMT_RGBA_8888,
+    };
     int32_t ret = device_->CreateLayer(screenId_, hdiLayerInfo, bufferCacheCountMax_, layerId);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);

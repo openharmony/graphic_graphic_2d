@@ -43,12 +43,11 @@ HdiScreen::HdiScreen(uint32_t screenId) : screenId_(screenId)
 HdiScreen::~HdiScreen()
 {
     HLOGI("Destroy screen, screenId is %{public}d", screenId_);
-
-    Destroy();
 }
 
 void HdiScreen::OnVsync(uint32_t sequence, uint64_t ns, void *data)
 {
+    (void)data;
     ScopedBytrace onVsyncTrace("HdiScreen::OnVsync_" + std::to_string((ns)));
     if (ns == 0) {
         HLOGW("Vsync ns is 0, drop this callback");
@@ -80,14 +79,12 @@ bool HdiScreen::Init()
 
     int32_t ret = device_->RegScreenVBlankCallback(screenId_, HdiScreen::OnVsync, this);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        Destroy();
         HLOGE("RegScreenVBlankCallback failed, ret is %{public}d", ret);
         return false;
     }
 
     ret = device_->SetScreenVsyncEnabled(screenId_, true);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        Destroy();
         HLOGE("SetScreenVsyncEnabled failed, ret is %{public}d", ret);
         return false;
     }
@@ -107,7 +104,7 @@ bool HdiScreen::SetHdiDevice(HdiDevice* device)
         HLOGE("Input HdiDevice is null");
         return false;
     }
-    
+
     device_ = device;
     return true;
 }
@@ -224,10 +221,6 @@ int32_t HdiScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uin
 {
     CHECK_DEVICE_NULL(device_);
     return device_->SetScreenConstraint(screenId_, frameId, timestamp, type);
-}
-
-void HdiScreen::Destroy()
-{
 }
 
 } // namespace Rosen
