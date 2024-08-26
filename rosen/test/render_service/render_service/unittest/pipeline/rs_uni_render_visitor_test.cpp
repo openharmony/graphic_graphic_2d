@@ -3454,6 +3454,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion004, TestSize.Level
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
     surfaceNode->childrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -3477,6 +3478,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion005, TestSize.Level
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
     surfaceNode->childrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
     surfaceNode->GetMutableRenderProperties().boundsGeo_ = nullptr;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -3501,6 +3503,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion006, TestSize.Level
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
     surfaceNode->childrenRect_ = DEFAULT_RECT;
+    surfaceNode->oldClipRect_ = DEFAULT_RECT;
     surfaceNode->GetDirtyManager()->MarkAsTargetForDfx();
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
