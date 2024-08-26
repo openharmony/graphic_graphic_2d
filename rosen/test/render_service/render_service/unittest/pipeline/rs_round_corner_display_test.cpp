@@ -244,11 +244,36 @@ HWTEST_F(RSRoundCornerDisplayTest, RunHardwareTask, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
     rcdInstance.Init();
+    rcdInstance.isRcdRunning = false;
     rcdInstance.RunHardwareTask(
         []() {
-            std::cout << "do RSRoundCornerDisplayTest.RunHardwareTask" << std::endl;
+            std::cout << "do RSRoundCornerDisplayTest.RunHardwareTask1" << std::endl;
         }
     );
+    rcdInstance.isRcdRunning = true;
+    rcdInstance.RunHardwareTask(
+        []() {
+            std::cout << "do RSRoundCornerDisplayTest.RunHardwareTask2" << std::endl;
+        }
+    );
+}
+
+/*
+ * @tc.name: DrawRoundCorner
+ * @tc.desc: Test RSRoundCornerDisplayTest.DrawRoundCorner
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRoundCorner, TestSize.Level1)
+{
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.Init();
+    rcdInstance.isRcdRunning = false;
+    rcdInstance.DrawTopRoundCorner(nullptr);
+    rcdInstance.DrawBottomRoundCorner(nullptr);
+    rcdInstance.isRcdRunning = true;
+    rcdInstance.DrawTopRoundCorner(nullptr);
+    rcdInstance.DrawBottomRoundCorner(nullptr);
 }
 
 rs_rcd::ROGSetting* GetRogFromLcdModel(rs_rcd::LCDModel* lcdModel, int& width, int& height)

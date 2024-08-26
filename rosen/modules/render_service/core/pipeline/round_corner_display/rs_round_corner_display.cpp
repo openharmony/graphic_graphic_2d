@@ -371,9 +371,15 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
 void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int surfaceType)
 {
     RS_TRACE_BEGIN("RCD::DrawOneRoundCorner : surfaceType" + std::to_string(surfaceType));
+    if (isRcdRunning.load()) {
+        RS_LOGD("[%{public}s] rcd render is already running \n", __func__);
+        return;
+    }
+    isRcdRunning.store(true);
     std::lock_guard<std::mutex> lock(resourceMut_);
     if (canvas == nullptr) {
         RS_LOGE("[%{public}s] Canvas is null \n", __func__);
+        isRcdRunning.store(false);
         RS_TRACE_END();
         return;
     }
@@ -399,6 +405,7 @@ void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int sur
     } else {
         RS_LOGD("[%{public}s] Surface Type is not valid \n", __func__);
     }
+    isRcdRunning.store(false);
     RS_TRACE_END();
 }
 
