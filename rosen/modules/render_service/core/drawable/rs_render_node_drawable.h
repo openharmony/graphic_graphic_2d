@@ -204,6 +204,8 @@ private:
     {
         return isOpincMarkCached_;
     }
+
+    static thread_local bool isOffScreenWithClipHole_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -415,4 +415,10 @@ void RSRenderNodeDrawableAdapter::TryClearSurfaceOnSync()
     }
     clearSurfaceTask_();
 }
+
+void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
+{
+    hasSkipCacheLayer_ = hasSkipCacheLayer;
+}
+
 } // namespace OHOS::Rosen::DrawableV2
