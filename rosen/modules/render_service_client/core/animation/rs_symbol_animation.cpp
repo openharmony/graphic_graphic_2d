@@ -373,7 +373,7 @@ bool RSSymbolAnimation::ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
 bool RSSymbolAnimation::SetPublicAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
-    auto nodeNum = symbolAnimationConfig->numNodes;
+    uint32_t nodeNum = symbolAnimationConfig->numNodes;
     if (nodeNum <= 0) {
         ROSEN_LOGD("HmSymbol SetDisappearAnimation::getNode or get symbolAnimationConfig:failed");
         return false;
@@ -437,6 +437,10 @@ void RSSymbolAnimation::GroupAnimationStart(
 
 void RSSymbolAnimation::SetNodePivot(const std::shared_ptr<RSNode>& rsNode)
 {
+    if (rsNode == nullptr) {
+        ROSEN_LOGD("Interpolator is null, return FRACTION_MIN.");
+        return;
+    }
     // Set Node Center Offset
     Vector2f curNodePivot = rsNode->GetStagingProperties().GetPivot();
     pivotProperty_ = nullptr; // reset
@@ -453,6 +457,10 @@ void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
     std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
     const Drawing::DrawingEffectStrategy& effectStrategy)
 {
+    if (rsNode == nullptr) {
+        ROSEN_LOGD("RsNode is null, failed to SpliceAnimation.");
+        return;
+    }
     if (effectStrategy == Drawing::DrawingEffectStrategy::DISAPPEAR ||
         effectStrategy == Drawing::DrawingEffectStrategy::APPEAR) {
         AppearAnimation(rsNode, parameters);
@@ -467,7 +475,7 @@ void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
 void RSSymbolAnimation::BounceAnimation(
     const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
-    unsigned int animationStageNum = 2; // the count of atomizated animations
+    constexpr unsigned int animationStageNum = 2; // the count of atomizated animations
     if (rsNode == nullptr || parameters.size() < animationStageNum) {
         ROSEN_LOGD("[%{public}s] : invalid input\n", __func__);
         return;
@@ -489,7 +497,7 @@ void RSSymbolAnimation::BounceAnimation(
 void RSSymbolAnimation::AppearAnimation(
     const std::shared_ptr<RSNode>& rsNode, std::vector<Drawing::DrawingPiecewiseParameter>& parameters)
 {
-    unsigned int animationStageNum = 2; // the count of atomizated animations
+    constexpr unsigned int animationStageNum = 2; // the count of atomizated animations
     if (rsNode == nullptr || parameters.size() < animationStageNum) {
         ROSEN_LOGD("[%{public}s] : invalid input\n", __func__);
         return;

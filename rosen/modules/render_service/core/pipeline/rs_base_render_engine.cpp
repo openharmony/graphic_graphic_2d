@@ -843,7 +843,9 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto regUnMapVkImageFunc = [this, isForUniRedraw](int32_t bufferId) {
-            vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
+            if (vkImageManager_) {
+                vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
+            }
         };
         if (consumer == nullptr ||
             (consumer->RegisterDeleteBufferListener(regUnMapVkImageFunc, isForUniRedraw) != GSERROR_OK)) {
@@ -873,7 +875,9 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto regUnMapVkImageFunc = [this](int32_t bufferId) {
-            vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
+            if (vkImageManager_) {
+                vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
+            }
         };
         handler.RegisterDeleteBufferListener(regUnMapVkImageFunc);
         return;

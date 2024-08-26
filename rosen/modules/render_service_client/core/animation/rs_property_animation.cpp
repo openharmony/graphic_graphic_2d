@@ -85,7 +85,7 @@ void RSPropertyAnimation::OnStart()
 
 void RSPropertyAnimation::SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue)
 {
-    if (!hasOriginValue_) {
+    if (!hasOriginValue_ && originValue != nullptr) {
         originValue_ = originValue->Clone();
         hasOriginValue_ = true;
     }

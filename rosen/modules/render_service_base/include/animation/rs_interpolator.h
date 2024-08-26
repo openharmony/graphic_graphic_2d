@@ -51,7 +51,7 @@ public:
 protected:
     RSInterpolator();
     RSInterpolator(uint64_t id) : id_(id) {};
-    uint64_t id_;
+    uint64_t id_ { 0 };
 
 private:
     virtual float InterpolateImpl(float input) const = 0;

@@ -103,9 +103,9 @@ bool RSTransitionScale::Marshalling(Parcel& parcel) const
 
 RSRenderTransitionEffect* RSTransitionScale::Unmarshalling(Parcel& parcel)
 {
-    float scaleX;
-    float scaleY;
-    float scaleZ;
+    float scaleX = 0.0;
+    float scaleY = 0.0;
+    float scaleZ = 0.0;
     if (!parcel.ReadFloat(scaleX) || !parcel.ReadFloat(scaleY) || !parcel.ReadFloat(scaleZ)) {
         ROSEN_LOGE("RSTransitionScale::Unmarshalling, unmarshalling failed");
         return nullptr;

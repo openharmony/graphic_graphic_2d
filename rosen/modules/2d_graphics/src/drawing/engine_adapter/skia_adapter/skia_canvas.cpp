@@ -161,17 +161,12 @@ bool SkiaCanvas::ReadPixels(const ImageInfo& dstInfo, void* dstPixels, size_t ds
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return false;
     }
-    SkImageInfo info;
-    if (dstInfo.GetColorSpace()) {
-        info = SkImageInfo::Make(dstInfo.GetWidth(), dstInfo.GetHeight(),
-                                 SkiaImageInfo::ConvertToSkColorType(dstInfo.GetColorType()),
-                                 SkiaImageInfo::ConvertToSkAlphaType(dstInfo.GetAlphaType()),
-                                 dstInfo.GetColorSpace()->GetImpl<SkiaColorSpace>()->GetColorSpace());
-    } else {
-        info = SkImageInfo::Make(dstInfo.GetWidth(), dstInfo.GetHeight(),
-                                 SkiaImageInfo::ConvertToSkColorType(dstInfo.GetColorType()),
-                                 SkiaImageInfo::ConvertToSkAlphaType(dstInfo.GetAlphaType()));
-    }
+    auto colorSpace = dstInfo.GetColorSpace();
+    auto colorSpaceImpl = colorSpace ? colorSpace->GetImpl<SkiaColorSpace>() : nullptr;
+    SkImageInfo info = SkImageInfo::Make(dstInfo.GetWidth(), dstInfo.GetHeight(),
+                                         SkiaImageInfo::ConvertToSkColorType(dstInfo.GetColorType()),
+                                         SkiaImageInfo::ConvertToSkAlphaType(dstInfo.GetAlphaType()),
+                                         colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : nullptr);
     return skCanvas_->readPixels(info, dstPixels, dstRowBytes, srcX, srcY);
 }
 
@@ -521,6 +516,16 @@ void SkiaCanvas::DrawVertices(const Vertices& vertices, BlendMode mode, const Pa
 void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    if (!image) {
+        LOGD("image is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
     auto skImageImpl = image->GetImpl<SkiaImage>();
     sk_sp<SkImage> img = nullptr;
     if (skImageImpl != nullptr) {
@@ -549,6 +554,11 @@ void SkiaCanvas::DrawImageLattice(const Image* image, const Lattice& lattice, co
 {
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+
+    if (!image) {
+        LOGD("image is null, return on line %{public}d", __LINE__);
         return;
     }
 
@@ -1102,6 +1112,10 @@ uint32_t SkiaCanvas::GetSaveCount() const
 
 void SkiaCanvas::Discard()
 {
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
     skCanvas_->discard();
 }
 
@@ -1173,6 +1187,11 @@ void SkiaCanvas::Reset(int32_t width, int32_t height)
 
 bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParameter& blurParams)
 {
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+
     auto skImageImpl = image.GetImpl<SkiaImage>();
     if (skImageImpl == nullptr) {
         LOGE("skImageImpl is null, return on line %{public}d", __LINE__);

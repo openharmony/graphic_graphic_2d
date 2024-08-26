@@ -52,6 +52,11 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
     auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %{public}" PRIu64 "): screenManager is null!",
+            node.GetScreenId());
+        return false;
+    }
     producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!",
@@ -76,12 +81,8 @@ bool RSVirtualScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, 
 
 void RSVirtualScreenProcessor::PostProcess()
 {
-    if (producerSurface_ == nullptr) {
-        RS_LOGE("RSVirtualScreenProcessor::PostProcess surface is null!");
-        return;
-    }
-    if (renderFrame_ == nullptr) {
-        RS_LOGE("RSVirtualScreenProcessor::PostProcess renderFrame_ is null.");
+    if (renderFrame_ == nullptr || canvas_ == nullptr || renderEngine_ == nullptr) {
+        RS_LOGE("RSVirtualScreenProcessor::PostProcess renderFrame or canvas or renderEngine is nullptr");
         return;
     }
     if (isSecurityDisplay_ && displayHasSecSurface_) {
@@ -94,8 +95,8 @@ void RSVirtualScreenProcessor::PostProcess()
 
 void RSVirtualScreenProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 {
-    if (canvas_ == nullptr) {
-        RS_LOGE("RSVirtualScreenProcessor::ProcessSurface: Canvas is null!");
+    if (canvas_ == nullptr || renderEngine_ == nullptr) {
+        RS_LOGE("RSVirtualScreenProcessor::ProcessSurface canvas or renderEngine is nullptr");
         return;
     }
 

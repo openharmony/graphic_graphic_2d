@@ -152,6 +152,7 @@ bool RSCustomInterpolator::Marshalling(Parcel& parcel) const
 {
     if (!parcel.WriteUint16(InterpolatorType::CUSTOM)) {
         ROSEN_LOGE("RSCustomInterpolator::Marshalling, Write type failed");
+        return false;
     }
     if (!parcel.WriteUint64(id_)) {
         ROSEN_LOGE("RSCustomInterpolator::Marshalling, Write id failed");

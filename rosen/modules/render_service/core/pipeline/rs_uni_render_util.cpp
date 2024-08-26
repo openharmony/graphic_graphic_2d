@@ -108,9 +108,10 @@ void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNo
     }
 
     // update display dirtymanager
-    auto dirtyManager = displayDrawable.GetSyncDirtyManager();
-    dirtyManager->SetBufferAge(bufferAge);
-    dirtyManager->UpdateDirty(useAlignedDirtyRegion);
+    if (auto dirtyManager = displayDrawable.GetSyncDirtyManager()) {
+        dirtyManager->SetBufferAge(bufferAge);
+        dirtyManager->UpdateDirty(useAlignedDirtyRegion);
+    }
 }
 
 Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(
@@ -127,8 +128,8 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegion(
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
         if (!surfaceParams || !surfaceDirtyManager) {
-            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion %{public}s params or dirty manager is nullptr",
-                surfaceNodeDrawable->GetName().c_str());
+            RS_LOGI("RSUniRenderUtil::MergeVisibleDirtyRegion node(%{public}" PRIu64") params or "
+                "dirty manager is nullptr", surfaceNodeDrawable->GetId());
             continue;
         }
         if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
@@ -322,8 +323,8 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     if (srcHeight == 0 || srcWidth == 0) {
         return;
     }
-    uint32_t newWidth;
-    uint32_t newHeight;
+    uint32_t newWidth = 0;
+    uint32_t newHeight = 0;
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
@@ -748,8 +749,8 @@ bool RSUniRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo&
         return true;
     }
     const auto& property = node.GetRenderProperties();
-    if (property.GetRotation() != 0 || property.GetRotationX() != 0 || property.GetRotationY() != 0 ||
-        property.GetQuaternion() != Quaternion()) {
+    if (!ROSEN_EQ(property.GetRotation(), 0.f) || !ROSEN_EQ(property.GetRotationX(), 0.f) ||
+        !ROSEN_EQ(property.GetRotationY(), 0.f) || property.GetQuaternion() != Quaternion()) {
         RS_LOGD("RSUniRenderUtil::IsNeedClient need client with RSSurfaceRenderNode rotation");
         return true;
     }
@@ -908,6 +909,9 @@ void RSUniRenderUtil::ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& 
 
 bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation)
 {
+    if (node == nullptr) {
+        return false;
+    }
     auto deviceType = RSMainThread::Instance()->GetDeviceType();
     bool isNeedAssignToSubThread = false;
     if (deviceType != DeviceType::PC && node->IsLeashWindow()) {
@@ -1105,7 +1109,7 @@ void RSUniRenderUtil::CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRen
 
 void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
-    if (!node->HasHardwareNode()) {
+    if (node == nullptr || !node->HasHardwareNode()) {
         return;
     }
     auto appWindow = node;
@@ -1283,6 +1287,9 @@ uint32_t RSUniRenderUtil::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFl
 void RSUniRenderUtil::SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
     const VkImageCreateInfo& imageInfo)
 {
+    if (vkImageInfo == nullptr) {
+        return;
+    }
     vkImageInfo->imageTiling = imageInfo.tiling;
     vkImageInfo->imageLayout = imageInfo.initialLayout;
     vkImageInfo->format = imageInfo.format;
@@ -1426,14 +1433,15 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
     auto consumer = surfaceHandler->GetConsumer();
-    if (!consumer) {
+    auto buffer = surfaceHandler->GetBuffer();
+    if (!consumer || !buffer) {
         return;
     }
     auto transformType = RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer);
     auto srcRect = SrcRectRotateTransform(node, transformType);
     const auto& property = node.GetRenderProperties();
-    const auto bufferWidth = surfaceHandler->GetBuffer()->GetSurfaceBufferWidth();
-    const auto bufferHeight = surfaceHandler->GetBuffer()->GetSurfaceBufferHeight();
+    const auto bufferWidth = buffer->GetSurfaceBufferWidth();
+    const auto bufferHeight = buffer->GetSurfaceBufferHeight();
     auto boundsWidth = property.GetBoundsWidth();
     auto boundsHeight = property.GetBoundsHeight();
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
@@ -1447,7 +1455,7 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
         ScalingMode scalingMode = nodeParams->GetPreScalingMode();
-        if (consumer->GetScalingMode(surfaceHandler->GetBuffer()->GetSeqNum(), scalingMode) == GSERROR_OK) {
+        if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
             nodeParams->SetPreScalingMode(scalingMode);
         }
         if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
@@ -1481,12 +1489,13 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
  
 void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
-    if (!node.GetRSSurfaceHandler()->GetBuffer()) {
+    auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
+    if (!buffer) {
         return;
     }
     const auto& property = node.GetRenderProperties();
-    const float frameWidth = node.GetRSSurfaceHandler()->GetBuffer()->GetSurfaceBufferWidth();
-    const float frameHeight = node.GetRSSurfaceHandler()->GetBuffer()->GetSurfaceBufferHeight();
+    const float frameWidth = buffer->GetSurfaceBufferWidth();
+    const float frameHeight = buffer->GetSurfaceBufferHeight();
     const float boundsWidth = property.GetBoundsWidth();
     const float boundsHeight = property.GetBoundsHeight();
     const Gravity frameGravity = property.GetFrameGravity();
@@ -1494,7 +1503,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     CheckForceHardwareAndUpdateDstRect(node);
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
     if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
-        (frameWidth == boundsWidth && frameHeight == boundsHeight)) {
+        (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
         return;
     }
  
@@ -1648,6 +1657,9 @@ void RSUniRenderUtil::LayerScaleDown(RSSurfaceRenderNode& node)
     uint32_t newHeight = static_cast<uint32_t>(srcRect.height_);
     uint32_t dstWidth = static_cast<uint32_t>(dstRect.width_);
     uint32_t dstHeight = static_cast<uint32_t>(dstRect.height_);
+    if (newWidth == 0 || newHeight == 0 || dstWidth == 0 || dstHeight == 0) {
+        return;
+    }
 
     // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
     // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
@@ -1712,6 +1724,10 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
     uint32_t newHeight = static_cast<uint32_t>(srcRect.height_);
     uint32_t dstWidth = static_cast<uint32_t>(dstRect.width_);
     uint32_t dstHeight = static_cast<uint32_t>(dstRect.height_);
+
+    if (newWidth == 0 || newHeight == 0 || dstWidth == 0 || dstHeight == 0) {
+        return;
+    }
     
     uint32_t newWidthDstHeight = newWidth * dstHeight;
     uint32_t newHeightDstWidth = newHeight * dstWidth;
