@@ -1016,7 +1016,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, bool /* accessible */)
+    const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
