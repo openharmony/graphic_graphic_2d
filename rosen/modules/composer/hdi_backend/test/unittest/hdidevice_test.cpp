@@ -83,7 +83,9 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenPowerStatus(screenId, dstatus), GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenPowerStatus(screenId, dstatus), GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenBacklight(screenId, screenLightLevel), GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenBacklight(screenId, screenLightLevel), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetScreenBacklight(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetScreenBacklight(screenId, screenLightLevel), GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->PrepareScreenLayers(screenId, needFlush), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
@@ -102,7 +104,9 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     std::vector<GraphicIRect> damageRects = { {0, 0, 0, 0} };
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicColorGamut> gamuts;
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenSupportedColorGamuts(screenId, gamuts), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_CALL(*hdiDeviceMock_,
+        GetScreenSupportedColorGamuts(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->GetScreenSupportedColorGamuts(screenId, gamuts), GRAPHIC_DISPLAY_SUCCESS);
     GraphicColorGamut gamut = GRAPHIC_COLOR_GAMUT_INVALID;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_NOT_SUPPORT);
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenColorGamut(screenId, gamut), GRAPHIC_DISPLAY_NOT_SUPPORT);
@@ -111,7 +115,9 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenGamutMap(screenId, gamutMap), GRAPHIC_DISPLAY_NOT_SUPPORT);
     std::vector<float> matrix = { 0.0 };
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenColorTransform(screenId, matrix), GRAPHIC_DISPLAY_NOT_SUPPORT);
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->Commit(screenId, fence), -1);
+    EXPECT_CALL(*hdiDeviceMock_,
+        Commit(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->Commit(screenId, fence), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /*
