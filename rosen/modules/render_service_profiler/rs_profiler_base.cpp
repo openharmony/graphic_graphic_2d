@@ -492,7 +492,7 @@ void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, 
         data.write(reinterpret_cast<const char*>(&size), sizeof(size));
         data.write(reinterpret_cast<const char*>(name.c_str()), size);
 
-        const std::string bundleName = surfaceNode.GetBundleName();
+        const std::string bundleName = "";
         size = bundleName.size();
         data.write(reinterpret_cast<const char*>(&size), sizeof(size));
         data.write(reinterpret_cast<const char*>(bundleName.c_str()), size);
@@ -619,7 +619,6 @@ static void CreateRenderSurfaceNode(RSContext& context, NodeId id, bool isTextur
 
     const RSSurfaceRenderNodeConfig config = { .id = id,
         .name = name + "_",
-        .bundleName = bundleName,
         .nodeType = nodeType,
         .additionalData = nullptr,
         .isTextureExportNode = isTextureExportNode,

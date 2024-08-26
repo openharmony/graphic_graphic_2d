@@ -178,7 +178,6 @@ public:
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize);
     int32_t RemoveScreen(ScreenId id);
     int32_t AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode);
-    int32_t RefreshBundleName(const std::string& name);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     int32_t GetCurrentRefreshRateMode() const;
     int32_t GetCurrentRefreshRateModeName() const;

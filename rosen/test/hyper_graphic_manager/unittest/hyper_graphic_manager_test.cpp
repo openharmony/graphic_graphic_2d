@@ -547,28 +547,6 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
 }
 
 /**
- * @tc.name: RefreshBundleName
- * @tc.desc: Verify the result of RefreshBundleName
- * @tc.type: FUNC
- * @tc.require: I7DMS1
- */
-HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Level2)
-{
-    auto &instance = HgmCore::Instance();
-
-    PART("CaseConditions") {
-        STEP("1. test RefreshBundleName is true") {
-            auto setMode = instance.RefreshBundleName("test hgm_core");
-            STEP_ASSERT_EQ(setMode, 0);
-            STEP_ASSERT_EQ(instance.RefreshBundleName("test hgm_core"), 0);
-            instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
-            setMode = instance.RefreshBundleName("test hgm_core2");
-            STEP_ASSERT_EQ(setMode, 0);
-        }
-    }
-}
-
-/**
  * @tc.name: GetIdealPeriod
  * @tc.desc: Test GetIdealPeriod
  * @tc.type: FUNC

@@ -198,7 +198,7 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     if (rsConn == nullptr) {
         return false;
     }
-    RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test", .bundleName = "test" };
+    RSSurfaceRenderNodeConfig config = { .id = 0, .name = "test"};
     rsConn->CreateNode(config);
     rsConn->CreateNodeAndSurface(config);
     return true;

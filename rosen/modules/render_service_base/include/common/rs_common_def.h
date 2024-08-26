@@ -284,7 +284,6 @@ enum class SurfaceWindowType : uint8_t {
 struct RSSurfaceRenderNodeConfig {
     NodeId id = 0;
     std::string name = "SurfaceNode";
-    std::string bundleName = "";
     RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
     void* additionalData = nullptr;
     bool isTextureExportNode = false;

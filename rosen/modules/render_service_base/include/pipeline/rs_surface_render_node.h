@@ -356,11 +356,6 @@ public:
         return name_;
     }
 
-    const std::string& GetBundleName() const
-    {
-        return bundleName_;
-    }
-
     void SetOffSetX(int32_t offset)
     {
         offsetX_ = offset;
@@ -1289,7 +1284,6 @@ private:
     SurfaceId surfaceId_ = 0;
 
     std::string name_;
-    std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

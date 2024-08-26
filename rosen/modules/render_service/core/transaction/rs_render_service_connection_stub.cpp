@@ -357,8 +357,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto nodeId = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             auto surfaceName = data.ReadString();
-            auto bundleName = data.ReadString();
-            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName, .bundleName = bundleName};
+            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName};
             if (!reply.WriteBool(CreateNode(config))) {
                 ret = ERR_INVALID_REPLY;
             }
@@ -374,7 +373,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             auto surfaceName = data.ReadString();
             auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
-            auto bundleName = data.ReadString();
             bool isTextureExportNode = data.ReadBool();
             bool isSync = data.ReadBool();
             auto surfaceWindowType = static_cast<SurfaceWindowType>(data.ReadUint8());
@@ -383,7 +381,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RSSurfaceRenderNodeConfig config = {
-                .id = nodeId, .name = surfaceName, .bundleName = bundleName, .nodeType = type,
+                .id = nodeId, .name = surfaceName, .nodeType = type,
                 .isTextureExportNode = isTextureExportNode, .isSync = isSync,
                 .surfaceWindowType = surfaceWindowType};
             sptr<Surface> surface = CreateNodeAndSurface(config);

@@ -69,8 +69,7 @@ public:
     static void Create(RSContext& context, NodeId nodeId,
         RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::DEFAULT, bool isTextureExportNode = false);
     static void CreateWithConfig(
-        RSContext& context, NodeId nodeId, std::string name, uint8_t type,
-        std::string bundleName, enum SurfaceWindowType surfaceWindowType);
+        RSContext& context, NodeId nodeId, std::string name, uint8_t type, enum SurfaceWindowType surfaceWindowType);
     static std::shared_ptr<RSSurfaceRenderNode> CreateWithConfigInRS(
         const RSSurfaceRenderNodeConfig& config, RSContext& context);
     static void SetContextMatrix(RSContext& context, NodeId nodeId, const std::optional<Drawing::Matrix>& matrix);
@@ -113,7 +112,7 @@ ADD_COMMAND(RSSurfaceNodeCreate,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
 ADD_COMMAND(RSSurfaceNodeCreateWithConfig,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG, SurfaceNodeCommandHelper::CreateWithConfig, NodeId, std::string,
-        uint8_t, std::string, enum SurfaceWindowType))
+        uint8_t, enum SurfaceWindowType))
 ADD_COMMAND(RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
     SurfaceNodeCommandHelper::SetContextMatrix, NodeId, std::optional<Drawing::Matrix>))
 ADD_COMMAND(RSSurfaceNodeSetContextAlpha,

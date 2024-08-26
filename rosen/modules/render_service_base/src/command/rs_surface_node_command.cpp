@@ -39,11 +39,10 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
 }
 
 void SurfaceNodeCommandHelper::CreateWithConfig(
-    RSContext& context, NodeId nodeId, std::string name, uint8_t type,
-    std::string bundleName, enum SurfaceWindowType windowType)
+    RSContext& context, NodeId nodeId, std::string name, uint8_t type, enum SurfaceWindowType windowType)
 {
     RSSurfaceRenderNodeConfig config = {
-        .id = nodeId, .name = name, .bundleName = bundleName,
+        .id = nodeId, .name = name,
         .nodeType = static_cast<RSSurfaceNodeType>(type), .surfaceWindowType = windowType
     };
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,

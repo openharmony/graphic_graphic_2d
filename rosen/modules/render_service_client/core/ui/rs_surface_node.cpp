@@ -73,7 +73,6 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     RSSurfaceRenderNodeConfig config = {
         .id = node->GetId(),
         .name = node->name_,
-        .bundleName = node->bundleName_,
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
         .isSync = isWindow && surfaceNodeConfig.isSync,
@@ -81,14 +80,13 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     };
     config.nodeType = type;
 
-    RS_LOGD("RSSurfaceNode::Create name:%{public}s bundleName: %{public}s type: %{public}hhu "
-        "isWindow %{public}d %{public}d ", config.name.c_str(), config.bundleName.c_str(),
+    RS_LOGD("RSSurfaceNode::Create name:%{public}s type: %{public}hhu "
+        "isWindow %{public}d %{public}d ", config.name.c_str(),
         config.nodeType, isWindow, node->IsRenderServiceNode());
 
     if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && node->IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
-            config.id, config.name, static_cast<uint8_t>(config.nodeType),
-            config.bundleName, config.surfaceWindowType);
+            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.surfaceWindowType);
         transactionProxy->AddCommand(command, isWindow);
     } else {
         if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId)) {
@@ -594,20 +592,10 @@ std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::str
 }
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
-    : RSNode(isRenderServiceNode, config.isTextureExportNode)
-{
-    auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
-    bundleName_ = result.first;
-    name_ = result.second;
-}
+    : RSNode(isRenderServiceNode, config.isTextureExportNode), name_(config.SurfaceNodeName) {}
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id)
-    : RSNode(isRenderServiceNode, id, config.isTextureExportNode)
-{
-    auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
-    bundleName_ = result.first;
-    name_ = result.second;
-}
+    : RSNode(isRenderServiceNode, id, config.isTextureExportNode), name_(config.SurfaceNodeName) {}
 
 RSSurfaceNode::~RSSurfaceNode()
 {

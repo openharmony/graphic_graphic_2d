@@ -414,26 +414,6 @@ int32_t HgmCore::AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint3
     return HGM_SCREEN_PARAM_ERROR;
 }
 
-int32_t HgmCore::RefreshBundleName(const std::string& name)
-{
-    if (name == currentBundleName_) {
-        return EXEC_SUCCESS;
-    }
-
-    currentBundleName_ = name;
-
-    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
-        return EXEC_SUCCESS;
-    }
-
-    int resetResult = SetRefreshRateMode(customFrameRateMode_);
-    if (resetResult == EXEC_SUCCESS) {
-        HGM_LOGI("HgmCore reset current refreshrate mode: %{public}d due to bundlename: %{public}s",
-            customFrameRateMode_, currentBundleName_.c_str());
-    }
-    return EXEC_SUCCESS;
-}
-
 uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const
 {
     auto screen = GetScreen(id);
