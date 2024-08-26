@@ -1575,10 +1575,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED) : {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission SET_ROTATION_CACHE_ENABLED");
-                return ERR_INVALID_STATE;
-            }
             bool isEnabled = false;
             if (!data.ReadBool(isEnabled)) {
                 ret = IPC_STUB_INVALID_DATA_ERR;
