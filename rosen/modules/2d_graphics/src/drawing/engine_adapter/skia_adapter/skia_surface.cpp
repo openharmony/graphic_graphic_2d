@@ -105,6 +105,10 @@ bool SkiaSurface::Bind(const Bitmap& bitmap)
 bool SkiaSurface::Bind(const Image& image)
 {
     auto skiaImageImpl = image.GetImpl<SkiaImage>();
+    if (skiaImageImpl == nullptr) {
+        LOGD("SkiaSurface bind Image failed: skiaImageImpl is nullptr");
+        return false;
+    }
     auto skImage = skiaImageImpl->GetImage();
     auto grContext = skiaImageImpl->GetGrContext();
     if (skImage == nullptr || grContext == nullptr) {
@@ -153,7 +157,10 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
     SkColorType colorType = SkiaImageInfo::ConvertToSkColorType(frameBuffer.colorType);
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (frameBuffer.colorSpace != nullptr) {
-        skColorSpace = frameBuffer.colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+        auto colorSpaceImpl = frameBuffer.colorSpace->GetImpl<SkiaColorSpace>();
+        if (colorSpaceImpl != nullptr) {
+            skColorSpace = colorSpaceImpl->GetColorSpace();
+        }
     }
 
     SkSurfaceProps surfaceProps(SURFACE_PROPS_FLAGS, kRGB_H_SkPixelGeometry);
@@ -189,7 +196,8 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
-        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     } else {
         skColorSpace = SkColorSpace::MakeSRGB();
     }
@@ -221,7 +229,8 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     }
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
-        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     } else {
         skColorSpace = SkColorSpace::MakeSRGB();
     }

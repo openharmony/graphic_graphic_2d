@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,17 @@
  * limitations under the License.
  */
 
-#include <mutex>
-#include <scoped_bytrace.h>
-#include "hdi_device.h"
-#include "hdi_device_impl.h"
-#include "hdi_log.h"
+#include "effect_kit_napi_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-HdiDevice* HdiDevice::GetInstance()
+
+napi_valuetype EffectKitNapiUtils::getType(napi_env env, napi_value root)
 {
-    static HdiDeviceImpl instance;
-    static std::mutex mutex;
-    std::lock_guard<std::mutex> lock(mutex);
-    {
-        if (!instance.Init()) {
-            HLOGE("hdi device get instances failed.");
-            return nullptr;
-        }
-    }
-    return &instance;
+    napi_valuetype res = napi_undefined;
+    napi_typeof(env, root, &res);
+    return res;
 }
+
 } // namespace Rosen
 } // namespace OHOS

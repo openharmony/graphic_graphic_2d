@@ -37,11 +37,13 @@
 
 namespace OHOS {
 namespace Rosen {
-using namespace std;
+namespace {
 constexpr uint32_t FLAT_ANGLE = 180;
 constexpr int32_t DEFAULT_BRIGHTNESS = 500;
 constexpr float NO_RATIO = 1.0f;
 static const int GLOBAL_ALPHA_MAX = 255;
+}
+
 bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
     float mirrorAdaptiveCoefficient)
 {
@@ -115,10 +117,10 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
     }
     const auto& buffer = surfaceHandler->GetBuffer(); // we guarantee the buffer is valid.
     info.srcRect = GraphicIRect {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
-    info.dstRect = GraphicIRect { 0, 0, static_cast<int32_t>(screenInfo_.GetRotatedPhyWidth()),
-        static_cast<int32_t>(screenInfo_.GetRotatedPhyHeight()) };
+    info.dstRect = GraphicIRect {0, 0, static_cast<int32_t>(screenInfo_.GetRotatedPhyWidth()),
+        static_cast<int32_t>(screenInfo_.GetRotatedPhyHeight())};
     auto bound = params->GetBounds();
-    info.boundRect = { 0, 0,
+    info.boundRect = {0, 0,
         static_cast<int32_t>(bound.GetWidth()), static_cast<int32_t>(bound.GetHeight())};
     info.visibleRect = GraphicIRect {info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h};
     std::vector<GraphicIRect> dirtyRects;
@@ -247,8 +249,9 @@ void RSUniRenderComposerAdapter::SetBufferColorSpace(DrawableV2::RSDisplayRender
 
     GraphicColorGamut rsColorSpace = rsSurface->GetColorSpace();
     CM_ColorSpaceType colorSpace;
-    if (RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(rsColorSpace) != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
-        colorSpace = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(rsColorSpace);
+    auto it = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(rsColorSpace);
+    if (it != RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        colorSpace = it->second;
     } else {
         RS_LOGW("RSUniRenderComposerAdapter::SetBufferColorSpace unknown color space");
         colorSpace = CM_COLORSPACE_NONE;
@@ -263,7 +266,8 @@ void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& laye
                                                         const sptr<IConsumerSurface>& surface) const
 {
     HDRMetaDataType type;
-    if (!surface || !buffer) {
+    if (!layer || !surface || !buffer) {
+        RS_LOGE("RSUniRenderComposerAdapter::SetMDataInfoToLayer fail, layer or surface or buffer is nullptr");
         return;
     }
     if (surface->QueryMetaDataType(buffer->GetSeqNum(), type) != GSERROR_OK) {
@@ -325,6 +329,10 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
 
         const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
+        if (!nodeParams) {
+            RS_LOGE("RSUniRenderComposerAdapter::GetCInfoSrcRect fail, node params is true");
+            return;
+        }
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
         ScalingMode scalingMode = nodeParams->GetPreScalingMode();
         if (consumer->GetScalingMode(info.buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
@@ -340,7 +348,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
             info.srcRect.w = (bufferWidth / scale - (boundsWidth - info.srcRect.w)) * scale;
             info.srcRect.h = (bufferHeight / scale - (boundsHeight - info.srcRect.h)) * scale;
         } else {
-            if (property.GetBoundsGeometry()->GetAbsRect() == node.GetDstRect()) {
+            auto geo = property.GetBoundsGeometry();
+            if (geo && geo->GetAbsRect() == node.GetDstRect()) {
                 // If the SurfaceRenderNode is completely in the DisplayRenderNode,
                 // we do not need to crop the buffer.
                 info.srcRect.w = bufferWidth;
@@ -442,7 +451,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(
 bool RSUniRenderComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo& info, RSRenderParams& params) const
 {
     bool needClient = params.GetNeedClient();
-    if (info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
+    if (info.buffer &&
+        info.buffer->GetSurfaceBufferColorGamut() != static_cast<GraphicColorGamut>(screenInfo_.colorGamut)) {
         needClient = true;
     }
     return needClient;
@@ -634,9 +644,6 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(DrawableV2::RSSurfaceRe
     }
     const auto& srcGraphicRect = params->GetLayerInfo().srcRect;
     RectI srcRect = {srcGraphicRect.x, srcGraphicRect.y, srcGraphicRect.w, srcGraphicRect.h};
-    if (surfaceDrawable.GetConsumerOnDraw() == nullptr) {
-        return srcRect;
-    }
     int left = srcRect.GetLeft();
     int top = srcRect.GetTop();
     int width = srcRect.GetWidth();
@@ -683,6 +690,11 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(DrawableV2::RSSurfaceRe
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node) const
 {
     ComposeInfo info {};
+    auto& params = node.GetStagingRenderParams();
+    if (!params) {
+        RS_LOGE("RSUniRenderComposerAdapter::BuildComposeInfo fail, node params is nullptr");
+        return info;
+    }
 
     auto surfaceHandler = node.GetRSSurfaceHandler();
     const auto& dstRect = node.GetDstRect();
@@ -703,7 +715,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.buffer = buffer;
     SetPreBufferInfo(*surfaceHandler, info);
     GetComposerInfoSrcRect(info, node);
-    info.needClient = GetComposerInfoNeedClient(info, *node.GetRenderParams());
+    info.needClient = GetComposerInfoNeedClient(info, *params);
     DealWithNodeGravity(node, info);
 
     info.dstRect.x -= offsetX_;
@@ -853,9 +865,9 @@ void RSUniRenderComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
         return;
     }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
-    srcRect.x = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
+    srcRect.x = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
         originSrcRect.w / dstRectI.width_);
-    srcRect.y = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
+    srcRect.y = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
         originSrcRect.h / dstRectI.height_);
     srcRect.w = dstRectI.IsEmpty() ? 0 : originSrcRect.w * resDstRect.width_ / dstRectI.width_;
     srcRect.h = dstRectI.IsEmpty() ? 0 : originSrcRect.h * resDstRect.height_ / dstRectI.height_;
@@ -1089,14 +1101,16 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
     }
     RS_TRACE_NAME_FMT("CreateLayer:%s XYWH[%d %d %d %d]", surfaceDrawable.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
-    RS_LOGD("RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:[%{public}s]"
-            " dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d"
-            " %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}d,"
+    if (info.buffer) {
+        RS_LOGD("RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:"
+            "[%{public}s] dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d]"
+            " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}d,"
             " globalZOrder:%{public}d, blendType = %{public}d",
         surfaceDrawable.GetId(), surfaceDrawable.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w,
         info.dstRect.h, info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
         info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(), params->GetLayerInfo().zOrder,
         info.zOrder, info.blendType);
+    }
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     // planning surfaceNode prebuffer is set to hdilayerInfo, enable release prebuffer when HWC composition is ready
     SetComposeInfoToLayer(layer, info, surfaceDrawable.GetConsumerOnDraw());
@@ -1139,15 +1153,17 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     }
     RS_TRACE_NAME_FMT("CreateLayer:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
-    RS_LOGD(
-        "RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:[%{public}s]"
-        " dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d"
-        " %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}f,"
-        " globalZOrder:%{public}d, blendType = %{public}d",
-        node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
-        info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
-        info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
-        surfaceHandler->GetGlobalZOrder(), info.zOrder, info.blendType);
+    if (info.buffer) {
+        RS_LOGD(
+            "RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:"
+            "[%{public}s] dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d]"
+            " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z:%{public}f,"
+            " globalZOrder:%{public}d, blendType = %{public}d",
+            node.GetId(), node.GetName().c_str(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+            info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
+            info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
+            surfaceHandler->GetGlobalZOrder(), info.zOrder, info.blendType);
+    }
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     // planning surfaceNode prebuffer is set to hdilayerInfo, enable release prebuffer when HWC composition is ready
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
@@ -1155,6 +1171,10 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     LayerCrop(layer);
     layer->SetNodeId(node.GetId());
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
+    if (nodeParams) {
+        RS_LOGE("node params is nullptr");
+        return layer;
+    }
     ScalingMode scalingMode = nodeParams->GetPreScalingMode();
     const auto& buffer = layer->GetBuffer();
     const auto& surface = layer->GetSurface();
@@ -1201,13 +1221,15 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
     ComposeInfo info = BuildComposeInfo(displayDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
-    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayDrawable id:%{public}" PRIu64 " dst [%{public}d %{public}d"
-            " %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d] surfaceBuffer"
-            " [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d, bufferFormat:%d",
-        displayDrawable.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
-        info.srcRect.w, info.srcRect.h,
-        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
-        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType, surfaceHandler->GetBuffer()->GetFormat());
+    if (info.buffer) {
+        RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayDrawable id:%{public}" PRIu64 " dst [%{public}d"
+            " %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d]"
+            " surfaceBuffer [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d, bufferFormat:%d",
+            displayDrawable.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+            info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
+            info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
+            surfaceHandler->GetBuffer()->GetFormat());
+    }
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetUniRenderFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
@@ -1242,12 +1264,15 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     ComposeInfo info = BuildComposeInfo(*displayDrawable);
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayNode zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
-    RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
-        " %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d] surfaceBuffer"
-        " [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d, bufferFormat:%d",
-        node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
-        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
-        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType, surfaceHandler->GetBuffer()->GetFormat());
+    if (info.buffer) {
+        RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " dst [%{public}d %{public}d"
+            " %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d] surfaceBuffer"
+            " [%{public}d %{public}d], globalZOrder:%{public}d, blendType = %{public}d, bufferFormat:%d",
+            node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w,
+            info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
+            info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
+            surfaceHandler->GetBuffer()->GetFormat());
+    }
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetNodeId(node.GetId());
     layer->SetUniRenderFlag(true);
@@ -1290,14 +1315,16 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& nod
     }
 
     ComposeInfo info = BuildComposeInfo(node);
-    RS_LOGD("RSUniRenderComposerAdapter::ProcessRcdSurface rcdSurfaceNode id:%{public}" PRIu64 " DstRect"
-        " [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d %{public}d %{public}d]"
-        " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z-Order:%{public}d,"
-        " blendType = %{public}d",
-        node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
-        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
-        info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
-        info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
+    if (info.buffer) {
+        RS_LOGD("RSUniRenderComposerAdapter::ProcessRcdSurface rcdSurfaceNode id:%{public}" PRIu64 " DstRect"
+            " [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d %{public}d %{public}d]"
+            " rawbuffer [%{public}d %{public}d] surfaceBuffer [%{public}d %{public}d], z-Order:%{public}d,"
+            " blendType = %{public}d",
+            node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+            info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+            info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
+            info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
+    }
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     SetComposeInfoToLayer(layer, info, node.GetConsumer());
     auto drawable = node.GetRenderDrawable();

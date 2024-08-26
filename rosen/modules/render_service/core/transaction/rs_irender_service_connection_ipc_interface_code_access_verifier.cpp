@@ -29,6 +29,170 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
 {
     bool hasPermission = true;
     switch (code) {
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_VIRTUAL_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CREATE_VIRTUAL_SCREEN");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::DISABLE_RENDER_CONTROL_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::DISABLE_RENDER_CONTROL_SCREEN");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ACTIVE_SCREEN_ID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_ACTIVE_SCREEN_ID");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ALL_SCREEN_IDS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_ALL_SCREEN_IDS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_DEFAULT_SCREEN_ID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_DEFAULT_SCREEN_ID");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_ACTIVE_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_ACTIVE_MODE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_BACK_LIGHT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_BACK_LIGHT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_CAPABILITY): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_CAPABILITY");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_DATA): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_DATA");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_GAMUT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_GAMUT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_GAMUT_MAP): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_GAMUT_MAP");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_HDR_CAPABILITY): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_HDR_CAPABILITY");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_POWER_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_POWER_STATUS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_GAMUTS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_GAMUTS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_METADATAKEYS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_METADATAKEYS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_MODES): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_MODES");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_TYPE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_TYPE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_VIRTUAL_SCREEN_RESOLUTION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_VIRTUAL_SCREEN_RESOLUTION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_OCCLUSION_CHANGE_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_UIEXTENSION_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_UIEXTENSION_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::RESIZE_VIRTUAL_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::RESIZE_VIRTUAL_SCREEN");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_CURTAIN_SCREEN_USING_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_CURTAIN_SCREEN_USING_STATUS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FOCUS_APP_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FOCUS_APP_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_ACTIVE_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_ACTIVE_MODE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_BACK_LIGHT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_BACK_LIGHT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_CHANGE_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_CHANGE_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_CORRECTION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_CORRECTION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_GAMUT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_GAMUT_MAP): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT_MAP");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SYSTEM_ANIMATED_SCENES): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SYSTEM_ANIMATED_SCENES");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_TP_FEATURE_CONFIG): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_TP_FEATURE_CONFIG");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_BLACKLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_BLACKLIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_RESOLUTION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_RESOLUTION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_SURFACE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_SURFACE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_USING_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_USING_STATUS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SHOW_WATERMARK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SHOW_WATERMARK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_REFRESH_RATE_MODE): {
             hasPermission = IsSystemApp();
             break;
@@ -116,8 +280,15 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ +
-                "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROTATION_CACHE_ENABLED): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_ROTATION_CACHE_ENABLED");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SKIP_FRAME_INTERVAL): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SKIP_FRAME_INTERVAL");
             break;
         }
         default: {

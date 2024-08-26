@@ -362,12 +362,8 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
 
 void RSUniRenderVirtualProcessor::PostProcess()
 {
-    if (producerSurface_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::PostProcess surface is null!");
-        return;
-    }
-    if (renderFrame_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderframe is null.");
+    if (renderFrame_ == nullptr || renderEngine_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderFrame or renderEngine is nullptr");
         return;
     }
     auto surfaceOhos = renderFrame_->GetSurface();

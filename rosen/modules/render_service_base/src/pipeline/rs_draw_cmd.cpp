@@ -324,7 +324,8 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         tid_ = gettid();
     }
 
-    if (!canvas.GetGPUContext()) {
+    auto context = canvas.GetGPUContext();
+    if (!context) {
         RS_LOGE("MakeFromTextureForVK gpu context is nullptr");
         return false;
     }
@@ -332,7 +333,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    if (!image_->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
+    if (!image_->BuildFromTexture(*context, backendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
         NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {

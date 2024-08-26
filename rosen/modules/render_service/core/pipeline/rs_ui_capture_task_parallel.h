@@ -56,8 +56,8 @@ private:
 
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> nodeDrawable_ = nullptr;
-    NodeId nodeId_;
-    RSSurfaceCaptureConfig captureConfig_;
+    NodeId nodeId_ = INVALID_NODEID;
+    RSSurfaceCaptureConfig captureConfig_ = {};
     static inline std::atomic<int32_t> captureCount_ = 0;
 };
 } // namespace Rosen

@@ -64,9 +64,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 constexpr int SLEEP_TIME_US = 1000;
-constexpr int TASK_DELAY_TIME_MS = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
+}
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSRenderServiceConnection::RSRenderServiceConnection(
@@ -275,21 +276,17 @@ void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionD
 
 void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
-    std::mutex mutex;
-    std::unique_lock<std::mutex> lock(mutex);
-    auto cv = std::make_shared<std::condition_variable>();
-    auto& mainThread = mainThread_;
-    if (!task || !mainThread_) {
+    if (task == nullptr || mainThread_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::ExecuteSynchronousTask, task or main thread is null!");
         return;
     }
-    mainThread->PostTask([task, cv, &mainThread]() {
-        if (task == nullptr || cv == nullptr) {
+    std::chrono::nanoseconds span(task->GetTimeout());
+    mainThread_->ScheduleTask([task, mainThread = mainThread_] {
+        if (task == nullptr || mainThread == nullptr) {
             return;
         }
         task->Process(mainThread->GetContext());
-        cv->notify_all();
-    });
-    cv->wait_for(lock, std::chrono::nanoseconds(task->GetTimeout()));
+    }).wait_for(span);
 }
 
 bool RSRenderServiceConnection::GetUniRenderEnabled()
@@ -819,15 +816,28 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, bool accessible)
+    const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions permissions)
 {
     if (!mainThread_) {
         return;
     }
-    std::function<void()> captureTask = [id, callback, captureConfig, accessible]() -> void {
+    std::function<void()> captureTask = [id, callback, captureConfig,
+        screenCapturePermission = permissions.screenCapturePermission,
+        isSystemCalling = permissions.isSystemCalling,
+        selfCapture = permissions.selfCapture]() -> void {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node != nullptr && node->GetType() == RSRenderNodeType::DISPLAY_NODE && !accessible) {
-            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture no permission");
+        if (node == nullptr) {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture failed, node is nullptr");
+            callback->OnSurfaceCapture(id, nullptr);
+            return;
+        }
+        auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
+        auto surfaceCaptureHasPermission = selfCapture || isSystemCalling;
+        if ((node->GetType() == RSRenderNodeType::DISPLAY_NODE && !displayCaptureHasPermission) ||
+            (node->GetType() == RSRenderNodeType::SURFACE_NODE && !surfaceCaptureHasPermission)) {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture failed, node type: %{public}u, "
+                "screenCapturePermission: %{public}u, isSystemCalling: %{public}u, selfCapture: %{public}u",
+                node->GetType(), screenCapturePermission, isSystemCalling, selfCapture);
             callback->OnSurfaceCapture(id, nullptr);
             return;
         }

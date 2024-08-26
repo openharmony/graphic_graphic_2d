@@ -104,7 +104,9 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
     bitmap.SetPixels(addr);
     if (frameDarwin->surface_ != nullptr) {
         auto image = frameDarwin->surface_->GetImageSnapshot();
-        image->ReadPixels(bitmap, 0, 0);
+        if (image) {
+            image->ReadPixels(bitmap, 0, 0);
+        }
     }
 #ifdef USE_GLFW_WINDOW
     if (frameDarwin->surface_ != nullptr) {
