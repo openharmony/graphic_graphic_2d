@@ -272,6 +272,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+        propertyCallback();
         return {};
     }
     auto finishCallbackType =

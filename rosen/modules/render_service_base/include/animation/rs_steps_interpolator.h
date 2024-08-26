@@ -38,7 +38,7 @@ public:
     InterpolatorType GetType() override { return InterpolatorType::STEPS; }
 private:
     RSStepsInterpolator(uint64_t id, int32_t steps, StepsCurvePosition position = StepsCurvePosition::START);
-    int32_t steps_;
+    int32_t steps_ { 0 };
     const StepsCurvePosition position_;
     float fractionMin = 0.0f;
     float fractionMax = 1.0f;

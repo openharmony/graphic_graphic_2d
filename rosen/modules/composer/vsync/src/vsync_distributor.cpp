@@ -831,15 +831,24 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
         dvsync_->RecordPostEvent(conns, timestamp);
     }
 #endif
+    uint32_t generatorRefreshRate = 0;
+    int64_t eventPeriod = 0;
+    int64_t vsyncCount = 0;
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        generatorRefreshRate = generatorRefreshRate_;
+        eventPeriod = event_.period;
+        vsyncCount = event_.vsyncCount;
+    }
     countTraceValue_ = (countTraceValue_ + 1) % 2;  // 2 : change num
     CountTrace(HITRACE_TAG_GRAPHIC_AGP, "DVSync-" + name_, countTraceValue_);
     for (uint32_t i = 0; i < conns.size(); i++) {
-        int64_t period = event_.period;
-        if ((generatorRefreshRate_ > 0) && (conns[i]->refreshRate_ > 0) &&
-            (generatorRefreshRate_ % conns[i]->refreshRate_ == 0)) {
-            period = event_.period * static_cast<int64_t>(generatorRefreshRate_ / conns[i]->refreshRate_);
+        int64_t period = eventPeriod;
+        if ((generatorRefreshRate > 0) && (conns[i]->refreshRate_ > 0) &&
+            (generatorRefreshRate % conns[i]->refreshRate_ == 0)) {
+            period = eventPeriod * static_cast<int64_t>(generatorRefreshRate / conns[i]->refreshRate_);
         }
-        int32_t ret = conns[i]->PostEvent(timestamp, period, event_.vsyncCount);
+        int32_t ret = conns[i]->PostEvent(timestamp, period, vsyncCount);
         VLOGD("Distributor name:%{public}s, connection name:%{public}s, ret:%{public}d",
             name_.c_str(), conns[i]->info_.name_.c_str(), ret);
         if (ret == 0 || ret == ERRNO_OTHER) {
@@ -968,16 +977,6 @@ VsyncError VSyncDistributor::SetHighPriorityVSyncRate(int32_t highPriorityRate, 
     return VSYNC_ERROR_OK;
 }
 
-VsyncError VSyncDistributor::GetVSyncConnectionInfos(std::vector<ConnectionInfo>& infos)
-{
-    infos.clear();
-    std::lock_guard<std::mutex> locker(mutex_);
-    for (auto &connection : connections_) {
-        infos.push_back(connection->info_);
-    }
-    return VSYNC_ERROR_OK;
-}
-
 VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& pid)
 {
     if (name.find("WM") == std::string::npos) {
@@ -1067,22 +1066,6 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
         {
             EnableVSync();
         }
-    }
-    return VSYNC_ERROR_OK;
-}
-
-VsyncError VSyncDistributor::GetQosVSyncRateInfos(std::vector<std::pair<uint32_t, int32_t>>& vsyncRateInfos)
-{
-    vsyncRateInfos.clear();
-
-    std::lock_guard<std::mutex> locker(mutex_);
-    for (auto &connection : connections_) {
-        uint32_t tmpPid;
-        if (QosGetPidByName(connection->info_.name_, tmpPid) != VSYNC_ERROR_OK) {
-            continue;
-        }
-        int32_t tmpRate = connection->highPriorityState_ ? connection->highPriorityRate_ : connection->rate_;
-        vsyncRateInfos.push_back(std::make_pair(tmpPid, tmpRate));
     }
     return VSYNC_ERROR_OK;
 }

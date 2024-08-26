@@ -170,6 +170,7 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         DrawContent(*canvas_, rect);
         renderParams_->SetNeedProcess(false);
         canvas_->Flush();
+        SetDrawCmdListsVisited(true);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId, task, false);
 }

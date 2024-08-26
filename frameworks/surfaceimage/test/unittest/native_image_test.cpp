@@ -1081,4 +1081,82 @@ HWTEST_F(NativeImageTest, OHNativeImageAcquireNativeWindowBuffer004, Function | 
     delete region;
     OH_NativeImage_Destroy(&newImage);
 }
+
+/*
+* Function: OH_ConsumerSurface_Create
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_ConsumerSurface_Create
+*                  2. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OH_ConsumerSurface_Create001, Function | MediumTest | Level1)
+{
+    OH_NativeImage* consumerSurface = OH_ConsumerSurface_Create();
+    ASSERT_NE(consumerSurface, nullptr);
+    OHNativeWindow* newNativeWindow = OH_NativeImage_AcquireNativeWindow(consumerSurface);
+    ASSERT_NE(newNativeWindow, nullptr);
+
+    int32_t code = SET_BUFFER_GEOMETRY;
+    int32_t width = 0x100;
+    int32_t height = 0x100;
+    int32_t ret = NativeWindowHandleOpt(newNativeWindow, code, width, height);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    int fenceFd = -1;
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;
+    rect->y = 0x100;
+    rect->w = 0x100;
+    rect->h = 0x100;
+    region->rects = rect;
+    for (int32_t i = 0; i < 10000; i++) {
+        ret = OH_NativeWindow_NativeWindowRequestBuffer(newNativeWindow, &nativeWindowBuffer, &fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        ret = OH_NativeWindow_NativeWindowFlushBuffer(newNativeWindow, nativeWindowBuffer, fenceFd, *region);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        nativeWindowBuffer = nullptr;
+        ret = OH_NativeImage_AcquireNativeWindowBuffer(consumerSurface, &nativeWindowBuffer, &fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+        ASSERT_NE(nativeWindowBuffer, nullptr);
+
+        ret = OH_NativeImage_ReleaseNativeWindowBuffer(consumerSurface, nativeWindowBuffer, fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
+
+    delete rect;
+    delete region;
+    OH_NativeImage_Destroy(&consumerSurface);
+}
+
+/*
+* Function: OH_ConsumerSurface_Create
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_ConsumerSurface_Create
+*                  2. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OH_ConsumerSurface_Create002, Function | MediumTest | Level1)
+{
+    struct timeval startTime;
+    struct timeval endTime;
+    uint64_t totalTime = 0;
+    OH_NativeImage* consumerSurface;
+    for (int32_t i = 0; i < 10000; i++) {
+        gettimeofday(&startTime, nullptr);
+        consumerSurface = OH_ConsumerSurface_Create();
+        gettimeofday(&endTime, nullptr);
+        totalTime += (1000000 * (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec));
+        ASSERT_NE(consumerSurface, nullptr);
+        OH_NativeImage_Destroy(&consumerSurface);
+    }
+    std::cout << "10000 count total time, OH_ConsumerSurface_Create: " << totalTime << " us" << std::endl;
+}
 }

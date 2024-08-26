@@ -56,6 +56,15 @@ SurfaceImage::SurfaceImage(uint32_t textureId, uint32_t textureTarget)
     InitSurfaceImage();
 }
 
+SurfaceImage::SurfaceImage()
+    : ConsumerSurface("SurfaceImageConsumer-" + std::to_string(GetRealPid()) +
+    "-" + std::to_string(GetProcessUniqueId())),
+      currentSurfaceBuffer_(nullptr),
+      currentTimeStamp_(0)
+{
+    InitSurfaceImage();
+}
+
 SurfaceImage::~SurfaceImage()
 {
     for (auto it = imageCacheSeqs_.begin(); it != imageCacheSeqs_.end(); it++) {
@@ -209,7 +218,7 @@ int64_t SurfaceImage::GetTimeStamp()
 SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrix_),
+    auto ret = memcpy_s(matrix, sizeof(float) * 16,  // 16 is the length of array,
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
@@ -221,7 +230,7 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 SurfaceError SurfaceImage::GetTransformMatrixV2(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(currentTransformMatrixV2_),
+    auto ret = memcpy_s(matrix, sizeof(float) * 16, // 16 is the length of array
                         currentTransformMatrixV2_, sizeof(currentTransformMatrixV2_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrixV2: currentTransformMatrixV2_ memcpy_s failed");

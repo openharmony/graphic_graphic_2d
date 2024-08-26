@@ -24,6 +24,7 @@
 #include "hdi_screen.h"
 #include "hdi_layer.h"
 #include "hdi_output.h"
+#include "graphic_error.h"
 #include "surface_type.h"
 
 namespace OHOS {

@@ -275,21 +275,17 @@ void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionD
 
 void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
-    std::mutex mutex;
-    std::unique_lock<std::mutex> lock(mutex);
-    auto cv = std::make_shared<std::condition_variable>();
-    auto& mainThread = mainThread_;
-    if (!task || !mainThread_) {
+    if (task == nullptr || mainThread_ == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::ExecuteSynchronousTask, task or main thread is null!");
         return;
     }
-    mainThread->PostTask([task, cv, &mainThread]() {
-        if (task == nullptr || cv == nullptr) {
+    std::chrono::nanoseconds span(task->GetTimeout());
+    mainThread_->ScheduleTask([task, mainThread = mainThread_] {
+        if (task == nullptr || mainThread == nullptr) {
             return;
         }
         task->Process(mainThread->GetContext());
-        cv->notify_all();
-    });
-    cv->wait_for(lock, std::chrono::nanoseconds(task->GetTimeout()));
+    }).wait_for(span);
 }
 
 bool RSRenderServiceConnection::GetUniRenderEnabled()
