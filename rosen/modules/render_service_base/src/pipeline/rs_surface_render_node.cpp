@@ -968,15 +968,15 @@ void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
 
 bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
 {
-    return (ancoForceDoDirect_.load() && (GetAncoFlags() & static_cast<int32_t>(AncoFlags::IS_ANCO_NODE)));
+    return (ancoForceDoDirect_.load() && (GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)));
 }
 
-void RSSurfaceRenderNode::SetAncoFlags(int32_t flags)
+void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
 {
     ancoFlags_.store(flags);
 }
 
-int32_t RSSurfaceRenderNode::GetAncoFlags() const
+uint32_t RSSurfaceRenderNode::GetAncoFlags() const
 {
     return ancoFlags_.load();
 }

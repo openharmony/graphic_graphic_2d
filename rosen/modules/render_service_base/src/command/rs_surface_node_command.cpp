@@ -272,7 +272,7 @@ void SurfaceNodeCommandHelper::SetForceUIFirst(RSContext& context, NodeId nodeId
     }
 }
 
-void SurfaceNodeCommandHelper::SetAncoFlags(RSContext& context, NodeId nodeId, int32_t flags)
+void SurfaceNodeCommandHelper::SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetAncoFlags(flags);

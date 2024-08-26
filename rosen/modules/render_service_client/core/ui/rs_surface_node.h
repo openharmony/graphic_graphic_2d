@@ -145,7 +145,7 @@ public:
     void SetForeground(bool isForeground);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
-    void SetAncoFlags(int32_t flags);
+    void SetAncoFlags(uint32_t flags);
     static void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;

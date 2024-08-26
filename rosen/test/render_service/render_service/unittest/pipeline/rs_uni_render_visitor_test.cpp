@@ -1915,7 +1915,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp_002,
     surfaceNode->isProtectedLayer_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(true);
-    surfaceNode->SetAncoFlags(static_cast<int32_t>(0x0001));
+    surfaceNode->SetAncoFlags(static_cast<uint32_t>(0x0001));
     ASSERT_TRUE(surfaceNode->GetAncoForceDoDirect());
     
     std::vector<RectI> hwcRects;
@@ -2085,7 +2085,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_002, Test
     surfaceNode->isProtectedLayer_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(true);
-    surfaceNode->SetAncoFlags(static_cast<int32_t>(0x0001));
+    surfaceNode->SetAncoFlags(static_cast<uint32_t>(0x0001));
     ASSERT_TRUE(surfaceNode->GetAncoForceDoDirect());
 
     std::vector<RectI> hwcRects;
