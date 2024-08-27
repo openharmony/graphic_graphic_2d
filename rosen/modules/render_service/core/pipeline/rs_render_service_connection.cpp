@@ -377,10 +377,16 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
-        auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
-        auto& context = mainThread_->GetContext();
-        auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
-        frameRateLinkerMap.RegisterFrameRateLinker(linker);
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
+            auto& context = connection->mainThread_->GetContext();
+            auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
+            frameRateLinkerMap.RegisterFrameRateLinker(linker);
+        }).wait();
         conn->id_ = id;
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
@@ -624,17 +630,22 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
     if (!mainThread_) {
         return;
     }
-    mainThread_->ScheduleTask([=]() {
-        auto& context = mainThread_->GetContext();
-        auto& linkerMap = context.GetMutableFrameRateLinkerMap();
-        auto linker = linkerMap.GetFrameRateLinker(id);
-        if (linker == nullptr) {
-            RS_LOGW("SyncFrameRateRange there is no frameRateLinker for id %{public}" PRIu64, id);
-            return;
-        }
-        linker->SetExpectedRange(range);
-        linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
-    }).wait();
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), id, &range, animatorExpectedFrameRate]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            auto& context = connection->mainThread_->GetContext();
+            auto& linkerMap = context.GetMutableFrameRateLinkerMap();
+            auto linker = linkerMap.GetFrameRateLinker(id);
+            if (linker == nullptr) {
+                RS_LOGW("SyncFrameRateRange there is no frameRateLinker for id %{public}" PRIu64, id);
+                return;
+            }
+            linker->SetExpectedRange(range);
+            linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
+        }).wait();
 }
 
 uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
