@@ -214,7 +214,7 @@ DrawError SKImageChain::Draw()
         DestroyGPUCanvas();
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-    return ERR_OK;
+    return DrawError::ERR_OK;
 }
 
 SkColorType SKImageChain::PixelFormatConvert(const Media::PixelFormat& pixelFormat)
