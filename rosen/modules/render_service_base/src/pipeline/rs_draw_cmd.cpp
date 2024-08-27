@@ -165,7 +165,6 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (!pixelMap) {
         return;
     }
-
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -176,14 +175,14 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()),
+                RSPixelMapUtil::GetPixelmapColorSpace(pixelMap))) {
                 rsImage_->SetDmaImage(image_);
             }
         }
 #endif
         return;
     }
-
     if (pixelMap->IsAstc()) {
         std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
         // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
@@ -210,7 +209,6 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         rsImage_->SetCompressData(fileData);
         return;
     }
-
     if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
         rsImage_->MarkYUVImage();
     }
@@ -294,7 +292,8 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer)
+bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     if (!RSSystemProperties::IsUseVukan()) {
         return false;
@@ -334,7 +333,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
     if (!image_->BuildFromTexture(*context, backendTexture_.GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace,
         NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
         RS_LOGE("MakeFromTextureForVK build image failed");
