@@ -435,7 +435,7 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
         const void* data = pixelMap->GetPixels();
         if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
             (data == nullptr || !fileData->BuildWithoutCopy(
-                reinterpret_cast<void *>(reinterpret_cast<char *>(data) + ASTC_HEADER_SIZE),
+                reinterpret_cast<const void *>(reinterpret_cast<const char *>(data) + ASTC_HEADER_SIZE),
                 pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
                 RS_LOGE("SetCompressedDataForASTC data BuildWithoutCopy fail");
                 return;
