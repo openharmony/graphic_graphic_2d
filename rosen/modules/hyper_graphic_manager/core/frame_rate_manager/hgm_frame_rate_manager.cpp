@@ -900,6 +900,7 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     std::string sceneName = eventInfo.description;
     auto screenSetting = multiAppStrategy_.GetScreenSetting();
     auto &gameSceneList = screenSetting.gameSceneList;
+    auto &ancoSceneList = screenSetting.ancoSceneList;
 
     if (gameSceneList.find(sceneName) != gameSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
@@ -909,6 +910,17 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
         } else {
             if (gameScenes_.erase(sceneName)) {
                 MarkVoteChange("VOTER_SCENE");
+            }
+        }
+    }
+    if (ancoSceneList.find(sceneName) != ancoSceneList.end()) {
+        if (eventInfo.eventStatus == ADD_VOTE) {
+            if (ancoScenes_.insert(sceneName).second) {
+                MarkVoteChange();
+            }
+        } else {
+            if (ancoScenes_.erase(sceneName)) {
+                MarkVoteChange();
             }
         }
     }
@@ -1204,7 +1216,8 @@ bool HgmFrameRateManager::ProcessRefreshRateVote(
         return false;
     }
     VoteInfo curVoteInfo = voteRecord_[voter].first.back();
-    if ((voter == "VOTER_GAMES" && !gameScenes_.empty()) || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
+    if ((voter == "VOTER_GAMES" && !gameScenes_.empty()) || (voter == "VOTER_ANCO" && !ancoScenes_.empty()) ||
+        !multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
         ProcessVoteLog(curVoteInfo, true);
         return false;
     }
