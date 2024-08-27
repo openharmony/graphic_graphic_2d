@@ -61,15 +61,11 @@
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
-#include "res_sched_client.h"
-#include "res_type.h"
-#include "vsync_res_event_listener.h"
 #endif
 
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
-constexpr uint64_t SAMPLE_TIME = 100000000;
 }
 
 RSHardwareThread& RSHardwareThread::Instance()
@@ -172,9 +168,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     delayTime_ = 0;
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
-#ifdef RES_SCHED_ENABLE
-    ReportFrameToRSS();
-#endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
         if (output == nullptr || hdiBackend_ == nullptr) {
             return;
@@ -252,28 +245,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         PostTask(clearTask);
     }
 }
-
-#ifdef RES_SCHED_ENABLE
-void RSHardwareThread::ReportFrameToRSS()
-{
-    if (VSyncResEventListener::GetInstance()->GetIsNeedReport()) {
-            uint64_t currTime = static_cast<uint64_t>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    std::chrono::steady_clock::now().time_since_epoch()).count());
-        if (VSyncResEventListener::GetInstance()->GetIsFirstReport() ||
-            lastReportTime_ == 0 || currTime - lastReportTime_ >= SAMPLE_TIME) {
-            uint32_t type = OHOS::ResourceSchedule::ResType::RES_TYPE_SEND_FRAME_EVENT;
-            int64_t value = 0;
-            std::unordered_map<std::string, std::string> mapPayload;
-            OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, value, mapPayload);
-            VSyncResEventListener::GetInstance()->SetIsFirstReport(false);
-            lastReportTime_ = static_cast<uint64_t>(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    std::chrono::steady_clock::now().time_since_epoch()).count());
-        }
-    }
-}
-#endif
 
 RefreshRateParam RSHardwareThread::GetRefreshRateParam()
 {
