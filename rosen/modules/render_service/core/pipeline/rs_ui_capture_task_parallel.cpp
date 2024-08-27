@@ -318,6 +318,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         auto grContext = RSBackgroundThread::Instance().GetShareGPUContext();
         if (!grContext) {
             RS_LOGE("RSUiCaptureTaskParallel: SharedGPUContext get failed");
+            ProcessUiCaptureCallback(callback, id, nullptr);
             return;
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -375,6 +376,6 @@ void RSUiCaptureTaskParallel::ProcessUiCaptureCallback(
     callback->OnSurfaceCapture(id, pixelmap);
     RSUiCaptureTaskParallel::captureCount_--;
     RSMainThread::Instance()->RequestNextVSync();
-};
+}
 } // namespace Rosen
 } // namespace OHOS

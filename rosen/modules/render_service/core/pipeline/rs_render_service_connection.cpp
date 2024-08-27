@@ -793,7 +793,7 @@ void TakeSurfaceCaptureForUiParallel(
         return;
     }
 
-    if (node->IsOnTheTree() && !node->IsDirty()) {
+    if (node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
         RSMainThread::Instance()->PostTask(captureTask);
     } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
