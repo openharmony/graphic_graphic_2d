@@ -1380,10 +1380,7 @@ void RSPropertiesPainter::DrawBorderIfNoFill(const RSProperties& properties, Dra
         auto rect = rrect.GetRect();
         Drawing::SaveLayerOps slr(&rect, nullptr);
         canvas.SaveLayer(slr);
-        border->PaintTopPath(canvas, pen, rrect, center);
-        border->PaintRightPath(canvas, pen, rrect, center);
-        border->PaintBottomPath(canvas, pen, rrect, center);
-        border->PaintLeftPath(canvas, pen, rrect, center);
+        border->DrawBorders(canvas, pen, rrect, center);
     }
 }
 

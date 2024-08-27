@@ -52,6 +52,7 @@ public:
         TOP,
         RIGHT,
         BOTTOM,
+        BORDER_NUM = 4,
     };
 
     void SetColor(Color color);
@@ -98,8 +99,22 @@ public:
         const Drawing::Point& innerRectCenter) const;
     void PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
         const Drawing::Point& innerRectCenter) const;
+    void DrawBorders(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const Drawing::Point& innerRectCenter) const;
 
 private:
+    void CalcBorderPath(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter,
+        std::vector<Drawing::Path>& borderPathVec) const;
+    void DrawEachBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const Drawing::Point& innerRectCenter) const;
+    void DrawTwoBorder(Drawing::Canvas& canvas, const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter,
+        int borderIdxA, int borderIdxB) const;
+    void DrawOneAndThreeBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+        const Drawing::Point& innerRectCenter, int sameColorFlag) const;
+    void DrawThreeBorder(Drawing::Canvas& canvas, const Drawing::RoundRect& rrect,
+        const Drawing::Point& innerRectCenter, int borderIdx) const;
+    bool JudgeSameBorder(int idxA, int idxB) const;
+    void DrawRect(Drawing::Canvas& canvas, const Drawing::RoundRect& rrect, uint32_t color) const;
     Drawing::Point GetTLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     Drawing::Point GetTRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     Drawing::Point GetBLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;

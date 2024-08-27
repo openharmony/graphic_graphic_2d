@@ -434,10 +434,7 @@ void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canva
     auto rect = rrect.GetRect();
     Drawing::SaveLayerOps slr(&rect, nullptr);
     canvas.SaveLayer(slr);
-    border->PaintTopPath(canvas, pen, rrect, center);
-    border->PaintRightPath(canvas, pen, rrect, center);
-    border->PaintBottomPath(canvas, pen, rrect, center);
-    border->PaintLeftPath(canvas, pen, rrect, center);
+    border->DrawBorders(canvas, pen, rrect, center);
 }
 
 RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
