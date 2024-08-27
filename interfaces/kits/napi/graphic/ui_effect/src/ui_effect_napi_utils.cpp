@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,25 +13,25 @@
  * limitations under the License.
  */
 
-#include "ge_visual_effect_container.h"
-
-#include "ge_log.h"
+#include "ui_effect_napi_utils.h"
+#include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
 
-GEVisualEffectContainer::GEVisualEffectContainer() {}
-
-void GEVisualEffectContainer::AddToChainedFilter(std::shared_ptr<Drawing::GEVisualEffect> visualEffect)
+napi_valuetype UIEffectNapiUtils::getType(napi_env env, napi_value root)
 {
-    if (!visualEffect) {
-        return;
-    }
-    LOGD("GERender::AddToChainedFilter %{public}s", visualEffect->GetName().c_str());
-    filterVec_.push_back(visualEffect);
+    napi_valuetype res = napi_undefined;
+    napi_typeof(env, root, &res);
+    return res;
 }
 
-} // namespace Drawing
+bool UIEffectNapiUtils::IsSystemApp()
+{
+    uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
+    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
+}
+
 } // namespace Rosen
 } // namespace OHOS
