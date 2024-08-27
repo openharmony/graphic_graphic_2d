@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include "rs_trace.h"
 #include "hdi_output.h"
+#include "string_utils.h"
 #include "metadata_helper.h"
 #include "vsync_generator.h"
 #include "vsync_sampler.h"
@@ -48,6 +49,8 @@ HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
 {
     // DISPLAYENGINE ARSR_PRE FLAG
     arsrPreEnabled_ = system::GetBoolParameter("const.display.enable_arsr_pre", true);
+    arsrPreEnabledForVm_ = system::GetBoolParameter("const.display.enable_arsr_pre_for_vm", false);
+    vmArsrWhiteList_ = system::GetParameter("const.display.vmlayer.whitelist", "unknown");
 }
 
 HdiOutput::~HdiOutput()
@@ -176,6 +179,15 @@ void HdiOutput::ResetLayerStatusLocked()
     }
 }
 
+bool HdiOutput::CheckSupportArsrPreMetadata()
+{
+    const auto& validKeys = device_->GetSupportedLayerPerFrameParameterKey();
+    if (std::find(validKeys.begin(), validKeys.end(), GENERIC_METADATA_KEY_ARSR_PRE_NEEDED) != validKeys.end()) {
+        return true;
+    }
+    return false;
+}
+
 int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo)
 {
     LayerPtr layer = HdiLayer::CreateHdiLayer(screenId_);
@@ -194,19 +206,13 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &lay
         HLOGE("[%{public}s]HdiDevice is nullptr.", __func__);
         return GRAPHIC_DISPLAY_SUCCESS;
     }
-    // DISPLAY ENGINE
-    if (!arsrPreEnabled_) {
-        return GRAPHIC_DISPLAY_SUCCESS;
-    }
 
-    const auto& validKeys = device_->GetSupportedLayerPerFrameParameterKey();
-    if (std::find(validKeys.begin(), validKeys.end(), GENERIC_METADATA_KEY_ARSR_PRE_NEEDED) != validKeys.end()) {
-        if (CheckIfDoArsrPre(layerInfo)) {
-            const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
-            if (device_->SetLayerPerFrameParameter(screenId_,
-                layerId, GENERIC_METADATA_KEY_ARSR_PRE_NEEDED, valueBlob) != 0) {
-                HLOGE("SetLayerPerFrameParameter Fail!");
-            }
+    if ((arsrPreEnabledForVm_ && CheckSupportArsrPreMetadata() && CheckIfDoArsrPreForVm(layerInfo)) ||
+        (arsrPreEnabled_ && CheckSupportArsrPreMetadata() && CheckIfDoArsrPre(layerInfo))) {
+        const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
+        if (device_->SetLayerPerFrameParameter(screenId_,
+            layerId, GENERIC_METADATA_KEY_ARSR_PRE_NEEDED, valueBlob) != 0) {
+            HLOGE("SetLayerPerFrameParameter Fail!");
         }
     }
 
@@ -480,6 +486,17 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         return true;
     }
 
+    return false;
+}
+
+bool HdiOutput::CheckIfDoArsrPreForVm(const LayerInfoPtr &layerInfo)
+{
+    char sep = ';';
+    std::unordered_set<std::string> vmLayers;
+    SplitString(vmArsrWhiteList_, vmLayers, sep);
+    if (vmLayers.count(layerInfo->GetSurface()->GetName()) > 0) {
+        return true;
+    }
     return false;
 }
 

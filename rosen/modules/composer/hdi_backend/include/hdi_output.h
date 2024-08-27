@@ -129,6 +129,8 @@ private:
 
     // DISPLAYENGINE
     bool arsrPreEnabled_ = false;
+    bool arsrPreEnabledForVm_ = false;
+    std::string vmArsrWhiteList_ = "";
 
     int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayersLocked();
@@ -143,6 +145,8 @@ private:
 
     // DISPLAY ENGINE
     bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
+    bool CheckIfDoArsrPreForVm(const LayerInfoPtr &layerInfo);
+    bool CheckSupportArsrPreMetadata();
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();

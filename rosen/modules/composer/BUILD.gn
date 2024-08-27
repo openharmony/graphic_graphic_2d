@@ -57,7 +57,10 @@ ohos_shared_library("libcomposer") {
     "hdi_backend/src/hdi_screen.cpp",
   ]
 
-  include_dirs = [ "$graphic_2d_root/utils/log" ]
+  include_dirs = [
+    "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/rosen/modules/utils",
+  ]
 
   configs = [ ":composer_config" ]
 

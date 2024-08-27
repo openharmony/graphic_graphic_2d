@@ -17,6 +17,7 @@
 #define STRING_UTILS_H
 
 #include <iostream>
+#include <sstream>
 
 #include <hilog/log.h>
 
@@ -37,6 +38,20 @@ void AppendFormat(std::string& out, const char* fmt, Args&& ... args)
         return;
     }
     out += buf;
+}
+
+template <class Container>
+void SplitString(const std::string& src, Container& dest, const char separator)
+{
+    if (src.empty()) {
+        return;
+    }
+    std::string tmp;
+    std::stringstream ss(src);
+    while (std::getline(ss, tmp, separator)) {
+        dest.insert(tmp);
+    }
+    return;
 }
 }
 }
