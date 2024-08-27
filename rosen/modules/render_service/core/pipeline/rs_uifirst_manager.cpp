@@ -655,7 +655,8 @@ void RSUifirstManager::RestoreSkipSyncNode()
         if (!surfaceNode) {
             continue;
         }
-        if (surfaceNode->IsAbilityComponent() && surfaceNode->GetUifirstRootNodeId() == surfaceNode->GetId() &&
+        if (surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD &&
+            surfaceNode->GetUifirstRootNodeId() == surfaceNode->GetId() &&
             pendingPostCardNodes_.find(surfaceNode->GetId()) == pendingPostCardNodes_.end()) {
             pendingPostCardNodes_[surfaceNode->GetId()] = surfaceNode;
             RS_OPTIONAL_TRACE_NAME_FMT("RestoreSkipSyncNode AddPendingPostCard %llu", id);
