@@ -332,17 +332,11 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     if (isOnTheTree_) {
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
-        if (stagingRenderParams_) {
-            stagingRenderParams_->SetFirstLevelNode(firstLevelNodeId_);
-        }
         OnTreeStateChanged();
     } else {
         OnTreeStateChanged();
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
-        if (stagingRenderParams_) {
-            stagingRenderParams_->SetFirstLevelNode(firstLevelNodeId_);
-        }
     }
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
@@ -351,9 +345,6 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     }
     if (uifirstRootNodeId != INVALID_NODEID) {
         uifirstRootNodeId_ = uifirstRootNodeId;
-        if (stagingRenderParams_) {
-            stagingRenderParams_->SetUiFirstRootNode(uifirstRootNodeId_);
-        }
     }
 
     for (auto& weakChild : children_) {
@@ -3566,9 +3557,6 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetInstanceRootNode() const
 void RSRenderNode::UpdateTreeUifirstRootNodeId(NodeId id)
 {
     uifirstRootNodeId_ = id;
-    if (stagingRenderParams_) {
-        stagingRenderParams_->SetUiFirstRootNode(uifirstRootNodeId_);
-    }
     for (auto& child : *GetChildren()) {
         if (child) {
             child->UpdateTreeUifirstRootNodeId(id);

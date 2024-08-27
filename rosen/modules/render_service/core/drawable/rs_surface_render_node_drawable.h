@@ -273,7 +273,6 @@ private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
-    bool CheckCurFirstLevelCorrect() const;
     void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 

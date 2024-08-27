@@ -89,14 +89,6 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface)
 {
-    RSRenderThreadFirstLevelHelper firstLevelHelper(
-        surfaceParams.GetFirstLevelNodeId(), surfaceParams.GetUifirstRootNodeId(), nodeId_);
-    if (firstLevelHelper.IsUifirstCheckNode() && !CheckCurFirstLevelCorrect()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw CheckCurFirstLevelCorrect [%s] Id:%" PRIu64 "",
-            name_.c_str(), surfaceParams.GetId());
-        return;
-    }
-
     auto bounds = surfaceParams.GetFrameRect();
 
     // 1. draw background

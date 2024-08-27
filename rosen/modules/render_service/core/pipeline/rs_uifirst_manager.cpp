@@ -571,28 +571,20 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
         node->SetUifirstSyncFlag(true);
     }
     // if node's UifirstRootNodeId is valid (e.g. ArkTsCard), use it first
-    auto drawable = node->GetRenderDrawable();
-    if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
-        RS_LOGE("RSUifirstManager::CollectSkipSyncNode drawable/params nullptr");
-        return true;
-    }
-    auto& params = drawable->GetRenderParams();
-    auto uifirstRootNodeDrawable = params->GetUifirstRootNodeId() != INVALID_NODEID ?
-        params->GetUiFirstRootNodeDrawable().lock() : params->GetFirstLevelNodeDrawable().lock();
-    if (uifirstRootNodeDrawable && uifirstRootNodeDrawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
-        auto drawableNode = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(uifirstRootNodeDrawable);
-        if (drawableNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
-            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode %p GetFirstLevelNodeId %" PRIu64 " DOING ", drawable.get(),
-                uifirstRootNodeDrawable->GetId());
-            pendingSyncForSkipBefore_[uifirstRootNodeDrawable->GetId()].push_back(node);
-            if (uifirstRootNodeDrawable->GetId() == node->GetId()) {
-                RS_OPTIONAL_TRACE_NAME_FMT(
-                    "set partial_sync %" PRIu64 " root %" PRIu64 "", node->GetId(), uifirstRootNodeDrawable->GetId());
+    auto uifirstRootNode = node->GetUifirstRootNodeId() != INVALID_NODEID ?
+        node->GetUifirstRootNode() : node->GetFirstLevelNode();
+    if (uifirstRootNode && uifirstRootNode->IsInstanceOf<RSSurfaceRenderNode>()) {
+        auto drawableNode = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(uifirstRootNode));
+        if (drawableNode && drawableNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+            pendingSyncForSkipBefore_[uifirstRootNode->GetId()].push_back(node);
+            if (uifirstRootNode->GetId() == node->GetId()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("set partial_sync %lld root%lld", node->GetId(), uifirstRootNode->GetId());
                 node->SetUifirstSkipPartialSync(true);
                 return false;
             }
-            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %" PRIu64 ", node %" PRIu64 "",
-                uifirstRootNodeDrawable->GetId(), node->GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %lld, node %lld",
+                uifirstRootNode->GetId(), node->GetId());
             return true;
         }
     }
@@ -1387,26 +1379,6 @@ void RSUifirstManager::CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRende
         node.GetId()) != currentFrameDeletedCardNodes_.end()) {
         isCurrentFrameHasCardNodeReCreate_ = true;
     }
-}
-
-const NodeId& RSUifirstManager::GetUifirstRootNodeId()
-{
-    return curUifirstRootNodeId_;
-}
-
-void RSUifirstManager::SetUifirstRootNodeId(NodeId uifirstRootNodeId)
-{
-    curUifirstRootNodeId_ = uifirstRootNodeId;
-}
-
-const NodeId& RSUifirstManager::GetFirstLevelNodeId()
-{
-    return curFirstLevelNodeId_;
-}
-
-void RSUifirstManager::SetFirstLevelNodeId(NodeId curFirstLevelNodeId)
-{
-    curFirstLevelNodeId_ = curFirstLevelNodeId;
 }
 
 } // namespace Rosen
