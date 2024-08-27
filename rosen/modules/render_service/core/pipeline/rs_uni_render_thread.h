@@ -159,6 +159,26 @@ public:
     }
     void SetVmaCacheStatus(bool flag); // dynmic flag
 
+    static const NodeId& GetUifirstRootNodeId()
+    {
+        return curUifirstRootNodeId_;
+    }
+
+    static void SetUifirstRootNodeId(NodeId uifirstRootNodeId)
+    {
+        curUifirstRootNodeId_ = uifirstRootNodeId;
+    }
+
+    static const NodeId& GetFirstLevelNodeId()
+    {
+        return curFirstLevelNodeId_;
+    }
+
+    static void SetFirstLevelNodeId(NodeId curFirstLevelNodeId)
+    {
+        curFirstLevelNodeId_ = curFirstLevelNodeId;
+    }
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -215,6 +235,40 @@ private:
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     uint32_t vmaCacheCount_ = 0;
     std::mutex vmaCacheCountMutex_;
+
+    static inline thread_local NodeId curUifirstRootNodeId_ = INVALID_NODEID;
+    static inline thread_local NodeId curFirstLevelNodeId_ = INVALID_NODEID;
+};
+
+class RSB_EXPORT RSRenderThreadFirstLevelHelper {
+public:
+    RSRenderThreadFirstLevelHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
+    {
+        isCurUifirstRootNodeId_ = curNodeId == curUifirstRootNodeId;
+        isCurFirsLevelNodeId_ = curNodeId == curFirsLevelNodeId;
+        if (isCurUifirstRootNodeId_) {
+            RSUniRenderThread::Instance().SetUifirstRootNodeId(curUifirstRootNodeId);
+        }
+        if (isCurFirsLevelNodeId_) {
+            RSUniRenderThread::Instance().SetFirstLevelNodeId(curFirsLevelNodeId);
+        }
+    }
+    ~RSRenderThreadFirstLevelHelper()
+    {
+        if (isCurUifirstRootNodeId_) {
+            RSUniRenderThread::Instance().SetUifirstRootNodeId(INVALID_NODEID);
+        }
+        if (isCurFirsLevelNodeId_) {
+            RSUniRenderThread::Instance().SetFirstLevelNodeId(INVALID_NODEID);
+        }
+    }
+    inline bool IsUifirstCheckNode() const
+    {
+        return !isCurUifirstRootNodeId_ && !isCurFirsLevelNodeId_;
+    }
+private:
+    bool isCurUifirstRootNodeId_ = false;
+    bool isCurFirsLevelNodeId_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

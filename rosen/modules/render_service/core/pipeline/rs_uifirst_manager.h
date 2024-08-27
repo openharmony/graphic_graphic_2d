@@ -139,11 +139,6 @@ public:
     void PostReleaseCacheSurfaceSubTask(NodeId id);
     void TryReleaseTextureForIdleThread();
 
-    static const NodeId& GetUifirstRootNodeId();
-    static void SetUifirstRootNodeId(NodeId uifirstRootNodeId);
-    static const NodeId& GetFirstLevelNodeId();
-    static void SetFirstLevelNodeId(NodeId curFirstLevelNodeId);
-
 private:
     RSUifirstManager();
     ~RSUifirstManager() = default;
@@ -254,38 +249,6 @@ private:
     std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
-    static inline thread_local NodeId curUifirstRootNodeId_ = INVALID_NODEID;
-    static inline thread_local NodeId curFirstLevelNodeId_ = INVALID_NODEID;
-};
-class RSB_EXPORT RSRenderThreadFirstLevelHelper {
-public:
-    RSRenderThreadFirstLevelHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
-    {
-        isCurUifirstRootNodeId_ = curNodeId == curUifirstRootNodeId;
-        isCurFirsLevelNodeId_ = curNodeId == curFirsLevelNodeId;
-        if (isCurUifirstRootNodeId_) {
-            RSUifirstManager::Instance().SetUifirstRootNodeId(curUifirstRootNodeId);
-        }
-        if (isCurFirsLevelNodeId_) {
-            RSUifirstManager::Instance().SetFirstLevelNodeId(curFirsLevelNodeId);
-        }
-    }
-    ~RSRenderThreadFirstLevelHelper()
-    {
-        if (isCurUifirstRootNodeId_) {
-            RSUifirstManager::Instance().SetUifirstRootNodeId(INVALID_NODEID);
-        }
-        if (isCurFirsLevelNodeId_) {
-            RSUifirstManager::Instance().SetFirstLevelNodeId(INVALID_NODEID);
-        }
-    }
-    inline bool IsUifirstCheckNode() const
-    {
-        return !isCurUifirstRootNodeId_ && !isCurFirsLevelNodeId_;
-    }
-private:
-    bool isCurUifirstRootNodeId_ = false;
-    bool isCurFirsLevelNodeId_ = false;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H
