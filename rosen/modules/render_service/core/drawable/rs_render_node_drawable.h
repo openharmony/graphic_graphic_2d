@@ -105,8 +105,6 @@ public:
         return isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_ENABLE;
     }
 
-    bool CheckCurFirstLevelCorrect() const;
-
     // opinc root state
     bool IsOpincRootNode()
     {

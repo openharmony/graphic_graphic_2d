@@ -69,27 +69,6 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
     }
 }
 
-bool RSRenderNodeDrawable::CheckCurFirstLevelCorrect() const
-{
-    if (!renderParams_) {
-        return false;
-    }
-
-    auto& curUifirstRootNodeId = RSUniRenderThread::Instance().GetUifirstRootNodeId();
-    auto& curFirstLevelNodeId = RSUniRenderThread::Instance().GetFirstLevelNodeId();
-    auto& uifirstRootNodeId = renderParams_->GetUifirstRootNodeId();
-    auto& firstLevelNodeId = renderParams_->GetFirstLevelNodeId();
-    if (curUifirstRootNodeId == INVALID_NODEID && curFirstLevelNodeId == INVALID_NODEID) {
-        // should draw when uifirst not inited
-        return true;
-    }
-
-    auto uiFirstCheckRet = uifirstRootNodeId == curUifirstRootNodeId && curUifirstRootNodeId != INVALID_NODEID;
-    auto firstLevelCheckRet = firstLevelNodeId == curFirstLevelNodeId && curFirstLevelNodeId != INVALID_NODEID;
-
-    return uiFirstCheckRet || firstLevelCheckRet;
-}
-
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.
  */
