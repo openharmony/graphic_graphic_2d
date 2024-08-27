@@ -55,23 +55,6 @@ void RSSubThreadManager::Start(RenderContext *context)
     }
 }
 
-void RSSubThreadManager::StartColorPickerThread(RenderContext* context)
-{
-#if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-    if (!RSSystemProperties::GetColorPickerPartialEnabled() || !RSUniRenderJudgement::IsUniRender()) {
-        RS_LOGD("RSSubThreadManager::StartColorPickerThread:Filter thread not run");
-        return;
-    }
-    if (colorPickerThread_ != nullptr) {
-        return;
-    }
-    if (context) {
-        colorPickerThread_ = std::make_shared<RSFilterSubThread>(context);
-        colorPickerThread_->StartColorPicker();
-    }
-#endif
-}
-
 void RSSubThreadManager::PostTask(const std::function<void()>& task, uint32_t threadIndex, bool isSyncTask)
 {
     if (threadIndex >= threadList_.size()) {
@@ -95,9 +78,6 @@ void RSSubThreadManager::DumpMem(DfxString& log)
             continue;
         }
         subThread->DumpMem(log);
-    }
-    if (colorPickerThread_) {
-        colorPickerThread_->DumpMem(log);
     }
 }
 
@@ -125,9 +105,6 @@ float RSSubThreadManager::GetAppGpuMemoryInMB()
             continue;
         }
         total += subThread->GetAppGpuMemoryInMB();
-    }
-    if (colorPickerThread_) {
-        total += colorPickerThread_->GetAppGpuMemoryInMB();
     }
     return total;
 }

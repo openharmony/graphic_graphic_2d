@@ -867,46 +867,6 @@ bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
     return (rotateX != 0) || (rotateY != 0);
 }
 
-
-void RSUniRenderUtil::ReleaseColorPickerFilter(std::shared_ptr<RSFilter> RSFilter)
-{
-    auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(RSFilter);
-    std::shared_ptr<RSShaderFilter> rsShaderFilter =
-        drawingFilter->GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
-    if (rsShaderFilter == nullptr) {
-        return;
-    }
-    auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
-    maskColorShaderFilter->ReleaseColorPickerFilter();
-}
-
-void RSUniRenderUtil::ReleaseColorPickerResource(std::shared_ptr<RSRenderNode>& node)
-{
-    if (node == nullptr) {
-        return;
-    }
-    auto& properties = node->GetRenderProperties();
-    if (properties.GetColorPickerCacheTaskShadow() != nullptr) {
-        properties.ReleaseColorPickerTaskShadow();
-    }
-    if ((properties.GetFilter() != nullptr &&
-        properties.GetFilter()->GetFilterType() == RSFilter::MATERIAL)) {
-        ReleaseColorPickerFilter(properties.GetFilter());
-    }
-    if (properties.GetBackgroundFilter() != nullptr &&
-        properties.GetBackgroundFilter()->GetFilterType() == RSFilter::MATERIAL) {
-        ReleaseColorPickerFilter(properties.GetBackgroundFilter());
-    }
-    // Recursive to release color picker resource
-    for (auto& child : *node->GetChildren()) {
-        if (auto canvasChild = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(child)) {
-            if (RSSystemProperties::GetColorPickerPartialEnabled()) {
-                ReleaseColorPickerResource(canvasChild);
-            }
-        }
-    }
-}
-
 bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation)
 {
     if (node == nullptr) {
@@ -971,9 +931,6 @@ void RSUniRenderUtil::AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNod
         bool isNodeAssignSubThread = IsNodeAssignSubThread(node, isRotation);
         if (isNodeAssignSubThread != lastIsNeedAssignToSubThread) {
             auto renderNode = RSBaseRenderNode::ReinterpretCast<RSRenderNode>(node);
-            if (RSSystemProperties::GetColorPickerPartialEnabled()) {
-                ReleaseColorPickerResource(renderNode);
-            }
             node->SetLastIsNeedAssignToSubThread(isNodeAssignSubThread);
         }
         if (isNodeAssignSubThread) {

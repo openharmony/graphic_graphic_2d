@@ -20,6 +20,7 @@
 #include <limits>
 #include <memory>
 #include <tuple>
+#include <queue>
 
 #include "surface_type.h"
 

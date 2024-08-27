@@ -45,8 +45,6 @@ public:
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,
         const RSProperties& properties, const bool isAbsCoordinate = true);
-    static bool PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& drPath,
-    Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds, RSColor& colorPicked);
     static void GetDarkColor(RSColor& color);
     // todo: doublecheck if calculate correct
     static void GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,

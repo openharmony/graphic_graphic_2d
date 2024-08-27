@@ -781,31 +781,6 @@ HWTEST_F(RSShadowBaseDrawableTest, ClipShadowPath001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetColorForShadow001
- * @tc.desc: test results of GetColorForShadow
- * @tc.type: FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSShadowDrawableTest, GetColorForShadow001, TestSize.Level1)
-{
-    RSRenderContent content;
-    RSProperties& properties = content.GetMutableRenderProperties();
-    RSShadowDrawable shadowDrawable(properties);
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas fileCanvas(&canvas);
-    Drawing::Path skPath;
-    Drawing::Matrix matrix;
-    Drawing::RectI deviceClipBounds;
-    shadowDrawable.GetColorForShadow(content, fileCanvas, skPath, matrix, deviceClipBounds);
-    EXPECT_EQ(properties.GetColorPickerCacheTaskShadow(), nullptr);
-
-    properties.shadow_ = std::make_optional<RSShadow>();
-    properties.shadow_->SetColorStrategy(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE);
-    shadowDrawable.GetColorForShadow(content, fileCanvas, skPath, matrix, deviceClipBounds);
-    EXPECT_TRUE(properties.visible_);
-}
-
-/**
  * @tc.name: Draw001
  * @tc.desc: test results of Draw
  * @tc.type: FUNC

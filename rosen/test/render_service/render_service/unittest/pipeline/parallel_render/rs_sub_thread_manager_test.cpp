@@ -363,20 +363,6 @@ HWTEST_F(RsSubThreadManagerTest, GetReThreadIndexMapTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: StartColorPickerThreadTest
- * @tc.desc: Test RsSubThreadManagerTest.StartColorPickerThreadTest
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RsSubThreadManagerTest, StartColorPickerThreadTest, TestSize.Level1)
-{
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    auto renderContext = std::make_shared<RenderContext>();
-    rsSubThreadManager->StartColorPickerThread(renderContext.get());
-    EXPECT_TRUE(rsSubThreadManager->threadList_.empty());
-}
-
-/**
  * @tc.name: ScheduleRenderNodeDrawableTest
  * @tc.desc: Test RsSubThreadManagerTest.ScheduleRenderNodeDrawableTest
  * @tc.type: FUNC

@@ -112,7 +112,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetFilterCacheEnabled();
     RSSystemProperties::GetFilterCacheUpdateInterval();
     RSSystemProperties::GetFilterCacheSizeThreshold();
-    RSSystemProperties::GetColorPickerPartialEnabled();
     RSSystemProperties::GetMaskLinearBlurEnabled();
     RSSystemProperties::GetMotionBlurEnabled();
     RSSystemProperties::GetKawaseEnabled();

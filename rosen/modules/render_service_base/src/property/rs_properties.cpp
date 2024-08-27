@@ -1970,12 +1970,6 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     // [planning] if shadow stores as texture and out of node
     // node content would not be affected
     contentDirty_ = true;
-    if (shadowColorStrategy != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE &&
-        shadow_->GetColorPickerCacheTask() == nullptr) {
-        auto colorPickerTaskShadow = std::make_shared<RSColorPickerCacheTask>();
-        colorPickerTaskShadow->SetShadowColorStrategy(shadowColorStrategy);
-        shadow_->SetColorPickerCacheTask(colorPickerTaskShadow);
-    }
 }
 
 const Color& RSProperties::GetShadowColor() const
@@ -2833,7 +2827,6 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
     originalFilter->SetSaturationForHPS(backgroundBlurSaturation_);
     originalFilter->SetBrightnessForHPS(backgroundBlurBrightness_);
     backgroundFilter_ = originalFilter;
-    maskColorShaderFilter->InitColorMod();
     backgroundFilter_->SetFilterType(RSFilter::MATERIAL);
 }
 
@@ -2919,7 +2912,6 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
     originalFilter->SetSaturationForHPS(foregroundBlurSaturation_);
     originalFilter->SetBrightnessForHPS(foregroundBlurBrightness_);
     filter_ = originalFilter;
-    maskColorShaderFilter->InitColorMod();
     filter_->SetFilterType(RSFilter::MATERIAL);
 }
 
@@ -4106,7 +4098,6 @@ void RSProperties::ClearFilterCache()
             drawingFilter->GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
         if (rsShaderFilter != nullptr) {
             auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
-            maskColorShaderFilter->ReleaseColorPickerFilter();
         }
     }
     if (filter_ != nullptr) {
@@ -4115,7 +4106,6 @@ void RSProperties::ClearFilterCache()
             drawingFilter->GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
         if (rsShaderFilter != nullptr) {
             auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
-            maskColorShaderFilter->ReleaseColorPickerFilter();
         }
     }
 }
@@ -4306,19 +4296,6 @@ void RSProperties::SetColorBlendApplyType(int colorBlendApplyType)
 int RSProperties::GetColorBlendApplyType() const
 {
     return colorBlendApplyType_;
-}
-
-std::shared_ptr<RSColorPickerCacheTask> RSProperties::GetColorPickerCacheTaskShadow() const
-{
-    return shadow_ ? shadow_->GetColorPickerCacheTask() : nullptr;
-}
-
-void RSProperties::ReleaseColorPickerTaskShadow() const
-{
-    if (!shadow_ || shadow_->GetColorPickerCacheTask() == nullptr) {
-        return;
-    }
-    shadow_->GetColorPickerCacheTask()->ReleaseColorPicker();
 }
 
 bool RSProperties::GetHaveEffectRegion() const

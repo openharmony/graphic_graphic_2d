@@ -23,6 +23,7 @@
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_material_filter.h"
+#include "render/rs_color_picker.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -73,63 +74,6 @@ RRect RSPropertyDrawableUtils::GetInnerRRectForDrawingBorder(
         return {};
     }
     return isOutline ? properties.GetRRect() : properties.GetInnerRRect();
-}
-
-bool RSPropertyDrawableUtils::PickColor(Drawing::Canvas& canvas,
-    const std::shared_ptr<RSColorPickerCacheTask>& colorPickerTask, Drawing::Path& drPath, Drawing::Matrix& matrix,
-    RSColor& colorPicked)
-{
-    Drawing::Rect clipBounds = drPath.GetBounds();
-    Drawing::RectI clipIBounds = { static_cast<int>(clipBounds.GetLeft()), static_cast<int>(clipBounds.GetTop()),
-        static_cast<int>(clipBounds.GetRight()), static_cast<int>(clipBounds.GetBottom()) };
-    Drawing::Surface* drSurface = canvas.GetSurface();
-    if (drSurface == nullptr) {
-        return false;
-    }
-
-    if (!colorPickerTask) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::PickColor colorPickerTask is null");
-        return false;
-    }
-    colorPickerTask->SetIsShadow(true);
-    int deviceWidth = 0;
-    int deviceHeight = 0;
-    int deviceClipBoundsW = drSurface->Width();
-    int deviceClipBoundsH = drSurface->Height();
-    if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
-        colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
-        deviceWidth = deviceClipBoundsW;
-        deviceHeight = deviceClipBoundsH;
-    }
-    int32_t fLeft = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_X)), 0, deviceWidth - 1);
-    int32_t fTop = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_Y)), 0, deviceHeight - 1);
-    int32_t fRight = std::clamp(int(fLeft + clipIBounds.GetWidth()), 0, deviceWidth - 1);
-    int32_t fBottom = std::clamp(int(fTop + clipIBounds.GetHeight()), 0, deviceHeight - 1);
-    if (fLeft == fRight || fTop == fBottom) {
-        return false;
-    }
-
-    Drawing::RectI regionBounds = { fLeft, fTop, fRight, fBottom };
-    std::shared_ptr<Drawing::Image> shadowRegionImage = drSurface->GetImageSnapshot(regionBounds);
-
-    if (shadowRegionImage == nullptr) {
-        return false;
-    }
-
-    // when color picker task resource is waitting for release, use color picked last frame
-    if (colorPickerTask->GetWaitRelease()) {
-        colorPickerTask->GetColorAverage(colorPicked);
-        return true;
-    }
-
-    if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage) &&
-        colorPickerTask->GetColor(colorPicked)) {
-        colorPickerTask->GetColorAverage(colorPicked);
-        colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
-        return true;
-    }
-    colorPickerTask->GetColorAverage(colorPicked);
-    return true;
 }
 
 Color RSPropertyDrawableUtils::GetColorForShadowSyn(Drawing::Canvas* canvas, Drawing::Path& path, const Color& color,

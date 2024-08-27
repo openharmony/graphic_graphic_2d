@@ -55,7 +55,6 @@ group("unittest") {
   }
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [
-      ":RSFilterSubThreadTest",
       ":RSRenderTaskTest",
       ":RSSubThreadManagerTest",
       ":RSSubThreadTest",
@@ -715,32 +714,6 @@ ohos_unittest("RSSubThreadManagerTest") {
 ohos_unittest("RSSubThreadTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_sub_thread_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
-  }
-}
-
-## Build RSFilterSubThreadTest
-ohos_unittest("RSFilterSubThreadTest") {
-  module_out_path = module_output_path
-  sources = [ "parallel_render/rs_filter_sub_thread_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
