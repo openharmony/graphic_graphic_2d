@@ -292,6 +292,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
+            if (isUniRender) {
+                bool shouldDrop = RSUnmarshalThread::Instance().ReportTransactionDataStatistics(
+                    callingPid, data.GetDataSize(), isNonSystemAppCalling);
+                if (shouldDrop) {
+                    RS_LOGW("RSRenderServiceConnectionStub::COMMIT_TRANSACTION data droped");
+                    return ERR_TRANSACTION_FAILED;
+                }
+            }
             std::shared_ptr<MessageParcel> parsedParcel;
             if (data.ReadInt32() == 0) { // indicate normal parcel
                 if (isUniRender) {

@@ -447,6 +447,11 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetTransactionTerminateEnabled()
+{
+    return false;
+}
+
 int RSSystemProperties::GetVirtualScreenScaleModeDFX()
 {
     return {};
