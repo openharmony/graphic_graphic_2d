@@ -1126,20 +1126,38 @@ bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
     return true;
 }
 
-Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds)
+Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(
+    GraphicTransformType rotationTransform, const RectF &bounds, const RectF &bufferBounds, Gravity gravity)
 {
     Drawing::Matrix matrix;
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
+    const float bufferHeight = bufferBounds.GetHeight();
+    float heightAdjust = boundsHeight;
+
+    static std::unordered_set<Gravity> resizeGravities = {Gravity::RESIZE,
+        Gravity::RESIZE_ASPECT,
+        Gravity::RESIZE_ASPECT_TOP_LEFT,
+        Gravity::RESIZE_ASPECT_BOTTOM_RIGHT,
+        Gravity::RESIZE_ASPECT_FILL,
+        Gravity::RESIZE_ASPECT_FILL_TOP_LEFT,
+        Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT};
+    if (resizeGravities.find(gravity) != resizeGravities.end()) {
+        heightAdjust = boundsHeight;
+    } else if (bufferHeight > 0) {
+        heightAdjust = std::min(bufferHeight, boundsHeight);
+    }
+
     switch (rotationTransform) {
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            matrix.PreTranslate(0, boundsHeight);
-            matrix.PreRotate(-90); // rotate 90 degrees anti-clockwise at last.
+            matrix.PreTranslate(0, heightAdjust);
+            matrix.PreRotate(-90);  // rotate 90 degrees anti-clockwise at last.
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            matrix.PreTranslate(boundsWidth, boundsHeight);
-            matrix.PreRotate(-180); // rotate 180 degrees anti-clockwise at last.
+            matrix.PreTranslate(boundsWidth, heightAdjust);
+            matrix.PreRotate(-180);  // rotate 180 degrees anti-clockwise at last.
+
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
@@ -1154,24 +1172,24 @@ Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType
     return matrix;
 }
 
-Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
-    Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds)
+Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(Gravity gravity, const RectF &bounds, const RectF &boundsBuffer)
 {
     Drawing::Matrix gravityMatrix;
-    if (buffer == nullptr) {
+
+    auto frameWidth = boundsBuffer.GetWidth();
+    auto frameHeight = boundsBuffer.GetHeight();
+    if (ROSEN_EQ(frameWidth, 0.0f) && ROSEN_EQ(frameHeight, 0.0f)) {
         return gravityMatrix;
     }
-
-    auto frameWidth = static_cast<float>(buffer->GetSurfaceBufferWidth());
-    auto frameHeight = static_cast<float>(buffer->GetSurfaceBufferHeight());
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
     if (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight)) {
         return gravityMatrix;
     }
 
-    if (!RSPropertiesPainter::GetGravityMatrix(gravity,
-        RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix)) {
+    if (!RSPropertiesPainter::GetGravityMatrix(
+        gravity, RectF{0.0f, 0.0f, boundsWidth, boundsHeight},
+        frameWidth, frameHeight, gravityMatrix)) {
         RS_LOGD("RSBaseRenderUtil::DealWithNodeGravity did not obtain gravity matrix.");
     }
 
@@ -1179,7 +1197,7 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 }
 
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-    RectF localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams)
+    RectF &localBounds, BufferDrawParam &params, RSSurfaceRenderParams *nodeParams)
 {
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
@@ -1191,7 +1209,19 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     }
     rotationTransform = static_cast<GraphicTransformType>(
         (rotationTransform + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
-    params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
+
+    RectF bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f};
+    if (params.buffer != nullptr) {
+        bufferBounds = {0.0f, 0.0f, params.buffer->GetSurfaceBufferWidth(), params.buffer->GetSurfaceBufferHeight()};
+        if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+            rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
+            std::swap(bufferBounds.width_, bufferBounds.height_);
+        }
+    }
+
+    params.matrix.PreConcat(
+        RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds, bufferBounds, gravity));
+
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
@@ -1200,7 +1230,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     }
 
     // deal with buffer's gravity effect in node's inner space.
-    params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, params.buffer, localBounds));
+    params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, localBounds, bufferBounds));
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
     params.dstRect = params.srcRect;
