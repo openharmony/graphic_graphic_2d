@@ -25,6 +25,7 @@
 #include "animation/rs_particle_noise_field.h"
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
+#include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
 #include "effect/runtime_blender_builder.h"
 #include "modifier/rs_modifier_type.h"
@@ -436,7 +437,7 @@ public:
     RectI GetPixelStretchDirtyRect() const;
 
     const std::shared_ptr<RSObjAbsGeometry>& GetBoundsGeometry() const;
-    const std::shared_ptr<RSObjGeometry>& GetFrameGeometry() const;
+    const RSObjGeometry& GetFrameGeometry() const;
     bool UpdateGeometry(const RSProperties* parent, bool dirtyFlag, const std::optional<Drawing::Point>& offset);
     bool UpdateGeometryByParent(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
     RectF GetLocalBoundsAndFramesRect() const;
@@ -617,7 +618,7 @@ private:
     bool alphaOffscreen_ = false;
 
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
-    std::shared_ptr<RSObjGeometry> frameGeo_;
+    RSObjGeometry frameGeo_;
 
     std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
     std::shared_ptr<RSIlluminated> illuminatedPtr_ = nullptr;
