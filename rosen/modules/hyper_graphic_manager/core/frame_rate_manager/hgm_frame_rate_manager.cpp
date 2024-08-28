@@ -1216,10 +1216,13 @@ bool HgmFrameRateManager::ProcessRefreshRateVote(
         return false;
     }
     VoteInfo curVoteInfo = voteRecord_[voter].first.back();
-    if ((voter == "VOTER_GAMES" && !gameScenes_.empty()) || (voter == "VOTER_ANCO" && !ancoScenes_.empty()) ||
-        !multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
+    if ((voter == "VOTER_GAMES" && !gameScenes_.empty()) || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
         ProcessVoteLog(curVoteInfo, true);
         return false;
+    }
+    if (voter == "VOTER_ANCO" && !ancoScenes_.empty() &&
+        (curVoteInfo.min > OLED_60_HZ || curVoteInfo.max < OLED_90_HZ)) {
+        curVoteInfo.SetRange(OLED_60_HZ, OLED_90_HZ);
     }
     ProcessVoteLog(curVoteInfo, false);
     auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
