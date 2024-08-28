@@ -175,7 +175,14 @@ Drawing::Brush RSDrawingFilter::GetBrush() const
     brush.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetImageFilter(imageFilter_);
-    filter.SetColorFilter(colorFilterForHDR_);
+    if (colorFilterForHDR_ != nullptr && colorFilterForMaskColor_ != nullptr) {
+        colorFilterForMaskColor_->Compose(*colorFilterForHDR_);
+        filter.SetColorFilter(colorFilterForMaskColor_);
+    } else if (colorFilterForHDR_ != nullptr) {
+        filter.SetColorFilter(colorFilterForHDR_);
+    } else {
+        filter.SetColorFilter(colorFilterForMaskColor_);
+    }
     brush.SetFilter(filter);
     return brush;
 }
@@ -312,9 +319,9 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
         auto radius = tmpFilter->GetRadius();
         auto hpsParam = Drawing::HpsBlurParameter(src, dst, radius, saturationForHPS_, brightnessForHPS_);
+        brush.SetForceBrightnessDisable(true);
         if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
-            HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam, brush.GetColor().GetAlphaF(),
-                brush.GetFilter().GetColorFilter())) {
+            HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam, brush)) {
             RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
         } else {
             auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
@@ -325,7 +332,6 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
                 ROSEN_LOGE("RSDrawingFilter::DrawImageRect blurImage is null");
                 return;
             }
-            brush.SetForceBrightnessDisable(true);
             canvas.AttachBrush(brush);
             canvas.DrawImageRect(*blurImage, src, dst, Drawing::SamplingOptions());
             canvas.DetachBrush();
@@ -355,11 +361,40 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
         }
         filter->GenerateGEVisualEffect(visualEffectContainer);
     }
+    CreateColorFilterForMaskColor(canvas);
     auto brush = GetBrush();
     if (discardCanvas && kawaseHpsFilter && brush.GetColor().GetAlphaF() == 1.0) {
         canvas.Discard();
     }
     ApplyImageEffect(canvas, image, visualEffectContainer, src, dst);
+}
+
+void RSDrawingFilter::CreateColorFilterForMaskColor(Drawing::Canvas& canvas)
+{
+    colorFilterForMaskColor_ = nullptr;
+    std::shared_ptr<RSShaderFilter> maskColorShaderFilter =
+        GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
+    if (maskColorShaderFilter != nullptr) {
+        auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
+        auto maskColor = maskColorFilter->GetMaskColor();
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+        float ratio = 1.f;
+        if (paintFilterCanvas != nullptr && paintFilterCanvas->GetHDRPresent()) {
+            ratio = paintFilterCanvas->GetBrightnessRatio();
+        }
+        if (auto maskColorAlpha = maskColor.GetAlpha()) {
+            auto oneMinusAlpha = 1.f - maskColor.GetAlpha() / 255.f;
+            auto premulCoeff = maskColorAlpha / 255.f / 255.f;
+            const float maskColorMat[] = {
+                oneMinusAlpha, 0.f, 0.f, 0.f, maskColor.GetRed() * premulCoeff * ratio,
+                0.f, oneMinusAlpha, 0.f, 0.f, maskColor.GetGreen() * premulCoeff * ratio,
+                0.f, 0.f, oneMinusAlpha, 0.f, maskColor.GetBlue() * premulCoeff * ratio,
+                0.f, 0.f, 0.f, 1.f, 0.f,
+            };
+            auto maskColor = Drawing::ColorFilter::CreateFloatColorFilter(maskColorMat);
+            colorFilterForMaskColor_ = maskColor;
+        }
+    }
 }
 
 void RSDrawingFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)
