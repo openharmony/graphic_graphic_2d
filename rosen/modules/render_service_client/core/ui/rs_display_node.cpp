@@ -30,14 +30,8 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     SharedPtr node(new RSDisplayNode(displayNodeConfig));
     RSNodeMap::MutableInstance().RegisterNode(node);
 
-    if (displayNodeConfig.isSync) {
-        RSDisplayRenderNodeConfig config = {
-            .id = node->GetId(),
-            .mirrorNodeId = displayNodeConfig.mirrorNodeId,
-            .screenId = displayNodeConfig.screenId,
-            .isMirrored = displayNodeConfig.isMirrored
-        };
-        if (!node->CreateNode(config)) {
+    if (LIKELY(!displayNodeConfig.isSync)) {
+        if(!node->CreateNode(displayNodeConfig, node->GetId())) {
             ROSEN_LOGE("RSDisplayNode::Create: CreateNode Failed.");
             return nullptr;
         }
@@ -52,10 +46,10 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     return node;
 }
 
-bool RSDisplayNode::CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig)
+bool RSDisplayNode::CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())->
-        CreateNode(displayNodeConfig);
+        CreateNode(displayNodeConfig, nodeId);
 }
 
 void RSDisplayNode::AddDisplayNodeToTree()

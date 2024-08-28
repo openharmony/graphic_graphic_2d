@@ -292,23 +292,32 @@ bool RSRenderServiceConnection::GetUniRenderEnabled()
     return RSUniRenderJudgement::IsUniRender();
 }
 
-bool RSRenderServiceConnection::CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig)
+bool RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     if (!mainThread_) {
         return false;
     }
-    std::shared_ptr<RSDisplayRenderNode> node =
-        DisplayNodeCommandHelper::CreateWithConfigInRS(displayNodeConfig, mainThread_->GetContext());
+    std::shared_ptr<RSDisplayRenderNode> node = std::shared_ptr<RSDisplayRenderNode>(new RSDisplayRenderNode(nodeId,
+        displayNodeConfig, mainThread->GetContext().weak_from_this()), RSRenderNodeGC::NodeDestructor);
     if (node == nullptr) {
         RS_LOGE("RSRenderService::CreateDisplayNode fail");
         return false;
     }
-    std::function<void()> registerNode = [node, weakThis = wptr<RSRenderServiceConnection>(this)]() -> void {
+    std::function<void()> registerNode = [node, weakThis = wptr<RSRenderServiceConnection>(this),
+        mirrorNodeId = displayNodeConfig.mirrorNodeId]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
         if (!connection) {
             return;
         }
-        connection->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+        auto& context = connection->mainThread_->GetContext();
+        auto mirrorSourceNode = context.GetNodeMap()
+            .GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
+        if (!mirrorSourceNode) { 
+            return;
+        }
+        context.GetGlobalRootRenderNode()->AddChild(node);
+        context.GetMutableNodeMap().RegisterRenderNode(node);
+        node->SetMirrorSource(mirrorSourceNode);
     };
     mainThread_->PostSyncTask(registerNode);
     return true;

@@ -53,7 +53,7 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     return {};
 }
 
-bool RSRenderServiceClient::CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig)
+bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return {};
 }

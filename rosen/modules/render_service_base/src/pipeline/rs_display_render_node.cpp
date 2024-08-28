@@ -36,16 +36,6 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     MemoryTrack::Instance().AddNodeRecord(id, info);
 }
 
-RSDisplayRenderNode::RSDisplayRenderNode(
-    const RSDisplayRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
-      isMirroredDisplay_(config.isMirrored), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
-{
-    RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", config.id);
-    MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
-    MemoryTrack::Instance().AddNodeRecord(config.id, info);
-}
-
 RSDisplayRenderNode::~RSDisplayRenderNode()
 {
     RS_LOGI("RSDisplayRenderNode dtor id:%{public}" PRIu64 "", GetId());
