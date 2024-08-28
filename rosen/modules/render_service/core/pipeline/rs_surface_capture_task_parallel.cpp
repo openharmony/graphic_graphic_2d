@@ -559,6 +559,11 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
         Drawing::TextureOrigin::TOP_LEFT,
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
         NativeBufferUtils::DeleteVkImage, cleanUpHelper);
+    if (!drawingSurface) {
+        delete cleanUpHelper;
+        cleanUpHelper = nullptr;
+        RS_LOGE("DmaMem::GetSurfaceFromSurfaceBuffer: MakeFromBackendTexture fail.");
+    }
     return drawingSurface;
 }
 #endif

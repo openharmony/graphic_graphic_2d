@@ -3728,10 +3728,10 @@ void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &waterma
     auto screenManager_ = CreateOrGetScreenManager();
     if (flag && screenManager_) {
         auto screenInfo = screenManager_->QueryDefaultScreenInfo();
-        constexpr int maxScale = 2;
+        constexpr int32_t maxScale = 2;
         if (screenInfo.id != INVALID_SCREEN_ID && watermarkImg &&
-            (watermarkImg->GetWidth() > maxScale * screenInfo.width ||
-            watermarkImg->GetHeight() > maxScale * screenInfo.height)) {
+            (watermarkImg->GetWidth() > maxScale * static_cast<int32_t>(screenInfo.width) ||
+            watermarkImg->GetHeight() > maxScale * static_cast<int32_t>(screenInfo.height))) {
             RS_LOGE("RSMainThread::ShowWatermark width %{public}" PRId32" or height %{public}" PRId32" has reached"
                 " the maximum limit!", watermarkImg->GetWidth(), watermarkImg->GetHeight());
             return;
