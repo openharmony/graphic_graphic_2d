@@ -128,7 +128,7 @@ public:
     static void TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRenderNode> node,
         Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData);
     static void ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed);
-    static void FlushDmaSurfaceBuffer(Media::PixelMap* pixelmap);
+    static void FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap);
     template<typename... Callbacks>
     static void TraverseParentNodeAndReduce(std::shared_ptr<RSSurfaceRenderNode> hwcNode, Callbacks&&... callbacks)
     {
