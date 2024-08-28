@@ -655,6 +655,20 @@ void RSUifirstManager::RestoreSkipSyncNode()
     }
     for (auto id : todele) {
         pendingSyncForSkipBefore_.erase(id);
+        if (!mainThread_) {
+            continue;
+        }
+        auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
+        if (!surfaceNode) {
+            continue;
+        }
+        if (surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD &&
+            surfaceNode->GetUifirstRootNodeId() == surfaceNode->GetId() &&
+            pendingPostCardNodes_.find(surfaceNode->GetId()) == pendingPostCardNodes_.end()) {
+            pendingPostCardNodes_[surfaceNode->GetId()] = surfaceNode;
+            RS_OPTIONAL_TRACE_NAME_FMT("RestoreSkipSyncNode AddPendingPostCard %llu", id);
+        }
     }
 }
 
