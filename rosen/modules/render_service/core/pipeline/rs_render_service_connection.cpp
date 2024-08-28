@@ -321,7 +321,8 @@ bool RSRenderServiceConnection::CreateNode(const RSDisplayRenderNodeConfig& disp
         RS_LOGE("RSRenderService::CreateDisplayNode fail");
         return false;
     }
-    std::function<void()> registerNode = [node, weakThis = wptr<RSRenderServiceConnection>(this)]() -> void {
+    std::function<void()> registerNode = [node, displayNodeConfig,
+        weakThis = wptr<RSRenderServiceConnection>(this)]() {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
         if (!connection) {
             return;
