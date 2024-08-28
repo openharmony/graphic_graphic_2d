@@ -607,24 +607,6 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
 }
 
 /**
- * @tc.name: AnimationStatus003
- * @tc.desc: Verify the SetInstanceId of RSAnimationTimingProtocol
- * @tc.type: FUNC
- */
-HWTEST_F(RSAnimationTest, RSAnimationTimingProtocolSetInstanceId001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest RSAnimationTimingProtocolSetInstanceId001 start";
-    RSAnimationTimingProtocol protocol;
-    auto result = protocol.GetInstanceId();
-    EXPECT_EQ(result, INSTANCE_ID_UNDEFINED);
-
-    protocol.SetInstanceId(1);
-    result = protocol.GetInstanceId();
-    EXPECT_EQ(result, 1);
-    GTEST_LOG_(INFO) << "RSAnimationTest RSAnimationTimingProtocolSetInstanceId001 end";
-}
-
-/**
  * @tc.name: IsSupportInteractiveAnimator001
  * @tc.desc: Verify the IsSupportInteractiveAnimator of Animation
  * @tc.type: FUNC

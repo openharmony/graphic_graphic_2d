@@ -107,6 +107,7 @@ HWTEST_F(RSRenderCurveAnimationTest, SetInterpolator001, TestSize.Level1)
 
     EXPECT_TRUE(renderCurveAnimation != nullptr);
     auto interpolator = std::make_shared<RSStepsInterpolator>(0);
+    renderCurveAnimation->UpdateFractionAfterContinue();
     renderCurveAnimation->SetInterpolator(interpolator);
     EXPECT_TRUE(renderCurveAnimation->GetInterpolator() != nullptr);
     renderCurveAnimation->Attach(renderNode.get());

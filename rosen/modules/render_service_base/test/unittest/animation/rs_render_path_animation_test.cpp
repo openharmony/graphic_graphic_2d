@@ -387,6 +387,11 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimate003, TestSize.Level1)
     renderPathAnimation->OnAnimate(1.0f);
     renderPathAnimation->SetRotationMode(RotationMode::ROTATE_AUTO_REVERSE);
     renderPathAnimation->OnAnimate(1.0f);
+
+    renderPathAnimation->valueEstimator_ = nullptr;
+    renderPathAnimation->property_ = std::make_shared<RSRenderPropertyBase>();
+    renderPathAnimation->property_->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
+    EXPECT_TRUE(renderPathAnimation->valueEstimator_ == nullptr);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate003 end";
 }
 
