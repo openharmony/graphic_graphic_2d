@@ -160,6 +160,7 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
             int32_t val = dup(flat->handle);
             if (val < 0) {
                 ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%{public}d", val);
+                return;
             }
             copiedFlat->handle = static_cast<uint32_t>(val);
         }
@@ -177,6 +178,9 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
         return nullptr;
     }
     if (dataSize > MAX_DATA_SIZE) {
+        return nullptr;
+    }
+    if (dataSize == 0) {
         return nullptr;
     }
     RS_TRACE_NAME("CopyParcelForUnmarsh: size:" + std::to_string(dataSize));
