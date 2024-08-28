@@ -71,7 +71,7 @@ protected:
     void OnBoundsSizeChanged() const override;
 
 private:
-    bool CreateNode(const RSDisplayRenderNodeConfig& displayNodeConfig);
+    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
     uint64_t screenId_;
     int32_t offsetX_;
     int32_t offsetY_;

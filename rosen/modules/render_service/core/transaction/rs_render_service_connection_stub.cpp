@@ -1726,13 +1726,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto mirrorId = data.ReadUint64();
             auto screenId = data.ReadUint64();
             auto isMirrored = data.ReadBool();
-            RSDisplayRenderNodeConfig config = {
-                .id = id,
-                .mirrorNodeId = mirrorId,
+            RSDisplayNodeConfig config = {
                 .screenId = screenId,
-                .isMirrored = isMirrored
+                .isMirrored = isMirrored,
+                .isSync = true,
+                .mirrorNodeId = mirrorId,
             };
-            reply.WriteBool(CreateNode(config));
+            reply.WriteBool(CreateNode(config, id));
             break;
         }
         default: {
