@@ -467,20 +467,17 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(boo
 
 void RsVulkanInterface::DestroyAllSemaphoreFence()
 {
-    std::lock_guard<std::mutex> lock(semaphoreLock_);
+    std::lock_guard<std::recursive_mutex> lock(semaphoreLock_);
+    RS_LOGE("Device lost clear all semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
     for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
         vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
     }
     usedSemaphoreFenceList_.clear();
 }
 
-VkSemaphore RsVulkanInterface::RequireSemaphore()
+void RsVulkanInterface::DestroySignaledSemaphoreFence()
 {
-    std::unique_lock<std::mutex> lock(semaphoreLock_);
-    // 32 means too many used semaphore fences
-    if (usedSemaphoreFenceList_.size() >= 32) {
-        RS_LOGE("Too many used semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
-    }
+    std::lock_guard<std::recursive_mutex> lock(semaphoreLock_);
     for (auto it = usedSemaphoreFenceList_.begin(); it != usedSemaphoreFenceList_.end();) {
         auto& fence = it->fence;
         if (fence == nullptr || fence->GetStatus() == FenceStatus::SIGNALED) {
@@ -488,11 +485,29 @@ VkSemaphore RsVulkanInterface::RequireSemaphore()
             it->semaphore = VK_NULL_HANDLE;
             it = usedSemaphoreFenceList_.erase(it);
         } else {
-            break;
+            it++;
         }
     }
+}
 
-    lock.unlock();
+VkSemaphore RsVulkanInterface::RequireSemaphore()
+{
+    {
+        std::lock_guard<std::recursive_mutex> lock(semaphoreLock_);
+        // 3000 means too many used semaphore fences
+        if (usedSemaphoreFenceList_.size() >= 3000) {
+            RS_LOGE("Too many used semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
+            for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
+                if (semaphoreFence.fence != nullptr) {
+                    semaphoreFence.fence->Wait(-1);
+                }
+                vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
+            }
+            usedSemaphoreFenceList_.clear();
+        }
+        DestroySignaledSemaphoreFence();
+    }
+
     VkSemaphoreCreateInfo semaphoreInfo;
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = nullptr;
@@ -507,7 +522,7 @@ VkSemaphore RsVulkanInterface::RequireSemaphore()
 
 void RsVulkanInterface::SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd)
 {
-    std::lock_guard<std::mutex> lock(semaphoreLock_);
+    std::lock_guard<std::recursive_mutex> lock(semaphoreLock_);
     auto& semaphoreFence = usedSemaphoreFenceList_.emplace_back();
     semaphoreFence.semaphore = semaphore;
     semaphoreFence.fence = (fenceFd != -1 ? std::make_unique<SyncFence>(fenceFd) : nullptr);
