@@ -2679,13 +2679,14 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         if (!clearCacheSurfaceFunc_) {
             clearCacheSurfaceFunc_ = func;
         }
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         if (cacheSurface_) {
             func(std::move(cacheSurface_), nullptr,
                 cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
-            std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
             cacheSurface_ = nullptr;
         }
     } else {
+        std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
         cacheSurface_ = nullptr;
     }
 #ifdef RS_ENABLE_VK
@@ -2716,6 +2717,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
         if (func) {
+            std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
             func(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
                 cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
             ClearCacheSurface();
@@ -2757,6 +2759,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
     }
 #endif
 #else
+    std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     cacheSurface_ = Drawing::Surface::MakeRasterN32Premul(width, height);
 #endif
 }
@@ -2853,6 +2856,10 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
             }
         }
 #endif
+        if (canvas.GetGPUContext() == nullptr) {
+            RS_LOGE("canvas GetGPUContext failed");
+            return nullptr;
+        }
         auto image = std::make_shared<Drawing::Image>();
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
         Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888,
@@ -2899,6 +2906,10 @@ std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
     auto cacheImage = std::make_shared<Drawing::Image>();
     Drawing::BitmapFormat info =
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("canvas GetGPUContext failed");
+        return nullptr;
+    }
     bool ret = cacheImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture.GetTextureInfo(),
         origin, info, nullptr);
     if (!ret) {
@@ -2934,7 +2945,7 @@ std::shared_ptr<Drawing::Surface> RSRenderNode::GetCompletedCacheSurface(uint32_
                 cacheCompletedCleanupHelper_ = nullptr;
             }
 #endif
-            return std::move(cacheCompletedSurface_);
+            return cacheCompletedSurface_;
         }
         if (!needCheckThread || completedSurfaceThreadIndex_ == threadIndex || !cacheCompletedSurface_) {
             return cacheCompletedSurface_;

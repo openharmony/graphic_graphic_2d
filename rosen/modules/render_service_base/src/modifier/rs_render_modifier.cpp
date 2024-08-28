@@ -180,10 +180,10 @@ void RSEnvForegroundColorStrategyRenderModifier::Apply(RSModifierContext& contex
 
 Color RSEnvForegroundColorStrategyRenderModifier::CalculateInvertColor(Color backgroundColor) const
 {
-    uint32_t a = backgroundColor.GetAlpha();
-    uint32_t r = 255 - backgroundColor.GetRed();
-    uint32_t g = 255 - backgroundColor.GetGreen();
-    uint32_t b = 255 - backgroundColor.GetBlue();
+    int16_t a = std::clamp<int16_t>(backgroundColor.GetAlpha(), 0, UINT8_MAX);
+    int16_t r = 255 - std::clamp<int16_t>(backgroundColor.GetRed(), 0, UINT8_MAX);
+    int16_t g = 255 - std::clamp<int16_t>(backgroundColor.GetGreen(), 0, UINT8_MAX);
+    int16_t b = 255 - std::clamp<int16_t>(backgroundColor.GetBlue(), 0, UINT8_MAX);
     return Color(r, g, b, a);
 }
 

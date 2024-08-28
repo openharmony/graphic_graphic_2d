@@ -428,11 +428,11 @@ private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
-    uint64_t screenId_;
-    int32_t offsetX_;
-    int32_t offsetY_;
-    uint32_t rogWidth_;
-    uint32_t rogHeight_;
+    uint64_t screenId_ = 0;
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
+    uint32_t rogWidth_ = 0;
+    uint32_t rogHeight_ = 0;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
