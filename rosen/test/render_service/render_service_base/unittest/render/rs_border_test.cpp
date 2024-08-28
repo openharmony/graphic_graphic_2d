@@ -140,6 +140,628 @@ HWTEST_F(RSBorderTest, LifeCycle003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: LifeCycle004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle004, TestSize.Level1)
+{
+    Color color1(1, 1, 1);
+    Color color2(2, 2, 2);
+    Color color3(3, 3, 3);
+    Color color4(4, 4, 4);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle005, TestSize.Level1)
+{
+    Color color1(1, 1, 1);
+    Color color2(1, 1, 1);
+    Color color3(3, 3, 3);
+    Color color4(4, 4, 4);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle006
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle006, TestSize.Level1)
+{
+    Color color1(1, 1, 1);
+    Color color2(2, 2, 2);
+    Color color3(2, 2, 2);
+    Color color4(4, 4, 4);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle007
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle007, TestSize.Level1)
+{
+    Color color1(1, 1, 1);
+    Color color2(2, 2, 2);
+    Color color3(3, 3, 3);
+    Color color4(3, 3, 3);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle008
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle008, TestSize.Level1)
+{
+    Color color1(4, 4, 4);
+    Color color2(2, 2, 2);
+    Color color3(3, 3, 3);
+    Color color4(4, 4, 4);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle009
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle009, TestSize.Level1)
+{
+    Color color1(1, 1, 1);
+    Color color2(2, 2, 2);
+    Color color3(2, 2, 2);
+    Color color4(1, 1, 1);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle010
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle010, TestSize.Level1)
+{
+    Color color1(1, 1, 1);
+    Color color2(1, 1, 1);
+    Color color3(3, 3, 3);
+    Color color4(3, 3, 3);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle011
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle011, TestSize.Level1)
+{
+    Color color1(1, 1, 1);
+    Color color2(1, 1, 1);
+    Color color3(1, 1, 1);
+    Color color4(4, 4, 4);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle012
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle012, TestSize.Level1)
+{
+    Color color1(1, 1, 1);
+    Color color2(2, 2, 2);
+    Color color3(2, 2, 2);
+    Color color4(2, 2, 2);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle013
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle013, TestSize.Level1)
+{
+    Color color1(3, 3, 3);
+    Color color2(2, 2, 2);
+    Color color3(3, 3, 3);
+    Color color4(3, 3, 3);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: LifeCycle014
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, LifeCycle014, TestSize.Level1)
+{
+    Color color1(4, 4, 4);
+    Color color2(4, 4, 4);
+    Color color3(3, 3, 3);
+    Color color4(4, 4, 4);
+    Vector4<Color> vectorColor(color1, color2, color3, color4);
+    RSProperties properties;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    properties.SetBorderColor(vectorColor);
+    Vector4<uint32_t> style(0, 0, 0, 0);
+    properties.SetBorderStyle(style);
+    Vector4f cornerRadius(0.f, 0.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius);
+    Vector4f width(1.f, 1.f, 1.f, 1.f);
+    properties.SetBorderWidth(width);
+    properties.SetBorderDashWidth(width);
+    properties.SetBorderDashGap(width);
+    properties.SetOutlineDashWidth(width);
+    properties.SetOutlineDashGap(width);
+    ASSERT_TRUE(properties.GetCornerRadius().IsZero());
+    Drawing::Canvas canvas;
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4f cornerRadius2(1.f, 2.f, 0.f, 0.f);
+    properties.SetCornerRadius(cornerRadius2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Vector4<uint32_t> style2(1, 1, 1, 1);
+    properties.SetBorderStyle(style2);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+    Color color5(2, 1, 1);
+    Vector4<Color> Color(color1, color2, color3, color5);
+    properties.SetBorderColor(Color);
+    RSPropertiesPainter::DrawBorder(properties, canvas);
+}
+
+/**
+ * @tc.name: DrawBordersTest
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSBorderTest, DrawBordersTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    Drawing::Canvas canvas;
+    Drawing::Pen pen;
+    Drawing::RoundRect rrect;
+    Drawing::Point innerRectCenter;
+    border->SetWidth(1.f);
+    border->SetStyle(BorderStyle::SOLID);
+    border->DrawBorders(canvas, pen, rrect, innerRectCenter);
+    border->SetStyle(BorderStyle::NONE);
+    border->DrawBorders(canvas, pen, rrect, innerRectCenter);
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
+ * @tc.name: DrawEachBorderTest
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSBorderTest, DrawEachBorderTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    Drawing::Canvas canvas;
+    Drawing::Pen pen;
+
+    Drawing::RoundRect rrect;
+    Drawing::Point innerRectCenter;
+    innerRectCenter.SetX(1.f);
+    innerRectCenter.SetY(1.f);
+    rrect.rect_.SetRight(10.f);
+    rrect.rect_.SetBottom(10.f);
+    rrect.rect_.SetLeft(1.f);
+    rrect.rect_.SetTop(1.f);
+
+    innerRectCenter.SetX(5.f);
+    innerRectCenter.SetY(5.f);
+
+    // for test
+    Color redColor(255, 0, 0);
+    Color blackColor(0, 0, 0);
+    Color whiteColor(255, 255, 255);
+    Color greenColor(0, 255, 0);
+
+    Vector4<Color> vectorColor(redColor, blackColor, whiteColor, greenColor);
+    border->SetColorFour(vectorColor);
+
+    border->SetWidth(1.f);
+    border->SetStyle(BorderStyle::SOLID);
+    border->DrawEachBorder(canvas, pen, rrect, innerRectCenter);
+    border->SetStyle(BorderStyle::DOTTED);
+    border->DrawEachBorder(canvas, pen, rrect, innerRectCenter);
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
+ * @tc.name: DrawTwoBorderTest
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSBorderTest, DrawTwoBorderTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    Drawing::Canvas canvas;
+    Drawing::Pen pen;
+
+    Drawing::RoundRect rrect;
+    Drawing::Point innerRectCenter;
+    innerRectCenter.SetX(1.f);
+    innerRectCenter.SetY(1.f);
+    rrect.rect_.SetRight(10.f);
+    rrect.rect_.SetBottom(10.f);
+    rrect.rect_.SetLeft(1.f);
+    rrect.rect_.SetTop(1.f);
+
+    innerRectCenter.SetX(5.f);
+    innerRectCenter.SetY(5.f);
+
+    // for test
+    Color redColor(255, 0, 0);
+    Color blackColor(0, 0, 0);
+    Color whiteColor(255, 255, 255);
+    Color greenColor(0, 255, 0);
+
+    Vector4<Color> vectorColor(redColor, blackColor, greenColor, greenColor);
+    border->SetColorFour(vectorColor);
+
+    border->SetWidth(1.f);
+    border->SetStyle(BorderStyle::SOLID);
+    border->DrawTwoBorder(canvas, rrect, innerRectCenter, 2, 3);
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
+ * @tc.name: DrawThreeBorderTest
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSBorderTest, DrawThreeBorderTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    Drawing::Canvas canvas;
+    Drawing::Pen pen;
+
+    Drawing::RoundRect rrect;
+    Drawing::Point innerRectCenter;
+    innerRectCenter.SetX(1.f);
+    innerRectCenter.SetY(1.f);
+    rrect.rect_.SetRight(10.f);
+    rrect.rect_.SetBottom(10.f);
+    rrect.rect_.SetLeft(1.f);
+    rrect.rect_.SetTop(1.f);
+
+    innerRectCenter.SetX(5.f);
+    innerRectCenter.SetY(5.f);
+
+    // for test
+    Color redColor(255, 0, 0);
+    Color blackColor(0, 0, 0);
+    Color whiteColor(255, 255, 255);
+    Color greenColor(0, 255, 0);
+
+    Vector4<Color> vectorColor(redColor, redColor, greenColor, redColor);
+    border->SetColorFour(vectorColor);
+
+    border->SetWidth(1.f);
+    border->SetStyle(BorderStyle::SOLID);
+    border->DrawThreeBorder(canvas, rrect, innerRectCenter, 2);
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
+ * @tc.name: CalcBorderPathTest
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ * @tc.require: issueI9I98H
+ */
+HWTEST_F(RSBorderTest, CalcBorderPathTest, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+
+    Drawing::RoundRect rrect;
+    Drawing::Point innerRectCenter;
+    innerRectCenter.SetX(1.f);
+    innerRectCenter.SetY(1.f);
+    rrect.rect_.SetRight(10.f);
+    rrect.rect_.SetBottom(10.f);
+    rrect.rect_.SetLeft(1.f);
+    rrect.rect_.SetTop(1.f);
+
+    innerRectCenter.SetX(5.f);
+    innerRectCenter.SetY(5.f);
+
+    std::vector<Drawing::Path> borderPathVec(RSBorder::BORDER_NUM);
+    border->CalcBorderPath(rrect, innerRectCenter, borderPathVec);
+
+    border->SetWidth(1.f);
+    border->SetStyle(BorderStyle::SOLID);
+    border->CalcBorderPath(rrect, innerRectCenter, borderPathVec);
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
  * @tc.name: HasBorderTest
  * @tc.desc:
  * @tc.type:FUNC

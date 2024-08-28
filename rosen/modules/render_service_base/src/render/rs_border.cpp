@@ -404,6 +404,212 @@ void RSBorder::PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF r
     }
 }
 
+void RSBorder::DrawBorders(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
+{
+    int sameColorFlag = (JudgeSameBorder(RSBorder::TOP, RSBorder::RIGHT) ? 1 << 3 : 0) |
+                        (JudgeSameBorder(RSBorder::RIGHT, RSBorder::BOTTOM) ? 1 << 2 : 0) |
+                        (JudgeSameBorder(RSBorder::BOTTOM, RSBorder::LEFT) ? 1 << 1 : 0) |
+                        (JudgeSameBorder(RSBorder::LEFT, RSBorder::TOP) ? 1 : 0);
+
+    switch (sameColorFlag) {
+        case 0b0000: // all different
+            DrawEachBorder(canvas, pen, rrect, innerRectCenter);
+            break;
+
+        case 0b1000: // TR same
+            PaintBottomPath(canvas, pen, rrect, innerRectCenter);
+            PaintLeftPath(canvas, pen, rrect, innerRectCenter);
+            DrawTwoBorder(canvas, rrect, innerRectCenter, RSBorder::TOP, RSBorder::RIGHT);
+            break;
+
+        case 0b0100: // RB same
+            PaintTopPath(canvas, pen, rrect, innerRectCenter);
+            PaintLeftPath(canvas, pen, rrect, innerRectCenter);
+            DrawTwoBorder(canvas, rrect, innerRectCenter, RSBorder::RIGHT, RSBorder::BOTTOM);
+            break;
+
+        case 0b0010: // BL same
+            PaintTopPath(canvas, pen, rrect, innerRectCenter);
+            PaintRightPath(canvas, pen, rrect, innerRectCenter);
+            DrawTwoBorder(canvas, rrect, innerRectCenter, RSBorder::BOTTOM, RSBorder::LEFT);
+            break;
+
+        case 0b0001: // LT same
+            PaintRightPath(canvas, pen, rrect, innerRectCenter);
+            PaintBottomPath(canvas, pen, rrect, innerRectCenter);
+            DrawTwoBorder(canvas, rrect, innerRectCenter, RSBorder::LEFT, RSBorder::TOP);
+            break;
+
+        case 0b0101: // RB same,LT same
+            DrawTwoBorder(canvas, rrect, innerRectCenter, RSBorder::LEFT, RSBorder::TOP);
+            DrawTwoBorder(canvas, rrect, innerRectCenter, RSBorder::RIGHT, RSBorder::BOTTOM);
+            break;
+
+        case 0b1010: // TR same,BL same
+            DrawTwoBorder(canvas, rrect, innerRectCenter, RSBorder::TOP, RSBorder::RIGHT);
+            DrawTwoBorder(canvas, rrect, innerRectCenter, RSBorder::BOTTOM, RSBorder::LEFT);
+            break;
+
+        case 0b0110: // RBL same
+        case 0b1001: // TRL same
+        case 0b1100: // TRB same
+        case 0b0011: // BLT same
+            // The code exceeds 50 lines, so here is refactored.
+            DrawOneAndThreeBorder(canvas, pen, rrect, innerRectCenter, sameColorFlag);
+            break;
+
+        default:
+            ROSEN_LOGE("DrawBorders, style error: %{public}d, draw no border", sameColorFlag);
+            break;
+    }
+
+    return;
+}
+
+void RSBorder::DrawTwoBorder(Drawing::Canvas& canvas, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter, int borderIdxA, int borderIdxB) const
+{
+    std::vector<Drawing::Path> borderPathVec(RSBorder::BORDER_NUM);
+    CalcBorderPath(rrect, innerRectCenter, borderPathVec);
+    Drawing::Path clipPath;
+    clipPath.Op(borderPathVec[borderIdxA], borderPathVec[borderIdxB], Drawing::PathOp::UNION);
+
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    canvas.ClipPath(clipPath, Drawing::ClipOp::INTERSECT, true);
+    DrawRect(canvas, rrect, GetColor(borderIdxA).AsArgbInt());
+}
+
+void RSBorder::DrawOneAndThreeBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter, int sameColorFlag) const
+{
+    switch (sameColorFlag) {
+        case 0b0110: // RBL same
+            PaintTopPath(canvas, pen, rrect, innerRectCenter);
+            DrawThreeBorder(canvas, rrect, innerRectCenter, RSBorder::TOP);
+            break;
+        case 0b0011: // BLT same
+            PaintRightPath(canvas, pen, rrect, innerRectCenter);
+            DrawThreeBorder(canvas, rrect, innerRectCenter, RSBorder::RIGHT);
+            break;
+        case 0b1001: // TRL same
+            PaintBottomPath(canvas, pen, rrect, innerRectCenter);
+            DrawThreeBorder(canvas, rrect, innerRectCenter, RSBorder::BOTTOM);
+            break;
+        case 0b1100: // TRB same
+            PaintLeftPath(canvas, pen, rrect, innerRectCenter);
+            DrawThreeBorder(canvas, rrect, innerRectCenter, RSBorder::LEFT);
+            break;
+        default:
+            ROSEN_LOGE("DrawOneAndThreeBorder error sameColorFlag: %{public}d, draw none", sameColorFlag);
+            break;
+    }
+    return;
+}
+
+void RSBorder::DrawThreeBorder(Drawing::Canvas& canvas, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter, int borderIdx) const
+{
+    std::vector<Drawing::Path> borderPathVec(RSBorder::BORDER_NUM);
+    CalcBorderPath(rrect, innerRectCenter, borderPathVec);
+
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    Drawing::Path clipPath = borderPathVec[borderIdx];
+    // draw other 3 borders
+    canvas.ClipPath(clipPath, Drawing::ClipOp::DIFFERENCE, true);
+    DrawRect(canvas, rrect, GetColor((borderIdx + 1) % BorderType::BORDER_NUM).AsArgbInt());
+    return;
+}
+
+void RSBorder::DrawEachBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
+    const Drawing::Point& innerRectCenter) const
+{
+    PaintTopPath(canvas, pen, rrect, innerRectCenter);
+    PaintRightPath(canvas, pen, rrect, innerRectCenter);
+    PaintBottomPath(canvas, pen, rrect, innerRectCenter);
+    PaintLeftPath(canvas, pen, rrect, innerRectCenter);
+}
+
+bool RSBorder::JudgeSameBorder(int idxA, int idxB) const
+{
+    // same color, same style, width > 0
+    if (GetColor(idxA).AsArgbInt() != GetColor(idxB).AsArgbInt() || GetStyle(idxA) != GetStyle(idxB) ||
+        GetStyle(idxA) != BorderStyle::SOLID || ROSEN_LE(GetWidth(idxA), 0.f) || ROSEN_LE(GetWidth(idxB), 0.f)) {
+        return false;
+    }
+    return true;
+}
+
+void RSBorder::CalcBorderPath(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter,
+    std::vector<Drawing::Path>& borderPathVec) const
+{
+    float offsetX = rrect.GetRect().GetLeft();
+    float offsetY = rrect.GetRect().GetTop();
+    float height = rrect.GetRect().GetHeight();
+    float width = rrect.GetRect().GetWidth();
+
+    if (TOPW > 0.f) {
+        // top left intersection point with innerRect center
+        Drawing::Point tlip = GetTLIP(rrect, innerRectCenter);
+        // top right intersection point with innerRect center
+        Drawing::Point trip = GetTRIP(rrect, innerRectCenter);
+        borderPathVec[RSBorder::TOP].MoveTo(offsetX, offsetY);
+        borderPathVec[RSBorder::TOP].LineTo(tlip.GetX(), tlip.GetY());
+        borderPathVec[RSBorder::TOP].LineTo(trip.GetX(), trip.GetY());
+        borderPathVec[RSBorder::TOP].LineTo(offsetX + width, offsetY);
+        borderPathVec[RSBorder::TOP].Close();
+    }
+
+    if (RIGHTW > 0.f) {
+        // top rigth intersection point with innerRect center
+        Drawing::Point trip = GetTRIP(rrect, innerRectCenter);
+        // bottom right intersection point with innerRect center
+        Drawing::Point brip = GetBRIP(rrect, innerRectCenter);
+        borderPathVec[RSBorder::RIGHT].MoveTo(offsetX + width, offsetY);
+        borderPathVec[RSBorder::RIGHT].LineTo(trip.GetX(), trip.GetY());
+        borderPathVec[RSBorder::RIGHT].LineTo(brip.GetX(), brip.GetY());
+        borderPathVec[RSBorder::RIGHT].LineTo(offsetX + width, offsetY + height);
+        borderPathVec[RSBorder::RIGHT].Close();
+    }
+
+    if (BOTTOMW > 0.f) {
+        // bottom left intersection point with innerRect center
+        Drawing::Point blip = GetBLIP(rrect, innerRectCenter);
+        // bottom right intersection point with innerRect center
+        Drawing::Point brip = GetBRIP(rrect, innerRectCenter);
+        borderPathVec[RSBorder::BOTTOM].MoveTo(offsetX, offsetY + rrect.GetRect().GetHeight());
+        borderPathVec[RSBorder::BOTTOM].LineTo(blip.GetX(), blip.GetY());
+        borderPathVec[RSBorder::BOTTOM].LineTo(brip.GetX(), brip.GetY());
+        borderPathVec[RSBorder::BOTTOM].LineTo(offsetX + width, offsetY + rrect.GetRect().GetHeight());
+        borderPathVec[RSBorder::BOTTOM].Close();
+    }
+
+    if (LEFTW > 0.f) {
+        // top left intersection point with innerRect center
+        Drawing::Point tlip = GetTLIP(rrect, innerRectCenter);
+        // bottom left intersection point with innerRect center
+        Drawing::Point blip = GetBLIP(rrect, innerRectCenter);
+        borderPathVec[RSBorder::LEFT].MoveTo(offsetX, offsetY);
+        borderPathVec[RSBorder::LEFT].LineTo(tlip.GetX(), tlip.GetY());
+        borderPathVec[RSBorder::LEFT].LineTo(blip.GetX(), blip.GetY());
+        borderPathVec[RSBorder::LEFT].LineTo(offsetX, offsetY + height);
+        borderPathVec[RSBorder::LEFT].Close();
+    }
+    return;
+}
+
+void RSBorder::DrawRect(Drawing::Canvas& canvas, const Drawing::RoundRect& rrect, uint32_t color) const
+{
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    Drawing::Brush brush;
+    brush.SetColor(color);
+    brush.SetAntiAlias(true);
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(rrect.GetRect());
+    canvas.DetachBrush();
+    return;
+}
+
 void RSBorder::PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
     const Drawing::Point& innerRectCenter) const
 {
