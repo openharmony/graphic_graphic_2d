@@ -912,6 +912,25 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
     if (napi_get_array_length(env, array, &size) != napi_ok || (size == 0)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array size.");
     }
+
+    if (argc == ARGC_ONE) {
+        Point* points = new(std::nothrow) Point[size];
+        if (points == nullptr) {
+            return nullptr;
+        }
+        if (!OnMakePoints(env, points, size, array)) {
+            delete [] points;
+            ROSEN_LOGE("JsCanvas::OnDrawPoints Argv[ARGC_ZERO] is invalid");
+            return nullptr;
+        }
+        JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode::POINTS_POINTMODE, size, points));
+        delete [] points;
+        return nullptr;
+    }
+
+    int32_t pointMode = 0;
+    GET_ENUM_PARAM(ARGC_ONE, pointMode, 0, static_cast<int32_t>(PointMode::POLYGON_POINTMODE));
+
     Point* points = new(std::nothrow) Point[size];
     if (points == nullptr) {
         return nullptr;
@@ -921,16 +940,6 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnDrawPoints Argv[ARGC_ZERO] is invalid");
         return nullptr;
     }
-
-    if (argc == ARGC_ONE) {
-        JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode::POINTS_POINTMODE, size, points));
-        delete [] points;
-        return nullptr;
-    }
-
-    int32_t pointMode = 0;
-    GET_ENUM_PARAM(ARGC_ONE, pointMode, 0, static_cast<int32_t>(PointMode::POLYGON_POINTMODE));
-
     JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(static_cast<PointMode>(pointMode), size, points));
     delete [] points;
     return nullptr;
