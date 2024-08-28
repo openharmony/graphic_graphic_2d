@@ -935,18 +935,17 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
     return {damage.left_, damage.top_, damage.width_, damage.height_};
 }
 
-bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
-    RSSurfaceHandler& surfaceHandler, const ControlBufferConsumeParam& param)
+bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
+    const std::string& surfaceName, const bool& isDisplaySurface, const uint64_t& vsyncTimestamp)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         // this node has no new buffer, try use cache.
         // if don't have cache, will not update and use old buffer.
         // display surface don't have cache, always use old buffer.
-        surfaceHandler.ConsumeAndUpdateBuffer(
-            surfaceHandler.GetBufferFromCache(param.vsyncTimestamp, param.surfaceName));
+        surfaceHandler.ConsumeAndUpdateBuffer(vsyncTimestamp, surfaceName);
         return true;
     }
-    auto consumer = surfaceHandler.GetConsumer();
+    const auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         RS_LOGE("Consume and update buffer fail for consumer is nullptr");
         return false;
@@ -994,24 +993,23 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") no buffer to consume", surfaceHandler.GetNodeId());
         return false;
     }
-    bool directConsume = param.isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
+    bool directConsume = isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
         !RSSystemParameters::GetControlBufferConsumeEnabled();
     RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
             "directConsume[%{public}d], vysnc[%{public}" PRIu64 "], "
             "buffer[timestamp:%{public}" PRId64 ", seq:%{public}" PRIu32 "].",
-            surfaceHandler.GetNodeId(), directConsume, param.vsyncTimestamp,
+            surfaceHandler.GetNodeId(), directConsume, vsyncTimestamp,
             surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
     RS_TRACE_NAME_FMT("surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, "
             "directConsume[%d], vysnc[%" PRIu64 "], "
             "buffer[timestamp:%" PRId64 ", seq:%" PRIu32 "].",
-            surfaceHandler.GetNodeId(), directConsume, param.vsyncTimestamp,
+            surfaceHandler.GetNodeId(), directConsume, vsyncTimestamp,
             surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
     if (directConsume) {
         surfaceHandler.ConsumeAndUpdateBuffer(*(surfaceBuffer.get()));
     } else {
-        surfaceHandler.CacheBuffer(*(surfaceBuffer.get()), param.surfaceName);
-        surfaceHandler.ConsumeAndUpdateBuffer(
-            surfaceHandler.GetBufferFromCache(param.vsyncTimestamp, param.surfaceName));
+        surfaceHandler.CacheBuffer(*(surfaceBuffer.get()), surfaceName);
+        surfaceHandler.ConsumeAndUpdateBuffer(vsyncTimestamp, surfaceName);
     }
     surfaceHandler.ReduceAvailableBuffer();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
@@ -1212,7 +1210,7 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     if (type != GraphicTransformType::GRAPHIC_FLIP_H && type != GraphicTransformType::GRAPHIC_FLIP_V) {
         return;
     }
-     
+
     const int angle = 180;
     Drawing::Camera3D camera3D;
     switch (type) {

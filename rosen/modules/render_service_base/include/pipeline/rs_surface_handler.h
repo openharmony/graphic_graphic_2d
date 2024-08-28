@@ -280,6 +280,7 @@ public:
         }
     }
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
+    void ConsumeAndUpdateBuffer(const uint64_t& vsyncTimestamp, const std::string& surfaceName);
     void CacheBuffer(const SurfaceBufferEntry& buffer, const std::string& surfaceName);
     RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp, const std::string& surfaceName);
     bool HasBufferCache() const;
@@ -294,6 +295,9 @@ protected:
 
 private:
     void ReleaseBuffer(SurfaceBufferEntry& buffer);
+    void ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer);
+    void GetBufferFromCacheLocked(const uint64_t& vsyncTimestamp, const std::string& surfaceName,
+        RSSurfaceHandler::SurfaceBufferEntry& buffer);
 
 #ifndef ROSEN_CROSS_PLATFORM
     ScalingMode scalingModePre = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;

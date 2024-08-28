@@ -96,12 +96,6 @@ using WriteToPngParam = struct {
     const uint8_t *data;
 };
 
-using ControlBufferConsumeParam = struct ControlBufferConsumeParam {
-    std::string surfaceName = "";
-    bool isDisplaySurface = true;
-    uint64_t vsyncTimestamp = 0;
-};
-
 enum class ColorFilterMode {
     INVERT_COLOR_DISABLE_MODE = 0,
     INVERT_COLOR_ENABLE_MODE = 1,
@@ -133,8 +127,9 @@ public:
 
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler);
     static Rect MergeBufferDamages(const std::vector<Rect>& damages);
-    static bool ConsumeAndUpdateBuffer(
-        RSSurfaceHandler& surfaceHandler, const ControlBufferConsumeParam& param = { "", true, 0});
+    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, const std::string& surfaceName = "",
+        const bool& isDisplaySurface = true, const uint64_t& vsyncTimestamp = 0);
+
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);

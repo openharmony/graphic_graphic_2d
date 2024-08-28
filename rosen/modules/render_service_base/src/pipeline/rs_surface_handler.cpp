@@ -70,6 +70,11 @@ void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
 
 void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
 {
+    ConsumeAndUpdateBufferInner(buffer);
+}
+
+void RSSurfaceHandler::ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer)
+{
     if (!buffer.buffer) {
         return;
     }
@@ -79,6 +84,21 @@ void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
     RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "\
         "buffer[timestamp:%{public}" PRId64 ", seq:%{public}" PRIu32 "]",
         GetNodeId(), buffer.timestamp, buffer.buffer->GetSeqNum());
+}
+
+void RSSurfaceHandler::ConsumeAndUpdateBuffer(const uint64_t& vsyncTimestamp, const std::string& surfaceName)
+{
+    mutex_.lock();
+    if (bufferCache_.empty()) {
+        mutex_.unlock();
+        return;
+    }
+
+    RSSurfaceHandler::SurfaceBufferEntry buffer;
+    GetBufferFromCacheLocked(vsyncTimestamp, surfaceName, buffer);
+    mutex_.unlock();
+
+    ConsumeAndUpdateBufferInner(buffer);
 }
 
 void RSSurfaceHandler::CacheBuffer(const SurfaceBufferEntry& buffer, const std::string& surfaceName)
@@ -106,6 +126,14 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RSSurfaceHandler::SurfaceBufferEntry buffer;
+    GetBufferFromCacheLocked(vsyncTimestamp, surfaceName, buffer);
+    return buffer;
+}
+
+/* must call GetBufferFromCacheLocked with mutex_ lock */
+void RSSurfaceHandler::GetBufferFromCacheLocked(
+    const uint64_t& vsyncTimestamp, const std::string& surfaceName, SurfaceBufferEntry& buffer)
+{
     for (auto iter = bufferCache_.begin(); iter != bufferCache_.end();) {
         if (iter->first < vsyncTimestamp) {
             ReleaseBuffer(buffer);
@@ -124,7 +152,6 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(
             "RSSurfaceHandler buffer cache " + surfaceName + "[" + std::to_string(id_) + "]";
         RS_TRACE_INT(traceDescription, static_cast<int>(bufferCache_.size()));
     }
-    return buffer;
 }
 
 void RSSurfaceHandler::ClearBufferCache()
