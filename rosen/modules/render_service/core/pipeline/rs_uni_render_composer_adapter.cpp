@@ -1279,7 +1279,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     LayerCrop(layer);
     layer->SetNodeId(node.GetId());
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetRenderParams().get());
-    if (nodeParams) {
+    if (!nodeParams) {
         RS_LOGE("node params is nullptr");
         return layer;
     }

@@ -1308,9 +1308,9 @@ GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfa
 {
     auto transformType = RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
     int extraRotation = 0;
-    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
         node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
+    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
     extraRotation = degree - rotationDegree;
     transformType = static_cast<GraphicTransformType>(
         (transformType + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);

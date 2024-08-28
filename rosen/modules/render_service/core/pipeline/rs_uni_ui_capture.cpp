@@ -153,10 +153,6 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
 #else
     auto data = static_cast<uint8_t *>(size);
-    if (data == nullptr) {
-        RS_LOGE("RSUniUICapture::CopyDataToPixelMap data is nullptr");
-        return false;
-    }
     if (!img->ReadPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap readPixels failed");
         free(data);
