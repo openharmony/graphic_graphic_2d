@@ -326,7 +326,15 @@ bool RSRenderServiceConnection::CreateNode(const RSDisplayRenderNodeConfig& disp
         if (!connection) {
             return;
         }
-        connection->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+        auto& context = connection->mainThread_->GetContext();
+        context.GetMutableNodeMap().RegisterRenderNode(node);
+        context.GetGlobalRootRenderNode()->AddChild(node);
+        auto mirrorSourceNode = context.GetNodeMap()
+            .GetRenderNode<RSDisplayRenderNode>(displayNodeConfig.mirrorNodeId);
+        if (!mirrorSourceNode) {
+            return;
+        }
+        node->SetMirrorSource(mirrorSourceNode);
     };
     mainThread_->PostSyncTask(registerNode);
     return true;
