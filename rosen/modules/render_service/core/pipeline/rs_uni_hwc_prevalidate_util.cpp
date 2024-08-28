@@ -319,9 +319,6 @@ bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::Shared
         "xcomponentIdSurface",
         "componentIdSurface",
     };
-    if (node->GetName() == nullptr) {
-        return false;
-    }
     if (IsYUVBufferFormat(node) || videoLayers.count(node->GetName() > 0)) {
         return true;
     }
