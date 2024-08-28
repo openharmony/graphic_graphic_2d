@@ -116,7 +116,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType001, TestSize.Level1)
  * @tc.name: SetSurfaceNodeType002
  * @tc.desc: Test SetSurfaceNodeType
  * @tc.type: FUNC
- * @tc.require: issueIAI1VN
+ * @tc.require: issueIAN19G
  */
 HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType002, TestSize.Level1)
 {
@@ -126,32 +126,47 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType002, TestSize.Level1)
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     EXPECT_NE(node, nullptr);
     node->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
-    bool isSameType = (node->GetSurfaceNodeType() == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    bool isSameType = (node->GetSurfaceNodeType() == RSSurfaceNodeType::DEFAULT);
     EXPECT_TRUE(isSameType);
-    node->SetSurfaceNodeType(RSSurfaceNodeType::DEFAULT);
+    node->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
     isSameType = (node->GetSurfaceNodeType() == RSSurfaceNodeType::DEFAULT);
-    EXPECT_FALSE(isSameType);
+    EXPECT_TRUE(isSameType);
 }
 
 /**
  * @tc.name: SetSurfaceNodeType003
  * @tc.desc: Test SetSurfaceNodeType
  * @tc.type: FUNC
- * @tc.require: issueIAI1VN
+ * @tc.require: issueIAN19G
  */
 HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType003, TestSize.Level1)
 {
     NodeId id = 1;
-    RSSurfaceNodeType type = RSSurfaceNodeType::DEFAULT;
+    RSSurfaceNodeType type = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
     RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = type };
     auto node = std::make_shared<RSSurfaceRenderNode>(config);
     EXPECT_NE(node, nullptr);
-    node->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+    node->SetSurfaceNodeType(RSSurfaceNodeType::DEFAULT);
+    bool isSameType = (node->GetSurfaceNodeType() == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE);
+    EXPECT_TRUE(isSameType);
+}
+
+/**
+ * @tc.name: SetSurfaceNodeType004
+ * @tc.desc: Test SetSurfaceNodeType
+ * @tc.type: FUNC
+ * @tc.require: issueIAN19G
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceNodeType004, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceNodeType type = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = type };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_NE(node, nullptr);
+    node->SetSurfaceNodeType(RSSurfaceNodeType::DEFAULT);
     bool isSameType = (node->GetSurfaceNodeType() == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
     EXPECT_TRUE(isSameType);
-    node->SetSurfaceNodeType(RSSurfaceNodeType::DEFAULT);
-    isSameType = (node->GetSurfaceNodeType() == RSSurfaceNodeType::DEFAULT);
-    EXPECT_FALSE(isSameType);
 }
 
 /**

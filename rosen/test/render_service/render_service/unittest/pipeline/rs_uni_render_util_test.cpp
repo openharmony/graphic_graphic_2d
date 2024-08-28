@@ -1294,8 +1294,9 @@ HWTEST_F(RSUniRenderUtilTest, UIExtensionFindAndTraverseAncestor_002, TestSize.L
     NodeId hostNodeId = 1;
     // hostnode is surface node
     auto hostNode = std::make_shared<RSSurfaceRenderNode>(hostNodeId);
-    auto uiExtensionNode = std::make_shared<RSSurfaceRenderNode>(uiExtensionNodeId);
-    uiExtensionNode->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+    RSSurfaceRenderNodeConfig config = { .id = uiExtensionNodeId,
+                                         .nodeType = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE };
+    auto uiExtensionNode = std::make_shared<RSSurfaceRenderNode>(config);
     hostNode->AddChild(uiExtensionNode);
     hostNode->GenerateFullChildrenList();
     uiExtensionNode->SetIsOnTheTree(true, hostNodeId, INVALID_NODEID, INVALID_NODEID);
@@ -1363,8 +1364,9 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo_003, TestSize.Le
     NodeId hostNodeId = 1;
     // hostnode is surface node
     auto hostNode = std::make_shared<RSSurfaceRenderNode>(hostNodeId);
-    auto uiExtensionNode = std::make_shared<RSSurfaceRenderNode>(uiExtensionNodeId);
-    uiExtensionNode->SetSurfaceNodeType(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+    RSSurfaceRenderNodeConfig config = { .id = uiExtensionNodeId,
+                                         .nodeType = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE };
+    auto uiExtensionNode = std::make_shared<RSSurfaceRenderNode>(config);
     hostNode->AddChild(uiExtensionNode);
     NodeId canvasNodeId = 2;
     auto upperNode = std::make_shared<RSRenderNode>(canvasNodeId);
