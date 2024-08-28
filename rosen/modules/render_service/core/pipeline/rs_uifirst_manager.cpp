@@ -411,6 +411,12 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             ++it;
             continue;
         }
+
+        if (!node->IsOnTheTree() && subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) {
+            it = pendingNode.erase(it);
+            continue;
+        }
+
         bool staticContent = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD ?
             node->GetForceUpdateByUifirst() : drawable->IsCurFrameStatic(deviceType);
         if (drawable->HasCachedTexture() && (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
@@ -573,10 +579,21 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
     // if node's UifirstRootNodeId is valid (e.g. ArkTsCard), use it first
     auto uifirstRootNode = node->GetUifirstRootNodeId() != INVALID_NODEID ?
         node->GetUifirstRootNode() : node->GetFirstLevelNode();
-    if (uifirstRootNode && uifirstRootNode->IsInstanceOf<RSSurfaceRenderNode>()) {
+    if (!uifirstRootNode) {
+        RS_TRACE_NAME_FMT("uifirstRootNode %" PRIu64 " null and curNodeId %" PRIu64 " skip sync",
+            node->GetFirstLevelNodeId(), node->GetId());
+        return true;
+    }
+
+    if (uifirstRootNode->IsInstanceOf<RSSurfaceRenderNode>()) {
         auto drawableNode = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(uifirstRootNode));
-        if (drawableNode && drawableNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+        if (!drawableNode) {
+            RS_LOGE("RSUifirstManager::CollectSkipSyncNode drawableNode generate failed");
+            return true;
+        }
+        if (drawableNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING ||
+            IsPreFirstLevelNodeDoing(node)) {
             pendingSyncForSkipBefore_[uifirstRootNode->GetId()].push_back(node);
             if (uifirstRootNode->GetId() == node->GetId()) {
                 RS_OPTIONAL_TRACE_NAME_FMT("set partial_sync %lld root%lld", node->GetId(), uifirstRootNode->GetId());
@@ -677,6 +694,29 @@ void RSUifirstManager::ForceClearSubthreadRes()
     RSSubThreadManager::Instance()->ReleaseTexture();
 }
 
+bool RSUifirstManager::IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> node)
+{
+    if (!node) {
+        return true;
+    }
+    auto& preFirstLevelNodeIdSet = node->GetMutablePreFirstLevelNodeIdSet();
+    for (auto it = preFirstLevelNodeIdSet.begin(); it != preFirstLevelNodeIdSet.end();) {
+        auto predrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(*it);
+        if (!predrawable || predrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+            it = preFirstLevelNodeIdSet.erase(it);
+            continue;
+        }
+        auto preSurfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(predrawable);
+        if (preSurfaceDrawable->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
+            RS_OPTIONAL_TRACE_NAME_FMT("RSUifirstManager::IsPreFirstLevelNodeDoing DOING preDrawable Id %" PRIu64
+                " curNode Id %" PRIu64 "", preSurfaceDrawable->GetId(), node->GetUifirstRootNodeId());
+            return true;
+        }
+        it++;
+    }
+    return false;
+}
+
 void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode)
 {
@@ -685,6 +725,9 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
     auto isLeashId = RSMainThread::Instance()->GetFocusLeashWindowId();
     for (auto& item : pendingNode) {
         auto const& [id, value] = item;
+        if (IsPreFirstLevelNodeDoing(value)) {
+            continue;
+        }
         auto drawable = GetSurfaceDrawableByID(id);
         if (!drawable) {
             continue;

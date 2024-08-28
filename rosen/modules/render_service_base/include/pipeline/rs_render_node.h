@@ -247,6 +247,24 @@ public:
         return firstLevelNodeId_;
     }
     const std::shared_ptr<RSRenderNode> GetFirstLevelNode() const;
+
+    inline const std::set<NodeId>& GetPreFirstLevelNodeIdSet()
+    {
+        return preFirstLevelNodeIdSet_;
+    }
+
+    inline std::set<NodeId>& GetMutablePreFirstLevelNodeIdSet()
+    {
+        return preFirstLevelNodeIdSet_;
+    }
+
+    void AddPreFirstLevelNodeIdSet(const std::set<NodeId>& preSet)
+    {
+        for (const auto& it : preSet) {
+            preFirstLevelNodeIdSet_.insert(it);
+        }
+    }
+
     // only use for ARKTS_CARD
     inline NodeId GetUifirstRootNodeId() const
     {
@@ -813,6 +831,7 @@ private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
+    std::set<NodeId> preFirstLevelNodeIdSet_ = {};
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
 
     WeakPtr parent_;

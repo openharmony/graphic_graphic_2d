@@ -336,6 +336,9 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     } else {
         OnTreeStateChanged();
         instanceRootNodeId_ = instanceRootNodeId;
+        if (firstLevelNodeId_ != INVALID_NODEID) {
+            preFirstLevelNodeIdSet_.insert(firstLevelNodeId_);
+        }
         firstLevelNodeId_ = firstLevelNodeId;
     }
     // if node is marked as cacheRoot, update subtree status when update surface
@@ -351,6 +354,9 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         auto child = weakChild.lock();
         if (child == nullptr) {
             continue;
+        }
+        if (isOnTheTree_) {
+            AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId);
     }

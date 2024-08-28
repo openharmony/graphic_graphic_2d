@@ -262,7 +262,7 @@ public:
 #endif
     bool IsHardwareEnabledTopSurface(RSSurfaceRenderParams& surfaceParams) const
     {
-        return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window") ||
+        return (surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window") ||
             surfaceParams.IsLayerTop();
     }
 
@@ -310,7 +310,7 @@ private:
     void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
     std::string name_;
-    RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
