@@ -118,13 +118,7 @@ TextEngine::TextStyle Convert(const TextStyle &style)
         .background = background,
         .backgroundRect = Convert(style.backgroundRect),
         .styleId = style.styleId,
-        .isSymbolGlyph = style.isSymbolGlyph,
     };
-    if (style.isSymbolGlyph) {
-        xs.symbol.colorList_ = style.symbol.GetRenderColor();
-        xs.symbol.renderMode_ = style.symbol.GetRenderMode();
-        xs.symbol.effectStrategy_ = style.symbol.GetEffectStrategy();
-    }
 
     for (const auto &[tag, value] : style.fontFeatures.GetFontFeatures()) {
         xs.fontFeature.SetFeature(tag, value);
