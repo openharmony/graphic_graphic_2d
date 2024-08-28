@@ -512,5 +512,9 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

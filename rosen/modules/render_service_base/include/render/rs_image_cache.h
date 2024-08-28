@@ -31,6 +31,7 @@ class PixelMap;
 namespace Rosen {
 class RSB_EXPORT RSImageCache {
 public:
+    using MemoryCheckCallback = void(*)(const pid_t, const size_t, bool);
     static RSImageCache& Instance();
 
     void CacheDrawingImage(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img);
@@ -50,6 +51,7 @@ public:
     ~RSImageCache() = default;
     void CollectUniqueId(uint64_t uniqueId);
     void ReleaseUniqueIdList();
+    void SetMemoryCheckCallback(MemoryCheckCallback callback);
 private:
     RSImageCache(const RSImageCache&) = delete;
     RSImageCache(const RSImageCache&&) = delete;
@@ -68,6 +70,7 @@ private:
         pixelMapIdRelatedDrawingImageCache_;
     std::mutex uniqueIdListMutex_;
     std::list<uint64_t> uniqueIdList_;
+    MemoryCheckCallback memoryCheckCallback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

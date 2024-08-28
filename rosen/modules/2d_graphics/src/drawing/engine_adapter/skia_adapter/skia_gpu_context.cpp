@@ -351,6 +351,20 @@ void SkiaGPUContext::SetGrContext(const sk_sp<GrDirectContext>& grContext)
     grContext_ = grContext;
 }
 
+void SkiaGPUContext::SetMemoryOverCheck(MemoryOverCheckCallback func)
+{
+    if (grContext_ != nullptr) {
+        grContext_->setMemoryOverCheck(func);
+    }
+}
+
+void SkiaGPUContext::SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func)
+{
+    if (grContext_ != nullptr) {
+        grContext_->setRemoveMemoryFromSnapshotInfo(func);
+    }
+}
+
 #ifdef RS_ENABLE_VK
 void SkiaGPUContext::StoreVkPipelineCacheData()
 {
@@ -386,7 +400,6 @@ void SkiaGPUContext::VmaDefragment()
         grContext_->vmaDefragment();
     }
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

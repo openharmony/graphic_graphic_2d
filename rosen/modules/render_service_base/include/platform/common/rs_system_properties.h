@@ -275,6 +275,7 @@ public:
     }
 
     static int GetRSNodeLimit();
+    static bool GetMemoryOverTreminateEnabled();
 
 private:
     RSSystemProperties() = default;

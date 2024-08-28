@@ -177,3 +177,19 @@ COMMIT_TRANSACTION_DATA:
   UID: {type: INT32, desc: application uid}
   BUNDLE_NAME: {type: STRING, desc: application package name}
   TRANSACTION_DATA_SIZE: {type: UINT64, desc: total received transaction data size}
+
+MEMORY_OVER_WARNING:
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: warning of the memory applied by an application the threshold}
+  PID: {type: INT32, desc: application pid}
+  BUNDLE_NAME: {type: STRING, desc: application package name}
+  CPU_MEMORY: {type: UINT64, desc: cpu memory of the application}
+  GPU_MEMORY: {type: UINT64, desc: gpu memory of the application}
+  TOTAL_MEMORY: {type: UINT64, desc: total memory of the application}
+
+MEMORY_OVER_ERROR:
+  __BASE: {type: BEHAVIOR, level: MINOR, desc: error of the memory applied by an application the threshold}
+  PID: {type: INT32, desc: application pid}
+  BUNDLE_NAME: {type: STRING, desc: application package name}
+  CPU_MEMORY: {type: UINT64, desc: cpu memory of the application}
+  GPU_MEMORY: {type: UINT64, desc: gpu memory of the application}
+  TOTAL_MEMORY: {type: UINT64, desc: total memory of the application}
