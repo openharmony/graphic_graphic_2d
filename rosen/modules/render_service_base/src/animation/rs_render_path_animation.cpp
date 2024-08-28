@@ -352,6 +352,11 @@ void RSRenderPathAnimation::InitValueEstimator()
     if (valueEstimator_ == nullptr) {
         valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
     }
+
+    if (valueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderPathAnimation::InitValueEstimator, valueEstimator_ is nullptr.");
+        return;
+    }
     valueEstimator_->InitCurveAnimationValue(property_, startValue_, endValue_, lastValue_);
 }
 } // namespace Rosen
