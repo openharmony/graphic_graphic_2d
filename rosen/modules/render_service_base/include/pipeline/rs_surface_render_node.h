@@ -1078,6 +1078,8 @@ public:
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
     bool GetHasTransparentSurface() const;
     void UpdatePartialRenderParams();
+    // This function is used for extending visibleRegion by dirty blurfilter node half-obscured
+    void UpdateExtendVisibleRegion(Occlusion::Region& region);
     void UpdateAncestorDisplayNodeInRenderParams();
 
     void SetNeedDrawFocusChange(bool needDrawFocusChange)
@@ -1305,6 +1307,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region extendVisibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
     bool isLeashWindowVisibleRegionEmpty_ = false;
