@@ -41,6 +41,7 @@
 
 namespace OHOS {
 namespace Rosen {
+static std::mutex drawingMutex_;
 namespace {
 constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 50;
 }
@@ -66,6 +67,10 @@ void RSCanvasDrawingRenderNode::InitRenderContent()
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas)
 {
+    if (canvas_ == nullptr) {
+        RS_LOGE("canvas_ is nullptr");
+        return false;
+    }
     auto preMatrix = canvas_->GetTotalMatrix();
     auto preSurface = surface_;
     if (!ResetSurface(width, height, canvas)) {
@@ -163,7 +168,6 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         if (cmds && !cmds->IsEmpty()) {
             recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
             canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
-            ProcessCPURenderInBackgroundThread(cmds);
         }
     }
     std::lock_guard<std::mutex> lock(imageMutex_);
@@ -212,6 +216,9 @@ void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
 {
     auto nodeId = GetId();
     auto ctx = GetContext().lock();
+    if (ctx == nullptr) {
+        return;
+    }
     auto task = [nodeId, ctx, this]() {
         std::lock_guard<std::mutex> lockTask(taskMutex_);
         auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
@@ -223,38 +230,6 @@ void RSCanvasDrawingRenderNode::PlaybackInCorrespondThread()
         isNeedProcess_ = false;
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId_, task, false);
-}
-
-void RSCanvasDrawingRenderNode::ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds)
-{
-    // todo fix
-    return;
-    auto surface = surface_;
-    auto nodeId = GetId();
-    auto ctx = GetContext().lock();
-    RSBackgroundThread::Instance().PostTask([cmds, surface, nodeId, ctx]() {
-        if (!cmds || cmds->IsEmpty() || !surface || !ctx) {
-            return;
-        }
-        auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
-        if (!node || surface != node->surface_) {
-            return;
-        }
-        cmds->Playback(*surface->GetCanvas());
-        auto image = surface->GetImageSnapshot();
-        if (image) {
-            SKResourceManager::Instance().HoldResource(image);
-        }
-        std::lock_guard<std::mutex> lock(node->imageMutex_);
-        node->image_ = image;
-        ctx->PostRTTask([ctx, nodeId]() {
-            if (auto node = ctx->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId)) {
-                ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, process in background", node->GetId());
-                node->SetDirty();
-                ctx->RequestVsync();
-            }
-        });
-    });
 }
 
 bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilterCanvas& canvas)
@@ -499,14 +474,17 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
                 SetNeedProcess(true);
             }
         }
+
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
         while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() ||
-            ((renderDrawable_ && renderDrawable_->IsDrawCmdListsVisited()))) &&
+            ((renderDrawable_ && !renderDrawable_->IsDrawCmdListsVisited()))) &&
             drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
-            RS_LOGD("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
-                type, drawCmdLists_[type].size());
             drawCmdLists_[type].pop_front();
+        }
+        if (drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
+            RS_LOGE("drawcmdlist Error, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
+                    " have drawcmdlist:%{public}zu", GetId(), type, drawCmdLists_[type].size());
         }
     }
 }

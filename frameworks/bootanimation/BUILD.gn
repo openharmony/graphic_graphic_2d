@@ -100,6 +100,8 @@ ohos_executable("bootanimation") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+
+  branch_protector_ret = "pac_ret"
 }
 
 ## Build bootanimation }}}

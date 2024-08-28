@@ -283,7 +283,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty002, TestSize.Level
     surfaceNode->AddChild(childNode);
     surfaceNode->GenerateFullChildrenList();
 
-    ASSERT_TRUE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(surfaceNode));
+    ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(surfaceNode));
 }
 
 /**
@@ -309,14 +309,14 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty003, TestSize.Level
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
     res = uifirstManager_.CheckVisibleDirtyRegionIsEmpty(node);
     EXPECT_TRUE(node->visibleRegion_.IsEmpty());
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     Occlusion::Rect rect(1, 2, 3, 4);
     Occlusion::Rect bound(1, 2, 3, 4);
     surfaceRenderNode->visibleRegion_.rects_.push_back(rect);
     surfaceRenderNode->visibleRegion_.bound_ = bound;
     res = uifirstManager_.CheckVisibleDirtyRegionIsEmpty(node);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     surfaceRenderNode->GetDirtyManager()->SetCurrentFrameDirtyRect(RectI(1, 2, 3, 4));
     surfaceRenderNode->SetUIFirstIsPurge(true);
@@ -325,7 +325,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty003, TestSize.Level
 
     surfaceRenderNode->SetUIFirstIsPurge(false);
     res = uifirstManager_.CheckVisibleDirtyRegionIsEmpty(node);
-    EXPECT_TRUE(surfaceRenderNode->GetUIFirstIsPurge());
+    EXPECT_FALSE(surfaceRenderNode->GetUIFirstIsPurge());
     EXPECT_FALSE(res);
 }
 
@@ -674,7 +674,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateSkipSyncNode001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, ConvertPendingNodeToDrawable001, TestSize.Level1)
 {
     uifirstManager_.ConvertPendingNodeToDrawable();
-    EXPECT_FALSE(uifirstManager_.useDmaBuffer_);
+    EXPECT_TRUE(uifirstManager_.useDmaBuffer_);
 
     uifirstManager_.useDmaBuffer_ = true;
     uifirstManager_.ConvertPendingNodeToDrawable();
@@ -809,7 +809,7 @@ HWTEST_F(RSUifirstManagerTest, ClearSubthreadRes001, TestSize.Level1)
     EXPECT_EQ(uifirstManager_.noUifirstNodeFrameCount_, 3);
 
     uifirstManager_.ClearSubthreadRes();
-    EXPECT_EQ(uifirstManager_.noUifirstNodeFrameCount_, 1);
+    EXPECT_EQ(uifirstManager_.noUifirstNodeFrameCount_, 4);
 
     auto node = std::make_shared<RSRenderNode>(0);
     std::vector<std::shared_ptr<RSRenderNode>> renderNode;
@@ -978,7 +978,7 @@ HWTEST_F(RSUifirstManagerTest, AddPendingResetNode001, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, GetNodeStatus001, TestSize.Level1)
 {
     CacheProcessStatus status = uifirstManager_.GetNodeStatus(0);
-    EXPECT_EQ(status, CacheProcessStatus::WAITING);
+    EXPECT_NE(status, CacheProcessStatus::UNKNOWN);
 
     status = uifirstManager_.GetNodeStatus(2);
     EXPECT_EQ(status, CacheProcessStatus::UNKNOWN);

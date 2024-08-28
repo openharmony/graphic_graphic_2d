@@ -72,9 +72,9 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
 
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
-        RSSurfaceCaptureConfig captureConfig_;
+        RSSurfaceCaptureConfig captureConfig_ = {};
         bool isUniRender_ = false;
-        std::shared_ptr<RSBaseRenderEngine> renderEngine_;
+        std::shared_ptr<RSBaseRenderEngine> renderEngine_ = nullptr;
 };
 
 class RSSurfaceCaptureTask {
@@ -97,9 +97,9 @@ private:
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node,
         bool isUniRender = false);
 
-    NodeId nodeId_;
+    NodeId nodeId_ = INVALID_NODEID;
 
-    RSSurfaceCaptureConfig captureConfig_;
+    RSSurfaceCaptureConfig captureConfig_ = {};
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
 };

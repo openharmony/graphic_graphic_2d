@@ -34,7 +34,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/pointer_render/rs_pointer_render_manager.h"
+#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
@@ -65,9 +65,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 constexpr int SLEEP_TIME_US = 1000;
-constexpr int TASK_DELAY_TIME_MS = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
+}
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSRenderServiceConnection::RSRenderServiceConnection(
@@ -303,13 +304,19 @@ bool RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& displayNod
         RS_LOGE("RSRenderService::CreateDisplayNode fail");
         return false;
     }
+<<<<<<< HEAD
     std::function<void()> registerNode = [node, weakThis = wptr<RSRenderServiceConnection>(this),
         mirrorNodeId = displayNodeConfig.mirrorNodeId]() -> void {
+=======
+    std::function<void()> registerNode = [node, displayNodeConfig,
+        weakThis = wptr<RSRenderServiceConnection>(this)]() {
+>>>>>>> 668763467108ea1b3482676a525d171c2eec1d33
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
         if (!connection) {
             return;
         }
         auto& context = connection->mainThread_->GetContext();
+<<<<<<< HEAD
         auto mirrorSourceNode = context.GetNodeMap()
             .GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
         if (!mirrorSourceNode) { 
@@ -317,6 +324,15 @@ bool RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& displayNod
         }
         context.GetGlobalRootRenderNode()->AddChild(node);
         context.GetMutableNodeMap().RegisterRenderNode(node);
+=======
+        context.GetMutableNodeMap().RegisterRenderNode(node);
+        context.GetGlobalRootRenderNode()->AddChild(node);
+        auto mirrorSourceNode = context.GetNodeMap()
+            .GetRenderNode<RSDisplayRenderNode>(displayNodeConfig.mirrorNodeId);
+        if (!mirrorSourceNode) {
+            return;
+        }
+>>>>>>> 668763467108ea1b3482676a525d171c2eec1d33
         node->SetMirrorSource(mirrorSourceNode);
     };
     mainThread_->PostSyncTask(registerNode);
@@ -363,8 +379,8 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     }
     const std::string& surfaceName = surface->GetName();
     RS_LOGI("RsDebug RSRenderService::CreateNodeAndSurface node" \
-        "id:%{public}" PRIu64 " name:%{public}s bundleName:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
-        node->GetId(), node->GetName().c_str(), node->GetBundleName().c_str(),
+        "id:%{public}" PRIu64 " name:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
+        node->GetId(), node->GetName().c_str(),
         surface->GetUniqueId(), surfaceName.c_str());
     auto defaultUsage = surface->GetDefaultUsage();
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
@@ -376,6 +392,8 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
                 node->GetId(), preNode->GetType());
             usleep(SLEEP_TIME_US);
         }
+        RS_LOGI("CreateNodeAndSurface RegisterRenderNode id:%{public}" PRIu64 ", name:%{public}s", node->GetId(),
+            node->GetName().c_str());
         mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
     };
     if (config.isSync) {
@@ -546,14 +564,14 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Sur
 int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
     float brightBuffer, int64_t interval, int32_t rangeSize)
 {
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
+    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
         interval, rangeSize);
     return StatusCode::SUCCESS;
 }
 
 int32_t RSRenderServiceConnection::SetPointerColorInversionEnabled(bool enable)
 {
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(enable);
+    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(enable);
     return StatusCode::SUCCESS;
 }
 
@@ -564,13 +582,13 @@ int32_t RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback(
         RS_LOGE("RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback: callback is nullptr");
         return StatusCode::INVALID_ARGUMENTS;
     }
-    RSPointerRenderManager::GetInstance().RegisterPointerLuminanceChangeCallback(remotePid_, callback);
+    RSMagicPointerRenderManager::GetInstance().RegisterPointerLuminanceChangeCallback(remotePid_, callback);
     return StatusCode::SUCCESS;
 }
 
 int32_t RSRenderServiceConnection::UnRegisterPointerLuminanceChangeCallback()
 {
-    RSPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
+    RSMagicPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
     return StatusCode::SUCCESS;
 }
 #endif
@@ -725,7 +743,7 @@ std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
                 if (!connection) {
                     return;
                 }
-                return connection->screenManager_->FpsDump(dumpString, surfaceName);
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
             }).wait();
     } else {
         mainThread_->ScheduleTask(
@@ -734,7 +752,7 @@ std::string RSRenderServiceConnection::GetRefreshInfo(pid_t pid)
                 if (!connection) {
                     return;
                 }
-                return connection->screenManager_->FpsDump(dumpString, surfaceName);
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
             }).wait();
     }
     return dumpString;
@@ -766,7 +784,15 @@ void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        renderThread_.PostTask([=]() { screenManager_->MarkPowerOffNeedProcessOneFrame(); });
+        renderThread_.PostTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return;
+                }
+                connection->screenManager_->MarkPowerOffNeedProcessOneFrame();
+            }
+        );
     }
 }
 
@@ -774,7 +800,15 @@ void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        renderThread_.PostTask([=]() { screenManager_->DisablePowerOffRenderControl(id); });
+        renderThread_.PostTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this), id]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return;
+                }
+                connection->screenManager_->DisablePowerOffRenderControl(id);
+            }
+        );
     }
 }
 
@@ -802,6 +836,8 @@ namespace {
 void TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
+    RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
+        captureConfig.isSync ? "true" : "false");
     std::function<void()> captureTask = [id, callback, captureConfig]() {
         RSUiCaptureTaskParallel::Capture(id, callback, captureConfig);
     };
@@ -818,7 +854,7 @@ void TakeSurfaceCaptureForUiParallel(
         return;
     }
 
-    if (node->IsOnTheTree() && !node->IsDirty()) {
+    if (node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
         RSMainThread::Instance()->PostTask(captureTask);
     } else {
         RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
@@ -852,41 +888,53 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, bool accessible)
+    const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions permissions)
 {
     if (!mainThread_) {
         return;
     }
-    std::function<void()> captureTask = [id, callback, captureConfig, accessible]() -> void {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node != nullptr && !accessible &&
-            (node->GetType() == RSRenderNodeType::DISPLAY_NODE ||
-            node->GetType() == RSRenderNodeType::SURFACE_NODE)) {
-            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture no permission");
-            callback->OnSurfaceCapture(id, nullptr);
-            return;
-        }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (captureConfig.captureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
-            if (renderType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
-                RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]",
-                    id);
-                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-                RSSurfaceCaptureTask task(id, captureConfig);
-                if (!task.Run(callback)) {
-                    callback->OnSurfaceCapture(id, nullptr);
-                }
-                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-            } else {
-                RSSurfaceCaptureTaskParallel::CheckModifiers(id);
-                RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);
-            }
-        } else {
+    std::function<void()> captureTask = [id, callback, captureConfig,
+        screenCapturePermission = permissions.screenCapturePermission,
+        isSystemCalling = permissions.isSystemCalling,
+        selfCapture = permissions.selfCapture]() -> void {
+        if (captureConfig.captureType == SurfaceCaptureType::UICAPTURE) {
+            // When the isSync flag in captureConfig is true, UI capture processes commands before capture.
+            // When the isSync flag in captureConfig is false, UI capture will check null node independently.
+            // Therefore, a null node is valid for UI capture.
             if (RSUniRenderJudgement::IsUniRender()) {
                 TakeSurfaceCaptureForUiParallel(id, callback, captureConfig);
             } else {
                 TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
             }
+            return;
+        }
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+        if (node == nullptr) {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture failed, node is nullptr");
+            callback->OnSurfaceCapture(id, nullptr);
+            return;
+        }
+        auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
+        auto surfaceCaptureHasPermission = selfCapture || isSystemCalling;
+        if ((node->GetType() == RSRenderNodeType::DISPLAY_NODE && !displayCaptureHasPermission) ||
+            (node->GetType() == RSRenderNodeType::SURFACE_NODE && !surfaceCaptureHasPermission)) {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture failed, node type: %{public}u, "
+                "screenCapturePermission: %{public}u, isSystemCalling: %{public}u, selfCapture: %{public}u",
+                node->GetType(), screenCapturePermission, isSystemCalling, selfCapture);
+            callback->OnSurfaceCapture(id, nullptr);
+            return;
+        }
+        if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+            RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]", id);
+            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+            RSSurfaceCaptureTask task(id, captureConfig);
+            if (!task.Run(callback)) {
+                callback->OnSurfaceCapture(id, nullptr);
+            }
+            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        } else {
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id);
+            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);
         }
     };
     mainThread_->PostTask(captureTask);
@@ -897,8 +945,12 @@ void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApp
     if (!mainThread_) {
         return;
     }
-    auto captureTask = [=]() -> void {
-        mainThread_->RegisterApplicationAgent(pid, app);
+    auto captureTask = [weakThis = wptr<RSRenderServiceConnection>(this), pid, app]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            return;
+        }
+        connection->mainThread_->RegisterApplicationAgent(pid, app);
     };
     mainThread_->PostTask(captureTask);
 
@@ -1078,7 +1130,7 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
                 RS_LOGE("RSRenderServiceConnection::SetScreenBacklight fail");
                 return;
             }
-            connection->mainThread_->RefreshEntireDisplay();
+            connection->mainThread_->SetLuminanceChangingStatus(true);
             connection->mainThread_->SetDirtyFlag();
             connection->mainThread_->RequestNextVSync();
         };
@@ -1643,10 +1695,24 @@ int32_t RSRenderServiceConnection::ResizeVirtualScreen(ScreenId id, uint32_t wid
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         return RSHardwareThread::Instance().ScheduleTask(
-            [=]() { return screenManager_->ResizeVirtualScreen(id, width, height); }).get();
+            [weakThis = wptr<RSRenderServiceConnection>(this), id, width, height]() -> int32_t {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return RS_CONNECTION_ERROR;
+                }
+                return connection->screenManager_->ResizeVirtualScreen(id, width, height);
+            }
+        ).get();
     } else {
         return mainThread_->ScheduleTask(
-            [=]() { return screenManager_->ResizeVirtualScreen(id, width, height); }).get();
+            [weakThis = wptr<RSRenderServiceConnection>(this), id, width, height]() -> int32_t {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (!connection) {
+                    return RS_CONNECTION_ERROR;
+                }
+                return connection->screenManager_->ResizeVirtualScreen(id, width, height);
+            }
+        ).get();
     }
 }
 
@@ -1766,6 +1832,11 @@ void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, Se
 void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 {
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
+}
+
+void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    RSSystemProperties::SetDefaultDeviceRotationOffset(offset);
 }
 
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()

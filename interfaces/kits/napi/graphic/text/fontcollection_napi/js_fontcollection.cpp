@@ -15,15 +15,15 @@
 
 #include <fstream>
 #include "js_fontcollection.h"
-#include "log_wrapper.h"
+
+#include "ability.h"
 #include "napi_async_work.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 namespace {
 constexpr size_t FILE_HEAD_LENGTH = 7; // 7 is the size of "file://"
 const std::string CLASS_NAME = "FontCollection";
-const std::string LOCAL_BIND_PATH = "/data/storage/el1/bundle/";
-const std::string HAP_POSTFIX = ".hap";
 const int32_t GLOBAL_ERROR = 10000;
 struct FontArgumentsConcreteContext : public ContextBase {
     std::string familyName;
@@ -87,16 +87,19 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
+        TEXT_LOGE("Failed to define class");
         return nullptr;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
+        TEXT_LOGE("Failed to create reference");
         return nullptr;
     }
 
     status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
     if (status != napi_ok) {
+        TEXT_LOGE("Failed to set named property");
         return nullptr;
     }
     return exportObj;
@@ -171,17 +174,6 @@ bool JsFontCollection::SpiltAbsoluteFontPath(std::string& absolutePath)
     return false;
 }
 
-std::unique_ptr<Global::Resource::ResourceManager> JsFontCollection::GetResourManager(const std::string& moudleName)
-{
-    auto hapPath = LOCAL_BIND_PATH + moudleName + HAP_POSTFIX;
-    auto resManager = Global::Resource::CreateResourceManager();
-    if (!resManager) {
-        return nullptr;
-    }
-    resManager->AddResource(hapPath.c_str());
-    return std::unique_ptr<Global::Resource::ResourceManager>(resManager);
-}
-
 bool JsFontCollection::GetResourcePartData(napi_env env, ResourceInfo& info, napi_value paramsNApi,
     napi_value bundleNameNApi, napi_value moduleNameNApi)
 {
@@ -207,7 +199,7 @@ bool JsFontCollection::GetResourcePartData(napi_env env, ResourceInfo& info, nap
             napi_get_value_string_utf8(env, indexValue, indexStr.get(), strLen, &ret);
             info.params.emplace_back(indexStr.get());
         } else if (valueType == napi_number) {
-            int32_t num;
+            int32_t num = 0;
             napi_get_value_int32(env, indexValue, &num);
             info.params.emplace_back(std::to_string(num));
         } else {
@@ -272,21 +264,29 @@ bool JsFontCollection::ParseResourceType(napi_env env, napi_value value, Resourc
     return true;
 }
 
+std::shared_ptr<Global::Resource::ResourceManager> JsFontCollection::GetResourceManager() const
+{
+    std::shared_ptr<AbilityRuntime::ApplicationContext> context =
+        AbilityRuntime::ApplicationContext::GetApplicationContext();
+    TEXT_ERROR_CHECK(context != nullptr, return nullptr, "Failed to get application context");
+    auto resourceManager = context->GetResourceManager();
+    TEXT_ERROR_CHECK(resourceManager != nullptr, return nullptr, "Failed to get resource manager");
+    return resourceManager;
+}
+
 bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceInfo& info)
 {
     int32_t state = 0;
-
-    auto reSourceManager = GetResourManager(info.moduleName);
-    if (reSourceManager == nullptr) {
-        return false;
-    }
+    auto resourceManager = GetResourceManager();
+    TEXT_ERROR_CHECK(resourceManager != nullptr, return false,
+        "Failed to get resourceManager, resourceManager is nullptr");
 
     if (info.type == static_cast<int32_t>(ResourceType::STRING)) {
         std::string rPath;
         if (info.resId < 0 && !info.params.empty() && info.params[0].size() > 0) {
             rPath = info.params[0];
         } else {
-            state = reSourceManager->GetStringById(info.resId, rPath);
+            state = resourceManager->GetStringById(info.resId, rPath);
             if (state >= GLOBAL_ERROR || state < 0) {
                 return false;
             }
@@ -302,7 +302,7 @@ bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceI
             return false;
         }
 
-        state = reSourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData);
+        state = resourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData);
         if (state >= GLOBAL_ERROR || state < 0) {
             return false;
         }

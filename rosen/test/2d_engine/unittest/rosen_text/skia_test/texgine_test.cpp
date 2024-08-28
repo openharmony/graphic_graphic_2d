@@ -74,6 +74,25 @@ HWTEST_F(OHTexgineTxtTest, OHTexgineTxtTest001, TestSize.Level1)
     ExTime(logger1, Logger::LOG_PHASE::BEGIN);
     ExTime(logger1, Logger::LOG_PHASE::END);
 }
+
+/*
+ * @tc.name: OHTexgineTxtTest002
+ * @tc.desc: test for log
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHTexgineTxtTest, OHTexgineTxtTest002, TestSize.Level1)
+{
+    Logger logger("123", "func3", 1, Logger::LOG_LEVEL::FATAL, nullptr);
+    Logger::OutputByFileLog(logger, Logger::LOG_PHASE::BEGIN);
+    Logger::OutputByFileLog(logger, Logger::LOG_PHASE::END);
+    Logger::SetScopeParam(1, 1);
+    logger.AlignLine();
+    Logger::SetScopeParam(1, 1);
+    logger.AlignFunc();
+    ScopedLogger sl(std::move(logger));
+    sl.Finish();
+}
+
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

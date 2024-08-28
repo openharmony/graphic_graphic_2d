@@ -185,38 +185,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, OriginScreenRotation, TestSize.Level2)
 }
 
 /**
- * @tc.name: ScaleMirrorIfNeed
- * @tc.desc: ScaleMirrorIfNeed Test
- * @tc.type: FUNC
- * @tc.require: issueI992VW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeed, TestSize.Level2)
-{
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        UNI_RENDER_MIRROR_COMPOSITE);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    ASSERT_NE(nullptr, virtualProcessor);
-    RSDisplayNodeConfig config;
-    NodeId id = 0;
-    RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(nullptr, drawingCanvas);
-    virtualProcessor->canvas_ = std::make_unique<RSPaintFilterCanvas>(drawingCanvas.get());
-    ASSERT_NE(nullptr, virtualProcessor->canvas_);
-    virtualProcessor->scaleMode_ = ScreenScaleMode::FILL_MODE;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
-
-    virtualProcessor->virtualScreenWidth_ = DEFAULT_CANVAS_WIDTH;
-    virtualProcessor->virtualScreenHeight_ = DEFAULT_CANVAS_HEIGHT;
-    virtualProcessor->mirroredScreenWidth_ = DEFAULT_CANVAS_WIDTH / 2;
-    virtualProcessor->mirroredScreenHeight_ = DEFAULT_CANVAS_HEIGHT / 2;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
-
-    virtualProcessor->scaleMode_ = ScreenScaleMode::UNISCALE_MODE;
-    virtualProcessor->ScaleMirrorIfNeed(rsDisplayRenderNode, *virtualProcessor->canvas_);
-}
-
-/**
  * @tc.name: Fill
  * @tc.desc: Fill Test
  * @tc.type: FUNC
@@ -364,68 +332,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetDirtyInfo_002, TestSize.Level2)
     ASSERT_EQ(virtualProcessor_->SetRoiRegionToCodec(damageRegion), GSERROR_INVALID_ARGUMENTS);
 
     virtualProcessor_->SetDirtyInfo(damageRegion);
-}
-
-/**
- * @tc.name: CalculateTransform_001
- * @tc.desc: CalculateTransform Test, isExpand_ is false, return directly
- * @tc.type:FUNC
- * @tc.require:issuesIAJ4FW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, CalculateTransform_001, TestSize.Level2)
-{
-    virtualProcessor_->isExpand_ = false;
-
-    virtualProcessor_->CalculateTransform(*rsDisplayRenderNode_);
-}
-
-/**
- * @tc.name: CalculateTransform_002
- * @tc.desc: CalculateTransform Test, isExpand_ is true, renderDrawable_ is null , return directly
- * @tc.type:FUNC
- * @tc.require:issuesIAJ4FW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, CalculateTransform_002, TestSize.Level2)
-{
-    virtualProcessor_->isExpand_ = true;
-    rsDisplayRenderNode_->renderDrawable_ = nullptr;
-    ASSERT_EQ(rsDisplayRenderNode_->GetRenderDrawable(), nullptr);
-
-    virtualProcessor_->CalculateTransform(*rsDisplayRenderNode_);
-}
-
-/**
- * @tc.name: CalculateTransform_003
- * @tc.desc: CalculateTransform Test,isExpand_ is true, renderDrawable_ is not null,and canvas_ is null
- * @tc.type:FUNC
- * @tc.require:issuesIAJ4FW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, CalculateTransform_003, TestSize.Level2)
-{
-    virtualProcessor_->isExpand_ = true;
-    auto rsRenderNode = std::make_shared<RSRenderNode>(nodeId_);
-    rsDisplayRenderNode_->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(rsRenderNode);
-    ASSERT_NE(rsDisplayRenderNode_->GetRenderDrawable(), nullptr);
-
-    virtualProcessor_->canvas_ = nullptr;
-    virtualProcessor_->CalculateTransform(*rsDisplayRenderNode_);
-}
-
-/**
- * @tc.name: CalculateTransform_004
- * @tc.desc: CalculateTransform Test,isExpand_ is true, renderDrawable_ is not null,and canvas_ not null
- * @tc.type:FUNC
- * @tc.require:issuesIAJ4FW
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, CalculateTransform_004, TestSize.Level2)
-{
-    virtualProcessor_->isExpand_ = true;
-    auto rsRenderNode = std::make_shared<RSRenderNode>(nodeId_);
-    rsDisplayRenderNode_->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(rsRenderNode);
-    ASSERT_NE(rsDisplayRenderNode_->GetRenderDrawable(), nullptr);
-
-    ASSERT_NE(virtualProcessor_->canvas_, nullptr);
-    virtualProcessor_->CalculateTransform(*rsDisplayRenderNode_);
 }
 
 /**

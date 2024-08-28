@@ -18,6 +18,7 @@
 #include "skia_image_info.h"
 
 #include "draw/color.h"
+#include "draw/surface.h"
 #include "image/image_info.h"
 #include "render/rs_foreground_effect_filter.h"
 
@@ -184,6 +185,27 @@ HWTEST_F(RSForegroundEffectFilterTest, DrawImageRectTest, TestSize.Level1)
     Drawing::Rect dst;
     rsForegroundEffectFilter->DrawImageRect(canvas, image, src, dst);
     EXPECT_EQ(image, originImage);
+}
+
+/**
+ * @tc.name: MakeImageTest
+ * @tc.desc: Verify function MakeImage
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSForegroundEffectFilterTest, MakeImageTest, TestSize.Level1)
+{
+    auto rsForegroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(1.0f); // blur radius
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    auto blurBuilder = rsForegroundEffectFilter->MakeForegroundEffect();
+    Drawing::SamplingOptions sampling;
+    Drawing::Matrix matrix;
+    blurBuilder->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::DECAL,
+        Drawing::TileMode::DECAL, sampling, matrix));
+    blurBuilder->SetUniform("in_blurOffset", 2.f, 2.f); // offsetX and offsetY
+    std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
+    auto outputImage = rsForegroundEffectFilter->MakeImage(surface, &matrix, blurBuilder);
+
+    ASSERT_TRUE(outputImage != nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

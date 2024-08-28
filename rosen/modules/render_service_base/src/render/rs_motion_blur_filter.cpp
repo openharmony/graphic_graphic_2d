@@ -57,6 +57,11 @@ void RSMotionBlurFilter::DrawImageRect(Drawing::Canvas& canvas, const std::share
         return;
     }
 
+    if (disableMotionBlur_) {
+        OutputOriginalImage(canvas, image, src, dst);
+        return;
+    }
+
     Drawing::Matrix mat = canvas.GetTotalMatrix();
     Drawing::Rect rect = Drawing::Rect(0.f, 0.f, image->GetWidth(), image->GetHeight());
     mat.MapRect(rect, rect);
@@ -115,6 +120,7 @@ void RSMotionBlurFilter::DrawMotionBlur(Drawing::Canvas& canvas, const std::shar
 
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();
@@ -236,6 +242,7 @@ void RSMotionBlurFilter::OutputOriginalImage(Drawing::Canvas& canvas, const std:
 
     Drawing::Brush brush;
     brush.SetShaderEffect(inputShader);
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();

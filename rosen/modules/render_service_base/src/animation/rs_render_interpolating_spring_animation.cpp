@@ -217,7 +217,11 @@ void RSRenderInterpolatingSpringAnimation::InitValueEstimator()
     if (valueEstimator_ == nullptr) {
         valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
     }
-    valueEstimator_->InitCurveAnimationValue(property_, startValue_, endValue_, lastValue_);
+    if (valueEstimator_) {
+        valueEstimator_->InitCurveAnimationValue(property_, startValue_, endValue_, lastValue_);
+    } else {
+        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::InitValueEstimator, valueEstimator_ is nullptr.");
+    }
 }
 
 std::shared_ptr<RSRenderPropertyBase> RSRenderInterpolatingSpringAnimation::CalculateVelocity(float time) const

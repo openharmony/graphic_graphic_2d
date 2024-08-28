@@ -189,5 +189,96 @@ HWTEST_F(SKImageChainUnittest, SetClipTest001, TestSize.Level1)
     delete rRect;
 }
 
+/**
+ * @tc.name: PixelFormatConvert
+ * @tc.desc: test for pixel convert
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, PixelFormatConvert, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageChainUnittest PixelFormatConvert start";
+
+    auto skImageChain = std::make_shared<SKImageChain>(nullptr, nullptr);
+    ASSERT_NE(skImageChain, nullptr);
+
+    EXPECT_EQ(skImageChain->PixelFormatConvert(Media::PixelFormat::RGB_565),
+        SkColorType::kRGB_565_SkColorType);
+
+    EXPECT_EQ(skImageChain->PixelFormatConvert(Media::PixelFormat::ALPHA_8),
+        SkColorType::kAlpha_8_SkColorType);
+
+    EXPECT_EQ(skImageChain->PixelFormatConvert(Media::PixelFormat::UNKNOWN),
+        SkColorType::kUnknown_SkColorType);
+
+    GTEST_LOG_(INFO) << "SKImageChainUnittest PixelFormatConvert end";
+}
+
+/**
+ * @tc.name: ForceCPU
+ * @tc.desc: test for pixel convert
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, ForceCPU, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageChainUnittest ForceCPU start";
+
+    // create from PixelMap
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(uniPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+    auto skImageChain = std::make_shared<SKImageChain>(srcPixelMap);
+    ASSERT_NE(skImageChain, nullptr);
+
+    skImageChain->InitWithoutCanvas();
+    skImageChain->ForceCPU(true);
+    ASSERT_TRUE(skImageChain->CreateGPUCanvas());
+    skImageChain->ForceCPU(false);
+
+    skImageChain->ForceCPU(true);
+    ASSERT_TRUE(skImageChain->CreateCPUCanvas());
+
+    GTEST_LOG_(INFO) << "SKImageChainUnittest ForceCPU end";
+}
+
+/**
+ * @tc.name: DestroyGPUCanvasTest001
+ * @tc.desc: test DestroyGPUCanvas
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, DestroyGPUCanvasTest001, TestSize.Level1)
+{
+    // create from PixelMap
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(uniPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+    auto skImageChain = std::make_shared<SKImageChain>(srcPixelMap);
+    ASSERT_NE(skImageChain, nullptr);
+
+    SkRect rect = SkRect::MakeEmpty();
+    SkPath *path = new SkPath();
+    SkRRect *rRect = new SkRRect();
+    skImageChain->SetClipRect(&rect);
+    skImageChain->ForceCPU(false);
+    EXPECT_EQ(skImageChain->Draw(), DrawError::ERR_OK);
+
+    delete path;
+    delete rRect;
+}
 } // namespace Rosen
 } // namespace OHOS

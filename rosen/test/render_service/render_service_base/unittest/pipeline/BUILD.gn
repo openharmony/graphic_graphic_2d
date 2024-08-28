@@ -1259,6 +1259,98 @@ ohos_unittest("RSSurfaceRenderNodeTwoTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSSurfaceRenderNodeThreeTest  ##################################
+ohos_unittest("RSSurfaceRenderNodeThreeTest") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+
+  sources = [ "rs_surface_render_node_three_test.cpp" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSSurfaceRenderNodeFourTest  ##################################
+ohos_unittest("RSSurfaceRenderNodeFourTest") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+
+  sources = [ "rs_surface_render_node_four_test.cpp" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ##############################  RSTaskDispatcherTest  ##################################
 ohos_unittest("RSTaskDispatcherTest") {
   module_out_path = module_output_path
@@ -1435,7 +1527,9 @@ group("unittest") {
     ":RSRootRenderNodeTest",
     ":RSSingleFrameComposerTest",
     ":RSSurfaceHandlerTest",
+    ":RSSurfaceRenderNodeFourTest",
     ":RSSurfaceRenderNodeTest",
+    ":RSSurfaceRenderNodeThreeTest",
     ":RSSurfaceRenderNodeTwoTest",
     ":RSTaskDispatcherTest",
     ":RSUniRenderJudgementTest",

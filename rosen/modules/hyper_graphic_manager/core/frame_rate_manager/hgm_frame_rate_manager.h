@@ -130,7 +130,10 @@ public:
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
+    void HandleRsFrame();
+    void SetShowRefreshRateEnabled(bool enable);
     bool IsLtpo() const { return isLtpo_; };
+    bool IsAdaptive() const { return isAdaptive_.load(); };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, const DvsyncInfo& dvsyncInfo);
 
@@ -164,6 +167,8 @@ public:
     }
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
+        std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -186,8 +191,9 @@ private:
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
-    static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange(const std::string& voter = "");
+    bool IsCurrentScreenSupportAS();
+    void ProcessAdaptiveSync(std::string voterName);
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
@@ -203,6 +209,7 @@ private:
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
+    void InitRsIdleTimer();
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -229,6 +236,7 @@ private:
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
     std::unordered_set<std::string> gameScenes_;
+    std::unordered_set<std::string> ancoScenes_;
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
     // FORMAT: <timestamp, VoteInfo>
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
@@ -237,7 +245,12 @@ private:
     ScreenId curScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
-    int32_t idleFps_ = 60;
+    int32_t idleFps_ = OLED_60_HZ;
+    int32_t minIdleFps_ = OLED_60_HZ;
+    // rsIdleTimer_ skip rsFrame(see in SetShowRefreshRateEnabled), default value is 1 while ShowRefreshRate disabled
+    int32_t skipFrame_ = 1;
+    int32_t curSkipCount_ = 0xFF;
+    std::unique_ptr<HgmSimpleTimer> rsIdleTimer_ = nullptr;
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
@@ -248,6 +261,7 @@ private:
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
+    std::atomic<bool> isAdaptive_ = false;
 
     uint64_t timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;

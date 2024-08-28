@@ -76,7 +76,8 @@ void RsVulkanInterface::Init(bool isProtected)
     SelectPhysicalDevice(isProtected);
     CreateDevice(isProtected);
     std::unique_lock<std::mutex> lock(vkMutex_);
-    if (RSSystemProperties::GetVkQueueDividedEnable()) {
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
+    if (RSSystemProperties::GetVkQueuePriorityEnable()) {
         if (!isProtected) {
             CreateSkiaBackendContext(&backendContext_, false, isProtected);
         }
@@ -84,6 +85,9 @@ void RsVulkanInterface::Init(bool isProtected)
     } else {
         CreateSkiaBackendContext(&backendContext_, false, isProtected);
     }
+#else
+    CreateSkiaBackendContext(&backendContext_, false, isProtected);
+#endif
 }
 
 RsVulkanInterface::~RsVulkanInterface()
@@ -514,9 +518,9 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateNewDrawingContext(
     if (hcontext_ != nullptr) {
         return hcontext_;
     }
-    if (!RSSystemProperties::GetVkQueueDividedEnable()) {
-        CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
-    }
+#ifndef RS_ENABLE_VKQUEUE_PRIORITY
+    CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
+#endif
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
     memHandler_ = std::make_shared<MemoryHandler>();
@@ -545,9 +549,14 @@ RsVulkanContext::RsVulkanContext()
     drawingContext_ = rsVulkanInterface.CreateDrawingContext();
     isProtected_ = true;
     rsProtectedVulkanInterface.Init(isProtected_);
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
     // Init protectedDrawingContext_ bind to hbackendContext
     protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
-        RSSystemProperties::GetVkQueueDividedEnable(), true);
+        RSSystemProperties::GetVkQueuePriorityEnable(), isProtected_);
+#else
+    protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
+        false, isProtected_);
+#endif
     isProtected_ = false;
 }
 

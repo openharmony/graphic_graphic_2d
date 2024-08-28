@@ -20,6 +20,7 @@
 #include <limits>
 #include <memory>
 #include <tuple>
+#include <queue>
 
 #include "surface_type.h"
 
@@ -133,9 +134,9 @@ public:
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
-    bool GetForceHardwareByUser() const;
-    bool GetForceHardware() const;
-    void SetForceHardware(bool flag);
+    bool GetFixRotationByUser() const;
+    bool IsInFixedRotation() const;
+    void SetInFixedRotation(bool isRotating);
 
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -222,11 +223,6 @@ public:
         isHardwareForcedDisabled_ = forcesDisabled;
     }
 
-    void SetHardwareForcedDisabledByVisibility(bool forcesDisabled)
-    {
-        isHardwareForcedDisabledByVisibility_ = forcesDisabled;
-    }
-
     void SetNodeHasBackgroundColorAlpha(bool forcesDisabled)
     {
         isHardwareForcedByBackgroundAlpha_ = forcesDisabled;
@@ -259,10 +255,10 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if ((isForceHardware_ && !isHardwareForcedDisabledByVisibility_) || isProtectedLayer_) {
+        if (isProtectedLayer_) {
             return false;
         }
-        return isHardwareForcedDisabled_ || isHardwareForcedDisabledByVisibility_ ||
+        return isHardwareForcedDisabled_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
 
@@ -341,13 +337,7 @@ public:
         return nodeType_;
     }
 
-    void SetSurfaceNodeType(RSSurfaceNodeType nodeType)
-    {
-        if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE &&
-            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_NODE) {
-            nodeType_ = nodeType;
-        }
-    }
+    void SetSurfaceNodeType(RSSurfaceNodeType nodeType);
 
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
@@ -357,11 +347,6 @@ public:
     const std::string& GetName() const
     {
         return name_;
-    }
-
-    const std::string& GetBundleName() const
-    {
-        return bundleName_;
     }
 
     void SetOffSetX(int32_t offset)
@@ -492,8 +477,8 @@ public:
 
     static void SetAncoForceDoDirect(bool direct);
     bool GetAncoForceDoDirect() const;
-    void SetAncoFlags(int32_t flags);
-    int32_t GetAncoFlags() const;
+    void SetAncoFlags(uint32_t flags);
+    uint32_t GetAncoFlags() const;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -529,6 +514,11 @@ public:
     const RectI& GetOriginalDstRect() const
     {
         return originalDstRect_;
+    }
+
+    const RectI& GetOriginalSrcRect() const
+    {
+        return originalSrcRect_;
     }
 
     Occlusion::Region& GetTransparentRegion()
@@ -722,12 +712,12 @@ public:
     bool CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const;
     bool CheckIfOcclusionChanged() const;
 
-    void SetVisibleRegion(Occlusion::Region region)
+    void SetVisibleRegion(const Occlusion::Region& region)
     {
         visibleRegion_ = region;
     }
 
-    void SetVisibleRegionInVirtual(Occlusion::Region region)
+    void SetVisibleRegionInVirtual(const Occlusion::Region& region)
     {
         visibleRegionInVirtual_ = region;
     }
@@ -808,7 +798,7 @@ public:
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
     const std::unordered_set<NodeId>& GetAbilityNodeIds() const;
-    void AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds);
+    void AddAbilityComponentNodeIds(std::unordered_set<NodeId>& nodeIds);
     void ResetAbilityNodeIds();
 
     // manage appWindowNode's child hardware enabled nodes info
@@ -1101,7 +1091,7 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
-    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    void SetBufferRelMatrix(const Drawing::Matrix& matrix)
     {
         bufferRelMatrix_ = matrix;
     }
@@ -1183,9 +1173,15 @@ public:
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
+    bool IsSecureUIExtension() const
+    {
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    }
+
     bool IsUIExtension() const
     {
-        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_NODE;
+        return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+               nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     }
 
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
@@ -1206,6 +1202,19 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
+    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
+    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> GetWatermark() const;
+    size_t GetWatermarkSize() const;
+    bool GetIsIntersectWithRoundCorner() const
+    {
+        return isIntersectWithRoundCorner_;
+    }
+
+    void SetIsIntersectWithRoundCorner(bool isIntersectWithRoundCorner)
+    {
+        isIntersectWithRoundCorner_ = isIntersectWithRoundCorner;
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1259,6 +1268,7 @@ private:
     bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
+    bool isIntersectWithRoundCorner_ = false;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
@@ -1267,7 +1277,6 @@ private:
     SurfaceId surfaceId_ = 0;
 
     std::string name_;
-    std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
@@ -1393,10 +1402,10 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
-    bool isForceHardwareByUser_ = false;
-    bool isForceHardware_ = false;
-    bool isHardwareForcedDisabledByVisibility_ = false;
+    bool isFixRotationByUser_ = false;
+    bool isInFixedRotation_ = false;
     RectI originalDstRect_;
+    RectI originalSrcRect_;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
@@ -1461,7 +1470,7 @@ private:
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
 
-    std::atomic<int32_t> ancoFlags_ = 0;
+    std::atomic<uint32_t> ancoFlags_ = 0;
     static inline std::atomic<bool> ancoForceDoDirect_ = false;
 
     bool isGpuOverDrawBufferOptimizeNode_ = false;
@@ -1475,6 +1484,7 @@ private:
     bool isSkipDraw_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
+    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> watermarkHandles_ = {};
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

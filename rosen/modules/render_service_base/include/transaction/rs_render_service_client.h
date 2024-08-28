@@ -329,6 +329,8 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset);
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
@@ -352,7 +354,7 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 private:
-    void TriggerSurfaceCaptureCallback(NodeId id, Media::PixelMap* pixelmap);
+    void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;

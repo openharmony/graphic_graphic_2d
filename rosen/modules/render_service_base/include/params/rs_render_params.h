@@ -56,6 +56,7 @@ public:
         int width = 0;
         int height = 0;
     };
+
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
     void SetAlpha(float alpha);
@@ -109,6 +110,36 @@ public:
     inline bool NeedFilter() const
     {
         return needFilter_;
+    }
+
+    void SetNodeType(RSRenderNodeType type);
+    inline RSRenderNodeType GetType() const
+    {
+        return renderNodeType_;
+    }
+
+    void SetEffectNodeShouldPaint(bool effectNodeShouldPaint);
+    inline bool GetEffectNodeShouldPaint() const
+    {
+        return effectNodeShouldPaint_;
+    }
+
+    void SetHasGlobalCorner(bool hasGlobalCorner);
+    inline bool HasGlobalCorner() const
+    {
+        return hasGlobalCorner_;
+    }
+
+    void SetHasBlurFilter(bool hasBlurFilter);
+    inline bool HasBlurFilter() const
+    {
+        return hasBlurFilter_;
+    }
+
+    void SetGlobalAlpha(float alpha);
+    inline float GetGlobalAlpha() const
+    {
+        return globalAlpha_;
     }
 
     inline bool IsSecurityLayer() const
@@ -213,8 +244,11 @@ public:
     virtual const RSLayerInfo& GetLayerInfo() const;
     virtual const RectI& GetAbsDrawRect() const
     {
-        static const RectI defaultRect = {};
-        return defaultRect;
+        return absDrawRect_;
+    }
+    void SetAbsDrawRect(RectI& absRect)
+    {
+        absDrawRect_ = absRect;
     }
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
@@ -256,11 +290,6 @@ public:
     }
     virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
     virtual const Drawing::Matrix& GetTotalMatrix();
-    virtual void SetGlobalAlpha(float alpha) {}
-    virtual float GetGlobalAlpha()
-    {
-        return 0;
-    }
     virtual void SetPreScalingMode(ScalingMode scalingMode) {}
     virtual ScalingMode GetPreScalingMode() const
     {
@@ -282,12 +311,15 @@ protected:
 
 private:
     NodeId id_;
+    RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
     Drawing::RectF frameRect_;
     float alpha_ = 1.0f;
+    float globalAlpha_ = 1.0f;
     // this rect should map display coordination
     RectF localDrawRect_;
+    RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
 
@@ -310,6 +342,9 @@ private:
     bool isOpincStateChanged_ = false;
     bool startingWindowFlag_ = false;
     bool needFilter_ = false;
+    bool effectNodeShouldPaint_ = false;
+    bool hasGlobalCorner_ = false;
+    bool hasBlurFilter_ = false;
     SurfaceParam surfaceParams_;
     bool freezeFlag_ = false;
 };

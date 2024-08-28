@@ -79,7 +79,9 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::CreatePixelMapByNode(std::s
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);
-    return Media::PixelMap::Create(opts);
+    uint32_t length = opts.size.width * opts.size.height;
+    auto data = std::make_unique<uint32_t[]>(length);
+    return Media::PixelMap::Create(data.release(), length, opts);
 }
 
 std::shared_ptr<Drawing::Surface> RSDividedUICapture::CreateSurface(
@@ -181,7 +183,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         relativeMatrix.Set(Drawing::Matrix::SCALE_X, scaleX_);
         relativeMatrix.Set(Drawing::Matrix::SCALE_Y, scaleY_);
         Drawing::Matrix invertMatrix;
-        if (geoPtr->GetMatrix().Invert(invertMatrix)) {
+        if (geoPtr && geoPtr->GetMatrix().Invert(invertMatrix)) {
             relativeMatrix.PreConcat(invertMatrix);
         }
         canvas_->SetMatrix(relativeMatrix);
@@ -273,6 +275,11 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     }
     // draw pixelmap in canvas
     auto image = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSDividedUICaptureVisitor::ProcessSurfaceRenderNode, failed to extract drawing image from "
+                   "pixelMap, image is nullptr");
+        return;
+    }
     canvas_->DrawImage(*image, node.GetRenderProperties().GetBoundsPositionX(),
         node.GetRenderProperties().GetBoundsPositionY(), Drawing::SamplingOptions());
     ProcessChildren(node);

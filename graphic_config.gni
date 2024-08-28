@@ -60,6 +60,7 @@ declare_args() {
 
 declare_args() {
   graphic_2d_feature_enable_stack_culling = false
+  graphic_2d_feature_vkqueue_priority_enable = false
 }
 
 if (graphic_2d_feature_product == "phone" ||
@@ -132,6 +133,11 @@ if (graphic_2d_feature_ace_enable_gpu) {
   libvulkan = []
 }
 
+if (graphic_2d_feature_enable_vulkan &&
+    graphic_2d_feature_vkqueue_priority_enable) {
+  gpu_defines += [ "RS_ENABLE_VKQUEUE_PRIORITY" ]
+}
+
 if (graphic_2d_feature_parallel_upload_enable &&
     graphic_2d_feature_rs_enable_uni_render &&
     graphic_2d_feature_product == "phone") {
@@ -192,13 +198,7 @@ if (graphic_2d_feature_tp_switch_enbale) {
   tp_defines = [ "TP_FEATURE_ENABLE" ]
 }
 
-graphic_2d_ext_configs = {
-}
 check_graphic_ext_file_script = "//build/ohos/file_exists.py"
-check_graphic_ext_file_args = [
-  "--filename",
-  rebase_path("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni"),
-]
 
 check_ddgr_ext_file_args = [
   "--filename",
@@ -227,14 +227,11 @@ check_broker_ext_file_args = [
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
 ]
-
-if (exec_script(check_graphic_ext_file_script,
-                check_graphic_ext_file_args,
-                "string") == "True" && "${product_name}" == "ohcore") {
-  graphic_2d_ext_configs = {
-    import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
-  }
-}
+check_hgm_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni"),
+]
 
 if (exec_script(check_graphic_ext_file_script,
                 check_ddgr_ext_file_args,
@@ -278,6 +275,17 @@ if (exec_script(check_graphic_ext_file_script,
                 "string") == "True") {
   graphic_2d_broker_configs = {
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni")
+  }
+}
+
+graphic_2d_hgm_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_hgm_ext_file_args,
+                "string") == "True") {
+  graphic_2d_hgm_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")
   }
 }
 

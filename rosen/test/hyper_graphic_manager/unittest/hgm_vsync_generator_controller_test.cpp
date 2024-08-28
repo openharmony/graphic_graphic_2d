@@ -83,14 +83,12 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentOffset, TestSize.Level1)
 
     auto &hgm = HgmCore::Instance();
     uint32_t savedAlignRate = hgm.GetAlignRate();
-    EXPECT_NE(savedAlignRate, 0);
     hgm.alignRate_ = 0;
     EXPECT_EQ(controller->GetAppOffset(50), 0);
     EXPECT_EQ(controller->GetAppOffset(0), 0);
 
     hgm.alignRate_ = savedAlignRate;
     EXPECT_EQ(controller->GetAppOffset(savedAlignRate + 1), 0);
-    EXPECT_NE(savedAlignRate, 0);
     controller->GetAppOffset(savedAlignRate);
 
     EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 0), 0);

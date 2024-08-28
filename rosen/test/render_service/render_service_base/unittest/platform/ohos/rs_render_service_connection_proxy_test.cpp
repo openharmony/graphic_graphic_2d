@@ -776,7 +776,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSurfaceOcclusionChangeCallb
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-    EXPECT_EQ(proxy->RegisterOcclusionChangeCallback(callback), 2);
+    EXPECT_EQ(proxy->RegisterOcclusionChangeCallback(callback), 0);
     NodeId id = 1;
     proxy->UnRegisterSurfaceOcclusionChangeCallback(id);
     sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);

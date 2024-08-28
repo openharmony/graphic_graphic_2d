@@ -89,6 +89,10 @@ void DrawCmdList::ClearOp()
         opCnt_ = 0;
     }
     {
+        std::lock_guard<std::mutex> lock(recordCmdMutex_);
+        recordCmdVec_.clear();
+    }
+    {
         std::lock_guard<std::mutex> lock(imageObjectMutex_);
         imageObjectVec_.clear();
     }
@@ -173,7 +177,9 @@ void DrawCmdList::MarshallingDrawOps()
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (replacedOpListForVector_.empty()) {
         for (auto& op : drawOpItems_) {
-            op->Marshalling(*this);
+            if (op) {
+                op->Marshalling(*this);
+            }
         }
         return;
     }
@@ -183,14 +189,18 @@ void DrawCmdList::MarshallingDrawOps()
     std::vector<uint32_t> opIndexForCache(replacedOpListForVector_.size());
     uint32_t opReplaceIndex = 0;
     for (auto index = 0u; index < drawOpItems_.size(); ++index) {
-        drawOpItems_[index]->Marshalling(*this);
+        if (drawOpItems_[index]) {
+            drawOpItems_[index]->Marshalling(*this);
+        }
         if (index == static_cast<size_t>(replacedOpListForVector_[opReplaceIndex].first)) {
             opIndexForCache[opReplaceIndex] = lastOpItemOffset_.value();
             ++opReplaceIndex;
         }
     }
     for (auto index = 0u; index < replacedOpListForVector_.size(); ++index) {
-        replacedOpListForVector_[index].second->Marshalling(*this);
+        if (replacedOpListForVector_[index].second) {
+            replacedOpListForVector_[index].second->Marshalling(*this);
+        }
         replacedOpListForBuffer_.emplace_back(opIndexForCache[index], lastOpItemOffset_.value());
     }
 }
@@ -456,6 +466,9 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
 
 void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList)
 {
+    if (!drawCmdList) {
+        return;
+    }
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
         std::lock_guard<std::recursive_mutex> lock(drawCmdList->mutex_);
@@ -468,6 +481,10 @@ void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList
         return;
     }
 
+    {
+        std::lock_guard<std::mutex> lock(drawCmdList->recordCmdMutex_);
+        drawCmdList->recordCmdVec_.swap(recordCmdVec_);
+    }
 #ifdef SUPPORT_OHOS_PIXMAP
     {
         std::lock_guard<std::mutex> lock(drawCmdList->imageObjectMutex_);
@@ -556,6 +573,31 @@ size_t DrawCmdList::CountTextBlobNum()
     }
     return textBlobCnt;
 }
+
+void DrawCmdList::PatchTypefaceIds()
+{
+    constexpr int bitNumber = 30 + 32;
+    uint64_t replayMask = (uint64_t)1 << bitNumber;
+    uint32_t offset = offset_;
+    uint32_t maxOffset = opAllocator_.GetSize();
+    do {
+        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+        if (curOpItemPtr == nullptr) {
+            break;
+        }
+        uint32_t type = curOpItemPtr->GetType();
+        if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
+            DrawTextBlobOpItem::ConstructorHandle* handle =
+                static_cast<DrawTextBlobOpItem::ConstructorHandle*>(curOpItemPtr);
+            if (handle->globalUniqueId) {
+                handle->globalUniqueId |= replayMask;
+            }
+        }
+        offset = curOpItemPtr->GetNextOpItemOffset();
+    } while (offset != 0 && offset < maxOffset);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -97,6 +97,34 @@ HWTEST_F(RSScreenManagerTest, SetDefaultScreenId_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: QueryDefaultScreenInfo001
+ * @tc.desc: Test QueryDefaultScreenInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAKFUL
+ */
+HWTEST_F(RSScreenManagerTest, QueryDefaultScreenInfo001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    screenManager->SetDefaultScreenId(id);
+    auto defaultScreenInfo = screenManager->QueryDefaultScreenInfo();
+    EXPECT_EQ(defaultScreenInfo.id, id);
+    EXPECT_EQ(defaultScreenInfo.width, width);
+    EXPECT_EQ(defaultScreenInfo.height, height);
+}
+
+/*
  * @tc.name: CreateVirtualScreen_001
  * @tc.desc: Test CreateVirtualScreen
  * @tc.type: FUNC
@@ -2398,8 +2426,8 @@ HWTEST_F(RSScreenManagerTest, GenerateVirtualScreenIdLocked_001, TestSize.Level1
     screenManagerImpl.freeVirtualScreenIds_ = std::queue<ScreenId>();
     ASSERT_EQ(screenManagerImpl.freeVirtualScreenIds_.size(), 0);
 
-    screenManagerImpl.maxVirtualScreenNum_ = 0;
-    auto screenId = (static_cast<ScreenId>(screenManagerImpl.maxVirtualScreenNum_) << 32) | 0xffffffffu;
+    screenManagerImpl.virtualScreenCount_ = 0;
+    auto screenId = (static_cast<ScreenId>(screenManagerImpl.virtualScreenCount_) << 32) | 0xffffffffu;
     ASSERT_EQ(screenManagerImpl.GenerateVirtualScreenIdLocked(), screenId);
 }
 

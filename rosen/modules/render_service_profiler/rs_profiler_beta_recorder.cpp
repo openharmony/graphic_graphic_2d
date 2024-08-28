@@ -31,7 +31,6 @@ static std::mutex g_deviceInfoMutex;
 static std::mutex g_fileSavingMutex;
 static bool g_started = false;
 static double g_inactiveTimestamp = 0.0;
-static std::vector<std::string> g_records;
 static double g_recordsTimestamp = 0.0;
 static double g_currentFrameDirtyRegion = 0.0;
 
@@ -46,6 +45,13 @@ static bool HasInitializationFinished()
         attempt++;
     }
     return attempt == maxAttempts;
+}
+
+static std::string GetBetaRecordFileName(uint32_t index)
+{
+    constexpr uint32_t ten = 10u;
+    const std::string cacheFile("/data/service/el0/render_service/file");
+    return cacheFile + ((index < ten) ? "0" : "") + std::to_string(index) + ".ohr";
 }
 
 bool RSProfiler::IsBetaRecordInactive()
@@ -91,7 +97,7 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
     thread.detach();
 }
 
-void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string path)
+void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string& path)
 {
     std::vector<uint8_t> fileData;
     if (!file.GetDataCopy(fileData)) {
@@ -107,15 +113,6 @@ void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string path)
         }
         Utils::FileWrite(fileCopy, fileDataCopy.data(), fileDataCopy.size());
         Utils::FileClose(fileCopy);
-    });
-    thread.detach();
-}
-
-void RSProfiler::RenameAndSendFilenameThread()
-{
-    std::thread thread([]() {
-        const std::lock_guard<std::mutex> fileSavingMutex(g_fileSavingMutex);
-        SendBetaRecordPath();
     });
     thread.detach();
 }
@@ -139,44 +136,21 @@ bool RSProfiler::IsBetaRecordStarted()
     return g_started;
 }
 
-void RSProfiler::SendBetaRecordPath()
+void RSProfiler::SaveBetaRecord()
 {
-    if (g_records.empty()) {
+    if (!IsBetaRecordSavingTriggered()) {
         return;
     }
 
-    const std::string directory = Utils::GetDirectory(g_records[0]);
-
-    std::string path;
-    for (size_t i = 0; i < g_records.size(); i++) {
-        const auto& original = g_records[i];
-        const auto renamed = Utils::MakePath(directory, "rec_" + std::to_string(g_records.size() - i - 1) + ".ohr");
-        const auto message = "BetaRecord: Rename: " + original + " -> " + renamed;
-        if (std::rename(original.data(), renamed.data())) {
-            Network::SendMessage(message + "failed");
-            path.clear();
-            break;
-        }
-
-        Network::SendMessage(message);
-        path += renamed + ";";
-    }
-    g_records.clear();
-
-    Network::SendBetaRecordPath(path);
-}
-
-bool RSProfiler::SaveBetaRecord()
-{
-    if (!IsBetaRecordSavingTriggered()) {
-        return false;
+    constexpr double recordMaxLengthSeconds = 30.0;
+    const auto recordLength = Now() - g_recordsTimestamp;
+    if (recordLength > recordMaxLengthSeconds) {
+        return;
     }
 
     RecordStop(ArgList());
-    RenameAndSendFilenameThread();
     EnableBetaRecord();
     RecordStart(ArgList());
-    return true;
 }
 
 void RSProfiler::UpdateBetaRecord()
@@ -194,14 +168,7 @@ void RSProfiler::UpdateBetaRecord()
         return;
     }
 
-    if (!SaveBetaRecord()) {
-        constexpr uint32_t recordMaxLengthSeconds = 30u; // 30sec length of each recording
-        const double recordLength = Now() - g_recordsTimestamp;
-        if (recordLength > recordMaxLengthSeconds) {
-            RecordStop(ArgList());
-            RecordStart(ArgList());
-        }
-    }
+    SaveBetaRecord();
 
     // the last time any rendering is done
     if (g_currentFrameDirtyRegion > 0) {
@@ -229,23 +196,12 @@ bool RSProfiler::SaveBetaRecordFile(RSFile& file)
         return false;
     }
 
-    const std::string cacheFile("data/service/el0/render_service/file0");
-    constexpr uint32_t maxCacheFiles = 5u; // 5 recordings in a "ring buffer" way
-
+    constexpr uint32_t maxCacheFiles = 10u;
     static uint32_t index = 0u;
-    const auto path = cacheFile + std::to_string(index++) + ".ohr";
+    WriteBetaRecordFileThread(file, GetBetaRecordFileName(index));
+    index++;
     if (index >= maxCacheFiles) {
         index = 0u;
-    }
-
-    WriteBetaRecordFileThread(file, path);
-
-    constexpr uint32_t maxRecords = 4u;
-    if (g_records.size() < maxRecords) {
-        g_records.push_back(path);
-    } else {
-        std::rotate(g_records.begin(), g_records.begin() + 1, g_records.end());
-        g_records[g_records.size() - 1] = path;
     }
 
     return true;

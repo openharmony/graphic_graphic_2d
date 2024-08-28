@@ -47,7 +47,7 @@ bool RoundCornerDisplay::Init()
 bool RoundCornerDisplay::SeletedLcdModel(const char* lcdModelName)
 {
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    lcdModel_ = rcdCfg.GetLcdModel(lcdModelName);
+    lcdModel_ = rcdCfg.GetLcdModel(std::string(lcdModelName));
     if (lcdModel_ == nullptr) {
         RS_LOGD("[%{public}s] No lcdModel found in config file with name %{public}s \n", __func__, lcdModelName);
         return false;
@@ -65,7 +65,7 @@ bool RoundCornerDisplay::LoadConfigFile()
 {
     RS_LOGD("[%{public}s] LoadConfigFile \n", __func__);
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
-    return rcdCfg.Load(rs_rcd::PATH_CONFIG_FILE);
+    return rcdCfg.Load(std::string(rs_rcd::PATH_CONFIG_FILE));
 }
 
 bool RoundCornerDisplay::LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img)
@@ -371,9 +371,15 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
 void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int surfaceType)
 {
     RS_TRACE_BEGIN("RCD::DrawOneRoundCorner : surfaceType" + std::to_string(surfaceType));
+    if (isRcdRunning.load()) {
+        RS_LOGD("[%{public}s] rcd render is already running \n", __func__);
+        return;
+    }
+    isRcdRunning.store(true);
     std::lock_guard<std::mutex> lock(resourceMut_);
     if (canvas == nullptr) {
         RS_LOGE("[%{public}s] Canvas is null \n", __func__);
+        isRcdRunning.store(false);
         RS_TRACE_END();
         return;
     }
@@ -399,6 +405,7 @@ void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int sur
     } else {
         RS_LOGD("[%{public}s] Surface Type is not valid \n", __func__);
     }
+    isRcdRunning.store(false);
     RS_TRACE_END();
 }
 

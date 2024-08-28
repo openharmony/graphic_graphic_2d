@@ -287,7 +287,7 @@ public:
      * @return            True if Image is created succeeded.
      */
     bool BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
-        CompressedType type);
+        CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace = nullptr);
 
     /**
      * @brief               Create Image from GPU texture associated with context.

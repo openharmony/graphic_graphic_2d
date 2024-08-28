@@ -154,6 +154,22 @@ int32_t HgmCore::InitXmlConfig()
     return EXEC_SUCCESS;
 }
 
+void HgmCore::SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting)
+{
+    if (curScreenSetting.ltpoConfig.find("adaptiveSync") != curScreenSetting.ltpoConfig.end()) {
+        std::string asConfig = curScreenSetting.ltpoConfig["adaptiveSync"];
+ 
+        if (asConfig == "1" || asConfig == "0") {
+            adaptiveSync_ = std::stoi(curScreenSetting.ltpoConfig["adaptiveSync"]);
+        } else {
+            adaptiveSync_ = 0;
+        }
+    } else {
+        adaptiveSync_ = 0;
+        HGM_LOGW("HgmCore failed to find adaptiveSync strategy for LTPO, then set to 0");
+    }
+}
+
 void HgmCore::SetLtpoConfig()
 {
     if ((hgmFrameRateMgr_ == nullptr) || (mPolicyConfigData_ == nullptr)) {
@@ -176,6 +192,7 @@ void HgmCore::SetLtpoConfig()
 
     if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end()) {
         maxTE_ = std::stoul(curScreenSetting.ltpoConfig["maxTE"]);
+        CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
     } else {
         maxTE_ = 0;
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
@@ -196,6 +213,8 @@ void HgmCore::SetLtpoConfig()
         pipelineOffsetPulseNum_ = 0;
         HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
     }
+
+    SetASConfig(curScreenSetting);
 
     SetScreenConstraintConfig();
     HGM_LOGI("HgmCore LTPO strategy ltpoEnabled: %{public}d, maxTE: %{public}d, alignRate: %{public}d, " \
@@ -393,26 +412,6 @@ int32_t HgmCore::AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint3
 
     HGM_LOGW("HgmCore failed to add screen mode info of screen : " PUBU64 "", id);
     return HGM_SCREEN_PARAM_ERROR;
-}
-
-int32_t HgmCore::RefreshBundleName(const std::string& name)
-{
-    if (name == currentBundleName_) {
-        return EXEC_SUCCESS;
-    }
-
-    currentBundleName_ = name;
-
-    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
-        return EXEC_SUCCESS;
-    }
-
-    int resetResult = SetRefreshRateMode(customFrameRateMode_);
-    if (resetResult == EXEC_SUCCESS) {
-        HGM_LOGI("HgmCore reset current refreshrate mode: %{public}d due to bundlename: %{public}s",
-            customFrameRateMode_, currentBundleName_.c_str());
-    }
-    return EXEC_SUCCESS;
 }
 
 uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const

@@ -170,11 +170,20 @@ public:
         return parentPid_;
     }
 
+    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
+        std::string& commandMapDesc) const;
+
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
 
     bool UnmarshallingCommand(Parcel& parcel);
+
+    void ClearCommandMap();
+    void InsertCommandToMap(NodeId nodeId, std::pair<uint16_t, uint16_t> commandType);
+    std::string PrintCommandMapDesc(
+        const std::unordered_map<NodeId, std::set<std::pair<uint16_t, uint16_t>>>& commandTypeMap) const;
+
     std::vector<std::tuple<NodeId, FollowType, std::unique_ptr<RSCommand>>> payload_ = {};
     uint64_t timestamp_ = 0;
     std::string abilityName_;
@@ -189,6 +198,8 @@ private:
     uint64_t syncId_ { 0 };
     static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;
+    std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<std::pair<uint16_t, uint16_t>>>> pidToCommandMap_;
+    mutable std::mutex pidToCommandMapMutex_;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;

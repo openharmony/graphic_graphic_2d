@@ -218,6 +218,11 @@ public:
         isSecurityExemption_ = isSecurityExemption;
     }
 
+    bool GetSecurityExemption() const
+    {
+        return isSecurityExemption_;
+    }
+
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {
@@ -411,6 +416,13 @@ public:
 
     Occlusion::Region GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const;
 
+    void UpdateZoomState(bool state)
+    {
+        preZoomState_ = curZoomState_;
+        curZoomState_ = state;
+    }
+
+    bool IsZoomStateChange() const;
 protected:
     void OnSync() override;
 private:
@@ -423,11 +435,11 @@ private:
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
-    uint64_t screenId_;
-    int32_t offsetX_;
-    int32_t offsetY_;
-    uint32_t rogWidth_;
-    uint32_t rogHeight_;
+    uint64_t screenId_ = 0;
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
+    uint32_t rogWidth_ = 0;
+    uint32_t rogHeight_ = 0;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
@@ -480,6 +492,9 @@ private:
 
     friend class DisplayNodeCommandHelper;
     int64_t lastRefreshTime_ = 0;
+
+    bool curZoomState_ = false;
+    bool preZoomState_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

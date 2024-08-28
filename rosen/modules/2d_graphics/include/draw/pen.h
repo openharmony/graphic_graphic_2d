@@ -28,8 +28,6 @@ namespace Rosen {
 namespace Drawing {
 class DRAWING_API Pen {
 public:
-    constexpr static scalar DEFAULT_MITER_VAL = 4.0f;
-
     enum class JoinStyle {
         MITER_JOIN,
         ROUND_JOIN,

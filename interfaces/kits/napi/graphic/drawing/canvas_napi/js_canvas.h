@@ -147,7 +147,6 @@ private:
     napi_value OnGetTotalMatrix(napi_env env, napi_callback_info info);
 
     static bool CreateConstructor(napi_env env);
-    static napi_property_descriptor properties_[];
     static thread_local napi_ref constructor_;
     Canvas* m_canvas = nullptr;
     bool owned_ = false;

@@ -37,13 +37,16 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
     if (enableState_ == enable) {
         return;
     }
-    RS_LOGI("RSRealtimeRefreshRateManager state change: %{public}d -> %{public}d",
-        static_cast<bool>(enableState_), enable);
     enableState_ = enable;
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    frameRateMgr->SetShowRefreshRateEnabled(enableState_);
 
     if (enableState_) {
-        updateFpsThread_ = std::thread([&]() {
-            auto &hgmCore = HgmCore::Instance();
+        updateFpsThread_ = std::thread([&, frameRateMgr]() {
             uint32_t lastRefreshRate = 0;
             uint32_t lastRealtimeRefreshRate = 0;
             currRealtimeRefreshRate_ = 1;
@@ -57,27 +60,21 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
                 auto et = std::chrono::steady_clock::now();
 
                 RS_TRACE_BEGIN("RSRealtimeRefreshRateManager:Cal draw fps");
-
                 auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(et - st);
                 uint32_t fps = std::round(realtimeFrameCount * static_cast<float>(NS_PER_S_) / diff.count());
                 fps = std::max(1u, fps);
                 if (fps <= IDLE_FPS_THRESHOLD_) {
                     fps = 1;
                 }
-
                 currRealtimeRefreshRate_ = fps;
-
-                auto screenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
-                auto refreshRate = hgmCore.GetScreenCurrentRefreshRate(screenId);
+                auto refreshRate = hgmCore.GetScreenCurrentRefreshRate(frameRateMgr->GetCurScreenId());
                 // draw
                 if (lastRealtimeRefreshRate != currRealtimeRefreshRate_ || lastRefreshRate != refreshRate) {
                     lastRefreshRate = refreshRate;
                     lastRealtimeRefreshRate = currRealtimeRefreshRate_;
                     RSMainThread::Instance()->SetDirtyFlag();
                     RSMainThread::Instance()->RequestNextVSync();
-                    RS_LOGD("RSRealtimeRefreshRateManager: fps update: %{public}ud", currRealtimeRefreshRate_);
                 }
-
                 RS_TRACE_END();
             }
         });

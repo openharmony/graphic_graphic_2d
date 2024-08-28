@@ -91,10 +91,12 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level1)
     symbolText.SetSymbolEffect(RSEffectStrategy::BOUNCE);
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob.get(), paint_, symbolText);
+    EXPECT_TRUE(symbolText.GetEffectStrategy() == RSEffectStrategy::BOUNCE);
 
     // test pulse animation
     symbolText.SetSymbolEffect(RSEffectStrategy::PULSE);
     hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob.get(), paint_, symbolText);
+    EXPECT_TRUE(symbolText.GetEffectStrategy() == RSEffectStrategy::PULSE);
 }
 
 /*
@@ -239,7 +241,8 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups002, TestSize.Level1)
     RSEffectStrategy effectStrategy = RSEffectStrategy::PULSE;
     RSAnimationSetting animationOut;
     HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.GetAnimationGroups(glyphid, effectStrategy, animationOut);
+    bool flag = hmSymbolRun.GetAnimationGroups(glyphid, effectStrategy, animationOut);
+    EXPECT_TRUE(flag == false);
 }
 
 /*
@@ -254,7 +257,13 @@ HWTEST_F(OHHmSymbolRunTest, GetSymbolLayers001, TestSize.Level1)
     RSSColor color = {1.0, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
     HMSymbolTxt symbolText;
     symbolText.SetRenderColor(color);
-    HMSymbolRun::GetSymbolLayers(glyphid, symbolText);
+    auto symbolLayer = HMSymbolRun::GetSymbolLayers(glyphid, symbolText);
+    EXPECT_TRUE(symbolLayer.symbolGlyphId == glyphid);
+
+    if (!symbolLayer.renderGroups.empty()) {
+        auto layerColor = symbolLayer.renderGroups[0].color;
+        EXPECT_TRUE(layerColor.r == color.r); // the default color is {1.0, 0, 0, 0}
+    }
 }
 } // namespace SPText
 } // namespace Rosen

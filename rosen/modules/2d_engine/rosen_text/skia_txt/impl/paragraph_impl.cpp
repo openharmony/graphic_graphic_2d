@@ -24,7 +24,8 @@
 #include "text/font_metrics.h"
 #include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
-#include "utils/txt_log.h"
+#include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -165,6 +166,7 @@ float ParagraphImpl::DetectIndents(size_t index)
 
 void ParagraphImpl::Layout(double width)
 {
+    TEXT_TRACE_FUNC();
     RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
@@ -309,11 +311,19 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     txt.locale = skStyle.getLocale().c_str();
     if (skStyle.hasBackground()) {
         PaintID backgroundId = std::get<PaintID>(skStyle.getBackgroundPaintOrID());
-        txt.background = paints_[backgroundId];
+        if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints_.size()))) {
+            txt.background = paints_[backgroundId];
+        } else {
+            TEXT_LOGW("Invalid background Id:%{public}d", backgroundId);
+        }
     }
     if (skStyle.hasForeground()) {
         PaintID foregroundId = std::get<PaintID>(skStyle.getForegroundPaintOrID());
-        txt.foreground = paints_[foregroundId];
+        if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
+            txt.foreground = paints_[foregroundId];
+        } else {
+            TEXT_LOGW("Invalid foreground Id:%{public}d", foregroundId);
+        }
     }
 
     txt.textShadows.clear();
@@ -393,7 +403,7 @@ void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
 {
     pthread_t currenetThreadId = pthread_self();
     if (threadId_ != currenetThreadId) {
-        TXT_LOGD("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
+        TEXT_LOGE_LIMIT3_HOUR("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
             threadId_, caller);
         threadId_ = currenetThreadId;
     }

@@ -66,6 +66,8 @@ private:
     static constexpr float BLUR_RADIUS_LIMIT = 10000.0f;
 
     static std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeForegroundEffect();
+    static std::shared_ptr<Drawing::Image> MakeImage(std::shared_ptr<Drawing::Surface> surface,
+        Drawing::Matrix* matrix, std::shared_ptr<Drawing::RuntimeShaderBuilder> blurBuilder);
     void ComputeParamter(int radius);
     void AdjustRadiusAndScale();
     void ComputePassesAndUnit();

@@ -92,6 +92,7 @@ private:
         .min = OledRefreshRate::OLED_NULL_HZ,
         .max = OledRefreshRate::OLED_120_HZ,
         .dynamicMode = DynamicModeType::TOUCH_ENABLED,
+        .idleFps = OledRefreshRate::OLED_NULL_HZ,
         .drawMin = OledRefreshRate::OLED_NULL_HZ,
         .drawMax = OledRefreshRate::OLED_120_HZ,
         .down = OledRefreshRate::OLED_120_HZ,

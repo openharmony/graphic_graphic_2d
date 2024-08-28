@@ -20,11 +20,13 @@ namespace ColorManager {
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message)
 {
     napi_value result = nullptr;
-    napi_create_error(env, CreateJsValue(env, errCode), CreateJsValue(env, message), &result);
+    NAPI_CALL_DEFAULT(napi_create_error(env, CreateJsValue(env, errCode),
+        CreateJsValue(env, message), &result));
     return result;
 }
 
-void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
+napi_status BindNativeFunction(napi_env env, napi_value object, const char* name,
+    const char* moduleName, napi_callback func)
 {
     std::string fullName;
     if (moduleName) {
@@ -33,8 +35,16 @@ void BindNativeFunction(napi_env env, napi_value object, const char* name, const
     }
     fullName += name;
     napi_value funcValue = nullptr;
-    napi_create_function(env, fullName.c_str(), fullName.size(), func, nullptr, &funcValue);
-    napi_set_named_property(env, object, fullName.c_str(), funcValue);
+    napi_status status = napi_ok;
+    status = napi_create_function(env, fullName.c_str(), fullName.size(), func, nullptr, &funcValue);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = napi_set_named_property(env, object, fullName.c_str(), funcValue);
+    if (status != napi_ok) {
+        return status;
+    }
+    return status;
 }
 
 bool CheckParamMinimumValid(napi_env env, const size_t paramNum, const size_t minNum)
@@ -58,7 +68,7 @@ napi_value ColorSpaceTypeInit(napi_env env)
         return nullptr;
     }
     napi_value object = nullptr;
-    napi_create_object(env, &object);
+    NAPI_CALL_DEFAULT(napi_create_object(env, &object));
     if (object == nullptr) {
         CMLOGE("[NAPI]Failed to get object");
         return nullptr;
@@ -66,7 +76,7 @@ napi_value ColorSpaceTypeInit(napi_env env)
 
     for (auto& [colorSpaceName, colorSpace] : STRING_TO_JS_MAP) {
         napi_value value = CreateJsValue(env, static_cast<int32_t>(colorSpace));
-        napi_set_named_property(env, object, colorSpaceName.c_str(), value);
+        NAPI_CALL_DEFAULT(napi_set_named_property(env, object, colorSpaceName.c_str(), value));
     }
     return object;
 }
@@ -79,7 +89,7 @@ napi_value CMErrorInit(napi_env env)
     }
 
     napi_value object = nullptr;
-    napi_create_object(env, &object);
+    NAPI_CALL_DEFAULT(napi_create_object(env, &object));
     if (object == nullptr) {
         CMLOGE("[NAPI]Failed to get object");
         return nullptr;
@@ -88,9 +98,11 @@ napi_value CMErrorInit(napi_env env)
     napi_value valueErrorNullptr = CreateJsValue(env, static_cast<int32_t>(CMError::CM_ERROR_NULLPTR));
     napi_value valueErrorInvalidPara = CreateJsValue(env, static_cast<int32_t>(CMError::CM_ERROR_INVALID_PARAM));
     napi_value valueErrorInvalidEnum = CreateJsValue(env, static_cast<int32_t>(CMError::CM_ERROR_INVALID_ENUM_USAGE));
-    napi_set_named_property(env, object, "CM_ERROR_NULLPTR", valueErrorNullptr);
-    napi_set_named_property(env, object, "CM_ERROR_INVALID_PARAM", valueErrorInvalidPara);
-    napi_set_named_property(env, object, "CM_ERROR_INVALID_ENUM_USAGE", valueErrorInvalidEnum);
+    NAPI_CALL_DEFAULT(napi_set_named_property(env, object, "CM_ERROR_NULLPTR", valueErrorNullptr));
+    NAPI_CALL_DEFAULT(
+        napi_set_named_property(env, object, "CM_ERROR_INVALID_PARAM", valueErrorInvalidPara));
+    NAPI_CALL_DEFAULT(
+        napi_set_named_property(env, object, "CM_ERROR_INVALID_ENUM_USAGE", valueErrorInvalidEnum));
     return object;
 }
 
@@ -102,7 +114,7 @@ napi_value CMErrorCodeInit(napi_env env)
     }
 
     napi_value object = nullptr;
-    napi_create_object(env, &object);
+    NAPI_CALL_DEFAULT(napi_create_object(env, &object));
     if (object == nullptr) {
         CMLOGE("[NAPI]Failed to get object");
         return nullptr;
@@ -114,19 +126,29 @@ napi_value CMErrorCodeInit(napi_env env)
         static_cast<int32_t>(CMErrorCode::CM_ERROR_DEVICE_NOT_SUPPORT));
     napi_value valueErrorAbnormalpara = CreateJsValue(env,
         static_cast<int32_t>(CMErrorCode::CM_ERROR_ABNORMAL_PARAM_VALUE));
-    napi_set_named_property(env, object, "CM_ERROR_NO_PERMISSION", valueErrorNoPermission);
-    napi_set_named_property(env, object, "CM_ERROR_INVALID_PARAM", valueErrorInvalidPara);
-    napi_set_named_property(env, object, "CM_ERROR_DEVICE_NOT_SUPPORT", valueErrorDevNotSupport);
-    napi_set_named_property(env, object, "CM_ERROR_ABNORMAL_PARAM_VALUE", valueErrorAbnormalpara);
+    NAPI_CALL_DEFAULT(
+        napi_set_named_property(env, object, "CM_ERROR_NO_PERMISSION", valueErrorNoPermission));
+    NAPI_CALL_DEFAULT(
+        napi_set_named_property(env, object, "CM_ERROR_INVALID_PARAM", valueErrorInvalidPara));
+    NAPI_CALL_DEFAULT(
+        napi_set_named_property(env, object, "CM_ERROR_DEVICE_NOT_SUPPORT", valueErrorDevNotSupport));
+    NAPI_CALL_DEFAULT(
+        napi_set_named_property(env, object, "CM_ERROR_ABNORMAL_PARAM_VALUE", valueErrorAbnormalpara));
     return object;
 }
 
 bool ParseJsDoubleValue(napi_value jsObject, napi_env env, const std::string& name, double& data)
 {
     napi_value value = nullptr;
-    napi_get_named_property(env, jsObject, name.c_str(), &value);
+    if (napi_get_named_property(env, jsObject, name.c_str(), &value) != napi_ok) {
+        CMLOGE("[NAPI]Failed to get property: %{public}s", name.c_str());
+        return false;
+    };
     napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, value, &valueType);
+    if (napi_typeof(env, value, &valueType) != napi_ok) {
+        CMLOGE("[NAPI]data type is invalied: %{public}s", name.c_str());
+        return false;
+    };
     if (valueType != napi_undefined) {
         if (napi_get_value_double(env, value, &data) != napi_ok) {
             CMLOGE("[NAPI]Failed to convert parameter to data: %{public}s", name.c_str());

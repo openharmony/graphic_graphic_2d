@@ -99,10 +99,13 @@ public:
         frameCallbacks_.push_back(cb);
     }
 
+    void CloseFd(int32_t fd);
+
 private:
     void OnReadable(int32_t fileDescriptor) override;
     int64_t CalculateExpectedEndLocked(int64_t now);
     void HandleVsyncCallbacks(int64_t data[], ssize_t dataCount);
+    VsyncError ReadFdInternal(int32_t fd, int64_t (&data)[3], ssize_t &dataCount);
     VSyncCallback vsyncCallbacks_;
     VSyncCallbackWithId vsyncCallbacksWithId_;
     void *userData_;
@@ -114,6 +117,8 @@ private:
     thread_local static inline int64_t periodShared_ = 0;
     thread_local static inline int64_t timeStampShared_ = 0;
     std::vector<FrameCallback> frameCallbacks_ = {};
+    std::mutex fdMutex_;
+    bool fdClosed_ = false;
 };
 
 #ifdef __OHOS__

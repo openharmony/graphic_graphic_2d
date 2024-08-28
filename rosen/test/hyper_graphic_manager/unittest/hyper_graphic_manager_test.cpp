@@ -366,6 +366,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
     int32_t mode2 = 2;
     instance.AddScreen(screenId2, 1, screenSize);
     instance.AddScreenInfo(screenId2, width, height, rate, mode);
+    EXPECT_EQ(instance.AddScreenInfo(screenId2, width, height, rate, mode), HgmErrCode::HGM_SCREEN_PARAM_ERROR);
     instance.AddScreenInfo(screenId2, width, height, rate2, mode2);
     sptr<HgmScreen> screen = instance.GetScreen(screenId1);
     sptr<HgmScreen> screen2 = instance.GetScreen(screenId2);
@@ -424,6 +425,18 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level
             delete screen1;
             screen1 = nullptr;
             STEP_ASSERT_EQ(screen1, nullptr);
+        }
+        STEP("screen constructor tests") {
+            // format<width, height, phyWidth, phyHeight>
+            ScreenSize screenSize1 = {0, 0, 0, 0};
+            sptr<HgmScreen> screen1 = new HgmScreen(0, 0, screenSize1);
+            screen1 = nullptr;
+            STEP_ASSERT_EQ(screen1, nullptr);
+
+            ScreenSize screenSize2 = {720, 1080, 685, 1218};
+            sptr<HgmScreen> screen2 = new HgmScreen(0, 0, screenSize2);
+            screen2 = nullptr;
+            STEP_ASSERT_EQ(screen2, nullptr);
         }
     }
 }
@@ -534,27 +547,6 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
 }
 
 /**
- * @tc.name: RefreshBundleName
- * @tc.desc: Verify the result of RefreshBundleName
- * @tc.type: FUNC
- * @tc.require: I7DMS1
- */
-HWTEST_F(HyperGraphicManagerTest, RefreshBundleName, Function | SmallTest | Level2)
-{
-    auto &instance = HgmCore::Instance();
-
-    PART("CaseConditions") {
-        STEP("1. test RefreshBundleName is true") {
-            auto setMode = instance.RefreshBundleName("test hgm_core");
-            STEP_ASSERT_EQ(setMode, 0);
-            instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
-            setMode = instance.RefreshBundleName("test hgm_core2");
-            STEP_ASSERT_EQ(setMode, 0);
-        }
-    }
-}
-
-/**
  * @tc.name: GetIdealPeriod
  * @tc.desc: Test GetIdealPeriod
  * @tc.type: FUNC
@@ -579,10 +571,10 @@ HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level2)
 {
     auto &instance = HgmCore::Instance();
     instance.SetLtpoEnabled(true);
-    instance.SetSupportedMaxTE(VSYNC_MAX_REFRESHRATE);
+    instance.SetSupportedMaxTE(360);
     instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
     EXPECT_EQ(instance.IsLTPOSwitchOn(), true);
-    EXPECT_EQ(instance.GetSupportedMaxTE(), VSYNC_MAX_REFRESHRATE);
+    EXPECT_EQ(instance.GetSupportedMaxTE(), 360);
     EXPECT_EQ(instance.GetCurrentRefreshRateMode(), static_cast<int32_t>(HGM_REFRESHRATE_MODE_AUTO));
     EXPECT_EQ(instance.GetLtpoEnabled(), true);
 }
@@ -641,7 +633,6 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
     hgm.Init();
 
     hgm.isEnabled_ = true;
-    hgm.mPolicyConfigData_ = nullptr; // PolicyConfigData is nullptr.
     hgm.Init();
 
     auto mgr = hgm.GetFrameRateMgr();
@@ -659,7 +650,10 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
     hgm.CheckCustomFrameRateModeValid();
     hgm.GetCurrentRefreshRateModeName();
 
-    hgm.mPolicyConfigData_ = nullptr;
+    EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
+    std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
+    EXPECT_EQ(hgm.mPolicyConfigData_, nullptr);
     hgm.customFrameRateMode_ = invalidValue;
     EXPECT_EQ(hgm.GetCurrentRefreshRateModeName(), invalidValue);
     hgm.customFrameRateMode_ = 1;
@@ -667,6 +661,8 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
     ScreenId screenId = 8;
     hgm.GetScreenComponentRefreshRates(screenId);
     hgm.customFrameRateMode_ = savedFrameRateMode;
+    std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
+    EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

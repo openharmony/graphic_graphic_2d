@@ -210,6 +210,40 @@ uint32_t CmdList::SetupExtendObject(const std::vector<std::shared_ptr<ExtendObje
     return extendObjectVec_.size();
 }
 
+uint32_t CmdList::AddRecordCmd(const std::shared_ptr<RecordCmd>& recordCmd)
+{
+    std::lock_guard<std::mutex> lock(recordCmdMutex_);
+    recordCmdVec_.emplace_back(recordCmd);
+    return static_cast<uint32_t>(recordCmdVec_.size()) - 1;
+}
+
+std::shared_ptr<RecordCmd> CmdList::GetRecordCmd(uint32_t index)
+{
+    std::lock_guard<std::mutex> lock(recordCmdMutex_);
+    if (index >= recordCmdVec_.size()) {
+        return nullptr;
+    }
+    return recordCmdVec_[index];
+}
+
+uint32_t CmdList::SetupRecordCmd(std::vector<std::shared_ptr<RecordCmd>>& recordCmdList)
+{
+    std::lock_guard<std::mutex> lock(recordCmdMutex_);
+    for (const auto &recordCmd : recordCmdList) {
+        recordCmdVec_.emplace_back(recordCmd);
+    }
+    return recordCmdVec_.size();
+}
+
+uint32_t CmdList::GetAllRecordCmd(std::vector<std::shared_ptr<RecordCmd>>& recordCmdList)
+{
+    std::lock_guard<std::mutex> lock(recordCmdMutex_);
+    for (const auto &recordCmd : recordCmdVec_) {
+        recordCmdList.emplace_back(recordCmd);
+    }
+    return recordCmdList.size();
+}
+
 uint32_t CmdList::AddImageObject(const std::shared_ptr<ExtendImageObject>& object)
 {
     std::lock_guard<std::mutex> lock(imageObjectMutex_);

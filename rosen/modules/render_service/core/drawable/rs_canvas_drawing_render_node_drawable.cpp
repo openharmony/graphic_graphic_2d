@@ -174,6 +174,7 @@ void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
         DrawContent(*canvas_, rect);
         renderParams_->SetNeedProcess(false);
         canvas_->Flush();
+        SetDrawCmdListsVisited(true);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId, task, false);
 }
@@ -393,6 +394,9 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext
 static bool WriteSkImageToPixelmap(std::shared_ptr<Drawing::Image> image, Drawing::ImageInfo info,
     std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
 {
+    if (image == nullptr || pixelmap == nullptr || rect == nullptr) {
+        return false;
+    }
     return image->ReadPixels(
         info, pixelmap->GetWritablePixels(), pixelmap->GetRowStride(),
         rect->GetLeft(), rect->GetTop());

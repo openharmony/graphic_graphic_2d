@@ -30,7 +30,8 @@ public:
     void SetUp();
     void TearDown();
 
-    static constexpr char CONFIG[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+    static constexpr char config[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+    static constexpr char invalidConfig[] = "/sys_prod/etc/graphic/invalid_config.xml";
 };
 
 void HgmXmlParserTest::SetUpTestCase() {}
@@ -53,7 +54,15 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
             STEP_ASSERT_NE(parser, nullptr);
         }
         STEP("2. check the result of configuration") {
-            int32_t load = parser->LoadConfiguration(CONFIG);
+            int32_t load = parser->LoadConfiguration(invalidConfig);
+            STEP_ASSERT_EQ(load, static_cast<int32_t>(HgmErrCode::XML_FILE_LOAD_FAIL));
+            STEP_ASSERT_EQ(parser->xmlDocument_, nullptr);
+            STEP_ASSERT_EQ(parser->Parse(), static_cast<int32_t>(HgmErrCode::HGM_ERROR));
+            STEP_ASSERT_EQ(parser->mParsedData_, nullptr);
+            load = parser->LoadConfiguration(config);
+            STEP_ASSERT_GE(load, 0);
+            STEP_ASSERT_NE(parser->mParsedData_, nullptr);
+            load = parser->LoadConfiguration(config);
             STEP_ASSERT_GE(load, 0);
         }
     }
@@ -68,7 +77,7 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
 HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level1)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
-    parser->LoadConfiguration(CONFIG);
+    parser->LoadConfiguration(config);
     parser->Parse();
     parser->GetParsedData();
 }

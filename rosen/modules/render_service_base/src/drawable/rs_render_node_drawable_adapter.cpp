@@ -174,7 +174,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         return;
     }
 
-    if (end > static_cast<int8_t>(drawCmdList_.size())) {
+    if (static_cast<uint32_t>(end) > drawCmdList_.size()) {
         ROSEN_LOGE("RSRenderNodeDrawableAdapter::DrawRangeImpl, end is invalid");
         return;
     }
@@ -201,7 +201,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
 
 void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const
 {
-    if (drawCmdList_.empty() || index < 0 || index >= static_cast<int8_t>(drawCmdList_.size())) {
+    if (drawCmdList_.empty() || index < 0 || static_cast<uint32_t>(index) >= drawCmdList_.size()) {
         return;
     }
 
@@ -211,7 +211,7 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
             return;
         }
     }
-    
+
     drawCmdList_[index](&canvas, &rect);
 }
 
@@ -475,4 +475,33 @@ void RSRenderNodeDrawableAdapter::TryClearSurfaceOnSync()
     }
     clearSurfaceTask_();
 }
+
+bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
+{
+    bool val = false;
+    if (backgroundFilterDrawable_) {
+        val = val || backgroundFilterDrawable_->IsFilterCacheValidForOcclusion();
+    }
+    if (compositingFilterDrawable_) {
+        val = val || compositingFilterDrawable_->IsFilterCacheValidForOcclusion();
+    }
+    return val;
+}
+
+const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
+{
+    RectI rect{0, 0, 0, 0};
+    if (compositingFilterDrawable_) {
+        return compositingFilterDrawable_->GetFilterCachedRegion();
+    } else if (backgroundFilterDrawable_) {
+        return backgroundFilterDrawable_->GetFilterCachedRegion();
+    } else {
+        return rect;
+    }
+}
+void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
+{
+    hasSkipCacheLayer_ = hasSkipCacheLayer;
+}
+
 } // namespace OHOS::Rosen::DrawableV2

@@ -95,6 +95,87 @@ HWTEST_F(OutputUnittest, SetValue003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetValue004
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(OutputUnittest, SetValue004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "OutputUnittest SetValue004 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto output = std::make_shared<Output>();
+    bool testResult = output != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call SetValue to set the necessary values
+     */
+    auto outputDST = std::make_shared<std::string>("test");
+    std::weak_ptr<void> vOutputDST = outputDST;
+    output->SetValue("format", vOutputDST.lock(), 1);
+    ProcessData data;
+    output->DoProcess(data);
+
+    EXPECT_TRUE(output->GetFilterType() != FILTER_TYPE::ALGOFILTER);
+}
+
+/**
+ * @tc.name: SetValue005
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(OutputUnittest, SetValue005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "OutputUnittest SetValue005 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto output = std::make_shared<Output>();
+    bool testResult = output != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call SetValue to set the necessary values
+     */
+    auto outputDST = std::make_shared<std::string>("jpg");
+    std::weak_ptr<void> vOutputDST = outputDST;
+    output->SetValue("format", vOutputDST.lock(), 1);
+    output->SetValue("dst", vOutputDST.lock(), 1);
+
+    EXPECT_TRUE(output->GetFilterType() != FILTER_TYPE::INPUT);
+}
+
+/**
+ * @tc.name: SetValue006
+ * @tc.desc: Set some parameters required when the program is compiled
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(OutputUnittest, SetValue006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "OutputUnittest SetValue006 start";
+    /**
+     * @tc.steps: step1. Create a Filter pointer
+     */
+    auto output = std::make_shared<Output>();
+    bool testResult = output != nullptr;
+    EXPECT_TRUE(testResult);
+    /**
+     * @tc.steps: step2. Call SetValue to set the necessary values
+     */
+    auto outputDST = std::make_shared<std::string>("pixelMap");
+    std::weak_ptr<void> vOutputDST = outputDST;
+    output->SetValue("format", vOutputDST.lock(), 1);
+
+    EXPECT_TRUE(output->GetFilterType() == FILTER_TYPE::OUTPUT);
+}
+
+/**
  * @tc.name: GetVertexShader001
  * @tc.desc: Get a string used to compile the program
  * @tc.type: FUNC

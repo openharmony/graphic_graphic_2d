@@ -132,6 +132,11 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     uint32_t fontStyle = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
         textStyle.fontStyle = FontStyle(fontStyle);
+
+        // Let OBLIQUE be equal to ITALIC, it's a temp modify.
+        if (textStyle.fontStyle == FontStyle::OBLIQUE) {
+            textStyle.fontStyle = FontStyle::ITALIC;
+        }
     }
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
@@ -260,6 +265,8 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
     SetDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
     SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
     SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
+
+    textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
 }
 
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
@@ -353,9 +360,9 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     }
 
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
-    uint32_t maxLines = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &maxLines) == napi_ok) {
-        pographyStyle.maxLines = maxLines;
+    int32_t maxLines = 0;
+    if (tempValue != nullptr && napi_get_value_int32(env, tempValue, &maxLines) == napi_ok) {
+        pographyStyle.maxLines = maxLines < 0 ? 0 : maxLines;
     }
 
     napi_get_named_property(env, argValue, "breakStrategy", &tempValue);

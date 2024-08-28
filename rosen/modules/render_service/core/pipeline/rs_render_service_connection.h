@@ -148,7 +148,8 @@ private:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, bool accessible = true) override;
+        const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
@@ -266,6 +267,8 @@ private:
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
+
+    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 

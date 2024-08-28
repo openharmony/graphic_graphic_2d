@@ -164,12 +164,13 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
-    RS_LOGI("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
+    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] buffer:[%{public}d, %{public}d] alpha:[%{public}f] "
+            "type:%{public}d]",
         surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
     auto preBuffer = params.GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,
         surfaceDrawable.GetConsumerOnDraw(), params.GetAcquireFence());
@@ -224,6 +225,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     params.SetPreBuffer(nullptr);
     layer->SetZorder(layerInfo.zOrder);
     layer->SetType(layerInfo.layerType);
+    layer->SetRotationFixed(params.GetFixRotationByUser());
 
     GraphicLayerAlpha alpha;
     alpha.enGlobalAlpha = true;

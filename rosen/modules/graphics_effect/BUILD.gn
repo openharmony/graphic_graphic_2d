@@ -57,6 +57,7 @@ ohos_source_set("graphics_effect_src") {
     "src/ge_kawase_blur_shader_filter.cpp",
     "src/ge_linear_gradient_blur_shader_filter.cpp",
     "src/ge_magnifier_shader_filter.cpp",
+    "src/ge_mesa_blur_shader_filter.cpp",
     "src/ge_render.cpp",
     "src/ge_shader.cpp",
     "src/ge_system_properties.cpp",

@@ -18,6 +18,7 @@
 #include "ge_grey_shader_filter.h"
 #include "ge_hps_blur_shader_filter.h"
 #include "ge_kawase_blur_shader_filter.h"
+#include "ge_mesa_blur_shader_filter.h"
 #include "ge_linear_gradient_blur_shader_filter.h"
 #include "ge_log.h"
 #include "ge_magnifier_shader_filter.h"
@@ -82,6 +83,11 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
             case Drawing::GEVisualEffectImpl::FilterType::KAWASE_BLUR: {
                 const auto& kawaseParams = ve->GetKawaseParams();
                 shaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(*kawaseParams);
+                break;
+            }
+            case Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR: {
+                const auto& mesaParams = ve->GetMESAParams();
+                shaderFilter = std::make_shared<GEMESABlurShaderFilter>(*mesaParams);
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::HPS_BLUR: {

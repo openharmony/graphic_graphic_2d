@@ -74,8 +74,8 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     std::unique_lock<std::mutex> cmdLock(mutex_);
 
     RS_LOGI_IF(DEBUG_NODE,
-        "RSTransactionProxy::add command nodeId:%{public}d isRenderServiceCommand:%{public}d"
-        " followType:%{public}d", nodeId, isRenderServiceCommand, followType);
+        "RSTransactionProxy::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
+        " followType:%{public}hu", nodeId, isRenderServiceCommand, followType);
     if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
         AddRemoteCommand(command, nodeId, followType);
         return;
@@ -148,7 +148,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     }
 }
 
-uint32_t RSTransactionProxy::GetTransactionDataIndex()
+uint32_t RSTransactionProxy::GetTransactionDataIndex() const
 {
     return transactionDataIndex_;
 }

@@ -28,7 +28,7 @@ namespace Rosen {
 using namespace Drawing;
 
 RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
-    : Canvas(canvas->GetWidth(), canvas->GetHeight()), canvas_(canvas)
+    : Canvas(canvas ? canvas->GetWidth() : 0, canvas ? canvas->GetHeight() : 0), canvas_(canvas)
 {
 #ifdef ENABLE_RECORDING_DCL
     this->AddCanvas(canvas);
@@ -957,6 +957,23 @@ std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Dr
     return result;
 }
 
+bool RSPaintFilterCanvasBase::IsClipRect()
+{
+    bool result = false;
+#ifdef ENABLE_RECORDING_DCL
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            result = result || (*iter)->IsClipRect();
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        result = canvas_->IsClipRect();
+    }
+#endif
+    return result;
+}
+
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ 1.0f }),
       envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } })
@@ -1458,7 +1475,14 @@ RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,
     const Drawing::RectI& rect)
-    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix()),
+    cachedBrightnessRatio_(1.f)
+{}
+
+RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,
+    const Drawing::RectI& rect, float brightnessRatio)
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix()),
+    cachedBrightnessRatio_(brightnessRatio)
 {}
 
 void RSPaintFilterCanvas::SetIsParallelCanvas(bool isParallel)

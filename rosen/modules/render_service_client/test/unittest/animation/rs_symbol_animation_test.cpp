@@ -1287,14 +1287,18 @@ HWTEST_F(RSSymbolAnimationTest, GroupAnimationStart001, TestSize.Level1)
      * @tc.steps: step2.1 test node is nullptr, animations is empty;
      */
     symbolAnimation.GroupAnimationStart(nullptr, animations);
-   /**
-     * @tc.steps: step2.2 test node is nullptr, animations not is empty;
+    /**
+     * @tc.steps: step2.2 test node is nullptr, animations is empty;
+     */
+    symbolAnimation.GroupAnimationStart(newCanvasNode, animations);
+    /**
+     * @tc.steps: step2.3 test node is nullptr, animations not is empty;
      */
     std::shared_ptr<RSAnimation> animation = nullptr;
     animations.push_back(animation);
     symbolAnimation.GroupAnimationStart(nullptr, animations);
     /**
-     * @tc.steps: step2.3 test node is nullptr, animations is empty;
+     * @tc.steps: step2.4 test node is nullptr, animations not is empty;
      */
     symbolAnimation.GroupAnimationStart(newCanvasNode, animations);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest GroupAnimationStart001 end";

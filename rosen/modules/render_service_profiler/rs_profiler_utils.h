@@ -20,11 +20,11 @@
 #include <string>
 #include <vector>
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
 #include "rs_adapt.h"
 #else
 #include "common/rs_macros.h"
-#endif // REPLAY_TOOL_CLIENT
+#endif
 
 namespace OHOS::Rosen {
 
@@ -101,6 +101,7 @@ public:
     static void LoadContent(const std::string& path, std::string& content);
 
     static bool FileExists(const std::string& path);
+    static bool FileDelete(const std::string& path);
     static FILE* FileOpen(const std::string& path, const std::string& options);
     static void FileClose(FILE* file);
     static bool IsFileValid(FILE* file);
@@ -149,7 +150,7 @@ public:
     static constexpr pid_t GetMockPid(pid_t pid)
     {
         constexpr uint32_t bits = 30u;
-        return static_cast<pid_t>((1 << bits) | static_cast<uint32_t>(pid));
+        return static_cast<pid_t>((1u << bits) | static_cast<uint32_t>(pid));
     }
 
     static constexpr uint64_t ExtractNodeId(uint64_t id)

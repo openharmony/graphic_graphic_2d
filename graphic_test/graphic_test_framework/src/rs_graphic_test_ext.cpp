@@ -31,7 +31,7 @@ TestDefManager& TestDefManager::Instance()
 }
 
 bool TestDefManager::Regist(const char* testCaseName, const char* testName,
-    RSGraphicTestType type, RSGraphicTestMode mode)
+    RSGraphicTestType type, RSGraphicTestMode mode, const char* filePath)
 {
     const auto& name = GetTestName(testCaseName, testName);
     if (testInfos_.find(name) != testInfos_.end()) {
@@ -39,7 +39,15 @@ bool TestDefManager::Regist(const char* testCaseName, const char* testName,
         return false;
     }
 
-    testInfos_.emplace(name, TestDefInfo {testCaseName, testName, type, mode});
+    std::string startPath = "graphic_test/";
+    size_t startPos = std::string(filePath).find(startPath) + startPath.length();
+    if (startPos == std::string::npos) {
+        LOGE("TestDefManager::Regist fail filePath %{public}s", filePath);
+        return false;
+    }
+
+    std::string savePath = std::string(filePath).substr(startPos);
+    testInfos_.emplace(name, TestDefInfo {testCaseName, testName, type, mode, savePath});
     return true;
 }
 
@@ -62,6 +70,24 @@ std::vector<const TestDefInfo*> TestDefManager::GetTestInfosByType(RSGraphicTest
         }
     }
 
+    return infos;
+}
+
+static inline bool Cmp(const TestDefInfo* info1, const TestDefInfo* info2)
+{
+    std::string s1 = info1->filePath.substr(0, info1->filePath.rfind("/") + 1) + info1->testCaseName + info1->testName;
+    std::string s2 = info2->filePath.substr(0, info2->filePath.rfind("/") + 1) + info2->testCaseName + info2->testName;
+    return s1 < s2;
+}
+
+std::vector<const TestDefInfo*> TestDefManager::GetAllTestInfos() const
+{
+    std::vector<const TestDefInfo*> infos;
+    for (const auto& it: testInfos_) {
+        infos.push_back(&it.second);
+    }
+
+    sort(infos.begin(), infos.end(), Cmp);
     return infos;
 }
 

@@ -89,7 +89,6 @@ void HgmOneShotTimer::Loop()
 {
     HgmTimerState state = HgmTimerState::RESET;
     while (true) {
-        bool resetFlag = false;
         bool expiredFlag = false;
         state = CheckForResetAndStop(state);
         if (state == HgmTimerState::STOP) {
@@ -102,11 +101,8 @@ void HgmOneShotTimer::Loop()
             }
             continue;
         }
-        if (state == HgmTimerState::RESET) {
-            resetFlag = true;
-        }
-        if (resetFlag && resetCallback_) {
-            resetCallback_();
+        if (state == HgmTimerState::RESET && resetCallback_) {
+            HgmTaskHandleThread::Instance().PostTask(resetCallback_);
         }
         state = CheckForResetAndStop(state);
         if (state == HgmTimerState::STOP) {
@@ -172,6 +168,7 @@ HgmSimpleTimer::HgmSimpleTimer(std::string name, const Interval& interval,
     std::unique_ptr<ChronoSteadyClock> clock)
     : name_(std::move(name)),
       interval_(interval),
+      resetCallback_(resetCallback),
       expiredCallback_(expiredCallback),
       clock_(std::move(clock))
 {
@@ -183,9 +180,11 @@ void HgmSimpleTimer::Start()
     if (handler_ == nullptr) {
         return;
     }
-    if (running_.exchange(true)) {
-        Reset();
-    } else {
+    Reset();
+    if (!running_.exchange(true)) {
+        if (resetCallback_) {
+            resetCallback_();
+        }
         handler_->PostTask([this] () { Loop(); }, name_, interval_.count());
     }
 }

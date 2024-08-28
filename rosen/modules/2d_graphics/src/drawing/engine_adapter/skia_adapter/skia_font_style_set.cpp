@@ -31,6 +31,10 @@ SkiaFontStyleSet::SkiaFontStyleSet(sk_sp<SkFontStyleSet> skFontStyleSet) : skFon
 
 Typeface* SkiaFontStyleSet::CreateTypeface(int index)
 {
+    if (!skFontStyleSet_) {
+        LOGD("SkiaFontStyleSet::CreateTypeface, skFontStyleSet_ nullptr");
+        return nullptr;
+    }
     SkTypeface* skTypeface = skFontStyleSet_->createTypeface(index);
     if (!skTypeface) {
         return nullptr;
@@ -80,19 +84,11 @@ Typeface* SkiaFontStyleSet::MatchStyle(const FontStyle& pattern)
 
 int SkiaFontStyleSet::Count()
 {
-    return skFontStyleSet_->count();
-}
-
-FontStyleSet* SkiaFontStyleSet::CreateEmpty()
-{
-    SkFontStyleSet* skFontStyleSetPtr = SkFontStyleSet::CreateEmpty();
-    if (!skFontStyleSetPtr) {
-        LOGD("SkiaFontStyleSet::CreateEmpty, skFontStyleSet nullptr");
-        return nullptr;
+    if (!skFontStyleSet_) {
+        LOGD("SkiaFontStyleSet::Count, skFontStyleSet_ nullptr");
+        return 0;
     }
-    sk_sp<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};
-    std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSet);
-    return new FontStyleSet(fontStyleSetImpl);
+    return skFontStyleSet_->count();
 }
 } // namespace Drawing
 } // namespace Rosen

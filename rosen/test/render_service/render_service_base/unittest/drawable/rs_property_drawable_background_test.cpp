@@ -493,46 +493,4 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSDynamicLightUpDrawable002, TestSize.Lev
     drawFunc(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
-
-/**
- * @tc.name: RSMaskShadowDrawable001
- * @tc.desc: Test OnUpdate
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSMaskShadowDrawable001, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    auto drawable = std::make_shared<DrawableV2::RSMaskShadowDrawable>();
-    EXPECT_FALSE(drawable->OnUpdate(node));
-    node.GetMutableRenderProperties().SetShadowColor(Color(255, 255, 255, 255));
-    node.GetMutableRenderProperties().SetShadowElevation(0.9f);
-    node.GetMutableRenderProperties().SetShadowRadius(0.9f);
-    node.GetMutableRenderProperties().SetShadowIsFilled(false);
-    EXPECT_TRUE(drawable->OnUpdate(node));
-    node.GetMutableRenderProperties().SetShadowIsFilled(false);
-    OHOS::system::SetParameter("persist.sys.graphic.openDebugTrace", "3");
-    EXPECT_TRUE(drawable->OnUpdate(node));
-    node.GetMutableRenderProperties().SetShadowColorStrategy(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN);
-    OHOS::system::SetParameter("persist.sys.graphic.openDebugTrace", "0");
-    EXPECT_TRUE(drawable->OnUpdate(node));
-}
-
-/**
- * @tc.name: RSMaskShadowDrawable002
- * @tc.desc: Test CreateDrawFunc
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSMaskShadowDrawable002, TestSize.Level1)
-{
-    auto drawable = std::make_shared<DrawableV2::RSMaskShadowDrawable>(
-        std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE));
-    auto canvas = std::make_shared<Drawing::Canvas>();
-    auto rect = std::make_shared<Drawing::Rect>();
-    auto drawFunc = drawable->CreateDrawFunc();
-    drawFunc(canvas.get(), rect.get());
-    ASSERT_TRUE(true);
-}
 } // namespace OHOS::Rosen

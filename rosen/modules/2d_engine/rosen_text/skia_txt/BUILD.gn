@@ -78,16 +78,12 @@ template("skia_libtxt") {
     if (platform == "ohos" || platform == "ohos_ng") {
       external_deps += [ "init:libbegetutil" ]
       defines += [ "HM_SYMBOL_TXT_ENABLE" ]
-      defines += [ "HM_TXT_ENABLE" ]
+      defines += [ "OHOS_TEXT_ENABLE" ]
     }
 
     is_cross_platform =
         current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
         current_os == "android" || current_os == "ios"
-
-    if (is_cross_platform) {
-      defines += [ "TXT_TRACE_DISABLE" ]
-    }
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [
@@ -224,7 +220,7 @@ ohos_source_set("skia_paragraph") {
       current_os == "android" || current_os == "ios"
 
   if (!is_cross_platform) {
-    defines += [ "TXT_AUTO_SPACING" ]
+    defines += [ "TXT_USE_PARAMETER" ]
     external_deps += [ "init:libbegetutil" ]
   }
 }

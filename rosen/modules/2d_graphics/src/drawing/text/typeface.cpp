@@ -149,6 +149,22 @@ std::function<bool(std::shared_ptr<Typeface>)>& Typeface::GetTypefaceUnRegisterC
 {
     return unregisterTypefaceCallBack_;
 }
+
+uint32_t Typeface::GetHash() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->GetHash();
+    }
+    return 0;
+}
+
+void Typeface::SetHash(uint32_t hash)
+{
+    if (typefaceImpl_) {
+        typefaceImpl_->SetHash(hash);
+    }
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

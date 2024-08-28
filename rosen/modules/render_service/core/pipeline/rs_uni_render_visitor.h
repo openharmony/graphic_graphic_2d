@@ -29,6 +29,7 @@
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_uni_hwc_prevalidate_util.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -141,7 +142,7 @@ public:
 
     void SurfaceOcclusionCallbackToWMS();
 
-    std::unordered_set<NodeId> GetCurrentBlackList() const;
+    const std::unordered_set<NodeId>& GetCurrentBlackList() const;
 
     static void ClearRenderGroupCache();
 
@@ -176,9 +177,7 @@ private:
     void CalculateOcclusion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
-    void CheckFilterCacheFullyCovered(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
-    void MergeDirtySurfaceToDssOrDirty(RSSurfaceRenderNode& surfaceNode, const RectI& dirtyRect) const;
     void PartialRenderOptionInit();
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
         const Occlusion::Region& selfDrawRegion);
@@ -202,9 +201,12 @@ private:
     bool CheckScreenPowerChange() const;
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
+    bool CheckLuminanceStatusChange() const;
     bool IsFirstFrameOfPartialRender() const;
+    bool IsFirstFrameOfOverdrawSwitch() const;
+    bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
     bool IsWatermarkFlagChanged() const;
-    bool IsDisplayZoomIn() const;
+    bool IsDisplayZoomStateChange() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
@@ -223,6 +225,7 @@ private:
     void UpdateSrcRect(RSSurfaceRenderNode& node,
         const Drawing::Matrix& absMatrix, const RectI& clipRect);
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
+    void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
@@ -230,7 +233,7 @@ private:
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& appNode);
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
-        std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool hasCornerRadius);
+        std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateHwcNodeEnable();
@@ -252,13 +255,10 @@ private:
     void CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
-    void CheckMergeTopSurfaceForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
 
     bool IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentFilter(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& accumulatedDirtyRegion);
-    // If reusable filter cache covers whole screen, mark lower layer to skip process
-    void CheckAndUpdateFilterCacheOcclusion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces) const;
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
     void CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRenderNode::SharedPtr>& surfaces);
 
@@ -379,6 +379,8 @@ private:
     bool isUIFirstDebugEnable_ = false;
     bool ancestorNodeHasAnimation_ = false;
     bool hasAccumulatedClip_ = false;
+    // [planning] this will be deleted by hdr solution
+    bool hasNotFullScreenWindow_ = false;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
 
     bool isPrevalidateHwcNodeEnable_ = false;
@@ -437,6 +439,8 @@ private:
 
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
+
+    RSPointerWindowManager pointerWindowManager_;
 
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();

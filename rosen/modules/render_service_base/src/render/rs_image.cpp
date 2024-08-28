@@ -135,7 +135,9 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                 ApplyCanvasClip(canvas);
             }
             if (innerRect_.has_value()) {
-                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+                Drawing::Brush brush;
+                ApplyHdrColorFilter(canvas, brush);
+                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
             } else if (HDRConvert(samplingOptions, canvas)) {
                 canvas.DrawRect(dst_);
             } else {
@@ -322,6 +324,16 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
     canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
 }
 
+void RSImage::ApplyHdrColorFilter(Drawing::Canvas& canvas, Drawing::Brush& brush)
+{
+    RSPaintFilterCanvas& paintFilterCanvas = static_cast<RSPaintFilterCanvas&>(canvas);
+    if (canvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
+        if (paintFilterCanvas.GetHDRPresent()) {
+            paintFilterCanvas.PaintFilter(brush);
+        }
+    }
+}
+
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pixelFormat)
 {
@@ -331,6 +343,22 @@ static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pi
         case Media::PixelFormat::ASTC_8x8: return Drawing::CompressedType::ASTC_RGBA8_8x8;
         case Media::PixelFormat::UNKNOWN:
         default: return Drawing::CompressedType::NoneType;
+    }
+}
+
+static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
+ colorSpaceName)
+{
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
+            return Drawing::ColorSpace::CreateSRGBLinear();
+        case ColorManager::ColorSpaceName::SRGB:
+            return Drawing::ColorSpace::CreateSRGB();
+        default:
+            return Drawing::ColorSpace::CreateSRGB();
     }
 }
 #endif
@@ -352,9 +380,11 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
             Media::Size realSize;
             pixelMap_->GetAstcRealSize(realSize);
             auto image = std::make_shared<Drawing::Image>();
+            std::shared_ptr<Drawing::ColorSpace> colorSpace =
+                ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
             bool result = image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
                 static_cast<int>(realSize.width), static_cast<int>(realSize.height),
-                PixelFormatToCompressedType(imageInfo.pixelFormat));
+                PixelFormatToCompressedType(imageInfo.pixelFormat), colorSpace);
             if (result) {
                 image_ = image;
                 SKResourceManager::Instance().HoldResource(image);
@@ -443,7 +473,9 @@ void RSImage::DrawImageOnCanvas(
         dst_.MakeOutset(1, 1);
     }
     if (innerRect_.has_value()) {
-        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
+        Drawing::Brush brush;
+        ApplyHdrColorFilter(canvas, brush);
+        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
     } else if (hdrImageDraw) {
         canvas.DrawRect(dst_);
     } else {

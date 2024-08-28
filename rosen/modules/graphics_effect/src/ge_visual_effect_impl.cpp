@@ -30,6 +30,12 @@ std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> GEVisualEf
             impl->MakeKawaseParams();
         }
     },
+    { GE_FILTER_MESA_BLUR,
+        [](GEVisualEffectImpl* impl) {
+            impl->SetFilterType(GEVisualEffectImpl::FilterType::MESA_BLUR);
+            impl->MakeMESAParams();
+        }
+    },
     { GE_FILTER_GREY,
         [](GEVisualEffectImpl* impl) {
             impl->SetFilterType(GEVisualEffectImpl::FilterType::GREY);
@@ -91,6 +97,19 @@ void GEVisualEffectImpl::SetParam(const std::string& tag, int32_t param)
             }
             break;
         }
+        case FilterType::MESA_BLUR: {
+            if (mesaParams_ == nullptr) {
+                return;
+            }
+
+            if (tag == GE_FILTER_MESA_BLUR_RADIUS) {
+                mesaParams_->radius = param;
+            }
+            if (tag == GE_FILTER_MESA_BLUR_STRETCH_TILE_MODE) {
+                mesaParams_->tileMode = param;
+            }
+            break;
+        }
         case FilterType::LINEAR_GRADIENT_BLUR: {
             if (linearGradientBlurParams_ == nullptr) {
                 return;
@@ -139,6 +158,10 @@ void GEVisualEffectImpl::SetParam(const std::string& tag, int64_t param) {}
 void GEVisualEffectImpl::SetParam(const std::string& tag, float param)
 {
     switch (filterType_) {
+        case FilterType::MESA_BLUR: {
+            SetMESABlurParams(tag, param);
+            break;
+        }
         case FilterType::AIBAR: {
             SetAIBarParams(tag, param);
             break;
@@ -232,6 +255,37 @@ void GEVisualEffectImpl::SetParam(const std::string& tag, const uint32_t param)
         }
         default:
             break;
+    }
+}
+
+void GEVisualEffectImpl::SetMESABlurParams(const std::string& tag, float param)
+{
+    if (mesaParams_ == nullptr) {
+        return;
+    }
+
+    static std::unordered_map<std::string, std::function<void(GEVisualEffectImpl*, float)>> actions = {
+        { GE_FILTER_MESA_BLUR_GREY_COEF_1,
+            [](GEVisualEffectImpl* obj, float p) { obj->mesaParams_->greyCoef1 = p; } },
+        { GE_FILTER_MESA_BLUR_GREY_COEF_2,
+            [](GEVisualEffectImpl* obj, float p) { obj->mesaParams_->greyCoef2 = p; } },
+        { GE_FILTER_MESA_BLUR_STRETCH_OFFSET_X,
+            [](GEVisualEffectImpl* obj, float p) { obj->mesaParams_->offsetX = p; } },
+        { GE_FILTER_MESA_BLUR_STRETCH_OFFSET_Y,
+            [](GEVisualEffectImpl* obj, float p) { obj->mesaParams_->offsetY = p; } },
+        { GE_FILTER_MESA_BLUR_STRETCH_OFFSET_Z,
+            [](GEVisualEffectImpl* obj, float p) { obj->mesaParams_->offsetZ = p; } },
+        { GE_FILTER_MESA_BLUR_STRETCH_OFFSET_W,
+            [](GEVisualEffectImpl* obj, float p) { obj->mesaParams_->offsetW = p; } },
+        { GE_FILTER_MESA_BLUR_STRETCH_WIDTH,
+            [](GEVisualEffectImpl* obj, float p) { obj->mesaParams_->width = p; } },
+        { GE_FILTER_MESA_BLUR_STRETCH_HEIGHT,
+            [](GEVisualEffectImpl* obj, float p) { obj->mesaParams_->height = p; } }
+    };
+
+    auto it = actions.find(tag);
+    if (it != actions.end()) {
+        it->second(this, param);
     }
 }
 

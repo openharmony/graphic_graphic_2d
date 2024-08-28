@@ -80,6 +80,22 @@ HWTEST_F(RSTransitionEffectTest, Rotate001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Scale001
+ * @tc.desc: Verify the Scale
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTransitionEffectTest, Scale001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSTransitionEffectTest Scale001 start";
+    Vector3f sca = { 1.0f, 1.0f, 1.0f};
+    auto effect = RSTransitionEffect::Create();
+    EXPECT_TRUE(effect != nullptr);
+    effect->Scale(sca);
+    EXPECT_TRUE(effect != nullptr);
+    GTEST_LOG_(INFO) << "RSTransitionEffectTest Scale001 end";
+}
+
+/**
  * @tc.name: Custom001
  * @tc.desc: Verify the Custom
  * @tc.type:FUNC

@@ -35,6 +35,7 @@ public:
     enum ShaderFilterType {
         NONE = 0,
         KAWASE,
+        MESA,
         GREY,
         AIBAR,
         LINEAR_GRADIENT_BLUR,

@@ -35,7 +35,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
         return;
     }
     pixelmap_ = pixmap;
-    if (pixmap->GetWidth() == 0 || pixmap->GetHeight() == 0) {
+    if (pixmap->GetWidth() <= 0 || pixmap->GetHeight() <= 0) {
         EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with zero pixmap width or height.");
         return;
     }
@@ -69,7 +69,7 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
         return;
     }
     pixelmap_ = pixmap;
-    if (pixmap->GetWidth() == 0 || pixmap->GetHeight() == 0) {
+    if (pixmap->GetWidth() <= 0 || pixmap->GetHeight() <= 0) {
         EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with zero pixmap width or height.");
         return;
     }

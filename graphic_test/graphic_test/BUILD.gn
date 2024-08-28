@@ -19,7 +19,8 @@ module_output_path = "graphic_2d/graphic_test/graphic_test"
 drawing_engine_sources = []
 hardware_manager_sources = []
 open_capability_sources = []
-rs_display_effect_sources = []
+rs_display_effect_sources =
+    [ "rs_display_effect/property_display/mesa_blur_shader_filter_test.cpp" ]
 rs_framework_sources = []
 rs_func_feature_sources = [ "rs_func_feature/component_capture/demo.cpp" ]
 rs_perform_feature_sources = []

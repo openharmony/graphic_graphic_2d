@@ -15,10 +15,15 @@
 
 #include "pipeline/rs_unmarshal_thread.h"
 
+#include "app_mgr_client.h"
+#include "hisysevent.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_data.h"
+#include "res_sched_client.h"
+#include "res_type.h"
 #include "rs_frame_report.h"
 #include "rs_profiler.h"
 
@@ -28,11 +33,21 @@
 
 namespace OHOS::Rosen {
 namespace {
-    constexpr int REQUEST_FRAME_AWARE_ID = 100001;
-    constexpr int REQUEST_SET_FRAME_LOAD_ID = 100006;
-    constexpr int REQUEST_FRAME_AWARE_LOAD = 85;
-    constexpr int REQUEST_FRAME_AWARE_NUM = 4;
-    constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
+constexpr int REQUEST_FRAME_AWARE_ID = 100001;
+constexpr int REQUEST_SET_FRAME_LOAD_ID = 100006;
+constexpr int REQUEST_FRAME_AWARE_LOAD = 85;
+constexpr int REQUEST_FRAME_AWARE_NUM = 4;
+constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
+constexpr size_t TRANSACTION_DATA_ALARM_SIZE = 500 * 1024; // 500KB
+constexpr size_t TRANSACTION_DATA_KILL_SIZE = 1000 * 1024; // 1000KB
+const char* TRANSACTION_REPORT_NAME = "COMMIT_TRANSACTION_DATA";
+
+const std::unique_ptr<AppExecFwk::AppMgrClient>& GetAppMgrClient()
+{
+    static std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient =
+        std::make_unique<AppExecFwk::AppMgrClient>();
+    return appMgrClient;
+}
 }
 
 RSUnmarshalThread& RSUnmarshalThread::Instance()
@@ -61,20 +76,32 @@ void RSUnmarshalThread::PostTask(const std::function<void()>& task)
     }
 }
 
-void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel)
+void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling, pid_t callingPid)
 {
-    if (!handler_) {
-        RS_LOGE("RSUnmarshalThread::RecvParcel handler_ is nullptr");
+    if (!handler_ || !parcel) {
+        RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, handler: %{public}d, parcel: %{public}d",
+            (!handler_), (!parcel));
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
-    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal]() {
+    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid]() {
         SetFrameParam(REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
         SetFrameLoad(REQUEST_FRAME_AWARE_LOAD);
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
         SetFrameLoad(REQUEST_FRAME_STANDARD_LOAD);
         if (!transData) {
             return;
+        }
+        if (isNonSystemAppCalling) {
+            const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+            pid_t conflictCommandPid = 0;
+            std::string commandMapDesc = "";
+            if (!transData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid, commandMapDesc)) {
+                RS_LOGE("RSUnmarshalThread::RecvParcel non-system callingPid %{public}d"
+                        " is denied to access commandPid %{public}d, commandMap = %{public}s",
+                        callingPid, conflictCommandPid, commandMapDesc.c_str());
+                return;
+            }
         }
         RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
         {
@@ -151,5 +178,48 @@ void RSUnmarshalThread::Wait()
         std::swap(deps, cachedDeps_);
     }
     ffrt::wait(deps);
+}
+
+bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid, size_t dataSize, bool isNonSystemAppCalling)
+{
+    size_t preSize = 0;
+    size_t totalSize = 0;
+    {
+        std::unique_lock<std::mutex> lock(statisticsMutex_);
+        preSize = transactionDataStatistics_[pid];
+        totalSize = preSize + dataSize;
+        transactionDataStatistics_[pid] = totalSize;
+
+        if (totalSize < TRANSACTION_DATA_ALARM_SIZE) {
+            return false;
+        }
+    }
+
+    const auto& appMgrClient = GetAppMgrClient();
+    int32_t uid = 0;
+    std::string bundleName;
+    appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
+
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, TRANSACTION_REPORT_NAME,
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "PID", pid, "UID", uid,
+        "BUNDLE_NAME", bundleName, "TRANSACTION_DATA_SIZE", totalSize);
+    RS_LOGW("TransactionDataStatistics pid[%d] uid[%d] bundleName[%s] dataSize[%{public}zu] exceeded[%{public}d]",
+        pid, uid, bundleName.c_str(), totalSize, totalSize > TRANSACTION_DATA_KILL_SIZE);
+
+    bool terminateEnabled = RSSystemProperties::GetTransactionTerminateEnabled();
+    if (!isNonSystemAppCalling || !terminateEnabled) {
+        return false;
+    }
+    if (totalSize > TRANSACTION_DATA_KILL_SIZE && preSize <= TRANSACTION_DATA_KILL_SIZE) {
+        int res = appMgrClient->KillApplicationByUid(bundleName, uid);
+        return res == AppExecFwk::RESULT_OK;
+    }
+    return false;
+}
+
+void RSUnmarshalThread::ClearTransactionDataStatistics()
+{
+    std::unique_lock<std::mutex> lock(statisticsMutex_);
+    transactionDataStatistics_.clear();
 }
 }

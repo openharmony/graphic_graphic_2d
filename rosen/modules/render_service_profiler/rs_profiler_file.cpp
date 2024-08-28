@@ -43,7 +43,7 @@ void RSFile::Create(const std::string& fname)
     }
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
     file_ = Utils::FileOpen(fname, "wb");
 #else
     file_ = Utils::FileOpen(fname, "wbe");
@@ -70,7 +70,7 @@ bool RSFile::Open(const std::string& fname)
         Close();
     }
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
     file_ = Utils::FileOpen(fname, "rb");
 #else
     file_ = Utils::FileOpen(fname, "rbe");
@@ -174,6 +174,14 @@ void RSFile::WriteHeader()
         Utils::FileWrite(&firstScrSize, sizeof(firstScrSize), 1, file_);
         Utils::FileWrite(headerFirstFrame_.data(), headerFirstFrame_.size(), 1, file_);
 
+        if (versionId_ >= RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED) {
+            // ANIME START TIMES
+            uint32_t startTimesSize = headerAnimeStartTimes_.size();
+            Utils::FileWrite(&startTimesSize, sizeof(startTimesSize), 1, file_);
+            Utils::FileWrite(headerAnimeStartTimes_.data(),
+                headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>), 1, file_);
+        }
+
         // ALL TEXTURES
         ImageCache::Serialize(file_);
     }
@@ -198,11 +206,14 @@ void RSFile::ReadHeader()
 
     Utils::FileSeek(file_, headerOff_, SEEK_SET);
 
+    uint32_t recordSize;
+
+    const size_t subHeaderStartOff = Utils::FileTell(file_);
+
     // READ what was write start time
     Utils::FileRead(&writeStartTime_, 1, sizeof(writeStartTime_), file_);
 
     // READ PID LIST
-    uint32_t recordSize;
     Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
     headerPidList_.resize(recordSize);
     Utils::FileRead(headerPidList_.data(), headerPidList_.size(), sizeof(pid_t), file_);
@@ -213,13 +224,22 @@ void RSFile::ReadHeader()
     headerFirstFrame_.resize(firstScrSize);
     Utils::FileRead(headerFirstFrame_.data(), headerFirstFrame_.size(), 1, file_);
 
+     // READ ANIME START TIMES
+    if (versionId_ >= RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED) {
+        uint32_t startTimesSize;
+        Utils::FileRead(&startTimesSize, sizeof(startTimesSize), 1, file_);
+        headerAnimeStartTimes_.resize(startTimesSize);
+        Utils::FileRead(headerAnimeStartTimes_.data(),
+            headerAnimeStartTimes_.size() * sizeof(std::pair<uint64_t, int64_t>), 1, file_);
+    }
+
     // ALL TEXTURES
     ImageCache::Deserialize(file_);
 
     if (preparedHeaderMode_) {
         const size_t subHeaderEndOff = Utils::FileTell(file_);
-        Utils::FileSeek(file_, headerOff_, SEEK_SET);
-        const size_t subHeaderLen = subHeaderEndOff - headerOff_;
+        Utils::FileSeek(file_, subHeaderStartOff, SEEK_SET);
+        const size_t subHeaderLen = subHeaderEndOff - subHeaderStartOff;
         preparedHeader_.resize(subHeaderLen);
         Utils::FileRead(preparedHeader_.data(), subHeaderLen, 1, file_);
     }
@@ -261,8 +281,6 @@ void RSFile::LayerAddHeaderProperty(uint32_t layer, const std::string& name, con
 
 void RSFile::LayerWriteHeader(uint32_t layer)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-
     if (!file_ || !HasLayer(layer)) {
         return;
     }
@@ -429,6 +447,7 @@ bool RSFile::GFXMetricsEOF(uint32_t layer) const
 
 bool RSFile::ReadRSData(double untilTime, std::vector<uint8_t>& data, double& readTime)
 {
+    readTime = 0.0;
     if (!file_ || layerData_.empty()) {
         return false;
     }
@@ -486,6 +505,8 @@ bool RSFile::ReadGFXMetrics(double untilTime, uint32_t layer, std::vector<uint8_
 
 bool RSFile::GetDataCopy(std::vector<uint8_t>& data)
 {
+    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+
     WriteHeaders(); // Make sure the header is written
 
     size_t fileSize = Utils::FileSize(file_);
@@ -544,9 +565,9 @@ void RSFile::Close()
         return;
     }
 
-    WriteHeaders();
-
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+
+    WriteHeaders();
 
     Utils::FileClose(file_);
     file_ = nullptr;
@@ -563,7 +584,7 @@ void RSFile::WriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer, dou
 {
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
-    if (!file_ || layerData_.empty()) {
+    if (!file_ || !HasLayer(layer)) {
         return;
     }
 
@@ -607,7 +628,7 @@ bool RSFile::ReadTrackData(
 
 void RSFile::ReadTrackDataRestart(LayerTrackIndexPtr trackIndex, uint32_t layer)
 {
-    if (layerData_.empty()) {
+    if (!HasLayer(layer)) {
         return;
     }
 
@@ -633,6 +654,17 @@ const std::string& RSFile::GetHeaderFirstFrame() const
 void RSFile::AddHeaderFirstFrame(const std::string& dataFirstFrame)
 {
     headerFirstFrame_ = dataFirstFrame;
+    wasChanged_ = true;
+}
+
+const std::vector<std::pair<uint64_t, int64_t>>& RSFile::GetAnimeStartTimes() const
+{
+    return headerAnimeStartTimes_;
+}
+
+void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& value)
+{
+    headerAnimeStartTimes_ = value;
     wasChanged_ = true;
 }
 

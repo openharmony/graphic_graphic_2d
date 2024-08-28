@@ -119,9 +119,13 @@ public:
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
 
-    void ResetUifirst()
+    void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
-        ClearCacheSurfaceInThread();
+        if (isNotClearCompleteCacheSurface) {
+            ClearCacheSurfaceOnly();
+        } else {
+            ClearCacheSurfaceInThread();
+        }
     }
 
     bool IsCurFrameStatic(DeviceType deviceType);
@@ -242,8 +246,6 @@ public:
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
-    Drawing::Rect GetLocalClipRect() const;
-
     bool PrepareOffscreenRender();
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool IsHardwareEnabled();
@@ -300,9 +302,14 @@ private:
     void DrawSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas,
         const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
 
+    // Watermark
+    void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);
+
+    void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
-
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
@@ -355,7 +362,6 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> consumerOnDraw_ = nullptr;
 #endif
-    Drawing::Rect localClipRect_;
 
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;

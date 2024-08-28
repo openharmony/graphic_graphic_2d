@@ -449,7 +449,6 @@ bool DoGetNameAndBundleName(const uint8_t* data, size_t size)
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     surfaceNode->GetName();
-    surfaceNode->GetBundleName();
     return true;
 }
 
@@ -605,7 +604,7 @@ bool DoSetAncoFlags(const uint8_t* data, size_t size)
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    int32_t flags = GetData<int32_t>();
+    uint32_t flags = GetData<uint32_t>();
     surfaceNode->SetAncoFlags(flags);
     return true;
 }

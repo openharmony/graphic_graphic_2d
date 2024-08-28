@@ -74,6 +74,7 @@ enum class ScreenConstraintType : uint32_t {
     CONSTRAINT_NONE = 0,      /**< No constraint */
     CONSTRAINT_ABSOLUTE,      /**< Absolute timestamp */
     CONSTRAINT_RELATIVE,      /**< Relative timestamp */
+    CONSTRAINT_ADAPTIVE,      /**< Adaptive vsync mode */
 };
 
 enum class ScreenScaleMode : uint32_t {

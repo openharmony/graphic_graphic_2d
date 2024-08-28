@@ -134,6 +134,8 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingWithCopyTest, TestSize.Level1)
     Parcel parcel;
     auto val = std::make_shared<Drawing::Data>();
     EXPECT_TRUE(RSMarshallingHelper::UnmarshallingWithCopy(parcel, val));
+    val = nullptr;
+    EXPECT_TRUE(RSMarshallingHelper::UnmarshallingWithCopy(parcel, val));
 }
 
 /**

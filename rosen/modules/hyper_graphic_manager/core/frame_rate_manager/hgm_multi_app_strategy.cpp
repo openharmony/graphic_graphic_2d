@@ -96,9 +96,9 @@ void HgmMultiAppStrategy::CalcVote()
 {
     RS_TRACE_FUNC();
     voteRes_ = { HGM_ERROR, {
-        .min = OledRefreshRate::OLED_NULL_HZ, .max = OledRefreshRate::OLED_120_HZ,
-        .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = false, .drawMin = OledRefreshRate::OLED_NULL_HZ,
-        .drawMax = OledRefreshRate::OLED_120_HZ, .down = OledRefreshRate::OLED_120_HZ,
+        .min = OLED_NULL_HZ, .max = OLED_120_HZ, .idleFps = OLED_60_HZ,
+        .dynamicMode = DynamicModeType::TOUCH_ENABLED, .isFactor = false, .drawMin = OLED_NULL_HZ,
+        .drawMax = OLED_120_HZ, .down = OLED_120_HZ,
     }};
     uniqueTouchInfo_ = std::make_unique<TouchInfo>(touchInfo_);
 

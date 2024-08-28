@@ -125,6 +125,9 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
     }
 
+    void DumpTree(int depth, std::string& out) const;
+    virtual void Dump(std::string& out) const;
+
     virtual std::string DumpNode(int depth) const;
     SharedPtr GetParent();
 
@@ -291,12 +294,14 @@ public:
     void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
+    std::string GetBackgroundFilterDescription();
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
     void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
     void SetDynamicDimDegree(const float dimDegree);
+    void SetBlender(const Blender* blender);
     void SetFgBrightnessParams(const RSDynamicBrightnessPara& params);
     void SetFgBrightnessRates(const Vector4f& rates);
     void SetFgBrightnessSaturation(const float& saturation);
@@ -452,8 +457,11 @@ public:
     bool IsAppearanceDirty() const;
     void MarkDirty(NodeDirtyType type, bool isDirty);
 
-    std::shared_ptr<RSObjAbsGeometry> GetLocalGeometry();
-    std::shared_ptr<RSObjAbsGeometry> GetGlobalGeometry();
+    float GetGlobalPositionX() const;
+    float GetGlobalPositionY() const;
+
+    std::shared_ptr<RSObjAbsGeometry> GetLocalGeometry() const;
+    std::shared_ptr<RSObjAbsGeometry> GetGlobalGeometry() const;
     void UpdateLocalGeometry();
     void UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& parentGlobalGeometry);
 
@@ -513,6 +521,7 @@ private:
     int32_t frameNodeId_ = -1;
     std::string frameNodeTag_;
     std::string nodeName_ = "";
+    std::string bgFilterDescription_ = "";
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
@@ -557,6 +566,9 @@ private:
 
     std::shared_ptr<RSObjAbsGeometry> localGeometry_;
     std::shared_ptr<RSObjAbsGeometry> globalGeometry_;
+
+    float globalPositionX_ = 0.f;
+    float globalPositionY_ = 0.f;
 
     pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };

@@ -50,7 +50,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
 
     // split to several parcels if parcel size > PARCEL_SPLIT_THRESHOLD during marshalling
     std::vector<std::shared_ptr<MessageParcel>> parcelVector;
-    auto func = [isUniMode, &parcelVector, &transactionData, this]() {
+    auto func = [isUniMode, &parcelVector, &transactionData, this]() -> bool {
         if (isUniMode) {
             ++transactionDataIndex_;
         }
@@ -58,16 +58,19 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
         std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
         if (!FillParcelWithTransactionData(transactionData, parcel)) {
             ROSEN_LOGE("FillParcelWithTransactionData failed!");
-            return;
+            return false;
         }
         parcelVector.emplace_back(parcel);
+        return true;
     };
     if (transactionData->IsNeedSync() && transactionData->IsEmpty()) {
         RS_TRACE_NAME("Commit empty syncTransaction");
         func();
     } else {
         while (transactionData->GetMarshallingIndex() < transactionData->GetCommandCount()) {
-            func();
+            if (!func()) {
+                return;
+            }
         }
     }
 
@@ -214,9 +217,6 @@ bool RSRenderServiceConnectionProxy::CreateNode(const RSSurfaceRenderNodeConfig&
     if (!data.WriteString(config.name)) {
         return false;
     }
-    if (!data.WriteString(config.bundleName)) {
-        return false;
-    }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -240,9 +240,6 @@ sptr<Surface> RSRenderServiceConnectionProxy::CreateNodeAndSurface(const RSSurfa
         return nullptr;
     }
     if (!data.WriteUint8(static_cast<uint8_t>(config.nodeType))) {
-        return nullptr;
-    }
-    if (!data.WriteString(config.bundleName)) {
         return nullptr;
     }
     if (!data.WriteBool(config.isTextureExportNode)) {
@@ -531,6 +528,7 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList: Send Request err.");
+        return RS_CONNECTION_ERROR;
     }
 
     int32_t status = reply.ReadInt32();
@@ -1060,7 +1058,7 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, bool /* accessible */)
+    const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
@@ -1913,8 +1911,25 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
         return false;
     }
     option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t hash = typeface->GetHash();
     data.WriteUint64(globalUniqueId);
+    data.WriteUint32(hash);
+
+    if (hash) { // if adapter does not provide hash, use old path
+        MessageParcel reply2;
+        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE);
+        int32_t err = Remote()->SendRequest(code, data, reply2, option);
+        if (err != NO_ERROR) {
+            RS_LOGW("Check if RegisterTypeface is needed failed, err:%{public}d", err);
+            return false;
+        }
+        if (!reply2.ReadBool()) {
+            return true; // the hash exists on server, no need to resend full data
+        }
+    }
+
     RSMarshallingHelper::Marshalling(data, typeface);
+
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1983,9 +1998,9 @@ int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSI
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
+    } else {
+        return SUCCESS;
     }
-    int32_t result = reply.ReadInt32();
-    return result;
 }
 
 int32_t RSRenderServiceConnectionProxy::RegisterSurfaceOcclusionChangeCallback(
@@ -2473,6 +2488,26 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetCacheEnabledForRotation: Send Request err.");
+        return;
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteUint32(offset)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetDefaultDeviceRotationOffset: Send Request err.");
         return;
     }
 }

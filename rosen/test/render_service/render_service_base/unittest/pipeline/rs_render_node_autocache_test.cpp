@@ -313,7 +313,7 @@ HWTEST_F(RSRenderNodeAutocacheTest, NodeCacheStateReset001, TestSize.Level1)
 
     renderNode.isOpincRootFlag_ = true;
     renderNode.NodeCacheStateReset(NodeCacheState::STATE_CHANGE);
-    EXPECT_TRUE(renderNode.isOpincRootFlag_);
+    EXPECT_FALSE(renderNode.isOpincRootFlag_);
 }
 } // namespace Rosen
 } // namespace OHOS

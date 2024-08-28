@@ -296,14 +296,24 @@ public:
     void SetOccludedByFilterCache(bool val);
     bool GetOccludedByFilterCache() const;
 
+    void SetFilterCacheFullyCovered(bool val);
+    bool GetFilterCacheFullyCovered() const;
+
+    const std::vector<NodeId>& GetVisibleFilterChild() const;
+    bool IsTransparent() const;
+    void CheckValidFilterCacheFullyCoverTarget(
+        bool isFilterCacheValidForOcclusion, const RectI& filterCachedRect, const RectI& targetRect);
+
     void SetLayerInfo(const RSLayerInfo& layerInfo);
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
-    void SetForceHardwareByUser(bool flag);
-    bool GetForceHardwareByUser() const;
+    void SetFixRotationByUser(bool flag);
+    bool GetFixRotationByUser() const;
+    void SetInFixedRotation(bool flag);
+    bool IsInFixedRotation() const;
     // source crop tuning
     void SetLayerSourceTuning(int32_t needSourceTuning);
     int32_t GetLayerSourceTuning() const;
@@ -323,6 +333,11 @@ public:
     bool GetSkipDraw() const;
 
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
+    
+    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
+    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> GetWatermark() const;
+    size_t GetWatermarkSize() const;
 
     void SetPreScalingMode(ScalingMode scalingMode) override
     {
@@ -390,18 +405,6 @@ public:
     {
         return totalMatrix_;
     }
-    void SetGlobalAlpha(float alpha) override
-    {
-        if (globalAlpha_ == alpha) {
-            return;
-        }
-        globalAlpha_ = alpha;
-        needSync_ = true;
-    }
-    float GetGlobalAlpha() override
-    {
-        return globalAlpha_;
-    }
     void SetFingerprint(bool hasFingerprint) override
     {
         if (hasFingerprint_ == hasFingerprint) {
@@ -452,6 +455,9 @@ private:
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
+    // if current surfaceNode has filter cache to occlude the back surfaceNode
+    bool isFilterCacheFullyCovered_ = false;
+    std::vector<NodeId> visibleFilterChild_;
     RSLayerInfo layerInfo_;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
@@ -462,7 +468,8 @@ private:
 #endif
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
-    bool isForceHardwareByUser_ = false;
+    bool isFixRotationByUser_ = false;
+    bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
@@ -484,6 +491,7 @@ private:
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> watermarkHandles_ = {};
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

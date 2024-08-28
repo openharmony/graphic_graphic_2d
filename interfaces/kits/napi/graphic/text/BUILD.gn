@@ -96,6 +96,8 @@ ohos_shared_library("text_napi_impl") {
   ]
 
   external_deps = [
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:app_context",
     "graphic_surface:surface",
     "hilog:libhilog",
     "napi:ace_napi",
@@ -103,7 +105,8 @@ ohos_shared_library("text_napi_impl") {
   ]
 
   if (current_os == "ohos" || current_os == "ohos_ng") {
-    defines = [ "TEXT_OHOS" ]
+    external_deps += [ "init:libbegetutil" ]
+    defines = [ "OHOS_TEXT_ENABLE" ]
     cflags = [ "-fstack-protector-strong" ]
     cflags_cc = [
       "-fstack-protector-strong",

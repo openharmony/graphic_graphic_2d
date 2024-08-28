@@ -152,10 +152,55 @@ HWTEST_F(GaussianBlurFilterUnittest, GetFragmentShader001, TestSize.Level1)
     auto gaussianBlur = std::make_shared<GaussianBlurFilter>();
     bool testResult = gaussianBlur != nullptr;
     EXPECT_TRUE(testResult);
+
     /**
      * @tc.steps: step2. Call GetFragmentShader to get the strings
      */
     EXPECT_TRUE(gaussianBlur->GetFragmentShader() == std::string());
+}
+
+/**
+ * @tc.name: Use
+ * @tc.desc: Increment coverage in use()
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(GaussianBlurFilterUnittest, Use, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GaussianBlurFilterUnittest Use start";
+
+    auto gaussianBlur = std::make_shared<GaussianBlurFilter>();
+    ASSERT_NE(gaussianBlur, nullptr);
+    gaussianBlur->Use();
+    EXPECT_EQ(gaussianBlur->GetFilterType(), FILTER_TYPE::ALGOFILTER);
+
+    GTEST_LOG_(INFO) << "GaussianBlurFilterUnittest Use start";
+}
+
+/**
+ * @tc.name: NextAndPreviousFilter
+ * @tc.desc: Add nextFilter and previousFilter
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(GaussianBlurFilterUnittest, NextAndPreviousFilter, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GaussianBlurFilterUnittest NextAndPreviousFilter start";
+
+    auto gaussianBlur = std::make_shared<GaussianBlurFilter>();
+    ASSERT_NE(gaussianBlur, nullptr);
+    auto filter = std::make_shared<GaussianBlurFilter>();
+    gaussianBlur->AddNextFilter(filter);
+    gaussianBlur->AddNextFilter(filter);
+    EXPECT_EQ(gaussianBlur->GetOutputNumber(), gaussianBlur->GetMaxOutputNumber());
+
+    gaussianBlur->AddPreviousFilter(filter);
+    gaussianBlur->AddPreviousFilter(filter);
+    EXPECT_EQ(gaussianBlur->GetInputNumber(), gaussianBlur->GetMaxInputNumber());
+
+    GTEST_LOG_(INFO) << "GaussianBlurFilterUnittest NextAndPreviousFilter start";
 }
 } // namespace Rosen
 } // namespace OHOS

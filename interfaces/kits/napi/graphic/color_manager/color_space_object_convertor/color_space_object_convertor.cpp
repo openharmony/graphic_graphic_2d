@@ -19,7 +19,9 @@
 #include "js_color_space.h"
 #include "js_color_space_utils.h"
 
-#define SENDABLE_PROPERTIES_NUM 3
+namespace {
+constexpr int SENDABLE_PROPERTIES_NUM = 3;
+}
 
 namespace OHOS {
 namespace ColorManager {
@@ -44,12 +46,14 @@ napi_value CreateJsColorSpaceObject(napi_env env, std::shared_ptr<ColorSpace>& c
     }
 
     std::unique_ptr<JsColorSpace> jsColorSpace = std::make_unique<JsColorSpace>(colorSpace);
-    napi_wrap(env, object, jsColorSpace.release(), JsColorSpace::Finalizer, nullptr, nullptr);
-    BindFunctions(env, object);
+    NAPI_CALL_DEFAULT(napi_wrap(env, object, jsColorSpace.release(), JsColorSpace::Finalizer, nullptr, nullptr));
+    if (BindFunctions(env, object) != napi_ok) {
+        return nullptr;
+    }
 
     std::shared_ptr<NativeReference> jsColorSpaceNativeRef;
     napi_ref jsColorSpaceRef = nullptr;
-    napi_create_reference(env, object, 1, &jsColorSpaceRef);
+    NAPI_CALL_DEFAULT(napi_create_reference(env, object, 1, &jsColorSpaceRef));
     jsColorSpaceNativeRef.reset(reinterpret_cast<NativeReference*>(jsColorSpaceRef));
     return object;
 }
@@ -70,7 +74,8 @@ napi_value CreateJsSendableColorSpaceObject(napi_env env, std::shared_ptr<ColorS
         DECLARE_NAPI_FUNCTION("getGamma", JsColorSpace::GetSendableGamma),
     };
     napi_value object = nullptr;
-    napi_create_sendable_object_with_properties(env, SENDABLE_PROPERTIES_NUM, properties, &object);
+    NAPI_CALL_DEFAULT(
+        napi_create_sendable_object_with_properties(env, SENDABLE_PROPERTIES_NUM, properties, &object));
     if (object == nullptr) {
         CMLOGE("[NAPI]Fail to convert to js object");
         napi_throw(env,
@@ -81,7 +86,7 @@ napi_value CreateJsSendableColorSpaceObject(napi_env env, std::shared_ptr<ColorS
     }
 
     std::unique_ptr<JsColorSpace> jsColorSpace = std::make_unique<JsColorSpace>(colorSpace);
-    napi_wrap_sendable(env, object, jsColorSpace.release(), JsColorSpace::Finalizer, nullptr);
+    NAPI_CALL_DEFAULT(napi_wrap_sendable(env, object, jsColorSpace.release(), JsColorSpace::Finalizer, nullptr));
 
     return object;
 }
@@ -93,7 +98,7 @@ std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(napi_env env, napi_value obj
         return nullptr;
     }
     JsColorSpace* jsColorSpace = nullptr;
-    napi_unwrap(env, object, (void **)&jsColorSpace);
+    NAPI_CALL_DEFAULT(napi_unwrap(env, object, (void **)&jsColorSpace));
     if (jsColorSpace == nullptr) {
         CMLOGE("[NAPI]GetColorSpaceByJSObject::jsColorSpace is nullptr");
         return nullptr;

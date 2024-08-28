@@ -41,6 +41,7 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSDisplayRenderParams& params);
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
+    void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
@@ -171,8 +172,9 @@ private:
     bool SkipDisplayIfScreenOff() const;
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
-    void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
+    static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
+    static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -180,8 +182,10 @@ private:
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen rende
-    std::unordered_set<NodeId> currentBlackList_;
-    std::unordered_set<NodeId> lastBlackList_;
+    std::unordered_set<NodeId> currentBlackList_ = {};
+    std::unordered_set<NodeId> lastBlackList_ = {};
+    bool curSecExemption_ = false;
+    bool lastSecExemption_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
     int32_t specialLayerType_ = 0;
     bool castScreenEnableSkipWindow_ = false;

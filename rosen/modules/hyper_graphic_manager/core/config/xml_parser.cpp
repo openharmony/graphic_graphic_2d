@@ -222,6 +222,7 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         auto min = ExtractPropertyValue("min", *currNode);
         auto max = ExtractPropertyValue("max", *currNode);
         auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
+        auto idleFps = ExtractPropertyValue("idleFps", *currNode);
         auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
         auto drawMin = ExtractPropertyValue("drawMin", *currNode);
         auto drawMax = ExtractPropertyValue("drawMax", *currNode);
@@ -234,6 +235,9 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode &node)
         strategy.min = std::stoi(min);
         strategy.max = std::stoi(max);
         strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+        strategy.idleFps = IsNumber(idleFps) ?
+            std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
+            std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
         strategy.isFactor = isFactor;
         strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
         strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
@@ -347,6 +351,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
     } else if (name == "game_scene_list") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.gameSceneList);
+    } else if (name == "anco_scene_list") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.ancoSceneList);
     } else if (name == "app_list") {
         ParseMultiAppStrategy(*thresholdNode, screenSetting);
     } else if (name == "app_types") {

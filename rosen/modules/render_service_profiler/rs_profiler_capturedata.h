@@ -33,6 +33,7 @@ public:
     inline static const std::string KEY_RS_PIXEL_IMAGE_ADDED = "rs_pixelimage_added";
     inline static const std::string KEY_RS_DIRTY_REGION = "rs_dirty_region";
     inline static const std::string KEY_RS_CPU_ID = "rs_cpu_id";
+    inline static const std::string KEY_RS_VSYNC_ID = "rs_vsync_id";
 
     // every frame rendered
     inline static const std::string KEY_RENDER_FRAME_NUMBER = "render_frame_number";

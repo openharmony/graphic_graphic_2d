@@ -196,6 +196,9 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     } else {
         ScopedBytrace failed("failed");
     }
+    if (gcNotifyTask_ != nullptr) {
+        gcNotifyTask_(false);
+    }
     return ret;
 }
 
@@ -461,7 +464,7 @@ void VSyncDistributor::ThreadMain()
                 }
                 RS_TRACE_NAME_FMT("%s_continue: waitForVSync %d, vsyncEnabled %d, dvsyncOn %d",
                     name_.c_str(), waitForVSync, vsyncEnabled_, IsDVsyncOn());
-                if (isRs_ || !IsDVsyncOn()) {
+                if ((isRs_ && event_.timestamp == 0) || !IsDVsyncOn()) {
                     continue;
                 } else {
                     timestamp = event_.timestamp;
@@ -509,9 +512,8 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
             dvsync_->RNVNotify();
             dvsync_->DelayBeforePostEvent(timestamp, locker);
             dvsync_->MarkDistributorSleep(false);
-            if (!isRs_) {
-                CollectConns(waitForVSync, timestamp, conns, true);
-            }
+            CollectConns(waitForVSync, timestamp, conns, true);
+            hasVsync_.store(false);
         }
         // if getting switched into vsync mode after sleep
         if (!IsDVsyncOn()) {
@@ -522,6 +524,9 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
             }  // resend RNV for vsync
             return false;  // do not accumulate frame;
         }
+    } else {
+        std::unique_lock<std::mutex> locker(mutex_);
+        hasVsync_.store(false);
     }
     {
         std::unique_lock<std::mutex> locker(mutex_);
@@ -565,6 +570,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     dvsync_->RecordVSync(now, period, refreshRate);
     dvsync_->NotifyPreexecuteWait();
 
+    SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
     // when dvsync switch to vsync, skip all vsync events within one period from the pre-rendered timestamp
     if (dvsync_->NeedSkipDVsyncPrerenderedFrame()) {
         return;
@@ -576,13 +582,13 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     }
 
     if (refreshRate > 0) {
-        event_.vsyncPulseCount += static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / refreshRate);
+        uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
+        event_.vsyncPulseCount += static_cast<int64_t>(maxRefreshRate / refreshRate);
         generatorRefreshRate_ = refreshRate;
     }
 
     ChangeConnsRateLocked();
     RS_TRACE_NAME_FMT("pendingRNVInVsync: %d DVSyncOn: %d isRS:%d", pendingRNVInVsync_, IsDVsyncOn(), isRs_);
-    SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
     if (dvsync_->WaitCond() || pendingRNVInVsync_) {
         con_.notify_all();
     } else {
@@ -613,7 +619,8 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
         vsyncCount = event_.vsyncCount;
 
         if (refreshRate > 0) {
-            event_.vsyncPulseCount += static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / refreshRate);
+            uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
+            event_.vsyncPulseCount += static_cast<int64_t>(maxRefreshRate / refreshRate);
             generatorRefreshRate_ = refreshRate;
         }
         vsyncMode_ = vsyncMode;
@@ -676,7 +683,7 @@ void VSyncDistributor::SendConnectionsToVSyncWindow(int64_t now, int64_t period,
 {
     std::vector<sptr<VSyncConnection>> conns;
     bool waitForVSync = false;
-    if (isRs_ || !IsDVsyncOn()) {
+    if (isRs_ || GetUIDVsyncPid() == 0) {
         return;
     }
     CollectConns(waitForVSync, now, conns, false);
@@ -688,7 +695,7 @@ void VSyncDistributor::SendConnectionsToVSyncWindow(int64_t now, int64_t period,
 int32_t VSyncDistributor::GetUIDVsyncPid()
 {
     int32_t pid = 0;
-    if (!isRs_ && IsDVsyncOn()) {
+    if (!isRs_) {
         pid = dvsync_->GetProxyPid();
     }
     return pid;
@@ -827,7 +834,6 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
     if (isDvsyncThread) {
         std::unique_lock<std::mutex> locker(mutex_);
         dvsync_->RecordPostEvent(conns, timestamp);
-        hasVsync_.store(false);
     }
 #endif
     uint32_t generatorRefreshRate = 0;
@@ -981,7 +987,7 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
     if (name.find("WM") == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    if (name.find("NWeb") != std::string::npos) {
+    if ((name.find("NWeb") != std::string::npos) && (name.find("ArkWebCore") != std::string::npos)) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::string::size_type pos = name.find("_");
@@ -1072,6 +1078,7 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
 void VSyncDistributor::ChangeConnsRateLocked()
 {
     std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
+    uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
     for (auto connRefreshRate : changingConnsRefreshRates_) {
         for (auto conn : connections_) {
             if (conn->id_ != connRefreshRate.first) {
@@ -1079,13 +1086,13 @@ void VSyncDistributor::ChangeConnsRateLocked()
             }
             uint32_t refreshRate = connRefreshRate.second;
             if ((generatorRefreshRate_ == 0) || (refreshRate == 0) ||
-                (VSYNC_MAX_REFRESHRATE % refreshRate != 0) || (generatorRefreshRate_ % refreshRate != 0)) {
+                (maxRefreshRate % refreshRate != 0) || (generatorRefreshRate_ % refreshRate != 0)) {
                 conn->refreshRate_ = 0;
                 conn->vsyncPulseFreq_ = 1;
                 continue;
             }
             conn->refreshRate_ = refreshRate;
-            conn->vsyncPulseFreq_ = VSYNC_MAX_REFRESHRATE / refreshRate;
+            conn->vsyncPulseFreq_ = maxRefreshRate / refreshRate;
             conn->referencePulseCount_ = event_.vsyncPulseCount;
         }
     }

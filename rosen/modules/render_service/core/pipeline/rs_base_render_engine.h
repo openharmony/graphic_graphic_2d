@@ -218,8 +218,13 @@ public:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
 
-    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers,
-        bool forceCPU = false, const ScreenInfo& screenInfo = {}) = 0;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
+        const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
+#else
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
+        const ScreenInfo& screenInfo = {}) = 0;
+#endif
 
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
@@ -227,14 +232,9 @@ public:
     void ClearCacheSet(const std::set<int32_t> unmappedCache);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
-    static void SetHighContrast(bool enabled)
-    {
-        isHighContrastEnabled_  = enabled;
-    }
-    static bool IsHighContrastEnabled()
-    {
-        return isHighContrastEnabled_;
-    }
+    static void SetHighContrast(bool enabled);
+    static bool IsHighContrastEnabled();
+
 #if defined(NEW_RENDER_CONTEXT)
     const std::shared_ptr<RenderContextBase>& GetRenderContext() const
     {
@@ -288,13 +288,13 @@ protected:
 
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
+    static inline std::atomic_bool isHighContrastEnabled_ = false;
 
 private:
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
 
-    static inline std::atomic_bool isHighContrastEnabled_ = false;
 #if defined(NEW_RENDER_CONTEXT)
     std::shared_ptr<RenderContextBase> renderContext_ = nullptr;
     std::shared_ptr<DrawingContext> drawingContext_ = nullptr;

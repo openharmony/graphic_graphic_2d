@@ -105,7 +105,12 @@ public:
     bool GetLtpoEnabled() const
     {
         return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
-            (maxTE_ == VSYNC_MAX_REFRESHRATE);
+            (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
+    }
+
+    bool GetAdaptiveSyncEnabled() const
+    {
+        return GetLtpoEnabled() && adaptiveSync_ == ADAPTIVE_SYNC_ENABLED;
     }
 
     // called by RSHardwareTHread
@@ -173,7 +178,6 @@ public:
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize);
     int32_t RemoveScreen(ScreenId id);
     int32_t AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode);
-    int32_t RefreshBundleName(const std::string& name);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     int32_t GetCurrentRefreshRateMode() const;
     int32_t GetCurrentRefreshRateModeName() const;
@@ -223,6 +227,7 @@ private:
     void CheckCustomFrameRateModeValid();
     int32_t InitXmlConfig();
     int32_t SetCustomRateMode(int32_t mode);
+    void SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting);
 
     bool isEnabled_ = true;
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
@@ -249,6 +254,7 @@ private:
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
+    int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
     std::atomic<bool> vBlankIdleCorrectSwitch_{ false };
     std::atomic<bool> lowRateToHighQuickSwitch_{ false };

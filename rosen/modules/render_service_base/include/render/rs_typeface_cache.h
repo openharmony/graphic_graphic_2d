@@ -33,14 +33,39 @@ public:
     static RSTypefaceCache& Instance();
     static pid_t GetTypefacePid(uint64_t globalUniqueId);
     static uint32_t GetTypefaceId(uint64_t globalUniqueId);
+    /**
+      * Calculate unique id by combining process id and local unique id
+      * uniqueId = pid(high 32bit) | typefaceId(low 32bit)
+      */
     static uint64_t GenGlobalUniqueId(uint32_t typefaceId);
-    // uniqueId = pid(32bit) | typefaceId(32bit)
+    /**
+      * Checks if the given hash exists in the cache already
+      * provided by someone else. If so, increases ref count to reduce registration cost.
+      */
+    bool HasTypeface(uint64_t globalUniqueId, uint32_t hash);
     void CacheDrawingTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface> typeface);
     std::shared_ptr<Drawing::Typeface> GetDrawingTypefaceCache(uint64_t globalUniqueId) const;
     void RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqueId);
     void RemoveDrawingTypefacesByPid(pid_t pid);
     void AddDelayDestroyQueue(uint64_t globalUniqueId);
     void HandleDelayDestroyQueue();
+
+    /**
+     * @brief    Remove patched typeface IDs (used for profiler replay).
+     */
+    void ReplayClear();
+
+    /**
+     * @brief    Serialize drawing typeface cache (used for profiler replay).
+     * @param ss String stream to write serialized data.
+     */
+    void ReplaySerialize(std::stringstream& ss);
+
+    /**
+     * @brief    Deserialize drawing typeface cache (used for profiler replay).
+     * @param ss Serialized data.
+     */
+    void ReplayDeserialize(std::stringstream& ss);
 
     RSTypefaceCache() = default;
     ~RSTypefaceCache() = default;
@@ -53,6 +78,7 @@ public:
     void Dump() const;
 
 private:
+    bool AddIfFound(uint64_t uniqueId, uint32_t hash);
     RSTypefaceCache(const RSTypefaceCache&) = delete;
     RSTypefaceCache(const RSTypefaceCache&&) = delete;
     RSTypefaceCache& operator=(const RSTypefaceCache&) = delete;
@@ -63,6 +89,7 @@ private:
 
     mutable std::mutex listMutex_;
     std::list<RSTypefaceRef> delayDestroyTypefaces_;
+    std::unordered_map<uint32_t, std::vector<uint64_t>> typefaceHashQueue_;
 };
 } // namespace Rosen
 } // namespace OHOS

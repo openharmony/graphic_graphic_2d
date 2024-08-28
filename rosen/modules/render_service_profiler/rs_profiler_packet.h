@@ -23,7 +23,7 @@
 #include <type_traits>
 #include <vector>
 
-#ifndef REPLAY_TOOL_CLIENT
+#ifndef RENDER_PROFILER_APPLICATION
 #include <securec.h>
 #endif
 
@@ -45,31 +45,6 @@ enum class PackageID {
     RS_PROFILER_MSKP_FILEPATH,
     RS_PROFILER_BETAREC_FILEPATH,
     RS_PROFILER_RENDER_METRICS,
-};
-class BinaryHelper {
-public:
-    BinaryHelper() = delete;
-    BinaryHelper(const BinaryHelper&) = delete;
-    BinaryHelper(BinaryHelper&&) = delete;
-    BinaryHelper& operator=(const BinaryHelper&) = delete;
-    BinaryHelper& operator=(BinaryHelper&&) = delete;
-
-    static PackageID Type(const char* data)
-    {
-        return static_cast<PackageID>(data[0]);
-    }
-    static std::vector<char> Data(const char* data, int len)
-    {
-        return std::vector<char>(data + 1, data + len);
-    }
-    static uint32_t BinaryCount(const char* data)
-    {
-        return *reinterpret_cast<const uint32_t*>(data + 1);
-    }
-    static uint16_t Pid(const char* data)
-    {
-        return *reinterpret_cast<const uint16_t*>(data + 1 + sizeof(uint32_t));
-    }
 };
 
 template<typename T, typename = void>

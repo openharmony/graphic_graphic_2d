@@ -466,9 +466,8 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
 {
     RSContext context;
     std::string name = "name";             // for test
-    std::string bundleName = "bundleName"; // for test
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
-    SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, bundleName, windowType);
+    SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, windowType);
 }
 
 /**

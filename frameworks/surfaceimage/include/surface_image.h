@@ -42,6 +42,7 @@ typedef void (*OnBufferAvailableListener)(void *context);
 class SurfaceImage : public ConsumerSurface {
 public:
     SurfaceImage(uint32_t textureId, uint32_t textureTarget = GL_TEXTURE_EXTERNAL_OES);
+    SurfaceImage();
     virtual ~SurfaceImage();
 
     void InitSurfaceImage();
@@ -90,17 +91,17 @@ private:
     void NewBufferDestroyEGLImage(bool isNewBuffer, uint32_t seqNum);
     void DestroyEGLImageBySeq(uint32_t seqNum);
 
-    uint32_t textureId_;
-    uint32_t textureTarget_;
+    uint32_t textureId_ = 0;
+    uint32_t textureTarget_ = 0;
     std::string surfaceImageName_;
 
     std::mutex opMutex_;
     std::atomic<bool> updateSurfaceImage_;
 
-    EGLDisplay eglDisplay_;
-    EGLContext eglContext_;
+    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
+    EGLContext eglContext_ = EGL_NO_CONTEXT;
     std::map<uint32_t, ImageCacheSeq> imageCacheSeqs_;
-    uint32_t currentSurfaceImage_;
+    uint32_t currentSurfaceImage_ = UINT_MAX;
     sptr<SurfaceBuffer> currentSurfaceBuffer_;
     int64_t currentTimeStamp_;
     Rect currentCrop_ = {};

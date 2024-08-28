@@ -457,6 +457,18 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDefaultDeviceRotationOffset
+ * @tc.desc: GetDefaultDeviceRotationOffset Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetDefaultDeviceRotationOffset, TestSize.Level1)
+{
+    RSSystemProperties::SetDefaultDeviceRotationOffset(90);
+    ASSERT_TRUE(RSSystemProperties::GetDefaultDeviceRotationOffset() == 90);
+}
+
+/**
  * @tc.name: GetPrepareParallelRenderingEnabled
  * @tc.desc: GetPrepareParallelRenderingEnabled Test
  * @tc.type:FUNC
@@ -579,17 +591,6 @@ HWTEST_F(RSSystemPropertiesTest, GetFilterCacheSizeThreshold, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetColorPickerPartialEnabled
- * @tc.desc: GetColorPickerPartialEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetColorPickerPartialEnabled, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetColorPickerPartialEnabled());
-}
-
-/**
  * @tc.name: GetMaskLinearBlurEnabled
  * @tc.desc: GetMaskLinearBlurEnabled Test
  * @tc.type:FUNC
@@ -620,6 +621,17 @@ HWTEST_F(RSSystemPropertiesTest, GetMotionBlurEnabled, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, GetKawaseEnabled, TestSize.Level1)
 {
     ASSERT_TRUE(RSSystemProperties::GetKawaseEnabled());
+}
+
+/**
+ * @tc.name: GetMESABlurFuzedEnabled
+ * @tc.desc: GetMESABlurFuzedEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetMESABlurFuzedEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetMESABlurFuzedEnabled());
 }
 
 /**
@@ -788,6 +800,11 @@ HWTEST_F(RSSystemPropertiesTest, GetDumpImgEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSucess, TestSize.Level1)
 {
+    std::string targetStr1("");
+    system::SetParameter("persist.sys.graphic.traceTargetList", targetStr1);
+    std::string nodeStr1("A");
+    RSSystemProperties::FindNodeInTargetList(nodeStr1);
+
     std::string targetStr("A;B;C;D");
     system::SetParameter("persist.sys.graphic.traceTargetList", targetStr);
     std::string nodeStr("A");

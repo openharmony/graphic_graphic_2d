@@ -45,12 +45,14 @@ void RSInnovationTest::TearDown() {}
  */
 HWTEST_F(RSInnovationTest, CloseInnovationSoTest, TestSize.Level1)
 {
-    RSInnovation::OpenInnovationSo(); 
     RSInnovation::CloseInnovationSo();
+    RSInnovation::GetParallelCompositionFunc();
+    RSInnovation::OpenInnovationSo();
     ASSERT_EQ(RSInnovation::innovationHandle, NULL);
     int value = 1;
     RSInnovation::innovationHandle = &value;
     RSInnovation::CloseInnovationSo();
+    RSInnovation::GetParallelCompositionFunc();
     ASSERT_NE(RSInnovation::innovationHandle, NULL);
 }
 
@@ -80,7 +82,10 @@ HWTEST_F(RSInnovationTest, ResetParallelCompositionFuncTest, TestSize.Level1)
     RSInnovation::OpenInnovationSo();
     ASSERT_NE(RSInnovation::innovationHandle, NULL);
     RSInnovation::_s_parallelCompositionLoaded = true;
-    RSInnovation::CloseInnovationSo();
+    RSInnovation::ResetParallelCompositionFunc();
+    
+    RSInnovation::_s_parallelCompositionLoaded = false;
+    RSInnovation::ResetParallelCompositionFunc();
 }
 } // namespace Rosen
 } // namespace OHOS

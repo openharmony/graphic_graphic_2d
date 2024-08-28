@@ -23,6 +23,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "drawable/rs_property_drawable.h"
 #include "recording/recording_canvas.h"
 #include "pipeline/rs_render_content.h"
 #include "utils/rect.h"
@@ -127,6 +128,12 @@ public:
     virtual void SetDrawCmdListsVisited(bool flag) {}
     void SetSkip(SkipType type) { skipType_ = type; }
     SkipType GetSkipType() { return skipType_; }
+
+    bool IsFilterCacheValidForOcclusion() const;
+    const RectI GetFilterCachedRegion() const;
+
+    void SetSkipCacheLayer(bool hasSkipCacheLayer);
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -179,11 +186,15 @@ protected:
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
     std::vector<Drawing::RectI> filterRects_;
+    std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
+    std::shared_ptr<DrawableV2::RSFilterDrawable> compositingFilterDrawable_ = nullptr;
 #ifdef ROSEN_OHOS
     static thread_local RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #endif
+    // if the node needs to avoid drawing cache because of some layers, such as the security layer...
+    bool hasSkipCacheLayer_ = false;
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,

@@ -31,24 +31,6 @@ public:
 };
 
 /*
- * @tc.name: BinaryHelperTest
- * @tc.desc: Test public methods of BimaryHelper
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSProfilerPacketTest, BinaryHelperTest, testing::ext::TestSize.Level1)
-{
-    const std::vector<char> raw = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-    EXPECT_EQ(BinaryHelper::Type(raw.data()), PackageID::RS_PROFILER_HEADER);
-    EXPECT_EQ(BinaryHelper::BinaryCount(raw.data()), 0x04030201);
-    EXPECT_EQ(BinaryHelper::Pid(raw.data()), 0x0605);
-
-    auto payload = BinaryHelper::Data(raw.data(), raw.size());
-    EXPECT_EQ(payload.front(), 1);
-    EXPECT_EQ(payload.back(), 15);
-}
-
-/*
  * @tc.name: PacketTypeTest
  * @tc.desc: Test Packet types
  * @tc.type: FUNC

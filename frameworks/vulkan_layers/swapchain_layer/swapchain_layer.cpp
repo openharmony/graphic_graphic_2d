@@ -1461,8 +1461,7 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfacePresentModesKHR(
     VkPhysicalDevicePresentationPropertiesOHOS presentProperties = {};
     QueryPresentationProperties(physicalDevice, &presentProperties);
     if (presentProperties.sharedImage) {
-        presentModes.push_back(VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR);
-        presentModes.push_back(VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR);
+        SWLOGE("NativeWindow Not Support Shared Mode, now. Not Report Shared Mode.");
     }
 
     uint32_t numModes = static_cast<uint32_t>(presentModes.size());

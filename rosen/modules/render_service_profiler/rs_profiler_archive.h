@@ -25,10 +25,10 @@
 
 #include "rs_profiler_utils.h"
 
-#ifndef REPLAY_TOOL_CLIENT
+#ifndef RENDER_PROFILER_APPLICATION
 #include <securec.h>
 
-#include "platform/common/rs_log.h"
+#include "rs_profiler_log.h"
 #else
 #include "rs_adapt.h"
 #endif
@@ -153,8 +153,7 @@ public:
     {
         file_ = Utils::FileOpen(path, Reader ? "rb" : "wb");
         if (!file_) {
-            RS_LOGE("FileArchive: File %s cannot be opened for %s", path.data(), // NOLINT
-                (Reader ? "reading" : "writing"));
+            HRPE("FileArchive: Cannot open '%s' for %s", path.data(), (Reader ? "reading" : "writing"));
         }
     }
 

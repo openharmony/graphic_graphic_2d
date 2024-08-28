@@ -23,6 +23,7 @@
 #include "rs_profiler_cache.h"
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_file.h"
+#include "rs_profiler_log.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_socket.h"
 #include "rs_profiler_utils.h"
@@ -48,60 +49,6 @@ static void AwakeRenderServiceThread()
         RSMainThread::Instance()->SetAccessibilityConfigChanged();
         RSMainThread::Instance()->RequestNextVSync();
     });
-}
-
-static uint32_t OnBinaryPrepare(RSFile& file, const char* data, size_t size)
-{
-    file.SetVersion(RSFILE_VERSION_LATEST);
-    file.Create(RSFile::GetDefaultPath());
-    return BinaryHelper::BinaryCount(data);
-}
-
-static void OnBinaryHeader(RSFile& file, const char* data, size_t size)
-{
-    if (!file.IsOpen()) {
-        return;
-    }
-
-    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
-    stream.write(reinterpret_cast<const char*>(data + 1), size - 1);
-    stream.seekg(0);
-
-    double writeStartTime = 0.0;
-    stream.read(reinterpret_cast<char*>(&writeStartTime), sizeof(writeStartTime));
-    file.SetWriteTime(writeStartTime);
-
-    uint32_t pidCount = 0u;
-    stream.read(reinterpret_cast<char*>(&pidCount), sizeof(pidCount));
-    for (uint32_t i = 0; i < pidCount; i++) {
-        pid_t pid = 0u;
-        stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
-        file.AddHeaderPid(pid);
-    }
-    file.AddLayer();
-
-    std::string dataFirstFrame;
-    size_t sizeDataFirstFrame = 0;
-    stream.read(reinterpret_cast<char*>(&sizeDataFirstFrame), sizeof(sizeDataFirstFrame));
-    dataFirstFrame.resize(sizeDataFirstFrame);
-    stream.read(reinterpret_cast<char*>(&dataFirstFrame[0]), sizeDataFirstFrame);
-    file.AddHeaderFirstFrame(dataFirstFrame);
-
-    ImageCache::Deserialize(stream);
-}
-
-static void OnBinaryChunk(RSFile& file, const char* data, size_t size)
-{
-    constexpr size_t timeOffset = 8 + 1;
-    if (file.IsOpen() && (size >= timeOffset)) {
-        const double time = *(reinterpret_cast<const double*>(data + 1));
-        file.WriteRSData(time, const_cast<char*>(data) + timeOffset, size - timeOffset);
-    }
-}
-
-static void OnBinaryFinish(RSFile& file, const char* data, size_t size)
-{
-    file.Close();
 }
 
 void Network::Run()
@@ -152,45 +99,6 @@ void Network::Stop()
     isRunning_ = false;
 }
 
-std::vector<NetworkStats> Network::GetStats(const std::string& interface)
-{
-    static const uint32_t INTERFACE_COLUMN = 0u;
-    static const uint32_t RECV_BYTES_COLUMN = 1u;
-    static const uint32_t SENT_BYTES_COLUMN = 9u;
-
-    std::ifstream netdev("/proc/net/dev");
-    if (!netdev.good()) {
-        return {};
-    }
-
-    std::vector<NetworkStats> results;
-
-    std::string data;
-    // skip the first two lines (headers)
-    std::getline(netdev, data);
-    std::getline(netdev, data);
-
-    while (netdev.good()) {
-        std::getline(netdev, data);
-        std::vector<std::string> parts = Utils::Split(data);
-        if (parts.empty()) {
-            continue;
-        }
-
-        std::string candidate = parts[INTERFACE_COLUMN];
-        // remove the trailing ':' so we can compare against the provided interface
-        candidate.pop_back();
-
-        if (("*" == interface) || (candidate == interface)) {
-            const uint64_t recvBytes = std::stoull(parts[RECV_BYTES_COLUMN]);
-            const uint64_t sentBytes = std::stoull(parts[SENT_BYTES_COLUMN]);
-
-            results.push_back({ .interface = candidate, .receivedBytes = recvBytes, .transmittedBytes = sentBytes });
-        }
-    };
-
-    return results;
-}
 
 void Network::SendPacket(const Packet& packet)
 {
@@ -309,12 +217,24 @@ void Network::SendMessage(const std::string& message)
     }
 }
 
+void Network::ResetSendQueue()
+{
+    const std::lock_guard<std::mutex> guard(outgoingMutex_);
+    outgoing_ = {};
+}
+
 void Network::PushCommand(const std::vector<std::string>& args)
 {
     if (!args.empty()) {
         const std::lock_guard<std::mutex> guard(incomingMutex_);
         incoming_.emplace(args);
     }
+}
+
+void Network::ResetCommandQueue()
+{
+    const std::lock_guard<std::mutex> guard(incomingMutex_);
+    incoming_ = {};
 }
 
 bool Network::PopCommand(std::vector<std::string>& args)
@@ -362,29 +282,31 @@ void Network::ProcessOutgoing(Socket& socket)
     }
 }
 
-void Network::ProcessBinary(const char* data, size_t size)
+void Network::ProcessBinary(const std::vector<char>& data)
 {
-    static uint32_t chunks = 0u;
-    static RSFile file;
+    if (data.empty()) {
+        return;
+    }
 
-    const PackageID id = BinaryHelper::Type(data);
-    if (id == PackageID::RS_PROFILER_PREPARE) {
-        // ping/pong for connection speed measurement
-        const char type = static_cast<char>(PackageID::RS_PROFILER_PREPARE);
-        SendBinary(&type, sizeof(type));
-        // amount of binary packages will be sent
-        chunks = OnBinaryPrepare(file, data, size);
-    } else if (id == PackageID::RS_PROFILER_HEADER) {
-        OnBinaryHeader(file, data, size);
-    } else if (id == PackageID::RS_PROFILER_BINARY) {
-        OnBinaryChunk(file, data, size);
+    std::istringstream stream(data.data(), data.size());
+    std::string path;
+    stream >> path;
 
-        chunks--;
-        if (chunks == 0) {
-            OnBinaryFinish(file, data, size);
-            const char type = static_cast<char>(PackageID::RS_PROFILER_PREPARE_DONE);
-            SendBinary(&type, sizeof(type));
-        }
+    const auto offset = std::min(path.size() + 1, data.size());
+    const auto size = data.size() - offset;
+    if (size == 0) {
+        HRPE("Network: Receive file: Invalid file size");
+        return;
+    }
+
+    constexpr size_t megabytes = 1024 * 1024;
+    HRPI("Receive file: %s %zuMB (%zu)", path.data(), size / megabytes, size);
+    if (auto file = Utils::FileOpen(path, "wb")) {
+        Utils::FileWrite(file, data.data() + offset, size);
+        Utils::FileClose(file);
+        HRPI("Network: Receive file: Done");
+    } else {
+        HRPE("Network: Receive file: Cannot open file: %s", path.data());
     }
 }
 
@@ -398,20 +320,22 @@ void Network::Shutdown(Socket*& socket)
     delete socket;
     socket = nullptr;
 
-    std::string command = "rsrecord_stop";
-    ProcessCommand(command.c_str(), command.size());
-    command = "rsrecord_replay_stop";
-    ProcessCommand(command.c_str(), command.size());
+    ResetSendQueue();
+    ResetCommandQueue();
+
+    PushCommand({ "reset" });
     AwakeRenderServiceThread();
+
+    HRPE("Network: Shutdown");
 }
 
 void Network::ProcessIncoming(Socket& socket)
 {
     const uint32_t sleepTimeout = 500000u;
 
-    Packet packetIncoming { Packet::UNKNOWN };
+    Packet packet { Packet::UNKNOWN };
     auto wannaReceive = Packet::HEADER_SIZE;
-    socket.Receive(packetIncoming.Begin(), wannaReceive);
+    socket.Receive(packet.Begin(), wannaReceive);
 
     if (wannaReceive == 0) {
         socket.SetState(SocketState::SHUTDOWN);
@@ -419,7 +343,7 @@ void Network::ProcessIncoming(Socket& socket)
         return;
     }
 
-    const size_t size = packetIncoming.GetPayloadLength();
+    const size_t size = packet.GetPayloadLength();
     if (size == 0) {
         return;
     }
@@ -428,26 +352,11 @@ void Network::ProcessIncoming(Socket& socket)
     data.resize(size);
     socket.ReceiveWhenReady(data.data(), data.size());
 
-    if (packetIncoming.IsBinary()) {
-        ProcessBinary(data.data(), data.size());
-    } else if (packetIncoming.IsCommand()) {
+    if (packet.IsBinary()) {
+        ProcessBinary(data);
+    } else if (packet.IsCommand()) {
         ProcessCommand(data.data(), data.size());
     }
-}
-
-void Network::ReportStats()
-{
-    constexpr uint32_t bytesToBits = 8u;
-    const std::string interface("wlan0");
-    const std::vector<NetworkStats> stats = Network::GetStats(interface);
-
-    std::string out = "Interface: " + interface;
-    for (const NetworkStats& stat : stats) {
-        out += "Transmitted: " + std::to_string(stat.transmittedBytes * bytesToBits);
-        out += "Received: " + std::to_string(stat.transmittedBytes * bytesToBits);
-    }
-
-    SendMessage(out);
 }
 
 } // namespace OHOS::Rosen

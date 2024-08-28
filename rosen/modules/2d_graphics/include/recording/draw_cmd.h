@@ -96,6 +96,7 @@ public:
         IMAGE_SNAPSHOT_OPITEM,
         SURFACEBUFFER_OPITEM,
         DRAW_FUNC_OPITEM,
+        RECORD_CMD_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);
@@ -815,6 +816,34 @@ private:
     SrcRectConstraint constraint_;
     std::shared_ptr<Image> image_;
     bool isForeground_ = false;
+};
+
+class DrawRecordCmdOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& recordCmdHandle, const Matrix::Buffer& matrixBuffer,
+            bool hasBrush, const BrushHandle& brushHandle)
+            : OpItem(DrawOpItem::RECORD_CMD_OPITEM), recordCmdHandle(recordCmdHandle),
+            matrixBuffer(matrixBuffer), hasBrush(hasBrush), brushHandle(brushHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle recordCmdHandle;
+        Matrix::Buffer matrixBuffer;
+        bool hasBrush = false;
+        BrushHandle brushHandle;
+    };
+    DrawRecordCmdOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    explicit DrawRecordCmdOpItem(const std::shared_ptr<RecordCmd>& recordCmd,
+        const Matrix* matrix, const Brush* brush);
+    ~DrawRecordCmdOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    std::shared_ptr<RecordCmd> recordCmd_ = nullptr;
+    Matrix matrix_;
+    bool hasBrush_ = false;
+    Brush brush_;
 };
 
 class DrawPictureOpItem : public DrawOpItem {

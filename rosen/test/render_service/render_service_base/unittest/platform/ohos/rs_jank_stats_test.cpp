@@ -74,6 +74,22 @@ HWTEST_F(RSJankStatsTest, SetEndTimeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateEndTimeTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSJankStatsTest, UpdateEndTimeTest, TestSize.Level1)
+{
+    auto& rsJankStats = RSJankStats::GetInstance();
+    rsJankStats.isFirstSetEnd_ = false;
+    rsJankStats.UpdateEndTime();
+    rsJankStats.isFirstSetEnd_ = true;
+    rsJankStats.UpdateEndTime();
+    ASSERT_NE(rsJankStats.isFirstSetEnd_, false);
+}
+
+/**
  * @tc.name: HandleDirectCompositionTest
  * @tc.desc:
  * @tc.type:FUNC
@@ -211,8 +227,11 @@ HWTEST_F(RSJankStatsTest, RecordJankFrameSingleTest, TestSize.Level1)
 {
     auto& rsJankStats = RSJankStats::GetInstance();
     JankFrameRecordStats recordStats = {"test", 1};
+    recordStats.isRecorded_ = true;
+    rsJankStats.RecordJankFrameSingle(1, recordStats);
     recordStats.isRecorded_ = false;
     rsJankStats.RecordJankFrameSingle(1, recordStats);
+    rsJankStats.RecordJankFrameSingle(0, recordStats);
     ASSERT_EQ(recordStats.isRecorded_, true);
 }
 
@@ -345,6 +364,19 @@ HWTEST_F(RSJankStatsTest, SetImplicitAnimationEnd003, TestSize.Level1)
 
     // ReportEventJankFrame and ReportEventHitchTimeRatio test
     JankFrames jankFramesTest3;
+    jankFramesTest3.totalFrameTimeSteadyForHTR_ = 0;
+    rsJankStats->ReportEventJankFrame(jankFramesTest3, true);
+    jankFramesTest3.totalFrameTimeSteadyForHTR_ = 1;
+    rsJankStats->ReportEventJankFrame(jankFramesTest3, true);
+    jankFramesTest3.totalFrameTimeSteadyForHTR_ = 0;
+    rsJankStats->ReportEventHitchTimeRatio(jankFramesTest3, false);
+    jankFramesTest3.totalFrameTimeSteadyForHTR_ = 1;
+    rsJankStats->ReportEventHitchTimeRatio(jankFramesTest3, false);
+    jankFramesTest3.lastTotalFrameTimeSteadyForHTR_ = 0;
+    rsJankStats->ReportEventHitchTimeRatio(jankFramesTest3, true);
+    jankFramesTest3.lastTotalFrameTimeSteadyForHTR_ = 1;
+    rsJankStats->ReportEventHitchTimeRatio(jankFramesTest3, true);
+
     jankFramesTest3.totalFrames_ = 0;
     rsJankStats->ReportEventJankFrame(jankFramesTest3, false);
     jankFramesTest3.totalFrameTimeSteadyForHTR_ = 0;
@@ -413,15 +445,24 @@ HWTEST_F(RSJankStatsTest, RecordAnimationDynamicFrameRateTest005, TestSize.Level
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
 
     jankFrames.isFrameRateRecorded_ = false;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
 
+    jankFrames.traceId_ = -1;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
     jankFrames.traceId_ = 0;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+    rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
     rsJankStats->animationAsyncTraces_.emplace(0, AnimationTraceStats());
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
 
+    jankFrames.totalFrameTimeSteadyForHTR_ = 1;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
     jankFrames.totalFrames_ = 1;
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
+    jankFrames.lastTotalFrameTimeSteadyForHTR_ = 1;
+    rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
     jankFrames.lastTotalFrames_ = 1;
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
 
@@ -437,11 +478,11 @@ HWTEST_F(RSJankStatsTest, RecordAnimationDynamicFrameRateTest005, TestSize.Level
     jankFrames.endTimeSteady_ = 2;
     jankFrames.isFrameRateRecorded_ = false;
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, false);
-    EXPECT_FALSE(jankFrames.isFrameRateRecorded_);
+    EXPECT_TRUE(jankFrames.isFrameRateRecorded_);
     jankFrames.lastEndTimeSteady_ = 2;
     jankFrames.isFrameRateRecorded_ = false;
     rsJankStats->RecordAnimationDynamicFrameRate(jankFrames, true);
-    EXPECT_FALSE(jankFrames.isFrameRateRecorded_);
+    EXPECT_TRUE(jankFrames.isFrameRateRecorded_);
 }
 
 /**
@@ -565,6 +606,52 @@ HWTEST_F(RSJankStatsTest, GetTraceIdInitTest009, TestSize.Level1)
     // ConvertTimeToSystime test
     EXPECT_EQ(rsJankStats->ConvertTimeToSystime(0), 0);
     EXPECT_NE(rsJankStats->ConvertTimeToSystime(1), 0);
+}
+
+/**
+ * @tc.name: GetMaxJankInfoTest010
+ * @tc.desc: GetMaxJankInfo test
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSJankStatsTest, GetMaxJankInfoTest010, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    rsJankStats->GetMaxJankInfo(jankFrames, false);
+    rsJankStats->GetMaxJankInfo(jankFrames, true);
+
+    jankFrames.traceCreateTimeSteady_ = -1;
+    jankFrames.startTimeSteady_ = -1;
+    jankFrames.endTimeSteady_ = -1;
+    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    jankFrames.traceCreateTimeSteady_ = -1;
+    jankFrames.startTimeSteady_ = -1;
+    jankFrames.endTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    jankFrames.traceCreateTimeSteady_ = -1;
+    jankFrames.startTimeSteady_ = 0;
+    jankFrames.endTimeSteady_ = -1;
+    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    jankFrames.traceCreateTimeSteady_ = -1;
+    jankFrames.startTimeSteady_ = 0;
+    jankFrames.endTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, true);
+    jankFrames.traceCreateTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, true);
+
+    jankFrames.maxFrameOccurenceTimeSteady_ = 0;
+    jankFrames.maxHitchOccurenceTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, false);
+
+    jankFrames.lastMaxFrameOccurenceTimeSteady_ = 0;
+    jankFrames.lastMaxHitchOccurenceTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, true);
+
+    jankFrames.isFrameRateRecorded_ = false;
+    EXPECT_FALSE(jankFrames.isFrameRateRecorded_);
 }
 } // namespace Rosen
 } // namespace OHOS

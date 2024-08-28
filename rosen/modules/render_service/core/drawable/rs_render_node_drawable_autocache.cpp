@@ -220,6 +220,18 @@ void RSRenderNodeDrawable::BeforeDrawCache(NodeStrategyType& cacheStragy,
     OpincCalculateBefore(canvas, params, isOpincDropNodeExt);
 }
 
+bool RSRenderNodeDrawable::IsOpincNodeInScreenRect(RSRenderParams& params)
+{
+    auto nodeAbsRect = params.GetAbsDrawRect();
+    RS_OPTIONAL_TRACE_NAME_FMT("opincNodeAbsRect{%d %d %d %d}, screenRect{%d %d %d %d}",
+        nodeAbsRect.GetLeft(), nodeAbsRect.GetTop(), nodeAbsRect.GetRight(), nodeAbsRect.GetBottom(),
+        screenRectInfo_.GetLeft(), screenRectInfo_.GetTop(), screenRectInfo_.GetRight(), screenRectInfo_.GetBottom());
+    if (!nodeAbsRect.IsEmpty() && nodeAbsRect.IsInsideOf(screenRectInfo_)) {
+        return true;
+    }
+    return false;
+}
+
 void RSRenderNodeDrawable::AfterDrawCache(NodeStrategyType& cacheStragy,
     Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt, int& opincRootTotalCount)
 {
@@ -243,7 +255,8 @@ void RSRenderNodeDrawable::AfterDrawCache(NodeStrategyType& cacheStragy,
         }
     } else if (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE &&
         recordState_ == NodeRecordState::RECORD_CACHING) {
-        if ((opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!OpincGetCachedMark())) {
+        if ((opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!OpincGetCachedMark()) &&
+            IsOpincNodeInScreenRect(params)) {
             opincRootTotalCount++;
             isOpincMarkCached_ = true;
             recordState_ = NodeRecordState::RECORD_CACHED;
@@ -327,9 +340,9 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
         return ret;
     }
     auto& unionRect = opListDrawAreas_.GetOpInfo().unionRect;
-    AppendFormat(ret, "%llx, rootF:%d record:%d rootS:%d opCan:%d isRD:%d",
+    AppendFormat(ret, "%llx, rootF:%d record:%d rootS:%d opCan:%d isRD:%d, OpDropped:%d isOpincDrop:%d",
         params->GetId(), params->OpincGetRootFlag(),
-        recordState_, rootNodeStragyType_, opCanCache_, isDrawAreaEnable_);
+        recordState_, rootNodeStragyType_, opCanCache_, isDrawAreaEnable_, GetOpDropped(), isOpincDropNodeExt_);
     auto& info = opListDrawAreas_.GetOpInfo();
     AppendFormat(ret, " opNum%d", info.num, info.percent);
     auto bounds = params->GetBounds();

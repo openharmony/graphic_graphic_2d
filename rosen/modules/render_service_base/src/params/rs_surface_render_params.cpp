@@ -99,6 +99,36 @@ bool RSSurfaceRenderParams::GetOccludedByFilterCache() const
     return isOccludedByFilterCache_;
 }
 
+void RSSurfaceRenderParams::SetFilterCacheFullyCovered(bool val)
+{
+    isFilterCacheFullyCovered_ = val;
+}
+
+bool RSSurfaceRenderParams::GetFilterCacheFullyCovered() const
+{
+    return isFilterCacheFullyCovered_;
+}
+
+const std::vector<NodeId>& RSSurfaceRenderParams::GetVisibleFilterChild() const
+{
+    return visibleFilterChild_;
+}
+
+bool RSSurfaceRenderParams::IsTransparent() const
+{
+    return isTransparent_;
+}
+
+void RSSurfaceRenderParams::CheckValidFilterCacheFullyCoverTarget(
+    bool isFilterCacheValidForOcclusion, const RectI& filterCachedRect, const RectI& targetRect)
+{
+    if (isFilterCacheFullyCovered_ || !isFilterCacheValidForOcclusion) {
+        return;
+    }
+    // AbsRect may not update here, so use filterCachedRegion to occlude
+    isFilterCacheFullyCovered_ = targetRect.IsInsideOf(filterCachedRect);
+}
+
 void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -154,18 +184,32 @@ bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
     return isLastFrameHardwareEnabled_;
 }
 
-void RSSurfaceRenderParams::SetForceHardwareByUser(bool flag)
+void RSSurfaceRenderParams::SetFixRotationByUser(bool flag)
 {
-    if (isForceHardwareByUser_ == flag) {
+    if (isFixRotationByUser_ == flag) {
         return;
     }
-    isForceHardwareByUser_ = flag;
+    isFixRotationByUser_ = flag;
     needSync_ = true;
 }
 
-bool RSSurfaceRenderParams::GetForceHardwareByUser() const
+bool RSSurfaceRenderParams::GetFixRotationByUser() const
 {
-    return isForceHardwareByUser_;
+    return isFixRotationByUser_;
+}
+
+void RSSurfaceRenderParams::SetInFixedRotation(bool flag)
+{
+    if (isInFixedRotation_ == flag) {
+        return;
+    }
+    isInFixedRotation_ = flag;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsInFixedRotation() const
+{
+    return isInFixedRotation_;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -314,6 +358,34 @@ bool RSSurfaceRenderParams::GetSkipDraw() const
     return isSkipDraw_;
 }
 
+void RSSurfaceRenderParams::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    auto iter = watermarkHandles_.find(name);
+    if (iter == watermarkHandles_.end()) {
+        std::tie(iter, std::ignore) = watermarkHandles_.insert({name, {false, nullptr}});
+    }
+    (iter->second).second = watermark;
+}
+
+void RSSurfaceRenderParams::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+{
+    auto iter = watermarkHandles_.find(name);
+    if (iter == watermarkHandles_.end()) {
+        return;
+    }
+    (iter->second).first = isEnabled;
+}
+
+std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> RSSurfaceRenderParams::GetWatermark() const
+{
+    return watermarkHandles_;
+}
+
+size_t RSSurfaceRenderParams::GetWatermarkSize() const
+{
+    return watermarkHandles_.size();
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -359,7 +431,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
-    targetSurfaceParams->isForceHardwareByUser_ = isForceHardwareByUser_;
+    targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
+    targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
     targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
     targetSurfaceParams->uifirstUseStarting_ = uifirstUseStarting_;
@@ -390,8 +463,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
+    targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
+    targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
+    targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     RSRenderParams::OnSync(target);
 }
 

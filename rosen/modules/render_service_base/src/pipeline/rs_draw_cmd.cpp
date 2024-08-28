@@ -167,7 +167,6 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (!pixelMap) {
         return;
     }
-
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -178,14 +177,14 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()),
+                RSPixelMapUtil::GetPixelmapColorSpace(pixelMap))) {
                 rsImage_->SetDmaImage(image_);
             }
         }
 #endif
         return;
     }
-
     if (pixelMap->IsAstc()) {
         std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
         // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
@@ -212,7 +211,6 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         rsImage_->SetCompressData(fileData);
         return;
     }
-
     if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
         rsImage_->MarkYUVImage();
     }
@@ -296,7 +294,8 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer)
+bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     if (!RSSystemProperties::IsUseVukan()) {
         return false;
@@ -326,7 +325,8 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         tid_ = gettid();
     }
 
-    if (!canvas.GetGPUContext()) {
+    auto context = canvas.GetGPUContext();
+    if (!context) {
         RS_LOGE("MakeFromTextureForVK gpu context is nullptr");
         return false;
     }
@@ -334,8 +334,8 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    if (!image_->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr,
+    if (!image_->BuildFromTexture(*context, backendTexture_.GetTextureInfo(),
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace,
         NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
         RS_LOGE("MakeFromTextureForVK build image failed");
@@ -823,6 +823,7 @@ bool DrawSurfaceBufferOpItem::CreateEglTextureId()
     eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
+        nativeWindowBuffer_ = nullptr;
         LOGE("%{public}s create egl image fail %{public}d", __func__, eglGetError());
         return false;
     }

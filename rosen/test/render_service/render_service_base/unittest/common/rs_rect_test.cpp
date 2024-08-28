@@ -314,8 +314,8 @@ HWTEST_F(RSRectTest, ToString001, TestSize.Level1)
 {
     RectF rect;
     rect.SetAll(1.f, 1.f, 1.f, 1.f);
-    std::string str = std::string("(") + std::to_string(rect.GetLeft()) + ", " + std::to_string(rect.GetTop())
-        + ", " + std::to_string(rect.GetWidth()) + ", " + std::to_string(rect.GetHeight()) + ")";
+    std::string str = std::string("[") + std::to_string(rect.GetLeft()) + ", " + std::to_string(rect.GetTop())
+        + ", " + std::to_string(rect.GetWidth()) + ", " + std::to_string(rect.GetHeight()) + "]";
     EXPECT_EQ(rect.ToString(), str);
 }
 

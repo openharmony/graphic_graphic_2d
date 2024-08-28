@@ -20,6 +20,7 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "command/rs_message_processor.h"
+#include "command/rs_node_command.h"
 #include "hyper_graphic_manager/core/utils/hgm_command.h"
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
@@ -60,6 +61,7 @@ static std::unordered_map<RSUIDirector*, TaskRunner> g_uiTaskRunners;
 static std::mutex g_uiTaskRunnersVisitorMutex;
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
+static std::once_flag g_initDumpNodeTreeProcessorFlag;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -74,6 +76,9 @@ RSUIDirector::~RSUIDirector()
 void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
     AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
+    std::call_once(g_initDumpNodeTreeProcessorFlag, [] () {
+        RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor);
+    });
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (shouldCreateRenderThread && !isUniRenderEnabled_) {
@@ -165,6 +170,10 @@ void RSUIDirector::GoBackground(bool isTextureExport)
 #else
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
 #endif
+                if (rsSurface == nullptr) {
+                    ROSEN_LOGE("rsSurface is nullptr");
+                    return;
+                }
                 rsSurface->ClearBuffer();
             }
         });
@@ -339,12 +348,12 @@ void RSUIDirector::SendMessages()
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
+        index_ = transactionProxy->GetTransactionDataIndex();
     }
-    index_ = transactionProxy->GetTransactionDataIndex();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
-uint32_t RSUIDirector::GetIndex()
+uint32_t RSUIDirector::GetIndex() const
 {
     return index_;
 }
@@ -386,12 +395,18 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
         m[instanceId].push_back(std::move(cmd));
     }
     auto msgId = ++messageId;
-    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages messageId [%lu]", msgId);
+    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages [messageId:%lu,cmdIndex:%llu,cmdCount:%lu]",
+        msgId, cmds->GetIndex(), cmds->GetCommandCount());
     auto counter = std::make_shared<std::atomic_size_t>(m.size());
     for (auto &[instanceId, commands] : m) {
+        ROSEN_LOGI("RSUIDirector::ProcessMessages messageId:%{public}d, cmdCount:%{public}lu, "
+            "instanceId:%{public}d", msgId, static_cast<unsigned long>(commands.size()), instanceId);
         PostTask(
-            [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)), counter, msgId] {
+            [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
+                counter, msgId, tempInstanceId = instanceId] {
                 RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages PostTask messageId [%lu]", msgId);
+                ROSEN_LOGI("RSUIDirector::PostTask messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d",
+                    msgId, static_cast<unsigned long>(cmds->size()), tempInstanceId);
                 for (auto &cmd : *cmds) {
                     RSContext context; // RSCommand->process() needs it
                     cmd->Process(context);
@@ -430,6 +445,24 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     } else {
         ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %{public}" PRIu64 " on"
             " fallback node.", animId);
+    }
+}
+
+void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
+{
+    ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
+
+    std::string out;
+    if (auto node = RSNodeMap::Instance().GetNode(nodeId)) {
+        constexpr int TOP_LEVEL_DEPTH = 1;
+        node->DumpTree(TOP_LEVEL_DEPTH, out);
+    }
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSDumpClientNodeTree>(nodeId, getpid(), taskId, out);
+        transactionProxy->AddCommand(command, true);
+        RSTransaction::FlushImplicitTransaction();
     }
 }
 

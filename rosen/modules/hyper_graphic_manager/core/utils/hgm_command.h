@@ -29,6 +29,7 @@ namespace OHOS::Rosen {
 constexpr int UNI_APP_PID = -1;
 constexpr int32_t HGM_REFRESHRATE_MODE_AUTO = -1;
 constexpr pid_t DEFAULT_PID = 0;
+constexpr int ADAPTIVE_SYNC_ENABLED = 1;
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -94,6 +95,7 @@ public:
         int32_t min;
         int32_t max;
         DynamicModeType dynamicMode;
+        int32_t idleFps;
         bool isFactor;
         int32_t drawMin;
         int32_t drawMax;
@@ -141,6 +143,8 @@ public:
         std::unordered_map<std::string, std::string> animationPowerConfig;
         // <rateTypeName, idleFps>
         std::unordered_map<std::string, std::string> uiPowerConfig;
+        // <SCENE_APP_START_ANIMATION, placeholder>
+        std::unordered_map<std::string, std::string> ancoSceneList;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;

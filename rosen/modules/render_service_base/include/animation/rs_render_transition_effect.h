@@ -33,7 +33,7 @@ public:
     RSRenderTransitionEffect() = default;
     virtual ~RSRenderTransitionEffect() = default;
     const std::shared_ptr<RSRenderModifier>& GetModifier();
-    virtual void UpdateFraction(float valueFraction) const = 0;
+    virtual void UpdateFraction(float fraction) const = 0;
 
     bool Marshalling(Parcel& parcel) const override
     {
@@ -49,7 +49,7 @@ class RSB_EXPORT RSTransitionFade : public RSRenderTransitionEffect {
 public:
     explicit RSTransitionFade(float alpha) : alpha_(alpha) {}
     ~RSTransitionFade() override = default;
-    void UpdateFraction(float valueFraction) const override;
+    void UpdateFraction(float fraction) const override;
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
@@ -65,7 +65,7 @@ public:
         : scaleX_(scaleX), scaleY_(scaleY), scaleZ_(scaleZ)
     {}
     ~RSTransitionScale() override = default;
-    void UpdateFraction(float valueFraction) const override;
+    void UpdateFraction(float fraction) const override;
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
@@ -83,7 +83,7 @@ public:
         : translateX_(translateX), translateY_(translateY), translateZ_(translateZ)
     {}
     ~RSTransitionTranslate() override = default;
-    void UpdateFraction(float valueFraction) const override;
+    void UpdateFraction(float fraction) const override;
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
@@ -100,7 +100,7 @@ public:
     explicit RSTransitionRotate(float dx, float dy, float dz, float radian) : dx_(dx), dy_(dy), dz_(dz), radian_(radian)
     {}
     ~RSTransitionRotate() override = default;
-    void UpdateFraction(float valueFraction) const override;
+    void UpdateFraction(float fraction) const override;
 
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSRenderTransitionEffect* Unmarshalling(Parcel& parcel);
@@ -123,12 +123,12 @@ public:
     }
     ~RSTransitionCustom() override = default;
 
-    void UpdateFraction(float valueFraction) const override
+    void UpdateFraction(float fraction) const override
     {
         if (!valueEstimator_) {
             return;
         }
-        valueEstimator_->UpdateAnimationValue(valueFraction, true);
+        valueEstimator_->UpdateAnimationValue(fraction, true);
     }
 
 private:

@@ -38,7 +38,7 @@ Drawing::Matrix HpsBlurFilter::GetShaderTransform(const Drawing::Rect& blurRect,
 }
 
 bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-    const Drawing::HpsBlurParameter& param, float alpha) const
+    const Drawing::HpsBlurParameter& param, float alpha, std::shared_ptr<Drawing::ColorFilter> colorFilter) const
 {
     auto surface = canvas.GetSurface();
     if (surface == nullptr || image == nullptr) {
@@ -77,8 +77,14 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
     const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*imageCache, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, linear, blurMatrix);
     Drawing::Brush brush;
+    if (colorFilter != nullptr) {
+        Drawing::Filter filter;
+        filter.SetColorFilter(colorFilter);
+        brush.SetFilter(filter);
+    }
     brush.SetAlphaF(alpha);
     brush.SetShaderEffect(blurShader);
+    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();

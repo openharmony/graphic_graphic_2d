@@ -99,7 +99,7 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context, config.isTextureExportNode), name_(config.name), bundleName_(config.bundleName),
+    : RSRenderNode(config.id, context, config.isTextureExportNode), name_(config.name),
       nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
@@ -659,6 +659,21 @@ std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetCacheSurfaceDirtyM
     return cacheSurfaceDirtyManager_;
 }
 
+void RSSurfaceRenderNode::SetSurfaceNodeType(RSSurfaceNodeType nodeType)
+{
+    if (nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
+        nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+        nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+        return;
+    }
+    if (nodeType == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+        nodeType == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+        RS_LOGE("RSSurfaceRenderNode::SetSurfaceNodeType prohibition of converting surfaceNodeType to uiExtension");
+        return;
+    }
+    nodeType_ = nodeType;
+}
+
 void RSSurfaceRenderNode::MarkUIHidden(bool isHidden)
 {
     isUIHidden_ = isHidden;
@@ -752,28 +767,35 @@ void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetForceHardwareByUser(flag);
+    surfaceParams->SetFixRotationByUser(flag);
     AddToPendingSyncList();
 
-    isForceHardwareByUser_ = flag;
+    isFixRotationByUser_ = flag;
 }
 
-bool RSSurfaceRenderNode::GetForceHardwareByUser() const
+bool RSSurfaceRenderNode::GetFixRotationByUser() const
 {
-    return isForceHardwareByUser_;
+    return isFixRotationByUser_;
 }
 
-bool RSSurfaceRenderNode::GetForceHardware() const
+bool RSSurfaceRenderNode::IsInFixedRotation() const
 {
-    return isForceHardware_;
+    return isInFixedRotation_;
 }
 
-void RSSurfaceRenderNode::SetForceHardware(bool flag)
+void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating)
 {
-    if (isForceHardwareByUser_ && !isForceHardware_ && flag) {
-        originalDstRect_ = dstRect_;
+    if (isFixRotationByUser_ && !isInFixedRotation_ && isRotating) {
+#ifndef ROSEN_CROSS_PLATFORM
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        if (surfaceParams) {
+            auto layer = surfaceParams->GetLayerInfo();
+            originalSrcRect_ = { layer.srcRect.x, layer.srcRect.y, layer.srcRect.w, layer.srcRect.h };
+            originalDstRect_ = { layer.dstRect.x, layer.dstRect.y, layer.dstRect.w, layer.dstRect.h };
+        }
+#endif
     }
-    isForceHardware_ = isForceHardwareByUser_ && flag;
+    isInFixedRotation_ = isFixRotationByUser_ && isRotating;
 }
 
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
@@ -790,6 +812,8 @@ void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
     } else {
         securityLayerIds_.erase(GetId());
     }
+    ROSEN_LOGI("RSSurfaceRenderNode::SetSecurityLayer, Node id: %{public}" PRIu64 ", SecurityLayer:%{public}d",
+        GetId(), isSecurityLayer);
     SyncSecurityInfoToFirstLevelNode();
 }
 
@@ -959,15 +983,15 @@ void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
 
 bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
 {
-    return (ancoForceDoDirect_.load() && (GetAncoFlags() & static_cast<int32_t>(AncoFlags::IS_ANCO_NODE)));
+    return (ancoForceDoDirect_.load() && (GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)));
 }
 
-void RSSurfaceRenderNode::SetAncoFlags(int32_t flags)
+void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
 {
     ancoFlags_.store(flags);
 }
 
-int32_t RSSurfaceRenderNode::GetAncoFlags() const
+uint32_t RSSurfaceRenderNode::GetAncoFlags() const
 {
     return ancoFlags_.load();
 }
@@ -1108,6 +1132,9 @@ void RSSurfaceRenderNode::RegisterBufferClearListener(
 void RSSurfaceRenderNode::SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable)
 {
     isNotifyRTBufferAvailable_ = isNotifyRTBufferAvailable;
+    if (GetIsTextureExportNode()) {
+        SetContentDirty();
+    }
     std::lock_guard<std::mutex> lock(mutexClear_);
     if (clearBufferCallback_) {
         clearBufferCallback_->OnBufferClear();
@@ -1391,7 +1418,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.blendType = GetBlendType();
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
-    if (IsHardwareEnabledTopSurface() && RSSystemProperties::GetLayerCursorEnable()) {
+    if (IsHardwareEnabledTopSurface() && RSSystemProperties::IsPcType()) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
@@ -1420,6 +1447,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     surfaceParams->SetLayerInfo(layer);
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
+    surfaceParams->SetInFixedRotation(isInFixedRotation_);
     // 1 means need source tuning
     if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat()) {
         surfaceParams->SetLayerSourceTuning(1);
@@ -2137,7 +2165,7 @@ void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
     }
 }
 
-void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds)
+void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId>& nodeIds)
 {
     abilityNodeIds_.insert(nodeIds.begin(), nodeIds.end());
 }
@@ -2473,7 +2501,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             firstLevelNodeId = parentNode->GetFirstLevelNodeId ();
         }
     }
-    if (IsUIExtension()) {
+    if (IsSecureUIExtension()) {
         if (onTree) {
             secUIExtensionNodes_.insert(std::pair<NodeId, NodeId>(GetId(), instanceRootNodeId));
         } else {
@@ -2684,6 +2712,8 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->overDrawBufferNodeCornerRadius_ = GetOverDrawBufferNodeCornerRadius();
     surfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     surfaceParams->SetSkipDraw(isSkipDraw_);
+    surfaceParams->visibleFilterChild_ = GetVisibleFilterChild();
+    surfaceParams->isTransparent_ = IsTransparent();
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();
@@ -2773,6 +2803,34 @@ bool RSSurfaceRenderNode::GetSkipDraw() const
 const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtensionNodes()
 {
     return secUIExtensionNodes_;
+}
+
+void RSSurfaceRenderNode::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    auto iter = watermarkHandles_.find(name);
+    if (iter == watermarkHandles_.end()) {
+        std::tie(iter, std::ignore) = watermarkHandles_.insert({name, {false, nullptr}});
+    }
+    (iter->second).second = watermark;
+}
+
+void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+{
+    auto iter = watermarkHandles_.find(name);
+    if (iter == watermarkHandles_.end()) {
+        return;
+    }
+    (iter->second).first = isEnabled;
+}
+
+std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> RSSurfaceRenderNode::GetWatermark() const
+{
+    return watermarkHandles_;
+}
+
+size_t RSSurfaceRenderNode::GetWatermarkSize() const
+{
+    return watermarkHandles_.size();
 }
 } // namespace Rosen
 } // namespace OHOS

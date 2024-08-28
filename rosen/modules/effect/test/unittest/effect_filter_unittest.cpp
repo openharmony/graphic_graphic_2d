@@ -120,6 +120,32 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_Blur001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OH_Filter_Blur
+ * @tc.desc: Create a  blur effect filter with pixelmap.
+ * @tc.type: FUNC
+ * @tc.require: I9CSQ0
+ * @tc.author:
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_Blur002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_Blur002 start";
+
+    OH_PixelmapNative *pixmap = nullptr;
+    /** pixmap is necessary, otherwize can not create pixelmap*/
+    OH_PixelmapNative ** pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+    // -0.5 for test
+    ASSERT_TRUE(OH_Filter_Blur(filter, -0.5f) == EFFECT_BAD_PARAMETER);
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_Blur002 start";
+}
+
+/**
  * @tc.name: OH_Filter_GrayScale
  * @tc.desc: Create a gray scale effect filter with pixelmap.
  * @tc.type: FUNC
@@ -217,8 +243,53 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectPixelMap001, TestSize.Level1)
     ASSERT_TRUE(OH_Filter_Invert(filter) == EFFECT_SUCCESS);
     OH_PixelmapNative*pixelMap1 = nullptr;
     ASSERT_TRUE(OH_Filter_GetEffectPixelMap(filter, &pixelMap1) == EFFECT_SUCCESS);
+    ASSERT_TRUE(OH_Filter_GetEffectPixelMap(nullptr, &pixelMap1) == EFFECT_BAD_PARAMETER);
     ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
     OH_PixelmapNative_Release(*pixMap);
+    OH_PixelmapNative_Release(pixelMap1);
+}
+
+/**
+ * @tc.name: OH_Filter_GetEffectPixelMap
+ * @tc.desc: Get a pixelmap created by the filter.
+ * @tc.type: FUNC
+ * @tc.require: I9CSQ0
+ * @tc.author:
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectPixelMap002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectPixelMap002 start";
+
+    OH_PixelmapNative *pixmap = nullptr;
+    /** pixmap is necessary, otherwize can not create pixelmap*/
+    OH_PixelmapNative ** pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative*pixelMap1 = nullptr;
+    ASSERT_TRUE(OH_Filter_GetEffectPixelMap(nullptr, &pixelMap1) == EFFECT_BAD_PARAMETER);
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+    OH_PixelmapNative_Release(pixelMap1);
+
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectPixelMap002 start";
+}
+
+/**
+ * @tc.name: OH_Filter_GetEffectPixelMap003
+ * @tc.desc: Get a pixelmap created by the filter.
+ * @tc.type: FUNC
+ * @tc.require: I9CSQ0
+ * @tc.author:
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectPixelMap003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectPixelMap003 start";
+    ASSERT_TRUE(OH_Filter_GetEffectPixelMap(nullptr, nullptr) == EFFECT_BAD_PARAMETER);
+
+    OH_PixelmapNative *pixelMap1 = nullptr;
+    ASSERT_TRUE(OH_Filter_GetEffectPixelMap(nullptr, &pixelMap1) == EFFECT_BAD_PARAMETER);
     OH_PixelmapNative_Release(pixelMap1);
 }
 

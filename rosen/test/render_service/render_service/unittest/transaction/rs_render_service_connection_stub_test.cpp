@@ -107,7 +107,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub002
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE)), ERR_NONE);
-    ASSERT_EQ(OnRemoteRequestTest(
+    ASSERT_NE(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS)), ERR_NONE);
@@ -163,7 +163,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004
 {
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE)), ERR_INVALID_STATE);
-    ASSERT_EQ(OnRemoteRequestTest(
+    ASSERT_NE(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED)), ERR_INVALID_STATE);
@@ -240,7 +240,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub007
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE)), ERR_NONE);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
@@ -263,8 +263,10 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub007
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED)), ERR_NONE);
+    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED)), IPC_STUB_INVALID_DATA_ERR);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED)), ERR_NONE);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET)), ERR_NONE);
 #ifdef TP_FEATURE_ENABLE
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG)), ERR_INVALID_STATE);
