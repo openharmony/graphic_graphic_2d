@@ -60,11 +60,16 @@ public:
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
     std::shared_ptr<Data> Serialize() const override;
     static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);
+    /** return stored hash, calculates the hash if no value is stored */
+    uint32_t GetHash() const override;
+    /** store hash, storing a zero causes recalculating a hash when asked */
+    void SetHash(uint32_t hash) override;
 
 private:
     SkiaTypeface() = default;
 
     sk_sp<SkTypeface> skTypeface_;
+    mutable uint32_t hash_ { 0 };
 };
 } // namespace Drawing
 } // namespace Rosen

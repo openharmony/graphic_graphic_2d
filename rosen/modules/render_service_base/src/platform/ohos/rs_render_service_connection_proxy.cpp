@@ -1867,8 +1867,25 @@ bool RSRenderServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
         return false;
     }
     option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t hash = typeface->GetHash();
     data.WriteUint64(globalUniqueId);
+    data.WriteUint32(hash);
+
+    if (hash) { // if adapter does not provide hash, use old path
+        MessageParcel reply2;
+        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE);
+        int32_t err = Remote()->SendRequest(code, data, reply2, option);
+        if (err != NO_ERROR) {
+            RS_LOGW("Check if RegisterTypeface is needed failed, err:%{public}d", err);
+            return false;
+        }
+        if (!reply2.ReadBool()) {
+            return true; // the hash exists on server, no need to resend full data
+        }
+    }
+
     RSMarshallingHelper::Marshalling(data, typeface);
+
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
