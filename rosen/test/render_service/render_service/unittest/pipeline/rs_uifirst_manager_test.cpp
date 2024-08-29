@@ -607,28 +607,20 @@ HWTEST_F(RSUifirstManagerTest, ResetUifirstNode, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest, NotifyUIStartingWindow, TestSize.Level1)
 {
-    uifirstManager_.NotifyUIStartingWindow(1, true);
-    EXPECT_FALSE(uifirstManager_.hasDoneNode_);
-
     NodeId id = 0;
     auto rsContext = std::make_shared<RSContext>();
     auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    EXPECT_TRUE(parentNode);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    uifirstManager_.NotifyUIStartingWindow(id, false);
+    
     mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
-    uifirstManager_.NotifyUIStartingWindow(0, true);
-    EXPECT_TRUE(parentNode);
 
-    uifirstManager_.NotifyUIStartingWindow(0, false);
-    EXPECT_TRUE(parentNode);
-
-    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    uifirstManager_.NotifyUIStartingWindow(0, false);
-    EXPECT_TRUE(parentNode);
-
-    std::vector<std::shared_ptr<RSRenderNode>> children;
-    children.push_back(parentNode);
-    parentNode->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    uifirstManager_.NotifyUIStartingWindow(0, false);
-    EXPECT_TRUE(parentNode);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
+    EXPECT_TRUE(childNode);
+    childNode->SetSurfaceNodeType(RSSurfaceNodeType::STARTING_WINDOW_NODE);
+    parentNode->AddChild(childNode);
+    EXPECT_FALSE(childNode->IsWaitUifirstFirstFrame());
 }
 
 /**

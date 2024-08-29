@@ -896,6 +896,16 @@ public:
         return submittedSubThreadIndex_;
     }
 
+    bool IsWaitUifirstFirstFrame() const
+    {
+        return isWaitUifirstFirstFrame_;
+    }
+
+    void SetWaitUifirstFirstFrame(bool wait)
+    {
+        isWaitUifirstFirstFrame_ = wait;
+    }
+
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
     CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
 
@@ -1430,6 +1440,8 @@ private:
 #endif
     bool isForeground_ = false;
     bool UIFirstIsPurge_ = false;
+    // whether to wait uifirst first frame finished when buffer available callback invoked.
+    std::atomic<bool> isWaitUifirstFirstFrame_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
