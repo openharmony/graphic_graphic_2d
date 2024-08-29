@@ -316,7 +316,8 @@ bool RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& displayNod
         return false;
     }
     std::shared_ptr<RSDisplayRenderNode> node =
-        DisplayNodeCommandHelper::CreateWithConfigInRS(displayNodeConfig, mainThread_->GetContext());
+        DisplayNodeCommandHelper::CreateWithConfigInRS(mainThread_->GetContext(), nodeId,
+            displayNodeConfig);
     if (node == nullptr) {
         RS_LOGE("RSRenderService::CreateDisplayNode fail");
         return false;
@@ -328,13 +329,13 @@ bool RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& displayNod
             return;
         }
         auto& context = connection->mainThread_->GetContext();
+        context.GetMutableNodeMap().RegisterRenderNode(node);
+        context.GetGlobalRootRenderNode()->AddChild(node);
         auto mirrorSourceNode = context.GetNodeMap()
             .GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
         if (!mirrorSourceNode) { 
             return;
         }
-        context.GetGlobalRootRenderNode()->AddChild(node);
-        context.GetMutableNodeMap().RegisterRenderNode(node);
         node->SetMirrorSource(mirrorSourceNode);
     };
     mainThread_->PostSyncTask(registerNode);
