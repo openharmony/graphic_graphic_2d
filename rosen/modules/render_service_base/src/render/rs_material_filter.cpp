@@ -101,7 +101,7 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
         materialParam.radius, materialParam.saturation, materialParam.brightness);
     type_ = FilterType::MATERIAL;
     if (colorMode_ == FASTAVERAGE) {
-        colorPickerTask_ = std::make_shared<RSColorPickerCacheTask>();
+        colorMode_ = AVERAGE;
     }
 
     float radiusForHash = DecreasePrecision(radius_);
@@ -192,8 +192,8 @@ std::shared_ptr<Drawing::ImageFilter> RSMaterialFilter::CreateMaterialStyle(
     MATERIAL_BLUR_STYLE style, float dipScale, float ratio)
 {
     const auto& materialParams = KAWASE_BLUR_ENABLED ? KAWASE_MATERIAL_PARAM : MATERIAL_PARAM;
-    if (materialParams.find(style) != materialParams.end()) {
-        const auto& materialParam = materialParams.at(style);
+    if (auto iter = materialParams.find(style); iter != materialParams.end()) {
+        const auto& materialParam = iter->second;
         maskColor_ = RSColor(materialParam.maskColor.AsRgbaInt());
         maskColor_.MultiplyAlpha(ratio);
         radius_ = RSMaterialFilter::RadiusVp2Sigma(materialParam.radius, dipScale) * ratio;
@@ -211,21 +211,6 @@ void RSMaterialFilter::PreProcess(std::shared_ptr<Drawing::Image> imageSnapshot)
         auto colorPicker = RSPropertiesPainter::CalcAverageColor(imageSnapshot);
         maskColor_ = RSColor(Drawing::Color::ColorQuadGetR(colorPicker), Drawing::Color::ColorQuadGetG(colorPicker),
             Drawing::Color::ColorQuadGetB(colorPicker), maskColor_.GetAlpha());
-    } else if (colorMode_ == FASTAVERAGE && RSColorPickerCacheTask::ColorPickerPartialEnabled &&
-        imageSnapshot != nullptr) {
-        RSColor color;
-        if (colorPickerTask_->GetWaitRelease()) {
-            if (colorPickerTask_->GetColor(color) && colorPickerTask_->GetFirstGetColorFinished()) {
-                maskColor_ = RSColor(color.GetRed(), color.GetGreen(), color.GetBlue(), maskColor_.GetAlpha());
-            }
-            return;
-        }
-        if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask_, imageSnapshot)) {
-            if (colorPickerTask_->GetColor(color)) {
-                maskColor_ = RSColor(color.GetRed(), color.GetGreen(), color.GetBlue(), maskColor_.GetAlpha());
-            }
-            colorPickerTask_->SetStatus(CacheProcessStatus::WAITING);
-        }
     }
 }
 
@@ -446,19 +431,5 @@ bool RSMaterialFilter::IsEqualZero() const
 {
     return ROSEN_EQ(radius_, 0.0f);
 }
-
-const std::shared_ptr<RSColorPickerCacheTask>& RSMaterialFilter::GetColorPickerCacheTask() const
-{
-    return colorPickerTask_;
-}
-
-void RSMaterialFilter::ReleaseColorPickerFilter()
-{
-    if (colorPickerTask_ == nullptr) {
-        return;
-    }
-    colorPickerTask_->ReleaseColorPicker();
-}
-
 } // namespace Rosen
 } // namespace OHOS

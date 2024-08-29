@@ -3059,23 +3059,6 @@ HWTEST_F(RSPropertiesTest, SetHaveEffectRegion001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReleaseColorPickerTaskShadow001
- * @tc.desc: test results of ReleaseColorPickerTaskShadow
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, ReleaseColorPickerTaskShadow001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.ReleaseColorPickerTaskShadow();
-    EXPECT_NE(properties.isDrawn_, true);
-
-    properties.shadow_ = std::make_optional<RSShadow>();
-    properties.ReleaseColorPickerTaskShadow();
-    EXPECT_NE(properties.isDrawn_, true);
-}
-
-/**
  * @tc.name: CheckGreyCoef001
  * @tc.desc: test results of CheckGreyCoef
  * @tc.type:FUNC

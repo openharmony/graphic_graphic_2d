@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,20 +13,24 @@
  * limitations under the License.
  */
 
-#include "rs_parameter_parse.h"
+#include "ui_effect_napi_utils.h"
+#include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace Rosen {
 
-const RSParameterParse& RSParameterParse::Instance()
+napi_valuetype UIEffectNapiUtils::getType(napi_env env, napi_value root)
 {
-    static RSParameterParse instance;
-    return instance;
+    napi_valuetype res = napi_undefined;
+    napi_typeof(env, root, &res);
+    return res;
 }
 
-void RSParameterParse::Parse(int argc, char **argv)
+bool UIEffectNapiUtils::IsSystemApp()
 {
-    return;
+    uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
+    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId);
 }
 
 } // namespace Rosen

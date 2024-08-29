@@ -150,7 +150,7 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemApp()
     return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
 }
 
-bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& callingCode) const
+bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& callingCode)
 {
     bool isSystemCalling = false;
     auto tokenType = GetTokenType();
@@ -165,6 +165,16 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& calli
         RS_LOGE("%{public}s ipc interface code access denied: not system calling", callingCode.c_str());
     }
     return isSystemCalling;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsFoundationCalling(const std::string& callingCode) const
+{
+    static constexpr uint32_t FOUNDATION_UID = 5523;
+    bool isFoundationCalling = (OHOS::IPCSkeleton::GetCallingUid() == FOUNDATION_UID);
+    if (!isFoundationCalling) {
+        RS_LOGE("%{public}s ipc interface code access denied: not foundation calling", callingCode.c_str());
+    }
+    return isFoundationCalling;
 }
 
 void RSInterfaceCodeAccessVerifierBase::GetAccessType(bool& isTokenTypeValid, bool& isNonSystemAppCalling)
@@ -193,7 +203,7 @@ void RSInterfaceCodeAccessVerifierBase::GetAccessType(bool& isTokenTypeValid, bo
     }
 }
 #else
-bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */) const
+bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */)
 {
     return true;
 }

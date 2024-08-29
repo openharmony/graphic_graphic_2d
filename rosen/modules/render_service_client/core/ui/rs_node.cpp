@@ -49,7 +49,6 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_frame_rate_policy.h"
-#include "ui/rs_node.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -272,6 +271,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
     if (implicitAnimator == nullptr) {
         ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+        propertyCallback();
         return {};
     }
     auto finishCallbackType =

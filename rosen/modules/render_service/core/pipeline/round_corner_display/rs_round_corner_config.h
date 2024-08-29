@@ -71,32 +71,19 @@ const char ATTR_CLDHEIGHT[] = "CldHeight";
 const char ATTR_DEFAULT[] = "default";
 
 struct XMLReader {
-    XMLReader() {}
-    virtual ~XMLReader()
-    {
-        if (pdoc != nullptr) {
-            xmlFreeDoc(pdoc);
-        }
-        xmlCleanupParser();
-        xmlMemoryDump();
-    }
+    static bool RegexMatch(const std::string& str, const std::string& pattern);
+    static bool RegexMatchNum(std::string& str);
     static xmlNodePtr FindNode(const xmlNodePtr& src, const std::string& index);
-    static char* ReadAttrStr(const xmlNodePtr& src, std::string attr);
-    static int ReadAttrInt(const xmlNodePtr& src, std::string attr);
-    static float ReadAttrFloat(const xmlNodePtr& src, std::string attr);
-    static bool ReadAttrBool(const xmlNodePtr& src, std::string attr);
-    bool Init(std::string file);
-    xmlNodePtr ReadNode(std::vector<std::string> attribute);
-    xmlChar* Read(std::vector<std::string> attribute);
-private:
-    xmlDocPtr pdoc = nullptr;
-    xmlNodePtr proot = nullptr;
+    static std::string ReadAttrStr(const xmlNodePtr& src, const std::string& attr);
+    static int ReadAttrInt(const xmlNodePtr& src, const std::string& attr);
+    static float ReadAttrFloat(const xmlNodePtr& src, const std::string& attr);
+    static bool ReadAttrBool(const xmlNodePtr& src, const std::string& attr);
 };
 
 struct SupportConfig {
     bool support = false;
     int mode = 0;
-    bool ReadXmlNode(const xmlNodePtr& ptr, std::string supportAttr, std::string modeAttr);
+    bool ReadXmlNode(const xmlNodePtr& ptr, const std::string& supportAttr, const std::string& modeAttr);
 };
 
 struct RoundCornerLayer {
@@ -110,7 +97,7 @@ struct RoundCornerLayer {
     uint32_t layerWidth = 0;
     uint32_t layerHeight = 0;
     Drawing::Bitmap* curBitmap = nullptr;
-    bool ReadXmlNode(const xmlNodePtr& ptr, std::vector<std::string> attrArray);
+    bool ReadXmlNode(const xmlNodePtr& ptr, const std::vector<std::string>& attrArray);
 };
 
 struct RoundCornerHardware {
@@ -152,7 +139,7 @@ struct SideRegionConfig {
 
 struct HardwareComposer {
     bool support = false;
-    bool ReadXmlNode(const xmlNodePtr& ptr, std::string supportAttr);
+    bool ReadXmlNode(const xmlNodePtr& ptr, const std::string& supportAttr);
 };
 
 struct HardwareComposerConfig {
@@ -178,11 +165,10 @@ struct LCDModel {
 struct RCDConfig {
     RCDConfig() {}
     virtual ~RCDConfig();
-    static void PrintLayer(std::string name, const rs_rcd::RoundCornerLayer& layer);
+    static void PrintLayer(const std::string& name, const rs_rcd::RoundCornerLayer& layer);
     static void PrintParseRog(rs_rcd::ROGSetting* rog);
-    static void PrintParseLcdModel(rs_rcd::LCDModel* model);
-    LCDModel* GetLcdModel(std::string name) const;
-    bool Load(std::string configFile);
+    LCDModel* GetLcdModel(const std::string& name) const;
+    bool Load(const std::string& configFile);
 private:
     xmlDocPtr pDoc = nullptr;
     xmlNodePtr pRoot = nullptr;

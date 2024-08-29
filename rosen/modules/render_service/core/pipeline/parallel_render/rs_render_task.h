@@ -48,7 +48,7 @@ public:
 
 private:
     std::shared_ptr<RSBaseRenderNode> node_;
-    uint64_t loadId_;
+    uint64_t loadId_ = 0;
 };
 
 class RSRenderTask : public RSRenderTaskBase {
@@ -67,7 +67,7 @@ public:
         return stage_;
     }
 private:
-    RenderNodeStage stage_;
+    RenderNodeStage stage_ = RenderNodeStage::PREPARE;
 };
 
 class RSSuperRenderTask : public RSRenderTaskBase {

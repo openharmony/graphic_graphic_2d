@@ -19,7 +19,6 @@
 #include <cstdlib>
 #include <mutex>
 #include <scoped_bytrace.h>
-#include <valarray>
 #include <securec.h>
 #include "v1_2/include/idisplay_composer_interface.h"
 
@@ -66,16 +65,16 @@ HdiDeviceImpl::~HdiDeviceImpl()
     Destroy();
 }
 
-RosenError HdiDeviceImpl::Init()
+bool HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
         g_composer = Composer::V1_2::IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
-            return ROSEN_ERROR_NOT_INIT;
+            return false;
         }
     }
-    return ROSEN_ERROR_OK;
+    return true;
 }
 
 void HdiDeviceImpl::Destroy()
@@ -244,8 +243,7 @@ int32_t HdiDeviceImpl::GetScreenCompChange(uint32_t screenId, std::vector<uint32
                                            std::vector<int32_t> &types)
 {
     CHECK_FUNC(g_composer);
-    int32_t ret = g_composer->GetDisplayCompChange(screenId, layersId, types);
-    return ret;
+    return g_composer->GetDisplayCompChange(screenId, layersId, types);
 }
 
 int32_t HdiDeviceImpl::SetScreenClientBuffer(uint32_t screenId, const BufferHandle *buffer, uint32_t cacheIndex,
@@ -256,8 +254,7 @@ int32_t HdiDeviceImpl::SetScreenClientBuffer(uint32_t screenId, const BufferHand
         return GRAPHIC_DISPLAY_PARAM_ERR;
     }
 
-    int32_t fenceFd = fence->Get();
-    return g_composer->SetDisplayClientBuffer(screenId, buffer, cacheIndex, fenceFd);
+    return g_composer->SetDisplayClientBuffer(screenId, buffer, cacheIndex, fence->Get());
 }
 
 int32_t HdiDeviceImpl::SetScreenClientBufferCacheCount(uint32_t screen, uint32_t count)
@@ -283,29 +280,6 @@ int32_t HdiDeviceImpl::SetScreenClientDamage(uint32_t screenId, const std::vecto
         hdiDamageRect.emplace_back(tempDamageRect);
     }
     return g_composer->SetDisplayClientDamage(screenId, hdiDamageRect);
-}
-
-int32_t HdiDeviceImpl::GetScreenReleaseFence(uint32_t screenId, std::vector<uint32_t> &layers,
-                                             std::vector<sptr<SyncFence>> &fences)
-{
-    CHECK_FUNC(g_composer);
-    std::vector<int32_t> fenceFds;
-    int32_t ret = g_composer->GetDisplayReleaseFence(screenId, layers, fenceFds);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS || fenceFds.size() == 0) {
-        return ret;
-    }
-
-    size_t fencesNum = fenceFds.size();
-    fences.resize(fencesNum);
-    for (size_t i = 0; i < fencesNum; i++) {
-        if (fenceFds[i] >= 0) {
-            fences[i] = new SyncFence(fenceFds[i]);
-        } else {
-            fences[i] = new SyncFence(-1);
-        }
-    }
-
-    return ret;
 }
 
 int32_t HdiDeviceImpl::GetScreenSupportedColorGamuts(uint32_t screenId, std::vector<GraphicColorGamut> &gamuts)
@@ -378,8 +352,7 @@ int32_t HdiDeviceImpl::GetHDRCapabilityInfos(uint32_t screenId, GraphicHDRCapabi
     info.formats.clear();
     info.formats.reserve(formatCount);
     for (uint32_t i = 0; i < formatCount; i++) {
-        GraphicHDRFormat format = static_cast<GraphicHDRFormat>(hdiInfo.formats[i]);
-        info.formats.emplace_back(format);
+        info.formats.emplace_back(static_cast<GraphicHDRFormat>(hdiInfo.formats[i]));
     }
     info.maxLum = hdiInfo.maxLum;
     info.maxAverageLum = hdiInfo.maxAverageLum;
@@ -398,8 +371,7 @@ int32_t HdiDeviceImpl::GetSupportedMetaDataKey(uint32_t screenId, std::vector<Gr
     keys.clear();
     keys.reserve(hdiKeys.size());
     for (auto iter = hdiKeys.begin(); iter != hdiKeys.end(); iter++) {
-        GraphicHDRMetadataKey tempKey = static_cast<GraphicHDRMetadataKey>(*iter);
-        keys.emplace_back(tempKey);
+        keys.emplace_back(static_cast<GraphicHDRMetadataKey>(*iter));
     }
     return ret;
 }
@@ -426,15 +398,15 @@ int32_t HdiDeviceImpl::CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFenc
     ScopedBytrace bytrace(__func__);
     CHECK_FUNC(g_composer);
     int32_t fenceFd = -1;
-    std::vector<int32_t>fenceFds;
-    
+    std::vector<int32_t> fenceFds;
+
     int32_t ret = g_composer->CommitAndGetReleaseFence(
         screenId, fenceFd, skipState, needFlush, layers, fenceFds, isValidated);
 
     if (skipState == 0 || fenceFd >= 0) {
         fence = new SyncFence(fenceFd);
     } else {
-        fence =new SyncFence(-1);
+        fence = new SyncFence(-1);
     }
 
     size_t fencesNum = fenceFds.size();

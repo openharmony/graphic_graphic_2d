@@ -110,6 +110,8 @@ public:
     virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
     virtual bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
+    virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
+    virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
 };
 
 namespace impl {
@@ -192,6 +194,8 @@ public:
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus() const override;
+    void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
+    const std::vector<uint64_t>& GetSecurityExemptionList() const override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -222,12 +226,12 @@ private:
 
     bool isVirtual_ = true;
     bool isVirtualSurfaceUpdateFlag_ = false;
-    std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical
-    std::unique_ptr<HdiScreen> hdiScreen_; // has value if the screen is physical
+    std::shared_ptr<HdiOutput> hdiOutput_ = nullptr; // has value if the screen is physical
+    std::unique_ptr<HdiScreen> hdiScreen_ = nullptr; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
-    sptr<Surface> producerSurface_;  // has value if the screen is virtual
+    sptr<Surface> producerSurface_ = nullptr;  // has value if the screen is virtual
     GraphicDispPowerStatus powerStatus_ = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     GraphicPixelFormat pixelFormat_;
 
@@ -255,6 +259,7 @@ private:
     static std::map<ScreenHDRFormat, GraphicHDRFormat> RS_TO_HDI_HDR_FORMAT_MAP;
     std::unordered_set<uint64_t> whiteList_ = {};
     std::unordered_set<uint64_t> blackList_ = {};
+    std::vector<uint64_t> securityExemptionList_ = {};
     std::atomic<bool> skipWindow_ = false;
 };
 } // namespace impl

@@ -152,7 +152,7 @@ public:
      */
     bool CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot);
     // check if active app has static drawing cache
-    bool IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const;
+    bool IsDrawingGroupChanged(const RSRenderNode& cacheRootNode) const;
     // check if active instance only move or scale it's main window surface without rearrangement
     // instanceNodeId should be MainWindowType, or it cannot grep correct app's info
     void CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSSurfaceRenderNode> instanceNode) const;
@@ -195,7 +195,6 @@ public:
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
-    void SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync);
     void SetNoNeedToPostTask(bool noNeedToPostTask);
     void SetAccessibilityConfigChanged();
     void SetScreenPowerOnChanged(bool val);
@@ -204,7 +203,7 @@ public:
     bool IsCurtainScreenUsingStatusChanged() const;
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, int pid = 0);
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0);
     void DumpNode(std::string& result, uint64_t nodeId) const;
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
@@ -366,7 +365,6 @@ private:
     void Render();
     void OnUniRenderDraw();
     void SetDeviceType();
-    void ColorPickerRequestVsyncIfNeed();
     void UniRender(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces, std::shared_ptr<RSSurfaceRenderNode> curSurface);
     RSVisibleLevel CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
@@ -561,9 +559,7 @@ private:
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
 
-    bool colorPickerForceRequestVsync_ = false;
     std::atomic_bool noNeedToPostTask_ = false;
-    std::atomic_int colorPickerRequestFrameNum_ = 15;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;

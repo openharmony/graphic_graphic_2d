@@ -23,9 +23,10 @@
 
 namespace OHOS {
 namespace ColorManager {
+namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t PRIMARIES_PARAMS_NUM = 8;
-
+}
 void JsColorSpaceManager::Finalizer(napi_env env, void* data, void* hint)
 {
     std::unique_ptr<JsColorSpaceManager>(static_cast<JsColorSpaceManager*>(data));
@@ -63,14 +64,14 @@ napi_value JsColorSpaceManager::OnCreateColorSpace(napi_env env, napi_callback_i
 {
     size_t argvSize = 2;
     std::vector<napi_value> argvArr(argvSize);
-    napi_get_cb_info(env, info, &argvSize, argvArr.data(), nullptr, nullptr);
+    NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_cb_info(env, info, &argvSize, argvArr.data(), nullptr, nullptr));
     if (!CheckParamMinimumValid(env, argvSize, 0)) {
         return nullptr;
     }
     std::shared_ptr<ColorSpace> colorSpace;
     ApiColorSpaceType csType = ApiColorSpaceType::UNKNOWN;
     napi_value object = nullptr;
-    napi_get_undefined(env, &object);
+    NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &object));
 
     if (ConvertFromJsValue(env, argvArr[0], csType)) {
         if (!CheckColorSpaceTypeRange(env, csType)) {
@@ -161,14 +162,17 @@ napi_value JsColorSpaceManagerInit(napi_env env, napi_value exportObj)
     }
 
     std::unique_ptr<JsColorSpaceManager> jsColorSpaceManager = std::make_unique<JsColorSpaceManager>();
-    napi_wrap(env, exportObj, jsColorSpaceManager.release(), JsColorSpaceManager::Finalizer, nullptr, nullptr);
+    NAPI_CALL_DEFAULT(
+        napi_wrap(env, exportObj, jsColorSpaceManager.release(), JsColorSpaceManager::Finalizer, nullptr, nullptr));
     auto valueColorSpace = ColorSpaceTypeInit(env);
     auto valueCmError = CMErrorInit(env);
     auto valueCmErrorCode = CMErrorCodeInit(env);
-    napi_set_named_property(env, exportObj, "ColorSpace", valueColorSpace);
-    napi_set_named_property(env, exportObj, "CMError", valueCmError);
-    napi_set_named_property(env, exportObj, "CMErrorCode", valueCmErrorCode);
-    BindNativeFunction(env, exportObj, "create", nullptr, JsColorSpaceManager::CreateColorSpace);
+    NAPI_CALL_DEFAULT(napi_set_named_property(env, exportObj, "ColorSpace", valueColorSpace));
+    NAPI_CALL_DEFAULT(napi_set_named_property(env, exportObj, "CMError", valueCmError));
+    NAPI_CALL_DEFAULT(napi_set_named_property(env, exportObj, "CMErrorCode", valueCmErrorCode));
+    if (BindNativeFunction(env, exportObj, "create", nullptr, JsColorSpaceManager::CreateColorSpace) != napi_ok) {
+        return nullptr;
+    }
     return exportObj;
 }
 }  // namespace ColorManager

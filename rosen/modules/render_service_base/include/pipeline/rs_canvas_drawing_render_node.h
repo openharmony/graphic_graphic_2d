@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
-static std::mutex drawingMutex_;
+
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
 class RSRecordingCanvas;
 
@@ -87,7 +87,6 @@ private:
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
-    void ProcessCPURenderInBackgroundThread(std::shared_ptr<Drawing::DrawCmdList> cmds);
 
     std::mutex imageMutex_;
     std::shared_ptr<Drawing::Surface> surface_;

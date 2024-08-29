@@ -115,14 +115,15 @@ napi_value JsColorSpace::OnGetColorSpaceName(napi_env env, napi_callback_info in
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
             "Parameter check fails. Native color space object is nullptr."));
-        napi_get_undefined(env, &value);
+        NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &value));
         return value;
     }
     ColorSpaceName csName = colorSpaceToken_->GetColorSpaceName();
-    if (NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.count(csName) != 0) {
+    auto iter = NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.find(csName);
+    if (iter != NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.end()) {
         CMLOGI("[NAPI]get color space name %{public}u, api type %{public}u",
-            csName, NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.at(csName));
-        return CreateJsValue(env, NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.at(csName));
+            csName, iter->second);
+        return CreateJsValue(env, iter->second);
     }
     CMLOGE("[NAPI]get color space name %{public}u, but not in api type", csName);
     std::string errMsg = "BusinessError 401: Parameter error, the type of colorspace " +
@@ -130,7 +131,7 @@ napi_value JsColorSpace::OnGetColorSpaceName(napi_env env, napi_callback_info in
     napi_throw(env,
         CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
         errMsg));
-    napi_get_undefined(env, &value);
+    NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &value));
     return value;
 }
 
@@ -142,14 +143,15 @@ napi_value JsColorSpace::OnGetSendableColorSpaceName(napi_env env, napi_callback
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
             "Parameter check fails. Native color space object is nullptr."));
-        napi_get_undefined(env, &value);
+        NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &value));
         return value;
     }
     ColorSpaceName csName = colorSpaceToken_->GetColorSpaceName();
-    if (NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.count(csName) != 0) {
+    auto iter = NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.find(csName);
+    if (iter != NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.end()) {
         CMLOGI("[NAPI]get color space name %{public}u, api type %{public}u",
-            csName, NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.at(csName));
-        return CreateJsValue(env, NATIVE_TO_JS_COLOR_SPACE_TYPE_MAP.at(csName));
+            csName, iter->second);
+        return CreateJsValue(env, iter->second);
     }
     CMLOGE("[NAPI]get color space name %{public}u, but not in api type", csName);
     std::string errMsg = "BusinessError 401: Parameter error, the type of colorspace " +
@@ -157,7 +159,7 @@ napi_value JsColorSpace::OnGetSendableColorSpaceName(napi_env env, napi_callback
     napi_throw(env,
         CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_PARAM)),
         errMsg));
-    napi_get_undefined(env, &value);
+    NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &value));
     return value;
 }
 
@@ -169,14 +171,14 @@ napi_value JsColorSpace::OnGetWhitePoint(napi_env env, napi_callback_info info)
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
             "Parameter check fails. Native color space object is nullptr."));
-        napi_get_undefined(env, &arrayValue);
+        NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &arrayValue));
         return arrayValue;
     }
     std::array<float, DIMES_2> wp = colorSpaceToken_->GetWhitePoint();
-    napi_create_array_with_length(env, DIMES_2, &arrayValue);
+    NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_create_array_with_length(env, DIMES_2, &arrayValue));
     for (uint32_t i = 0; i < DIMES_2; i++) {
         napi_value eleValue = CreateJsValue(env, wp[i]);
-        napi_set_element(env, arrayValue, i, eleValue);
+        NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_set_element(env, arrayValue, i, eleValue));
     }
     return arrayValue;
 }
@@ -189,14 +191,14 @@ napi_value JsColorSpace::OnGetSendableWhitePoint(napi_env env, napi_callback_inf
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
             "Parameter check fails. Native color space object is nullptr."));
-        napi_get_undefined(env, &arrayValue);
+        NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &arrayValue));
         return arrayValue;
     }
     std::array<float, DIMES_2> wp = colorSpaceToken_->GetWhitePoint();
-    napi_create_sendable_array_with_length(env, DIMES_2, &arrayValue);
+    NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_create_sendable_array_with_length(env, DIMES_2, &arrayValue));
     for (uint32_t i = 0; i < DIMES_2; i++) {
         napi_value eleValue = CreateJsValue(env, wp[i]);
-        napi_set_element(env, arrayValue, i, eleValue);
+        NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_set_element(env, arrayValue, i, eleValue));
     }
     return arrayValue;
 }
@@ -209,7 +211,7 @@ napi_value JsColorSpace::OnGetGamma(napi_env env, napi_callback_info info)
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
             "Parameter check fails. Native color space object is nullptr."));
-        napi_get_undefined(env, &value);
+        NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &value));
         return value;
     }
     float gamma = colorSpaceToken_->GetGamma();
@@ -224,18 +226,29 @@ napi_value JsColorSpace::OnGetSendableGamma(napi_env env, napi_callback_info inf
         napi_throw(env,
             CreateJsError(env, static_cast<int32_t>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_NULLPTR)),
             "Parameter check fails. Native color space object is nullptr."));
-        napi_get_undefined(env, &value);
+        NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &value));
         return value;
     }
     float gamma = colorSpaceToken_->GetGamma();
     return CreateJsValue(env, gamma);
 }
 
-void BindFunctions(napi_env env, napi_value object)
+napi_status BindFunctions(napi_env env, napi_value object)
 {
-    BindNativeFunction(env, object, "getColorSpaceName", nullptr, JsColorSpace::GetColorSpaceName);
-    BindNativeFunction(env, object, "getWhitePoint", nullptr, JsColorSpace::GetWhitePoint);
-    BindNativeFunction(env, object, "getGamma", nullptr, JsColorSpace::GetGamma);
+    napi_status status = napi_ok;
+    status = BindNativeFunction(env, object, "getColorSpaceName", nullptr, JsColorSpace::GetColorSpaceName);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = BindNativeFunction(env, object, "getWhitePoint", nullptr, JsColorSpace::GetWhitePoint);
+    if (status != napi_ok) {
+        return status;
+    }
+    status = BindNativeFunction(env, object, "getGamma", nullptr, JsColorSpace::GetGamma);
+    if (status != napi_ok) {
+        return status;
+    }
+    return status;
 }
 } // namespace ColorManager
 } // namespace OHOS

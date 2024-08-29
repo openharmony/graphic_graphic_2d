@@ -34,7 +34,6 @@ group("graphic_common_test") {
     "frameworks/bootanimation/test:test",
     "frameworks/opengl_wrapper/test:test",
     "frameworks/vulkan_layers/test:test",
-    "graphic_test:test",
     "rosen/modules/composer:test",
     "rosen/modules/create_pixelmap_surface:test",
     "rosen/modules/effect/test/unittest:test",

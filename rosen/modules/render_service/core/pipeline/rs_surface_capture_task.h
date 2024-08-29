@@ -97,7 +97,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
         bool DrawBlurInCache(RSRenderNode& node);
         std::unique_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
         bool isDisplayNode_ = false;
-        RSSurfaceCaptureConfig captureConfig_;
+        RSSurfaceCaptureConfig captureConfig_ = {};
         bool isUniRender_ = false;
         bool hasSecurityOrSkipOrProtectedLayer_ = false;
         bool isUIFirst_ = false;
@@ -107,7 +107,7 @@ class RSSurfaceCaptureVisitor : public RSNodeVisitor {
 
         Drawing::Matrix captureMatrix_ = Drawing::Matrix();
 
-        std::shared_ptr<RSBaseRenderEngine> renderEngine_;
+        std::shared_ptr<RSBaseRenderEngine> renderEngine_ = nullptr;
 
         std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
         // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
@@ -140,9 +140,9 @@ private:
     // It is currently only used on folding screen.
     int32_t ScreenCorrection(ScreenRotation screenRotation);
 
-    NodeId nodeId_;
+    NodeId nodeId_ = INVALID_NODEID;
 
-    RSSurfaceCaptureConfig captureConfig_;
+    RSSurfaceCaptureConfig captureConfig_ = {};
 
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
 

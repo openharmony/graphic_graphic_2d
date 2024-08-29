@@ -72,6 +72,9 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    int32_t SetVirtualScreenSecurityExemptionList(
+        ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
@@ -121,7 +124,8 @@ public:
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, bool accessible = true) override;
+        const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 

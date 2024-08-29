@@ -458,6 +458,8 @@ private:
     void CollectVSyncRate(RSSurfaceRenderNode& node, RSVisibleLevel visibleLevel);
     void CollectEffectInfo(RSRenderNode& node);
 
+    void UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node);
+
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode
      * 1. is leash window
      * 2. window has scale, radius, no transparency and no animation

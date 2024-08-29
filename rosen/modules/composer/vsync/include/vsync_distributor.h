@@ -115,8 +115,6 @@ public:
                                 int64_t lastVSyncTS = 0);
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
-    VsyncError GetVSyncConnectionInfos(std::vector<ConnectionInfo>& infos);
-    VsyncError GetQosVSyncRateInfos(std::vector<std::pair<uint32_t, int32_t>>& vsyncRateInfos);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);
 
     // used by DVSync

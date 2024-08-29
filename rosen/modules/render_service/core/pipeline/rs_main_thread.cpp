@@ -859,20 +859,23 @@ bool RSMainThread::CheckParallelSubThreadNodesStatus()
             }
             RS_LOGD("RSMainThread::CheckParallelSubThreadNodesStatus pid = %{public}s, node name: %{public}s,"
                 "id: %{public}" PRIu64 "", std::to_string(pid).c_str(), node->GetName().c_str(), node->GetId());
-            if (cacheCmdSkippedInfo_.count(pid) == 0) {
-                cacheCmdSkippedInfo_[pid] = std::make_pair(std::vector<NodeId>{node->GetId()}, false);
+            auto it = cacheCmdSkippedInfo_.find(pid);
+            if (it == cacheCmdSkippedInfo_.end()) {
+                cacheCmdSkippedInfo_.emplace(pid, std::make_pair(std::vector<NodeId>{node->GetId()}, false));
             } else {
-                cacheCmdSkippedInfo_[pid].first.push_back(node->GetId());
+                it->second.first.push_back(node->GetId());
             }
             if (!node->HasAbilityComponent()) {
                 continue;
             }
             for (auto& nodeId : node->GetAbilityNodeIds()) {
                 pid_t abilityNodePid = ExtractPid(nodeId);
-                if (cacheCmdSkippedInfo_.count(abilityNodePid) == 0) {
-                    cacheCmdSkippedInfo_[abilityNodePid] = std::make_pair(std::vector<NodeId>{node->GetId()}, true);
+                it = cacheCmdSkippedInfo_.find(abilityNodePid);
+                if (it == cacheCmdSkippedInfo_.end()) {
+                    cacheCmdSkippedInfo_.emplace(abilityNodePid,
+                        std::make_pair(std::vector<NodeId>{node->GetId()}, true));
                 } else {
-                    cacheCmdSkippedInfo_[abilityNodePid].first.push_back(node->GetId());
+                    it->second.first.push_back(node->GetId());
                 }
             }
         }
@@ -1591,14 +1594,17 @@ void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t
             this->clearMemDeeply_ = false;
             this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
         };
-    if (!isUniRender_ || rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
-        PostTask(task, CLEAR_GPU_CACHE,
-            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
-            AppExecFwk::EventQueue::Priority::HIGH);
-    } else {
-        RSUniRenderThread::Instance().PostTask(task, CLEAR_GPU_CACHE,
-            (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / GetRefreshRate(),
-            AppExecFwk::EventQueue::Priority::HIGH);
+    auto refreshRate = GetRefreshRate();
+    if (refreshRate > 0) {
+        if (!isUniRender_ || rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD) {
+            PostTask(task, CLEAR_GPU_CACHE,
+                (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / refreshRate,
+                AppExecFwk::EventQueue::Priority::HIGH);
+        } else {
+            RSUniRenderThread::Instance().PostTask(task, CLEAR_GPU_CACHE,
+                (this->deviceType_ == DeviceType::PHONE ? TIME_OF_EIGHT_FRAMES : TIME_OF_THE_FRAMES) / refreshRate,
+                AppExecFwk::EventQueue::Priority::HIGH);
+        }
     }
 }
 
@@ -1750,25 +1756,6 @@ void RSMainThread::SetFrameIsRender(bool isRender)
     }
 }
 
-void RSMainThread::ColorPickerRequestVsyncIfNeed()
-{
-    if (colorPickerForceRequestVsync_) {
-        colorPickerRequestFrameNum_--;
-        if (colorPickerRequestFrameNum_ > 0) {
-            RSMainThread::Instance()->SetNoNeedToPostTask(false);
-            RSMainThread::Instance()->SetDirtyFlag();
-            RequestNextVSync();
-        } else {
-            // The last frame reset to 15, then to request next 15 frames if need
-            colorPickerRequestFrameNum_ = 15;
-            RSMainThread::Instance()->SetNoNeedToPostTask(true);
-            colorPickerForceRequestVsync_ = false;
-        }
-    } else {
-        RSMainThread::Instance()->SetNoNeedToPostTask(false);
-    }
-}
-
 void RSMainThread::WaitUntilUploadTextureTaskFinishedForGL()
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
@@ -1837,13 +1824,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             needTraverseNodeTree = !DoDirectComposition(rootNode, !isLastFrameDirectComposition_);
         } else if (forceUpdateUniRenderFlag_) {
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
-        } else if (colorPickerForceRequestVsync_) {
-            RS_TRACE_NAME("RSMainThread::UniRender ColorPickerForceRequestVsync");
-            RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
-            RSMainThread::Instance()->SetNoNeedToPostTask(false);
-            RSMainThread::Instance()->SetDirtyFlag();
-            RequestNextVSync();
-            return;
         } else if (!pendingUiCaptureTasks_.empty()) {
             RS_LOGD("RSMainThread::Render pendingUiCaptureTasks_ not empty");
         } else {
@@ -1859,8 +1839,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             return;
         }
     }
-
-    ColorPickerRequestVsyncIfNeed();
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
@@ -3137,11 +3115,13 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         return;
     }
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
-    if (effectiveTransactionDataIndexMap_.count(remotePid) > 0 &&
-        !effectiveTransactionDataIndexMap_[remotePid].second.empty()) {
-        RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%{public}d destroyed, skip commands", remotePid);
+    auto it = effectiveTransactionDataIndexMap_.find(remotePid);
+    if (it != effectiveTransactionDataIndexMap_.end()) {
+        if (!it->second.second.empty()) {
+            RS_LOGD("RSMainThread::ClearTransactionDataPidInfo process:%{public}d destroyed, skip commands", remotePid);
+        }
+        effectiveTransactionDataIndexMap_.erase(it);
     }
-    effectiveTransactionDataIndexMap_.erase(remotePid);
     transactionDataLastWaitTime_.erase(remotePid);
 
     // clear cpu cache when process exit
@@ -3198,7 +3178,7 @@ void RSMainThread::DumpNode(std::string& result, uint64_t nodeId) const
 }
 
 void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
-    std::string& type, int pid)
+    std::string& type, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     DfxString log;
@@ -3263,10 +3243,14 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
         return;
     }
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
-    if (effectiveTransactionDataIndexMap_.count(remotePid) > 0) {
+    auto it = effectiveTransactionDataIndexMap_.find(remotePid);
+    if (it != effectiveTransactionDataIndexMap_.end()) {
         RS_LOGW("RSMainThread::AddTransactionDataPidInfo remotePid:%{public}d already exists", remotePid);
+        it->second.first = 0;
+    } else {
+        effectiveTransactionDataIndexMap_.emplace(remotePid,
+            std::make_pair(0, std::vector<std::unique_ptr<RSTransactionData>>()));;
     }
-    effectiveTransactionDataIndexMap_[remotePid].first = 0;
 }
 
 void RSMainThread::SetDirtyFlag(bool isDirty)
@@ -3287,11 +3271,6 @@ void RSMainThread::SetScreenPowerOnChanged(bool val)
 bool RSMainThread::GetScreenPowerOnChanged() const
 {
     return screenPowerOnChanged_;
-}
-
-void RSMainThread::SetColorPickerForceRequestVsync(bool colorPickerForceRequestVsync)
-{
-    colorPickerForceRequestVsync_ = colorPickerForceRequestVsync;
 }
 
 void RSMainThread::SetNoNeedToPostTask(bool noNeedToPostTask)
@@ -3511,7 +3490,7 @@ bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyB
     }
 }
 
-bool RSMainThread::IsDrawingGroupChanged(RSRenderNode& cacheRootNode) const
+bool RSMainThread::IsDrawingGroupChanged(const RSRenderNode& cacheRootNode) const
 {
     std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
     auto iter = context_->activeNodesInRoot_.find(cacheRootNode.GetInstanceRootNodeId());
@@ -3612,6 +3591,19 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id)
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
+    auto screenManager_ = CreateOrGetScreenManager();
+    if (flag && screenManager_) {
+        auto screenInfo = screenManager_->QueryDefaultScreenInfo();
+        constexpr int maxScale = 2;
+        if (screenInfo.id != INVALID_SCREEN_ID && watermarkImg &&
+            (watermarkImg->GetWidth() > maxScale * screenInfo.width ||
+            watermarkImg->GetHeight() > maxScale * screenInfo.height)) {
+            RS_LOGE("RSMainThread::ShowWatermark width %{public}" PRId32" or height %{public}" PRId32" has reached"
+                " the maximum limit!", watermarkImg->GetWidth(), watermarkImg->GetHeight());
+            return;
+        }
+    }
+
     watermarkFlag_ = flag;
     if (flag) {
         watermarkImg_ = RSPixelMapUtil::ExtractDrawingImage(std::move(watermarkImg));

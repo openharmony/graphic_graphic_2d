@@ -500,9 +500,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             uniParam->SetBlackList(currentBlackList_);
             uniParam->SetWhiteList(screenInfo.whiteList);
+            curSecExemption_ = params->GetSecurityExemption();
+            uniParam->SetSecExemption(curSecExemption_);
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
             DrawMirrorScreen(*params, processor);
             lastBlackList_ = currentBlackList_;
+            lastSecExemption_ = curSecExemption_;
         } else {
             bool isOpDropped = uniParam->IsOpDropped();
             uniParam->SetOpDropped(false);
@@ -779,7 +782,7 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
-        mirrorParams->IsSpecialLayerChanged()) {
+        mirrorParams->IsSpecialLayerChanged() || lastSecExemption_ != curSecExemption_) {
         GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         lastMatrix_ = canvasMatrix;
         lastMirrorMatrix_ = mirrorParams->GetMatrix();
@@ -817,7 +820,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->SetDisableFilterCache(true);
     auto mirroedDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
     auto hasSecSurface = mirroedDisplayParams->GetDisplayHasSecSurface();
-    if (hasSecSurface[mirroredParams->GetScreenId()]) {
+    if (hasSecSurface[mirroredParams->GetScreenId()] && !uniParam.GetSecExemption()) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         SetCanvasBlack(*virtualProcesser);
@@ -875,6 +878,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     uniParam.SetStartVisit(false);
     uniParam.SetBlackList({});
     uniParam.SetWhiteList({});
+    uniParam.SetSecExemption(false);
 }
 
 void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
@@ -1482,12 +1486,21 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, canvasBackup_ is nullptr");
         return;
     }
+    if (offscreenSurface_ == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, offscreenSurface_ is nullptr");
+        return;
+    }
+    auto image = offscreenSurface_->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, Surface::GetImageSnapshot is nullptr");
+        return;
+    }
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     paint.SetForceBrightnessDisable(true);
     canvasBackup_->AttachBrush(paint);
-    canvasBackup_->DrawImage(*offscreenSurface_->GetImageSnapshot().get(), 0, 0, sampling);
+    canvasBackup_->DrawImage(*image, 0, 0, sampling);
     canvasBackup_->DetachBrush();
     // restore current canvas and cleanup
     if (!useFixedOffscreenSurfaceSize_) {

@@ -242,12 +242,20 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         RS_LOGE("RSSurfaceRenderNodeDrawable::FinishOffscreenRender, canvasBackup_ is nullptr");
         return;
     }
+    if (offscreenSurface_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::FinishOffscreenRender, offscreenSurface_ is nullptr");
+        return;
+    }
+    auto image = offscreenSurface_->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::FinishOffscreenRender, Surface::GetImageSnapshot is nullptr");
+        return;
+    }
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     paint.SetForceBrightnessDisable(true);
     canvasBackup_->AttachBrush(paint);
-    auto image = offscreenSurface_->GetImageSnapshot();
     canvasBackup_->DrawImage(*image, 0, 0, sampling);
     canvasBackup_->DetachBrush();
     arc_ = nullptr;
@@ -618,7 +626,12 @@ bool RSSurfaceRenderNodeDrawable::EnableRecordingOptimization(const RSSurfaceRen
 
 void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    if (surfaceParams.GetIsSecurityLayer() || surfaceParams.GetIsSkipLayer()) {
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (UNLIKELY(!uniParams)) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
+        return;
+    }
+    if ((surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) || surfaceParams.GetIsSkipLayer()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
             surfaceParams.GetId(), name_.c_str());
@@ -644,12 +657,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
             surfaceParams.GetBounds().GetHeight()));
         canvas.DetachBrush();
-        return;
-    }
-
-    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (UNLIKELY(!uniParams)) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
         return;
     }
 
@@ -820,8 +827,9 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
-    if (enableType == MultiThreadCacheType::NONE &&
-        GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) {
+    if ((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
+        GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) ||
+        (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %lld, type %d",

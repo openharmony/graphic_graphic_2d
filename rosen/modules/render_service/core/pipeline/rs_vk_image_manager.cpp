@@ -36,6 +36,8 @@ void WaitAcquireFence(const sptr<SyncFence>& acquireFence)
     }
     acquireFence->Wait(3000); // 3000ms
 }
+
+constexpr size_t MAX_CACHE_SIZE = 16;
 }
 
 NativeVkImageRes::~NativeVkImageRes()

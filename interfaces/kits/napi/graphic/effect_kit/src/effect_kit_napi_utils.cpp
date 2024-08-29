@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-#include "rs_graphic_test.h"
-#include "rs_graphic_test_director.h"
-#include "rs_parameter_parse.h"
+#include "effect_kit_napi_utils.h"
 
-using namespace OHOS;
-using namespace OHOS::Rosen;
+namespace OHOS {
+namespace Rosen {
 
-int main(int argc, char **argv)
+napi_valuetype EffectKitNapiUtils::getType(napi_env env, napi_value root)
 {
-    RSParameterParse::Parse(argc, argv);
-    RSGraphicTestDirector::Instance().Run();
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    napi_valuetype res = napi_undefined;
+    napi_typeof(env, root, &res);
+    return res;
 }
+
+} // namespace Rosen
+} // namespace OHOS

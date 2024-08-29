@@ -165,6 +165,10 @@ void RSUIDirector::GoBackground(bool isTextureExport)
 #else
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
 #endif
+                if (rsSurface == nullptr) {
+                    ROSEN_LOGE("rsSurface is nullptr");
+                    return;
+                }
                 rsSurface->ClearBuffer();
             }
         });

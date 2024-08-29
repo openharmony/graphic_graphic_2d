@@ -67,7 +67,7 @@ private:
         void ProcessSurfaceViewWithoutUni(RSSurfaceRenderNode& node);
         std::shared_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
 
-        NodeId nodeId_;
+        NodeId nodeId_ = INVALID_NODEID;
         RSSurfaceCaptureConfig captureConfig_;
 
         Drawing::Matrix captureMatrix_ = Drawing::Matrix();

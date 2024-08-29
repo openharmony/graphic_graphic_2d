@@ -405,70 +405,11 @@ void RSPropertiesPainter::GetDarkColor(RSColor& color)
     }
 }
 
-bool RSPropertiesPainter::PickColor(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& drPath,
-    Drawing::Matrix& matrix, Drawing::RectI& deviceClipBounds, RSColor& colorPicked)
-{
-    Drawing::Rect clipBounds = drPath.GetBounds();
-    Drawing::RectI clipIBounds = { static_cast<int>(clipBounds.GetLeft()), static_cast<int>(clipBounds.GetTop()),
-        static_cast<int>(clipBounds.GetRight()), static_cast<int>(clipBounds.GetBottom()) };
-    Drawing::Surface* drSurface = canvas.GetSurface();
-    if (drSurface == nullptr) {
-        return false;
-    }
-
-    auto colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (!colorPickerTask) {
-        ROSEN_LOGE("RSPropertiesPainter::PickColor colorPickerTask is null");
-        return false;
-    }
-    colorPickerTask->SetIsShadow(true);
-    int deviceWidth = 0;
-    int deviceHeight = 0;
-    int deviceClipBoundsW = drSurface->Width();
-    int deviceClipBoundsH = drSurface->Height();
-    if (!colorPickerTask->GetDeviceSize(deviceWidth, deviceHeight)) {
-        colorPickerTask->SetDeviceSize(deviceClipBoundsW, deviceClipBoundsH);
-        deviceWidth = deviceClipBoundsW;
-        deviceHeight = deviceClipBoundsH;
-    }
-    int32_t fLeft = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_X)), 0, deviceWidth - 1);
-    int32_t fTop = std::clamp(int(matrix.Get(Drawing::Matrix::Index::TRANS_Y)), 0, deviceHeight - 1);
-    int32_t fRight = std::clamp(int(fLeft + clipIBounds.GetWidth()), 0, deviceWidth - 1);
-    int32_t fBottom = std::clamp(int(fTop + clipIBounds.GetHeight()), 0, deviceHeight - 1);
-    if (fLeft == fRight || fTop == fBottom) {
-        return false;
-    }
-
-    Drawing::RectI regionBounds = { fLeft, fTop, fRight, fBottom };
-    std::shared_ptr<Drawing::Image> shadowRegionImage = drSurface->GetImageSnapshot(regionBounds);
-
-    if (shadowRegionImage == nullptr) {
-        return false;
-    }
-
-    // when color picker task resource is waitting for release, use color picked last frame
-    if (colorPickerTask->GetWaitRelease()) {
-        colorPickerTask->GetColorAverage(colorPicked);
-        return true;
-    }
-
-    if (RSColorPickerCacheTask::PostPartialColorPickerTask(colorPickerTask, shadowRegionImage)
-        && colorPickerTask->GetColor(colorPicked)) {
-        colorPickerTask->GetColorAverage(colorPicked);
-        colorPickerTask->SetStatus(CacheProcessStatus::WAITING);
-        return true;
-    }
-    colorPickerTask->GetColorAverage(colorPicked);
-    return true;
-}
-
 void RSPropertiesPainter::DrawShadowInner(
     const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path)
 {
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
-    // shadow alpha follow setting
-    auto shadowAlpha = spotColor.GetAlpha();
     auto deviceClipBounds = canvas.GetDeviceClipBounds();
 
     // The translation of the matrix is rounded to improve the hit ratio of skia blurfilter cache,
@@ -478,23 +419,6 @@ void RSPropertiesPainter::DrawShadowInner(
     matrix.Set(Drawing::Matrix::TRANS_X, std::ceil(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
-
-    RSColor colorPicked;
-    auto colorPickerTask = properties.GetColorPickerCacheTaskShadow();
-    if (colorPickerTask != nullptr &&
-        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        if (PickColor(properties, canvas, path, matrix, deviceClipBounds, colorPicked)) {
-            GetDarkColor(colorPicked);
-        } else {
-            shadowAlpha = 0;
-        }
-        if (!colorPickerTask->GetFirstGetColorFinished()) {
-            shadowAlpha = 0;
-        }
-    } else {
-        shadowAlpha = spotColor.GetAlpha();
-        colorPicked = spotColor;
-    }
 
     if (properties.GetShadowElevation() > 0.f) {
         Drawing::Point3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
@@ -511,7 +435,7 @@ void RSPropertiesPainter::DrawShadowInner(
     } else {
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color::ColorQuadSetARGB(
-            shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
+            spotColor.GetAlpha(), spotColor.GetRed(), spotColor.GetGreen(), spotColor.GetBlue()));
         brush.SetAntiAlias(true);
         Drawing::Filter filter;
         filter.SetMaskFilter(

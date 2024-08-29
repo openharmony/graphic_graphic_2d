@@ -78,9 +78,7 @@ private:
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
-    void ReportFrameToRSS();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-    uint64_t lastReportTime_ = 0;
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
@@ -97,7 +95,7 @@ private:
     int hardwareTid_ = -1;
     std::shared_ptr<RSSurfaceOhos> frameBufferSurfaceOhos_;
 
-    HgmRefreshRates hgmRefreshRates_;
+    HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RSVBlankIdleCorrector vblankIdleCorrector_;
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;

@@ -28,7 +28,7 @@ namespace Rosen {
 using namespace Drawing;
 
 RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
-    : Canvas(canvas->GetWidth(), canvas->GetHeight()), canvas_(canvas)
+    : Canvas(canvas ? canvas->GetWidth() : 0, canvas ? canvas->GetHeight() : 0), canvas_(canvas)
 {
 #ifdef ENABLE_RECORDING_DCL
     this->AddCanvas(canvas);

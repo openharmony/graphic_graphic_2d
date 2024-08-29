@@ -41,6 +41,25 @@ const std::map<CMError, CMErrorCode> JS_TO_ERROR_CODE_MAP {
     { CMError::CM_ERROR_INVALID_PARAM, CMErrorCode::CM_ERROR_INVALID_PARAM },
     { CMError::CM_ERROR_INVALID_ENUM_USAGE, CMErrorCode::CM_ERROR_ABNORMAL_PARAM_VALUE },
 };
+
+#define NAPI_CALL_WITH_ERRCODE(env, theCall, errCode)                                                        \
+    do {                                                                                                     \
+        if ((theCall) != napi_ok) {                                                                          \
+            napi_throw(env,                                                                                  \
+                CreateJsError(env, static_cast<int32_t>(errCode),                                            \
+                "napi failed."));                                                                            \
+            return nullptr;                                                                                  \
+        }                                                                                                    \
+    } while (0)
+
+#define NAPI_CALL_DEFAULT(theCall)                                                                           \
+    do {                                                                                                     \
+        if ((theCall) != napi_ok) {                                                                          \
+            return nullptr;                                                                                  \
+        }                                                                                                    \
+    } while (0)
+#define NAPI_CALL_WITH_ERRCODE_DEFAULT(env, theCall) \
+    NAPI_CALL_WITH_ERRCODE(env, theCall, CMErrorCode::CM_ERROR_INVALID_PARAM)
 } // namespace ColorManager
 } // namespace OHOS
 

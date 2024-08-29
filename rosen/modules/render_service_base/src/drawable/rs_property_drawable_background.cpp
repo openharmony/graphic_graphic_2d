@@ -167,22 +167,10 @@ bool RSMaskShadowDrawable::OnUpdate(const RSRenderNode& node)
     }
     path.Offset(properties.GetShadowOffsetX(), properties.GetShadowOffsetY());
     Color spotColor = properties.GetShadowColor();
-    // shadow alpha follow setting
-    auto shadowAlpha = spotColor.GetAlpha();
-    RSColor colorPicked;
-    if (properties.GetColorPickerCacheTaskShadow() != nullptr &&
-        properties.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        if (!properties.GetColorPickerCacheTaskShadow()->GetFirstGetColorFinished()) {
-            shadowAlpha = 0;
-        }
-    } else {
-        shadowAlpha = spotColor.GetAlpha();
-        colorPicked = spotColor;
-    }
 
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(
-        shadowAlpha, colorPicked.GetRed(), colorPicked.GetGreen(), colorPicked.GetBlue()));
+        spotColor.GetAlpha(), spotColor.GetRed(), spotColor.GetGreen(), spotColor.GetBlue()));
     brush.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetMaskFilter(

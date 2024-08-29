@@ -33,6 +33,9 @@ constexpr const char* ARKTS_CARD_NODE = "ArkTSCardNode";
 constexpr const char* SYSTEM_APP = "";
 constexpr const int ABILITY_COMPONENT_LIMIT = 100;
 };
+
+using ResidentSurfaceNodeMap = std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>;
+
 RSRenderNodeMap::RSRenderNodeMap()
 {
     // add animation fallback node, NOTE: this is different from RSContext::globalRootRenderNode_
@@ -335,7 +338,7 @@ void RSRenderNodeMap::TraverseDisplayNodes(std::function<void (const std::shared
     }
 }
 
-std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> RSRenderNodeMap::GetResidentSurfaceNodeMap() const
+const ResidentSurfaceNodeMap& RSRenderNodeMap::GetResidentSurfaceNodeMap() const
 {
     return residentSurfaceNodeMap_;
 }
