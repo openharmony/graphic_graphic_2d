@@ -22,7 +22,6 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsTypeface::constructor_ = nullptr;
-std::shared_ptr<Typeface> drawingTypeface;
 const std::string CLASS_NAME = "Typeface";
 const std::string G_SYSTEM_FONT_DIR = "/system/fonts";
 napi_value JsTypeface::Init(napi_env env, napi_value exportObj)

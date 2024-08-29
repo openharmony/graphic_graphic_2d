@@ -24,6 +24,7 @@
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_typeface.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,9 +45,13 @@ std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDynamicFontMgr()
 
 Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint8_t* data, size_t dataLength)
 {
+    auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
+    if (dynamicFontMgr == nullptr) {
+        LOGD("SkiaFontMgr::LoadDynamicFont, dynamicFontMgr nullptr");
+        return nullptr;
+    }
     auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
     auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-    auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
     if (familyName.empty()) {
         dynamicFontMgr->font_provider().RegisterTypeface(typeface);
     } else {
@@ -66,6 +71,10 @@ void SkiaFontMgr::LoadThemeFont(const std::string& themeName, std::shared_ptr<Ty
         return;
     }
     auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
+    if (dynamicFontMgr == nullptr) {
+        LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
+        return;
+    }
     SkiaTypeface *skiaTypeFace = typeface->GetImpl<SkiaTypeface>();
     if (skiaTypeFace == nullptr) {
         return;
@@ -77,6 +86,10 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
     const uint8_t* data, size_t dataLength)
 {
     auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
+    if (dynamicFontMgr == nullptr) {
+        LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
+        return nullptr;
+    }
     if (familyName.empty() || data == nullptr) {
         dynamicFontMgr->font_provider().RegisterTypeface(nullptr, themeName);
         return nullptr;
@@ -99,6 +112,10 @@ Typeface* SkiaFontMgr::MatchFamilyStyleCharacter(const char familyName[], const 
                                                  const char* bcp47[], int bcp47Count,
                                                  int32_t character)
 {
+    if (skFontMgr_ == nullptr) {
+        LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
+        return nullptr;
+    }
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
     SkTypeface* skTypeface =
@@ -112,6 +129,10 @@ Typeface* SkiaFontMgr::MatchFamilyStyleCharacter(const char familyName[], const 
 
 FontStyleSet* SkiaFontMgr::MatchFamily(const char familyName[]) const
 {
+    if (skFontMgr_ == nullptr) {
+        LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
+        return nullptr;
+    }
     SkFontStyleSet* skFontStyleSetPtr = skFontMgr_->matchFamily(familyName);
     if (!skFontStyleSetPtr) {
         return nullptr;
@@ -123,6 +144,10 @@ FontStyleSet* SkiaFontMgr::MatchFamily(const char familyName[]) const
 
 Typeface* SkiaFontMgr::MatchFamilyStyle(const char familyName[], const FontStyle& fontStyle) const
 {
+    if (skFontMgr_ == nullptr) {
+        LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
+        return nullptr;
+    }
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
     SkTypeface* skTypeface =

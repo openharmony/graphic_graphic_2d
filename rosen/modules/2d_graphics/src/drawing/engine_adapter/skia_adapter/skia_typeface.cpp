@@ -181,6 +181,10 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int inde
 
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
+    if (!memoryStream) {
+        LOGD("SkiaTypeface::MakeFromStream, memoryStream nullptr");
+        return nullptr;
+    }
     std::unique_ptr<SkStreamAsset> skMemoryStream = memoryStream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream();
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromStream(std::move(skMemoryStream), index);
     if (!skTypeface) {
@@ -234,7 +238,16 @@ sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t len
         return SkTypeface::MakeDeserialize(&stream);
     }
     auto& typeface = textblobCtx->GetTypeface();
-    auto skTypeface = typeface->GetImpl<SkiaTypeface>()->GetSkTypeface();
+    if (typeface == nullptr) {
+        LOGD("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    auto skiaTypeface = typeface->GetImpl<SkiaTypeface>();
+    if (skiaTypeface == nullptr) {
+        LOGD("skiaTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    auto skTypeface = skiaTypeface->GetSkTypeface();
     return skTypeface;
 }
 
