@@ -148,6 +148,7 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
         canvas.GetBrightnessRatio());
     filter->SetColorFilterForHDR(colorFilter);
     filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, discardCanvas);
+    filter->PostProcess(canvas);
     filter->ResetColorFilterForHDR();
     cachedFilterHash_ = filter->Hash();
     return true;
@@ -272,12 +273,13 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
         canvas.GetBrightnessRatio());
     filter->SetColorFilterForHDR(colorFilter);
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
+    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst);
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (paintFilterCanvas != nullptr) {
         offscreenCanvas.SetHDRPresent(paintFilterCanvas->GetHDRPresent());
         offscreenCanvas.SetBrightnessRatio(paintFilterCanvas->GetBrightnessRatio());
     }
-    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst);
+    filter->PostProcess(offscreenCanvas);
     filter->ResetColorFilterForHDR();
 
     // Update the cache state with the filtered snapshot.

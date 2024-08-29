@@ -18,7 +18,6 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_maskcolor_shader_filter.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -265,69 +264,5 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     filterPtr->type_ = RSShaderFilter::NONE;
     drawingFilter.DrawImageRect(canvas, image, src, dst);
     EXPECT_TRUE(image != nullptr);
-}
-
-/**
- * @tc.name: CreateColorFilterForMaskColor001
- * @tc.desc: test results of CreateColorFilterForMaskColor
- * @tc.type: FUNC
- * @tc.require: issuesIAMWRL
- */
-HWTEST_F(RSDrawingFilterTest, CreateColorFilterForMaskColor001, TestSize.Level1)
-{
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSShaderFilter>();
-    filterPtr->type_ = RSShaderFilter::NONE;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
-    shaderFilters.push_back(filterPtr);
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
-    Drawing::Canvas canvas;
-    drawingFilter.CreateColorFilterForMaskColor(canvas);
-    EXPECT_TRUE(drawingFilter.colorFilterForMaskColor_ == nullptr);
-}
-
-/**
- * @tc.name: CreateColorFilterForMaskColor002
- * @tc.desc: test results of CreateColorFilterForMaskColor
- * @tc.type: FUNC
- * @tc.require: issuesIAMWRL
- */
-HWTEST_F(RSDrawingFilterTest, CreateColorFilterForMaskColor002, TestSize.Level1)
-{
-    int colorMode = AVERAGE;
-    RSColor maskColor(0);
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSMaskColorShaderFilter>(colorMode, maskColor);
-    filterPtr->type_ = RSShaderFilter::MASK_COLOR;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
-    shaderFilters.push_back(std::static_pointer_cast<RSShaderFilter>(filterPtr));
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
-    Drawing::Canvas canvas;
-    drawingFilter.CreateColorFilterForMaskColor(canvas);
-    EXPECT_TRUE(drawingFilter.colorFilterForMaskColor_ == nullptr);
-}
-
-/**
- * @tc.name: CreateColorFilterForMaskColor003
- * @tc.desc: test results of CreateColorFilterForMaskColor
- * @tc.type: FUNC
- * @tc.require: issuesIAMWRL
- */
-HWTEST_F(RSDrawingFilterTest, CreateColorFilterForMaskColor003, TestSize.Level1)
-{
-    int colorMode = AVERAGE;
-    RSColor maskColor(0xffffffff);
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    auto filterPtr = std::make_shared<RSMaskColorShaderFilter>(colorMode, maskColor);
-    filterPtr->type_ = RSShaderFilter::MASK_COLOR;
-    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
-    shaderFilters.push_back(std::static_pointer_cast<RSShaderFilter>(filterPtr));
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
-    Drawing::Canvas canvas;
-    drawingFilter.CreateColorFilterForMaskColor(canvas);
-    EXPECT_TRUE(drawingFilter.colorFilterForMaskColor_ != nullptr);
 }
 } // namespace OHOS::Rosen
