@@ -354,8 +354,8 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareSurfaceRenderNode003, TestSize.Level1
     std::shared_ptr<RSSurfaceRenderNode> sharedPtr = std::make_shared<RSSurfaceRenderNode>(0);
     node.isTextureExportNode_ = true;
     RSProperties& properties = sharedPtr->GetMutableRenderProperties();
-    properties.frameGeo_->SetWidth(1.f);
-    properties.frameGeo_->SetHeight(1.f);
+    properties.frameGeo_.SetWidth(1.f);
+    properties.frameGeo_.SetHeight(1.f);
     node.parent_ = sharedPtr;
     rsRenderThreadVisitor.PrepareSurfaceRenderNode(node);
     EXPECT_TRUE(node.GetIsTextureExportNode());

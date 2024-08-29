@@ -20,7 +20,6 @@
 
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
-#include "common/rs_obj_abs_geometry.h"
 #include "render/rs_mesa_blur_shader_filter.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -222,7 +221,6 @@ const bool RSProperties::FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetFore
 RSProperties::RSProperties()
 {
     boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    frameGeo_ = std::make_shared<RSObjGeometry>();
 }
 
 RSProperties::~RSProperties() = default;
@@ -337,17 +335,17 @@ Vector2f RSProperties::GetBoundsPosition() const
 
 void RSProperties::SetFrame(Vector4f frame)
 {
-    if (frame.z_ != frameGeo_->GetWidth() || frame.w_ != frameGeo_->GetHeight()) {
+    if (frame.z_ != frameGeo_.GetWidth() || frame.w_ != frameGeo_.GetHeight()) {
         contentDirty_ = true;
     }
-    frameGeo_->SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
+    frameGeo_.SetRect(frame.x_, frame.y_, frame.z_, frame.w_);
     geoDirty_ = true;
     SetDirty();
 }
 
 void RSProperties::SetFrameSize(Vector2f size)
 {
-    frameGeo_->SetSize(size.x_, size.y_);
+    frameGeo_.SetSize(size.x_, size.y_);
     geoDirty_ = true;
     contentDirty_ = true;
     SetDirty();
@@ -355,7 +353,7 @@ void RSProperties::SetFrameSize(Vector2f size)
 
 void RSProperties::SetFrameWidth(float width)
 {
-    frameGeo_->SetWidth(width);
+    frameGeo_.SetWidth(width);
     geoDirty_ = true;
     contentDirty_ = true;
     SetDirty();
@@ -363,7 +361,7 @@ void RSProperties::SetFrameWidth(float width)
 
 void RSProperties::SetFrameHeight(float height)
 {
-    frameGeo_->SetHeight(height);
+    frameGeo_.SetHeight(height);
     geoDirty_ = true;
     contentDirty_ = true;
     SetDirty();
@@ -371,53 +369,53 @@ void RSProperties::SetFrameHeight(float height)
 
 void RSProperties::SetFramePosition(Vector2f position)
 {
-    frameGeo_->SetPosition(position.x_, position.y_);
+    frameGeo_.SetPosition(position.x_, position.y_);
     geoDirty_ = true;
     SetDirty();
 }
 
 void RSProperties::SetFramePositionX(float positionX)
 {
-    frameGeo_->SetX(positionX);
+    frameGeo_.SetX(positionX);
     geoDirty_ = true;
     SetDirty();
 }
 
 void RSProperties::SetFramePositionY(float positionY)
 {
-    frameGeo_->SetY(positionY);
+    frameGeo_.SetY(positionY);
     geoDirty_ = true;
     SetDirty();
 }
 
 Vector4f RSProperties::GetFrame() const
 {
-    return { frameGeo_->GetX(), frameGeo_->GetY(), frameGeo_->GetWidth(), frameGeo_->GetHeight() };
+    return { frameGeo_.GetX(), frameGeo_.GetY(), frameGeo_.GetWidth(), frameGeo_.GetHeight() };
 }
 
 Vector2f RSProperties::GetFrameSize() const
 {
-    return { frameGeo_->GetWidth(), frameGeo_->GetHeight() };
+    return { frameGeo_.GetWidth(), frameGeo_.GetHeight() };
 }
 
 float RSProperties::GetFrameWidth() const
 {
-    return frameGeo_->GetWidth();
+    return frameGeo_.GetWidth();
 }
 
 float RSProperties::GetFrameHeight() const
 {
-    return frameGeo_->GetHeight();
+    return frameGeo_.GetHeight();
 }
 
 float RSProperties::GetFramePositionX() const
 {
-    return frameGeo_->GetX();
+    return frameGeo_.GetX();
 }
 
 float RSProperties::GetFramePositionY() const
 {
-    return frameGeo_->GetY();
+    return frameGeo_.GetY();
 }
 
 Vector2f RSProperties::GetFramePosition() const
@@ -440,7 +438,7 @@ const std::shared_ptr<RSObjAbsGeometry>& RSProperties::GetBoundsGeometry() const
     return boundsGeo_;
 }
 
-const std::shared_ptr<RSObjGeometry>& RSProperties::GetFrameGeometry() const
+const RSObjGeometry& RSProperties::GetFrameGeometry() const
 {
     return frameGeo_;
 }
@@ -552,7 +550,7 @@ std::optional<Drawing::Matrix> RSProperties::GetSandBoxMatrix() const
 void RSProperties::SetPositionZ(float positionZ)
 {
     boundsGeo_->SetZ(positionZ);
-    frameGeo_->SetZ(positionZ);
+    frameGeo_.SetZ(positionZ);
     geoDirty_ = true;
     SetDirty();
 }
@@ -2309,7 +2307,7 @@ void RSProperties::CheckEmptyBounds()
 {
     // [planning] remove this func and fallback to framerect after surfacenode using frame
     if (!hasBounds_) {
-        boundsGeo_->SetRect(frameGeo_->GetX(), frameGeo_->GetY(), frameGeo_->GetWidth(), frameGeo_->GetHeight());
+        boundsGeo_->SetRect(frameGeo_.GetX(), frameGeo_.GetY(), frameGeo_.GetWidth(), frameGeo_.GetHeight());
     }
 }
 
@@ -3035,7 +3033,7 @@ void RSProperties::GenerateAIBarFilter()
 void RSProperties::GenerateLinearGradientBlurFilter()
 {
     auto linearBlurFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(linearGradientBlurPara_,
-        frameGeo_->GetWidth(), frameGeo_->GetHeight());
+        frameGeo_.GetWidth(), frameGeo_.GetHeight());
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(linearBlurFilter);
 
     filter_ = originalFilter;
@@ -4349,8 +4347,8 @@ bool RSProperties::NeedBlurFuzed()
 
 void RSProperties::CalculateFrameOffset()
 {
-    frameOffsetX_ = frameGeo_->GetX() - boundsGeo_->GetX();
-    frameOffsetY_ = frameGeo_->GetY() - boundsGeo_->GetY();
+    frameOffsetX_ = frameGeo_.GetX() - boundsGeo_->GetX();
+    frameOffsetY_ = frameGeo_.GetY() - boundsGeo_->GetY();
     if (isinf(frameOffsetX_)) {
         frameOffsetX_ = 0.;
     }

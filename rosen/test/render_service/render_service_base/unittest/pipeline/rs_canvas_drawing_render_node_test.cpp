@@ -123,8 +123,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     // case 2.2.1: can GetGravityMatrix, recordingCanvas_ is false
     rsCanvasDrawingRenderNode.isGpuSurface_ = false;
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
-    rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_->SetHeight(3048.0f);
-    rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_->SetWidth(2048.0f);
+    rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_.SetHeight(3048.0f);
+    rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_.SetWidth(2048.0f);
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     EXPECT_TRUE(rsCanvasDrawingRenderNode.recordingCanvas_ == nullptr);

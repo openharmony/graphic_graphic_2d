@@ -164,11 +164,10 @@ HWTEST_F(RSPropertyDrawableTest, OnGenerateAndOnUpdateTest005, TestSize.Level1)
     node.renderContent_->renderProperties_.clipToFrame_ = false;
     EXPECT_EQ(clipToFrameDrawable->OnGenerate(node), nullptr);
 
-    std::shared_ptr<RSObjGeometry> geometry = std::make_shared<RSObjGeometry>();
-    EXPECT_NE(geometry, nullptr);
+    RSObjGeometry geometry;
 
-    geometry->width_ = 1.0f;
-    geometry->height_ = 1.0f;
+    geometry.width_ = 1.0f;
+    geometry.height_ = 1.0f;
     node.renderContent_->renderProperties_.frameGeo_ = geometry;
     node.renderContent_->renderProperties_.clipToFrame_ = true;
     EXPECT_NE(clipToFrameDrawable->OnGenerate(node), nullptr);
