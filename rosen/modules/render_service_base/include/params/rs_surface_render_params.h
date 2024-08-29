@@ -44,13 +44,15 @@ struct RSLayerInfo {
     GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     GraphicLayerType layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     int32_t layerSource;
+    bool arsrTag = true;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
             (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
             (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
-            (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType);
+            (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
+            (arsrTag == layerInfo.arsrTag);
     }
 #endif
 };

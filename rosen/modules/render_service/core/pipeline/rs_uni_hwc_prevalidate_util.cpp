@@ -97,6 +97,11 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     } else {
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
+
+    if (CheckIfDoArsrPre(node)) {
+        info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
+        node->SetArsrTag(true);
+    }
     RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo %{public}s,"
         " %{public}" PRIu64 ", src: %{public}s, dst: %{public}s, z: %{public}" PRIu32 ","
         " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
@@ -303,6 +308,21 @@ void RSUniHwcPrevalidateUtil::CopyCldInfo(CldInfo src, RequestLayerInfo& info)
     info.cldInfo->exWidth = src.exWidth;
     info.cldInfo->exHeight = src.exHeight;
     info.cldInfo->baseColor = src.baseColor;
+}
+
+bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node)
+{
+    if (node->GetRSSurfaceHandler()->GetBuffer() == nullptr) {
+        return false;
+    }
+    static const std::unordered_set<std::string> videoLayers {
+        "xcomponentIdSurface",
+        "componentIdSurface",
+    };
+    if (IsYUVBufferFormat(node) || (videoLayers.count(node->GetName()) > 0)) {
+        return true;
+    }
+    return false;
 }
 } //Rosen
 } //OHOS

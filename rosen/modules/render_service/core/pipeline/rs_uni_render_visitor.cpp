@@ -1654,7 +1654,14 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             continue;
         }
         auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(it.first);
-        if (node == nullptr || node->IsInFixedRotation() || node->GetProtectedLayer()) {
+        if (node == nullptr) {
+            continue;
+        }
+        if (it.second == RequestCompositionType::DEVICE_VSCF) {
+            node->SetArsrTag(false);
+            continue;
+        }
+        if (node->IsInFixedRotation() || node->GetProtectedLayer()) {
             continue;
         }
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by prevalidate",
