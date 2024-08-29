@@ -67,8 +67,8 @@ napi_value JsRoundRect::Constructor(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
     napi_valuetype valueType = napi_undefined;
     if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
-        ROSEN_LOGE("JsRoundRect::Constructor Argv[0] is invalid");
-        return NapiGetUndefined(env);
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "JsRoundRect::Constructor Argv[0] is invalid.");
     }
 
     double ltrb[ARGC_FOUR] = {0};
