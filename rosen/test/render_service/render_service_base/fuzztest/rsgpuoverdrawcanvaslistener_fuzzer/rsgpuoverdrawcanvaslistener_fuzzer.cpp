@@ -26,7 +26,6 @@
 
 #include "platform/ohos/overdraw/rs_gpu_overdraw_canvas_listener.h"
 
-using namespace OHOS::Rosen;
 namespace OHOS {
 namespace Rosen {
 constexpr size_t SCREEN_WIDTH = 100;
@@ -38,6 +37,7 @@ const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 } // namespace
+
 template<class T>
 T GetData()
 {
@@ -405,6 +405,9 @@ bool DoAttachBrush(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::rsGpu) {
+        return 0;
+    }
     /* Run your code on data */
     OHOS::Rosen::DoDrawPoint(data, size);
     OHOS::Rosen::DoDrawLine(data, size);
