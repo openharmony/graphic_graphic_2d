@@ -298,8 +298,8 @@ bool RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& displayNod
     if (!mainThread_) {
         return false;
     }
-    std::shared_ptr<RSDisplayRenderNode> node = std::shared_ptr<RSDisplayRenderNode>(new RSDisplayRenderNode(nodeId,
-        displayNodeConfig, mainThread->GetContext().weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    std::shared_ptr<RSDisplayRenderNode> node =
+        DisplayNodeCommandHelper::CreateWithConfigInRS(displayNodeConfig, mainThread_->GetContext());
     if (node == nullptr) {
         RS_LOGE("RSRenderService::CreateDisplayNode fail");
         return false;
