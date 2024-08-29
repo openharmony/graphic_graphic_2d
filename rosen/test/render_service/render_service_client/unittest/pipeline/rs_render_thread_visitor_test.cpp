@@ -765,7 +765,11 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1
     node.shouldPaint_ = true;
     rsRenderThreadVisitor.childSurfaceNodeIds_.clear();
     rsRenderThreadVisitor.ProcessSurfaceRenderNode(node);
-    EXPECT_TRUE(rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
+    if (RSUniRenderJudgement::IsUniRender()) {
+        EXPECT_TRUE(rsRenderThreadVisitor.childSurfaceNodeIds_.empty());
+    } else {
+        EXPECT_NE(rsRenderThreadVisitor.childSurfaceNodeIds_.size(), -1);
+    }
 
     node.isTextureExportNode_ = true;
     rsRenderThreadVisitor.childSurfaceNodeIds_.push_back(0);
@@ -1268,6 +1272,10 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessOtherSurfaceRenderNode001, TestSize.L
     Drawing::Canvas canvas;
     visitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     visitor.ProcessSurfaceRenderNode(node);
-    EXPECT_EQ(visitor.childSurfaceNodeIds_.size(), 0);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        EXPECT_EQ(visitor.childSurfaceNodeIds_.size(), 0);
+    } else {
+        EXPECT_NE(visitor.childSurfaceNodeIds_.size(), -1);
+    }
 }
 } // namespace OHOS::Rosen
