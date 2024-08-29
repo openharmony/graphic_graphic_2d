@@ -43,6 +43,14 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
     }
 }
 
+std::shared_ptr<RSDisplayRenderNode> DisplayNodeCommandHelper::CreateWithConfigInRS(
+    RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
+{
+    auto node = std::shared_ptr<RSDisplayRenderNode>(new RSDisplayRenderNode(id, config,
+        context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    return node;
+}
+
 void DisplayNodeCommandHelper::AddDisplayNodeToTree(RSContext& context, NodeId id)
 {
     auto& nodeMap = context.GetMutableNodeMap();
