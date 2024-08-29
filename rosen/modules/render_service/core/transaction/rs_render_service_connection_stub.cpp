@@ -1552,11 +1552,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {
-            uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
-            if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId)) {
-                ret = ERR_TRANSACTION_FAILED;
-                break;
-            }
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {
                 ret = ERR_INVALID_REPLY;
@@ -1593,11 +1588,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::
             GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO) : {
-            uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
-            if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId)) {
-                ret = ERR_TRANSACTION_FAILED;
-                break;
-            }
             const auto& hwcDisabledReasonInfos = GetHwcDisabledReasonInfo();
             if (!reply.WriteInt32(hwcDisabledReasonInfos.size())) {
                 ret = ERR_INVALID_REPLY;
