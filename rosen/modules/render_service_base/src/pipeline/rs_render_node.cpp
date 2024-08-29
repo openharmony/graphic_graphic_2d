@@ -1662,9 +1662,21 @@ void RSRenderNode::MapAndUpdateChildrenRect()
         childRect = childRect.JoinRect(childrenRect_.ConvertTo<float>());
     }
     // map before update parent, if parent has clip property, use clipped children rect instead.
-    RectI childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
+    // node with sharedTransitionParam should recalculate childRelativeToParentMatrix due to sandbox.
     if (auto parentNode = parent_.lock()) {
+        auto childRelativeToParentMatrix = Drawing::Matrix();
         const auto& parentProperties = parentNode->GetRenderProperties();
+        const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
+        const auto& sandbox = GetRenderProperties().GetSandBox();
+        auto invertAbsParentMatrix = Drawing::Matrix();
+        if (sandbox.has_value() && sharedTransitionParam_ &&
+            parentGeoPtr->GetAbsMatrix().Invert(invertAbsParentMatrix)) {
+            auto absChildMatrix = geoPtr->GetAbsMatrix();
+            childRelativeToParentMatrix = absChildMatrix * invertAbsParentMatrix;
+        } else {
+            childRelativeToParentMatrix = geoPtr->GetMatrix();
+        }
+        RectI childRectMapped = geoPtr->MapRect(childRect, childRelativeToParentMatrix);
         if (parentProperties.GetClipToBounds() || parentProperties.GetClipToFrame()) {
             childRectMapped = parentNode->GetSelfDrawRect().ConvertTo<int>().IntersectRect(childRectMapped);
         }
@@ -2563,10 +2575,12 @@ void RSRenderNode::FilterModifiersByPid(pid_t pid)
 
 void RSRenderNode::UpdateShouldPaint()
 {
-    // node should be painted if either it is visible or it has disappearing transition animation, but only when its
-    // alpha is not zero
-    shouldPaint_ = (ROSEN_GNE(GetRenderProperties().GetAlpha(), 0.0f)) &&
-                   (GetRenderProperties().GetVisible() || HasDisappearingTransition(false));
+    // node should be painted if either it is visible or it has disappearing transition animation,
+    // but only when its alpha is not zero.
+    // Besides, if one node has sharedTransitionParam, it should be painted no matter what alpha it has.
+    shouldPaint_ = ((ROSEN_GNE(GetRenderProperties().GetAlpha(), 0.0f)) &&
+                   (GetRenderProperties().GetVisible() || HasDisappearingTransition(false))) ||
+                   sharedTransitionParam_;
     if (!shouldPaint_ && HasBlurFilter()) { // force clear blur cache
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] is invisible", GetId());
         MarkForceClearFilterCacheWhenWithInvisible();
