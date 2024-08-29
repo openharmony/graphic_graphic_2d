@@ -31,7 +31,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     RSNodeMap::MutableInstance().RegisterNode(node);
 
     if (LIKELY(!displayNodeConfig.isSync)) {
-        if(!node->CreateNode(displayNodeConfig, node->GetId())) {
+        if (!node->CreateNode(displayNodeConfig, node->GetId())) {
             ROSEN_LOGE("RSDisplayNode::Create: CreateNode Failed.");
             return nullptr;
         }
