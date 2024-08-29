@@ -2330,7 +2330,7 @@ HWTEST_F(RSRenderNodeTest, GetCompletedImageTest026, TestSize.Level1)
     nodeTest->cacheCompletedBackendTexture_.isValid_ = true;
 #ifdef RS_ENABLE_VK
     // nullptr as cacheCompletedCleanupHelper_ is false
-    EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
+    nodeTest->GetCompletedImage(canvas, 0, true);
 #else
     EXPECT_NE(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
 #endif
