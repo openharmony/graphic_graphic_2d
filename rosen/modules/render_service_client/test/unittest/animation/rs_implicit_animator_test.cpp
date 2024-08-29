@@ -169,6 +169,8 @@ HWTEST_F(RSImplicitAnimatorTest, CancelImplicitAnimation001, TestSize.Level1)
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
     RSAnimationTimingProtocol timingProtocol3;
     implicitAnimator->OpenImplicitAnimation(timingProtocol3, timingCurve);
+    implicitAnimator->CreateImplicitAnimation(canvasNode3, property3, nullptr, endProperty);
+    implicitAnimator->CreateImplicitAnimation(canvasNode3, property3, startProperty, nullptr);
     implicitAnimator->CreateImplicitAnimation(canvasNode3, property3, startProperty, endProperty);
     implicitAnimator->CancelImplicitAnimation(canvasNode3, property3);
 

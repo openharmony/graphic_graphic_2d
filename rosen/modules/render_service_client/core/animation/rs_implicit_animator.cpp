@@ -491,7 +491,7 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         return;
     }
 
-    if (target == nullptr || property == nullptr) {
+    if (target == nullptr || property == nullptr || startValue == nullptr || endValue == nullptr) {
         return;
     }
 

@@ -99,7 +99,7 @@ void RSRenderCurveAnimation::OnSetFraction(float fraction)
 void RSRenderCurveAnimation::UpdateFractionAfterContinue()
 {
     auto& [bChangeFraction, valueFraction] = fractionChangeInfo_;
-    if (bChangeFraction) {
+    if (valueEstimator_ != nullptr && bChangeFraction) {
         SetFractionInner(valueEstimator_->EstimateFraction(interpolator_, valueFraction, GetDuration()));
         bChangeFraction = false;
         valueFraction = 0.0f;
