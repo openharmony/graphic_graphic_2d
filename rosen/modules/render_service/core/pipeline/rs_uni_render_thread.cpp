@@ -612,11 +612,11 @@ bool RSUniRenderThread::IsHighContrastTextModeOn() const
     return uniRenderEngine_->IsHighContrastEnabled();
 }
 
-std::string FormatNumber(size_t number)
+static std::string FormatNumber(size_t number)
 {
-    constexpr uint8_t FORMATE_NUM_STEP = 3;
+    constexpr int FORMATE_NUM_STEP = 3;
     std::string strNumber = std::to_string(number);
-    int n = strNumber.length();
+    int n = static_cast<int>(strNumber.length());
     for (int i = n - FORMATE_NUM_STEP; i > 0; i -= FORMATE_NUM_STEP) {
         strNumber.insert(i, ",");
     }
