@@ -163,6 +163,17 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation()
     return implicitAnimator->CloseImplicitAnimation();
 }
 
+bool RSNode::CloseImplicitCancelAnimation()
+{
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to close implicit animation for cancel, implicit animator is null!");
+        return false;
+    }
+
+    return implicitAnimator->CloseImplicitCancelAnimation();
+}
+
 void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;

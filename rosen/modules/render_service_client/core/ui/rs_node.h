@@ -156,6 +156,7 @@ public:
     static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
+    static bool CloseImplicitCancelAnimation();
     static bool IsImplicitAnimationOpen();
 
     static void ExecuteWithoutAnimation(
