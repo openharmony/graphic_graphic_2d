@@ -1520,19 +1520,6 @@ HWTEST_F(RSUniRenderVisitorTest, SurfaceOcclusionCallbackToWMS001, TestSize.Leve
 }
 
 /**
- * @tc.name: GetCurrentBlackList001
- * @tc.desc: Test GetCurrentBlackList with default constructed visitor
- * @tc.type: FUNC
- * @tc.require: issuesIACYVJ
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    EXPECT_TRUE(rsUniRenderVisitor->GetCurrentBlackList().empty());
-}
-
-/**
  * @tc.name: NeedPrepareChindrenInReverseOrder001
  * @tc.desc: Test NeedPrepareChindrenInReverseOrder with default constructed visitor
  * @tc.type: FUNC
@@ -3470,24 +3457,6 @@ HWTEST_F(RSUniRenderVisitorTest, CollectOcclusionInfoForWMS002, TestSize.Level1)
     std::shared_ptr<RSContext> context = nullptr;
     node->context_ = context;
     rsUniRenderVisitor->CollectOcclusionInfoForWMS(*node);
-}
-
-/**
- * @tc.name: GetCurrentBlackList
- * @tc.desc: Test GetCurrentBlackList002, screenManager_ && curDisplayNode_ != nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAJSIS
- */
-HWTEST_F(RSUniRenderVisitorTest, GetCurrentBlackList002, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId displayNodeId = 3;
-    RSDisplayNodeConfig config;
-    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
-    rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
-    ASSERT_EQ(rsUniRenderVisitor->GetCurrentBlackList().size(), 0);
 }
 
 /**

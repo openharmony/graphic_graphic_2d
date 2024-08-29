@@ -142,8 +142,6 @@ public:
 
     void SurfaceOcclusionCallbackToWMS();
 
-    const std::unordered_set<NodeId>& GetCurrentBlackList() const;
-
     static void ClearRenderGroupCache();
 
     const std::vector<NodeId>& GetAllMainAndLeashWindowNodesIds()
@@ -168,6 +166,7 @@ public:
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
+    const std::unordered_set<NodeId>& GetCurrentBlackList() const;
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
