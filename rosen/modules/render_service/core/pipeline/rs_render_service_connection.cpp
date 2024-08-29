@@ -333,7 +333,7 @@ bool RSRenderServiceConnection::CreateNode(const RSDisplayNodeConfig& displayNod
         context.GetGlobalRootRenderNode()->AddChild(node);
         auto mirrorSourceNode = context.GetNodeMap()
             .GetRenderNode<RSDisplayRenderNode>(mirrorNodeId);
-        if (!mirrorSourceNode) { 
+        if (!mirrorSourceNode) {
             return;
         }
         node->SetMirrorSource(mirrorSourceNode);
