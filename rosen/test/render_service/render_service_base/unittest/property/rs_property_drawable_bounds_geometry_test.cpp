@@ -2058,7 +2058,9 @@ HWTEST_F(RSBorderPathDrawableTest, OnBoundsChange001, TestSize.Level1)
     auto drawable = std::make_shared<RSBorderPathDrawable>(std::move(brush), std::move(pen), properties, true);
     drawable->OnBoundsChange(propertiesTwo);
     EXPECT_TRUE(drawable->drawBorder_);
-    drawable = std::make_shared<RSBorderPathDrawable>(std::move(brush), std::move(pen), properties, false);
+    Drawing::Brush brush2;
+    Drawing::Pen pen2;
+    drawable = std::make_shared<RSBorderPathDrawable>(std::move(brush2), std::move(pen2), properties, false);
     drawable->OnBoundsChange(propertiesTwo);
     EXPECT_FALSE(drawable->drawBorder_);
 }
