@@ -22,7 +22,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-class OpListHandleImpl : BaseImpl {
+class OpListHandleImpl : public BaseImpl {
 public:
     OpListHandleImpl() {};
     ~OpListHandleImpl() override {}

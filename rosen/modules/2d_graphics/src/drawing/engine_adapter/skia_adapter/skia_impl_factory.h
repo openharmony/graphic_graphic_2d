@@ -88,8 +88,6 @@ public:
     static std::unique_ptr<Matrix44Impl> CreateMatrix44();
     static std::unique_ptr<CameraImpl> CreateCamera();
     static std::unique_ptr<RegionImpl> CreateRegion();
-    static std::unique_ptr<VerticesImpl> CreateVertices();
-    static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilder();
     static std::unique_ptr<FontImpl> CreateFont();
     static std::unique_ptr<FontImpl> CreateFont(std::shared_ptr<Typeface> typeface,
         scalar size, scalar scaleX, scalar skewX);
@@ -99,6 +97,8 @@ public:
 #ifndef USE_TEXGINE
     static std::shared_ptr<FontMgrImpl> CreateDynamicFontMgr();
 #endif
+    static std::unique_ptr<VerticesImpl> CreateVertices();
+    static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilder();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream(const void* data, size_t length, bool copyData);
     static std::shared_ptr<ResourceHolderImpl> CreateResourceHolder();

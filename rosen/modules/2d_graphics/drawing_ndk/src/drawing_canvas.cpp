@@ -781,7 +781,8 @@ bool OH_Drawing_CanvasReadPixels(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image_In
     return canvas->ReadPixels(imageInfo, dstPixels, dstRowBytes, srcX, srcY);
 }
 
-bool OH_Drawing_CanvasReadPixelsToBitmap(OH_Drawing_Canvas* cCanvas, OH_Drawing_Bitmap* cBitmap, int32_t srcX, int32_t srcY)
+bool OH_Drawing_CanvasReadPixelsToBitmap(OH_Drawing_Canvas* cCanvas, OH_Drawing_Bitmap* cBitmap,
+    int32_t srcX, int32_t srcY)
 {
     Canvas* canvas = CastToCanvas(cCanvas);
     if (canvas == nullptr || cBitmap == nullptr) {
