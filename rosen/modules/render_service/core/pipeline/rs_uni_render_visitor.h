@@ -235,7 +235,7 @@ private:
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
-    void UpdateTopLayersDirtyStatus(std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers);
+    void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void UpdateHwcNodeEnable();
     void PrevalidateHwcNode();
 

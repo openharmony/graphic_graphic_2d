@@ -1010,6 +1010,10 @@ void RSSurfaceRenderNode::NotifyTreeStateChange()
 
 void RSSurfaceRenderNode::SetLayerTop(bool isTop)
 {
+    if (!RSInterfaceCodeAccessVerifierBase::IsSystemCalling("SetLayerTop")) {
+        // System calls only
+        return;
+    }
     isLayerTop_ = isTop;
     SetContentDirty();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
