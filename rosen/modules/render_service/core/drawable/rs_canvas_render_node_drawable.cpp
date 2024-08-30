@@ -99,7 +99,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         if (canvas.GetUICapture() && !drawBlurForCache_) {
             GenerateCacheIfNeed(canvas, *params);
         }
-        CheckCacheTypeAndDraw(canvas, *params);
+        CheckCacheTypeAndDraw(canvas, *params, true);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }

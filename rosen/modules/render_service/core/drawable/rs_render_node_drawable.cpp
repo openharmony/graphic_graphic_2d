@@ -200,14 +200,19 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     canvas.ClipPath(filetrPath);
     DrawContent(canvas, params.GetFrameRect());
     DrawChildren(canvas, params.GetBounds());
-    DrawForeground(canvas, params.GetBounds());
 }
 
-void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
+void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
+    Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
+    auto originalCacheType = GetCacheType();
+    // can not draw cache because skipCacheLayer in capture process, such as security layers...
+    if (GetCacheType() != DrawableCacheType::NONE && hasSkipCacheLayer_ && isInCapture) {
+        SetCacheType(DrawableCacheType::NONE);
+    }
     if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE &&
-        params.GetForegroundFilterCache() == nullptr) {
+        params.GetForegroundFilterCache() == nullptr && GetCacheType() != DrawableCacheType::NONE) {
         // traverse children to draw filter/shadow/effect
         Drawing::AutoCanvasRestore arc(canvas, true);
         bool isOpDropped = isOpDropped_;
@@ -223,13 +228,14 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     }
 
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    // if children don't have any filter or effect, stop traversing
     if (drawBlurForCache_ && !params.ChildHasVisibleFilter() && !params.ChildHasVisibleEffect() &&
         !HasFilterOrEffect()) {
         RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", nodeId_);
         return;
     }
 
-    // RSPaintFilterCanvas::CacheType::OFFSCREEN case
+    // in case of generating cache with filter in offscreen, clip hole for filter/shadow but drawing others
     if (isOffScreenWithClipHole_) {
         if (HasFilterOrEffect() && params.GetForegroundFilterCache() == nullptr) {
             // clip hole for filter/shadow
@@ -241,15 +247,19 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
         }
     }
 
-    auto cacheType = GetCacheType();
-    if (hasSkipCacheLayer_) {
-        // can not draw cache because skipCacheLayer, such as security layers...
-        SetCacheType(DrawableCacheType::NONE);
-    }
     switch (GetCacheType()) {
         case DrawableCacheType::NONE: {
-            RSRenderNodeDrawable::OnDraw(canvas);
-            SetCacheType(cacheType);
+            if (drawBlurForCache_) {
+                DrawBackground(canvas, params.GetBounds());
+                if (params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect()) {
+                    DrawContent(canvas, params.GetFrameRect());
+                    DrawChildren(canvas, params.GetBounds());
+                }
+            } else {
+                RSRenderNodeDrawable::OnDraw(canvas);
+            }
+            // reset cachetype for skipCacheLayer
+            SetCacheType(originalCacheType);
             break;
         }
         case DrawableCacheType::CONTENT: {
