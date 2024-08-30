@@ -133,6 +133,33 @@ HWTEST_F(RSSurfaceHandlerTest, SetBufferSizeChanged001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBufferTransformTypeChanged001
+ * @tc.desc: test set buffer transform type changed
+ * @tc.type: FUNC
+ * @tc.require: issueIANQPF
+ */
+HWTEST_F(RSSurfaceHandlerTest, SetBufferTransformTypeChanged001, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<SurfaceBuffer> buffer;
+    int32_t releaseFence = 0;
+    int64_t timestamp = 0;
+    Rect damage = {0};
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto ret = surfacePtr_->RequestBuffer(buffer, releaseFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    rSSurfaceHandlerPtr_->SetBuffer(buffer, acquireFence, damage, timestamp);
+    // case 1: rSSurfaceHandlerPtr_->bufferTransformTypeChanged_ is true
+    rSSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
+    // case 2: rSSurfaceHandlerPtr_->bufferTransformTypeChanged_ is false
+    rSSurfaceHandlerPtr_->SetBufferTransformTypeChanged(false);
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
+    rSSurfaceHandlerPtr_->RegisterDeleteBufferListener(BufferDeleteCbFunc);
+#endif
+}
+
+/**
  * @tc.name: RegisterDeleteBufferListener001
  * @tc.desc: test register delete buffer listener and 'cleanCache()'
  * @tc.type: FUNC

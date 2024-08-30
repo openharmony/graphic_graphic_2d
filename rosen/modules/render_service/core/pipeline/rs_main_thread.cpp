@@ -1274,9 +1274,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 auto preBuffer = surfaceHandler.GetPreBuffer();
                 surfaceNode->UpdateBufferInfo(buffer,
                     surfaceHandler.GetDamageRegion(), surfaceHandler.GetAcquireFence(), preBuffer);
-                if (surfaceHandler.GetBufferSizeChanged()) {
+                if (surfaceHandler.GetBufferSizeChanged() || surfaceHandler.GetBufferTransformTypeChanged()) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
+                    surfaceHandler.SetBufferTransformTypeChanged(false);
                     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode buffer size changed",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                     RS_LOGD("ConsumeAndUpdateAllNodes name:%{public}s id:%{public}" PRIu64" buffer size changed, "
