@@ -179,9 +179,14 @@ HWTEST_F(RsSubThreadTest, DumpMemTest001, TestSize.Level1)
     auto renderContext = std::make_shared<RenderContext>();
     auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
     DfxString log;
-    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    auto grContext = std::make_shared<Drawing::GPUContext>();
+    curThread->grContext_ = grContext;
     curThread->DumpMem(log);
-    EXPECT_TRUE(curThread->grContext_);
+    if (grContext) {
+        EXPECT_TRUE(curThread->grContext_);
+    } else {
+        EXPECT_FALSE(curThread->grContext_);
+    }
 }
 
 /**
