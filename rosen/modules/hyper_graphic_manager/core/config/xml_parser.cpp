@@ -347,6 +347,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
     } else if (name == "game_scene_list") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.gameSceneList);
+    } else if (name == "anco_scene_list") {
+        setResult = ParseSimplex(*thresholdNode, screenSetting.ancoSceneList);
     } else if (name == "app_list") {
         ParseMultiAppStrategy(*thresholdNode, screenSetting);
     } else if (name == "app_types") {

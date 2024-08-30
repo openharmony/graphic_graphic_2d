@@ -944,6 +944,7 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     std::string sceneName = eventInfo.description;
     auto screenSetting = multiAppStrategy_.GetScreenSetting();
     auto &gameSceneList = screenSetting.gameSceneList;
+    auto &ancoSceneList = screenSetting.ancoSceneList;
 
     std::lock_guard<std::mutex> locker(pkgSceneMutex_);
     std::lock_guard<std::mutex> lock(voteMutex_);
@@ -954,6 +955,17 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
             }
         } else {
             if (gameScenes_.erase(sceneName)) {
+                MarkVoteChange();
+            }
+        }
+    }
+    if (ancoSceneList.find(sceneName) != ancoSceneList.end()) {
+        if (eventInfo.eventStatus == ADD_VOTE) {
+            if (ancoScenes_.insert(sceneName).second) {
+                MarkVoteChange();
+            }
+        } else {
+            if (ancoScenes_.erase(sceneName)) {
                 MarkVoteChange();
             }
         }
@@ -1189,6 +1201,9 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
         if ((voter == "VOTER_GAMES" && !gameScenes_.empty()) || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
             ProcessVoteLog(curVoteInfo, true);
             continue;
+        }
+        if (voter == "VOTER_ANCO" && !ancoScenes_.empty()) {
+            curVoteInfo.SetRange(OLED_60_HZ, OLED_90_HZ);
         }
         ProcessVoteLog(curVoteInfo, false);
         auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
