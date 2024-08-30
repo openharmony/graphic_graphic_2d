@@ -581,7 +581,7 @@ HWTEST_F(RSUifirstManagerTest, ReleaseSkipSyncBuffer001, TestSize.Level1)
     std::vector<std::function<void()>> tasks;
     tasks.push_back(task);
     uifirstManager_.ReleaseSkipSyncBuffer(tasks);
-    ASSERT_NE(tasks.empty(), false);
+    ASSERT_NE(tasks.empty(), true);
 }
 
 /**
@@ -597,7 +597,7 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncBuffer001, TestSize.Level1)
     std::vector<std::function<void()>> tasks;
     tasks.push_back(task);
     uifirstManager_.CollectSkipSyncBuffer(tasks, id);
-    ASSERT_NE(tasks.empty(), false);
+    ASSERT_NE(tasks.empty(), true);
 }
 
 /**
