@@ -649,6 +649,21 @@ std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetCacheSurfaceDirtyM
     return cacheSurfaceDirtyManager_;
 }
 
+void RSSurfaceRenderNode::SetSurfaceNodeType(RSSurfaceNodeType nodeType)
+{
+    if (nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
+        nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+        nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+        return;
+    }
+    if (nodeType == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+        nodeType == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+        RS_LOGE("RSSurfaceRenderNode::SetSurfaceNodeType prohibition of converting surfaceNodeType to uiExtension");
+        return;
+    }
+    nodeType_ = nodeType;
+}
+
 void RSSurfaceRenderNode::MarkUIHidden(bool isHidden)
 {
     isUIHidden_ = isHidden;

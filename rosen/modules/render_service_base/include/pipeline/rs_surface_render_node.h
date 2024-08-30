@@ -334,14 +334,7 @@ public:
         return nodeType_;
     }
 
-    void SetSurfaceNodeType(RSSurfaceNodeType nodeType)
-    {
-        if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE &&
-            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE &&
-            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
-            nodeType_ = nodeType;
-        }
-    }
+    void SetSurfaceNodeType(RSSurfaceNodeType nodeType);
 
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
