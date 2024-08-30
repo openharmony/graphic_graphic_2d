@@ -451,7 +451,6 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
 
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 {
-    ClearResource();
     dirtyTypes_.set(static_cast<int>(modifierType), true);
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     for (auto& [type, list]: GetDrawCmdModifiers()) {
@@ -470,15 +469,16 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
             if (cmd == nullptr) {
                 continue;
             }
-            drawCmdLists_[type].emplace_back(cmd);
-            if (cmd->GetOpItemSize() > 0) {
-                SetNeedProcess(true);
+            //only content_style allowed multi-drawcmdlist, others modifier same as canvas_node
+            if (type != RSModifierType::CONTENT_STYLE) {
+                drawCmdLists_[type].clear();
             }
+            drawCmdLists_[type].emplace_back(cmd);
+            SetNeedProcess(true);
         }
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
-        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() ||
-            ((renderDrawable_ && !renderDrawable_->IsDrawCmdListsVisited()))) &&
+        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&
             drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
             RS_LOGD("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
                 type, drawCmdLists_[type].size());
