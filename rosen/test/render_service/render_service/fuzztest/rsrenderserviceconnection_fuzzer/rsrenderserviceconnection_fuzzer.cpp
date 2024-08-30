@@ -902,6 +902,98 @@ bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
     rsConn->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
     return true;
 }
+
+bool DoGetActiveDirtyRegionInfo(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+
+    rsConn->GetActiveDirtyRegionInfo();
+    return true;
+}
+
+bool DoGetGlobalDirtyRegionInfo(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+
+    rsConn->GetGlobalDirtyRegionInfo();
+    return true;
+}
+
+bool DoGetLayerComposeInfo(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+
+    rsConn->GetLayerComposeInfo();
+    return true;
+}
+
+bool DoGetHwcDisabledReasonInfo(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    if (size < MAX_SIZE) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto rsConn = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+
+    rsConn->GetHwcDisabledReasonInfo();
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -943,5 +1035,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoTakeSurfaceCapture(data, size);
     OHOS::Rosen::DoSetScreenChangeCallback(data, size);
     OHOS::Rosen::DoSetFocusAppInfo(data, size);
+    OHOS::Rosen::DoGetActiveDirtyRegionInfo(data, size);
+    OHOS::Rosen::DoGetGlobalDirtyRegionInfo(data, size);
+    OHOS::Rosen::DoGetLayerComposeInfo(data, size);
+    OHOS::Rosen::DoGetHwcDisabledReasonInfo(data, size);
     return 0;
 }

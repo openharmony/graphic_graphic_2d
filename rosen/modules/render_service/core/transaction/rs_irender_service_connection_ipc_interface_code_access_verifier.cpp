@@ -323,6 +323,22 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SKIP_FRAME_INTERVAL");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ACTIVE_DIRTY_REGION_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_ACTIVE_DIRTY_REGION_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_GLOBAL_DIRTY_REGION_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_GLOBAL_DIRTY_REGION_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_LAYER_COMPOSE_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_LAYER_COMPOSE_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO");
+            break;
+        }
         default: {
             break;
         }
