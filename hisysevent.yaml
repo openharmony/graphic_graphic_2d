@@ -171,8 +171,8 @@ GPU_SUBHEALTH_MONITORING:
   WAIT_ACQUIRE_FENCE_TIME: {type: UINT64, desc: wait acquire fence time}
   FRAME_RATE: {type: INT32, desc: real frame rate}
 
-COMMIT_TRANSACTION_DATA:
-  __BASE: {type: BEHAVIOR, level: MINOR, desc: receive large commit transaction data}
+IPC_DATA_OVER_ERROR:
+  __BASE: {type: STATISTIC, level: MINOR, desc: receive large commit transaction data}
   PID: {type: INT32, desc: application pid}
   UID: {type: INT32, desc: application uid}
   BUNDLE_NAME: {type: STRING, desc: application package name}
