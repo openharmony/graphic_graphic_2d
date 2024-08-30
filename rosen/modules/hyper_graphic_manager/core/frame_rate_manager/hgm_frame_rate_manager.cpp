@@ -1163,13 +1163,21 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
     return mergeSuccess;
 }
 
-VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
+book HgmFrameRateManager::CheckRefreshNeed()
 {
     if (!isRefreshNeed_) {
         const auto& packages = multiAppStrategy_.GetPackages();
         RS_TRACE_NAME_FMT("Process nothing, lastVoteInfo: %s[%d, %d] curPackage: %s, touchState: %d",
             lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max,
             packages.empty() ? "" : packages.front().c_str(), touchManager_.GetState());
+        return false;
+    }
+    return true;
+}
+
+VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
+{
+    if (!CheckRefreshNeed()) {
         return lastVoteInfo_;
     }
     UpdateVoteRule();
