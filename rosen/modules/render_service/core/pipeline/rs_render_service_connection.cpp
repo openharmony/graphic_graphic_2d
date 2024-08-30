@@ -836,6 +836,17 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         screenCapturePermission = permissions.screenCapturePermission,
         isSystemCalling = permissions.isSystemCalling,
         selfCapture = permissions.selfCapture]() -> void {
+        if (captureConfig.captureType == SurfaceCaptureType::UICAPTURE) {
+            // When the isSync flag in captureConfig is true, UI capture processes commands before capture.
+            // When the isSync flag in captureConfig is false, UI capture will check null node independently.
+            // Therefore, a null node is valid for UI capture.
+            if (RSUniRenderJudgement::IsUniRender()) {
+                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig);
+            } else {
+                TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
+            }
+            return;
+        }
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture failed, node is nullptr");
@@ -853,41 +864,28 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             return;
         }
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (captureConfig.captureType == SurfaceCaptureType::DEFAULT_CAPTURE) {
-            if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-                RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD ||
-                renderType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
-                if (node == nullptr) {
-                    RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture node == nullptr");
-                    return;
+        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
+            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD ||
+            renderType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+            auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
+                !node->IsOnTheTree() : false;
+            std::function<void()> captureTaskInner = [id, callback, captureConfig, isProcOnBgThread]() -> void {
+                RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]", id);
+                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+                RSSurfaceCaptureTask task(id, captureConfig, isProcOnBgThread);
+                if (!task.Run(callback)) {
+                    callback->OnSurfaceCapture(id, nullptr);
                 }
-                auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
-                    !node->IsOnTheTree() : false;
-                std::function<void()> captureTaskInner = [id, callback, captureConfig, isProcOnBgThread]() -> void {
-                    RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]",
-                        id);
-                    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-                    RSSurfaceCaptureTask task(id, captureConfig, isProcOnBgThread);
-                    if (!task.Run(callback)) {
-                        callback->OnSurfaceCapture(id, nullptr);
-                    }
-                    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-                };
-                if (isProcOnBgThread) {
-                    RSBackgroundThread::Instance().PostTask(captureTaskInner);
-                } else {
-                    captureTaskInner();
-                }
+                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+            };
+            if (isProcOnBgThread) {
+                RSBackgroundThread::Instance().PostTask(captureTaskInner);
             } else {
-                RSSurfaceCaptureTaskParallel::CheckModifiers(id);
-                RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);
+                captureTaskInner();
             }
         } else {
-            if (RSUniRenderJudgement::IsUniRender()) {
-                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig);
-            } else {
-                TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
-            }
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id);
+            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);
         }
     };
     mainThread_->PostTask(captureTask);
