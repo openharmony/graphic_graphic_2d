@@ -1163,7 +1163,7 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
     return mergeSuccess;
 }
 
-book HgmFrameRateManager::CheckRefreshNeed()
+bool HgmFrameRateManager::CheckRefreshNeed()
 {
     if (!isRefreshNeed_) {
         const auto& packages = multiAppStrategy_.GetPackages();

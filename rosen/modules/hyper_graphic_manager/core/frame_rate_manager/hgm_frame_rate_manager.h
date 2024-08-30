@@ -197,7 +197,7 @@ private:
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
-    book CheckRefreshNeed();
+    bool CheckRefreshNeed();
     VoteInfo ProcessRefreshRateVote();
     void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
