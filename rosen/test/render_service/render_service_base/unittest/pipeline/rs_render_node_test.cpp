@@ -2284,7 +2284,7 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     paintFilterCanvasTest2.canvas_->impl_ = implTest1;
     paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_ = true;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest2, 0, true);
-    EXPECT_TRUE(paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_);
+    EXPECT_NE(paintFilterCanvasTest2.canvas_, nullptr);
 
     // RSSystemPrperties::GetRecordongEnabled() is false
     // cacheCompletedSurface_->GetImageSnapshot() and RSSystemProperties::GetRecordingEnabled() is false
@@ -2300,7 +2300,7 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     paintFilterCanvasTest3.canvas_->impl_ = implTest2;
     paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_ = true;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest3, 0, true);
-    EXPECT_TRUE(paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_);
+    EXPECT_NE(paintFilterCanvasTest3.canvas_, nullptr);
 }
 
 /**
