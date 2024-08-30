@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "rscpuoverdrawcanvaslistener_fuzzer.h"
 
 #include <climits>
@@ -398,6 +399,9 @@ bool DoAppendRegion(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::rsCpu) {
+        return 0;
+    }
     /* Run your code on data */
     OHOS::Rosen::DoDrawPoint(data, size);
     OHOS::Rosen::DoDrawLine(data, size);
