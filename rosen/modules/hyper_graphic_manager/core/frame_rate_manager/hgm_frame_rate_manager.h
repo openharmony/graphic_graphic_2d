@@ -192,7 +192,6 @@ private:
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
-    static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange();
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
