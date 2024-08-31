@@ -55,6 +55,7 @@ ohos_unittest("RSScreenManagerTest") {
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+    defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
   }
 
   subsystem_name = "graphic"

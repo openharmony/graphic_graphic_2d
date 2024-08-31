@@ -373,21 +373,24 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixOfBufferToRelRect_002, Function | SmallTe
 
 /*
  * @tc.name: CreateBufferDrawParam_002
- * @tc.desc:
+ * @tc.desc: test CreateBufferDrawParam with displayNode has buffer
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#IANH95
  */
 HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam_002, Function | SmallTest | Level2)
 {
     NodeId id = 0;
     bool forceCPU = false;
     RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(id, config);
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(node.GetRenderDrawable());
+        static_cast<RSDisplayRenderNodeDrawable*>(RSDisplayRenderNodeDrawable::OnGenerate(node));
+    ASSERT_NE(displayDrawable, nullptr);
     auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
     surfaceHandler->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    EXPECT_TRUE(RSUniRenderUtil::CreateBufferDrawParam(node, forceCPU).buffer);
+    node->renderDrawable_ = std::shared_ptr<RSDisplayRenderNodeDrawable>(displayDrawable);
+    EXPECT_TRUE(RSUniRenderUtil::CreateBufferDrawParam(*node, forceCPU).buffer);
 }
 
 /*
@@ -486,9 +489,9 @@ HWTEST_F(RSUniRenderUtilTest, GetRotationDegreeFromMatrix, Function | SmallTest 
 
 /*
  * @tc.name: Is3DRotation_001
- * @tc.desc:
+ * @tc.desc: test Is3DRotation with ScaleX and ScaleY have same sign
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: #IANH95
  */
 HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
 {
@@ -511,7 +514,7 @@ HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(-1, 0, 0, 0, -1, 0, 0, 0, 1);
     is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
-    ASSERT_TRUE(is3DRotation);
+    ASSERT_FALSE(is3DRotation);
 }
 
 /*

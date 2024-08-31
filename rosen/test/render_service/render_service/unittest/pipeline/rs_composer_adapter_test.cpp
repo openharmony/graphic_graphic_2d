@@ -53,6 +53,7 @@ uint32_t RSComposerAdapterTest::screenId_ = 0;
 
 void RSComposerAdapterTest::SetUpTestCase()
 {
+    RSTestUtil::InitRenderNodeGC();
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     rsScreen_ = std::make_unique<impl::RSScreen>(screenId_, true, hdiOutput_, nullptr);
     screenManager_ = CreateOrGetScreenManager();
@@ -426,7 +427,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest010, Function | SmallTest | Leve
  * @tc.name: CreateLayer
  * @tc.desc: RSComposerAdapter.CreateLayer test
  * @tc.type: FUNC
- * @tc.require: issueI7HDVG
+ * @tc.require: issueIANH95
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
 {
@@ -436,17 +437,18 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     RSDisplayNodeConfig config;
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSDisplayRenderNode node(nodeId, config);
+    auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
-        node.GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetConsumer(consumer);
+        node->GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetConsumer(consumer);
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
-        node.GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
-    composerAdapter_->CreateLayer(node);
+        node->GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
+    composerAdapter_->CreateLayer(*node);
 }
 
 /**
