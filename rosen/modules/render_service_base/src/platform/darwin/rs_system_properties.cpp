@@ -516,5 +516,10 @@ bool RSSystemProperties::GetMemoryOverTreminateEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

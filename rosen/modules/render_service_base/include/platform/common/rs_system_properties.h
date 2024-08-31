@@ -276,7 +276,7 @@ public:
 
     static int GetRSNodeLimit();
     static bool GetMemoryOverTreminateEnabled();
-
+    static bool GetHwcDirtyRegionEnabled();
 private:
     RSSystemProperties() = default;
 
