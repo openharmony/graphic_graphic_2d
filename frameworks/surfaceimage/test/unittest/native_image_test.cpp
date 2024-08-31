@@ -1350,43 +1350,43 @@ HWTEST_F(NativeImageTest, OH_ConsumerSurface_Create002, Function | MediumTest | 
 }
 
 /*
-* Function: OH_ConsumerSuface_SetDefaultUsage
+* Function: OH_ConsumerSurface_SetDefaultUsage
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
-* CaseDescription: 1. call OH_ConsumerSuface_SetDefaultUsage
+* CaseDescription: 1. call OH_ConsumerSurface_SetDefaultUsage
 *                  2. check ret
 * @tc.require: issueI5KG61
 */
-HWTEST_F(NativeImageTest, OH_ConsumerSuface_SetDefaultUsage001, Function | MediumTest | Level1)
+HWTEST_F(NativeImageTest, OH_ConsumerSurface_SetDefaultUsage001, Function | MediumTest | Level1)
 {
     uint64_t usage = BUFFER_USAGE_CPU_READ;
     OH_NativeImage* consumerSurface = OH_ConsumerSurface_Create();
     ASSERT_NE(consumerSurface, nullptr);
-    ASSERT_EQ(OH_ConsumerSuface_SetDefaultUsage(nullptr, usage), SURFACE_ERROR_INVALID_PARAM);
-    ASSERT_EQ(OH_ConsumerSuface_SetDefaultUsage(consumerSurface, usage), GSERROR_OK);
+    ASSERT_EQ(OH_ConsumerSurface_SetDefaultUsage(nullptr, usage), SURFACE_ERROR_INVALID_PARAM);
+    ASSERT_EQ(OH_ConsumerSurface_SetDefaultUsage(consumerSurface, usage), GSERROR_OK);
     OH_NativeImage_Destroy(&consumerSurface);
 }
 
 /*
-* Function: OH_ConsumerSuface_SetDefaultSize
+* Function: OH_ConsumerSurface_SetDefaultSize
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
-* CaseDescription: 1. call OH_ConsumerSuface_SetDefaultSize
+* CaseDescription: 1. call OH_ConsumerSurface_SetDefaultSize
 *                  2. check ret
 * @tc.require: issueI5KG61
 */
-HWTEST_F(NativeImageTest, OH_ConsumerSuface_SetDefaultSize001, Function | MediumTest | Level1)
+HWTEST_F(NativeImageTest, OH_ConsumerSurface_SetDefaultSize001, Function | MediumTest | Level1)
 {
     int32_t width = 100;
     int32_t height = 100;
     OH_NativeImage* consumerSurface = OH_ConsumerSurface_Create();
     ASSERT_NE(consumerSurface, nullptr);
-    ASSERT_EQ(OH_ConsumerSuface_SetDefaultSize(nullptr, 1, 1), SURFACE_ERROR_INVALID_PARAM);
-    ASSERT_EQ(OH_ConsumerSuface_SetDefaultSize(consumerSurface, 0, -1), SURFACE_ERROR_INVALID_PARAM);
-    ASSERT_EQ(OH_ConsumerSuface_SetDefaultSize(consumerSurface, 1, -1), SURFACE_ERROR_INVALID_PARAM);
-    ASSERT_EQ(OH_ConsumerSuface_SetDefaultSize(consumerSurface, width, height), GSERROR_OK);
+    ASSERT_EQ(OH_ConsumerSurface_SetDefaultSize(nullptr, 1, 1), SURFACE_ERROR_INVALID_PARAM);
+    ASSERT_EQ(OH_ConsumerSurface_SetDefaultSize(consumerSurface, 0, -1), SURFACE_ERROR_INVALID_PARAM);
+    ASSERT_EQ(OH_ConsumerSurface_SetDefaultSize(consumerSurface, 1, -1), SURFACE_ERROR_INVALID_PARAM);
+    ASSERT_EQ(OH_ConsumerSurface_SetDefaultSize(consumerSurface, width, height), GSERROR_OK);
     OH_NativeImage_Destroy(&consumerSurface);
 }
 }
