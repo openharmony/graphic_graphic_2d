@@ -197,6 +197,7 @@ private:
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
+    bool CheckRefreshNeed();
     VoteInfo ProcessRefreshRateVote();
     void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
@@ -230,6 +231,7 @@ private:
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
     std::unordered_set<std::string> gameScenes_;
+    std::unordered_set<std::string> ancoScenes_;
     std::mutex cleanPidCallbackMutex_;
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
     std::mutex frameRateVoteInfoMutex_;

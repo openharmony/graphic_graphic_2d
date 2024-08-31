@@ -946,6 +946,7 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     std::string sceneName = eventInfo.description;
     auto screenSetting = multiAppStrategy_.GetScreenSetting();
     auto &gameSceneList = screenSetting.gameSceneList;
+    auto &ancoSceneList = screenSetting.ancoSceneList;
 
     std::lock_guard<std::mutex> locker(pkgSceneMutex_);
     std::lock_guard<std::mutex> lock(voteMutex_);
@@ -956,6 +957,17 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
             }
         } else {
             if (gameScenes_.erase(sceneName)) {
+                MarkVoteChange();
+            }
+        }
+    }
+    if (ancoSceneList.find(sceneName) != ancoSceneList.end()) {
+        if (eventInfo.eventStatus == ADD_VOTE) {
+            if (ancoScenes_.insert(sceneName).second) {
+                MarkVoteChange();
+            }
+        } else {
+            if (ancoScenes_.erase(sceneName)) {
                 MarkVoteChange();
             }
         }
@@ -1153,13 +1165,21 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
     return mergeSuccess;
 }
 
-VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
+bool HgmFrameRateManager::CheckRefreshNeed()
 {
     if (!isRefreshNeed_) {
         const auto& packages = multiAppStrategy_.GetPackages();
         RS_TRACE_NAME_FMT("Process nothing, lastVoteInfo: %s[%d, %d] curPackage: %s, touchState: %d",
             lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max,
             packages.empty() ? "" : packages.front().c_str(), touchManager_.GetState());
+        return false;
+    }
+    return true;
+}
+
+VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
+{
+    if (!CheckRefreshNeed()) {
         return lastVoteInfo_;
     }
     UpdateVoteRule();
@@ -1191,6 +1211,9 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
         if ((voter == "VOTER_GAMES" && !gameScenes_.empty()) || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
             ProcessVoteLog(curVoteInfo, true);
             continue;
+        }
+        if (voter == "VOTER_ANCO" && !ancoScenes_.empty()) {
+            curVoteInfo.SetRange(OLED_60_HZ, OLED_90_HZ);
         }
         ProcessVoteLog(curVoteInfo, false);
         auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
