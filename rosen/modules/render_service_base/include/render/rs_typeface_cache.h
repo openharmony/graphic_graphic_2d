@@ -30,6 +30,7 @@ namespace Rosen {
 using TypefaceTuple = std::tuple<std::shared_ptr<Drawing::Typeface>, uint32_t>;
 class RSB_EXPORT RSTypefaceCache {
 public:
+    using MemoryCheckCallback = void(*)(const pid_t, const size_t, bool);
     static RSTypefaceCache& Instance();
     static pid_t GetTypefacePid(uint64_t globalUniqueId);
     static uint32_t GetTypefaceId(uint64_t globalUniqueId);
@@ -49,6 +50,7 @@ public:
     void RemoveDrawingTypefacesByPid(pid_t pid);
     void AddDelayDestroyQueue(uint64_t globalUniqueId);
     void HandleDelayDestroyQueue();
+    void SetMemoryCheckCallback(MemoryCheckCallback callback);
 
     /**
      * @brief    Remove patched typeface IDs (used for profiler replay).
@@ -79,6 +81,8 @@ public:
 
 private:
     bool AddIfFound(uint64_t uniqueId, uint32_t hash);
+    void RemoveHashMap(pid_t pid, std::unordered_map<uint64_t, TypefaceTuple>& typefaceHashMap,
+        uint64_t hash_value);
     RSTypefaceCache(const RSTypefaceCache&) = delete;
     RSTypefaceCache(const RSTypefaceCache&&) = delete;
     RSTypefaceCache& operator=(const RSTypefaceCache&) = delete;
@@ -90,6 +94,7 @@ private:
     mutable std::mutex listMutex_;
     std::list<RSTypefaceRef> delayDestroyTypefaces_;
     std::unordered_map<uint32_t, std::vector<uint64_t>> typefaceHashQueue_;
+    MemoryCheckCallback memoryCheckCallback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

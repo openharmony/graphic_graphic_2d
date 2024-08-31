@@ -15,6 +15,7 @@
 
 #include <iterator>
 #include <unistd.h>
+#include "memory/rs_memory_snapshot.h"
 #include "render/rs_typeface_cache.h"
 #include "sandbox_utils.h"
 #include "src/core/SkLRUCache.h"
@@ -59,6 +60,10 @@ bool RSTypefaceCache::AddIfFound(uint64_t uniqueId, uint32_t hash)
     if (iterator != typefaceHashMap_.end()) {
         typefaceHashCode_[uniqueId] = hash;
         std::get<1>(iterator->second)++;
+        pid_t pid = GetTypefacePid(uniqueId);
+        if (pid && memoryCheckCallback_) {
+            memoryCheckCallback_(pid, (std::get<0>(iterator->second))->GetSize(), false);
+        }
         return true;
     }
     return false;
@@ -103,6 +108,7 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
     if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end()) {
         return;
     }
+
     uint32_t hash_value = typeface->GetHash();
     if (!hash_value) { // fallback to slow path if the adapter does not provide hash
         std::shared_ptr<Drawing::Data> data = typeface->Serialize();
@@ -111,7 +117,11 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         hash_value = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)), 0);
     }
     typefaceHashCode_[uniqueId] = hash_value;
+    pid_t pid = GetTypefacePid(uniqueId);
     if (typefaceHashMap_.find(hash_value) != typefaceHashMap_.end()) {
+        if (pid && memoryCheckCallback_) {
+            memoryCheckCallback_(pid, typeface->GetSize(), false);
+        }
         auto [faceCache, ref] = typefaceHashMap_[hash_value];
         if (faceCache->GetFamilyName() != typeface->GetFamilyName()) {
             // hash collision
@@ -124,17 +134,22 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         return;
     }
     typefaceHashMap_[hash_value] = std::make_tuple(typeface, 1);
+    bool result = false;
     // register queued entries
     std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash_value);
     if (iterator != typefaceHashQueue_.end()) {
         while (iterator->second.size()) {
             uint64_t back = iterator->second.back();
             if (back != uniqueId) {
-                AddIfFound(back, hash_value);
+                result = AddIfFound(back, hash_value);
             }
             iterator->second.pop_back();
         }
         typefaceHashQueue_.erase(iterator);
+    }
+    // if not found, add it to memory
+    if (!result && pid && memoryCheckCallback_) {
+        memoryCheckCallback_(pid, typeface->GetSize(), false);
     }
 }
 
@@ -159,10 +174,14 @@ static void RemoveHashQueue(
     }
 }
 
-static void RemoveHashMap(std::unordered_map<uint64_t, TypefaceTuple>& typefaceHashMap, uint64_t hash_value)
+void RSTypefaceCache::RemoveHashMap(pid_t pid, std::unordered_map<uint64_t, TypefaceTuple>& typefaceHashMap,
+    uint64_t hash_value)
 {
     if (typefaceHashMap.find(hash_value) != typefaceHashMap.end()) {
         auto [typeface, ref] = typefaceHashMap[hash_value];
+        if (pid && memoryCheckCallback_) {
+            MemorySnapshot::Instance().RemoveCpuMemory(pid, typeface->GetSize());
+        }
         if (ref <= 1) {
             typefaceHashMap.erase(hash_value);
         } else {
@@ -176,14 +195,14 @@ void RSTypefaceCache::RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqu
     std::lock_guard<std::mutex> lock(mapMutex_);
     // first check the queue;
     RemoveHashQueue(typefaceHashQueue_, globalUniqueId);
-    
+
     if (typefaceHashCode_.find(globalUniqueId) == typefaceHashCode_.end()) {
         return;
     }
     auto hash_value = typefaceHashCode_[globalUniqueId];
     typefaceHashCode_.erase(globalUniqueId);
 
-    RemoveHashMap(typefaceHashMap_, hash_value);
+    RemoveHashMap(GetTypefacePid(globalUniqueId), typefaceHashMap_, hash_value);
 }
 
 std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCache(uint64_t uniqueId) const
@@ -236,7 +255,8 @@ void RSTypefaceCache::RemoveDrawingTypefacesByPid(pid_t pid)
         uint64_t uniqueId = it->first;
         pid_t pidCache = static_cast<pid_t>(uniqueId >> 32);
         if (pid == pidCache) {
-            RemoveHashMap(typefaceHashMap_, it->second);
+            // no need pid, ClearMemoryCache will clear memory snapshot.
+            RemoveHashMap(0, typefaceHashMap_, it->second);
             it = typefaceHashCode_.erase(it);
         } else {
             ++it;
@@ -261,6 +281,11 @@ void RSTypefaceCache::HandleDelayDestroyQueue()
             ++it;
         }
     }
+}
+
+void RSTypefaceCache::SetMemoryCheckCallback(MemoryCheckCallback callback)
+{
+    memoryCheckCallback_ = callback;
 }
 
 void RSTypefaceCache::Dump() const

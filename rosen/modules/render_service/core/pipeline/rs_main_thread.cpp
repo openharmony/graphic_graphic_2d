@@ -601,6 +601,7 @@ void RSMainThread::Init()
             return;
         }
         RSImageCache::Instance().SetMemoryCheckCallback(MemoryManager::MemoryOverCheck);
+        RSTypefaceCache::Instance().SetMemoryCheckCallback(MemoryManager::MemoryOverCheck);
         grContext->SetMemoryOverCheck(MemoryManager::MemoryOverCheck);
         grContext->SetRemoveMemoryFromSnapshotInfo([](const pid_t pid, const size_t size) {
             MemorySnapshot::Instance().RemoveGpuMemory(pid, size);
