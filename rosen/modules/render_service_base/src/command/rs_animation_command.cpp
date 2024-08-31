@@ -55,6 +55,7 @@ void AnimationCommandHelper::CreateAnimation(
     }
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
     if (node == nullptr) {
+        RS_LOGE("AnimationCommandHelper::CreateAnimation, node[%{public}" PRIu64 "] is nullptr", targetId);
         return;
     }
     RsCommonHook::Instance().OnStartNewAnimation();
