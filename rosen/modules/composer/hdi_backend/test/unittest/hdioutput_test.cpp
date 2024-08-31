@@ -274,14 +274,14 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Leve
 }
 
 /*
-* Function: ReorderLayerInfo001
+* Function: ReorderLayerInfoLocked001
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
-* CaseDescription: 1.call ReorderLayerInfo() with invalid param
+* CaseDescription: 1.call ReorderLayerInfoLocked() with invalid param
 *                  2.no crash
 */
-HWTEST_F(HdiOutputTest, ReorderLayerInfo001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ReorderLayerInfoLocked001, Function | MediumTest | Level1)
 {
     std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(output, nullptr);
@@ -289,7 +289,7 @@ HWTEST_F(HdiOutputTest, ReorderLayerInfo001, Function | MediumTest | Level1)
         output->surfaceIdMap_[i] = nullptr;
     }
     std::vector<LayerDumpInfo> dumpLayerInfos;
-    output->ReorderLayerInfo(dumpLayerInfos);
+    output->ReorderLayerInfoLocked(dumpLayerInfos);
 }
 
 /*
