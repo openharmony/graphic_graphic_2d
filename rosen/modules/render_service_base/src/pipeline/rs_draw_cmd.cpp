@@ -117,6 +117,9 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (!rsImage_) {
+        return;
+    }
     std::shared_ptr<Media::PixelMap> pixelmap = rsImage_->GetPixelMap();
     if (pixelmap && pixelmap->IsAstc()) {
         if (auto recordingCanvas = static_cast<ExtendRecordingCanvas*>(canvas.GetRecordingCanvas())) {
@@ -162,7 +165,7 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
 void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
     const Drawing::SamplingOptions& sampling)
 {
-    if (!pixelMap) {
+    if (!pixelMap || !rsImage_) {
         return;
     }
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
@@ -315,6 +318,9 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
             surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), false);
         if (backendTexture_.IsValid()) {
             auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+            if (!vkTextureInfo) {
+                return false;
+            }
             cleanUpHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
                 vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         } else {
@@ -330,6 +336,9 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
     }
     image_ = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+    if (!vkTextureInfo || !cleanUpHelper_) {
+        return false;
+    }
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
     if (!image_->BuildFromTexture(*context, backendTexture_.GetTextureInfo(),
