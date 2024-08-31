@@ -66,7 +66,6 @@ ohos_unittest("texgine_unittest_part3") {
   subsystem_name = "graphic"
 }
 
-
 ohos_unittest("texgine_unittest_part6") {
   module_out_path = module_output_path
 
