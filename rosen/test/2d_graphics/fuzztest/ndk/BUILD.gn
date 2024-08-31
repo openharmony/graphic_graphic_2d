@@ -36,6 +36,7 @@ group("fuzztest") {
     "ndkpen_fuzzer:fuzztest",
     "ndkpixelmap_fuzzer:fuzztest",
     "ndkpoint_fuzzer:fuzztest",
+    "ndkrecord_fuzzer:fuzztest",
     "ndkrect_fuzzer:fuzztest",
     "ndkregion_fuzzer:fuzztest",
     "ndkroundrect_fuzzer:fuzztest",

@@ -30,6 +30,7 @@
 #include "drawing_pen.h"
 #include "drawing_pixel_map.h"
 #include "drawing_point.h"
+#include "drawing_record_cmd.h"
 #include "drawing_rect.h"
 #include "drawing_region.h"
 #include "drawing_round_rect.h"
@@ -539,6 +540,33 @@ void CanvasFuzzTest010(const uint8_t* data, size_t size)
 
     OH_Drawing_CanvasDestroy(canvas);
 }
+
+void CanvasFuzzTest011(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    OH_Drawing_Canvas* canvas = GetObject<OH_Drawing_Canvas*>();
+    OH_Drawing_RecordCmdUtils* recordCmdUtils = OH_Drawing_RecordCmdUtilsCreate();
+    OH_Drawing_ErrorCode code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils, width, height, &canvas);
+    if (code == OH_DRAWING_SUCCESS) {
+        OH_Drawing_RecordCmd* recordCmd = GetObject<OH_Drawing_RecordCmd*>();
+        code = OH_Drawing_RecordCmdUtilsFinishRecording(recordCmdUtils, &recordCmd);
+        if (code == OH_DRAWING_SUCCESS) {
+            OH_Drawing_Canvas* recordCanvas = OH_Drawing_CanvasCreate();
+            OH_Drawing_CanvasDrawRecordCmd(recordCanvas, recordCmd);
+            OH_Drawing_CanvasDestroy(recordCanvas);
+            OH_Drawing_RecordCmdDestroy(recordCmd);
+        }
+    }
+    OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -557,5 +585,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest008(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest009(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest010(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest011(data, size);
     return 0;
 }
