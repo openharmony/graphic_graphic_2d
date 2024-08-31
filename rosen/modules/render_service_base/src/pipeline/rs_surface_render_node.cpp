@@ -1104,6 +1104,9 @@ void RSSurfaceRenderNode::RegisterBufferClearListener(
 void RSSurfaceRenderNode::SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvailable)
 {
     isNotifyRTBufferAvailable_ = isNotifyRTBufferAvailable;
+    if (GetIsTextureExportNode()) {
+        SetContentDirty();
+    }
     std::lock_guard<std::mutex> lock(mutexClear_);
     if (clearBufferCallback_) {
         clearBufferCallback_->OnBufferClear();
