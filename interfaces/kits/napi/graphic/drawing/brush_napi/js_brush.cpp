@@ -128,6 +128,7 @@ JsBrush::JsBrush(const Brush& brush)
 JsBrush::~JsBrush()
 {
     delete brush_;
+    brush_ = nullptr;
 }
 
 napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
