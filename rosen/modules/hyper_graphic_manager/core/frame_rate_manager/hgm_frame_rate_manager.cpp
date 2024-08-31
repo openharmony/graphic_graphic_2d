@@ -520,7 +520,9 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
         }
         // ChangeGeneratorRate delay 1 frame
         if (!followRs) {
+            // followRs == true means it need follow RS thread to make decision, otherwise it make decision on its own
             if (forceUpdateCallback_ != nullptr) {
+                // force update to change the refresh rate soon, avoid unnecessary waiting vsync
                 forceUpdateCallback_(false, true);
             }
             return;
@@ -1003,6 +1005,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     // changeGenerator only once in a single vsync period
     if (!changeGeneratorRateValid_.load()) {
         if (forceUpdateCallback_ != nullptr) {
+            // force update to change the refresh rate soon, avoid unnecessary waiting vsync
             forceUpdateCallback_(false, true);
         }
         return;
