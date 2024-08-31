@@ -122,6 +122,9 @@ bool ParagraphImpl::DidExceedMaxLines()
 size_t ParagraphImpl::GetLineCount() const
 {
     RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr || paragraph_->GetMaxLines() == 0) {
+        return 0;
+    }
     return paragraph_->lineNumber();
 }
 

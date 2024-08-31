@@ -81,6 +81,8 @@ template("skia_libtxt") {
       defines += [ "OHOS_TEXT_ENABLE" ]
     }
 
+    defines += [ "OHOS_SUPPORT" ]
+
     is_cross_platform =
         current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
         current_os == "android" || current_os == "ios"
