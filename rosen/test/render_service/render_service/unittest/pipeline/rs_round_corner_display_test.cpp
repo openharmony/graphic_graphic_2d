@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <filesystem>
 #include "gtest/gtest.h"
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
@@ -42,6 +43,41 @@ void RSRoundCornerDisplayTest::TearDownTestCase() {}
 void RSRoundCornerDisplayTest::SetUp() {}
 void RSRoundCornerDisplayTest::TearDown() {}
 
+struct XMLProperty {
+    std::string name;
+    std::string value;
+};
+
+xmlNodePtr CreateNodeWithProperty(const std::string& nodeName, const XMLProperty& property)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    xmlNewProp(xmlptr, BAD_CAST(property.name.c_str()), BAD_CAST(property.value.c_str()));
+    return xmlptr;
+}
+
+xmlNodePtr CreateNodeWithProperties(const std::string& nodeName, const std::vector<XMLProperty>& properties)
+{
+    auto xmlptr = xmlNewNode(NULL, BAD_CAST(nodeName.c_str()));
+    for (auto& property : properties) {
+        xmlNewProp(xmlptr, BAD_CAST(property.name.c_str()), BAD_CAST(property.value.c_str()));
+    }
+    return xmlptr;
+}
+
+xmlNodePtr CreateRCDLayer(const std::string& nodeName, const rs_rcd::RoundCornerLayer& layer)
+{
+    std::vector<XMLProperty> properties = {
+        {rs_rcd::ATTR_FILENAME, layer.fileName},
+        {rs_rcd::ATTR_OFFSET_X, std::to_string(layer.offsetX)},
+        {rs_rcd::ATTR_OFFSET_Y, std::to_string(layer.offsetY)},
+        {rs_rcd::ATTR_BINFILENAME, layer.binFileName},
+        {rs_rcd::ATTR_BUFFERSIZE, std::to_string(layer.bufferSize)},
+        {rs_rcd::ATTR_CLDWIDTH, std::to_string(layer.cldWidth)},
+        {rs_rcd::ATTR_CLDHEIGHT, std::to_string(layer.cldHeight)}
+    };
+    return CreateNodeWithProperties(nodeName, properties);
+}
+
 /*
  * @tc.name: RCDLoadConfigFileTest
  * @tc.desc: Test RSRoundCornerDisplayTest.RCDLoadConfigFileTest
@@ -51,7 +87,13 @@ void RSRoundCornerDisplayTest::TearDown() {}
 HWTEST_F(RSRoundCornerDisplayTest, RCDLoadConfigFileTest, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.LoadConfigFile();
+    auto res = rcdInstance.LoadConfigFile();
+    std::filesystem::path pathCheck(rs_rcd::PATH_CONFIG_FILE);
+    if (std::filesystem::exists(pathCheck)) {
+        EXPECT_TRUE(res == true);
+    } else {
+        EXPECT_TRUE(res == false);
+    }
 }
 
 /*
@@ -63,7 +105,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RCDLoadConfigFileTest, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, RCDInitTest, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
+    auto res = rcdInstance.Init();
+    EXPECT_TRUE(res == true);
 }
 
 /*
@@ -75,13 +118,11 @@ HWTEST_F(RSRoundCornerDisplayTest, RCDInitTest, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, UpdateParameterTest, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
+    auto res = rcdInstance.Init();
+    EXPECT_TRUE(res == true);
 
     ScreenRotation curOrientation = ScreenRotation::ROTATION_0;
     rcdInstance.UpdateOrientationStatus(curOrientation);
-
-    int notchStatus = WINDOW_NOTCH_DEFAULT;
-    rcdInstance.UpdateNotchStatus(notchStatus);
 
     uint32_t width = 1344;
     uint32_t height = 2772;
@@ -93,6 +134,10 @@ HWTEST_F(RSRoundCornerDisplayTest, UpdateParameterTest, TestSize.Level1)
         {"orientation", true}
     };
     rcdInstance.UpdateParameter(updateFlag);
+
+    int notchStatus = WINDOW_NOTCH_DEFAULT;
+    rcdInstance.UpdateNotchStatus(notchStatus);
+    EXPECT_TRUE(rcdInstance.notchStatus_ == notchStatus);
 }
 
 /*
@@ -104,13 +149,15 @@ HWTEST_F(RSRoundCornerDisplayTest, UpdateParameterTest, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, RSDrawRoundCornerTest, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
+    auto res = rcdInstance.Init();
+    EXPECT_TRUE(res == true);
 
     ScreenRotation curOrientation = ScreenRotation::ROTATION_0;
     rcdInstance.UpdateOrientationStatus(curOrientation);
 
     int notchStatus = WINDOW_NOTCH_DEFAULT;
     rcdInstance.UpdateNotchStatus(notchStatus);
+    EXPECT_TRUE(rcdInstance.notchStatus_ == notchStatus);
 
     uint32_t width = 1344;
     uint32_t height = 2772;
@@ -135,17 +182,19 @@ HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest, TestSize.Level1)
     const char* path = "port_down.png";
 
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
+    auto res = rcdInstance.Init();
 
     rcdInstance.LoadImg(path, imgBottomPortrait);
     if (imgBottomPortrait == nullptr) {
         std::cout << "RSRoundCornerDisplayTest: current os less rcd source" << std::endl;
+        EXPECT_TRUE(res == true);
         return;
     }
     rcdInstance.DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait);
 
     std::shared_ptr<Drawing::Image> imgNoneImageLoaded = std::make_shared<Drawing::Image>();
-    rcdInstance.DecodeBitmap(imgNoneImageLoaded, bitmapBottomPortrait);
+    res = rcdInstance.DecodeBitmap(imgNoneImageLoaded, bitmapBottomPortrait);
+    EXPECT_TRUE(res == true);
 }
 
 /*
@@ -185,7 +234,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest001, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, RSGetSurfaceSourceTest, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
+    auto res = rcdInstance.Init();
+    EXPECT_TRUE(res == true);
 
     uint32_t width = 1344;
     uint32_t height = 2772;
@@ -211,6 +261,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSChooseResourceTest, TestSize.Level1)
 
     int notchStatus = WINDOW_NOTCH_HIDDEN;
     rcdInstance.UpdateNotchStatus(notchStatus);
+    EXPECT_TRUE(rcdInstance.notchStatus_ == notchStatus);
 
     uint32_t width = 1344;
     uint32_t height = 2772;
@@ -246,19 +297,18 @@ HWTEST_F(RSRoundCornerDisplayTest, IsNotchNeedUpdate, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, RunHardwareTask, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
-    rcdInstance.isRcdRunning = false;
+    bool res = rcdInstance.Init();
     rcdInstance.RunHardwareTask(
         []() {
             std::cout << "do RSRoundCornerDisplayTest.RunHardwareTask1" << std::endl;
         }
     );
-    rcdInstance.isRcdRunning = true;
     rcdInstance.RunHardwareTask(
         []() {
             std::cout << "do RSRoundCornerDisplayTest.RunHardwareTask2" << std::endl;
         }
     );
+    EXPECT_EQ(true, res);
 }
 
 /*
@@ -270,13 +320,13 @@ HWTEST_F(RSRoundCornerDisplayTest, RunHardwareTask, TestSize.Level1)
 HWTEST_F(RSRoundCornerDisplayTest, DrawRoundCorner, TestSize.Level1)
 {
     auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
-    rcdInstance.Init();
-    rcdInstance.isRcdRunning = false;
+    bool res = rcdInstance.Init();
     rcdInstance.DrawTopRoundCorner(nullptr);
     rcdInstance.DrawBottomRoundCorner(nullptr);
-    rcdInstance.isRcdRunning = true;
+
     rcdInstance.DrawTopRoundCorner(nullptr);
     rcdInstance.DrawBottomRoundCorner(nullptr);
+    EXPECT_EQ(true, res);
 }
 
 rs_rcd::ROGSetting* GetRogFromLcdModel(rs_rcd::LCDModel* lcdModel, int& width, int& height)
@@ -356,6 +406,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
         std::cout << "RSRoundCornerDisplayTest: current os less bottomSurfaceNode source" << std::endl;
         return;
     }
+    HardwareLayerInfo info{};
+    bottomSurfaceNode->FillHardwareResource(info, 0, 0);
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     // test
     visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, true);
@@ -563,7 +615,8 @@ HWTEST_F(RSRoundCornerDisplayTest, LCDModel, TestSize.Level1)
     defaultLcd->GetSurfaceConfig();
 
     xmlNodePtr xmlptr = nullptr;
-    defaultLcd->ReadXmlNode(xmlptr);
+    auto res = defaultLcd->ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
 }
 
 /*
@@ -576,7 +629,19 @@ HWTEST_F(RSRoundCornerDisplayTest, HardwareComposerConfig, TestSize.Level1)
 {
     rs_rcd::HardwareComposerConfig cfg;
     xmlNodePtr xmlptr = nullptr;
-    cfg.ReadXmlNode(xmlptr);
+    bool res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
+    xmlptr = xmlNewNode(NULL, BAD_CAST(rs_rcd::NODE_HARDWARECOMPOSERCONFIG));
+    auto child = xmlNewNode(NULL, BAD_CAST(rs_rcd::NODE_HARDWARECOMPOSER));
+    xmlNewProp(child, BAD_CAST(rs_rcd::ATTR_SUPPORT), BAD_CAST("true"));
+    xmlAddChild(xmlptr, child);
+    res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, true);
+
+    if (xmlptr != nullptr) {
+        xmlFreeNode(xmlptr);
+        xmlptr = nullptr;
+    }
 }
 
 /*
@@ -589,7 +654,8 @@ HWTEST_F(RSRoundCornerDisplayTest, HardwareComposer, TestSize.Level1)
 {
     rs_rcd::HardwareComposer cfg;
     xmlNodePtr xmlptr = nullptr;
-    cfg.ReadXmlNode(xmlptr, "ngAttr");
+    bool res = cfg.ReadXmlNode(xmlptr, "ngAttr");
+    EXPECT_EQ(res, false);
 }
 
 /*
@@ -602,7 +668,8 @@ HWTEST_F(RSRoundCornerDisplayTest, SideRegionConfig, TestSize.Level1)
 {
     rs_rcd::SideRegionConfig cfg;
     xmlNodePtr xmlptr = nullptr;
-    cfg.ReadXmlNode(xmlptr);
+    bool res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
 }
 
 /*
@@ -615,7 +682,8 @@ HWTEST_F(RSRoundCornerDisplayTest, SurfaceConfig, TestSize.Level1)
 {
     rs_rcd::SurfaceConfig cfg;
     xmlNodePtr xmlptr = nullptr;
-    cfg.ReadXmlNode(xmlptr);
+    bool res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
 }
 
 /*
@@ -628,7 +696,8 @@ HWTEST_F(RSRoundCornerDisplayTest, ROGSetting, TestSize.Level1)
 {
     rs_rcd::ROGSetting cfg;
     xmlNodePtr xmlptr = nullptr;
-    cfg.ReadXmlNode(xmlptr);
+    bool res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
 }
 
 /*
@@ -641,7 +710,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RogLandscape, TestSize.Level1)
 {
     rs_rcd::RogLandscape cfg;
     xmlNodePtr xmlptr = nullptr;
-    cfg.ReadXmlNode(xmlptr);
+    bool res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
 }
 
 /*
@@ -654,7 +724,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RogPortrait, TestSize.Level1)
 {
     rs_rcd::RogPortrait cfg;
     xmlNodePtr xmlptr = nullptr;
-    cfg.ReadXmlNode(xmlptr);
+    bool res = cfg.ReadXmlNode(xmlptr);
+    EXPECT_EQ(res, false);
 }
 
 /*
@@ -668,6 +739,41 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerLayer, TestSize.Level1)
     rs_rcd::RoundCornerLayer cfg;
     xmlNodePtr xmlptr = nullptr;
     cfg.ReadXmlNode(xmlptr, {"a", "b"});
+
+    std::vector<std::string> properties = {
+        rs_rcd::ATTR_FILENAME,
+        rs_rcd::ATTR_OFFSET_X,
+        rs_rcd::ATTR_OFFSET_Y,
+        rs_rcd::ATTR_BINFILENAME,
+        rs_rcd::ATTR_BUFFERSIZE,
+        rs_rcd::ATTR_CLDWIDTH,
+        rs_rcd::ATTR_CLDHEIGHT
+    };
+
+    rs_rcd::RoundCornerLayer cfgData = {
+        "test", // fileName
+        1, // offsetX
+        1, // offsetY
+        "test.bin", // binFileName
+        10000, // bufferSize
+        2, // cldWidth
+        2, // cldHeight
+        0,
+        0,
+        nullptr
+    };
+    auto nodePtr = CreateRCDLayer(std::string("layer"), cfgData);
+    cfg.ReadXmlNode(nodePtr, properties);
+
+    EXPECT_EQ(cfg.fileName.compare(cfgData.fileName), int{0});
+    EXPECT_EQ(cfg.binFileName.compare(cfgData.binFileName), int{0});
+    EXPECT_EQ(cfg.bufferSize, cfgData.bufferSize);
+    EXPECT_EQ(cfg.offsetX, cfgData.offsetX);
+    EXPECT_EQ(cfg.offsetY, cfgData.offsetY);
+    EXPECT_EQ(cfg.cldWidth, cfgData.cldWidth);
+    EXPECT_EQ(cfg.cldHeight, cfgData.cldHeight);
+    xmlFreeNode(nodePtr);
+    nodePtr = nullptr;
 }
 
 /*
@@ -720,8 +826,10 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdExtInfo, TestSize.Level1)
 {
     RcdExtInfo info;
     info.Clear();
-    info.GetFrameOffsetX();
-    info.GetFrameOffsetY();
+    bool res = info.GetFrameOffsetX() > -1;
+    EXPECT_EQ(res, true);
+    res = info.GetFrameOffsetY() > -1;
+    EXPECT_EQ(res, true);
 }
 
 /*
@@ -805,6 +913,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseHardwareResourceTest, TestSize.Level
 
     rcdInstance.showResourceType_ = 4;
     rcdInstance.RcdChooseHardwareResource();
+    int type = 4;
+    EXPECT_EQ(rcdInstance.showResourceType_, type);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest RcdChooseHardwareResourceTest end";
 }
 
