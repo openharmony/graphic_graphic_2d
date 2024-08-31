@@ -202,14 +202,12 @@ void HgmFrameRateManager::InitTouchManager()
         });
         touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
             [this] (TouchState lastState, TouchState newState) {
-            if (lastState == TouchState::IDLE_STATE) {
-                HgmMultiAppStrategy::TouchInfo touchInfo = {
-                    .pkgName = touchManager_.GetPkgName(),
-                    .touchState = newState,
-                    .upExpectFps = OLED_120_HZ,
-                };
-                multiAppStrategy_.HandleTouchInfo(touchInfo);
-            }
+            HgmMultiAppStrategy::TouchInfo touchInfo = {
+                .pkgName = touchManager_.GetPkgName(),
+                .touchState = newState,
+                .upExpectFps = OLED_120_HZ,
+            };
+            multiAppStrategy_.HandleTouchInfo(touchInfo);
             startCheck_.store(false);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
@@ -244,17 +242,29 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
     }
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
-    if (pendingRefreshRate_ != nullptr) {
-        hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
-        hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", *pendingRefreshRate_);
-        pendingRefreshRate_.reset();
-        pendingConstraintRelativeTime_ = 0;
-    }
+    static uint64_t lastPendingConstraintRelativeTime = 0;
+    static uint32_t lastPendingRefreshRate = 0;
     if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
         dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
         hgmCore.SetPendingScreenRefreshRate(rsRate);
+    } else if (pendingRefreshRate_ != nullptr) {
+        hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
+        lastPendingConstraintRelativeTime = pendingConstraintRelativeTime_;
+        pendingConstraintRelativeTime_ = 0;
+
+        hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
+        lastPendingRefreshRate = *pendingRefreshRate_;
+        pendingRefreshRate_.reset();
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate);
+    } else {
+        if (lastPendingConstraintRelativeTime != 0) {
+            hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime);
+        }
+        if (lastPendingRefreshRate != 0) {
+            hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate);
+            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate);
+        }
     }
     changeGeneratorRateValid_.store(true);
 }
@@ -522,6 +532,11 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
         }
         // ChangeGeneratorRate delay 1 frame
         if (!followRs) {
+            // followRs == true means it need follow RS thread to make decision, otherwise it make decision on its own
+            if (forceUpdateCallback_ != nullptr) {
+                // force update to change the refresh rate soon, avoid unnecessary waiting vsync
+                forceUpdateCallback_(false, true);
+            }
             return;
         }
     }
@@ -1001,6 +1016,10 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 
     // changeGenerator only once in a single vsync period
     if (!changeGeneratorRateValid_.load()) {
+        if (forceUpdateCallback_ != nullptr) {
+            // force update to change the refresh rate soon, avoid unnecessary waiting vsync
+            forceUpdateCallback_(false, true);
+        }
         return;
     }
     currRefreshRate_ = refreshRate;
