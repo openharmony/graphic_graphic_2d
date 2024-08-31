@@ -31,15 +31,15 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     RSNodeMap::MutableInstance().RegisterNode(node);
 
     if (LIKELY(!displayNodeConfig.isSync)) {
-        if (!node->CreateNode(displayNodeConfig, node->GetId())) {
-            ROSEN_LOGE("RSDisplayNode::Create: CreateNode Failed.");
-            return nullptr;
-        }
-    } else {
         std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->AddCommand(command, true);
+        }
+    } else {
+        if (!node->CreateNode(displayNodeConfig, node->GetId())) {
+            ROSEN_LOGE("RSDisplayNode::Create: CreateNode Failed.");
+            return nullptr;
         }
     }
     ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64, node->GetId());
