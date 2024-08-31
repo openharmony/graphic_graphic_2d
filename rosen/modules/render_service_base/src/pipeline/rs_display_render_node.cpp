@@ -185,6 +185,7 @@ void RSDisplayRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
+    displayParams->SetZoomed(curZoomState_);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
     HandleCurMainAndLeashSurfaceNodes();

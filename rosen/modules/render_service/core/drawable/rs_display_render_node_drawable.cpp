@@ -513,8 +513,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
     const RectI& dirtyRegion = GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
-    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable [%" PRIu64 "] %d %d %d %d", paramScreenId,
-        dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_);
+    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable[%" PRIu64 "](%d, %d, %d, %d), zoomed(%d)", paramScreenId,
+        dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_, params->GetZoomed());
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -657,6 +657,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         curCanvas_->SetBrightnessRatio(hdrBrightnessRatio);
         curCanvas_->SetHDRPresent(isHdrOn);
     }
+
+    curCanvas_->SetDisableFilterCache(params->GetZoomed());
+
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (autoCacheEnable_) {
         screenRectInfo_ = {0, 0, screenInfo.width, screenInfo.height};
