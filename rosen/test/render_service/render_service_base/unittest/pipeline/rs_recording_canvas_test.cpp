@@ -112,7 +112,8 @@ HWTEST_F(RSExtendRecordingCanvasTest, DrawDrawFunc, TestSize.Level1)
     Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
     extendRecordingCanvas.DrawDrawFunc(std::move(drawFunc));
     extendRecordingCanvas.addDrawOpImmediate_ = false;
-    extendRecordingCanvas.DrawDrawFunc(std::move(drawFunc));
+    Drawing::RecordingCanvas::DrawFunc drawFunc2 = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
+    extendRecordingCanvas.DrawDrawFunc(std::move(drawFunc2));
     ASSERT_TRUE(true);
 }
 
