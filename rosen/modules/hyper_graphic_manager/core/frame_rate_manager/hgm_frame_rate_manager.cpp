@@ -1248,7 +1248,7 @@ bool HgmFrameRateManager::ProcessRefreshRateVote(
         auto ancoSceneIt = screenSetting.ancoSceneList.find(*ancoScenes_.begin());
         uint32_t min = OLED_60_HZ;
         uint32_t max = OLED_90_HZ;
-        if (configData != nullptr && ancoSceneIt != screenSetting.ancoSceneList.end() && 
+        if (configData != nullptr && ancoSceneIt != screenSetting.ancoSceneList.end() &&
             configData->strategyConfigs_.find(ancoSceneIt->second) != configData->strategyConfigs_.end()) {
             min = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second].min);
             max = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second].max);
