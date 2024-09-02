@@ -1770,7 +1770,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS) : {
             bool enable = data.ReadBool();
-            SetFreeMultiWindowStatus(direct);
+            SetFreeMultiWindowStatus(enable);
             break;
         }
         default: {
