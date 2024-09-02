@@ -120,14 +120,25 @@ void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string& path
 void RSProfiler::StartBetaRecord()
 {
     if (HasInitializationFinished() && !IsBetaRecordStarted() && IsBetaRecordEnabled()) {
-        g_started = true;
         g_inactiveTimestamp = Now();
+        g_recordsTimestamp = Now();
 
         LaunchBetaRecordNotificationThread();
         LaunchBetaRecordMetricsUpdateThread();
 
         // Start recording for the first file
         RecordStart(ArgList());
+
+        g_started = true;
+    }
+}
+
+void RSProfiler::StopBetaRecord()
+{
+    if (IsBetaRecordStarted()) {
+        RecordStop(ArgList());
+        g_started = false;
+        g_inactiveTimestamp = 0;
     }
 }
 
@@ -158,10 +169,8 @@ void RSProfiler::UpdateBetaRecord()
     if (!IsBetaRecordStarted()) {
         return;
     }
-
     if (!IsBetaRecordEnabled()) {
-        RecordStop(ArgList());
-        g_started = false;
+        return;
     }
 
     if (!IsRecording()) {

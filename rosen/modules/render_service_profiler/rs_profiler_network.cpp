@@ -51,6 +51,11 @@ static void AwakeRenderServiceThread()
     });
 }
 
+bool Network::IsRunning()
+{
+    return isRunning_;
+}
+
 void Network::Run()
 {
     const uint16_t port = 5050;

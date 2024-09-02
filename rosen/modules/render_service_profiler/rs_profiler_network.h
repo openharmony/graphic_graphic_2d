@@ -40,6 +40,7 @@ public:
     static void Run();
     static void Stop();
     static void ForceShutdown();
+    static bool IsRunning();
 
     static void SendRdcPath(const std::string& path);
     static void SendDclPath(const std::string& path);

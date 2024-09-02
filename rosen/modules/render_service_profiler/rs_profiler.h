@@ -125,6 +125,7 @@ enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 }
 class RSProfiler final {
 public:
     static void Init(RSRenderService* renderService);
+    static void StartNetworkThread();
 
     // see RSMainThread::Init
     static void OnFrameBegin();
@@ -199,6 +200,7 @@ private:
     RSB_EXPORT static void EnableBetaRecord();
     RSB_EXPORT static bool IsBetaRecordSavingTriggered();
     static void StartBetaRecord();
+    static void StopBetaRecord();
     static bool IsBetaRecordStarted();
     static void UpdateBetaRecord();
     static void SaveBetaRecord();
@@ -380,8 +382,23 @@ private:
     static void TestSaveFrame(const ArgList& args);
     static void TestLoadFrame(const ArgList& args);
     static void TestSwitch(const ArgList& args);
+
+    static void OnFlagChangedCallback(const char *key, const char *value, void *context);
+    static void OnWorkModeChanged();
+    static void ProcessSignalFlag();
+
     // set to true in DT only
     RSB_EXPORT static bool testing_;
+
+    // flag for enabling profiler
+    RSB_EXPORT static bool enabled_;
+    // flag for enabling profiler beta recording feature
+    RSB_EXPORT static bool betaRecordingEnabled_;
+    // flag to start network thread
+    RSB_EXPORT static int8_t signalFlagChanged_;
+
+    inline static const char SYS_KEY_ENABLED[] = "persist.graphic.profiler.enabled";
+    inline static const char SYS_KEY_BETARECORDING[] = "persist.graphic.profiler.betarecording";
 };
 
 } // namespace OHOS::Rosen
