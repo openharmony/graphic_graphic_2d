@@ -231,6 +231,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     auto surfaceTwo = Drawing::Surface::MakeRasterN32Premul(10, 10);
     paintFilterCanvas.surface_ = surfaceTwo.get();
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    int lastBlurCnt = rsPropertyDrawableUtils->g_blurCnt;
+    ASSERT_NE(lastBlurCnt, 0);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, false);
+    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
 /**
