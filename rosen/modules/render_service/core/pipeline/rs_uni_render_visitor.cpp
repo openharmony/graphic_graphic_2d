@@ -1556,6 +1556,23 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     }
 }
 
+void RSUniRenderVisitor::ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes, bool& ancoHasGpu)
+{
+    if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) == 0) {
+        return;
+    }
+    ancoNodes.emplace_back(hwcNodePtr);
+    auto alpha = hwcNodePtr->GetGlobalAlpha();
+    RS_LOGD("rs debug: name:%{public}s id:%{public}" PRIu64 "src %{public}s dst %{public}s "
+        "alpha:%{public}.2f", hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId(),
+        hwcNodePtr->GetSrcRect().ToString().c_str(), hwcNodePtr->GetDstRect().ToString().c_str(), alpha);
+    if (ROSEN_EQ(alpha, 0.0f)) {
+        return;
+    }
+    ancoHasGpu = (ancoHasGpu || hwcNodePtr->IsHardwareForcedDisabled());
+}
+
 void RSUniRenderVisitor::UpdateHwcNodeEnable()
 {
     bool ancoHasGpu = false;
@@ -1584,10 +1601,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
 
-            if (hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) {
-                ancoNodes.emplace_back(hwcNodePtr);
-                ancoHasGpu = (ancoHasGpu || hwcNodePtr->IsHardwareForcedDisabled());
-            }
+            ProcessAncoNode(hwcNodePtr, ancoNodes, ancoHasGpu);
         }
     });
 
