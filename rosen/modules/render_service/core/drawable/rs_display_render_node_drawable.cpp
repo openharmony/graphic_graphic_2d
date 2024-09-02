@@ -642,7 +642,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             SwitchColorFilter(*curCanvas_);
         }
         rsDirtyRectsDfx.OnDraw(curCanvas_);
-        if (RSSystemProperties::IsFoldScreenFlag() && !params->IsRotationChanged()) {
+        if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
+            && !params->IsRotationChanged()) {
             offscreenSurface_ = nullptr;
         }
 
@@ -1437,7 +1438,8 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     int32_t offscreenWidth = static_cast<int32_t>(screenInfo.width);
     int32_t offscreenHeight = static_cast<int32_t>(screenInfo.height);
     // use fixed surface size in order to reduce create texture
-    if (RSSystemProperties::IsFoldScreenFlag() && params->IsRotationChanged()) {
+    if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
+        && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
         int32_t maxRenderSize =
             static_cast<int32_t>(std::max(params->GetScreenInfo().width, params->GetScreenInfo().height));
