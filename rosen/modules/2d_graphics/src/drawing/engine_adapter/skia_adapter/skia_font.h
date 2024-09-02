@@ -78,6 +78,9 @@ public:
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const override;
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const override;
 
+    void GetTextPath(const void* text, size_t byteLength, TextEncoding encoding,
+        float x, float y, Path* path) const override;
+
     const SkFont& GetFont() const;
 
 private:

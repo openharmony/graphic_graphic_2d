@@ -232,6 +232,11 @@ bool Font::GetPathForGlyph(uint16_t glyph, Path* path) const
 {
     return fontImpl_->GetPathForGlyph(glyph, path);
 }
+
+void Font::GetTextPath(const void* text, size_t byteLength, TextEncoding encoding, float x, float y, Path* path) const
+{
+    fontImpl_->GetTextPath(text, byteLength, encoding, x, y, path);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -296,6 +296,34 @@ bool FontFuzzTest009(const uint8_t* data, size_t size)
     return true;
 }
 
+bool FontFuzzTest010(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Font font;
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
+    char* text = new char[count];
+    for (size_t i = 0; i < count; i++) {
+        text[i] = GetObject<char>();
+    }
+    text[count - 1] = '\0';
+    Path* path = new Path();
+    float x = GetObject<float>();
+    float y = GetObject<float>();
+    font.GetTextPath(text, count, TextEncoding::UTF8, x, y, path);
+    delete path;
+    if (text != nullptr) {
+        delete [] text;
+        text = nullptr;
+    }
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -313,5 +341,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::FontFuzzTest007(data, size);
     OHOS::Rosen::Drawing::FontFuzzTest008(data, size);
     OHOS::Rosen::Drawing::FontFuzzTest009(data, size);
+    OHOS::Rosen::Drawing::FontFuzzTest010(data, size);
     return 0;
 }
