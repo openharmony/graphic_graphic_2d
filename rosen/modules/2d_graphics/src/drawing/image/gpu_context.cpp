@@ -197,6 +197,37 @@ void GPUContext::VmaDefragment()
 {
     impl_->VmaDefragment();
 }
+
+void GPUContext::BeginFrame()
+{
+    impl_->BeginFrame();
+}
+
+void GPUContext::EndFrame()
+{
+    impl_->EndFrame();
+}
+
+void GPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
+{
+    impl_->SetGpuCacheSuppressWindowSwitch(enabled);
+}
+
+void GPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+{
+    impl_->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+}
+
+void GPUContext::FlushGpuMemoryInWaitQueue()
+{
+    impl_->FlushGpuMemoryInWaitQueue();
+}
+
+void GPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived)
+{
+    impl_->SuppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

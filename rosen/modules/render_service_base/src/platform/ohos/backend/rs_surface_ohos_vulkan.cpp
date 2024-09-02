@@ -223,6 +223,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     std::unique_ptr<RSSurfaceFrameOhosVulkan> frame =
         std::make_unique<RSSurfaceFrameOhosVulkan>(nativeSurface.drawingSurface, width, height, bufferAge);
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
+    mSkContext->BeginFrame();
     return ret;
 }
 
@@ -278,6 +279,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         RS_TRACE_NAME("Submit");
         RSTimer timer("Submit");
         mSkContext->Submit();
+        mSkContext->EndFrame();
     }
     
     int fenceFd = -1;

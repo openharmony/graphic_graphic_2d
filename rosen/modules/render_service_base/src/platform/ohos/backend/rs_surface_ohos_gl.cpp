@@ -88,7 +88,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int
     NativeWindowHandleOpt(mWindow, SET_UI_TIMESTAMP, uiTimestamp);
 
     context->MakeCurrent(mEglSurface);
-
+    context->GetDrGPUContext()->BeginFrame();
     ROSEN_LOGD("RSSurfaceOhosGl:RequestFrame, width is %d, height is %d",
         mWidth, mHeight);
 
@@ -119,6 +119,7 @@ bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
     // gpu render flush
     context->RenderFrame();
     context->SwapBuffers(mEglSurface);
+    context->GetDrGPUContext()->EndFrame();
     ROSEN_LOGD("RSSurfaceOhosGl: FlushFrame, SwapBuffers eglsurface");
     return true;
 }

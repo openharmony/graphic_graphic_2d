@@ -68,7 +68,7 @@ constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
-constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES = "AsyncFreeVMAMemoryBetweenFrames";
+constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO‌ = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -149,6 +149,18 @@ void RSUniRenderThread::InitGrContext()
         }
     }
 #endif
+    auto renderContext = uniRenderEngine_->GetRenderContext();
+    if (!renderContext) {
+        return;
+    }
+    auto grContext = renderContext->GetDrGPUContext();
+    if (!grContext) {
+        return;
+    }
+    MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
+        grContext, RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled());
+    MemoryManager::SetGpuCacheSuppressWindowSwitch(
+        grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
 }
 
 void RSUniRenderThread::Inittcache()
@@ -838,17 +850,44 @@ void RSUniRenderThread::PreAllocateTextureBetweenFrames()
         AppExecFwk::EventQueue::Priority::LOW);
 }
 
-void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
+void RSUniRenderThread::FlushGpuMemoryInWaitQueueBetweenFrames()
 {
-    RemoveTask(ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES);
+    if (!uniRenderEngine_) {
+        return;
+    }
+    auto renderContext = uniRenderEngine_->GetRenderContext();
+    if (!renderContext) {
+        return;
+    }
+    auto grContext = renderContext->GetDrGPUContext();
+    if (!grContext) {
+        return;
+    }
+    MemoryManager::FlushGpuMemoryInWaitQueue(grContext);
+}
+
+void RSUniRenderThread::SuppressGpuCacheBelowCertainRatioBetweenFrames()
+{
+    RemoveTask(SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO‌);
     PostTask(
         [this]() {
-            RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames");
-            GrDirectContext::asyncFreeVMAMemoryBetweenFrames([this]() -> bool {
-                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+            if (!uniRenderEngine_) {
+                return;
+            }
+            auto renderContext = uniRenderEngine_->GetRenderContext();
+            if (!renderContext) {
+                return;
+            }
+            auto grContext = renderContext->GetDrGPUContext();
+            if (!grContext) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("SuppressGpuCacheBelowCertainRatio");
+            MemoryManager::SuppressGpuCacheBelowCertainRatio(grContext, [this]() -> bool {
+               return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
             });
         },
-        ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
+        SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO‌, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
@@ -856,8 +895,11 @@ void RSUniRenderThread::MemoryManagementBetweenFrames()
     if (RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()) {
         PreAllocateTextureBetweenFrames();
     }
-    if (RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()) {
-        AsyncFreeVMAMemoryBetweenFrames();
+    if (RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()) {
+        FlushGpuMemoryInWaitQueueBetweenFrames();
+    }
+    if (RSSystemProperties::GetGpuCacheSuppressWindowEnabled()) {
+        SuppressGpuCacheBelowCertainRatioBetweenFrames();
     }
 }
 
