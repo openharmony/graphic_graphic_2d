@@ -29,6 +29,8 @@ config("raw_parser_public_config") {
 }
 
 ohos_static_library("raw_parser") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "src/raw_parser.cpp" ]
 
   configs = [ ":raw_parser_config" ]

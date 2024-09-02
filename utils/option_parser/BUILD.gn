@@ -29,6 +29,8 @@ config("option_parser_public_config") {
 }
 
 ohos_static_library("option_parser") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "src/option_parser.cpp" ]
 
   configs = [ ":option_parser_config" ]

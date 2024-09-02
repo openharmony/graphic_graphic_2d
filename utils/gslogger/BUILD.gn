@@ -29,6 +29,8 @@ config("libgslogger_public_config") {
 }
 
 ohos_static_library("libgslogger") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "src/gslogger.cpp" ]
 
   configs = [ ":libgslogger_config" ]

@@ -29,6 +29,8 @@ config("semaphore_public_config") {
 }
 
 ohos_static_library("semaphore") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "src/local_semaphore.cpp" ]
 
   configs = [ ":semaphore_config" ]

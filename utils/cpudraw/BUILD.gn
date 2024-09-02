@@ -29,6 +29,8 @@ config("cpudraw_public_config") {
 }
 
 ohos_static_library("cpudraw") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "src/cpudraw.cpp" ]
 
   configs = [ ":cpudraw_config" ]

@@ -29,6 +29,8 @@ config("scoped_bytrace_public_config") {
 }
 
 ohos_static_library("scoped_bytrace") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "src/scoped_bytrace.cpp" ]
 
   configs = [ ":scoped_bytrace_config" ]

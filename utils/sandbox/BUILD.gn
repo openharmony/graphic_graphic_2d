@@ -19,6 +19,8 @@ config("sandbox_utils_config") {
 }
 
 ohos_static_library("sandbox_utils") {
+  branch_protector_ret = "pac_ret"
+
   if (is_cross_platform) {
     defines = [ "ROSEN_CROSS_PLATFORM" ]
   }
