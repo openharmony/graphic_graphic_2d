@@ -27,21 +27,18 @@ public:
     void RegisterStartNewAnimationListener(std::function<void()> listener);
     void OnStartNewAnimation();
     // source crop tuning
-    void SetVideoSurfaceConfig(std::unordered_map<std::string, std::string> sourceTuningConfig);
-    const std::unordered_map<std::string, std::string>& GetVideoSurfaceConfig() const;
     void SetVideoSurfaceFlag(bool videoSurfaceFlag);
     bool GetVideoSurfaceFlag() const;
 
     // use in updating hwcnode hardware state with background alpha
-    void SetHardwareEnabledByHwcnodeFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
+    void SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
-    bool GetHardwareEnabledByHwcnodeFlag() const;
+    bool GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() const;
     bool GetHardwareEnabledByBackgroundAlphaFlag() const;
 
 private:
     std::function<void()> startNewAniamtionFunc_ = nullptr;
     // source crop tuning
-    std::unordered_map<std::string, std::string> sourceTuningConfig_;
     bool videoSurfaceFlag_ = false;
 
     // use in updating hwcnode hardware state with background alpha

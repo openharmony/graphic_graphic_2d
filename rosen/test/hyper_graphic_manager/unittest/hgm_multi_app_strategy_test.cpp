@@ -558,5 +558,19 @@ HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level1)
         ASSERT_FALSE(backgroundPid.Existed(pid1));
     }
 }
+
+/**
+ * @tc.name: CheckPackageInConfigList
+ * @tc.desc: Verify the result of CheckPackageInConfigList
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest | Level1)
+{
+    std::vector<std::string> pkgs = {"com.app10", "com.app15"};
+    multiAppStrategy_->CheckPackageInConfigList(pkgs);
+    ASSERT_EQ(pkgs[0], "com.app10");
+}
+
 } // namespace Rosen
 } // namespace OHOS
