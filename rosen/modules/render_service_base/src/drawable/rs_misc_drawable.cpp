@@ -135,9 +135,9 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (int i = 0; i < ptr->childrenDrawableVec_.size(); i++) {
+        for (size_t i = 0; i < ptr->childrenDrawableVec_.size(); i++) {
 #ifdef RS_ENABLE_PREFETCH
-            int prefetchIndex = i + 2;
+            size_t prefetchIndex = i + 2;
             if (prefetchIndex < ptr->childrenDrawableVec_.size()) {
                 __builtin_prefetch(&(ptr->childrenDrawableVec_[prefetchIndex]), 0, 1);
             }
@@ -213,9 +213,9 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
 {
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (int i = 0; i < ptr->drawCmdListVec_.size(); i++) {
+        for (size_t i = 0; i < ptr->drawCmdListVec_.size(); i++) {
 #ifdef RS_ENABLE_PREFETCH
-            int prefetchIndex = i + 2;
+            size_t prefetchIndex = i + 2;
             if (prefetchIndex < ptr->drawCmdListVec_.size()) {
                 __builtin_prefetch(&(ptr->drawCmdListVec_[prefetchIndex]), 0, 1);
             }
