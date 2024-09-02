@@ -240,15 +240,15 @@ void RSCanvasDrawingRenderNodeDrawable::FlushForGL(float width, float height, st
                 RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush backendTexture_ is nullptr");
                 return;
             }
+            if (rscanvas.GetGPUContext() == nullptr) {
+                RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush GPU context is nullptr");
+                return;
+            }
             Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
             Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
             SharedTextureContext* sharedContext = new SharedTextureContext(image_); // last image
             image_ = std::make_shared<Drawing::Image>();
             ReleaseCaptureImage();
-            if (rscanvas.GetGPUContext() == nullptr) {
-                RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush GPU context is nullptr");
-                return;
-            }
             bool ret = image_->BuildFromTexture(*rscanvas.GetGPUContext(), backendTexture_.GetTextureInfo(), origin,
                 info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
             if (!ret) {
