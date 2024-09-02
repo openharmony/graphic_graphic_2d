@@ -1241,8 +1241,18 @@ bool HgmFrameRateManager::ProcessRefreshRateVote(
         ProcessVoteLog(curVoteInfo, true);
         return false;
     }
-    if (voter == "VOTER_ANCO" && !ancoScenes_.empty() &&
-        (curVoteInfo.min > OLED_60_HZ || curVoteInfo.max < OLED_90_HZ)) {
+    if (voter == "VOTER_ANCO" && !ancoScenes_.empty()) {
+        // Multiple scene are not considered at this time
+        auto configData = HgmCore::Instance().GetPolicyConfigData();
+        auto screenSetting = multiAppStrategy_.GetScreenSetting();
+        auto ancoSceneIt = screenSetting.ancoSceneList.find(*ancoScene_.begin());
+        uint32_t min = OLED_60_HZ;
+        uint32_t max = OLED_60_HZ;
+        if (configData != nullptr && ancoSceneIt != screenSetting.ancoSceneList.end() && 
+            XMLParser::IsNumber(ancoSceneIt->second)) {
+            min = static_cast<uint32_t>(configData->strategyConfig_[ancoSceneIt->second].min);
+            max = static_cast<uint32_t>(configData->strategyConfig_[ancoSceneIt->second].max);
+        }
         curVoteInfo.SetRange(OLED_60_HZ, OLED_90_HZ);
     }
     ProcessVoteLog(curVoteInfo, false);
