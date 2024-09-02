@@ -27,6 +27,7 @@
 #include "pipeline/rs_unmarshal_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
 
@@ -136,7 +137,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS)
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE)
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -1252,14 +1254,23 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
+            uint64_t uniqueId = data.ReadUint64();
+            uint32_t hash = data.ReadUint32();
+            bool ret = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
+            reply.WriteBool(ret);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
             bool result = false;
             uint64_t uniqueId = data.ReadUint64();
+            uint32_t hash = data.ReadUint32();
             // safe check
             if (ExtractPid(uniqueId) == callingPid) {
                 std::shared_ptr<Drawing::Typeface> typeface;
                 result = RSMarshallingHelper::Unmarshalling(data, typeface);
-                if (result) {
+                if (result && typeface) {
+                    typeface->SetHash(hash);
                     RegisterTypeface(uniqueId, typeface);
                 }
             } else {
