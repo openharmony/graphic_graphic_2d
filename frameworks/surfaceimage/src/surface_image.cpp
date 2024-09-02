@@ -218,7 +218,7 @@ int64_t SurfaceImage::GetTimeStamp()
 SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(float) * 16,  // 16 is the length of array,
+    auto ret = memcpy_s(matrix, sizeof(float) * 16,  // 16 is the length of array
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("GetTransformMatrix: currentTransformMatrix_ memcpy_s failed");
@@ -417,7 +417,7 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
     Rect damage;
     SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGE("AcquireBuffer failed: %{public}d", ret);
+        BLOGE("AcquireBuffer failed: %d", ret);
         return ret;
     }
     currentSurfaceBuffer_ = buffer;
@@ -429,10 +429,7 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
         currentSurfaceBuffer_, currentTransformType_, currentCrop_);
 
     *fenceFd = acquireFence->Dup();
-    OHNativeWindowBuffer *nwBuffer = new(std::nothrow) OHNativeWindowBuffer();
-    if (nwBuffer == nullptr) {
-        return SURFACE_ERROR_NOMEM;
-    }
+    OHNativeWindowBuffer *nwBuffer = new OHNativeWindowBuffer();
     nwBuffer->sfbuffer = buffer;
     NativeObjectReference(nwBuffer);
     *nativeWindowBuffer = nwBuffer;
@@ -446,7 +443,7 @@ SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativ
     // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
     SurfaceError ret = ReleaseBuffer(nativeWindowBuffer->sfbuffer, fenceFd);
     if (ret != SURFACE_ERROR_OK) {
-        BLOGE("ReleaseBuffer failed: %{public}d", ret);
+        BLOGE("ReleaseBuffer failed: %d", ret);
         return ret;
     }
     NativeObjectUnreference(nativeWindowBuffer);
