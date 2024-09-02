@@ -167,7 +167,7 @@ private:
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
-    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable);
+    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool SkipDisplayIfScreenOff() const;
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
