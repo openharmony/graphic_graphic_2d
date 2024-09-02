@@ -528,7 +528,7 @@ public:
     // mark stable node
     void OpincSetInAppStateStart(bool& unchangeMarkInApp);
     void OpincSetInAppStateEnd(bool& unchangeMarkInApp);
-    void OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable);
+    void OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool IsAccessibilityChanged);
     bool IsOpincUnchangeState();
     std::string QuickGetNodeDebugInfo();
 

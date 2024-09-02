@@ -46,7 +46,7 @@ void RSRenderNode::OpincSetInAppStateEnd(bool& unchangeMarkInApp)
     }
 }
 
-void RSRenderNode::OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable)
+void RSRenderNode::OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool IsAccessibilityChanged)
 {
     if (!unchangeMarkInApp) {
         return;
@@ -58,8 +58,8 @@ void RSRenderNode::OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& uncha
     if (!unchangeMarkEnable) {
         return;
     }
-    auto isSelfDirty = IsSubTreeDirty() || IsContentDirty() ||
-        nodeGroupType_ > RSRenderNode::NodeGroupType::NONE;
+    auto isSelfDirty = IsSubTreeDirty() || IsContentDirty()
+        nodeGroupType_ > RSRenderNode::NodeGroupType::NONE || (isOpincRootFlag_ && IsAccessibilityChanged);
     if (isSelfDirty) {
         NodeCacheStateChange(NodeChangeType::SELF_DIRTY);
     } else if (nodeCacheState_ != NodeCacheState::STATE_UNCHANGE) {
