@@ -2226,6 +2226,7 @@ void RSUniRenderVisitor::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNo
     hwcNode->SetGlobalAlpha(alpha);
     hwcNode->SetIsIntersectWithRoundCorner(isIntersectWithRoundCorner);
 }
+
 void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     auto alpha = hwcNode->GetGlobalAlpha();
