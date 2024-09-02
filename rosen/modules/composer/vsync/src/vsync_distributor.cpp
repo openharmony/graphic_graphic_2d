@@ -193,11 +193,11 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
         info_.postVSyncCount_++;
+        if (gcNotifyTask_ != nullptr) {
+            gcNotifyTask_(false);
+        }
     } else {
         ScopedBytrace failed("failed");
-    }
-    if (gcNotifyTask_ != nullptr) {
-        gcNotifyTask_(false);
     }
     return ret;
 }
