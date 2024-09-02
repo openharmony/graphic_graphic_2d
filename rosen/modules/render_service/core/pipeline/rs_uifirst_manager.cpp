@@ -1186,7 +1186,7 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
     if (RSLuminanceControl::Get().IsHdrOn(curDisplayNode->GetScreenId())) {
         return false;
     }
-    bool flag = ((GetUiFirstMode() == UiFirstModeType::SINGLE_WINDOW_MODE) &&
+    bool flag = ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::SINGLE_WINDOW_MODE) &&
         (node.GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) &&
         RSUifirstManager::Instance().NodeIsInCardWhiteList(node) &&
         (node.ShouldPaint()) && (node.GetName().find(ARKTSCARDNODE_NAME) != std::string::npos));
@@ -1203,7 +1203,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         return true;
     }
     bool isNeedAssignToSubThread = false;
-    if ((GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) ||
+    if ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
         (RSUifirstManager::Instance().NodeIsInCardWhiteList(node)) ||
         (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node))) {
@@ -1236,7 +1236,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
 bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
     bool isDisplayRotation = RSUifirstManager::Instance().rotationChanged_;
-    if ((GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE) ||
+    if ((RSUifirstManager::Instance().GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
         (RSUifirstManager::Instance().NodeIsInCardWhiteList(node))) {
         return false;
