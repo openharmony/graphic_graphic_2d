@@ -601,6 +601,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     if (!InitDisplayInfo(node)) {
         return;
     }
+    RegScreenCallback(node);
     SendRcdMessage(node);
     UpdateVirtualScreenSecurityExemption(node);
     ancestorNodeHasAnimation_ = false;

@@ -289,6 +289,7 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     void SetLuminanceChangingStatus(bool isLuminanceChanged);
     bool IsCurtainScreenOn() const;
+    void RealeaseScreenDmaBuffer(uint64_t screenId);
 
     bool GetParallelCompositionEnabled();
     void SetFrameIsRender(bool isRender);
