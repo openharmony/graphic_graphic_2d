@@ -34,16 +34,6 @@ void RsCommonHook::OnStartNewAnimation()
     }
 }
 
-void RsCommonHook::SetVideoSurfaceConfig(std::unordered_map<std::string, std::string> sourceTuningConfig)
-{
-    sourceTuningConfig_ = sourceTuningConfig;
-}
-
-const std::unordered_map<std::string, std::string>& RsCommonHook::GetVideoSurfaceConfig() const
-{
-    return sourceTuningConfig_;
-}
-
 void RsCommonHook::SetVideoSurfaceFlag(bool videoSurfaceFlag)
 {
     videoSurfaceFlag_ = videoSurfaceFlag;
@@ -55,7 +45,7 @@ bool RsCommonHook::GetVideoSurfaceFlag() const
 }
 
 // skip hwcnode hardware state updating
-void RsCommonHook::SetHardwareEnabledByHwcnodeFlag(bool hardwareEnabledByHwcnodeSkippedFlag)
+void RsCommonHook::SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcnodeSkippedFlag)
 {
     hardwareEnabledByHwcnodeSkippedFlag_ = hardwareEnabledByHwcnodeSkippedFlag;
 }
@@ -65,7 +55,7 @@ void RsCommonHook::SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledB
     hardwareEnabledByBackgroundAlphaSkippedFlag_ = hardwareEnabledByBackgroundAlphaSkippedFlag;
 }
 
-bool RsCommonHook::GetHardwareEnabledByHwcnodeFlag() const
+bool RsCommonHook::GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() const
 {
     return hardwareEnabledByHwcnodeSkippedFlag_;
 }

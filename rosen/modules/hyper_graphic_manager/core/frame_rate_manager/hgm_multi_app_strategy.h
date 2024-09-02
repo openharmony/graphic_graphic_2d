@@ -72,6 +72,9 @@ public:
     HgmErrCode GetAppStrategyConfig(const std::string& pkgName, PolicyConfigData::StrategyConfig& strategyRes);
 
     static std::tuple<std::string, pid_t, int32_t> AnalyzePkgParam(const std::string& param);
+
+    // use in temporary scheme with background alpha
+    void CheckPackageInConfigList(const std::vector<std::string>& pkgs);
 private:
     void UseStrategyNum();
     void FollowFocus();

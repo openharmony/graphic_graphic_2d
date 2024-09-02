@@ -17,6 +17,7 @@
 
 #include <limits>
 
+#include "common/rs_common_hook.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "rs_trace.h"
@@ -53,6 +54,7 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
         }
         foregroundPidAppMap_.clear();
         pidAppTypeMap_.clear();
+        CheckPackageInConfigList(pkgs_);
         for (auto &param : pkgs_) {
             RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
             HGM_LOGI("pkg update:%{public}s", param.c_str());
@@ -464,6 +466,35 @@ void HgmMultiAppStrategy::OnStrategyChange()
             handler_->PostTask([callback, strategy = voteRes_.second] () {
                 callback(strategy);
             });
+        }
+    }
+}
+
+// use in temporary scheme to check package name
+void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string>& pkgs)
+{
+    auto& rsCommonHook = RsCommonHook::Instance();
+    auto& hgmCore = HgmCore::Instance();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr) {
+        return;
+    }
+    rsCommonHook.SetVideoSurfaceFlag(false);
+    rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
+    rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
+    std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
+    if (videoConfigFromHgm.empty() || pkgs.size() > 1) {
+        return;
+    }
+    for (auto &param: pkgs) {
+        std::string pkgNameForCheck = param.substr(0, param.find(':'));
+        // 1 means crop source tuning
+        if (videoConfigFromHgm[pkgNameForCheck] == "1") {
+            rsCommonHook.SetVideoSurfaceFlag(true);
+        // 2 means skip hardware disabled by hwc node and background alpha
+        } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
+            rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
+            rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
         }
     }
 }

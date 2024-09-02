@@ -321,18 +321,5 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest001, Function | SmallTest | Lev
     sleep(1); // wait for handler task finished
 }
 
-/**
- * @tc.name: CheckPackageInConfigList
- * @tc.desc: Verify the result of CheckPackageInConfigList
- * @tc.type: FUNC
- * @tc.require: IAFZT1
- */
-HWTEST_F(HgmFrameRateMgrTest, CheckPackageInConfigListTest, Function | SmallTest | Level1)
-{
-    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
-    std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap = {{1, {1, "APP1"}}};
-    mgr->CheckPackageInConfigList(foregroundPidAppMap);
-}
-
 } // namespace Rosen
 } // namespace OHOS
