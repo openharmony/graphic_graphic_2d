@@ -82,6 +82,10 @@ bool RSRenderCurveAnimation::ParseParam(Parcel& parcel)
     }
 
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
+    if (interpolator == nullptr) {
+        ROSEN_LOGE("RSRenderCurveAnimation::ParseParam, Unmarshalling interpolator failed");
+        return false;
+    }
     SetInterpolator(interpolator);
     return true;
 }
