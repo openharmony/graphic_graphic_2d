@@ -146,7 +146,6 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
         }
     }
     EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE, };
-
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
         eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
@@ -321,23 +320,20 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForGL(const sp
         RS_LOGE("GetNativeWindowBufferFromSurface fail");
         return nullptr;
     }
-
     auto gpuContext = RSBackgroundThread::Instance().GetShareGPUContext();
     if (!gpuContext) {
         RS_LOGE("get gpuContext  fail");
         return nullptr;
     }
-
     sk_sp<GrDirectContext> grContext = nullptr;
     auto skiaGpuContext = gpuContext->GetImpl<Drawing::SkiaGPUContext>();
     if (skiaGpuContext) {
         grContext = skiaGpuContext->GetGrContext();
     }
     if (!grContext) {
-        RS_LOGE("get gpuContext  fail");
+        RS_LOGE("get grContext  fail");
         return nullptr;
     }
-
     if (!CreateEGLImage()) {
         return nullptr;
     }
@@ -479,7 +475,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sp
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
     if (!pixelMap) {
-        RS_LOGE("create pixelMap fail");
+        RS_LOGE("Create pixelMap fail");
         return nullptr;
     }
 

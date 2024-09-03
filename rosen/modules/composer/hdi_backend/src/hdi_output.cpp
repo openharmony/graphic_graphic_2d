@@ -18,9 +18,9 @@
 #include <unordered_set>
 #include "rs_trace.h"
 #include "hdi_output.h"
-#include "metadata_helper.h"
 #include "vsync_generator.h"
 #include "vsync_sampler.h"
+#include "metadata_helper.h"
 // DISPLAYENGINE
 #include "syspara/parameters.h"
 
