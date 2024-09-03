@@ -3884,7 +3884,7 @@ void RSMainThread::UpdateUIFirstSwitch()
         } else if (isFoldScreenDevice_) {
             isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == FOLD_DEVICE_SCREEN_NUMBER);
         } else {
-            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == 1);
+            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum >= 1);
         }
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
