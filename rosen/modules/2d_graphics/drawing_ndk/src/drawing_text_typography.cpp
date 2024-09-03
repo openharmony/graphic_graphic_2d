@@ -1846,6 +1846,7 @@ OH_Drawing_FontFeature* OH_Drawing_TextStyleGetFontFeatures(OH_Drawing_TextStyle
                 delete[] (fontFeatureArray + j)->tag;
                 (fontFeatureArray + j)->tag = nullptr;
             }
+            delete[] fontFeatureArray;
             return nullptr;
         }
         auto result = strcpy_s((fontFeatureArray + index)->tag, ((kv.first).size() + 1), (kv.first).c_str());
