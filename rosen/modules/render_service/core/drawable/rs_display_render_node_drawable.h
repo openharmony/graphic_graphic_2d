@@ -227,6 +227,7 @@ private:
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
     int64_t lastRefreshTime_ = 0;
+    bool virtualDirtyRefresh_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
