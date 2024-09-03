@@ -118,7 +118,6 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     }
     Drawing::ImageInfo info = Drawing::ImageInfo(pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
-
     int fd = AshmemCreate("RSUniUICapture Data", size);
     if (fd < 0) {
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap AshmemCreate fd < 0");
@@ -132,7 +131,6 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     }
     void* ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     auto data = static_cast<uint8_t*>(ptr);
-#ifdef ROSEN_OHOS
     if (ptr == MAP_FAILED || ptr == nullptr) {
         RS_LOGE("RSUniUICapture::CopyDataToPixelMap data is nullptr");
         ::close(fd);
@@ -152,15 +150,6 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     }
     *static_cast<int32_t*>(fdPtr) = fd;
     pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
-#else
-    if (!img->ReadPixels(info, data, pixelmap->GetRowBytes(), 0, 0)) {
-        RS_LOGE("RSUniUICapture::CopyDataToPixelMap readPixels failed");
-        free(data);
-        data = nullptr;
-        return false;
-    }
-    pixelmap->SetPixelsAddr(data, nullptr, size, Media::AllocatorType::HEAP_ALLOC, nullptr);
-#endif
     return true;
 }
 
