@@ -394,7 +394,15 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     auto submittedFrameCount = RSUniRenderThread::Instance().GetFrameCount();
     subThread->DoingCacheProcessNumInc();
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
-    subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount]() {
+
+    auto& rtUniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount,
+                            uniParam = new RSRenderThreadParams(*rtUniParam)]() mutable {
+        if (!uniParam) {
+            return;
+        }
+        std::unique_ptr<RSRenderThreadParams> uniParamUnique(uniParam);
+        RSUniRenderThread::Instance().Sync(std::move(uniParamUnique));
         nodeDrawable->SetLastFrameUsedThreadIndex(tid);
         nodeDrawable->SetTaskFrameCount(submittedFrameCount);
         subThread->DrawableCache(nodeDrawable);

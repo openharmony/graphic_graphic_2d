@@ -518,10 +518,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
     rscanvas->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     // process white list
-    auto whiteList = uniParam->GetWhiteList();
+    auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
     SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetId());
 
-    if (CheckIfSurfaceSkipInMirror(*uniParam, *surfaceParams)) {
+    if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
         return;
     }
 
@@ -551,21 +551,20 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     ResetVirtualScreenWhiteListRootId(surfaceParams->GetId());
 }
 
-bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(
-    const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParams)
+bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
 {
     if (!RSUniRenderThread::GetCaptureParam().isMirror_) {
         return false;
     }
     // Check black list.
-    const auto& blackList = uniParam.GetBlackList();
+    const auto& blackList = RSUniRenderThread::Instance().GetBlackList();
     if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
             (id:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
         return true;
     }
     // Check white list.
-    const auto& whiteList = uniParam.GetWhiteList();
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     if (!whiteList.empty() && RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == INVALID_NODEID) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
             (id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());

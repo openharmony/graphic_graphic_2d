@@ -90,12 +90,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     ASSERT_TRUE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
 
     canvas.recordingState_ = true;
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     drawable->OnDraw(canvas);
-    RSUniRenderThread::Instance().renderThreadParams_->isOpDropped_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isOpDropped_ = true;
     drawable->OnDraw(canvas);
     ASSERT_NE(drawable->renderParams_, nullptr);
-    RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
+    RSUniRenderThread::Instance().Sync(nullptr);
 }
 
 /**
@@ -111,7 +111,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     Drawing::Canvas canvas;
     const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     drawable->DrawRenderContent(canvas, dst);
 
     drawable->renderParams_->frameRect_ = { 0.f, 0.f, 1.f, 1.f }; // for test
@@ -122,7 +122,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     drawable->image_ = std::make_shared<Drawing::Image>();
     drawable->DrawRenderContent(canvas, dst);
     EXPECT_NE(drawable->image_, nullptr);
-    RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
+    RSUniRenderThread::Instance().Sync(nullptr);
 }
 
 /**

@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
 
 #include <memory>
-#include <mutex>
 #include <vector>
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -251,30 +250,6 @@ public:
         return isUniRenderAndOnVsync_;
     }
 
-    void SetBlackList(const std::unordered_set<NodeId>& blackList)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        blackList_ = blackList;
-    }
-
-    const std::unordered_set<NodeId> GetBlackList() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return blackList_;
-    }
-
-    void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        whiteList_ = whiteList;
-    }
-
-    const std::unordered_set<NodeId> GetWhiteList() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return whiteList_;
-    }
-
     void SetContext(std::shared_ptr<RSContext> context)
     {
         context_ = context;
@@ -351,9 +326,6 @@ public:
     }
 
 private:
-    mutable std::mutex mutex_;
-    std::unordered_set<NodeId> blackList_ = {};
-    std::unordered_set<NodeId> whiteList_ = {};
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     uint32_t pendingScreenRefreshRate_ = 0;
@@ -406,6 +378,24 @@ private:
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
     friend class RSDirtyRectsDfx;
+};
+
+class RSRenderThreadParamsManager {
+public:
+    RSRenderThreadParamsManager() = default;
+    ~RSRenderThreadParamsManager() = default;
+
+    inline void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
+    {
+        renderThreadParams_ = std::move(renderThreadParams);
+    }
+    inline const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
+    {
+        return renderThreadParams_;
+    }
+
+private:
+    static inline thread_local std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H

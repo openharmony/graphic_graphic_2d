@@ -374,7 +374,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceParams->securityLayerIds_.insert(1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     ASSERT_TRUE(surfaceParams->HasSkipLayer());
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
     surfaceParams->isProtectedLayer_ = true;
@@ -528,20 +528,21 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest002, TestSiz
 HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsHardwareEnabled, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 
     auto nodePtr = std::make_shared<RSRenderNode>(0);
     ASSERT_NE(nodePtr, nullptr);
     auto rsSurfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr);
-    RSUniRenderThread::Instance().renderThreadParams_->hardwareEnabledTypeDrawables_.push_back(rsSurfaceRenderNode);
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
+        rsSurfaceRenderNode);
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 
     auto rsRenderNode = std::make_shared<RSRenderNode>(0);
     ASSERT_NE(rsRenderNode, nullptr);
     auto surfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsRenderNode);
     surfaceRenderNode->renderParams_ = std::make_unique<RSRenderParams>(0);
-    RSUniRenderThread::Instance().renderThreadParams_->hardwareEnabledTypeDrawables_.push_back(surfaceRenderNode);
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(surfaceRenderNode);
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 }
 
@@ -895,8 +896,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithUIFirstCache002, TestSize.Leve
 HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessTest, TestSize.Level1)
 {
     auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
     if (!rtThread.uniRenderEngine_) {
         rtThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
@@ -925,10 +926,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror001, TestSiz
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
-
     RSUniRenderThread::GetCaptureParam().isMirror_ = false;
-    ASSERT_FALSE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*uniParams, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
 }
 
 /**
@@ -942,10 +941,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror002, TestSiz
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
-
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    ASSERT_FALSE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*uniParams, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
 }
 
 /**
@@ -959,12 +956,11 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror003, TestSiz
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
     std::unordered_set<NodeId> blackList = {surfaceParams->GetId()};
-    uniParams->SetBlackList(blackList);
+    RSUniRenderThread::Instance().SetBlackList(blackList);
 
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*uniParams, *surfaceParams));
+    ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
 }
 
 /**
@@ -978,12 +974,11 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckIfSurfaceSkipInMirror004, TestSiz
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
     std::unordered_set<NodeId> whiteList = {surfaceParams->GetId() + 1};
-    uniParams->SetWhiteList(whiteList);
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
 
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*uniParams, *surfaceParams));
+    ASSERT_TRUE(surfaceDrawable_->CheckIfSurfaceSkipInMirror(*surfaceParams));
 }
 
 

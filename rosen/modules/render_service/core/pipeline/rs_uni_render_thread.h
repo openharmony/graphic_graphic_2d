@@ -50,7 +50,7 @@ public:
     void Start();
     void InitGrContext();
     void RenderFrames();
-    void Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams);
+    void Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams);
     void PostTask(const std::function<void()>& task);
     void RemoveTask(const std::string& name);
     void PostRTTask(const std::function<void()>& task);
@@ -110,7 +110,7 @@ public:
     }
     const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
     {
-        return renderThreadParams_;
+        return renderParamsManager_.GetRSRenderThreadParams();
     }
 
     void RenderServiceTreeDump(std::string& dumpString);
@@ -159,6 +159,30 @@ public:
     }
     void SetVmaCacheStatus(bool flag); // dynmic flag
 
+    void SetBlackList(std::unordered_set<NodeId> blackList)
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        blackList_ = blackList;
+    }
+
+    const std::unordered_set<NodeId> GetBlackList() const
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        return blackList_;
+    }
+
+    void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        whiteList_ = whiteList;
+    }
+
+    const std::unordered_set<NodeId> GetWhiteList() const
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        return whiteList_;
+    }
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -172,7 +196,9 @@ private:
     std::shared_ptr<RSContext> context_;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> rootNodeDrawable_;
     std::vector<NodeId> curDrawStatusVec_;
-    std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync from main thread
+
+    RSRenderThreadParamsManager renderParamsManager_;
+
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
@@ -207,6 +233,10 @@ private:
     std::mutex imageReleaseMutex_;
     bool postImageReleaseTaskFlag_ = false;
     int imageReleaseCount_ = 0;
+
+    mutable std::mutex nodeListMutex_;
+    std::unordered_set<NodeId> blackList_ = {};
+    std::unordered_set<NodeId> whiteList_ = {};
 
     sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
 
