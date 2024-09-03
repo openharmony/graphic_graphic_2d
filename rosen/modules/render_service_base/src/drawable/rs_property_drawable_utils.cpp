@@ -293,7 +293,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         Drawing::Brush brush = filter->GetBrush();
         Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
         canvas->SaveLayer(slr);
-        filter->PostProcess(*canvas);
         return;
     }
 

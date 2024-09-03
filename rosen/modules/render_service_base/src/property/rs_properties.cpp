@@ -2726,7 +2726,7 @@ bool RSProperties::IsForegroundMaterialFilterVaild() const
     return IsForegroundBlurRadiusValid();
 }
 
-std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float sat, float brightness)
+std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float sat, float brightness, Color maskColor)
 {
     float normalizedDegree = brightness - 1.0;
     const float brightnessMat[] = {
@@ -2741,6 +2741,21 @@ std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float
     cm.GetArray(cmArray);
     std::shared_ptr<Drawing::ColorFilter> filterCompose =
         Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO);
+    if (auto maskColorAlpha = maskColor.GetAlpha()) {
+        auto oneMinusAlpha = 1.f - maskColor.GetAlpha() / 255.f;
+        auto premulCoeff = maskColorAlpha / 255.f / 255.f;
+        const float maskColorMat[] = {
+            oneMinusAlpha, 0.f, 0.f, 0.f, maskColor.GetRed() * premulCoeff,
+            0.f, oneMinusAlpha, 0.f, 0.f, maskColor.GetGreen() * premulCoeff,
+            0.f, 0.f, oneMinusAlpha, 0.f, maskColor.GetBlue() * premulCoeff,
+            0.f, 0.f, 0.f, 1.f, 0.f,
+        };
+        auto maskColor = Drawing::ColorFilter::CreateFloatColorFilter(maskColorMat);
+        if (maskColor != nullptr) {
+            maskColor->Compose(*filterCompose);
+            return maskColor;
+        }
+    }
     return filterCompose;
 }
 
@@ -2806,7 +2821,7 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
     }
     uint32_t hash = SkOpts::hash(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
-        backgroundBlurSaturation_, backgroundBlurBrightness_);
+        backgroundBlurSaturation_, backgroundBlurBrightness_, backgroundMaskColor_);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
         Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, backgroundBlurRadius_, backgroundBlurRadius_);
 
@@ -2912,7 +2927,7 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
     }
     uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
-        foregroundBlurSaturation_, foregroundBlurBrightness_);
+        foregroundBlurSaturation_, foregroundBlurBrightness_, foregroundMaskColor_);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
         Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, foregroundBlurRadius_, foregroundBlurRadius_);
 
@@ -2969,7 +2984,7 @@ void RSProperties::GenerateBackgroundMaterialFuzedBlurFilter()
     originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
     uint32_t hash = SkOpts::hash(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
-        backgroundBlurSaturation_, backgroundBlurBrightness_);
+        backgroundBlurSaturation_, backgroundBlurBrightness_, backgroundMaskColor_);
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
     originalFilter = originalFilter->Compose(colorImageFilter, hash);
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
@@ -2993,7 +3008,7 @@ void RSProperties::GenerateCompositingMaterialFuzedBlurFilter()
     originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
     uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
-        foregroundBlurSaturation_, foregroundBlurBrightness_);
+        foregroundBlurSaturation_, foregroundBlurBrightness_, foregroundMaskColor_);
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
     originalFilter = originalFilter->Compose(colorImageFilter, hash);
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
