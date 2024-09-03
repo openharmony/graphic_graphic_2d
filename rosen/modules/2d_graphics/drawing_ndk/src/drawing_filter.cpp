@@ -112,5 +112,8 @@ void OH_Drawing_FilterGetColorFilter(OH_Drawing_Filter* cFliter, OH_Drawing_Colo
 
 void OH_Drawing_FilterDestroy(OH_Drawing_Filter* cFilter)
 {
+    if (!cFilter) {
+        return;
+    }
     delete CastToFilter(cFilter);
 }

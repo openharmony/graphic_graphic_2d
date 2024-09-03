@@ -31,9 +31,6 @@ OH_Drawing_ShadowLayer* OH_Drawing_ShadowLayerCreate(float blurRadius, float x, 
         return nullptr;
     }
     NativeHandle<BlurDrawLooper>* blurDrawLooperHandle = new NativeHandle<BlurDrawLooper>;
-    if (blurDrawLooperHandle == nullptr) {
-        return nullptr;
-    }
     blurDrawLooperHandle->value = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, x, y, color);
     if (blurDrawLooperHandle->value == nullptr) {
         delete blurDrawLooperHandle;
@@ -44,5 +41,8 @@ OH_Drawing_ShadowLayer* OH_Drawing_ShadowLayerCreate(float blurRadius, float x, 
 
 void OH_Drawing_ShadowLayerDestroy(OH_Drawing_ShadowLayer* cShadowLayer)
 {
+    if (!cShadowLayer) {
+        return;
+    }
     delete Helper::CastTo<OH_Drawing_ShadowLayer*, NativeHandle<BlurDrawLooper>*>(cShadowLayer);
 }

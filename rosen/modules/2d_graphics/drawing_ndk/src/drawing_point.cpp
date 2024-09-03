@@ -40,6 +40,9 @@ OH_Drawing_Point* OH_Drawing_PointCreate(float x, float y)
 
 void OH_Drawing_PointDestroy(OH_Drawing_Point* cPoint)
 {
+    if (!cPoint) {
+        return;
+    }
     delete CastToPoint(cPoint);
 }
 
