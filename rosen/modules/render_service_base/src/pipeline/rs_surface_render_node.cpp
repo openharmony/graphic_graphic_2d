@@ -1010,10 +1010,12 @@ void RSSurfaceRenderNode::NotifyTreeStateChange()
 
 void RSSurfaceRenderNode::SetLayerTop(bool isTop)
 {
+#ifndef ROSEN_CROSS_PLATFORM
     if (!RSInterfaceCodeAccessVerifierBase::IsSystemCalling("SetLayerTop")) {
         // System calls only
         return;
     }
+#endif
     isLayerTop_ = isTop;
     SetContentDirty();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
