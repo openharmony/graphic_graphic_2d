@@ -105,7 +105,6 @@ public:
     virtual void FlushGpuMemoryInWaitQueue() = 0;
     
     virtual void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) = 0;
-
 };
 } // namespace Drawing
 } // namespace Rosen

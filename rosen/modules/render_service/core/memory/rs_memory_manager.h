@@ -52,9 +52,8 @@ public:
     static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
     static void SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled);
     static void FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext);
-    static void SuppressGpuCacheBelowCertainRatio(Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
-
-
+    static void SuppressGpuCacheBelowCertainRatio(
+        Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log);

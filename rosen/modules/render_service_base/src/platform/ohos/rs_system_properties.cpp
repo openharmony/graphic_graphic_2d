@@ -935,7 +935,8 @@ bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
 bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 {
     static bool gpuMemoryAsyncReclaimerEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
             0);
     return gpuMemoryAsyncReclaimerEnabled;
 }
@@ -943,7 +944,8 @@ bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 bool RSSystemProperties::GetGpuCacheSuppressWindowEnabled()
 {
     static bool gpuCacheSuppressWindowEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
             0);
     return gpuCacheSuppressWindowEnabled;
 }

@@ -215,7 +215,8 @@ void MemoryManager::FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext)
 #endif
 }
 
-void MemoryManager::SuppressGpuCacheBelowCertainRatio(Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived)
+void MemoryManager::SuppressGpuCacheBelowCertainRatio(
+    Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived)
 {
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!gpuContext) {
