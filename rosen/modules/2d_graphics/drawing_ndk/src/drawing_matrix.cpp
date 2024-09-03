@@ -65,9 +65,6 @@ OH_Drawing_Matrix* OH_Drawing_MatrixCreate()
 OH_Drawing_Matrix* OH_Drawing_MatrixCreateRotation(float deg, float x, float y)
 {
     Matrix* matrix = new Matrix();
-    if (matrix == nullptr) {
-        return nullptr;
-    }
     matrix->Rotate(deg, x, y);
     return (OH_Drawing_Matrix*)matrix;
 }
@@ -75,9 +72,6 @@ OH_Drawing_Matrix* OH_Drawing_MatrixCreateRotation(float deg, float x, float y)
 OH_Drawing_Matrix* OH_Drawing_MatrixCreateScale(float sx, float sy, float px, float py)
 {
     Matrix* matrix = new Matrix();
-    if (matrix == nullptr) {
-        return nullptr;
-    }
     matrix->Scale(sx, sy, px, py);
     return (OH_Drawing_Matrix*)matrix;
 }
@@ -85,9 +79,6 @@ OH_Drawing_Matrix* OH_Drawing_MatrixCreateScale(float sx, float sy, float px, fl
 OH_Drawing_Matrix* OH_Drawing_MatrixCreateTranslation(float dx, float dy)
 {
     Matrix* matrix = new Matrix();
-    if (matrix == nullptr) {
-        return nullptr;
-    }
     matrix->Translate(dx, dy);
     return (OH_Drawing_Matrix*)matrix;
 }
@@ -357,5 +348,8 @@ OH_Drawing_ErrorCode OH_Drawing_MatrixGetAll(OH_Drawing_Matrix* cMatrix, float v
 
 void OH_Drawing_MatrixDestroy(OH_Drawing_Matrix* cMatrix)
 {
+    if (!cMatrix) {
+        return;
+    }
     delete CastToMatrix(cMatrix);
 }

@@ -37,5 +37,8 @@ OH_Drawing_SamplingOptions* OH_Drawing_SamplingOptionsCreate(OH_Drawing_FilterMo
 
 void OH_Drawing_SamplingOptionsDestroy(OH_Drawing_SamplingOptions* cSamplingOptions)
 {
+    if (!cSamplingOptions) {
+        return;
+    }
     delete CastToSamplingOptions(cSamplingOptions);
 }
