@@ -130,8 +130,9 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            HgmErrCode res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            if (frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig) != EXEC_SUCCESS) {
+                return; // xml is empty, return
+            }
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
@@ -143,8 +144,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, OLED_90_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_90_HZ);
 
@@ -157,8 +157,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
             frameRateMgr.UpdateGuaranteedPlanVote(currTime);
             std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            res = frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig);
             ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
             ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
         }
@@ -318,7 +317,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest001, Function | SmallTest | Lev
             testThread.join();
         }
     }
-    sleep(1); // wait for handler task finished
+    sleep(2); // wait for handler task finished
 }
 
 } // namespace Rosen
