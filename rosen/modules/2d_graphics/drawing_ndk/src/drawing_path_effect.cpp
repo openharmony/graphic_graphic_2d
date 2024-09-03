@@ -34,9 +34,6 @@ OH_Drawing_PathEffect* OH_Drawing_CreateDashPathEffect(float* intervals, int cou
         return nullptr;
     }
     NativeHandle<PathEffect>* pathEffectHandle = new NativeHandle<PathEffect>;
-    if (pathEffectHandle == nullptr) {
-        return nullptr;
-    }
     pathEffectHandle->value = PathEffect::CreateDashPathEffect(intervals, count, phase);
     if (pathEffectHandle->value == nullptr) {
         delete pathEffectHandle;
@@ -47,5 +44,8 @@ OH_Drawing_PathEffect* OH_Drawing_CreateDashPathEffect(float* intervals, int cou
 
 void OH_Drawing_PathEffectDestroy(OH_Drawing_PathEffect* cPathEffect)
 {
+    if (!cPathEffect) {
+        return;
+    }
     delete Helper::CastTo<OH_Drawing_PathEffect*, NativeHandle<PathEffect>*>(cPathEffect);
 }

@@ -116,6 +116,9 @@ OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
 
 void OH_Drawing_CanvasDestroy(OH_Drawing_Canvas* cCanvas)
 {
+    if (!cCanvas) {
+        return;
+    }
     delete CastToCanvas(cCanvas);
 }
 

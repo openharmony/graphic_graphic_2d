@@ -80,6 +80,9 @@ OH_Drawing_Path* OH_Drawing_PathCopy(OH_Drawing_Path* cPath)
 
 void OH_Drawing_PathDestroy(OH_Drawing_Path* cPath)
 {
+    if (!cPath) {
+        return;
+    }
     delete CastToPath(cPath);
 }
 
