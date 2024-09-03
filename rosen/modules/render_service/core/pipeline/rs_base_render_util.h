@@ -119,6 +119,8 @@ public:
         GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
         GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 
+    static GraphicTransformType GetSurfaceBufferTransformType(
+        const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer);
     static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bounds,
         const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
     static Drawing::Matrix GetGravityMatrix(

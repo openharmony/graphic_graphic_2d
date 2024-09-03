@@ -347,8 +347,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
     const auto bufferHeight = info.buffer->GetSurfaceBufferHeight();
     auto boundsWidth = property.GetBoundsWidth();
     auto boundsHeight = property.GetBoundsHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(
+        RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, node.GetRSSurfaceHandler()->GetBuffer()));
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
         transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         std::swap(boundsWidth, boundsHeight);
@@ -428,8 +428,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(
     const auto bufferHeight = info.buffer->GetSurfaceBufferHeight();
     auto boundsWidth = params->GetBounds().GetWidth();
     auto boundsHeight = params->GetBounds().GetHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(surfaceDrawable.GetConsumerOnDraw()->GetTransform());
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(
+        RSBaseRenderUtil::GetSurfaceBufferTransformType(surfaceDrawable.GetConsumerOnDraw(), info.buffer));
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
         transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         std::swap(boundsWidth, boundsHeight);
@@ -651,8 +651,8 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& no
     int top = srcRect.GetTop();
     int width = srcRect.GetWidth();
     int height = srcRect.GetHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(
+        RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, node.GetRSSurfaceHandler()->GetBuffer()));
     int boundsWidth = static_cast<int>(node.GetRenderProperties().GetBoundsWidth());
     int boundsHeight = static_cast<int>(node.GetRenderProperties().GetBoundsHeight());
     // Left > 0 means move xComponent to the left outside of the screen
@@ -704,8 +704,8 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(DrawableV2::RSSurfaceRe
     int top = srcRect.GetTop();
     int width = srcRect.GetWidth();
     int height = srcRect.GetHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(
+        RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, params->GetBuffer()));
     const auto& bounds = params->GetBounds();
     int boundsWidth = static_cast<int>(bounds.GetWidth());
     int boundsHeight = static_cast<int>(bounds.GetHeight());
@@ -990,7 +990,8 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSur
     // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
     // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
     int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+                          RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(
+                              RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer)));
     if (surfaceRotation % FLAT_ANGLE != 0) {
         std::swap(dstWidth, dstHeight);
     }
@@ -1057,7 +1058,8 @@ void RSUniRenderComposerAdapter::LayerScaleDown(
     // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
     // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
     int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(params->GetTotalMatrix()) +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+                          RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(
+                              RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer)));
     if (surfaceRotation % FLAT_ANGLE != 0) {
         std::swap(dstWidth, dstHeight);
     }
@@ -1476,10 +1478,11 @@ static void SetLayerTransform(const LayerInfoPtr& layer, RSSurfaceRenderNode& no
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(node);
+    auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(layer->GetSurface(), layer->GetBuffer());
     int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) + surfaceNodeRotation +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
-    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
-        RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transform))) % 360;
+    GraphicTransformType rotateEnum =
+        RSBaseRenderUtil::RotateEnumToInt(totalRotation, RSBaseRenderUtil::GetFlipTransform(transform));
     layer->SetTransform(rotateEnum);
 }
 
@@ -1489,10 +1492,11 @@ static void SetLayerTransform(const LayerInfoPtr& layer, DrawableV2::RSRenderNod
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(drawable);
+    auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(layer->GetSurface(), layer->GetBuffer());
     int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) + surfaceNodeRotation +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
-    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
-        RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transform))) % 360;
+    GraphicTransformType rotateEnum =
+        RSBaseRenderUtil::RotateEnumToInt(totalRotation, RSBaseRenderUtil::GetFlipTransform(transform));
     layer->SetTransform(rotateEnum);
 }
 

@@ -1431,7 +1431,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableBySrcRect(RSSurfaceRenderNode& node)
     bool hasRotation = false;
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetConsumer()) {
         const auto consumer = node.GetRSSurfaceHandler()->GetConsumer();
-        auto rotation = RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+        auto rotation = RSBaseRenderUtil::GetRotateTransform(
+            RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, node.GetRSSurfaceHandler()->GetBuffer()));
         hasRotation = rotation == GRAPHIC_ROTATE_90 || rotation == GRAPHIC_ROTATE_270;
     }
     node.UpdateHwcDisabledBySrcRect(hasRotation);

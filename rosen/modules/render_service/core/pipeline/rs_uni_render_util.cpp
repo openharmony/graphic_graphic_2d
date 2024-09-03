@@ -301,7 +301,8 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
         return;
     }
     // If transformType is not a multiple of 180, need to change the correspondence between width & height.
-    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
+    GraphicTransformType transformType =
+        RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer));
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
         transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         std::swap(boundsWidth, boundsHeight);
@@ -351,7 +352,8 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
 
     // If transformType is not a multiple of 180, need to change the correspondence between width & height.
-    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(surface->GetTransform());
+    GraphicTransformType transformType =
+        RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer));
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
         transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         std::swap(boundsWidth, boundsHeight);
@@ -410,7 +412,7 @@ Drawing::Matrix RSUniRenderUtil::GetMatrixOfBufferToRelRect(const RSSurfaceRende
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     const RSProperties& property = node.GetRenderProperties();
     params.dstRect = Drawing::Rect(0, 0, property.GetBoundsWidth(), property.GetBoundsHeight());
-    auto transform = consumer->GetTransform();
+    auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, buffer);
     RectF localBounds = { 0.0f, 0.0f, property.GetBoundsWidth(), property.GetBoundsHeight() };
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, property.GetFrameGravity(), localBounds, params);
     RSBaseRenderUtil::FlipMatrix(transform, params);
@@ -1306,7 +1308,8 @@ Drawing::BackendTexture RSUniRenderUtil::MakeBackendTexture(uint32_t width, uint
 GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
     sptr<IConsumerSurface> consumer)
 {
-    auto transformType = RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+    auto transformType = RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(
+        node.GetRSSurfaceHandler()->GetConsumer(), node.GetRSSurfaceHandler()->GetBuffer()));
     int extraRotation = 0;
     int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
@@ -1368,7 +1371,8 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
     if (node.GetFixRotationByUser()) {
         transformType = RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer);
     } else {
-        transformType = RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+        transformType =
+            RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, buffer));
     }
     auto srcRect = SrcRectRotateTransform(node, transformType);
     const auto& property = node.GetRenderProperties();
@@ -1594,7 +1598,8 @@ void RSUniRenderUtil::LayerScaleDown(RSSurfaceRenderNode& node)
     // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
     // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
     int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+                          RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(
+                              RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer)));
     if (surfaceRotation % FLAT_ANGLE != 0) {
         std::swap(dstWidth, dstHeight);
     }
@@ -1645,7 +1650,8 @@ void RSUniRenderUtil::LayerScaleFit(RSSurfaceRenderNode& node)
     // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
     // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
     int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+                          RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(
+                              RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer)));
     if (surfaceRotation % FLAT_ANGLE != 0) {
         std::swap(srcRect.width_, srcRect.height_);
     }
