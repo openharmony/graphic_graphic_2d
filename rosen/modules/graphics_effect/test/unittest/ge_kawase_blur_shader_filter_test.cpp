@@ -181,6 +181,30 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ComputeRadiusAndScale001, TestSize.Level1
 }
 
 /**
+ * @tc.name: InitSimpleFilter001
+ * @tc.desc: Verify function InitSimpleFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitSimpleFilter001, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitSimpleFilter());
+}
+
+/**
+ * @tc.name: InitBlurEffectForAdvancedFilter001
+ * @tc.desc: Verify function InitBlurEffectForAdvancedFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitBlurEffectForAdvancedFilter001, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter());
+}
+
+/**
 * @tc.name: CheckInputImage001
 * @tc.desc: Verify function CheckInputImage
 * @tc.type:FUNC

@@ -432,6 +432,12 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -513,6 +519,11 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 }
 
 bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 {
     return false;
 }

@@ -232,6 +232,16 @@ bool RSRenderParams::GetDrawingCacheChanged() const
     return isDrawingCacheChanged_;
 }
 
+void RSRenderParams::SetNeedUpdateCache(bool needUpdateCache)
+{
+    isNeedUpdateCache_ = needUpdateCache;
+}
+
+bool RSRenderParams::GetNeedUpdateCache() const
+{
+    return isNeedUpdateCache_;
+}
+
 void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
 {
     if (drawingCacheType_ == cacheType) {

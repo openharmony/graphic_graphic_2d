@@ -44,6 +44,7 @@
 #include "surface_buffer.h"
 #include "sync_fence.h"
 #endif
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -114,8 +115,7 @@ public:
 
     bool IsHardwareEnabledTopSurface() const
     {
-        return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window") ||
-            (IsLayerTop());
+        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
     }
 
     void SetLayerTop(bool isTop);
@@ -132,7 +132,7 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface();
+            IsHardwareEnabledTopSurface() || IsLayerTop();
     }
 
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
@@ -1091,6 +1091,8 @@ public:
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
     bool GetHasTransparentSurface() const;
     void UpdatePartialRenderParams();
+    // This function is used for extending visibleRegion by dirty blurfilter node half-obscured
+    void UpdateExtendVisibleRegion(Occlusion::Region& region);
     void UpdateAncestorDisplayNodeInRenderParams();
 
     void SetNeedDrawFocusChange(bool needDrawFocusChange)
@@ -1157,26 +1159,6 @@ public:
         return doDirectComposition_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
-    {
-        displayNit_ = displayNit;
-    }
-
-    int32_t GetDisplayNit() const
-    {
-        return displayNit_;
-    }
-
-    void SetBrightnessRatio(float brightnessRatio)
-    {
-        brightnessRatio_ = brightnessRatio;
-    }
-
-    float GetBrightnessRatio() const
-    {
-        return brightnessRatio_;
-    }
-
     void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
     {
         isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
@@ -1190,6 +1172,9 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
+    void SetSdrNit(int32_t sdrNit);
+    void SetDisplayNit(int32_t displayNit);
+    void SetBrightnessRatio(float brightnessRatio);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
     {
@@ -1322,6 +1307,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region extendVisibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
     bool isLeashWindowVisibleRegionEmpty_ = false;
@@ -1472,6 +1458,7 @@ private:
     bool UIFirstIsPurge_ = false;
     // whether to wait uifirst first frame finished when buffer available callback invoked.
     std::atomic<bool> isWaitUifirstFirstFrame_ = false;
+    bool isTargetUIFirstDfxEnabled_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;

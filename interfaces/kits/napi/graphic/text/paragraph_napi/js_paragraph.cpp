@@ -34,7 +34,7 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
     if (status != napi_ok) {
-        TEXT_LOGE("JsParagraph::Constructor failed to napi_get_cb_info");
+        TEXT_LOGE("Failed to get parameter, ret %{public}d", status);
         return nullptr;
     }
 
@@ -52,7 +52,7 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
         JsParagraph::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsParagraph;
-        TEXT_LOGE("JsParagraph::Constructor failed to wrap native instance");
+        TEXT_LOGE("Failed to wrap paragraph, ret %{public}d", status);
         return nullptr;
     }
     return jsThis;
@@ -90,19 +90,19 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to define Paragraph class");
+        TEXT_LOGE("Failed to define paragraph class, ret %{public}d", status);
         return nullptr;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to create reference of result");
+        TEXT_LOGE("Failed to create reference, ret %{public}d", status);
         return nullptr;
     }
 
     status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("Failed to set result");
+        TEXT_LOGE("Failed to set named property, ret %{public}d", status);
         return nullptr;
     }
     return exportObj;
@@ -127,19 +127,19 @@ napi_value JsParagraph::Layout(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnLayout(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnLayout paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("JsParagraph::OnLayout Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double width = 0.0;
     if (!(ConvertFromJsValue(env, argv[0], width))) {
-        TEXT_LOGE("JsParagraph::OnLayout Argv is invalid");
+        TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }
     paragraph_->Layout(width);
@@ -155,14 +155,14 @@ napi_value JsParagraph::Paint(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnPaint paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_THREE) {
-        TEXT_LOGE("JsParagraph::OnPaint Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     Drawing::JsCanvas* jsCanvas = nullptr;
@@ -171,7 +171,7 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsCanvas));
     if (!jsCanvas || !jsCanvas->GetCanvas() ||
         !(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
-        TEXT_LOGE("JsParagraph::OnPaint Argv is invalid");
+        TEXT_LOGE("Failed to get paint parameter");
         return NapiGetUndefined(env);
     }
     paragraph_->Paint(jsCanvas->GetCanvas(), x, y);
@@ -188,14 +188,14 @@ napi_value JsParagraph::PaintOnPath(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnPaintOnPath(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnPaintOnPath paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_FOUR;
     napi_value argv[ARGC_FOUR] = { nullptr };
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_FOUR) {
-        TEXT_LOGE("JsParagraph::OnPaintOnPath Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     Drawing::JsCanvas* jsCanvas = nullptr;
@@ -206,7 +206,7 @@ napi_value JsParagraph::OnPaintOnPath(napi_env env, napi_callback_info info)
     GET_UNWRAP_PARAM(ARGC_ONE, jsPath);
     if (!jsCanvas || !jsCanvas->GetCanvas() || !jsPath || !jsPath->GetPath() ||
         !(ConvertFromJsValue(env, argv[ARGC_TWO], hOffset) && ConvertFromJsValue(env, argv[ARGC_THREE], vOffset))) {
-        TEXT_LOGE("JsParagraph::OnPaintOnPath Argv is invalid");
+        TEXT_LOGE("Failed to get paint parameter");
         return NapiGetUndefined(env);
     }
     paragraph_->Paint(jsCanvas->GetCanvas(), jsPath->GetPath(), hOffset, vOffset);
@@ -223,7 +223,7 @@ napi_value JsParagraph::GetMaxWidth(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetMaxWidth(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetMaxWidth paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double maxWidth = paragraph_->GetMaxWidth();
@@ -239,7 +239,7 @@ napi_value JsParagraph::GetHeight(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetHeight(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetHeight paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double height = paragraph_->GetHeight();
@@ -255,7 +255,7 @@ napi_value JsParagraph::GetLongestLine(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetLongestLine(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetLongestLine paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double longestLine = paragraph_->GetActualWidth();
@@ -271,7 +271,7 @@ napi_value JsParagraph::GetMinIntrinsicWidth(napi_env env, napi_callback_info in
 napi_value JsParagraph::OnGetMinIntrinsicWidth(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetMinIntrinsicWidth paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double minIntrinsicWidth = paragraph_->GetMinIntrinsicWidth();
@@ -287,7 +287,7 @@ napi_value JsParagraph::GetMaxIntrinsicWidth(napi_env env, napi_callback_info in
 napi_value JsParagraph::OnGetMaxIntrinsicWidth(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetMaxIntrinsicWidth paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double maxIntrinsicWidth = paragraph_->GetMaxIntrinsicWidth();
@@ -303,7 +303,7 @@ napi_value JsParagraph::GetAlphabeticBaseline(napi_env env, napi_callback_info i
 napi_value JsParagraph::OnGetAlphabeticBaseline(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetAlphabeticBaseline paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double alphabeticBaseline = paragraph_->GetAlphabeticBaseline();
@@ -319,7 +319,7 @@ napi_value JsParagraph::GetIdeographicBaseline(napi_env env, napi_callback_info 
 napi_value JsParagraph::OnGetIdeographicBaseline(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetIdeographicBaseline paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double ideographicBaseline = paragraph_->GetIdeographicBaseline();
@@ -335,19 +335,19 @@ napi_value JsParagraph::GetRectsForRange(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetRectsForRange(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetRectsForRange paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_THREE;
     napi_value argv[ARGC_THREE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_THREE) {
-        TEXT_LOGE("JsParagraph::OnGetRectsForRange Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     napi_valuetype valueType = napi_undefined;
     if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
-        TEXT_LOGE("JsParagraph::OnGetRectsForRange Argv[0] is invalid");
+        TEXT_LOGE("Argv[0] is invalid");
         return NapiGetUndefined(env);
     }
     napi_value tempValue = nullptr;
@@ -361,7 +361,7 @@ napi_value JsParagraph::OnGetRectsForRange(napi_env env, napi_callback_info info
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);
     if (!(isStartOk && isEndOk && ConvertFromJsValue(env, argv[ARGC_ONE], wstyle) &&
         ConvertFromJsValue(env, argv[ARGC_TWO], hstyle))) {
-        TEXT_LOGE("JsParagraph::OnGetRectsForRange Argv is invalid");
+        TEXT_LOGE("Failed to convert, start ok:%{public}d, end ok:%{public}d", isStartOk, isEndOk);
         return NapiGetUndefined(env);
     }
     std::vector<TextRect> rectsForRange = paragraph_->GetTextRectsByBoundary(start, end, hstyle, wstyle);
@@ -384,7 +384,7 @@ napi_value JsParagraph::GetRectsForPlaceholders(napi_env env, napi_callback_info
 napi_value JsParagraph::OnGetRectsForPlaceholders(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetRectsForPlaceholders paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     std::vector<TextRect> rectsForPlaceholders = paragraph_->GetTextRectsOfPlaceholders();
@@ -407,20 +407,20 @@ napi_value JsParagraph::GetGlyphPositionAtCoordinate(napi_env env, napi_callback
 napi_value JsParagraph::OnGetGlyphPositionAtCoordinate(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetGlyphPositionAtCoordinate paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_TWO) {
-        TEXT_LOGE("JsParagraph::OnGetGlyphPositionAtCoordinate Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, arg %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double dx = 0.0;
     double dy = 0.0;
     if (!(ConvertFromJsValue(env, argv[0], dx) && ConvertFromJsValue(env, argv[1], dy))) {
-        TEXT_LOGE("JsParagraph::OnGetGlyphPositionAtCoordinate Argv is invalid");
+        TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }
     IndexAndAffinity positionWithAffinity = paragraph_->GetGlyphIndexByCoordinate(dx, dy);
@@ -436,19 +436,19 @@ napi_value JsParagraph::GetWordBoundary(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetWordBoundary(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetWordBoundary paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("JsParagraph::OnGetWordBoundary Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t offset = 0;
     if (!(ConvertFromJsValue(env, argv[0], offset))) {
-        TEXT_LOGE("JsParagraph::OnGetWordBoundary Argv is invalid");
+        TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }
     Boundary range = paragraph_->GetWordBoundaryByIndex(offset);
@@ -464,7 +464,7 @@ napi_value JsParagraph::GetLineCount(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetLineCount(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetLineCount paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t lineCount = static_cast<size_t>(paragraph_->GetLineCount());
@@ -480,19 +480,19 @@ napi_value JsParagraph::GetLineHeight(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetLineHeight(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetLineHeight paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("JsParagraph::OnGetLineHeight Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     int lineNumber = 0;
     if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
-        TEXT_LOGE("JsParagraph::OnGetLineHeight Argv is invalid");
+        TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }
     double lineHeight = paragraph_->GetLineHeight(lineNumber);
@@ -508,19 +508,19 @@ napi_value JsParagraph::GetLineWidth(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetLineWidth(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetLineWidth paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("JsParagraph::OnGetLineWidth Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     int lineNumber = 0;
     if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
-        TEXT_LOGE("JsParagraph::OnGetLineWidth Argv is invalid");
+        TEXT_LOGE("Failed to convert line number");
         return NapiGetUndefined(env);
     }
     double lineWidth = paragraph_->GetLineWidth(lineNumber);
@@ -536,7 +536,7 @@ napi_value JsParagraph::DidExceedMaxLines(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnDidExceedMaxLines(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnDidExceedMaxLines paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     bool didExceedMaxLines = paragraph_->DidExceedMaxLines();
@@ -552,7 +552,7 @@ napi_value JsParagraph::GetActualTextRange(napi_env env, napi_callback_info info
 napi_value JsParagraph::OnGetActualTextRange(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetActualTextRange paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
@@ -560,17 +560,17 @@ napi_value JsParagraph::OnGetActualTextRange(napi_env env, napi_callback_info in
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_TWO) {
-        TEXT_LOGE("JsParagraph::OnGetActualTextRange Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     int lineNumber = 0;
     if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
-        TEXT_LOGE("JsParagraph::OnGetActualTextRange Argv is invalid");
+        TEXT_LOGE("Failed to convert line number");
         return NapiGetUndefined(env);
     }
     bool includeSpaces = false;
     if (!(ConvertFromJsValue(env, argv[1], includeSpaces))) {
-        TEXT_LOGE("JsParagraph::OnGetActualTextRange Argv is invalid");
+        TEXT_LOGE("Failed to convert include spaces");
         return NapiGetUndefined(env);
     }
     OHOS::Rosen::Boundary range = paragraph_->GetActualTextRange(lineNumber, includeSpaces);
@@ -592,7 +592,7 @@ napi_value JsParagraph::GetLineMetrics(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetLineMetrics(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetLineMetrics paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     std::vector<LineMetrics> vectorLineMetrics = paragraph_->GetLineMetrics();
@@ -609,23 +609,24 @@ napi_value JsParagraph::OnGetLineMetrics(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetLineMetricsAt(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetLineMetricsAt paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("JsParagraph::OnLayout Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     int lineNumber = 0;
     if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
-        TEXT_LOGE("JsParagraph::OnGetLineMetricsAt Argv is invalid");
+        TEXT_LOGE("Failed to convert line number");
         return NapiGetUndefined(env);
     }
     LineMetrics lineMetrics;
     if (!paragraph_->GetLineMetricsAt(lineNumber, &lineMetrics)) {
+        TEXT_LOGE("Failed to get line metrics");
         return nullptr;
     }
     return CreateLineMetricsJsValue(env, lineMetrics);
@@ -640,19 +641,19 @@ napi_value JsParagraph::GetFontMetricsByTextStyle(napi_env env, napi_callback_in
 napi_value JsParagraph::OnGetFontMetricsByTextStyle(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetFontMetricsByTextStyle paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("JsParagraph::OnGetFontMetricsByTextStyle Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     TextStyle textStyle;
     if (!GetTextStyleFromJS(env, argv[0], textStyle)) {
-        TEXT_LOGE("JsParagraph::OnGetLineWidth Argv is invalid");
+        TEXT_LOGE("Failed to convert text style");
         return NapiGetUndefined(env);
     }
 
@@ -669,19 +670,19 @@ napi_value JsParagraph::GetLineFontMetrics(napi_env env, napi_callback_info info
 napi_value JsParagraph::OnGetLineFontMetrics(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetLineFontMetrics paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("JsParagraph::OnGetLineFontMetrics Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     int lineNumber = 0;
     if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
-        TEXT_LOGE("JsParagraph::OnGetLineFontMetrics Argv is invalid");
+        TEXT_LOGE("Failed to convert line number");
         return NapiGetUndefined(env);
     }
 
@@ -690,7 +691,7 @@ napi_value JsParagraph::OnGetLineFontMetrics(napi_env env, napi_callback_info in
     size_t fontMetricsSize = 0;
     std::vector<Drawing::FontMetrics> grabFontMetrics;
     if (!paragraph_->GetLineFontMetrics(lineNumber, fontMetricsSize, grabFontMetrics)) {
-        TEXT_LOGE("JsParagraph::OnGetLineFontMetrics GetLineFontMetrics failed");
+        TEXT_LOGE("Failed to get line font metrics");
         return returnFontMetrics;
     }
 
@@ -722,7 +723,7 @@ napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typogra
         if (status == napi_ok) {
             return result;
         } else {
-            TEXT_LOGE("CreateJsTypography: New instance could not be obtained");
+            TEXT_LOGE("Failed to new instance");
         }
     }
     return result;
@@ -737,13 +738,13 @@ napi_value JsParagraph::GetTextLines(napi_env env, napi_callback_info info)
 napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
 {
     if (!paragraph_) {
-        TEXT_LOGE("JsParagraph::OnGetTextLines paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     std::shared_ptr<Typography> paragraphCopy = paragraph_->CloneSelf();
     if (!paragraphCopy) {
-        TEXT_LOGE("JsParagraph::OnGetTextLines paragraphCopy is nullptr");
+        TEXT_LOGE("Failed to clone paragraph");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
@@ -754,13 +755,13 @@ napi_value JsParagraph::OnGetTextLines(napi_env env, napi_callback_info info)
     for (std::unique_ptr<TextLineBase>& item : textlineArr) {
         napi_value itemObject = JsTextLine::CreateTextLine(env, info);
         if (!itemObject) {
-            TEXT_LOGE("JsParagraph::OnGetTextLines itemObject is null");
+            TEXT_LOGE("Failed to create text line");
             continue;
         }
         JsTextLine* jsTextLine = nullptr;
         napi_unwrap(env, itemObject, reinterpret_cast<void**>(&jsTextLine));
         if (!jsTextLine) {
-            TEXT_LOGE("JsParagraph::OnGetTextLines napi_unwrap jsTextLine is null");
+            TEXT_LOGE("Failed to unwrap text line");
             continue;
         }
         jsTextLine->SetTextLine(std::move(item));

@@ -54,6 +54,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
+constexpr float GAMMA2_2 = 2.2f;
 }
 void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
     int32_t bufferAge, RSDisplayRenderParams& params, bool useAlignedDirtyRegion)
@@ -542,7 +543,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
     params.useCPU = false;
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    params.screenBrightnessNits = surfaceDrawable.GetDisplayNit();
+    params.sdrNits = renderParams.GetSdrNit();
+    params.tmoNits = renderParams.GetDisplayNit();
+    params.displayNits = params.tmoNits / std::pow(renderParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
 #endif
 
     Drawing::Filter filter;

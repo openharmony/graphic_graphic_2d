@@ -309,6 +309,7 @@ using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
     bool isMirrored = false;
+    bool isSync = false;
     NodeId mirrorNodeId = 0;
 };
 

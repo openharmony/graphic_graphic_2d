@@ -396,13 +396,11 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     ScreenId id = displayParams->GetScreenId();
     drawable->SetHDRPresent(isHdrOn);
     if (isHdrOn) {
-        // 0 means defalut brightnessRatio
-        drawable->SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(id, 0));
         drawable->SetScreenId(id);
         drawable->SetTargetColorGamut(displayParams->GetNewColorSpace());
     }
     RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", drawable->GetHDRPresent(),
-        drawable->GetBrightnessRatio());
+        surfaceParams->GetBrightnessRatio());
 }
 
 bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node)
@@ -452,11 +450,6 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
         SyncHDRDisplayParam(drawable);
-        // Skipping drawing is not allowed when there is an HDR display.
-        if (drawable->GetHDRPresent()) {
-            ++it;
-            continue;
-        }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         auto node = it->second;
         if (!surfaceParams || !node) {
@@ -1322,6 +1315,10 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
     }
     if (lastFrameCacheType == MultiThreadCacheType::NONE) { // likely branch: last is disable
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // switch: disable -> enable
+            if (node.isTargetUIFirstDfxEnabled_) {
+                RS_LOGD("UIFirstSwitch Name[%{public}s] ID[%{public}" PRIu64 "] Status[0 => 1]",
+                    node.GetName().c_str(), node.GetId());
+            }
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch disable -> enable %" PRIu64"", node.GetId());
             SetUifirstNodeEnableParam(node, currentFrameCacheType);
@@ -1343,10 +1340,18 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
     } else { // last is enable
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // keep enable
+            if (node.isTargetUIFirstDfxEnabled_) {
+                RS_LOGD("UIFirstSwitch Name[%{public}s] ID[%{public}" PRIu64 "] Status[1]",
+                    node.GetName().c_str(), node.GetId());
+            }
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep enable  %" PRIu64"", node.GetId());
             MergeOldDirty(node);
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
         } else { // switch: enable -> disable
+            if (node.isTargetUIFirstDfxEnabled_) {
+                RS_LOGD("UIFirstSwitch Name[%{public}s] ID[%{public}" PRIu64 "] Status[1 => 0]",
+                    node.GetName().c_str(), node.GetId());
+            }
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64"", node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
             NotifyUIStartingWindow(node.GetId(), false);

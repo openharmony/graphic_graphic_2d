@@ -141,6 +141,10 @@ public:
     {
         return animateState_;
     }
+    bool GetIsRotating() const
+    {
+        return isRotating_;
+    }
     bool GetForceClientForDRMOnly() const
     {
         return forceClientForDRMOnly_;
@@ -422,6 +426,48 @@ public:
         return false;
     }
 
+    void SetSdrNit(int32_t sdrNit)
+    {
+        if (ROSEN_EQ(sdrNit_, sdrNit)) {
+            return;
+        }
+        sdrNit_ = sdrNit;
+        needSync_ = true;
+    }
+
+    int32_t GetSdrNit() const
+    {
+        return sdrNit_;
+    }
+
+    void SetDisplayNit(int32_t displayNit)
+    {
+        if (ROSEN_EQ(displayNit_, displayNit)) {
+            return;
+        }
+        displayNit_ = displayNit;
+        needSync_ = true;
+    }
+
+    int32_t GetDisplayNit() const
+    {
+        return displayNit_;
+    }
+
+    void SetBrightnessRatio(float brightnessRatio)
+    {
+        if (ROSEN_EQ(brightnessRatio_, brightnessRatio)) {
+            return;
+        }
+        brightnessRatio_ = brightnessRatio;
+        needSync_ = true;
+    }
+
+    float GetBrightnessRatio() const
+    {
+        return brightnessRatio_;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -479,6 +525,7 @@ private:
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     bool animateState_ = false;
+    bool isRotating_ = false;
     bool forceClientForDRMOnly_ = false;
     bool isSubSurfaceNode_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
@@ -501,6 +548,10 @@ private:
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
+    // hdr
+    int32_t sdrNit_ = 500; // default sdrNit
+    int32_t displayNit_ = 500; // default displayNit_
+    float brightnessRatio_ = 1.0; // 1.0f means no discount.
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

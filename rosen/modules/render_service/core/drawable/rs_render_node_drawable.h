@@ -125,7 +125,7 @@ protected:
     float boundsHeight_ = 0.0f;
 
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
-    void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);
 
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
@@ -148,7 +148,8 @@ protected:
     void UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id);
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
-    void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId);
+    void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId,
+        bool isHdrOn = false);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
     void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
@@ -165,7 +166,7 @@ protected:
     static thread_local bool drawBlurForCache_;
 
 private:
-    DrawableCacheType cacheType_ = DrawableCacheType::NONE;
+    std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
     std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
     std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;

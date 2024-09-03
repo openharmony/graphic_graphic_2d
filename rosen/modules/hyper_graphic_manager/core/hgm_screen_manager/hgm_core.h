@@ -242,7 +242,6 @@ private:
     mutable std::mutex modeListMutex_;
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeListToApply_ = nullptr;
 
-    std::string currentBundleName_;
     std::atomic<ScreenId> activeScreenId_{ INVALID_SCREEN_ID };
     std::unordered_set<SceneType> screenSceneSet_;
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;

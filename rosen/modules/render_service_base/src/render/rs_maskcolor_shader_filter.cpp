@@ -75,13 +75,6 @@ void RSMaskColorShaderFilter::PostProcess(Drawing::Canvas& canvas)
     Drawing::Brush brush;
     brush.SetColor(maskColor_.AsArgbInt());
 
-    if (canvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-        if (paintFilterCanvas && paintFilterCanvas->GetHDRPresent()) {
-            paintFilterCanvas->PaintFilter(brush);
-        }
-    }
-
     canvas.DrawBackground(brush);
 }
 } // namespace Rosen

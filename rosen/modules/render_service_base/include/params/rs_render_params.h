@@ -176,6 +176,9 @@ public:
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const;
 
+    void SetNeedUpdateCache(bool needUpdateCache);
+    bool GetNeedUpdateCache() const;
+
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
     RSDrawingCacheType GetDrawingCacheType() const;
 
@@ -327,6 +330,7 @@ private:
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
+    std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;

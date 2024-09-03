@@ -93,7 +93,7 @@ void RSGraphicTest::TearDown()
     }
 
     RSGraphicTestDirector::Instance().FlushMessage();
-    RSGraphicTestDirector::Instance().WaitForVSync();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     const ::testing::TestInfo* const testInfo =
         ::testing::UnitTest::GetInstance()->current_test_info();
@@ -131,7 +131,7 @@ void RSGraphicTest::TearDown()
 
     GetRootNode()->ResetTestSurface();
     RSGraphicTestDirector::Instance().FlushMessage();
-    RSGraphicTestDirector::Instance().WaitForVSync();
+    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     ++imageWriteId_;
 }

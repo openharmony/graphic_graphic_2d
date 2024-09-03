@@ -477,6 +477,11 @@ SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
     return SubTreePrepareCheckType::ENABLED;
 }
 
+bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRenderParallelEnabled()
 {
     return false;
@@ -513,6 +518,11 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 }
 
 bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 {
     return false;
 }

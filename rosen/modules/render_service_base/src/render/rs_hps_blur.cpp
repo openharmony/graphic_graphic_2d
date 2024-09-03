@@ -78,7 +78,6 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
         Drawing::TileMode::CLAMP, linear, blurMatrix);
 
     brush.SetShaderEffect(blurShader);
-    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();

@@ -2740,7 +2740,7 @@ std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float
     float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
     cm.GetArray(cmArray);
     std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO);
     return filterCompose;
 }
 

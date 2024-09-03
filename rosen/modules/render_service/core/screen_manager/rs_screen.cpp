@@ -405,30 +405,6 @@ std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
     return *iter;
 }
 
-uint32_t RSScreen::GetActiveRefreshRate() const
-{
-    if (IsVirtual()) {
-        RS_LOGW("RSScreen %{public}s: virtual screen not support GetScreenModeId.", __func__);
-        return 0;
-    }
-
-    if (hdiScreen_ == nullptr) {
-        RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") hdiScreen is null.",
-            __func__, id_);
-        return 0;
-    }
-
-    uint32_t modeId = hdiScreen_->GetScreenModeId();
-
-    auto iter = std::find_if(supportedModes_.cbegin(), supportedModes_.cend(),
-        [modeId](const auto &mode) { return static_cast<uint32_t>(mode.id) == modeId; });
-    if (iter == supportedModes_.cend()) {
-        return 0;
-    }
-
-    return iter->freshRate;
-}
-
 const std::vector<GraphicDisplayModeInfo>& RSScreen::GetSupportedModes() const
 {
     return supportedModes_;

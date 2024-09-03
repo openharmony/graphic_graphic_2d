@@ -391,29 +391,33 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest011, TestSize.Level1)
     // cacheType: FilterCacheType::SNAPSHOT
     cacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     ASSERT_NE(cacheManager->cachedSnapshot_, nullptr);
+    cacheManager->cachedFilteredSnapshot_ = nullptr;
+    EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
 
     filterDrawable->renderClearType_ = FilterCacheType::SNAPSHOT;
+    cacheManager->InvalidateFilterCache(filterDrawable->renderClearType_);
     EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
+
+    // cacheType: FilterCacheType::BOTH
+    cacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(cacheManager->cachedSnapshot_, nullptr);
+    cacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(cacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
 
     filterDrawable->renderClearType_ = FilterCacheType::BOTH;
+    cacheManager->InvalidateFilterCache(filterDrawable->renderClearType_);
     EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
-
-    filterDrawable->renderClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
-    EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
 
     // cacheType: FilterCacheType::FILTERED_SNAPSHOT
     cacheManager->cachedSnapshot_ = nullptr;
     cacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     ASSERT_NE(cacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
 
     filterDrawable->renderClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    cacheManager->InvalidateFilterCache(filterDrawable->renderClearType_);
     EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
-
-    filterDrawable->renderClearType_ = FilterCacheType::BOTH;
-    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
-
-    filterDrawable->renderClearType_ = FilterCacheType::SNAPSHOT;
-    EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
 }
 
 } // namespace OHOS::Rosen

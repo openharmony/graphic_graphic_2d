@@ -319,8 +319,8 @@ void SurfaceNodeCommandHelper::SetLayerTop(RSContext& context, NodeId nodeId, st
         if ((surfaceNode->GetName() == nodeIdStr) &&
             (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
             surfaceNode->SetLayerTop(isTop);
+            return;
         }
-        return;
     });
 }
 } // namespace Rosen

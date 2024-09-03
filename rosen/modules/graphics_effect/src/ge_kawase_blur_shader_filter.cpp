@@ -36,6 +36,11 @@ constexpr int32_t MAX_PASSES_LARGE_RADIUS = 7; // Maximum number of render passe
 constexpr float DILATED_CONVOLUTION_LARGE_RADIUS = 4.6f;
 // To avoid downscaling artifacts, interpolate the blurred fbo with the full composited image, up to this radius
 constexpr float MAX_CROSS_FADE_RADIUS = 10.0f;
+static std::shared_ptr<Drawing::RuntimeEffect> g_blurEffect;
+static std::shared_ptr<Drawing::RuntimeEffect> g_mixEffect;
+static std::shared_ptr<Drawing::RuntimeEffect> g_blurEffectAf;
+static std::shared_ptr<Drawing::RuntimeEffect> g_simpleFilter;
+
 } // namespace
 
 // Advanced Filter: we can get normalized uv offset from width and height
@@ -102,19 +107,19 @@ static const bool IS_ADVANCED_FILTER_USABLE_CHECK_ONCE = IsAdvancedFilterUsable(
 GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurShaderFilterParams& params)
     : radius_(params.radius)
 {
-    GEShaderStore::GetInstance()->GetShader(SHADER_BLUR);
-    // Advanced Filter
-    if (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE) {
-        GEShaderStore::GetInstance()->GetShader(SHADER_BLURAF);
+    if (!InitBlurEffect()) {
+        LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed when initializing BlurEffect.");
+        return;
     }
-    GEShaderStore::GetInstance()->GetShader(SHADER_MIX);
+    // Advanced Filter
+    if (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && !InitBlurEffectForAdvancedFilter()) {
+        LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed when initializing BlurEffectAF.");
+        return;
+    }
 
-    if (GetBlurExtraFilterEnabled()) {
-        auto shader = GEShaderStore::GetInstance()->GetShader(SHADER_SIMPLE);
-        if (shader == nullptr) {
-            LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed to construct SimpleFilter");
-            return;
-        }
+    if (!InitMixEffect()) {
+        LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed when initializing MixEffect.");
+        return;
     }
 
     if (radius_ < 1) {
@@ -125,6 +130,13 @@ GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter(const Drawing::GEKawaseBlurSh
     if (radius_ > 8000) { // 8000 experienced value
         LOGI("GEKawaseBlurShaderFilter radius(%{public}d) should be [1, 8k], change to 8k.", radius_);
         radius_ = 8000; // 8000 experienced value
+    }
+
+    if (GetBlurExtraFilterEnabled()) {
+        if (!InitSimpleFilter()) {
+            LOGE("GEKawaseBlurShaderFilter::GEKawaseBlurShaderFilter failed to construct SimpleFilter");
+            return;
+        }
     }
 }
 
@@ -137,31 +149,14 @@ std::shared_ptr<Drawing::ShaderEffect> GEKawaseBlurShaderFilter::ApplySimpleFilt
     const std::shared_ptr<Drawing::Image>& input, const std::shared_ptr<Drawing::ShaderEffect>& prevShader,
     const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear) const
 {
-    auto shader = GEShaderStore::GetInstance()->GetShader(SHADER_SIMPLE);
-    if (shader == nullptr) {
-        LOGW("Get simple shader failed");
-        return prevShader;
-    }
-    Drawing::RuntimeShaderBuilder simpleBlurBuilder(shader->GetShader());
-    simpleBlurBuilder.SetChild("imageShader", prevShader);
+    Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simpleFilter);
+    simpleBlurBuilder.SetChild("imageInput", prevShader);
     std::shared_ptr<Drawing::Image> tmpSimpleBlur(simpleBlurBuilder.MakeImage(
         canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
     return Drawing::ShaderEffect::CreateImageShader(*tmpSimpleBlur, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
         linear, Drawing::Matrix());
 }
-static std::shared_ptr<GEShader> GetAvailableShader()
-{
-    // Advanced Filter: check is AF usable only the first time
-    std::shared_ptr<GEShader> shader = nullptr;
-    if (IS_ADVANCED_FILTER_USABLE_CHECK_ONCE) {
-        shader = GEShaderStore::GetInstance()->GetShader(SHADER_BLURAF);
-    }
-    if (shader == nullptr) {
-        shader = GEShaderStore::GetInstance()->GetShader(SHADER_BLUR);
-    }
 
-    return shader;
-}
 std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
 {
@@ -170,6 +165,9 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
     }
 
     auto input = image;
+    if (!input) {
+        return image;
+    }
     CheckInputImage(canvas, image, input, src);
     ComputeRadiusAndScale(radius_);
 
@@ -189,31 +187,31 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
     Drawing::Matrix blurMatrix = BuildMatrix(src, scaledInfo, input);
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 
-    auto shader = GetAvailableShader();
-    if (shader == nullptr) {
-        return image;
-    }
-
+    // Advanced Filter: check is AF usable only the first time
+    bool isUsingAF = IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && g_blurEffectAf != nullptr;
     auto tmpShader = Drawing::ShaderEffect::CreateImageShader(
         *input, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix);
-    
-    Drawing::RuntimeShaderBuilder blurBuilder(shader->GetShader());
-    if (GetBlurExtraFilterEnabled() && GEShaderStore::GetInstance()->GetShader(SHADER_SIMPLE) != nullptr) {
+    Drawing::RuntimeShaderBuilder blurBuilder(isUsingAF ? g_blurEffectAf : g_blurEffect);
+    if (GetBlurExtraFilterEnabled() && g_simpleFilter) {
         tmpShader = ApplySimpleFilter(canvas, input, tmpShader, scaledInfo, linear);
     }
-    blurBuilder.SetChild("imageShader", tmpShader);
+    blurBuilder.SetChild("imageInput", tmpShader);
 
     auto offsetXY = radiusByPasses * blurScale_;
     SetBlurBuilderParam(blurBuilder, offsetXY, scaledInfo, width, height);
 
     auto tmpBlur(blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
 
+    if (!tmpBlur) {
+        return image;
+    }
+
     // And now we'll build our chain of scaled blur stages
     for (auto i = 1; i < numberOfPasses; i++) {
         auto blurShader = Drawing::ShaderEffect::CreateImageShader(
             *tmpBlur, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, Drawing::Matrix());
         const float stepScale = static_cast<float>(i) * blurScale_;
-        blurBuilder.SetChild("imageShader", blurShader);
+        blurBuilder.SetChild("imageInput", blurShader);
 
         // Advanced Filter
         auto offsetXYFilter = radiusByPasses * stepScale;
@@ -228,7 +226,7 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
 bool GEKawaseBlurShaderFilter::IsInputValid(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst)
 {
-    if (!image) {
+    if (!g_blurEffect || !g_mixEffect || !image) {
         LOGE("GEKawaseBlurShaderFilter::shader error");
         return false;
     }
@@ -248,8 +246,7 @@ void GEKawaseBlurShaderFilter::SetBlurBuilderParam(Drawing::RuntimeShaderBuilder
     const Drawing::ImageInfo& scaledInfo, const int width, const int height)
 {
     // Advanced Filter: check is AF usable only the first time
-    auto shader = GEShaderStore::GetInstance()->GetShader(SHADER_BLURAF);
-    bool isUsingAF = IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && shader != nullptr;
+    bool isUsingAF = IS_ADVANCED_FILTER_USABLE_CHECK_ONCE && g_blurEffectAf != nullptr;
     if (isUsingAF) {
         SkV2 offsets[BLUR_SAMPLE_COUNT];
         OffsetInfo offsetInfo = { offsetXY, offsetXY, scaledInfo.GetWidth(), scaledInfo.GetHeight() };
@@ -276,6 +273,123 @@ const OHOS::Rosen::Drawing::Matrix GEKawaseBlurShaderFilter::BuildMatrix(
     float scaleH = static_cast<float>(scaleHeight) / (height > 0 ? height : 1);
     blurMatrix.PostScale(scaleW, scaleH);
     return blurMatrix;
+}
+
+bool GEKawaseBlurShaderFilter::InitBlurEffect()
+{
+    if (g_blurEffect != nullptr) {
+        return true;
+    }
+
+    static std::string blurString(R"(
+        uniform shader imageInput;
+        uniform float2 in_blurOffset;
+        uniform float2 in_maxSizeXY;
+
+        half4 main(float2 xy) {
+            half4 c = imageInput.eval(xy);
+            c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            c += imageInput.eval(float2(clamp(-in_blurOffset.x + xy.x, 0, in_maxSizeXY.x),
+                                        clamp(-in_blurOffset.y + xy.y, 0, in_maxSizeXY.y)));
+            return half4(c.rgba * 0.2);
+        }
+    )");
+    g_blurEffect = Drawing::RuntimeEffect::CreateForShader(blurString);
+    if (g_blurEffect == nullptr) {
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader blurEffect create failed");
+        return false;
+    }
+
+    return true;
+}
+
+bool GEKawaseBlurShaderFilter::InitMixEffect()
+{
+    if (g_mixEffect != nullptr) {
+        return true;
+    }
+
+    static std::string mixString(R"(
+        uniform shader blurredInput;
+        uniform shader originalInput;
+        uniform float mixFactor;
+        uniform float inColorFactor;
+
+        highp float random(float2 xy) {
+            float t = dot(xy, float2(78.233, 12.9898));
+            return fract(sin(t) * 43758.5453);
+        }
+        half4 main(float2 xy) {
+            highp float noiseGranularity = inColorFactor / 255.0;
+            half4 finalColor = mix(originalInput.eval(xy), blurredInput.eval(xy), mixFactor);
+            float noise  = mix(-noiseGranularity, noiseGranularity, random(xy));
+            finalColor.rgb += noise;
+            return finalColor;
+        }
+    )");
+    g_mixEffect = Drawing::RuntimeEffect::CreateForShader(mixString);
+    if (g_mixEffect == nullptr) {
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader mixEffect create failed");
+        return false;
+    }
+
+    return true;
+}
+
+bool GEKawaseBlurShaderFilter::InitSimpleFilter()
+{
+    if (g_simpleFilter != nullptr) {
+        return true;
+    }
+
+    static std::string simpleShader(R"(
+        uniform shader imageInput;
+        half4 main(float2 xy) {
+            return imageInput.eval(xy);
+        }
+    )");
+    g_simpleFilter = Drawing::RuntimeEffect::CreateForShader(simpleShader);
+    if (g_simpleFilter == nullptr) {
+        LOGE("GEKawaseBlurShaderFilter::RuntimeShader failed to create simple filter");
+        return false;
+    }
+
+    return true;
+}
+
+// Advanced Filter
+bool GEKawaseBlurShaderFilter::InitBlurEffectForAdvancedFilter()
+{
+    if (g_blurEffectAf != nullptr) {
+        return true;
+    }
+
+    Drawing::RuntimeEffectOptions ops;
+    ops.useAF = true;
+    static std::string blurStringAF(R"(
+        uniform shader imageInput;
+        uniform float2 in_blurOffset[5];
+
+        half4 main(float2 xy) {
+            half4 c = half4(0, 0, 0, 0);
+            for (int i = 0; i < 5; ++i) {
+                c += imageInput.eval(float2(xy.x + in_blurOffset[i].x, xy.y + in_blurOffset[i].y));
+            }
+            return half4(c.rgba * 0.2);
+        }
+    )");
+    g_blurEffectAf = Drawing::RuntimeEffect::CreateForShader(blurStringAF, ops);
+    if (g_blurEffectAf == nullptr) {
+        LOGE("%s: RuntimeShader blurEffectAF create failed", __func__);
+        return false;
+    }
+    
+    return true;
 }
 
 Drawing::Matrix GEKawaseBlurShaderFilter::GetShaderTransform(
@@ -347,11 +461,8 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ScaleAndAddRandomColor
     }
 
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    auto shader = GEShaderStore::GetInstance()->GetShader(SHADER_MIX);
-    if (shader == nullptr) {
-        return blurImage;
-    }
-    Drawing::RuntimeShaderBuilder mixBuilder(shader->GetShader());
+
+    Drawing::RuntimeShaderBuilder mixBuilder(g_mixEffect);
     const auto scaleMatrix = GetShaderTransform(
         &canvas, dst, dst.GetWidth() / blurImage->GetWidth(), dst.GetHeight() / blurImage->GetHeight());
     auto tmpShader = Drawing::ShaderEffect::CreateImageShader(

@@ -40,6 +40,7 @@ public:
     bool GetUniRenderEnabled() override;
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
+    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId) override;
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,

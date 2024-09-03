@@ -34,5 +34,8 @@ OH_Drawing_MaskFilter* OH_Drawing_MaskFilterCreateBlur(OH_Drawing_BlurType blurT
 
 void OH_Drawing_MaskFilterDestroy(OH_Drawing_MaskFilter* cMaskFilter)
 {
+    if (!cMaskFilter) {
+        return;
+    }
     delete CastToMaskFilter(cMaskFilter);
 }

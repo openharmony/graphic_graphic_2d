@@ -291,7 +291,7 @@ OH_NativeImage* OH_ConsumerSurface_Create();
  * @since 13
  * @version 1.0
  */
-int32_t OH_ConsumerSuface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage);
+int32_t OH_ConsumerSurface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage);
 
 /**
  * @brief Set the default size of the <b>OH_NativeImage</b>.\n
@@ -306,7 +306,7 @@ int32_t OH_ConsumerSuface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage)
  * @since 13
  * @version 1.0
  */
-int32_t OH_ConsumerSuface_SetDefaultSize(OH_NativeImage* image, int32_t width, int32_t height);
+int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, int32_t height);
 #ifdef __cplusplus
 }
 #endif

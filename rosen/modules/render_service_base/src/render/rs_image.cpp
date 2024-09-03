@@ -99,7 +99,6 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
             rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
     }
-    paint_.SetHDRImage(true);
     canvas.AttachPaint(paint_);
     return true;
 #else
@@ -136,7 +135,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             }
             if (innerRect_.has_value()) {
                 Drawing::Brush brush;
-                ApplyHdrColorFilter(canvas, brush);
                 canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
             } else if (HDRConvert(samplingOptions, canvas)) {
                 canvas.DrawRect(dst_);
@@ -324,16 +322,6 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
     canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
 }
 
-void RSImage::ApplyHdrColorFilter(Drawing::Canvas& canvas, Drawing::Brush& brush)
-{
-    RSPaintFilterCanvas& paintFilterCanvas = static_cast<RSPaintFilterCanvas&>(canvas);
-    if (canvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
-        if (paintFilterCanvas.GetHDRPresent()) {
-            paintFilterCanvas.PaintFilter(brush);
-        }
-    }
-}
-
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pixelFormat)
 {
@@ -474,7 +462,6 @@ void RSImage::DrawImageOnCanvas(
     }
     if (innerRect_.has_value()) {
         Drawing::Brush brush;
-        ApplyHdrColorFilter(canvas, brush);
         canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
     } else if (hdrImageDraw) {
         canvas.DrawRect(dst_);
@@ -597,11 +584,13 @@ bool RSImage::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
     RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
+    uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
                    RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
+                   RSMarshallingHelper::Marshalling(parcel, versionId) &&
                    RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData) &&

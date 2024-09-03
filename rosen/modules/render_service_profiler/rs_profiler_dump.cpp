@@ -24,6 +24,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "params/rs_render_params.h"
 
 namespace OHOS::Rosen {
 
@@ -64,7 +65,9 @@ void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out)
             std::to_string(sharedTrans->inNodeId_) + " -> " + std::to_string(sharedTrans->outNodeId_);
     }
     if (node.IsSuggestedDrawInGroup()) {
+        const auto& renderParams = const_cast<RSRenderNode&>(node).GetStagingRenderParams();
         out["nodeGroup"] = static_cast<int>(node.nodeGroupType_);
+        out["nodeGroupReuseCache"] = renderParams ? static_cast<int>(!renderParams->GetNeedUpdateCache()) : 0;
     }
     if (node.GetUifirstRootNodeId() != INVALID_NODEID) {
         out["uifirstRootNodeId"] = node.GetUifirstRootNodeId();

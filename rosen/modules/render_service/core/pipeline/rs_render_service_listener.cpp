@@ -143,6 +143,7 @@ void RSRenderServiceListener::OnTransformChange()
         ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, transform changed", node->GetId());
         node->SetContentDirty();
         node->SetDoDirectComposition(false);
+        node->GetRSSurfaceHandler()->SetBufferTransformTypeChanged(true);
     });
 }
 } // namespace Rosen

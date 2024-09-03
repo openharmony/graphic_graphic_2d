@@ -40,7 +40,7 @@ constexpr int REQUEST_FRAME_AWARE_NUM = 4;
 constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
 constexpr size_t TRANSACTION_DATA_ALARM_SIZE = 500 * 1024; // 500KB
 constexpr size_t TRANSACTION_DATA_KILL_SIZE = 1000 * 1024; // 1000KB
-const char* TRANSACTION_REPORT_NAME = "COMMIT_TRANSACTION_DATA";
+const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
 const std::unique_ptr<AppExecFwk::AppMgrClient>& GetAppMgrClient()
 {
@@ -201,7 +201,7 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid, size_t dataSi
     appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
 
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, TRANSACTION_REPORT_NAME,
-        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "PID", pid, "UID", uid,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid, "UID", uid,
         "BUNDLE_NAME", bundleName, "TRANSACTION_DATA_SIZE", totalSize);
     RS_LOGW("TransactionDataStatistics pid[%d] uid[%d] bundleName[%s] dataSize[%{public}zu] exceeded[%{public}d]",
         pid, uid, bundleName.c_str(), totalSize, totalSize > TRANSACTION_DATA_KILL_SIZE);

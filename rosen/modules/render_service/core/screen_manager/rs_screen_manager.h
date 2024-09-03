@@ -79,7 +79,7 @@ public:
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     
-    virtual std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
+    virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
@@ -222,9 +222,10 @@ public:
 
     virtual int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) = 0;
 
+    virtual void GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInfo) const = 0;
+
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
-    virtual uint32_t GetDefaultScreenRefreshRate() const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -280,7 +281,7 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     
-    std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
+    const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
@@ -428,9 +429,10 @@ public:
 
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) override;
 
+    void GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInfo) const override;
+
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
-    uint32_t GetDefaultScreenRefreshRate() const override;
 
 private:
     RSScreenManager();

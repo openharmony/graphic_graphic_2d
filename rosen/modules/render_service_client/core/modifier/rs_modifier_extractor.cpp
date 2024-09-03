@@ -502,6 +502,24 @@ std::string RSModifierExtractor::Dump() const
         dumpInfo.append(buffer);
     }
 
+    // BackgroundFilter
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for BackgroundFilter, ret=" + std::to_string(ret);
+    }
+    float radius = GetBackgroundBlurRadius();
+    if (ROSEN_GNE(radius, 0.0f)) {
+        float saturation = GetBackgroundBlurSaturation();
+        float brightness = GetBackgroundBlurBrightness();
+        Color maskColor = GetBackgroundBlurMaskColor();
+        int colorMode = GetBackgroundBlurColorMode();
+        if (sprintf_s(buffer, UINT8_MAX, ", BackgroundFilter[radius: %.2f, saturation: %.2f, brightness: %.2f, "
+            "maskColor: %08X, colorMode: %d]", radius, saturation, brightness, maskColor.AsArgbInt(),
+            colorMode) != -1) {
+            dumpInfo.append(buffer);
+        }
+    }
+
     if (!GetVisible()) {
         dumpInfo.append(", IsVisible[false]");
     }

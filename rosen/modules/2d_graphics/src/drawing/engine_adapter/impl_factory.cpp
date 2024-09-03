@@ -37,6 +37,16 @@ std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl()
     return EngineImplFactory::CreateCoreCanvas();
 }
 
+std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl(DrawingType type)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateCoreCanvas();
+    }
+#endif
+    return EngineImplFactory::CreateCoreCanvas(type);
+}
+
 std::unique_ptr<CoreCanvasImpl> ImplFactory::CreateCoreCanvasImpl(void* rawCanvas)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

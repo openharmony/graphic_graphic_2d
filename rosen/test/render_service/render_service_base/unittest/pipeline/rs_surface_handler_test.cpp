@@ -133,6 +133,33 @@ HWTEST_F(RSSurfaceHandlerTest, SetBufferSizeChanged001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBufferTransformTypeChanged001
+ * @tc.desc: test set buffer transform type changed
+ * @tc.type: FUNC
+ * @tc.require: issueIANQPF
+ */
+HWTEST_F(RSSurfaceHandlerTest, SetBufferTransformTypeChanged001, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<SurfaceBuffer> buffer;
+    int32_t releaseFence = 0;
+    int64_t timestamp = 0;
+    Rect damage = {0};
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto ret = surfacePtr_->RequestBuffer(buffer, releaseFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    rSSurfaceHandlerPtr_->SetBuffer(buffer, acquireFence, damage, timestamp);
+    // case 1: rSSurfaceHandlerPtr_->bufferTransformTypeChanged_ is true
+    rSSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
+    // case 2: rSSurfaceHandlerPtr_->bufferTransformTypeChanged_ is false
+    rSSurfaceHandlerPtr_->SetBufferTransformTypeChanged(false);
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
+    rSSurfaceHandlerPtr_->RegisterDeleteBufferListener(BufferDeleteCbFunc);
+#endif
+}
+
+/**
  * @tc.name: RegisterDeleteBufferListener001
  * @tc.desc: test register delete buffer listener and 'cleanCache()'
  * @tc.type: FUNC
@@ -207,6 +234,27 @@ HWTEST_F(RSSurfaceHandlerTest, CacheBuffer01, TestSize.Level2)
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
     rSSurfaceHandlerPtr_->CacheBuffer(buffer, "");
     ASSERT_TRUE(rSSurfaceHandlerPtr_->HasBufferCache());
+}
+
+/**
+ * @tc.name: CacheBuffer002
+ * @tc.desc: test CacheBuffer for add cache which timestamp include in cache's key list
+ * @tc.type: FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSSurfaceHandlerTest, CacheBuffer002, TestSize.Level2)
+{
+    RSSurfaceHandler::SurfaceBufferEntry buffer1 = RequestAndFlushBuffer();
+    RSSurfaceHandler::SurfaceBufferEntry buffer2 = RequestAndFlushBuffer();
+    buffer1.timestamp = 100; // make the timestamps of two buffers the same
+    buffer2.timestamp = 100;
+
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    rSSurfaceHandlerPtr_->bufferCache_.clear();
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer1, "");
+    rSSurfaceHandlerPtr_->CacheBuffer(buffer2, "");
+
+    ASSERT_EQ(rSSurfaceHandlerPtr_->bufferCache_.size(), 1);
 }
 
 /**

@@ -195,9 +195,9 @@ VsyncError VSyncReceiver::Init()
 void VSyncReceiver::ThreadCreateNotify()
 {
     int32_t pid = getprocpid();
-    int32_t uid = getuid();
+    uint32_t uid = getuid();
     int32_t tid = static_cast<int32_t>(getproctid());
-    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}d.", pid, tid, uid);
+    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}u.", pid, tid, uid);
 
     std::unordered_map<std::string, std::string> mapPayload;
     mapPayload["pid"] = std::to_string(pid);

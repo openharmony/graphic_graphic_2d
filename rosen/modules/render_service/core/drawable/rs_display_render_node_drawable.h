@@ -167,8 +167,10 @@ private:
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
-    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable);
-    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
+    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
+    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio = 1.0f);
+    void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
+    void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
     bool SkipDisplayIfScreenOff() const;
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
@@ -218,6 +220,7 @@ private:
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
     int64_t lastRefreshTime_ = 0;
+    bool virtualDirtyRefresh_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

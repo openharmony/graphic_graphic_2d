@@ -180,8 +180,10 @@ void HgmSimpleTimer::Start()
     if (handler_ == nullptr) {
         return;
     }
-    Reset();
-    if (!running_.exchange(true)) {
+    if (running_.exchange(true)) {
+        Reset();
+    } else {
+        Reset(); // Reset() only take effect when running
         if (resetCallback_) {
             resetCallback_();
         }

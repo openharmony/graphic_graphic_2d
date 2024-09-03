@@ -290,7 +290,6 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
         filter.SetImageFilter(imageFilter_);
         brush.SetFilter(filter);
     }
-    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
@@ -319,7 +318,6 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
         auto radius = tmpFilter->GetRadius();
         auto hpsParam = Drawing::HpsBlurParameter(src, dst, radius, saturationForHPS_, brightnessForHPS_);
-        brush.SetForceBrightnessDisable(true);
         if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
             HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam, brush)) {
             RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
@@ -339,7 +337,6 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         }
         return;
     }
-    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
@@ -377,11 +374,7 @@ void RSDrawingFilter::CreateColorFilterForMaskColor(Drawing::Canvas& canvas)
     if (maskColorShaderFilter != nullptr) {
         auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
         auto maskColor = maskColorFilter->GetMaskColor();
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
         float ratio = 1.f;
-        if (paintFilterCanvas != nullptr && paintFilterCanvas->GetHDRPresent()) {
-            ratio = paintFilterCanvas->GetBrightnessRatio();
-        }
         if (auto maskColorAlpha = maskColor.GetAlpha()) {
             auto oneMinusAlpha = 1.f - maskColor.GetAlpha() / 255.f;
             auto premulCoeff = maskColorAlpha / 255.f / 255.f;

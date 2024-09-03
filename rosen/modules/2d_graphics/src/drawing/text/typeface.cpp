@@ -125,7 +125,11 @@ std::shared_ptr<Data> Typeface::Serialize() const
 
 std::shared_ptr<Typeface> Typeface::Deserialize(const void* data, size_t size)
 {
-    return StaticFactory::DeserializeTypeface(data, size);
+    auto typeface = StaticFactory::DeserializeTypeface(data, size);
+    if (typeface != nullptr) {
+        typeface->SetSize(size);
+    }
+    return typeface;
 }
 
 std::function<bool(std::shared_ptr<Typeface>)> Typeface::registerTypefaceCallBack_ = nullptr;
@@ -165,6 +169,26 @@ void Typeface::SetHash(uint32_t hash)
     }
 }
 
+uint32_t Typeface::GetSize()
+{
+    if (size_ != 0) {
+        return size_;
+    }
+    if (!typefaceImpl_) {
+        return 0;
+    }
+    auto data = typefaceImpl_->Serialize();
+    if (!data) {
+        return 0;
+    }
+    size_ = data->GetSize();
+    return size_;
+}
+
+void Typeface::SetSize(uint32_t size)
+{
+    size_ = size;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

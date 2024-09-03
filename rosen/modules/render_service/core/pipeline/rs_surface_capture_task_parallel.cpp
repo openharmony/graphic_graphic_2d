@@ -185,6 +185,8 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
+    // Currently, capture do not support HDR display
+    canvas.SetCapture(true);
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         RSUniRenderThread::SetCaptureParam(

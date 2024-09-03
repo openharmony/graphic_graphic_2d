@@ -51,6 +51,7 @@ SurfaceOhosVulkan::~SurfaceOhosVulkan()
     }
     if (mVulkanWindow_ != nullptr) {
         delete mVulkanWindow_;
+        mVulkanWindow_ = nullptr;
     }
 }
 

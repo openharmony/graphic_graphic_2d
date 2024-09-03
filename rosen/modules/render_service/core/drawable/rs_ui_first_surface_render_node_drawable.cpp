@@ -130,6 +130,7 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
             RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage invalid grBackendTexture_");
             return nullptr;
         }
+        auto colorType = Drawing::COLORTYPE_RGBA_8888;
 #ifdef RS_ENABLE_VK
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
             OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
@@ -139,10 +140,14 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
                 return nullptr;
             }
         }
+        auto vkTexture = cacheCompletedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
+        if (vkTexture != nullptr && vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
+            colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+        }
 #endif
         auto image = std::make_shared<Drawing::Image>();
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
-        Drawing::BitmapFormat info = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888,
+        Drawing::BitmapFormat info = Drawing::BitmapFormat{ colorType,
             Drawing::ALPHATYPE_PREMUL };
 #ifdef RS_ENABLE_GL
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
@@ -225,9 +230,6 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
         }
     }
     Drawing::Brush brush;
-    if (GetHDRPresent()) {
-        brush.SetForceBrightnessDisable(true);
-    }
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto gravityTranslate = GetGravityTranslate(cacheImage->GetWidth(), cacheImage->GetHeight());
@@ -238,7 +240,7 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
 }
 
 void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func,
-    uint32_t threadIndex)
+    uint32_t threadIndex, bool isHdrOn)
 {
     if (func) {
         cacheSurfaceThreadIndex_ = threadIndex;
@@ -288,7 +290,13 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
+        VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+        auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+        if (isHdrOn) {
+            format = VK_FORMAT_R16G16B16A16_SFLOAT;
+            colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+        }
+        cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
             if (func) {
@@ -304,7 +312,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
             vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
             gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
-            1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
+            1, colorType, nullptr,
             NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
     }
 #endif

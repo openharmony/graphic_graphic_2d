@@ -598,6 +598,7 @@ ohos_unittest("RSPixelMapUtilTest") {
   ]
 
   include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/graphics_effect/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
@@ -608,6 +609,7 @@ ohos_unittest("RSPixelMapUtilTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "//third_party/googletest:gmock",

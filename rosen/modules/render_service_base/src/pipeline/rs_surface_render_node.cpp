@@ -1010,6 +1010,12 @@ void RSSurfaceRenderNode::NotifyTreeStateChange()
 
 void RSSurfaceRenderNode::SetLayerTop(bool isTop)
 {
+#ifndef ROSEN_CROSS_PLATFORM
+    if (!RSInterfaceCodeAccessVerifierBase::IsSystemCalling("SetLayerTop")) {
+        // System calls only
+        return;
+    }
+#endif
     isLayerTop_ = isTop;
     SetContentDirty();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
@@ -2669,7 +2675,6 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
         return;
     }
     if (IsMainWindowType()) {
-        surfaceParams->SetVisibleRegion(visibleRegion_);
         surfaceParams->SetVisibleRegionInVirtual(visibleRegionInVirtual_);
         surfaceParams->SetIsParentScaling(isParentScaling_);
     }
@@ -2677,6 +2682,18 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     surfaceParams->SetOldDirtyInSurface(GetOldDirtyInSurface());
     surfaceParams->SetTransparentRegion(GetTransparentRegion());
     surfaceParams->SetOpaqueRegion(GetOpaqueRegion());
+}
+
+void RSSurfaceRenderNode::UpdateExtendVisibleRegion(Occlusion::Region& region)
+{
+    extendVisibleRegion_.Reset();
+    extendVisibleRegion_ = region.Or(visibleRegion_);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::UpdateExtendVisibleRegion surfaceParams is nullptr");
+        return;
+    }
+    surfaceParams->SetVisibleRegion(extendVisibleRegion_);
 }
 
 void RSSurfaceRenderNode::InitRenderParams()
@@ -2713,6 +2730,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isSkipLayer_ = isSkipLayer_;
     surfaceParams->isProtectedLayer_ = isProtectedLayer_;
     surfaceParams->animateState_ = animateState_;
+    surfaceParams->isRotating_ = isRotating_;
     surfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
@@ -2844,6 +2862,33 @@ std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> RSSurfa
 size_t RSSurfaceRenderNode::GetWatermarkSize() const
 {
     return watermarkHandles_.size();
+}
+
+void RSSurfaceRenderNode::SetSdrNit(int32_t sdrNit)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetSdrNit(sdrNit);
+    }
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetDisplayNit(int32_t displayNit)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetDisplayNit(displayNit);
+    }
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetBrightnessRatio(brightnessRatio);
+    }
+    AddToPendingSyncList();
 }
 } // namespace Rosen
 } // namespace OHOS
