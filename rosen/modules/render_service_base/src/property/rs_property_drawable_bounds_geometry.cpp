@@ -1033,6 +1033,10 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();
     canvas.AttachBrush(brush_);
+    if (image == nullptr) {
+        RS_LOGE("RSBackgroundImageDrawable::Draw image is nullptr");
+        return;
+    }
     image->SetInnerRect(std::make_optional<Drawing::RectI>(
         innerRect.x_, innerRect.y_, innerRect.x_ + innerRect.z_, innerRect.y_ + innerRect.w_));
     image->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);

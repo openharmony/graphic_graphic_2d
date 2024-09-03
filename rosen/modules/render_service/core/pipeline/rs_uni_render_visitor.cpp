@@ -2890,6 +2890,10 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
         bool surfaceNodeSet = false;
         for (auto surface : surfaces) {
             auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
+            if (surfaceNode == nullptr) {
+                RS_LOGE("RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate surfaceNode is nullptr");
+                return;
+            }
             if (surfaceNode->GetName().find(RELIABLE_GESTURE_BACK_SURFACE_NAME) != std::string::npos) {
                 // refresh rate rect for mainwindow
                 auto& geoPtr = surfaceNode->GetRenderProperties().GetBoundsGeometry();
