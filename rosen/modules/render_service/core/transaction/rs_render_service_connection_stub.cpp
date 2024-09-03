@@ -237,7 +237,8 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     if (isNonSystemAppCalling) {
         if (nodeType != RSSurfaceNodeType::DEFAULT &&
             nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
-            nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE) {
+            nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE &&
+            nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
             RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
                 typeNum, pid);
             return false;
