@@ -154,11 +154,11 @@ bool GEMagnifierShaderFilter::InitMagnifierEffect()
                 vec2 d = max(abs(position) - R1, 0.0);
                 float dist = length(d) / R2;
                 vec2 dir = normalize(sign(position) * d);
-                float borderHeightRatio = min(size.x, size.y) / (borderWidth * 2.0); // 2.0 borderWidth
+                float borderHeightRatio = min(size.x, size.y) / (borderWidth * 2.8);
                 float posInBorder = mix(1.0 - borderHeightRatio, 1.0, dist);
                 float weight = max(posInBorder, 0.0);
                 vec3 normal = normalize(mix(vec3(0.0, 0.0, 1.0), vec3(dir, 0.0), weight));
-                isInBorder = step(0.0, posInBorder);
+                isInBorder = smoothstep(0.0, 0.3, posInBorder);
 
                 // calculate shadow
                 position -= shadowOffset / iResolution.x;
@@ -181,7 +181,7 @@ bool GEMagnifierShaderFilter::InitMagnifierEffect()
 
                 float isInBorder = 0;
                 vec4 magnifyingGlass = sdfRect(uv - boxPosition, halfBoxSize - vec2(mn), mn, curvature, isInBorder);
-                vec4 finalColor = vec4(0.0, 0.0, 0.0, 1.0);
+                vec4 finalColor = vec4(outerContourColor1.xyz, 1.0);
 
                 // add refraction
                 float red = magnifyingGlass.x;
@@ -198,18 +198,18 @@ bool GEMagnifierShaderFilter::InitMagnifierEffect()
                 refraction.xyz = mix(refraction.xyz, gradientMask.xyz, gradientMask.w);
 
                 // only apply refraction if z-value is not zero
-                float mask = step(0.0, magnifyingGlass.z);
+                float mask = smoothstep(0.0, 0.3, magnifyingGlass.z);
                 finalColor = mix(finalColor, refraction, mask);
-
-                // add shadow
-                finalColor.xyz *= magnifyingGlass.w;
-                vec4 shadowColor = vec4(0.0, 0.0, 0.0, 1.0) * (1.0 - magnifyingGlass.w);
-                finalColor = mix(shadowColor, finalColor, mask);
 
                 // add outer_contour color
                 float xValue = (uv.x - boxPosition.x) / halfBoxSize.x;
                 vec4 gradientContour = mix(outerContourColor1, outerContourColor2, abs(xValue));
                 finalColor.xyz = mix(finalColor.xyz, gradientContour.xyz, gradientContour.w * isInBorder * mask);
+
+                // add shadow
+                finalColor.xyz *= magnifyingGlass.w;
+                vec4 shadowColor = vec4(0.0, 0.0, 0.0, 1.0) * (1.0 - magnifyingGlass.w);
+                finalColor = mix(shadowColor, finalColor, mask);
 
                 return finalColor;
             }
