@@ -205,4 +205,22 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest, TestSize.Le
     EXPECT_FALSE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
     imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
 }
+
+/**
+ * @tc.name: ReleaseUniqueIdListTest
+ * @tc.desc: Verify function ReleaseUniqueIdList
+ * @tc.type:FUNC
+ * @tc.require: issueI9I9D1
+ */
+HWTEST_F(RSImageCacheTest, ReleaseUniqueIdListTest, TestSize.Level1)
+{
+    for (uint64_t id = 0; id < 10; id++)
+    {
+        RSImageCache::Instance().CollectUniqueId(id);
+    }
+
+    RSImageCache::Instance().ReleaseUniqueIdList();
+    EXPECT_TRUE(RSImageCache::Instance().uniqueIdList_.empty());
+    RSImageCache::Instance().uniqueIdList_.clear();
+}
 } // namespace OHOS::Rosen
