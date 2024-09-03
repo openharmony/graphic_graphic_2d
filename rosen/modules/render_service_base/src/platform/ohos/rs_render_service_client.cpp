@@ -1502,7 +1502,7 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
+    if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetFreeMultiWindowStatus renderService == nullptr!");
         return;
     }
