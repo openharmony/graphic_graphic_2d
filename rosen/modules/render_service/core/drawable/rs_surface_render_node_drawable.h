@@ -265,7 +265,7 @@ public:
 #endif
     bool IsHardwareEnabledTopSurface() const
     {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
+        return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
     }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -305,7 +305,7 @@ private:
     void DrawSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas,
         const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
 
-    RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;

@@ -183,6 +183,7 @@ private:
     void ConvertPendingNodeToDrawable();
     void CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node);
     void ResetCurrentFrameDeletedCardNodes();
+    bool IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> node);
 
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
