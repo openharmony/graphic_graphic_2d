@@ -268,6 +268,13 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
+Range<size_t> ParagraphImpl::GetEllipsisTextRange()
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
+    return Range<size_t>(range.start, range.end);
+}
+
 std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()
 {
     RecordDifferentPthreadCall(__FUNCTION__);

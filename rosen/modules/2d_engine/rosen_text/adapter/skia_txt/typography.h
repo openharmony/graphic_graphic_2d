@@ -58,6 +58,7 @@ public:
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
     Boundary GetActualTextRange(int lineNumber, bool includeSpaces) override;
+    Boundary GetEllipsisTextRange() override;
     double GetLineHeight(int lineNumber) override;
     double GetLineWidth(int lineNumber) override;
     void SetAnimation(

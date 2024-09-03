@@ -145,6 +145,7 @@ public:
     virtual IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) = 0;
     virtual Boundary GetWordBoundaryByIndex(size_t index) = 0;
     virtual Boundary GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
+    virtual Boundary GetEllipsisTextRange() = 0;
     virtual double GetLineHeight(int lineNumber) = 0;
     virtual double GetLineWidth(int lineNumber) = 0;
     virtual void SetAnimation(
