@@ -90,6 +90,8 @@ public:
 
     Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
 
+    Range<size_t> GetEllipsisTextRange() override;
+
     std::vector<skia::textlayout::LineMetrics> GetLineMetrics() override;
 
     bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;

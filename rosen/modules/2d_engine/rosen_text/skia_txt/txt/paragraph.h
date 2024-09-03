@@ -196,6 +196,7 @@ public:
     virtual std::unique_ptr<Paragraph> CloneSelf() = 0;
     virtual TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) = 0;
     virtual void UpdateColor(size_t from, size_t to, const RSColor& color) = 0;
+    virtual Range<size_t> GetEllipsisTextRange() = 0;
 };
 } // namespace SPText
 } // namespace Rosen
