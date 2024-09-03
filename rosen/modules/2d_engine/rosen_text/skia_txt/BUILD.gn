@@ -52,6 +52,7 @@ template("skia_libtxt") {
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/adapter/skia_txt",
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt/txt",
+      "$graphic_2d_root/rosen/modules/texgine/src",
     ]
 
     sources = [

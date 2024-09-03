@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "utils/text_log.h"
 #ifdef BUILD_NON_SDK_VER
 #include "securec.h"
 #endif
@@ -439,6 +440,56 @@ int FontConfigJson::ParseFontMap(const cJSON* root, const char* key)
         }
         (*fontFileMap)[item2->string] = item2->valuestring;
     }
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList)
+{
+    const char* tag = "fontlist";
+    cJSON* rootObj = cJSON_GetObjectItem(root, tag);
+    if (rootObj == nullptr) {
+        TEXT_LOGE("Failed to get json object");
+        return FAILED;
+    }
+    int size = cJSON_GetArraySize(rootObj);
+    if (size <= 0) {
+        TEXT_LOGE("Failed to get json array size");
+        return FAILED;
+    }
+    fontPathList.reserve(size);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(rootObj, i);
+        if (item == nullptr) {
+            TEXT_LOGE("Failed to get json item");
+            return FAILED;
+        }
+        cJSON* fullPath = cJSON_GetObjectItem(item, "fontfullpath");
+        if (fullPath == nullptr || !cJSON_IsString(fullPath) || fullPath->valuestring == nullptr) {
+            TEXT_LOGE("Failed to get fullPath");
+            return FAILED;
+        }
+        fontPathList.emplace_back(std::string(fullPath->valuestring));
+    }
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseInstallConfig(const char* fontPath, std::vector<std::string>& fontPathList)
+{
+    if (fontPath == nullptr) {
+        TEXT_LOGE("Font path is null");
+        return FAILED;
+    }
+
+    cJSON* root = CheckConfigFile(fontPath);
+    if (root == nullptr) {
+        TEXT_LOGE("Failed to check config file");
+        return FAILED;
+    }
+    if (ParseInstallFont(root, fontPathList) != SUCCESSED) {
+        cJSON_Delete(root);
+        return FAILED;
+    }
+    cJSON_Delete(root);
     return SUCCESSED;
 }
 
