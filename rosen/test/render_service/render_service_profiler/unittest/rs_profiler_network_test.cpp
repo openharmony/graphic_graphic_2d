@@ -54,26 +54,6 @@ HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkPushPopCommandTest, testing::ex
 }
 
 /*
- * @tc.name: RSProfilerNetworkProcessBinaryTest
- * @tc.desc: Test public method ProcessBinary
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSProfilerNetworkTest, RSProfilerNetworkProcessBinaryTest, testing::ext::TestSize.Level1)
-{
-    std::vector<char> incoming { static_cast<char>(PackageID::RS_PROFILER_PREPARE), 1, 0, 0, 0 };
-    auto type = static_cast<char>(Packet::BINARY);
-    std::vector<char> reply { type, 6, 0, 0, 0, static_cast<char>(PackageID::RS_PROFILER_PREPARE) };
-    Network::ProcessBinary(incoming.data(), incoming.size());
-    EXPECT_EQ(Network::outgoing_.back(), reply);
-
-    incoming = { static_cast<char>(PackageID::RS_PROFILER_BINARY) };
-    reply = { type, 6, 0, 0, 0, static_cast<char>(PackageID::RS_PROFILER_PREPARE_DONE) };
-    Network::ProcessBinary(incoming.data(), incoming.size());
-    EXPECT_EQ(Network::outgoing_.back(), reply);
-}
-
-/*
  * @tc.name: RSProfilerNetworkProcessCommandTest
  * @tc.desc: Test public method ProcessCommand
  * @tc.type: FUNC

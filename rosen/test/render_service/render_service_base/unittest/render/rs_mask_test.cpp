@@ -433,4 +433,20 @@ HWTEST_F(RSMaskTest, GetPixelMapTest, TestSize.Level1)
     std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
     ASSERT_EQ(mask->GetPixelMap(), nullptr);
 }
+
+/**
+ * @tc.name: DumpTest
+ * @tc.desc: Verify Dump
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMaskTest, DumpTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+    std::shared_ptr<RSMask> mask = RSMask::CreateGradientMask(brush);
+    std::string out;
+    EXPECT_TRUE(out.empty());
+    mask->Dump(out);
+    EXPECT_FALSE(out.empty());
+}
 } // namespace OHOS::Rosen
