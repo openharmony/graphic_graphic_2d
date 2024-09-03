@@ -300,5 +300,58 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction001, Tes
     EXPECT_NE(renderInterpolatingSpringAnimation->CalculateTimeFraction(1.0f), 1.0f);
     GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateTimeFraction001 end";
 }
+
+/**
+ * @tc.name: CalculateTimeFraction002
+ * @tc.desc: Verify the CalculateTimeFraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateTimeFraction002 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+    renderInterpolatingSpringAnimation->OnInitialize(100);
+    renderInterpolatingSpringAnimation->SetDuration(0);
+    float fraction = renderInterpolatingSpringAnimation->CalculateTimeFraction(1.0f);
+    EXPECT_EQ(fraction, 0.0f);
+    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateTimeFraction002 end";
+}
+
+/**
+ * @tc.name: CalculateVelocity001
+ * @tc.desc: Verify the CalculateVelocity
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateVelocity001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateVelocity001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+    renderInterpolatingSpringAnimation->AttachRenderProperty(property);
+    renderInterpolatingSpringAnimation->OnSetFraction(0.0f);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    renderInterpolatingSpringAnimation->InitValueEstimator();
+    auto velocity = renderInterpolatingSpringAnimation->CalculateVelocity(0.0);
+    EXPECT_TRUE(velocity != nullptr);
+    renderInterpolatingSpringAnimation->CallLogicallyFinishCallback();
+    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateVelocity001 end";
+}
 } // namespace Rosen
 } // namespace OHOS
