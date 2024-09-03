@@ -249,6 +249,7 @@ private:
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void UpdateHwcNodeEnable();
@@ -396,8 +397,6 @@ private:
     bool isUIFirstDebugEnable_ = false;
     bool ancestorNodeHasAnimation_ = false;
     bool hasAccumulatedClip_ = false;
-    // [planning] this will be deleted by hdr solution
-    bool hasNotFullScreenWindow_ = false;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
 
     bool isPrevalidateHwcNodeEnable_ = false;

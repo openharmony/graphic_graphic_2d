@@ -157,6 +157,31 @@ HWTEST(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Level1
     }
 }
 
+/**
+ * @tc.name: CheckIsHdrSurfaceBuffer001
+ * @tc.desc: Test CheckIsHdrSurfaceBuffer
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST(RSBaseRenderEngineUnitTest, CheckIsHdrSurfaceBuffer001, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    if (node->GetRSSurfaceHandler() == nullptr) {
+        return;
+    }
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
+        return;
+    }
+    buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
+    bool ret = renderEngine->CheckIsHdrSurfaceBuffer(buffer);
+    ASSERT_EQ(ret, false);
+    buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_P010;
+    ret = renderEngine->CheckIsHdrSurfaceBuffer(buffer);
+    ASSERT_EQ(ret, false);
+}
+
 #ifdef RS_ENABLE_EGLIMAGE
 /**
  * @tc.name: CreateEglImageFromBuffer001

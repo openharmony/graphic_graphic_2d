@@ -51,7 +51,9 @@ public:
     RSB_EXPORT bool IsNeedUpdateLuminance(ScreenId screenId);
 
     RSB_EXPORT float GetHdrTmoNits(ScreenId screenId, int32_t mode);
+    RSB_EXPORT float GetSdrDisplayNits(ScreenId screenId);
     RSB_EXPORT float GetHdrDisplayNits(ScreenId screenId);
+    RSB_EXPORT float GetDisplayNits(ScreenId screenId);
     RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, int32_t mode);
 
 private:
@@ -76,7 +78,9 @@ private:
     using SetNowHdrLuminanceFunc = void(*)(ScreenId, uint32_t);
     using IsNeedUpdateLuminanceFunc = bool(*)(ScreenId);
     using GetHdrTmoNitsFunc = float(*)(ScreenId, int32_t);
+    using GetSdrDisplayNitsFunc = float(*)(ScreenId);
     using GetHdrDisplayNitsFunc = float(*)(ScreenId);
+    using GetDisplayNitsFunc = float(*)(ScreenId);
     using GetNonlinearRatioFunc = double(*)(ScreenId, int32_t);
 
     SetHdrStatusFunc setHdrStatus_{nullptr};
@@ -88,7 +92,9 @@ private:
     SetNowHdrLuminanceFunc setNowHdrLuminance_{nullptr};
     IsNeedUpdateLuminanceFunc isNeedUpdateLuminance_{nullptr};
     GetHdrTmoNitsFunc getHdrTmoNits_{nullptr};
+    GetSdrDisplayNitsFunc getSdrDisplayNits_{nullptr};
     GetHdrDisplayNitsFunc getHdrDisplayNits_{nullptr};
+    GetDisplayNitsFunc getDisplayNits_{nullptr};
     GetNonlinearRatioFunc getNonlinearRatio_{nullptr};
 #endif
 };

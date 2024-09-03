@@ -484,6 +484,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
+    targetSurfaceParams->sdrNit_ = sdrNit_;
+    targetSurfaceParams->displayNit_ = displayNit_;
+    targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
     RSRenderParams::OnSync(target);
 }
 

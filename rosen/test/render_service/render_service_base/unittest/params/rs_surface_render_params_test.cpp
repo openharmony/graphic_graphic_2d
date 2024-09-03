@@ -25,6 +25,8 @@ const RectI DEFAULT_RECT = {0, 0, 100, 100};
 constexpr NodeId DEFAULT_NODEID = 1;
 } // namespace
 
+constexpr int32_t SET_DISPLAY_NITS = 100;
+constexpr float_t SET_BRIGHTNESS_RATIO = 0.5f;
 class RSSurfaceRenderParamsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -226,5 +228,31 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetOverDrawBufferNodeCornerRadius, TestSize.
 
     params.SetOverDrawBufferNodeCornerRadius(true);
     EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: DisplayNitTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, DisplayNitTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(110);
+    params.SetDisplayNit(SET_DISPLAY_NITS);
+    EXPECT_EQ(params.GetDisplayNit(), SET_DISPLAY_NITS);
+}
+
+/**
+ * @tc.name: BrightnessRatioTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, BrightnessRatioTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(111);
+    params.SetBrightnessRatio(SET_BRIGHTNESS_RATIO);
+    EXPECT_EQ(params.GetBrightnessRatio(), SET_BRIGHTNESS_RATIO);
 }
 }

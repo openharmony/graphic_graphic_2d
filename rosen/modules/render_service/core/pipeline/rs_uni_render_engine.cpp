@@ -95,10 +95,14 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         params.targetColorGamut = colorGamut;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager != nullptr) {
-            params.screenBrightnessNits = layer->GetDisplayNit();
+            params.tmoNits = layer->GetDisplayNit();
+            params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
         }
-        canvas.SetHDRPresent(RSLuminanceControl::Get().IsHdrOn(screenInfo.id));
-        canvas.SetBrightnessRatio(layer->GetBrightnessRatio());
+        if (!CheckIsHdrSurfaceBuffer(layer->GetBuffer())) {
+            params.brightnessRatio = layer->GetBrightnessRatio();
+        } else {
+            params.isHdrRedraw = true;
+        }
 #endif
         DrawHdiLayerWithParams(canvas, layer, params);
         // Dfx for redraw region
