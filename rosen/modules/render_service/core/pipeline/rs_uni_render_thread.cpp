@@ -68,7 +68,7 @@ constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
-constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO‌ = "SuppressGpuCacheBelowCertainRatio";
+constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -868,7 +868,7 @@ void RSUniRenderThread::FlushGpuMemoryInWaitQueueBetweenFrames()
 
 void RSUniRenderThread::SuppressGpuCacheBelowCertainRatioBetweenFrames()
 {
-    RemoveTask(SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO‌);
+    RemoveTask(SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO);
     PostTask(
         [this]() {
             if (!uniRenderEngine_) {
@@ -887,7 +887,7 @@ void RSUniRenderThread::SuppressGpuCacheBelowCertainRatioBetweenFrames()
                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
             });
         },
-        SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO‌, 0, AppExecFwk::EventQueue::Priority::LOW);
+        SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
