@@ -1574,7 +1574,31 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
     node.SetDstRect(dstRect);
     node.SetSrcRect(srcRect);
 }
- 
+
+void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node)
+{
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
+    const auto& surface = node.GetRSSurfaceHandler()->GetConsumer();
+    if (nodeParams == nullptr || surface == nullptr || buffer == nullptr) {
+        RS_LOGE("nodeParams or surface or buffer is nullptr");
+        return;
+    }
+
+    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
+        nodeParams->SetPreScalingMode(scalingMode);
+    }
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        RSUniRenderUtil::LayerScaleDown(node);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix());
+        if (degree % RS_ROTATION_90 == 0) {
+            RSUniRenderUtil::LayerScaleFit(node);
+        }
+    }
+}
+
 void RSUniRenderUtil::LayerScaleDown(RSSurfaceRenderNode& node)
 {
     const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
