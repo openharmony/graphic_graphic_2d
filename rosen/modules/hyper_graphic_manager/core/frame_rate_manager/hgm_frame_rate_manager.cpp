@@ -1241,9 +1241,19 @@ bool HgmFrameRateManager::ProcessRefreshRateVote(
         ProcessVoteLog(curVoteInfo, true);
         return false;
     }
-    if (voter == "VOTER_ANCO" && !ancoScenes_.empty() &&
-        (curVoteInfo.min > OLED_60_HZ || curVoteInfo.max < OLED_90_HZ)) {
-        curVoteInfo.SetRange(OLED_60_HZ, OLED_90_HZ);
+    if (voter == "VOTER_ANCO" && !ancoScenes_.empty()) {
+        // Multiple scene are not considered at this time
+        auto configData = HgmCore::Instance().GetPolicyConfigData();
+        auto screenSetting = multiAppStrategy_.GetScreenSetting();
+        auto ancoSceneIt = screenSetting.ancoSceneList.find(*ancoScenes_.begin());
+        uint32_t min = OLED_60_HZ;
+        uint32_t max = OLED_90_HZ;
+        if (configData != nullptr && ancoSceneIt != screenSetting.ancoSceneList.end() &&
+            configData->strategyConfigs_.find(ancoSceneIt->second) != configData->strategyConfigs_.end()) {
+            min = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second].min);
+            max = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second].max);
+        }
+        curVoteInfo.SetRange(min, max);
     }
     ProcessVoteLog(curVoteInfo, false);
     auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
