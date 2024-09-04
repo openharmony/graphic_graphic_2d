@@ -13,19 +13,21 @@
  * limitations under the License.
  */
 
+#include "pipeline/rs_uni_hwc_prevalidate_util.h"
+
 #include <dlfcn.h>
 #include <functional>
 #include <string>
 
-#include "common/rs_common_hook.h"
-#include "common/rs_obj_abs_geometry.h"
 #include "rs_base_render_util.h"
 #include "rs_uni_render_util.h"
+
+#include "common/rs_common_hook.h"
+#include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_uni_hwc_prevalidate_util.h"
 #include "platform/common/rs_log.h"
-#include "drawable/rs_display_render_node_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
