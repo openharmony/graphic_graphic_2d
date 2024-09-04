@@ -149,6 +149,7 @@ public:
 
     void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
+    void SetRSWindowMode(RSWindowMode mode);
 
 protected:
     bool NeedForcedSendToRemote() const override;
