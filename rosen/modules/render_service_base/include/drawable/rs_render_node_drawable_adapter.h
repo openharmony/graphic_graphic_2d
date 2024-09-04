@@ -125,6 +125,9 @@ public:
     virtual void SetDrawCmdListsVisited(bool flag) {}
     void SetSkip(SkipType type) { skipType_ = type; }
     SkipType GetSkipType() { return skipType_; }
+
+    void SetSkipCacheLayer(bool hasSkipCacheLayer);
+
 protected:
     // Util functions
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
@@ -181,6 +184,8 @@ protected:
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #endif
+    // if the node needs to avoid drawing cache because of some layers, such as the security layer...
+    bool hasSkipCacheLayer_ = false;
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,

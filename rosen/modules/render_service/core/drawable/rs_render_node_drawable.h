@@ -125,7 +125,7 @@ protected:
     float boundsHeight_ = 0.0f;
 
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
-    void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);
 
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
@@ -164,7 +164,7 @@ protected:
     static thread_local bool drawBlurForCache_;
 
 private:
-    DrawableCacheType cacheType_ = DrawableCacheType::NONE;
+    std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
     std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
     std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
@@ -204,6 +204,7 @@ private:
     {
         return isOpincMarkCached_;
     }
+    static thread_local bool isOffScreenWithClipHole_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

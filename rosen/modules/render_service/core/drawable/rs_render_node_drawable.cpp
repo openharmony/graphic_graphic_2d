@@ -34,6 +34,7 @@ namespace OHOS::Rosen::DrawableV2 {
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 thread_local bool RSRenderNodeDrawable::drawBlurForCache_ = false;
 thread_local bool RSRenderNodeDrawable::isOpDropped_ = true;
+thread_local bool RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
 
 namespace {
 constexpr int32_t DRAWING_CACHE_MAX_UPDATE_TIME = 3;
@@ -153,7 +154,11 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     // in case of no filter
     if (needUpdateCache && (!hasFilter || isForegroundFilterCache || params.GetRSFreezeFlag())) {
         RS_TRACE_NAME_FMT("UpdateCacheSurface id:%llu, isForegroundFilter:%d", nodeId_, isForegroundFilterCache);
+        RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
+        curDrawingCacheRoot_ = this;
+        hasSkipCacheLayer_ = false;
         UpdateCacheSurface(canvas, params);
+        curDrawingCacheRoot_ = root;
         return;
     }
 
@@ -164,10 +169,15 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
         auto canvasType = curCanvas->GetCacheType();
         // set canvas type as OFFSCREEN to not draw filter/shadow/filter
         curCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
+        bool isOffScreenWithClipHole = isOffScreenWithClipHole_;
+        isOffScreenWithClipHole_ = true;
         RS_TRACE_NAME_FMT("UpdateCacheSurface with filter id:%llu", nodeId_);
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
+        hasSkipCacheLayer_ = false;
         UpdateCacheSurface(canvas, params);
+        // if this NodeGroup contains other nodeGroup with filter, we should reset the isOffScreenWithClipHole_
+        isOffScreenWithClipHole_ = isOffScreenWithClipHole;
         curCanvas->SetCacheType(canvasType);
         curDrawingCacheRoot_ = root;
     }
@@ -190,14 +200,19 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     canvas.ClipPath(filetrPath);
     DrawContent(canvas, params.GetFrameRect());
     DrawChildren(canvas, params.GetBounds());
-    DrawForeground(canvas, params.GetBounds());
 }
 
-void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params)
+void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
+    Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
+    auto originalCacheType = GetCacheType();
+    // can not draw cache because skipCacheLayer in capture process, such as security layers...
+    if (GetCacheType() != DrawableCacheType::NONE && hasSkipCacheLayer_ && isInCapture) {
+        SetCacheType(DrawableCacheType::NONE);
+    }
     if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE &&
-        params.GetForegroundFilterCache() == nullptr) {
+        params.GetForegroundFilterCache() == nullptr && GetCacheType() != DrawableCacheType::NONE) {
         // traverse children to draw filter/shadow/effect
         Drawing::AutoCanvasRestore arc(canvas, true);
         bool isOpDropped = isOpDropped_;
@@ -213,15 +228,15 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
     }
 
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    // if children don't have any filter or effect, stop traversing
     if (drawBlurForCache_ && !params.ChildHasVisibleFilter() && !params.ChildHasVisibleEffect() &&
         !HasFilterOrEffect()) {
         RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", nodeId_);
         return;
     }
 
-    // RSPaintFilterCanvas::CacheType::OFFSCREEN case
-    if (curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN ||
-        curCanvas->GetCacheType() == RSPaintFilterCanvas::CacheType::DISABLED) {
+    // in case of generating cache with filter in offscreen, clip hole for filter/shadow but drawing others
+    if (isOffScreenWithClipHole_) {
         if (HasFilterOrEffect() && params.GetForegroundFilterCache() == nullptr) {
             // clip hole for filter/shadow
             DrawBackgroundWithoutFilterAndEffect(canvas, params);
@@ -234,11 +249,24 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const 
 
     switch (GetCacheType()) {
         case DrawableCacheType::NONE: {
-            RSRenderNodeDrawable::OnDraw(canvas);
+            if (drawBlurForCache_) {
+                DrawBackground(canvas, params.GetBounds());
+                if (params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect()) {
+                    DrawContent(canvas, params.GetFrameRect());
+                    DrawChildren(canvas, params.GetBounds());
+                }
+            } else {
+                RSRenderNodeDrawable::OnDraw(canvas);
+            }
+            // reset cachetype for skipCacheLayer
+            SetCacheType(originalCacheType);
             break;
         }
         case DrawableCacheType::CONTENT: {
             RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
+            if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
+                curDrawingCacheRoot_->SetSkipCacheLayer(true);
+            }
             if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
                 DrawBackground(canvas, params.GetBounds());
                 DrawCachedImage(*curCanvas, params.GetCacheSize());
