@@ -318,6 +318,16 @@ private:
      */
     void CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNode& node);
 
+    inline void RegScreenCallback(RSDisplayRenderNode& node)
+    {
+        std::call_once(regScreenCallbackFlag, [&node]() {
+            node.SetReleaseTask([](uint64_t screenId) {
+                RSMainThread::Instance()->RealeaseScreenDmaBuffer(screenId);
+            });
+        });
+    }
+
+    std::once_flag regScreenCallbackFlag;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
