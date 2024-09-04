@@ -53,9 +53,6 @@ public:
     void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
 
 private:
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    void DealWithHdr(RSSurfaceRenderNode& node, LayerInfoPtr& layer, sptr<SurfaceBuffer> buffer);
-#endif
     LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;

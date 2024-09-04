@@ -337,9 +337,9 @@ HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
 
 /*
  * @tc.name: Is3DRotation_002
- * @tc.desc:
+ * @tc.desc: test Is3DRotation with ScaleX and ScaleY have same sign
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: #IANUEG
  */
 HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
 {
@@ -347,7 +347,7 @@ HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(-1, 0, 0, 0, -1, 0, 0, 0, 1);
     is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
-    ASSERT_TRUE(is3DRotation);
+    ASSERT_FALSE(is3DRotation);
 }
 
 /*

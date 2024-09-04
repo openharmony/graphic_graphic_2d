@@ -519,17 +519,21 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest, Test
     renderDrawableAdapter->renderParams_->SetHasBlurFilter(false);
     RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
 
-    renderDrawableAdapter->renderParams_->SetHasBlurFilter(true);
     surfaceParams->isTransparent_ = true;
+    surfaceParams->isRotating_ = true;
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    surfaceParams->isRotating_ = false;
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    surfaceParams->isTransparent_ = false;
+    renderDrawableAdapter->renderParams_->SetHasBlurFilter(true);
     RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
 
     renderDrawableAdapter->renderParams_->SetEffectNodeShouldPaint(false);
     RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
 
     renderDrawableAdapter->renderParams_->SetNodeType(RSRenderNodeType::EFFECT_NODE);
-    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
-
-    surfaceParams->isTransparent_ = false;
     RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
 
     renderDrawableAdapter->renderParams_->SetHasGlobalCorner(true);

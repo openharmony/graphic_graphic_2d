@@ -271,7 +271,8 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
 #ifdef RS_ENABLE_VKQUEUE_PRIORITY
     if (createInfo.pQueueCreateInfos != nullptr) {
         RS_LOGI("%{public}s queue priority[%{public}f], hardware queue priority[%{public}f]",
-            __func__, createInfo.pQueueCreateInfos[0], createInfo.pQueueCreateInfos[1]);
+            __func__, createInfo.pQueueCreateInfos->pQueuePriorities[0],
+            createInfo.pQueueCreateInfos->pQueuePriorities[1]);
     }
 #endif
     if (!SetupDeviceProcAddresses(device_)) {

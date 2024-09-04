@@ -293,7 +293,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         Drawing::Brush brush = filter->GetBrush();
         Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
         canvas->SaveLayer(slr);
-        filter->PostProcess(*canvas);
         return;
     }
 
@@ -430,6 +429,10 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null filter");
         return;
     }
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null canvas");
+        return;
+    }
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect surface null");
@@ -467,11 +470,6 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
     auto clipBounds = Drawing::Rect(0, 0, imageRect.GetWidth(), imageRect.GetHeight());
     auto imageSnapshotBounds = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-    if (paintFilterCanvas != nullptr) {
-        offscreenCanvas.SetHDRPresent(paintFilterCanvas->GetHDRPresent());
-        offscreenCanvas.SetBrightnessRatio(paintFilterCanvas->GetBrightnessRatio());
-    }
     filter->DrawImageRect(offscreenCanvas, imageSnapshot, imageSnapshotBounds, clipBounds);
 
     auto imageCache = offscreenSurface->GetImageSnapshot();
@@ -497,7 +495,6 @@ void RSPropertyDrawableUtils::DrawColorFilter(
     Drawing::Filter filter;
     filter.SetColorFilter(colorFilter);
     brush.SetFilter(filter);
-    brush.SetForceBrightnessDisable(true);
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorFilter surface is null");
@@ -979,15 +976,6 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
         canvas->ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
     }
     Drawing::Brush brush;
-    brush.SetForceBrightnessDisable(true);
-    float cachedBrightnessRatio = effectData->cachedBrightnessRatio_;
-    float newBrightnessRatio = canvas->GetBrightnessRatio();
-    if (auto colorFilter = RSPropertyDrawableUtils::CreateColorFilterForHDR(
-        cachedBrightnessRatio, newBrightnessRatio)) {
-        Drawing::Filter filter;
-        filter.SetColorFilter(colorFilter);
-        brush.SetFilter(filter);
-    }
     canvas->AttachBrush(brush);
     // Draw the cached image in the coordinate system where the effect data is generated. The image content
     // outside the device clip bounds will be automatically clipped.

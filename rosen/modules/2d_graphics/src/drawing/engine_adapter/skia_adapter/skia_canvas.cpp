@@ -48,6 +48,19 @@ SkiaCanvas::SkiaCanvas() : skiaCanvas_(std::make_shared<SkCanvas>())
     skCanvas_ = skiaCanvas_.get();
 }
 
+SkiaCanvas::SkiaCanvas(DrawingType type)
+{
+    switch (type) {
+        case DrawingType::OVER_DRAW:
+        case DrawingType::NO_DRAW:
+            skiaCanvas_ = nullptr;
+            skCanvas_ = nullptr;
+            break;
+        default:
+            SkiaCanvas();
+    }
+}
+
 SkiaCanvas::SkiaCanvas(const std::shared_ptr<SkCanvas>& skCanvas) : skiaCanvas_(skCanvas)
 {
     skCanvas_ = skiaCanvas_.get();

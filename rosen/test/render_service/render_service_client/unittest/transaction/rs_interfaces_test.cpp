@@ -332,4 +332,18 @@ HWTEST_F(RSInterfacesTest, SetTpFeatureConfig001, TestSize.Level1)
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 #endif
+
+/**
+ * @tc.name: GetRefreshInfo001
+ * @tc.desc: test results of GetRefreshInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    GameStateData info;
+    std::string str = instance.GetRefreshInfo(info.pid);
+    EXPECT_TRUE(str == "");
+}
 } // namespace OHOS::Rosen

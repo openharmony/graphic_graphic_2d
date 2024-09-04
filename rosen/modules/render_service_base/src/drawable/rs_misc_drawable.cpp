@@ -286,7 +286,6 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
             stagingPropertyDescription_ = properties.GetFgBrightnessDescription();
         }
-        stagingFgBrightnessParams_ = properties.GetFgBrightnessParams().value();
         stagingBlender_ = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
             properties.GetFgBrightnessParams().value());
         stagingIsDangerous_ = false;
@@ -313,7 +312,6 @@ void RSBeginBlenderDrawable::OnSync()
         return;
     }
     blender_ = stagingBlender_;
-    fgBrightnessParams_ = stagingFgBrightnessParams_;
     blendApplyType_ = stagingBlendApplyType_;
     propertyDescription_ = stagingPropertyDescription_;
     stagingPropertyDescription_.clear();
@@ -330,12 +328,7 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
         }
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
             ptr->propertyDescription_.c_str(), rect->ToString().c_str());
-        std::shared_ptr<Drawing::Blender> blender = ptr->blender_;
-        if (ptr->fgBrightnessParams_.IsValid() && paintFilterCanvas->GetHDRPresent()) {
-            blender = RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(ptr->fgBrightnessParams_,
-            paintFilterCanvas->GetBrightnessRatio());
-        }
-        RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, blender, ptr->blendApplyType_,
+        RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, ptr->blender_, ptr->blendApplyType_,
             ptr->isDangerous_);
     };
 }

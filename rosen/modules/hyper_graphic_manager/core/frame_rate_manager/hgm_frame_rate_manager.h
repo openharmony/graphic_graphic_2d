@@ -103,7 +103,7 @@ struct VoteInfo {
 
     bool operator==(const VoteInfo& other) const
     {
-        return this->max == other.max && this->voterName == other.voterName &&
+        return this->min == other.min && this->max == other.max && this->voterName == other.voterName &&
             this->extInfo == other.extInfo && this->pid == other.pid && this->bundleName == other.bundleName;
     }
 

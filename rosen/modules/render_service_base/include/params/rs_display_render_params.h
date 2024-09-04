@@ -130,6 +130,9 @@ public:
     void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
     GraphicPixelFormat GetNewPixelFormat() const;
 
+    void SetZoomed(bool isZoomed);
+    bool GetZoomed() const;
+
     bool IsSpecialLayerChanged() const
     {
         auto iter = displaySpecailSurfaceChanged_.find(screenId_);
@@ -172,6 +175,7 @@ private:
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
+    bool isZoomed_ = false;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     

@@ -370,6 +370,8 @@ private:
     static void PlaybackStop(const ArgList& args);
     static double PlaybackUpdate(double deltaTime);
 
+    static void RecordSendBinary(const ArgList& args);
+
     static void PlaybackPrepare(const ArgList& args);
     static void PlaybackPrepareFirstFrame(const ArgList& args);
     static void PlaybackPause(const ArgList& args);

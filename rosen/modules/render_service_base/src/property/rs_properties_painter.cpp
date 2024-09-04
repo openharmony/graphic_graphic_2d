@@ -605,7 +605,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         brush.SetFilter(filterForBrush);
         Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
         canvas.SaveLayer(slr);
-        filter->PostProcess(canvas);
         return;
     }
 
@@ -678,7 +677,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
     filter->DrawImageRect(canvas, imageSnapshot, srcRect, dstRect);
-    filter->PostProcess(canvas);
 }
 
 void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
@@ -795,7 +793,6 @@ void RSPropertiesPainter::ProcessAndCacheImage(Drawing::Surface* surface, const 
     auto clipBounds = Drawing::Rect(0, 0, imageRect.GetWidth(), imageRect.GetHeight());
     auto imageSnapshotBounds = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     filter->DrawImageRect(offscreenCanvas, imageSnapshot, imageSnapshotBounds, clipBounds);
-    filter->PostProcess(offscreenCanvas);
 
     auto imageCache = offscreenSurface->GetImageSnapshot();
     if (imageCache == nullptr) {

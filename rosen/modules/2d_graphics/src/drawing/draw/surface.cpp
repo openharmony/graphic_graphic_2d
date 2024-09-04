@@ -111,6 +111,11 @@ std::shared_ptr<Surface> Surface::MakeSurface(int width, int height) const
     return impl_->MakeSurface(width, height);
 }
 
+std::shared_ptr<Surface> Surface::MakeSurface(const ImageInfo& imageinfo) const
+{
+    return impl_->MakeSurface(imageinfo);
+}
+
 ImageInfo Surface::GetImageInfo()
 {
     std::shared_ptr<Canvas> canvas = GetCanvas();

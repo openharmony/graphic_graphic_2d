@@ -1108,6 +1108,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform005, TestSize.Lev
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH * 1.5);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT * 1.5);
     surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    surfaceNode->GetRSSurfaceHandler()->GetBuffer()->SetSurfaceBufferTransform(
+        GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
     auto srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
     ASSERT_EQ(srcRect.top_, DEFAULT_CANVAS_WIDTH * 0.5);
 }
@@ -1234,6 +1236,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown005, TestSize.Level2)
     surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetScalingMode(layer->GetBuffer()->GetSeqNum(), scalingMode);
 
     surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    surfaceNode->GetRSSurfaceHandler()->GetBuffer()->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
     composerAdapter_->LayerScaleDown(layer, *surfaceNode);
     ASSERT_FALSE(layer->GetDirtyRegions()[0].w == DEFAULT_CANVAS_WIDTH);
 }

@@ -90,7 +90,8 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
     SharedTextureContext* sharedContext = new SharedTextureContext(image);
-    if (!sharedTexture->BuildFromTexture(*canvas.GetGPUContext(), sharedBackendTexture.GetTextureInfo(),
+    auto context = canvas.GetGPUContext();
+    if (!context || !sharedTexture->BuildFromTexture(*context, sharedBackendTexture.GetTextureInfo(),
         origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture is nullptr");
         return false;
@@ -450,7 +451,6 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
 
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 {
-    ClearResource();
     dirtyTypes_.set(static_cast<int>(modifierType), true);
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     for (auto& [type, list]: GetDrawCmdModifiers()) {
@@ -469,16 +469,17 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
             if (cmd == nullptr) {
                 continue;
             }
-            drawCmdLists_[type].emplace_back(cmd);
-            if (cmd->GetOpItemSize() > 0) {
-                SetNeedProcess(true);
+            //only content_style allowed multi-drawcmdlist, others modifier same as canvas_node
+            if (type != RSModifierType::CONTENT_STYLE) {
+                drawCmdLists_[type].clear();
             }
+            drawCmdLists_[type].emplace_back(cmd);
+            SetNeedProcess(true);
         }
 
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
-        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() ||
-            ((renderDrawable_ && !renderDrawable_->IsDrawCmdListsVisited()))) &&
+        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&
             drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
             drawCmdLists_[type].pop_front();
         }

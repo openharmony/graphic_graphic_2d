@@ -15,7 +15,7 @@ group("test") {
   testonly = true
 
   deps = [
-    "systemtest:systemtest",
+    "systemtest:unittest",
     "unittest:unittest",
   ]
 }

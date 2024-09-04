@@ -66,6 +66,9 @@ OH_Drawing_Brush* OH_Drawing_BrushCopy(OH_Drawing_Brush* cBrush)
 
 void OH_Drawing_BrushDestroy(OH_Drawing_Brush* cBrush)
 {
+    if (!cBrush) {
+        return;
+    }
     delete CastToBrush(cBrush);
 }
 

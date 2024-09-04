@@ -53,6 +53,7 @@ uint32_t RSComposerAdapterTest::screenId_ = 0;
 
 void RSComposerAdapterTest::SetUpTestCase()
 {
+    RSTestUtil::InitRenderNodeGC();
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     rsScreen_ = std::make_unique<impl::RSScreen>(screenId_, true, hdiOutput_, nullptr);
     screenManager_ = CreateOrGetScreenManager();

@@ -48,6 +48,7 @@ private:
 class DRAWING_API Canvas : public CoreCanvas {
 public:
     Canvas() {}
+    Canvas(DrawingType type) : CoreCanvas(type) {}
     Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}
 
     virtual Canvas* GetRecordingCanvas() const;
@@ -94,7 +95,7 @@ protected:
 
 class DRAWING_API OverDrawCanvas : public Canvas {
 public:
-    OverDrawCanvas(std::shared_ptr<Drawing::Canvas> canvas)
+    OverDrawCanvas(std::shared_ptr<Drawing::Canvas> canvas) : Canvas(DrawingType::OVER_DRAW)
     {
         BuildOverDraw(canvas);
     }
@@ -107,7 +108,7 @@ public:
 
 class DRAWING_API NoDrawCanvas : public Canvas {
 public:
-    NoDrawCanvas(int32_t width, int32_t height)
+    NoDrawCanvas(int32_t width, int32_t height) : Canvas(DrawingType::NO_DRAW)
     {
         BuildNoDraw(width, height);
     }

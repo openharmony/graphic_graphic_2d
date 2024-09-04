@@ -285,6 +285,7 @@ public:
 #endif
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+    static bool CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceNode);
 
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;

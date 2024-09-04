@@ -36,6 +36,7 @@ const uint32_t SET_RIGHT = 10;
 const uint32_t SET_TOP_BOTTOM = 80;
 const uint32_t SCALAR_XORY = 255;
 const uint32_t SET_COLOR = 0xFF000000;
+const float_t SET_BRIGHTNESS_RATIO = 0.5f;
 class RSPaintFilterCanvasTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -1071,7 +1072,6 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest001, TestSize.Level1)
     paintFilterCanvas_->SetBlendMode(1);
     EXPECT_TRUE(paintFilterCanvas_->AttachPaint(paint).impl_);
 
-    paintFilterCanvas_->hasHdrPresent_ = true;
     EXPECT_TRUE(paintFilterCanvas_->AttachPaint(paint).impl_);
 
     paintFilterCanvas_->alphaStack_.pop();
@@ -1350,6 +1350,18 @@ HWTEST_F(RSPaintFilterCanvasTest, SaveOrRestoreTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BrightnessRatioTest
+ * @tc.desc: SetBrightnessRatio and GetBrightnessRatio Test
+ * @tc.type:FUNC
+ * @tc.require:issueIAM268
+ */
+HWTEST_F(RSPaintFilterCanvasTest, BrightnessRatioTest, TestSize.Level1)
+{
+    paintFilterCanvas_->SetBrightnessRatio(SET_BRIGHTNESS_RATIO);
+    EXPECT_EQ(paintFilterCanvas_->GetBrightnessRatio(), SET_BRIGHTNESS_RATIO);
+}
+
+/**
  * @tc.name: GetLocalClipBoundsTest
  * @tc.desc: GetLocalClipBounds Test
  * @tc.type:FUNC
@@ -1371,37 +1383,6 @@ HWTEST_F(RSPaintFilterCanvasTest, GetLocalClipBoundsTest, TestSize.Level1)
     Drawing::RectI rectI = { 0, SET_RIGHT, SET_TOP_BOTTOM, SET_TOP_BOTTOM };
     result = paintFilterCanvas_->GetLocalClipBounds(canvas, &rectI);
     EXPECT_TRUE(result.has_value());
-}
-
-/**
- * @tc.name: PaintFilter001
- * @tc.desc: Test has not filter before PaintFilter
- * @tc.type:FUNC
- * @tc.require: issueI9NLRF
- */
-HWTEST_F(RSPaintFilterCanvasTest, PaintFilter001, TestSize.Level1)
-{
-    Drawing::Paint paint;
-
-    paintFilterCanvas_->PaintFilter(paint);
-    EXPECT_TRUE(paint.HasFilter());
-}
-
-/**
- * @tc.name: PaintFilter002
- * @tc.desc: Test has filter before PaintFilter
- * @tc.type:FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSPaintFilterCanvasTest, PaintFilter002, TestSize.Level1)
-{
-    Drawing::Canvas canvas;
-    Drawing::Paint paint;
-    paint.filter_.colorFilter_ = std::make_shared<Drawing::ColorFilter>();
-    EXPECT_NE(paint.filter_.colorFilter_, nullptr);
-    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    EXPECT_NE(paintFilterCanvas, nullptr);
-    paintFilterCanvas->PaintFilter(paint);
 }
 
 /**
@@ -1498,7 +1479,6 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPenTest004, TestSize.Level1)
     Drawing::Pen pen;
     Drawing::Canvas canvasTest;
     paintFilterCanvas->canvas_ = &canvasTest;
-    paintFilterCanvas->hasHdrPresent_ = true;
     paintFilterCanvas->isCapture_ = false;
     paintFilterCanvas->alphaStack_.push(1.0f);
     pen.brush_.color_ = 0x00000001;
@@ -1527,12 +1507,9 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachBrushTest005, TestSize.Level1)
     Drawing::Brush brush;
     Drawing::Canvas canvasTest;
     paintFilterCanvas->canvas_ = &canvasTest;
-    paintFilterCanvas->hasHdrPresent_ = true;
     paintFilterCanvas->isCapture_ = false;
     paintFilterCanvas->alphaStack_.push(1.0f);
     brush.color_ = 0x00000001;
-    brush.forceBrightnessDisable_ = false;
-    brush.isHdr_ = false;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
     std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
     RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };
@@ -1559,11 +1536,9 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest006, TestSize.Level1)
     Drawing::Paint paint;
     Drawing::Canvas canvasTest;
     paintFilterCanvas->canvas_ = &canvasTest;
-    paintFilterCanvas->hasHdrPresent_ = true;
     paintFilterCanvas->isCapture_ = false;
     paintFilterCanvas->alphaStack_.push(1.0f);
     paint.color_ = 0x00000001;
-    paint.hdrImage_ = false;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
     std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
     RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };

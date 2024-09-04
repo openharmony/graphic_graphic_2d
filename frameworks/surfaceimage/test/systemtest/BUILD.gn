@@ -16,14 +16,14 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_2d/surfaceimage"
 
-group("systemtest") {
+group("unittest") {
   testonly = true
 
-  deps = [ ":native_image_system_test" ]
+  deps = [ ":native_image_system_test_st" ]
 }
 
 ## SystemTest native_image_system_test {{{
-ohos_systemtest("native_image_system_test") {
+ohos_unittest("native_image_system_test_st") {
   module_out_path = module_out_path
   sources = []
   if (surface_enable_gpu) {

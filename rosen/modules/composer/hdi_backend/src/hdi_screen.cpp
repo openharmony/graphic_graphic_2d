@@ -19,6 +19,7 @@
 #include "hdi_log.h"
 #include "vsync_sampler.h"
 #include <hdf_base.h>
+#include <mutex>
 
 #define CHECK_DEVICE_NULL(sptrDevice)                                \
     do {                                                             \
@@ -122,23 +123,30 @@ int32_t HdiScreen::GetScreenSupportedModes(std::vector<GraphicDisplayModeInfo> &
     return device_->GetScreenSupportedModes(screenId_, modes);
 }
 
-int32_t HdiScreen::GetScreenMode(uint32_t &modeId) const
+int32_t HdiScreen::GetScreenMode(uint32_t &modeId)
 {
+    std::unique_lock<std::mutex> locker(mutex_);
     CHECK_DEVICE_NULL(device_);
-    return device_->GetScreenMode(screenId_, modeId);
-}
-
-uint32_t HdiScreen::GetScreenModeId() const
-{
-    return modeId_;
+    if (modeId_ != UINT32_MAX) {
+        modeId = modeId_;
+        return HDF_SUCCESS;
+    }
+    int32_t ret = device_->GetScreenMode(screenId_, modeId);
+    if (ret == HDF_SUCCESS) {
+        modeId_ = modeId;
+    }
+    return ret;
 }
 
 int32_t HdiScreen::SetScreenMode(uint32_t modeId)
 {
+    std::unique_lock<std::mutex> locker(mutex_);
     CHECK_DEVICE_NULL(device_);
-    auto ret = device_->SetScreenMode(screenId_, modeId);
+    int32_t ret = device_->SetScreenMode(screenId_, modeId);
     if (ret == HDF_SUCCESS) {
         modeId_ = modeId;
+    } else {
+        modeId_ = UINT32_MAX;
     }
     return ret;
 }

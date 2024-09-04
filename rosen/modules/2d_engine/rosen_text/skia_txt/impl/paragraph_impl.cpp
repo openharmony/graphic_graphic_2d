@@ -122,6 +122,9 @@ bool ParagraphImpl::DidExceedMaxLines()
 size_t ParagraphImpl::GetLineCount() const
 {
     RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr || paragraph_->GetMaxLines() == 0) {
+        return 0;
+    }
     return paragraph_->lineNumber();
 }
 
@@ -266,6 +269,13 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     } else {
         return Range<size_t>(0, 0);
     }
+}
+
+Range<size_t> ParagraphImpl::GetEllipsisTextRange()
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
+    return Range<size_t>(range.start, range.end);
 }
 
 std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()

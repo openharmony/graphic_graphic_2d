@@ -56,6 +56,7 @@ class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
+constexpr float DEFAULT_BRIGHTNESS_RATIO = 1.0f;
 #endif
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
@@ -84,7 +85,11 @@ struct BufferDrawParam {
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
     uint32_t threadIndex = UNI_MAIN_THREAD_INDEX; // use to decide eglimage unmap thread index
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float sdrNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float tmoNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float displayNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
+    bool isHdrRedraw = false;
 #endif
 };
 
@@ -119,6 +124,8 @@ public:
         GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
         GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 
+    static GraphicTransformType GetSurfaceBufferTransformType(
+        const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer);
     static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bounds,
         const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
     static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);

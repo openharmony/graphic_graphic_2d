@@ -59,6 +59,8 @@ public:
 
     static bool PopCommand(std::vector<std::string>& args);
 
+    static void SetBlockBinary(bool blockFlag);
+
 private:
     static void PushCommand(const std::vector<std::string>& args);
     static void ResetCommandQueue();
@@ -72,8 +74,9 @@ private:
     static void Shutdown(Socket*& socket);
 
 private:
-    static bool isRunning_;
+    static std::atomic<bool> isRunning_;
     static std::atomic<bool> forceShutdown_;
+    static std::atomic<bool> blockBinary_;
 
     static std::mutex incomingMutex_;
     static std::queue<std::vector<std::string>> incoming_;

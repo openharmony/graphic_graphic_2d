@@ -12,21 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ge_hash.h"
 
-#include <cstring>
+#ifndef TEST_FUZZTEST_PIXMAP_FUZZER_H
+#define TEST_FUZZTEST_PIXMAP_FUZZER_H
 
-#include "ge_hash_refer.h"
+#define FUZZ_PROJECT_NAME "pixmap_fuzzer.h"
 
-namespace OHOS {
-namespace GraphicsEffectEngine {
-uint32_t Hash32Next(uint32_t hash, const void* data, size_t bytes, uint32_t seed)
-{
-    return static_cast<uint32_t>(GEHash(&hash, sizeof(hash), GEHash(data, bytes, seed, SECRET), SECRET));
-}
-uint64_t Hash64Next(uint64_t hash, const void* data, size_t bytes, uint64_t seed)
-{
-    return GEHash(&hash, sizeof(hash), GEHash(data, bytes, seed, SECRET), SECRET);
-}
-} // namespace GraphicsEffectEngine
-} // namespace OHOS
+#endif // TEST_FUZZTEST_PIXMAP_FUZZER_H

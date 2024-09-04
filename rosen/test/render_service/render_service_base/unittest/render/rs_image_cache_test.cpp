@@ -42,7 +42,8 @@ void RSImageCacheTest::TearDown() {}
  */
 HWTEST_F(RSImageCacheTest, InstanceTest, TestSize.Level1)
 {
-    EXPECT_TRUE(RSImageCache::Instance().pixelMapCache_.empty());
+    RSImageCache& imageCache = RSImageCache::Instance();
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
 }
 
 /**
@@ -53,10 +54,11 @@ HWTEST_F(RSImageCacheTest, InstanceTest, TestSize.Level1)
  */
 HWTEST_F(RSImageCacheTest, CacheDrawingImageTest, TestSize.Level1)
 {
+    RSImageCache& imageCache = RSImageCache::Instance();
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheDrawingImage(1, img);
-    EXPECT_FALSE(RSImageCache::Instance().drawingImageCache_.empty());
-    RSImageCache::Instance().drawingImageCache_.clear();
+    imageCache.CacheDrawingImage(1, img);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.drawingImageCache_.clear();
 }
 
 /**
@@ -67,11 +69,12 @@ HWTEST_F(RSImageCacheTest, CacheDrawingImageTest, TestSize.Level1)
  */
 HWTEST_F(RSImageCacheTest, GetDrawingImageCacheTest, TestSize.Level1)
 {
-    EXPECT_EQ(RSImageCache::Instance().GetDrawingImageCache(0), nullptr);
+    RSImageCache& imageCache = RSImageCache::Instance();
+    EXPECT_EQ(imageCache.GetDrawingImageCache(0), nullptr);
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheDrawingImage(1, img);
-    EXPECT_EQ(RSImageCache::Instance().GetDrawingImageCache(0), nullptr);
-    RSImageCache::Instance().drawingImageCache_.clear();
+    imageCache.CacheDrawingImage(1, img);
+    EXPECT_EQ(imageCache.GetDrawingImageCache(0), nullptr);
+    imageCache.drawingImageCache_.clear();
 }
 
 /**
@@ -82,11 +85,12 @@ HWTEST_F(RSImageCacheTest, GetDrawingImageCacheTest, TestSize.Level1)
  */
 HWTEST_F(RSImageCacheTest, IncreaseDrawingImageCacheRefCountTest, TestSize.Level1)
 {
+    RSImageCache& imageCache = RSImageCache::Instance();
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheDrawingImage(1, img);
-    RSImageCache::Instance().IncreaseDrawingImageCacheRefCount(0);
-    EXPECT_FALSE(RSImageCache::Instance().drawingImageCache_.empty());
-    RSImageCache::Instance().drawingImageCache_.clear();
+    imageCache.CacheDrawingImage(1, img);
+    imageCache.IncreaseDrawingImageCacheRefCount(0);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.drawingImageCache_.clear();
 }
 
 /**
@@ -97,11 +101,12 @@ HWTEST_F(RSImageCacheTest, IncreaseDrawingImageCacheRefCountTest, TestSize.Level
  */
 HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheTest, TestSize.Level1)
 {
+    RSImageCache& imageCache = RSImageCache::Instance();
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheDrawingImage(1, img);
-    RSImageCache::Instance().ReleaseDrawingImageCache(0);
-    EXPECT_FALSE(RSImageCache::Instance().drawingImageCache_.empty());
-    RSImageCache::Instance().drawingImageCache_.clear();
+    imageCache.CacheDrawingImage(1, img);
+    imageCache.ReleaseDrawingImageCache(0);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.drawingImageCache_.clear();
 }
 
 /**
@@ -112,11 +117,12 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheTest, TestSize.Level1)
  */
 HWTEST_F(RSImageCacheTest, GetPixelMapCacheTest, TestSize.Level1)
 {
-    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(0), nullptr);
+    RSImageCache& imageCache = RSImageCache::Instance();
+    EXPECT_EQ(imageCache.GetPixelMapCache(0), nullptr);
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheDrawingImage(1, img);
-    EXPECT_EQ(RSImageCache::Instance().GetPixelMapCache(0), nullptr);
-    RSImageCache::Instance().drawingImageCache_.clear();
+    imageCache.CacheDrawingImage(1, img);
+    EXPECT_EQ(imageCache.GetPixelMapCache(0), nullptr);
+    imageCache.drawingImageCache_.clear();
 }
 
 /**
@@ -127,11 +133,12 @@ HWTEST_F(RSImageCacheTest, GetPixelMapCacheTest, TestSize.Level1)
  */
 HWTEST_F(RSImageCacheTest, IncreasePixelMapCacheRefCountTest, TestSize.Level1)
 {
+    RSImageCache& imageCache = RSImageCache::Instance();
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheDrawingImage(1, img);
-    RSImageCache::Instance().IncreasePixelMapCacheRefCount(0);
-    EXPECT_FALSE(RSImageCache::Instance().drawingImageCache_.empty());
-    RSImageCache::Instance().drawingImageCache_.clear();
+    imageCache.CacheDrawingImage(1, img);
+    imageCache.IncreasePixelMapCacheRefCount(0);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.drawingImageCache_.clear();
 }
 
 /**
@@ -142,13 +149,14 @@ HWTEST_F(RSImageCacheTest, IncreasePixelMapCacheRefCountTest, TestSize.Level1)
  */
 HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest, TestSize.Level1)
 {
-    RSImageCache::Instance().ReleasePixelMapCache(0);
+    RSImageCache& imageCache = RSImageCache::Instance();
+    imageCache.ReleasePixelMapCache(0);
     EXPECT_TRUE(true);
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheDrawingImage(1, img);
-    RSImageCache::Instance().ReleasePixelMapCache(0);
-    EXPECT_FALSE(RSImageCache::Instance().drawingImageCache_.empty());
-    RSImageCache::Instance().drawingImageCache_.clear();
+    imageCache.CacheDrawingImage(1, img);
+    imageCache.ReleasePixelMapCache(0);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.drawingImageCache_.clear();
 }
 
 /**
@@ -159,10 +167,11 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest, TestSize.Level1)
  */
 HWTEST_F(RSImageCacheTest, CacheRenderDrawingImageByPixelMapIdTest, TestSize.Level1)
 {
+    RSImageCache& imageCache = RSImageCache::Instance();
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(1, img, 0);
-    EXPECT_FALSE(RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.empty());
-    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
+    imageCache.CacheRenderDrawingImageByPixelMapId(1, img, 0);
+    EXPECT_FALSE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
+    imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
 /**
@@ -173,11 +182,12 @@ HWTEST_F(RSImageCacheTest, CacheRenderDrawingImageByPixelMapIdTest, TestSize.Lev
  */
 HWTEST_F(RSImageCacheTest, GetRenderDrawingImageCacheByPixelMapIdTest, TestSize.Level1)
 {
-    EXPECT_EQ(RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(0, 0), nullptr);
+    RSImageCache& imageCache = RSImageCache::Instance();
+    EXPECT_EQ(imageCache.GetRenderDrawingImageCacheByPixelMapId(0, 0), nullptr);
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(1, img, 0);
-    EXPECT_EQ(RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(0, 0), nullptr);
-    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
+    imageCache.CacheRenderDrawingImageByPixelMapId(1, img, 0);
+    EXPECT_EQ(imageCache.GetRenderDrawingImageCacheByPixelMapId(0, 0), nullptr);
+    imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
 /**
@@ -188,10 +198,29 @@ HWTEST_F(RSImageCacheTest, GetRenderDrawingImageCacheByPixelMapIdTest, TestSize.
  */
 HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest, TestSize.Level1)
 {
+    RSImageCache& imageCache = RSImageCache::Instance();
     auto img = std::make_shared<Drawing::Image>();
-    RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(1, img, 0);
-    RSImageCache::Instance().ReleaseDrawingImageCacheByPixelMapId(0);
-    EXPECT_FALSE(RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.empty());
-    RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
+    imageCache.CacheRenderDrawingImageByPixelMapId(1, img, 0);
+    imageCache.ReleaseDrawingImageCacheByPixelMapId(0);
+    EXPECT_FALSE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
+    imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
+}
+
+/**
+ * @tc.name: ReleaseUniqueIdListTest
+ * @tc.desc: Verify function ReleaseUniqueIdList
+ * @tc.type:FUNC
+ * @tc.require: issueI9I9D1
+ */
+HWTEST_F(RSImageCacheTest, ReleaseUniqueIdListTest, TestSize.Level1)
+{
+    for (uint64_t id = 0; id < 10; id++)
+    {
+        RSImageCache::Instance().CollectUniqueId(id);
+    }
+
+    RSImageCache::Instance().ReleaseUniqueIdList();
+    EXPECT_TRUE(RSImageCache::Instance().uniqueIdList_.empty());
+    RSImageCache::Instance().uniqueIdList_.clear();
 }
 } // namespace OHOS::Rosen

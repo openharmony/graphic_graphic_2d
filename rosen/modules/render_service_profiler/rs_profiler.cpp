@@ -1451,6 +1451,11 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
         return;
     }
 
+    if (args.String(0) == "VSYNC") {
+        g_playbackFile.CacheVsyncId2Time(0);
+        g_playbackPauseTime = g_playbackFile.ConvertVsyncId2Time(args.Int64(1));
+    }
+
     const auto& fileAnimeStartTimes = g_playbackFile.GetAnimeStartTimes();
     for (const auto& item : fileAnimeStartTimes) {
         if (animeMap.count(item.first)) {
@@ -1471,6 +1476,17 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     g_playbackWaitFrames = defaultWaitFrames;
     Respond("awake_frame " + std::to_string(g_playbackWaitFrames));
     AwakeRenderServiceThread();
+}
+
+void RSProfiler::RecordSendBinary(const ArgList& args)
+{
+    bool flag = args.Int8(0);
+    Network::SetBlockBinary(!flag);
+    if (flag) {
+        Respond("Result: data will be sent to client during recording");
+    } else {
+        Respond("Result: data will NOT be sent to client during recording");
+    }
 }
 
 void RSProfiler::PlaybackStart(const ArgList& args)
@@ -1616,7 +1632,14 @@ void RSProfiler::PlaybackPauseAt(const ArgList& args)
         return;
     }
 
-    const double pauseTime = args.Fp64();
+    double pauseTime;
+    if (args.String(0) == "VSYNC") {
+        int64_t vsyncId = args.Int64(1);
+        pauseTime = g_playbackFile.ConvertVsyncId2Time(vsyncId);
+    } else {
+        pauseTime = args.Fp64();
+    }
+
     const double recordPlayTime = Now() - g_playbackStartTime;
     if (recordPlayTime > pauseTime) {
         return;
@@ -1673,6 +1696,7 @@ RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
         { "rsrecord_pause_at", PlaybackPauseAt },
         { "rsrecord_pause_resume", PlaybackResume },
         { "rsrecord_pause_clear", PlaybackPauseClear },
+        { "rsrecord_sendbinary", RecordSendBinary },
         { "rssurface_pid", DumpNodeSurface },
         { "rscon_print", DumpConnections },
         { "save_rdc", SaveRdc },

@@ -25,6 +25,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr float GAMMA2_2 = 2.2f;
+}
 void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
     BufferDrawParam& params, PreProcessFunc preProcess, PostProcessFunc postProcess)
 {
@@ -98,7 +101,17 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
                 RS_LOGD("RSRenderEngine::DrawLayers SrcRect[%{public}d %{public}d %{public}d %{public}d]",
                     iter->x, iter->y, iter->w, iter->h);
             }
-            DrawSurfaceNode(canvas, node, forceCPU);
+            auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+            params.tmoNits = layer->GetDisplayNit();
+            params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+            if (!node.GetRSSurfaceHandler() && !CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer())) {
+                params.brightnessRatio = layer->GetBrightnessRatio();
+            } else {
+                params.isHdrRedraw = true;
+            }
+#endif
+            DrawSurfaceNode(canvas, node, params);
         } else {
             // Probably never reach this branch.
             RS_LOGE("RSRenderEngine::DrawLayers: unexpected node type!");
@@ -161,11 +174,9 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
         Drawing::Rect(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight()));
 }
 
-void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, bool forceCPU)
+void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params)
 {
     // prepare BufferDrawParam
-    auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU); // in display's coordinate.
-
     DrawSurfaceNodeWithParams(canvas, node, params, nullptr, nullptr);
 }
 

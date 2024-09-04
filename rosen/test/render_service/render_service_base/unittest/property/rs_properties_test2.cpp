@@ -913,5 +913,35 @@ HWTEST_F(PropertiesTest, CreateFlyOutShaderFilterTest, TestSize.Level1)
     EXPECT_FALSE(properties.GetForegroundFilter() == nullptr);
 }
 
+/**
+ * @tc.name: GetMaterialColorFilterTest001
+ * @tc.desc: test results of GetMaterialColorFilter
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(PropertiesTest, GetMaterialColorFilterTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    float sat = 1.0;
+    float brightness = 1.1;
+    Color maskColor = RSColor(255, 255, 255, 140);
+    EXPECT_FALSE(properties.GetMaterialColorFilter(sat, brightness, maskColor) == nullptr);
+}
+
+/**
+ * @tc.name: GetMaterialColorFilterTest002
+ * @tc.desc: test results of GetMaterialColorFilter
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(PropertiesTest, GetMaterialColorFilterTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    float sat = 1.0;
+    float brightness = 1.1;
+    Color maskColor = RSColor(255, 255, 255, 0);
+    EXPECT_FALSE(properties.GetMaterialColorFilter(sat, brightness, maskColor) == nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

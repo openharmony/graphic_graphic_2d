@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include "common/rs_common_def.h"
+#include "platform/common/rs_log.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
@@ -42,6 +43,8 @@
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceRenderNode;
+typedef void (*ReleaseDmaBufferTask)(uint64_t);
+
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode {
 public:
     struct ScreenRenderParams
@@ -73,12 +76,24 @@ public:
 
     void SetScreenId(uint64_t screenId)
     {
+        if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
+            releaseScreenDmaBufferTask_(screenId_);
+        }
         screenId_ = screenId;
     }
 
     uint64_t GetScreenId() const
     {
         return screenId_;
+    }
+
+    inline void SetReleaseTask(ReleaseDmaBufferTask callback)
+    {
+        if (!releaseScreenDmaBufferTask_ && callback) {
+            releaseScreenDmaBufferTask_ = callback;
+        } else {
+            RS_LOGE("RreleaseScreenDmaBufferTask_ register failed!");
+        }
     }
 
     void SetRogSize(uint32_t rogWidth, uint32_t rogHeight)
@@ -495,6 +510,7 @@ private:
 
     bool curZoomState_ = false;
     bool preZoomState_ = false;
+    ReleaseDmaBufferTask releaseScreenDmaBufferTask_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

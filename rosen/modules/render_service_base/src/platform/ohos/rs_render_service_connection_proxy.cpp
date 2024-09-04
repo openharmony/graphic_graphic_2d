@@ -826,7 +826,7 @@ void RSRenderServiceConnectionProxy::UnregisterFrameRateLinker(FrameRateLinkerId
         return;
     }
 
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteUint64(id);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);

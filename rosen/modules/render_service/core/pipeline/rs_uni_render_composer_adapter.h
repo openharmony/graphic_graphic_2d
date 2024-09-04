@@ -54,7 +54,8 @@ private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static RectI SrcRectRotateTransform(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
 
-    ComposeInfo BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    ComposeInfo BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+        const std::vector<RectI>& dirtyRegion);
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;

@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RCD_RENDER_RS_RCD_DISPLAY_H
 
 #pragma once
-#include <atomic>
 #include <string>
 #include <map>
 #include <thread>
@@ -85,19 +84,11 @@ public:
 
     void RunHardwareTask(const std::function<void()>& task)
     {
-        if (isRcdRunning.load()) {
-            RS_LOGD("[%{public}s] rcd render is already running \n", __func__);
-            return;
-        }
-        isRcdRunning.store(true);
-        std::lock_guard<std::mutex> lock(resourceMut_);
         if (!supportHardware_) {
-            isRcdRunning.store(false);
             return;
         }
         UpdateParameter(updateFlag_);
         task(); // do task
-        isRcdRunning.store(false);
     }
     
     rs_rcd::RoundCornerHardware GetHardwareInfo() const
@@ -119,7 +110,6 @@ public:
     }
 
 private:
-    std::atomic<bool> isRcdRunning = false;
     // load config
     rs_rcd::LCDModel* lcdModel_ = nullptr;
     rs_rcd::ROGSetting* rog_ = nullptr;

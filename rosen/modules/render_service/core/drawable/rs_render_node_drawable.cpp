@@ -17,6 +17,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "luminance/rs_luminance_control.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_thread.h"
@@ -381,7 +382,8 @@ std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t t
     return threadId == cacheThreadId_ ? cachedSurface_ : nullptr;
 }
 
-void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId)
+void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize,
+    pid_t threadId, bool isHdrOn)
 {
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
@@ -417,10 +419,14 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
         if (!cachedBackendTexture_.IsValid() || !vkTextureInfo) {
             return;
         }
+        auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+        if (isHdrOn) {
+            colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+        }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
             RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::BOTTOM_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
+            Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, nullptr,
             NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_);
     }
 #endif
@@ -630,10 +636,11 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 {
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
+    bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(curCanvas->GetScreenId());
     auto cacheSurface = GetCachedSurface(threadId);
     if (cacheSurface == nullptr) {
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f]", params.GetCacheSize().x_, params.GetCacheSize().y_);
-        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId);
+        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isHdrOn);
         cacheSurface = GetCachedSurface(threadId);
         if (cacheSurface == nullptr) {
             return;

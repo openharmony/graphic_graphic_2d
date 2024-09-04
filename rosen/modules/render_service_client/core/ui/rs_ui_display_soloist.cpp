@@ -98,7 +98,7 @@ void RSDisplaySoloist::Init()
     if (useExclusiveThread_ && (!subReceiver_ || !hasInitVsyncReceiver_)) {
         if (!subVsyncHandler_) {
             subVsyncHandler_ = std::make_shared<AppExecFwk::EventHandler>(
-                AppExecFwk::EventRunner::Create(std::to_string(instanceId_)+"_SubDisplaySoloist"));
+                AppExecFwk::EventRunner::Create("OS_" + std::to_string(instanceId_)+"_SubDisplaySoloist"));
         }
         auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
         frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
@@ -372,7 +372,7 @@ bool RSDisplaySoloistManager::InitVsyncReceiver()
 
     if (!vsyncHandler_) {
         vsyncHandler_ = std::make_shared<AppExecFwk::EventHandler>(
-            AppExecFwk::EventRunner::Create("MainDisplaySoloist"));
+            AppExecFwk::EventRunner::Create("OS_MainDisplaySoloist"));
     }
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();

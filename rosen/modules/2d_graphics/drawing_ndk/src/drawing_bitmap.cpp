@@ -36,6 +36,9 @@ OH_Drawing_Bitmap* OH_Drawing_BitmapCreate()
 
 void OH_Drawing_BitmapDestroy(OH_Drawing_Bitmap* cBitmap)
 {
+    if (!cBitmap) {
+        return;
+    }
     delete CastToBitmap(cBitmap);
 }
 

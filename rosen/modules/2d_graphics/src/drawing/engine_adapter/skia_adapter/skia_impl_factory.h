@@ -55,6 +55,7 @@ namespace Drawing {
 class SkiaImplFactory {
 public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvas();
+    static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvas(DrawingType type);
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvas(void* rawCanvas);
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvas(int32_t width, int32_t height);
     static std::unique_ptr<DataImpl> CreateData();

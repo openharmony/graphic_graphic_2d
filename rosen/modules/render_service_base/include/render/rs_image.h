@@ -135,7 +135,6 @@ public:
 private:
     bool HasRadius() const;
     void ApplyCanvasClip(Drawing::Canvas& canvas);
-    void ApplyHdrColorFilter(Drawing::Canvas& canvas, Drawing::Brush& brush);
     void UploadGpu(Drawing::Canvas& canvas);
     void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
     void CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY);

@@ -58,6 +58,7 @@
 #endif
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
+constexpr float GAMMA2_2 = 2.2f;
 }
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
@@ -248,7 +249,6 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
-    paint.SetForceBrightnessDisable(true);
     canvasBackup_->AttachBrush(paint);
     canvasBackup_->DrawImage(*image, 0, 0, sampling);
     canvasBackup_->DetachBrush();
@@ -300,7 +300,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
-    RS_LOGI("RSSurfaceRenderNodeDrawable ondraw name:%{public}s nodeId:[%" PRIu64 "]", name_.c_str(),
+    RS_LOGD("RSSurfaceRenderNodeDrawable ondraw name:%{public}s nodeId:[%{public}" PRIu64 "]", name_.c_str(),
         surfaceParams->GetId());
     
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -634,6 +634,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
 
     bool hwcEnable = surfaceParams.GetHardwareEnabled();
     surfaceParams.SetHardwareEnabled(false);
+    RS_LOGD("HDR hasHdrPresent_:%{public}d", canvas.IsCapture());
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer() ||
         hasHdrPresent_) && DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
@@ -657,45 +658,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-void RSSurfaceRenderNodeDrawable::DealWithHdr(const RSSurfaceRenderParams& surfaceParams)
-{
-    auto ancestorDrawable = surfaceParams.GetAncestorDisplayDrawable().lock();
-    if (!ancestorDrawable) {
-        RS_LOGE("ancestorDisplayDrawable return nullptr");
-        return;
-    }
-    auto ancestorDisplayDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(ancestorDrawable);
-    auto& ancestorParam = ancestorDrawable->GetRenderParams();
-    if (!ancestorParam) {
-        RS_LOGE("ancestorParam return nullptr");
-    }
-    auto screenId = ancestorParam->GetScreenId();
-    if (!RSLuminanceControl::Get().IsHdrOn(screenId)) {
-        return;
-    }
-    const sptr<SurfaceBuffer> buffer = surfaceParams.GetBuffer();
-    if (buffer == nullptr) {
-        return;
-    }
-    bool isHdrBuffer = false;
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo colorSpaceInfo;
-    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) == GSERROR_OK) {
-        isHdrBuffer = colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
-            colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG;
-    }
-
-    SetDisplayNit(RSLuminanceControl::Get().GetHdrDisplayNits(screenId));
-    SetBrightnessRatio(isHdrBuffer ? 1.0f : RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
-}
-#endif
-
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    DealWithHdr(surfaceParams);
-#endif
     if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
@@ -713,7 +678,9 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    params.screenBrightnessNits = GetDisplayNit();
+    params.sdrNits = surfaceParams.GetSdrNit();
+    params.tmoNits = surfaceParams.GetDisplayNit();
+    params.displayNits = params.tmoNits / std::pow(surfaceParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     if (IsHardwareEnabledTopSurface() && RSUniRenderThread::Instance().GetRSRenderThreadParams()->HasMirrorDisplay()) {

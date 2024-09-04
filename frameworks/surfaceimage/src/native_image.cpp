@@ -197,7 +197,7 @@ int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
 }
 
 
-int32_t OH_ConsumerSuface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage)
+int32_t OH_ConsumerSurface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage)
 {
     if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
@@ -206,7 +206,7 @@ int32_t OH_ConsumerSuface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage)
     return image->consumer->SetDefaultUsage(usage);
 }
 
-int32_t OH_ConsumerSuface_SetDefaultSize(OH_NativeImage* image, int32_t width, int32_t height)
+int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, int32_t height)
 {
     if (image == nullptr || image->consumer == nullptr || width <= 0 || height <= 0) {
         BLOGE("parameter error");

@@ -122,6 +122,9 @@ public:
 
     static const std::string& GetDefaultPath();
 
+    double ConvertVsyncId2Time(int64_t vsyncId);
+    void CacheVsyncId2Time(uint32_t layer);
+
 private:
     void WriteHeaders();
     void WriteHeader();
@@ -181,6 +184,7 @@ private:
     bool wasChanged_ = false;
     std::vector<uint8_t> preparedHeader_;
     bool preparedHeaderMode_ = false;
+    std::map<int64_t, double> mapVsyncId2Time_;
 };
 
 } // namespace OHOS::Rosen

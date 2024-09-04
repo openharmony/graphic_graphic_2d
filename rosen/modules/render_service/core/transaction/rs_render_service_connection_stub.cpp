@@ -244,7 +244,8 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     if (isNonSystemAppCalling) {
         if (nodeType != RSSurfaceNodeType::DEFAULT &&
             nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
-            nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE) {
+            nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE &&
+            nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
             RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
                 typeNum, pid);
             return false;
@@ -258,6 +259,12 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
 
     return true;
 }
+
+bool IsPidEqualToCallingPid(pid_t pid, pid_t callingPid)
+{
+    return (callingPid == getpid()) || (callingPid == pid);
+}
+
 }
 
 int RSRenderServiceConnectionStub::OnRemoteRequest(
@@ -378,7 +385,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
             auto nodeId = data.ReadUint64();
-            if (ExtractPid(nodeId) != callingPid) {
+            if (!IsPidEqualToCallingPid(ExtractPid(nodeId), callingPid)) {
                 RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
@@ -620,6 +627,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE): {
             FrameRateLinkerId id = data.ReadUint64();
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGW("The SyncFrameRateRange isn't legal, frameRateLinkerId: %{public}" PRIu64
+                    ", callingPid:%{public}d", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             uint32_t min = data.ReadUint32();
             uint32_t max = data.ReadUint32();
             uint32_t preferred = data.ReadUint32();
@@ -630,6 +643,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER): {
             FrameRateLinkerId id = data.ReadUint64();
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGW("The UnregisterFrameRateLinker isn't legal, frameRateLinkerId: %{public}" PRIu64
+                    ", callingPid:%{public}d", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             UnregisterFrameRateLinker(id);
             break;
         }
@@ -1122,7 +1141,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
-                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             if (!reply.WriteUint32(static_cast<uint32_t>(pixelFormat))) {
@@ -1149,7 +1167,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
-                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
@@ -1167,7 +1184,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
-                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             if (!reply.WriteUint32(hdrFormat)) {
@@ -1194,7 +1210,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
-                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             std::copy(colorSpaces.begin(), colorSpaces.end(), std::back_inserter(colorSpacesSend));
@@ -1212,7 +1227,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
-                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             if (!reply.WriteUint32(colorSpace)) {
@@ -1248,10 +1262,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP): {
             NodeId id = data.ReadUint64();
-            if (ExtractPid(id) != callingPid) {
+            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetBitmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
-                ret = ERR_INVALID_DATA;
                 break;
             }
             RS_PROFILER_PATCH_NODE_ID(data, id);
@@ -1268,10 +1281,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP): {
             NodeId id = data.ReadUint64();
-            if (ExtractPid(id) != callingPid) {
+            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetPixelmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
-                ret = ERR_INVALID_DATA;
                 break;
             }
             RS_PROFILER_PATCH_NODE_ID(data, id);
@@ -1306,7 +1318,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t hash = data.ReadUint32();
             RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             // safe check
-            if (ExtractPid(uniqueId) == callingPid) {
+            if (IsPidEqualToCallingPid(ExtractPid(uniqueId), callingPid)) {
                 std::shared_ptr<Drawing::Typeface> typeface;
                 result = RSMarshallingHelper::Unmarshalling(data, typeface);
                 if (result && typeface) {
@@ -1316,7 +1328,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             } else {
                 RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission REGISTER_TYPEFACE", callingPid);
-                ret = ERR_INVALID_DATA;
             }
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
@@ -1327,12 +1338,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint64_t uniqueId = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             // safe check
-            if (ExtractPid(uniqueId) == callingPid) {
+            if (IsPidEqualToCallingPid(ExtractPid(uniqueId), callingPid)) {
                 UnRegisterTypeface(uniqueId);
             } else {
                 RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission UNREGISTER_TYPEFACE", callingPid);
-                ret = ERR_INVALID_DATA;
             }
             break;
         }
@@ -1371,7 +1381,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
             NodeId id = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, id);
-            if (ExtractPid(id) != callingPid) {
+            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The RegisterSurfaceOcclusionChangeCallback isn't legal, nodeId:%{public}" PRIu64 ", "
                     "callingPid:%{public}d", id, callingPid);
                 ret = ERR_INVALID_DATA;
@@ -1403,7 +1413,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
             NodeId id = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, id);
-            if (ExtractPid(id) != callingPid) {
+            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The UnRegisterSurfaceOcclusionChangeCallback isn't legal, nodeId:%{public}" PRIu64 ", "
                     "callingPid:%{public}d", id, callingPid);
                 ret = ERR_INVALID_DATA;
@@ -1500,10 +1510,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED) : {
             auto id = data.ReadUint64();
-            if (ExtractPid(id) != callingPid) {
+            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The SetHardwareEnabled isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
-                ret = ERR_INVALID_DATA;
                 break;
             }
             auto isEnabled = data.ReadBool();

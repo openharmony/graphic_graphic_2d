@@ -49,6 +49,7 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
     SkiaCanvas();
+    SkiaCanvas(DrawingType type);
     explicit SkiaCanvas(const std::shared_ptr<SkCanvas>& skCanvas);
     SkiaCanvas(int32_t width, int32_t height);
     ~SkiaCanvas() override {};

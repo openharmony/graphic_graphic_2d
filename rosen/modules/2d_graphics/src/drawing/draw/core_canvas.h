@@ -134,6 +134,7 @@ private:
 class DRAWING_API CoreCanvas {
 public:
     CoreCanvas();
+    CoreCanvas(DrawingType type);
     explicit CoreCanvas(void* rawCanvas);
     virtual ~CoreCanvas() {}
     void Bind(const Bitmap& bitmap);
