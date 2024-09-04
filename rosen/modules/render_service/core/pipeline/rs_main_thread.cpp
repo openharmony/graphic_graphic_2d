@@ -3955,7 +3955,7 @@ void RSMainThread::UpdateUIFirstSwitch()
         if (hasProtectedLayer_) {
             isUiFirstOn_ = false;
         } else if (isFoldScreenDevice_) {
-            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == FOLD_DEVICE_SCREEN_NUMBER);
+            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum >= FOLD_DEVICE_SCREEN_NUMBER);
         } else {
             isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum >= 1);
         }
