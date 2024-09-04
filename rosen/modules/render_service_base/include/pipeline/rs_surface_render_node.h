@@ -382,6 +382,16 @@ public:
         offsetY_ = offsetY;
     }
 
+    bool GetArsrTag() const
+    {
+        return arsrTag_;
+    }
+
+    void SetArsrTag(bool arsrTag)
+    {
+        arsrTag_ = arsrTag;
+    }
+
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
@@ -1476,6 +1486,8 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
 
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
+
+    bool arsrTag_ = true;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

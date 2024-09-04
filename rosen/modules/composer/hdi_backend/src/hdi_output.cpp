@@ -475,8 +475,8 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         return false;
     }
 
-    if ((yuvFormats.count(static_cast<GraphicPixelFormat>(layerInfo->GetBuffer()->GetFormat())) > 0) ||
-        (videoLayers.count(layerInfo->GetSurface()->GetName()) > 0)) {
+    if (((yuvFormats.count(static_cast<GraphicPixelFormat>(layerInfo->GetBuffer()->GetFormat())) > 0) ||
+        (videoLayers.count(layerInfo->GetSurface()->GetName()) > 0)) && layerInfo->GetLayerArsr()) {
         return true;
     }
 

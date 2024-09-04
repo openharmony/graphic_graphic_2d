@@ -16,6 +16,7 @@
 #ifndef RS_COMMON_HOOK_H
 #define RS_COMMON_HOOK_H
 
+#include <atomic>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -39,11 +40,11 @@ public:
 private:
     std::function<void()> startNewAniamtionFunc_ = nullptr;
     // source crop tuning
-    bool videoSurfaceFlag_ = false;
+    std::atomic<bool> videoSurfaceFlag_{false};
 
     // use in updating hwcnode hardware state with background alpha
-    bool hardwareEnabledByHwcnodeSkippedFlag_ = false;
-    bool hardwareEnabledByBackgroundAlphaSkippedFlag_ = false;
+    std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
+    std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
 };
 } // namespace OHOS::Rosen
 #endif

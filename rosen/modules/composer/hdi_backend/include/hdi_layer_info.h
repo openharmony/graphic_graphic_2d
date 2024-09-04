@@ -454,6 +454,16 @@ public:
         return rotationFixed_;
     }
 
+    void SetLayerArsr(bool arsrTag)
+    {
+        arsrTag_ = arsrTag;
+    }
+
+    bool GetLayerArsr() const
+    {
+        return arsrTag_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -486,6 +496,7 @@ public:
         layerSource_ = layerInfo->GetLayerSourceTuning();
         clearCacheSet_ = layerInfo->GetClearCacheSet();
         rotationFixed_ = layerInfo->GetRotationFixed();
+        arsrTag_ = layerInfo->GetLayerArsr();
     }
 
     void Dump(std::string &result) const
@@ -606,6 +617,7 @@ private:
     int32_t layerSource_ = 0; // default layer source tag
     std::set<int32_t> clearCacheSet_;
     bool rotationFixed_ = false;
+    bool arsrTag_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS
