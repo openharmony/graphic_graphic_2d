@@ -16,7 +16,6 @@
 
 #include "ge_aibar_shader_filter.h"
 #include "ge_grey_shader_filter.h"
-#include "ge_hps_blur_shader_filter.h"
 #include "ge_kawase_blur_shader_filter.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_linear_gradient_blur_shader_filter.h"
@@ -56,7 +55,6 @@ std::shared_ptr<Drawing::Image> GERender::ApplyImageEffect(Drawing::Canvas& canv
         LOGE("GERender::ApplyImageEffect image is null");
         return nullptr;
     }
-
     std::vector<std::shared_ptr<GEShaderFilter>> geShaderFilters = GenerateShaderFilter(veContainer);
     auto resImage = image;
     for (auto geShaderFilter : geShaderFilters) {
@@ -88,15 +86,6 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
             case Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR: {
                 const auto& mesaParams = ve->GetMESAParams();
                 shaderFilter = std::make_shared<GEMESABlurShaderFilter>(*mesaParams);
-                break;
-            }
-            case Drawing::GEVisualEffectImpl::FilterType::HPS_BLUR: {
-                const auto& hpsParams = ve->GetHpsBlurParams();
-                if (hpsParams == nullptr) {
-                    LOGE("GERender::HPS_BLUR hpsParams is null.");
-                    continue;
-                }
-                shaderFilter = std::make_shared<GEHpsBlurShaderFilter>(*hpsParams);
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::AIBAR: {

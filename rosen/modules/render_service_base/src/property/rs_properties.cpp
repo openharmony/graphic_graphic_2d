@@ -32,7 +32,6 @@
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_grey_shader_filter.h"
-#include "render/rs_hps_blur_shader_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
@@ -2788,13 +2787,7 @@ void RSProperties::GenerateBackgroundBlurFilter()
         originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
 
-    if (RSSystemProperties::GetHpsBlurEnabled() && false) {
-        std::shared_ptr<RSHpsBlurShaderFilter> hpsBlurFilter =
-            std::make_shared<RSHpsBlurShaderFilter>(backgroundBlurRadiusX_, 1.f, 1.f);
-        originalFilter =
-            originalFilter ? originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(hpsBlurFilter))
-                           : std::make_shared<RSDrawingFilter>(hpsBlurFilter);
-    } else if (RSSystemProperties::GetKawaseEnabled()) {
+    if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(backgroundBlurRadiusX_);
         if (originalFilter == nullptr) {
@@ -2839,12 +2832,7 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
         originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
 
-    static constexpr float epsilon = 0.999f;
-    if (ROSEN_LE(backgroundBlurRadius_, epsilon) && (colorFilter != nullptr)) {
-        auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
-        originalFilter = originalFilter ? originalFilter->Compose(colorImageFilter, hash)
-                                        : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
-    } else if (RSSystemProperties::GetKawaseEnabled()) {
+    if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(backgroundBlurRadius_);
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -2893,14 +2881,7 @@ void RSProperties::GenerateForegroundBlurFilter()
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
         originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
-
-    if (RSSystemProperties::GetHpsBlurEnabled() && false) {
-        std::shared_ptr<RSHpsBlurShaderFilter> hpsBlurFilter =
-            std::make_shared<RSHpsBlurShaderFilter>(foregroundBlurRadiusX_, 1.f, 1.f);
-        originalFilter =
-            originalFilter ? originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(hpsBlurFilter))
-                           : std::make_shared<RSDrawingFilter>(hpsBlurFilter);
-    } else if (RSSystemProperties::GetKawaseEnabled()) {
+    if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(foregroundBlurRadiusX_);
         if (originalFilter == nullptr) {
@@ -2945,12 +2926,7 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
         originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
     }
 
-    static constexpr float epsilon = 0.999f;
-    if (ROSEN_LE(foregroundBlurRadius_, epsilon) && (colorFilter != nullptr)) {
-        auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
-        originalFilter = originalFilter ? originalFilter->Compose(colorImageFilter, hash)
-                                        : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
-    } else if (RSSystemProperties::GetKawaseEnabled()) {
+    if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(foregroundBlurRadius_);
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -3027,11 +3003,6 @@ void RSProperties::GenerateAIBarFilter()
         Drawing::ImageFilter::CreateBlurImageFilter(aiBarRadius, aiBarRadius, Drawing::TileMode::CLAMP, nullptr);
     std::shared_ptr<RSAIBarShaderFilter> aiBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(aiBarShaderFilter);
-
-    if (originalFilter == nullptr) {
-        ROSEN_LOGE("RSProperties::GenerateAIBarFilter originalFilter is null");
-        return;
-    }
 
     if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
