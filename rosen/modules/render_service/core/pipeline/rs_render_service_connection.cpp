@@ -442,9 +442,8 @@ ScreenId RSRenderServiceConnection::GetActiveScreenId()
 
 std::vector<ScreenId> RSRenderServiceConnection::GetAllScreenIds()
 {
-    std::vector<ScreenId> ids;
     if (!screenManager_) {
-        return ids;
+        return std::vector<ScreenId>();
     }
     std::lock_guard<std::mutex> lock(mutex_);
     return screenManager_->GetAllScreenIds();
@@ -994,9 +993,8 @@ std::vector<MemoryGraphic> RSRenderServiceConnection::GetMemoryGraphics()
 
 std::vector<RSScreenModeInfo> RSRenderServiceConnection::GetScreenSupportedModes(ScreenId id)
 {
-    std::vector<RSScreenModeInfo> screenSupportedModes;
     if (!screenManager_) {
-        return screenSupportedModes;
+        return std::vector<RSScreenModeInfo>();
     }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
