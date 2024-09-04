@@ -82,6 +82,7 @@ public:
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
+    void CanvasClipRegion(RSPaintFilterCanvas& canvas, float mainWidth, float mainHeight);
 
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
