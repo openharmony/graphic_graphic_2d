@@ -33,6 +33,9 @@
  *
  * @brief Declares the data types for drawing 2D graphics, including the canvas, brush, pen, bitmap, and path.
  *
+ * @kit ArkGraphics2D
+ * @library libnative_drawing.so
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @since 8
  * @version 1.0
  */
@@ -235,6 +238,14 @@ typedef struct OH_Drawing_Font OH_Drawing_Font;
  * @version 1.0
  */
 typedef struct OH_Drawing_MemoryStream OH_Drawing_MemoryStream;
+
+/**
+ * @brief Defines fontArguments, which is used to describe the arguments for a font.
+ *
+ * @since 13
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontArguments OH_Drawing_FontArguments;
 
 /**
  * @brief Defines a typeface, which is used to describe the typeface.

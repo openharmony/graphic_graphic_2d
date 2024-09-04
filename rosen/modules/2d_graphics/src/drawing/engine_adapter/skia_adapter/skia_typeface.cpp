@@ -15,6 +15,7 @@
 
 #include "skia_typeface.h"
 
+#include "include/core/SkFontMgr.h"
 #include "include/core/SkFontStyle.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkString.h"
@@ -112,22 +113,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeClone(const FontArguments& args) con
     }
 
     SkFontArguments skArgs;
-    skArgs.setCollectionIndex(args.GetCollectionIndex());
-
-    SkFontArguments::VariationPosition pos;
-    pos.coordinates = reinterpret_cast<const SkFontArguments::VariationPosition::Coordinate*>(
-        args.GetVariationDesignPosition().coordinates
-    );
-    pos.coordinateCount = args.GetVariationDesignPosition().coordinateCount;
-    skArgs.setVariationDesignPosition(pos);
-
-    SkFontArguments::Palette pal;
-    pal.overrides = reinterpret_cast<const SkFontArguments::Palette::Override*>(
-        args.GetPalette().overrides
-    );
-    pal.index = args.GetPalette().index;
-    pal.overrideCount = args.GetPalette().overrideCount;
-    skArgs.setPalette(pal);
+    SkiaConvertUtils::DrawingFontArgumentsCastToSkFontArguments(args, skArgs);
 
     auto cloned = skTypeface_->makeClone(skArgs);
     if (!cloned) {
@@ -172,6 +158,30 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int inde
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path, index);
     if (!skTypeface) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    skTypeface->setIsCustomTypeface(true);
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
+std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], const FontArguments& fontArguments)
+{
+    std::unique_ptr<SkStreamAsset> skStream = SkStreamAsset::MakeFromFile(path);
+    if (skStream == nullptr) {
+        LOGD("SkiaTypeface::MakeFromFile, skStream nullptr.");
+        return nullptr;
+    }
+    auto skFontMgr = SkFontMgr::RefDefault();
+    if (skFontMgr == nullptr) {
+        LOGD("SkiaTypeface::MakeFromFile, skFontMgr nullptr.");
+        return nullptr;
+    }
+    SkFontArguments skFontArguments;
+    SkiaConvertUtils::DrawingFontArgumentsCastToSkFontArguments(fontArguments, skFontArguments);
+    sk_sp<SkTypeface> skTypeface = skFontMgr->makeFromStream(std::move(skStream), skFontArguments);
+    if (!skTypeface) {
+        LOGD("SkiaTypeface::MakeFromFile, skTypeface nullptr.");
         return nullptr;
     }
     skTypeface->setIsCustomTypeface(true);

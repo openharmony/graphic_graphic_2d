@@ -33,6 +33,11 @@ std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[], int index)
     return StaticFactory::MakeFromFile(path, index);
 }
 
+std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[], const FontArguments& fontArguments)
+{
+    return StaticFactory::MakeFromFile(path, fontArguments);
+}
+
 std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     return StaticFactory::MakeFromStream(std::move(memoryStream), index);

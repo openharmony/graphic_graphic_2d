@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 
+#include "include/core/SkFontArguments.h"
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkFontStyle.h"
 #include "include/core/SkRect.h"
@@ -27,6 +28,7 @@
 #include "include/core/SkString.h"
 #include "include/core/SkTextBlob.h"
 
+#include "text/font_arguments.h"
 #include "text/font_metrics.h"
 #include "text/font_style.h"
 #include "text/rs_xform.h"
@@ -142,6 +144,24 @@ public:
             skSampling = SkSamplingOptions(static_cast<SkFilterMode>(sampling.GetFilterMode()),
                 static_cast<SkMipmapMode>(sampling.GetMipmapMode()));
         }
+    }
+
+    static void DrawingFontArgumentsCastToSkFontArguments(const FontArguments& fontArgs, SkFontArguments& skFontArgs)
+    {
+        skFontArgs.setCollectionIndex(fontArgs.GetCollectionIndex());
+
+        SkFontArguments::VariationPosition pos;
+        pos.coordinates = reinterpret_cast<const SkFontArguments::VariationPosition::Coordinate*>(
+            fontArgs.GetVariationDesignPosition().coordinates);
+        pos.coordinateCount = fontArgs.GetVariationDesignPosition().coordinateCount;
+        skFontArgs.setVariationDesignPosition(pos);
+
+        SkFontArguments::Palette pal;
+        pal.overrides = reinterpret_cast<const SkFontArguments::Palette::Override*>(
+            fontArgs.GetPalette().overrides);
+        pal.index = fontArgs.GetPalette().index;
+        pal.overrideCount = fontArgs.GetPalette().overrideCount;
+        skFontArgs.setPalette(pal);
     }
 };
 } // namespace Drawing
