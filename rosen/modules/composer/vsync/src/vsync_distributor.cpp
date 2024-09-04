@@ -572,6 +572,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
         return;
     }
 
+    // When vsync switches to dvsync, need to handle pending RNVs during vsync
     if (!IsDVsyncOn() || pendingRNVInVsync_) {
         event_.timestamp = now;
         event_.vsyncCount++;
@@ -588,17 +589,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     if (dvsync_->WaitCond() || pendingRNVInVsync_) {
         con_.notify_all();
     } else {
-        // When Dvsync on, if the RequestNextVsync is not invoked within three period and SetVSyncRate
-        // is not invoked either, execute DisableVSync.
-        for (uint32_t i = 0; i < connections_.size(); i++) {
-            if (connections_[i]->triggerThisTime_ || connections_[i]->rate_ >= 0) {
-                return;
-            }
-        }
-        if (now - dvsync_->GetLastRnvTS() > 3 * period) {  // 3 period
-            ScopedBytrace func(name_ + "_DisableVsync");
-            DisableVSync();
-        }
+        CheckNeedDisableDvsync(now, period);
     }
 }
 #endif
@@ -696,6 +687,26 @@ int32_t VSyncDistributor::GetUIDVsyncPid()
     return pid;
 }
 #endif
+
+void VSyncDistributor::CheckNeedDisableDvsync(int64_t now, int64_t period)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    if (!isRs_ && IsDVsyncOn()) {
+        return;
+    }
+    // When Dvsync on, if the RequestNextVsync is not invoked within three period and SetVSyncRate
+    // is not invoked either, execute DisableVSync.
+    for (uint32_t i = 0; i < connections_.size(); i++) {
+        if (connections_[i]->triggerThisTime_ || connections_[i]->rate_ >= 0) {
+            return;
+        }
+    }
+    if (now - dvsync_->GetLastRnvTS() > 3 * period) {  // 3 period
+        ScopedBytrace func(name_ + "_DisableVsync");
+        DisableVSync();
+    }
+#endif
+}
 
 /* std::pair<id, refresh rate> */
 void VSyncDistributor::OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates)

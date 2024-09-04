@@ -167,6 +167,7 @@ private:
     void CollectConns(bool &waitForVSync, int64_t &timestamp,
         std::vector<sptr<VSyncConnection>> &conns, bool isDvsyncThread);
     bool PostVSyncEventPreProcess(int64_t &timestamp, std::vector<sptr<VSyncConnection>> &conns);
+    void CheckNeedDisableDvsync(int64_t now, int64_t period);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
