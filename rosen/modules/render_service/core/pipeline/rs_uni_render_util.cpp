@@ -301,13 +301,6 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     if (boundsWidth == 0 || boundsHeight == 0 || srcWidth == 0 || srcHeight == 0) {
         return;
     }
-    // If transformType is not a multiple of 180, need to change the correspondence between width & height.
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer));
-    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
-        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
-        std::swap(boundsWidth, boundsHeight);
-    }
 
     if (srcWidth * boundsHeight > srcHeight * boundsWidth) {
         newWidth = boundsWidth;
@@ -351,14 +344,6 @@ void RSUniRenderUtil::SrcRectScaleDown(BufferDrawParam& params, const sptr<Surfa
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
-
-    // If transformType is not a multiple of 180, need to change the correspondence between width & height.
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer));
-    if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
-        transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
-        std::swap(boundsWidth, boundsHeight);
-    }
 
     uint32_t newWidthBoundsHeight = newWidth * boundsHeight;
     uint32_t newHeightBoundsWidth = newHeight * boundsWidth;
@@ -581,7 +566,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
 }
 
 void RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed(GraphicTransformType transform, Gravity gravity,
-    RectF localBounds, BufferDrawParam& params)
+    RectF& localBounds, BufferDrawParam& params)
 {
     auto rotationTransform = RSBaseRenderUtil::GetRotateTransform(transform);
     params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
