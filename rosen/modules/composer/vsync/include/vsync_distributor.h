@@ -156,18 +156,18 @@ private:
         std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);
-    void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
-    void WaitForVsyncOrTimeOut(std::unique_lock<std::mutex> &locker);
     VsyncError SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bool isSystemAnimateScene = false);
 
 #ifdef COMPOSER_SCHED_ENABLE
     void SubScribeSystemAbility(const std::string& threadName);
 #endif
-    void OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
+    void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
+    void WaitForVsyncOrTimeOut(std::unique_lock<std::mutex> &locker);
     void CollectConns(bool &waitForVSync, int64_t &timestamp,
         std::vector<sptr<VSyncConnection>> &conns, bool isDvsyncThread);
     bool PostVSyncEventPreProcess(int64_t &timestamp, std::vector<sptr<VSyncConnection>> &conns);
     void CheckNeedDisableDvsync(int64_t now, int64_t period);
+    void OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
