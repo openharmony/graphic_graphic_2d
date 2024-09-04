@@ -226,6 +226,11 @@ check_broker_ext_file_args = [
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
 ]
+check_hgm_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni"),
+]
 
 if (exec_script(check_graphic_ext_file_script,
                 check_graphic_ext_file_args,
@@ -277,6 +282,17 @@ if (exec_script(check_graphic_ext_file_script,
                 "string") == "True") {
   graphic_2d_broker_configs = {
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni")
+  }
+}
+
+graphic_2d_hgm_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_hgm_ext_file_args,
+                "string") == "True") {
+  graphic_2d_hgm_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")
   }
 }
 

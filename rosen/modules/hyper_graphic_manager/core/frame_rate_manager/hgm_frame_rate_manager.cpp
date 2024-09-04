@@ -26,11 +26,11 @@
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_log.h"
+#include "hgm_screen_info.h"
 #include "parameters.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "frame_rate_report.h"
-#include "hgm_config_callback_manager.h"
 #include "hisysevent.h"
 
 namespace OHOS {
@@ -80,7 +80,8 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     // hgm warning: get non active screenId in non-folding devices（from sceneboard）
     auto screenList = hgmCore.GetScreenIds();
     curScreenId_ = screenList.empty() ? 0 : screenList.front();
-    isLtpo_ = (GetScreenType(curScreenId_) == "LTPO");
+    auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
+    isLtpo_ = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_));
     std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
@@ -864,13 +865,10 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     } else if (status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
         ReportHiSysEvent({.voterName = "SCREEN_POWER", .extInfo = "OFF"});
     }
-    if (status != ScreenPowerStatus::POWER_STATUS_ON) {
-        return;
-    }
     static std::mutex lastScreenIdMutex;
     std::unique_lock<std::mutex> lock(lastScreenIdMutex);
     static ScreenId lastScreenId = 12345; // init value diff with any real screen id
-    if (lastScreenId == id) {
+    if (status != ScreenPowerStatus::POWER_STATUS_ON || lastScreenId == id) {
         return;
     }
     lastScreenId = id;
@@ -884,7 +882,8 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         return;
     }
     HGM_LOGI("HandleScreenPowerStatus curScreen:%{public}d", static_cast<int>(curScreenId_));
-    isLtpo_ = (GetScreenType(curScreenId_) == "LTPO");
+    auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
+    isLtpo_ = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_));
     std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
 
     auto configData = hgmCore.GetPolicyConfigData();
@@ -1259,12 +1258,6 @@ void HgmFrameRateManager::UpdateVoteRule()
         auto dstPos = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
         voters_.insert(dstPos, "VOTER_SCENE");
     }
-}
-
-std::string HgmFrameRateManager::GetScreenType(ScreenId screenId)
-{
-    // hgm warning: use GetDisplaySupportedModes instead
-    return (screenId == 0) ? "LTPO" : "LTPS";
 }
 
 void HgmFrameRateManager::CleanVote(pid_t pid)

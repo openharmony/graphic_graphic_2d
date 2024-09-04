@@ -65,6 +65,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/frame_rate_manager/hgm_vsync_generator_controller.cpp",
     "core/hgm_screen_manager/hgm_core.cpp",
     "core/hgm_screen_manager/hgm_screen.cpp",
+    "core/hgm_screen_manager/hgm_screen_info.cpp",
     "core/utils/hgm_one_shot_timer.cpp",
     "frame_rate_vote/rs_frame_rate_vote.cpp",
     "frame_rate_vote/rs_video_frame_rate_vote.cpp",
@@ -99,6 +100,11 @@ ohos_shared_library("libhyper_graphic_manager") {
     "ipc:ipc_core",
     "libxml2:libxml2",
   ]
+
+  if (defined(graphic_2d_hgm_configs.vendor_root)) {
+    sources += graphic_2d_hgm_configs.libhyper_graphic_manager_ext_sources
+    sources -= graphic_2d_hgm_configs.libhyper_graphic_manager_ext_sources_del
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
