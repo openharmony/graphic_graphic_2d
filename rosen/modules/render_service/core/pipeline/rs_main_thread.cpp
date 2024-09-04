@@ -3951,7 +3951,7 @@ void RSMainThread::UpdateUIFirstSwitch()
         return;
     }
     uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
-    if (deviceType_ != DeviceType::PC) {
+    if (RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::SINGLE_WINDOW_MODE) {
         if (hasProtectedLayer_) {
             isUiFirstOn_ = false;
         } else if (isFoldScreenDevice_) {

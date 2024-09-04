@@ -715,5 +715,10 @@ bool RSInterfaces::SetAncoForceDoDirect(bool direct)
     return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
 
+void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
+{
+    renderServiceClient_->SetFreeMultiWindowStatus(enable);
+}
+
 } // namespace Rosen
 } // namespace OHOS

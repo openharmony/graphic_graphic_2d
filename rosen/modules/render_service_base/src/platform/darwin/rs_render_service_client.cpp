@@ -596,5 +596,9 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 {
     return false;
 }
+
+void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

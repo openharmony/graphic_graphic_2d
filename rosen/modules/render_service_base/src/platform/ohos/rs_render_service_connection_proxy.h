@@ -268,6 +268,8 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
+
+    void SetFreeMultiWindowStatus(bool enable) override;
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

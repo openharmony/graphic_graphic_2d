@@ -285,6 +285,7 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
+    void SetFreeMultiWindowStatus(bool enable);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

@@ -1403,4 +1403,33 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 }
+
+/**
+ * @tc.name: GetUiFirstMode
+ * @tc.desc: Test GetUiFirstMode
+ * @tc.type: FUNC
+ * @tc.require: issueIANPC2
+ */
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode, TestSize.Level1)
+{
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
+        auto type = uifirstManager_.GetUiFirstMode();
+        EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
+    }
+
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        auto type = uifirstManager_.GetUiFirstMode();
+        EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
+    }
+
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::TABLET) {
+        uifirstManager_.SetFreeMultiWindowStatus(false);
+        auto type = uifirstManager_.GetUiFirstMode();
+        EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
+
+        uifirstManager_.SetFreeMultiWindowStatus(true);
+        type = uifirstManager_.GetUiFirstMode();
+        EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
+    }
+}
 }

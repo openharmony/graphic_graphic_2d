@@ -200,6 +200,28 @@ HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus002, Function | Medi
 {
     RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(false);
 }
+
+/**
+ * @tc.name: SetFreeMultiWindowStatus001
+ * @tc.desc: tablet free multi-window don't use status.
+ * @tc.type: FUNC
+ * @tc.require: issueIANPC2
+ */
+HWTEST_F(RSInterfacesSystemTest, SetFreeMultiWindowStatus001, Function | MediumTest | Level2)
+{
+    RSInterfaces::GetInstance().SetFreeMultiWindowStatus(false);
+}
+
+/**
+ * @tc.name: SetFreeMultiWindowStatus002
+ * @tc.desc: tablet free multi-window use status.
+ * @tc.type: FUNC
+ * @tc.require: issueIANPC2
+ */
+HWTEST_F(RSInterfacesSystemTest, SetFreeMultiWindowStatus002, Function | MediumTest | Level2)
+{
+    RSInterfaces::GetInstance().SetFreeMultiWindowStatus(true);
+}
 }
 } // namespace Rosen
 } // namespace OHOS

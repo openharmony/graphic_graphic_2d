@@ -1498,5 +1498,15 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
     }
     return false;
 }
+
+void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetFreeMultiWindowStatus renderService == nullptr!");
+        return;
+    }
+    renderService->SetFreeMultiWindowStatus(enable);
+}
 } // namespace Rosen
 } // namespace OHOS

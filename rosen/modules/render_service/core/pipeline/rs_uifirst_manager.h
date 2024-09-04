@@ -141,6 +141,12 @@ public:
     void CollectSkipSyncBuffer(std::vector<std::function<void()>>& tasks, NodeId id);
     void ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks);
 
+    void SetFreeMultiWindowStatus(bool enable)
+    {
+        isFreeMultiWindowEnabled_ = enable;
+    }
+    UiFirstModeType GetUiFirstMode();
+
 private:
     RSUifirstManager();
     ~RSUifirstManager() = default;
@@ -252,6 +258,8 @@ private:
     std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
+
+    bool isFreeMultiWindowEnabled_ = false;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H

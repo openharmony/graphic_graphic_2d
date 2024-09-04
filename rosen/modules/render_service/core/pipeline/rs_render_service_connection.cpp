@@ -1974,5 +1974,13 @@ bool RSRenderServiceConnection::SetAncoForceDoDirect(bool direct)
     return true;
 }
 
+void RSRenderServiceConnection::SetFreeMultiWindowStatus(bool enable)
+{
+    auto task = [enable]() -> void {
+        RSUifirstManager::Instance().SetFreeMultiWindowStatus(enable);
+    };
+    mainThread_->PostTask(task);
+}
+
 } // namespace Rosen
 } // namespace OHOS

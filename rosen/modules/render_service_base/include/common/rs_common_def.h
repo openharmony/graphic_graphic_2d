@@ -271,6 +271,11 @@ enum class MultiThreadCacheType : uint8_t {
     NONFOCUS_WINDOW,
 };
 
+enum class UiFirstModeType : uint8_t {
+    SINGLE_WINDOW_MODE,
+    MULTI_WINDOW_MODE,
+};
+
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,

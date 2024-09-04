@@ -1819,5 +1819,29 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function |
     int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
     EXPECT_EQ(res, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
 }
+
+/*
+ * @tc.name: SetFreeMultiWindowStatus_001
+ * @tc.desc: Test SetFreeMultiWindowStatus with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIANPC2
+ */
+HWTEST_F(RSInterfacesTest, SetFreeMultiWindowStatus_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->SetFreeMultiWindowStatus(false);
+}
+
+/*
+ * @tc.name: SetFreeMultiWindowStatus_002
+ * @tc.desc: Test SetFreeMultiWindowStatus with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIANPC2
+ */
+HWTEST_F(RSInterfacesTest, SetFreeMultiWindowStatus_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->SetFreeMultiWindowStatus(true);
+}
 } // namespace Rosen
 } // namespace OHOS

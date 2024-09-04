@@ -295,6 +295,8 @@ private:
 
     bool SetAncoForceDoDirect(bool direct) override;
 
+    void SetFreeMultiWindowStatus(bool enable) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

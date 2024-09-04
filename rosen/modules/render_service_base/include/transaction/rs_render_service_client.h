@@ -355,6 +355,8 @@ public:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
+
+    void SetFreeMultiWindowStatus(bool enable);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
     std::mutex mutex_;
