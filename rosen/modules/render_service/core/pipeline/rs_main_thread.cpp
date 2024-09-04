@@ -1978,7 +1978,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
-        isLuminanceChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
@@ -3527,11 +3526,6 @@ bool RSMainThread::IsCurtainScreenUsingStatusChanged() const
     return isCurtainScreenUsingStatusChanged_;
 }
 
-bool RSMainThread::IsLuminanceChanged() const
-{
-    return isLuminanceChanged_;
-}
-
 void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 {
     if (!isUniRender_) {
@@ -4101,7 +4095,17 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSMainThread::SetLuminanceChangingStatus(bool isLuminanceChanged)
 {
-    isLuminanceChanged_ = isLuminanceChanged;
+    isLuminanceChanged_.store(isLuminanceChanged);
+}
+
+bool RSMainThread::ExchangeLuminanceChangingStatus()
+{
+    bool expectChanged = true;
+    if (!isLuminanceChanged_.compare_exchange_weak(expectChanged, false)) {
+        return false;
+    }
+    RS_LOGD("RSMainThread::ExchangeLuminanceChangingStatus changed");
+    return true;
 }
 
 bool RSMainThread::IsCurtainScreenOn() const
