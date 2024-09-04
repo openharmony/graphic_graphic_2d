@@ -942,12 +942,32 @@ void RSSurfaceRenderNode::SyncSkipInfoToFirstLevelNode()
     }
 }
 
-void RSSurfaceRenderNode::SyncSnapshotSkipInfoToFirstLevelNode()
+void RSSurfaceRenderNode::SyncOnTheTreeInfoToFirstLevelNode()
 {
+    if (!IsOnTheTree()) {
+        return;
+    }
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
     // firstLevelNode is the nearest app window / leash node
     if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
-        if (isSnapshotSkipLayer_ && IsOnTheTree()) {
+        if (isSnapshotSkipLayer_) {
+            firstLevelNode->snapshotSkipLayerIds_.insert(GetId());
+        } else {
+            firstLevelNode->snapshotSkipLayerIds_.erase(GetId());
+        }
+        firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
+    }
+}
+
+void RSSurfaceRenderNode::SyncSnapshotSkipInfoToFirstLevelNode()
+{
+    if (isSnapshotSkipLayer_ == false) {
+        return;
+    }
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    // firstLevelNode is the nearest app window / leash node
+    if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+        if (IsOnTheTree()) {
             firstLevelNode->snapshotSkipLayerIds_.insert(GetId());
         } else {
             firstLevelNode->snapshotSkipLayerIds_.erase(GetId());
