@@ -27,7 +27,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSBoundsSizeModifier : public RSGeometryModifier {
@@ -37,7 +36,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSBoundsPositionModifier : public RSGeometryModifier {
@@ -47,7 +45,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSFrameModifier : public RSGeometryModifier {
@@ -84,7 +81,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSPivotZModifier : public RSGeometryModifier {
@@ -94,7 +90,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSQuaternionModifier : public RSGeometryModifier {
@@ -104,7 +99,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSRotationModifier : public RSGeometryModifier {
@@ -114,7 +108,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSRotationXModifier : public RSGeometryModifier {
@@ -124,7 +117,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSRotationYModifier : public RSGeometryModifier {
@@ -134,7 +126,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSCameraDistanceModifier : public RSGeometryModifier {
@@ -144,7 +135,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSScaleModifier : public RSGeometryModifier {
@@ -154,7 +144,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSSkewModifier : public RSGeometryModifier {
@@ -164,7 +153,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSPerspModifier : public RSGeometryModifier {
@@ -174,7 +162,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSTranslateModifier : public RSGeometryModifier {
@@ -184,7 +171,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSTranslateZModifier : public RSGeometryModifier {
@@ -194,7 +180,6 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
 class RSC_EXPORT RSCornerRadiusModifier : public RSAppearanceModifier {

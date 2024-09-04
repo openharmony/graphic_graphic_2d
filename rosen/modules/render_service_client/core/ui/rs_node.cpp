@@ -33,7 +33,7 @@
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
-#include "common/rs_obj_abs_geometry.h"
+#include "common/rs_obj_geometry.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
@@ -510,60 +510,6 @@ std::vector<AnimationId> RSNode::GetAnimationByPropertyId(const PropertyId& id)
     return animations;
 }
 
-bool RSNode::IsGeometryDirty() const
-{
-    return dirtyType_ & static_cast<uint32_t>(NodeDirtyType::GEOMETRY);
-}
-
-bool RSNode::IsAppearanceDirty() const
-{
-    return dirtyType_ & static_cast<uint32_t>(NodeDirtyType::APPEARANCE);
-}
-
-void RSNode::MarkDirty(NodeDirtyType type, bool isDirty)
-{
-    if (isDirty) {
-        dirtyType_ |= static_cast<uint32_t>(type);
-    } else {
-        dirtyType_ &= ~static_cast<uint32_t>(type);
-    }
-}
-
-std::shared_ptr<RSObjAbsGeometry> RSNode::GetLocalGeometry()
-{
-    return localGeometry_;
-}
-
-std::shared_ptr<RSObjAbsGeometry> RSNode::GetGlobalGeometry()
-{
-    return globalGeometry_;
-}
-
-void RSNode::UpdateLocalGeometry()
-{
-    if (!IsGeometryDirty()) {
-        return;
-    }
-    localGeometry_ = std::make_shared<RSObjAbsGeometry>();
-    for (const auto& [_, modifier] : modifiers_) {
-        if (modifier->GetPropertyModifierType() == RSPropertyModifierType::GEOMETRY) {
-            modifier->Apply(localGeometry_);
-        }
-    }
-}
-
-void RSNode::UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& parentGlobalGeometry)
-{
-    if (parentGlobalGeometry == nullptr || localGeometry_ == nullptr) {
-        return;
-    }
-    if (globalGeometry_ == nullptr) {
-        globalGeometry_ = std::make_shared<RSObjAbsGeometry>();
-    }
-    *globalGeometry_ = *localGeometry_;
-    globalGeometry_->UpdateMatrix(&parentGlobalGeometry->GetAbsMatrix(), std::nullopt);
-}
-
 template<typename ModifierName, typename PropertyName, typename T>
 void RSNode::SetProperty(RSModifierType modifierType, T value)
 {
@@ -833,7 +779,6 @@ void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
     SetTranslate({ translateX, translateY });
     SetTranslateZ(translateZ);
 }
-
 void RSNode::SetTranslateX(float translate)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -2486,8 +2431,6 @@ void RSNode::AddChild(SharedPtr child, int index)
         child->SyncTextureExport(isTextureExportNode_);
     }
     child->OnAddChildren();
-    child->MarkDirty(NodeDirtyType::APPEARANCE, true);
-
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
@@ -2544,7 +2487,6 @@ void RSNode::RemoveChild(SharedPtr child)
     RemoveChildById(childId);
     child->OnRemoveChildren();
     child->SetParent(0);
-    child->MarkDirty(NodeDirtyType::APPEARANCE, true);
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
@@ -2593,8 +2535,6 @@ void RSNode::AddCrossParentChild(SharedPtr child, int index)
     }
     child->SetParent(id_);
     child->OnAddChildren();
-    child->MarkDirty(NodeDirtyType::APPEARANCE, true);
-
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
@@ -2621,7 +2561,6 @@ void RSNode::RemoveCrossParentChild(SharedPtr child, NodeId newParentId)
     RemoveChildById(childId);
     child->OnRemoveChildren();
     child->SetParent(newParentId);
-    child->MarkDirty(NodeDirtyType::APPEARANCE, true);
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
@@ -2643,7 +2582,6 @@ void RSNode::RemoveChildById(NodeId childId)
 
 void RSNode::RemoveFromTree()
 {
-    MarkDirty(NodeDirtyType::APPEARANCE, true);
     if (auto parentPtr = RSNodeMap::Instance().GetNode(parent_)) {
         parentPtr->RemoveChildById(GetId());
         OnRemoveChildren();
@@ -2665,7 +2603,6 @@ void RSNode::ClearChildren()
     for (auto child : children_) {
         if (auto childPtr = RSNodeMap::Instance().GetNode(child)) {
             childPtr->SetParent(0);
-            childPtr->MarkDirty(NodeDirtyType::APPEARANCE, true);
         }
     }
     children_.clear();
