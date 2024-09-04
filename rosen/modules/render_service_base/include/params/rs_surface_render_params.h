@@ -133,6 +133,10 @@ public:
     {
         return isSkipLayer_;
     }
+    bool GetIsSnapshotSkipLayer() const
+    {
+        return isSnapshotSkipLayer_;
+    }
     bool GetIsProtectedLayer() const
     {
         return isProtectedLayer_;
@@ -157,6 +161,10 @@ public:
     {
         return skipLayerIds_;
     }
+    const std::set<NodeId>& GetSnapshotSkipLayerIds() const
+    {
+        return snapshotSkipLayerIds_;
+    }
     bool HasSecurityLayer()
     {
         return securityLayerIds_.size() != 0;
@@ -164,6 +172,10 @@ public:
     bool HasSkipLayer()
     {
         return skipLayerIds_.size() != 0;
+    }
+    bool HasSnapshotSkipLayer()
+    {
+        return snapshotSkipLayerIds_.size() != 0;
     }
     bool HasProtectedLayer()
     {
@@ -531,6 +543,7 @@ private:
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
     std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
     std::set<int32_t> bufferCacheSet_ = {};

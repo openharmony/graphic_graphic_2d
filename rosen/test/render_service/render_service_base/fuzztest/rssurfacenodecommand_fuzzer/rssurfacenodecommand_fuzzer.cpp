@@ -76,6 +76,7 @@ bool DoSurfacenodecommand(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetContextClipRegion(context, id, clipRect);
     SurfaceNodeCommandHelper::SetSecurityLayer(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetSkipLayer(context, id, GetData<bool>());
+    SurfaceNodeCommandHelper::SetSnapshotSkipLayer(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetFingerprint(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetColorSpace(context, id, GetData<GraphicColorGamut>());
     SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(context, id, GetData<float>(), GetData<float>());
