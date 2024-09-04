@@ -194,6 +194,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level
     double maxWidth = 50;
     std::vector<float> indents = {1.2, 3.4};
     OHOS::Rosen::TypographyStyle typographyStyle;
+    auto textStyle = typographyStyle.GetTextStyle();
+    EXPECT_TRUE(textStyle.fontSize >= 0);
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =

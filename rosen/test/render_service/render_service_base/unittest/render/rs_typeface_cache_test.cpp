@@ -278,5 +278,18 @@ HWTEST_F(RSTypefaceCacheTest, ReplayClearTest001, TestSize.Level1)
     EXPECT_EQ(RSTypefaceCache::Instance().typefaceHashCode_.find(uniqueId | replayMask),
               RSTypefaceCache::Instance().typefaceHashCode_.end());
 }
+
+/**
+ * @tc.name: HasTypeFaceTest001
+ * @tc.desc: Verify function HasTypeface
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, HasTypeFaceTest001, TestSize.Level1)
+{
+    uint64_t uniqueId = 1;
+    uint32_t hash = 2;
+    bool result = RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
+    EXPECT_EQ(result, true);
+}
 } // namespace Rosen
 } // namespace OHOS
