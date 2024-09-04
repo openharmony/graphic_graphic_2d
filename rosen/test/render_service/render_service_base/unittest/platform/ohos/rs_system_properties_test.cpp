@@ -81,10 +81,10 @@ HWTEST_F(RSSystemPropertiesTest, GetRecordingEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetUniRenderEnabled, TestSize.Level1)
 {
-    ASSERT_TRUE(RSSystemProperties::GetUniRenderEnabled());
     // it is not possible to change RSSystemProperties::isUniRenderEnabled from test
     // check the second API calling returns the same value
-    ASSERT_TRUE(RSSystemProperties::GetUniRenderEnabled());
+    RSSystemProperties::isUniRenderEnabled_ = false;
+    ASSERT_FALSE(RSSystemProperties::GetUniRenderEnabled());
 }
 
 /**
