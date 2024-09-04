@@ -75,7 +75,7 @@ public:
 
     virtual void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
     virtual void SetFrameRateChangingStatus(bool frameRateChanging) = 0;
-    virtual void SetAppDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
+    virtual void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -192,9 +192,9 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_;
     int32_t periodCheckCounter_ = 0;
     int64_t lastPeriod_ = 0;
+    sptr<VSyncDistributor> appVSyncDistributor_;
     int64_t expectNextVsyncTime_ = 0;
     bool expectTimeFlag_ = false;
-    sptr<VSyncDistributor> appVSyncDistributor_;
     int64_t targetPeriod_ = 0;
     bool clearAllSamplesFlag_ = false;
 };

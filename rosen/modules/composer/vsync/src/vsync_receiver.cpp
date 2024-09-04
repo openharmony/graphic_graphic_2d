@@ -113,12 +113,13 @@ int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
     if (now < period_ || now > INT64_MAX - period_) {
         RS_TRACE_NAME_FMT("invalid timestamps, now:%ld, period_:%ld", now, period_);
         VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
-        period_ = 0;
         return 0;
     }
     expectedEnd = now + period_;
-    // rs vsync offset is 5000000ns
-    expectedEnd = (name_ == "rs") ? (expectedEnd + period_ - 5000000) : expectedEnd;
+    if (name_ == "rs") {
+        // rs vsync offset is 5000000ns
+        expectedEnd = expectedEnd + period_ - 5000000;
+    }
     return expectedEnd;
 }
 
