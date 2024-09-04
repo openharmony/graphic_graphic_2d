@@ -16,8 +16,10 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -442,6 +444,93 @@ HWTEST_F(RSDisplayRenderNodeTest, GetDisappearedSurfaceRegionBelowCurrent002, Te
 
     auto region = displayNode->GetDisappearedSurfaceRegionBelowCurrent(topSurface.first);
     EXPECT_TRUE(region.GetBound() == bottomSurface.second);
+}
+
+/**
+ * @tc.name: RecordMainAndLeashSurfaces001
+ * @tc.desc: test RecordMainAndLeashSurfaces
+ * @tc.type:FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, RecordMainAndLeashSurfaces001, TestSize.Level2)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
+    ASSERT_EQ(displayNode->curMainAndLeashSurfaceNodes_.size(), 1);
+}
+
+/**
+ * @tc.name: HandleCurMainAndLeashSurfaceNodes001
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while curMainAndLeashSurfaceNodes_ is empty
+ * @tc.type:FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes001, TestSize.Level2)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    
+    displayNode->HandleCurMainAndLeashSurfaceNodes();
+    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
+}
+
+/**
+ * @tc.name: HandleCurMainAndLeashSurfaceNodes002
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't surface node
+ * @tc.type:FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes002, TestSize.Level2)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id + 1);
+    ASSERT_NE(canvasNode, nullptr);
+    
+    displayNode->RecordMainAndLeashSurfaces(canvasNode);
+    displayNode->HandleCurMainAndLeashSurfaceNodes();
+    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
+}
+
+/**
+ * @tc.name: HandleCurMainAndLeashSurfaceNodes003
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node is leash window
+ * @tc.type:FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes003, TestSize.Level2)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    
+    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
+    displayNode->HandleCurMainAndLeashSurfaceNodes();
+    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
+}
+
+/**
+ * @tc.name: HandleCurMainAndLeashSurfaceNodes004
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window
+ * @tc.type:FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes004, TestSize.Level2)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    
+    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
+    displayNode->HandleCurMainAndLeashSurfaceNodes();
+    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 1);
 }
 
 /**
