@@ -168,6 +168,10 @@ private:
     uint64_t uiTimestamp_ = 0;
     uint64_t commandTimestamp_ = 0;
 
+    // for overdraw
+    bool isOverDrawEnabledOfCurFrame_ = false;
+    bool isOverDrawEnabledOfLastFrame_ = false;
+
     // for jank frame detector
     std::shared_ptr<RSJankDetector> jankDetector_;
 
