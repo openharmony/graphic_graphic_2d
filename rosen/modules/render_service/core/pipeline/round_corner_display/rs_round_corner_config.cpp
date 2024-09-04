@@ -414,12 +414,14 @@ bool RCDConfig::Load(const std::string& configFile)
     pDoc = xmlReadFile(configFile.c_str(), "", XML_PARSE_RECOVER);
     if (pDoc == nullptr) {
         RS_LOGE("RoundCornerDisplay read xml failed \n");
+        CloseXML();
         return false;
     }
     RS_LOGI("RoundCornerDisplay read xml ok \n");
     pRoot = xmlDocGetRootElement(pDoc);
     if (pRoot == nullptr) {
         RS_LOGE("RoundCornerDisplay get xml root failed \n");
+        CloseXML();
         return false;
     }
     xmlNodePtr startPtr = pRoot->children;
@@ -436,6 +438,7 @@ bool RCDConfig::Load(const std::string& configFile)
         }
         startPtr = startPtr->next;
     }
+    CloseXML();
     auto interval = std::chrono::duration_cast<microseconds>(high_resolution_clock::now() - begin);
     RS_LOGI("RoundCornerDisplay read xml time cost %{public}lld us \n", interval.count());
     return true;
@@ -459,13 +462,18 @@ LCDModel* RCDConfig::GetLcdModel(const std::string& name) const
     return nullptr;
 }
 
-RCDConfig::~RCDConfig()
+void RCDConfig::CloseXML()
 {
     if (pDoc != nullptr) {
         xmlFreeDoc(pDoc);
+        pDoc = nullptr;
     }
     xmlCleanupParser();
     xmlMemoryDump();
+}
+
+RCDConfig::~RCDConfig()
+{
     for (auto& modelPtr : lcdModels) {
         if (modelPtr != nullptr) {
             delete modelPtr;

@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CORE_RS_RCD_RENDER_VISITOR_H
 #define RENDER_SERVICE_CORE_RS_RCD_RENDER_VISITOR_H
 
+#include <mutex>
+#include <thread>
 #include "pipeline/rs_processor.h"
 #include "rs_rcd_surface_render_node.h"
 #include "visitor/rs_node_visitor.h"
@@ -53,6 +55,7 @@ public:
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
 
 private:
+    std::mutex bufferMut_;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_ = nullptr;
     std::shared_ptr<RSProcessor> uniProcessor_ = nullptr;
 };
