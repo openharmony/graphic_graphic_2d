@@ -88,7 +88,8 @@ VsyncError VSyncController::SetPhaseOffset(int64_t offset)
     return generator->ChangePhaseOffset(this, offset);
 }
 
-void VSyncController::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
+void VSyncController::OnVSyncEvent(int64_t now, int64_t period,
+    uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
     Callback *cb = nullptr;
     {
@@ -96,7 +97,7 @@ void VSyncController::OnVSyncEvent(int64_t now, int64_t period, uint32_t refresh
         cb = callback_;
     }
     if (cb != nullptr) {
-        cb->OnVSyncEvent(now, period, refreshRate, vsyncMode);
+        cb->OnVSyncEvent(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
     }
 }
 

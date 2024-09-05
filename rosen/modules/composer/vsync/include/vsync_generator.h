@@ -37,7 +37,8 @@ class VSyncGenerator : public RefBase {
 public:
     class Callback : public RefBase {
     public:
-        virtual void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode) = 0;
+        virtual void OnVSyncEvent(int64_t now, int64_t period,
+            uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) = 0;
         virtual void OnPhaseOffsetChanged(int64_t phaseOffset) = 0;
         /* std::pair<id, refresh rate> */
         virtual void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) = 0;
@@ -203,7 +204,7 @@ private:
     sptr<VSyncDistributor> appVSyncDistributor_;
     int64_t targetPeriod_ = 0;
     bool clearAllSamplesFlag_ = false;
-    std::atomic<uint32_t> vsyncMaxRefreshRate_ = 360; // default max TE
+    uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
 };
 } // impl
 } // namespace Rosen

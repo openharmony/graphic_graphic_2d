@@ -127,9 +127,6 @@ VSyncGenerator::~VSyncGenerator()
         std::unique_lock<std::mutex> locker(mutex_);
         vsyncThreadRunning_ = false;
     }
-    if (std::this_thread::get_id() == thread_.get_id()) {
-        return;
-    }
 
     if (thread_.joinable()) {
         con_.notify_all();
@@ -160,7 +157,8 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
     for (uint32_t i = 0; i < listeners.size(); i++) {
         RS_TRACE_NAME_FMT("listener phase is %ld", listeners[i].phase_);
         if (listeners[i].callback_ != nullptr) {
-            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
+            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_,
+                periodRecord_, currRefreshRate_, vsyncMode_, vsyncMaxRefreshRate_);
         }
     }
 }
