@@ -47,6 +47,10 @@
 #include "res_type.h"
 #endif
 
+#ifdef RES_CLINET_SCHED_ENABLE
+#include "qos.h"
+#endif
+
 #ifdef ROSEN_PREVIEW
 #include "glfw_render_context.h"
 #endif
@@ -312,6 +316,11 @@ void RSRenderThread::RenderLoop()
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([this]() { this->RequestNextVSync(); });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
+#endif
+
+#ifdef RES_CLINET_SCHED_ENABLE
+    auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+    RS_LOGI("RSRenderThread: SetThreadQos retcode = %{public}d", ret);
 #endif
 
     if (runner_) {
