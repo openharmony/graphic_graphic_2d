@@ -78,6 +78,20 @@ public:
         return pendingScreenRefreshRate_.load();
     }
 
+    // called by HgmThread
+    // the rate takes effect at the latest hardware timing
+    void SetScreenRefreshRateImme(uint32_t rate)
+    {
+        screenRefreshRateImme_.store(rate);
+    }
+
+    // called by HardwareThread
+    uint32_t GetScreenRefreshRateImme()
+    {
+        // 0 means disenable
+        return screenRefreshRateImme_.exchange(0);
+    }
+
     // called by RSMainThread
     void SetPendingConstraintRelativeTime(uint64_t relativeTime)
     {
@@ -248,6 +262,7 @@ private:
 
     // for LTPO
     std::atomic<uint32_t> pendingScreenRefreshRate_{ 0 };
+    std::atomic<uint32_t> screenRefreshRateImme_{ 0 };
     std::atomic<uint64_t> pendingConstraintRelativeTime_{ 0 };
     std::atomic<uint64_t> timestamp_{ 0 };
     bool ltpoEnabled_ = false;

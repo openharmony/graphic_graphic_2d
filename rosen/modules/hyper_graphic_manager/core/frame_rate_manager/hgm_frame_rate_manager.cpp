@@ -522,6 +522,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     // low refresh rate switch to high refresh rate immediately.
     if (lastRefreshRate < OLED_60_HZ && currRefreshRate_ > lastRefreshRate) {
         hgmCore.SetPendingScreenRefreshRate(currRefreshRate_);
+        hgmCore.SetScreenRefreshRateImme(currRefreshRate_);
         if (hgmCore.IsLowRateToHighQuickEnabled() && controller_) {
             targetTime = controller_->CalcVSyncQuickTriggerTime(timestamp, lastRefreshRate);
             if (targetTime > timestamp && targetTime > 0) {
