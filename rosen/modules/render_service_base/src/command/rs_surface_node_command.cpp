@@ -201,7 +201,8 @@ void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId
     nodeMap.TraverseDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
-                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
+                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation() ||
+                !displayRenderNode->IsOnTheTree()) {
                 return;
             }
             displayRenderNode->AddChild(surfaceRenderNode);
