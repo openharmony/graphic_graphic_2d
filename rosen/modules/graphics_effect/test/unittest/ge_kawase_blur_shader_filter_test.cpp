@@ -179,5 +179,31 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ComputeRadiusAndScale001, TestSize.Level1
     std::string expect = "blur radius is " + std::to_string(float(36)); // 36 match result
     EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
 }
+
+/**
+ * @tc.name: InitSimpleFilter001
+ * @tc.desc: Verify function InitSimpleFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitSimpleFilter001, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitSimpleFilter());
+}
+
+/**
+ * @tc.name: InitBlurEffectForAdvancedFilter001
+ * @tc.desc: Verify function InitBlurEffectForAdvancedFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitBlurEffectForAdvancedFilter001, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter());
+}
+
+
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

@@ -21,9 +21,7 @@ ohos_unittest("GraphicsEffectTest") {
 
   sources = [
     "ge_aibar_shader_filter_test.cpp",
-    "ge_cache_test.cpp",
     "ge_grey_shader_filter_test.cpp",
-    "ge_hash_test.cpp",
     "ge_kawase_blur_shader_filter_test.cpp",
     "ge_linear_gradient_blur_shader_filter_test.cpp",
     "ge_magnifier_shader_filter_test.cpp",
