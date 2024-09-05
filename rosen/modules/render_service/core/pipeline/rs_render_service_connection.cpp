@@ -30,7 +30,6 @@
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
-#include "include/gpu/GrDirectContext.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -1786,12 +1785,11 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, touchStatus, touchCnt]() {
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr != nullptr) {
-            frameRateMgr->HandleTouchEvent(pid, touchStatus, touchCnt);
-        }
-    });
+    if (mainThread_->GetFrameRateMgr() == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifyTouchEvent: frameRateMgr is nullptr.");
+        return;
+    }
+    mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
 }
 
 void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
