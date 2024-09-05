@@ -507,6 +507,10 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
     if (!backendTexture_.IsValid()) {
         return;
     }
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage canvas.GetGPUContext is nullptr");
+        return;
+    }
     if (captureImage_ && captureImage_->IsValid(canvas.GetGPUContext().get())) {
         canvas.DrawImage(*captureImage_, 0, 0, Drawing::SamplingOptions());
         return;
@@ -515,10 +519,6 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
     SharedTextureContext* sharedContext = new SharedTextureContext(image_);
     captureImage_ = std::make_shared<Drawing::Image>();
-    if (canvas.GetGPUContext() == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage canvas.GetGPUContext is nullptr");
-        return;
-    }
     bool ret = captureImage_->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(), origin, info,
         nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
     if (!ret) {
