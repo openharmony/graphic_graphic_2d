@@ -22,8 +22,8 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "draw/surface.h"
 #include "draw/color.h"
+#include "draw/surface.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_base_render_node.h"
