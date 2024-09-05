@@ -608,7 +608,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 uniParam->SetOpDropped(false);
                 // draw black background in rotation for camera
                 curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-                PrepareOffscreenRender(*this);
+                PrepareOffscreenRender(*this, true);
             }
 
             if (uniParam->IsOpDropped()) {
@@ -1426,7 +1426,8 @@ void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
     }
 }
 
-void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable)
+void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
+    bool useFixedSize)
 {
     // params not null in caller
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
@@ -1438,7 +1439,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     int32_t offscreenWidth = static_cast<int32_t>(screenInfo.width);
     int32_t offscreenHeight = static_cast<int32_t>(screenInfo.height);
     // use fixed surface size in order to reduce create texture
-    if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
+    if (useFixedSize && (RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
         && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
         int32_t maxRenderSize =
