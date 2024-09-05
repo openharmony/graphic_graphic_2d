@@ -398,14 +398,15 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         tid_ = gettid();
     }
 
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSBackgroundImageDrawable::MakeFromTextureForVK canvas.GetGPUContext is nullptr");
+        ReleaseNativeWindowBuffer();
+        return nullptr;
+    }
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    if (canvas.GetGPUContext() == nullptr) {
-        RS_LOGE("RSBackgroundImageDrawable::MakeFromTextureForVK canvas.GetGPUContext is nullptr");
-        return;
-    }
     if (!dmaImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
