@@ -111,8 +111,7 @@ napi_value JsFont::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    status = napi_wrap(env, jsThis, jsFont,
-                       JsFont::Destructor, nullptr, nullptr);
+    status = napi_wrap_async_finalizer(env, jsThis, jsFont, JsFont::Destructor, nullptr, nullptr, 0);
     if (status != napi_ok) {
         delete jsFont;
         ROSEN_LOGE("Failed to wrap native instance");
