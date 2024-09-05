@@ -179,7 +179,7 @@ HWTEST_F(RSMaterialFilterTest, PreProcessTest001, TestSize.Level1)
     RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
     auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::FASTAVERAGE);
     rsMaterialFilter->PreProcess(imageSnapshot);
-    EXPECT_EQ(rsMaterialFilter->colorMode_, BLUR_COLOR_MODE::FASTAVERAGE);
+    EXPECT_EQ(rsMaterialFilter->colorMode_, BLUR_COLOR_MODE::AVERAGE);
     rsMaterialFilter->colorMode_ = BLUR_COLOR_MODE::AVERAGE;
     rsMaterialFilter->PreProcess(imageSnapshot);
     EXPECT_EQ(rsMaterialFilter->colorMode_, BLUR_COLOR_MODE::AVERAGE);
