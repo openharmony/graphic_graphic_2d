@@ -35,12 +35,12 @@ struct MemorySnapshotInfo {
 class RSB_EXPORT MemorySnapshot {
 public:
     static MemorySnapshot& Instance();
-    void AddCpuMemory(const pid_t pid, const size_t size, MemorySnapshotInfo& info);
+    void AddCpuMemory(const pid_t pid, const size_t size);
     void RemoveCpuMemory(const pid_t pid, const size_t size);
-    void AddGpuMemory(const pid_t pid, const size_t size, MemorySnapshotInfo& info);
-    void RemoveGpuMemory(const pid_t pid, const size_t size);
     bool GetMemorySnapshotInfoByPid(const pid_t pid, MemorySnapshotInfo& info);
     void EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet);
+    void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
+        std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport);
 private:
     MemorySnapshot() = default;
     ~MemorySnapshot() = default;

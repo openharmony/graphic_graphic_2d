@@ -16,6 +16,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr uint32_t MEMORY_CHECK_REPORT = 200 * (1 << 20); // The memory reporting threshold is 200mb.
+}
 
 MemorySnapshot& MemorySnapshot::Instance()
 {
@@ -23,12 +26,11 @@ MemorySnapshot& MemorySnapshot::Instance()
     return instance;
 }
 
-void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size, MemorySnapshotInfo& info)
+void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
     mInfo.cpuMemory += size;
-    info = mInfo;
 }
 
 void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
@@ -37,23 +39,6 @@ void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
     auto it = appMemorySnapshots_.find(pid);
     if (it != appMemorySnapshots_.end()) {
         it->second.cpuMemory -= size;
-    }
-}
-
-void MemorySnapshot::AddGpuMemory(const pid_t pid, const size_t size, MemorySnapshotInfo& info)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
-    mInfo.gpuMemory += size;
-    info = mInfo;
-}
-
-void MemorySnapshot::RemoveGpuMemory(const pid_t pid, const size_t size)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = appMemorySnapshots_.find(pid);
-    if (it != appMemorySnapshots_.end()) {
-        it->second.gpuMemory -= size;
     }
 }
 
@@ -66,6 +51,21 @@ bool MemorySnapshot::GetMemorySnapshotInfoByPid(const pid_t pid, MemorySnapshotI
     }
     info = it->second;
     return true;
+}
+
+void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
+    std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto& [pid, info] : appMemorySnapshots_) {
+        auto it = gpuInfo.find(pid);
+        if (it != gpuInfo.end()) {
+            info.gpuMemory = it->second;
+        }
+        if (info.TotalMemory() > MEMORY_CHECK_REPORT) {
+            pidForReport.emplace(pid, info);
+        }
+    }
 }
 
 void MemorySnapshot::EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet)
