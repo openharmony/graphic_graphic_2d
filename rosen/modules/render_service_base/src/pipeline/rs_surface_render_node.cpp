@@ -944,12 +944,12 @@ void RSSurfaceRenderNode::SyncSkipInfoToFirstLevelNode()
 
 void RSSurfaceRenderNode::SyncOnTheTreeInfoToFirstLevelNode()
 {
-    if (!IsOnTheTree()) {
+    if (!IsOnTheTree() || GetFirstLevelNodeId() == GetId()) {
         return;
     }
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
     // firstLevelNode is the nearest app window / leash node
-    if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+    if (firstLevelNode) {
         if (isSnapshotSkipLayer_) {
             firstLevelNode->snapshotSkipLayerIds_.insert(GetId());
         } else {
