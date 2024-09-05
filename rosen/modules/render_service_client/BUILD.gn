@@ -210,7 +210,10 @@ template("render_service_client_source_set") {
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
         "image_framework:image_native",
+        "qos_manager:qos",
       ]
+
+      defines += [ "RES_CLINET_SCHED_ENABLE" ]
 
       if (accessibility_enable) {
         external_deps += [ "accessibility:accessibilityconfig" ]
