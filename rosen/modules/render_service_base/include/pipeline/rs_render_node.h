@@ -778,25 +778,22 @@ protected:
     virtual void OnSkipSync() {};
     virtual void ClearResource() {};
 
-    std::unique_ptr<RSRenderParams> stagingRenderParams_;
     mutable std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> renderDrawable_;
-
+    NodeId drawingCacheRootId_ = INVALID_NODEID;
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
+    int isUifirstDelay_ = 0;
     std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
-    bool isNodeSingleFrameComposer_ = false;
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
     bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
-
     bool IsSelfDrawingNode() const;
-    bool isOnTheTree_ = false;
-    NodeId drawingCacheRootId_ = INVALID_NODEID;
+    bool lastFrameHasAnimation_ = false;
     bool mustRenewedInfo_ = false;
     bool needClearSurface_ = false;
-
-    ModifierDirtyTypes dirtyTypes_;
-    ModifierDirtyTypes curDirtyTypes_;
     bool isBootAnimation_ = false;
+    std::atomic<bool> isStaticCached_ = false;
+    bool lastFrameHasVisibleEffect_ = false;
+    RectI filterRegion_;
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
@@ -807,83 +804,204 @@ protected:
     {
         renderContent_->DrawPropertyDrawableRange(begin, end, canvas);
     }
-    bool isChildSupportUifirst_ = true;
-    bool childHasSharedTransition_ = false;
-    bool lastFrameSynced_ = true;
-    bool clipAbsDrawRectChange_ = false;
-    bool startingWindowFlag_ = false;
-    bool isUifirstNode_ = true;
-    int isUifirstDelay_ = 0;
-    bool lastFrameHasAnimation_ = false;
 
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
-    std::atomic<bool> isStaticCached_ = false;
-    bool lastFrameHasVisibleEffect_ = false;
-    RectI filterRegion_;
+
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     mutable bool isFullChildrenListValid_ = true;
+    bool isOnTheTree_ = false;
+    bool isChildSupportUifirst_ = true;
+    bool isUifirstNode_ = true;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
+    ModifierDirtyTypes dirtyTypes_;
+    ModifierDirtyTypes curDirtyTypes_;
+    std::unique_ptr<RSRenderParams> stagingRenderParams_;
+    bool lastFrameSynced_ = true;
+    bool clipAbsDrawRectChange_ = false;
+    bool startingWindowFlag_ = false;
+    bool isNodeSingleFrameComposer_ = false;
+    bool childHasSharedTransition_ = false;
 private:
+    // shadowRectOffset means offset between shadowRect and absRect of node
+    int shadowRectOffsetX_ = 0;
+    int shadowRectOffsetY_ = 0;
+    bool isChildrenSorted_ = true;
+    bool childrenHasSharedTransition_ = false;
+    uint8_t nodeGroupType_ = NodeGroupType::NONE;
+    bool shouldPaint_ = true;
+    // drawing group cache
+    RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
+    bool isTextureExportNode_ = false;
+    uint8_t drawableVecStatus_ = 0;
+    bool isOnlyBasicGeoTransform_ = true;
+    const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
+    std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
+    std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
+    std::unordered_set<RSDrawableSlot> dirtySlots_;
+    std::weak_ptr<RSContext> context_ = {};
+    uint32_t disappearingTransitionCount_ = 0;
+    // Test pipeline
+    bool addedToPendingSyncList_ = false;
+    bool drawCmdListNeedSync_ = false;
+    // accumulate all children's region rect for dirty merging when any child has been removed
+    bool hasRemovedChild_ = false;
+    bool lastFrameSubTreeSkipped_ = false;
+    DrawCmdIndex stagingDrawCmdIndex_;
+    bool curFrameHasAnimation_ = false;
+    bool childHasVisibleFilter_ = false;  // only collect visible children filter status
+    bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
+    bool hasChildrenOutOfRect_ = false;
+    // opinc state
+    NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
+    std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
+    std::vector<NodeId> visibleFilterChild_;
+    std::unordered_set<NodeId> visibleEffectChild_;
+    bool isSubTreeDirty_ = false;
+    bool isContentDirty_ = false;
+    bool nodeGroupIncludeProperty_ = false;
+    bool isNewOnTree_ = false;
+    bool geometryChangeNotPerceived_ = false;
+    // node region, only used in selfdrawing node dirty
+    bool isSelfDrawingNode_ = false;
+    bool isDirtyRegionUpdated_ = false;
+    bool isLastVisible_ = false;
+    // including enlarged draw region
+    RectF selfDrawRect_;
+    RectI localShadowRect_;
+    RectI localOutlineRect_;
+    RectI localPixelStretchRect_;
+    RectI localForegroundEffectRect_;
+    // map parentMatrix
+    RectI absDrawRect_;
+    RectI oldAbsDrawRect_;
+    bool isAccumulatedClipFlagChanged_ = false;
+    bool hasAccumulatedClipFlag_ = false;
+    bool isOpincNodeSupportFlag_ = true;
+    bool isSuggestOpincNode_ = false;
+    // since preparation optimization would skip child's dirtyFlag(geoDirty) update
+    // it should be recorded and update if marked dirty again
+    bool geoUpdateDelay_ = false;
+    bool isOpincRootFlag_ = false;
+    bool lastFrameHasChildrenOutOfRect_ = false;
+    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+    float globalAlpha_ = 1.0f;
+    RectI oldDirty_;
+    RectI oldDirtyInSurface_;
+    RectI childrenRect_;
+    RectI oldChildrenRect_;
+    RectI oldClipRect_;
+    // bounds and frame modifiers must be unique
+    std::shared_ptr<RSRenderModifier> boundsModifier_;
+    std::shared_ptr<RSRenderModifier> frameModifier_;
+    Drawing::Matrix oldAbsMatrix_;
+    RSDrawable::Vec drawableVec_;
+    // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
+    // `for (auto child : *GetSortedChildren()) { ... }` will crash.
+    // When an empty list is needed, use EmptyChildrenList instead.
+    static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
+    ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
+    WeakPtr parent_;
+    std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
+    RSAnimationManager animationManager_;
+
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
-    NodeId firstLevelNodeId_ = INVALID_NODEID;
+    std::list<WeakPtr> children_;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
+    NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
+    friend class RSRenderPropertyBase;
+    friend class RSRenderTransition;
+    std::atomic<bool> isTunnelHandleChange_ = false;
+    bool isContainBootAnimation_ = false;
+    bool isUnchangeMarkEnable_ = false;
+    bool isNeedCalculate_ = false;
+    int tryCacheTimes_ = 0;
+    // aim to record children rect in abs coords, without considering clip
+    RectI absChildrenRect_;
+    // aim to record current frame clipped children dirty region, in abs coords
+    RectI subTreeDirtyRegion_;
+    int unchangeCount_ = 0;
+    int unchangeCountUpper_ = 3; // 3 time is the default to cache
+    std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
+    std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    Drawing::BackendTexture cacheBackendTexture_;
+    Drawing::BackendTexture cacheCompletedBackendTexture_;
+#ifdef RS_ENABLE_VK
+    NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
+    NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
+#endif
+    bool isTextureValid_ = false;
+#endif
+    bool isUnchangeMarkInApp_ = false;
+    std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
+    std::string nodeName_ = "";
+    CacheType cacheType_ = CacheType::NONE;
+    bool isDrawingCacheChanged_ = false;
+    bool drawingCacheNeedUpdate_ = false;
+    std::atomic<bool> commandExecuted_ = false;
+    // collect subtree's surfaceNode including itself
+    uint32_t subSurfaceCnt_ = 0;
+    std::unordered_set<NodeId> curCacheFilterRects_ = {};
+    std::unordered_set<NodeId> visitedCacheRoots_ = {};
+    mutable std::recursive_mutex surfaceMutex_;
+    ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
+    uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
+    uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
+    bool isMainThreadNode_ = true;
+    bool isScale_ = false;
+    bool isScaleInPreFrame_ = false;
+    bool hasFilter_ = false;
+    bool hasHardwareNode_ = false;
+    bool hasAbilityComponent_ = false;
+    bool isAncestorDirty_ = false;
+    bool isParentLeashWindow_ = false;
+    bool isParentScbScreen_ = false;
+    bool hasCacheableAnim_ = false;
+    NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
+    OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
+    Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
+    std::shared_ptr<RectF> drawRegion_ = nullptr;
+    // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
+    float boundsWidth_ = 0.0f;
+    float boundsHeight_ = 0.0f;
+    RectF selfDrawingNodeDirtyRect_;
+    RectI selfDrawingNodeAbsDirtyRect_;
+    // used in old pipline
+    RectI oldRectFromRenderProperties_;
+    std::atomic_bool isUsedBySubThread_ = false;
+    bool lastIsNeedAssignToSubThread_ = false;
+    uint8_t drawableVecStatusV1_ = 0;
+    bool uifirstNeedSync_ = false; // both cmdlist&param
+    pid_t appPid_ = 0;
+    std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
+    // for blur cache
+    RectI lastFilterRegion_;
+    bool uifirstSkipPartialSync_ = false;
+    bool forceUpdateByUifirst_ = false;
+    bool backgroundFilterRegionChanged_ = false;
+    bool backgroundFilterInteractWithDirty_ = false;
+    bool foregroundFilterRegionChanged_ = false;
+    bool foregroundFilterInteractWithDirty_ = false;
+    bool isOccluded_ = false;
+    // for UIExtension info collection
+    bool childrenHasUIExtension_ = false;
 
-    WeakPtr parent_;
     void SetParent(WeakPtr parent);
     void ResetParent();
     void UpdateClipAbsDrawRectChangeState(const RectI& clipRect);
     bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
-    std::list<WeakPtr> children_;
-    std::list<std::pair<SharedPtr, uint32_t>> disappearingChildren_;
-
-    // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
-    // `for (auto child : *GetSortedChildren()) { ... }` will crash.
-    // When an empty list is needed, use EmptyChildrenList instead.
-    static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
-    ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
-    bool isChildrenSorted_ = true;
-
     void GenerateFullChildrenList();
     void ResortChildren();
     bool ShouldClearSurface();
-
-    std::weak_ptr<RSContext> context_ = {};
-
-    bool isContentDirty_ = false;
-    bool isNewOnTree_ = false;
-    bool isOnlyBasicGeoTransform_ = true;
-    friend class RSRenderPropertyBase;
-    friend class RSRenderTransition;
-    std::atomic<bool> isTunnelHandleChange_ = false;
-    // accumulate all children's region rect for dirty merging when any child has been removed
-    bool hasRemovedChild_ = false;
-    bool lastFrameSubTreeSkipped_ = false;
-    bool hasChildrenOutOfRect_ = false;
-    bool lastFrameHasChildrenOutOfRect_ = false;
-    bool isAccumulatedClipFlagChanged_ = false;
-    bool hasAccumulatedClipFlag_ = false;
-    RectI childrenRect_;
-    RectI oldChildrenRect_;
-    RectI oldClipRect_;
-    Drawing::Matrix oldAbsMatrix_;
-    
-    // aim to record children rect in abs coords, without considering clip
-    RectI absChildrenRect_;
-    // aim to record current frame clipped children dirty region, in abs coords
-    RectI subTreeDirtyRegion_;
-
-    bool childHasVisibleFilter_ = false;  // only collect visible children filter status
-    bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
-    std::vector<NodeId> visibleFilterChild_;
-    std::unordered_set<NodeId> visibleEffectChild_;
 
     void InternalRemoveSelfFromDisappearingChildren();
     void FallbackAnimationsToRoot();
@@ -904,33 +1022,6 @@ private:
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
-    bool shouldPaint_ = true;
-    bool isSubTreeDirty_ = false;
-
-    bool isDirtyRegionUpdated_ = false;
-    bool isContainBootAnimation_ = false;
-    bool isLastVisible_ = false;
-    uint32_t disappearingTransitionCount_ = 0;
-    RectI oldDirty_;
-    RectI oldDirtyInSurface_;
-    RSAnimationManager animationManager_;
-    std::map<PropertyId, std::shared_ptr<RSRenderModifier>> modifiers_;
-    // bounds and frame modifiers must be unique
-    std::shared_ptr<RSRenderModifier> boundsModifier_;
-    std::shared_ptr<RSRenderModifier> frameModifier_;
-
-    // opinc state
-    NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
-    int unchangeCount_ = 0;
-    int unchangeCountUpper_ = 3; // 3 time is the default to cache
-    int tryCacheTimes_ = 0;
-    bool isUnchangeMarkInApp_ = false;
-    bool isUnchangeMarkEnable_ = false;
-
-    bool isOpincNodeSupportFlag_ = true;
-    bool isSuggestOpincNode_ = false;
-    bool isNeedCalculate_ = false;
-    bool isOpincRootFlag_ = false;
 
     // opinc state func
     void NodeCacheStateChange(NodeChangeType type);
@@ -939,129 +1030,14 @@ private:
 
     std::shared_ptr<Drawing::Image> GetCompletedImage(
         RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
-    std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
-    std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::BackendTexture cacheBackendTexture_;
-    Drawing::BackendTexture cacheCompletedBackendTexture_;
-#ifdef RS_ENABLE_VK
-    NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
-    NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
-#endif
-    bool isTextureValid_ = false;
-#endif
-    std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
-    std::string nodeName_ = "";
-    CacheType cacheType_ = CacheType::NONE;
-    // drawing group cache
-    RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
-    bool isDrawingCacheChanged_ = false;
-    bool drawingCacheNeedUpdate_ = false;
-    // since preparation optimization would skip child's dirtyFlag(geoDirty) update
-    // it should be recorded and update if marked dirty again
-    bool geoUpdateDelay_ = false;
 
-    std::atomic<bool> commandExecuted_ = false;
-    std::unordered_set<NodeId> curCacheFilterRects_ = {};
-    std::unordered_set<NodeId> visitedCacheRoots_ = {};
-    // collect subtree's surfaceNode including itself
-    uint32_t subSurfaceCnt_ = 0;
-
-    mutable std::recursive_mutex surfaceMutex_;
-    ClearCacheSurfaceFunc clearCacheSurfaceFunc_ = nullptr;
-    uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
-    uint32_t completedSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
-    bool isMainThreadNode_ = true;
-    bool isScale_ = false;
-    bool isScaleInPreFrame_ = false;
-    bool hasFilter_ = false;
-    bool hasHardwareNode_ = false;
-    bool hasAbilityComponent_ = false;
-    bool isAncestorDirty_ = false;
-    bool isParentLeashWindow_ = false;
-    bool isParentScbScreen_ = false;
-    NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
-
-    OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
-    float globalAlpha_ = 1.0f;
-    Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
-
-    bool childrenHasSharedTransition_ = false;
-    std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
-
-    std::shared_ptr<RectF> drawRegion_ = nullptr;
-    uint8_t nodeGroupType_ = NodeGroupType::NONE;
-    bool nodeGroupIncludeProperty_ = false;
-
-    // shadowRectOffset means offset between shadowRect and absRect of node
-    int shadowRectOffsetX_ = 0;
-    int shadowRectOffsetY_ = 0;
-    // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
-    float boundsWidth_ = 0.0f;
-    float boundsHeight_ = 0.0f;
-    bool hasCacheableAnim_ = false;
-    bool geometryChangeNotPerceived_ = false;
-    // node region, only used in selfdrawing node dirty
-    bool isSelfDrawingNode_ = false;
-    RectF selfDrawingNodeDirtyRect_;
-    RectI selfDrawingNodeAbsDirtyRect_;
-    RectI oldAbsDrawRect_;
-    // used in old pipline
-    RectI oldRectFromRenderProperties_;
-    // including enlarged draw region
-    RectF selfDrawRect_;
-    RectI localShadowRect_;
-    RectI localOutlineRect_;
-    RectI localPixelStretchRect_;
-    RectI localForegroundEffectRect_;
-    // map parentMatrix
-    RectI absDrawRect_;
-
-    bool isTextureExportNode_ = false;
-
-    std::atomic_bool isUsedBySubThread_ = false;
-    bool lastIsNeedAssignToSubThread_ = false;
-
-    std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
-
-    uint8_t drawableVecStatusV1_ = 0;
-    uint8_t drawableVecStatus_ = 0;
     void UpdateDrawableVec();
     void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
     void UpdateDrawableVecV2();
     void UpdateDisplayList();
     void UpdateShadowRect();
-    std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
-    pid_t appPid_ = 0;
-
-    const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
-
-    // Test pipeline
-    bool addedToPendingSyncList_ = false;
-    bool drawCmdListNeedSync_ = false;
-    bool uifirstNeedSync_ = false; // both cmdlist&param
-    bool uifirstSkipPartialSync_ = false;
-    bool forceUpdateByUifirst_ = false;
-    bool curFrameHasAnimation_ = false;
-    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
-    DrawCmdIndex stagingDrawCmdIndex_;
-    std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
-
-    std::unordered_set<RSDrawableSlot> dirtySlots_;
-    RSDrawable::Vec drawableVec_;
-
-    // for blur cache
-    RectI lastFilterRegion_;
-    bool backgroundFilterRegionChanged_ = false;
-    bool backgroundFilterInteractWithDirty_ = false;
-    bool foregroundFilterRegionChanged_ = false;
-    bool foregroundFilterInteractWithDirty_ = false;
-    bool isOccluded_ = false;
-
-    // for UIExtension info collection
-    bool childrenHasUIExtension_ = false;
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
