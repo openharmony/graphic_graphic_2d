@@ -31,9 +31,6 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_singleton.h"
 #include "memory/rs_tag_tracker.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "render_context/memory_handler.h"
-#endif
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -408,12 +405,8 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
 
     /* ShaderCache */
     log.AppendFormat("\n---------------\nShader Caches:\n");
-#ifdef NEW_RENDER_CONTEXT
-    log.AppendFormat(MemoryHandler::QuerryShader().c_str());
-#else
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
-#endif
     // gpu stat
     log.AppendFormat("\n---------------\ndumpGpuStats:\n");
     std::string stat;

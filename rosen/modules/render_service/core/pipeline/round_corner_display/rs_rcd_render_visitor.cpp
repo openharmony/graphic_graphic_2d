@@ -111,13 +111,8 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
         return;
     }
 
-#ifdef NEW_RENDER_CONTEXT
-    auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface),
-        node.GetHardenBufferRequestConfig(), true, false);
-#else
     auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
         node.GetHardenBufferRequestConfig(), true, false);
-#endif
     if (renderFrame == nullptr) {
         RS_LOGE("RSRcdRenderVisitor Request Frame Failed");
         return;

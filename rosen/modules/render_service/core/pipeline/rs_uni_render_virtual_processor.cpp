@@ -23,9 +23,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "platform/common/rs_log.h"
-#ifndef NEW_RENDER_CONTEXT
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
-#endif
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "string_utils.h"
@@ -101,15 +99,9 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
             rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
             displayDrawable.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
         }
-#ifdef NEW_RENDER_CONTEXT
-        renderFrame_ = renderEngine_->RequestFrame(
-            std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
-            frameContextConfig);
-#else
         renderFrame_ = renderEngine_->RequestFrame(
             std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
             frameContextConfig);
-#endif
     }
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): RenderFrame is null!",
@@ -160,13 +152,8 @@ bool RSUniRenderVirtualProcessor::RequestVirtualFrame(DrawableV2::RSDisplayRende
             rsSurface = renderEngine->MakeRSSurface(producerSurface_, forceCPU_);
             displayDrawable.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
         }
-#ifdef NEW_RENDER_CONTEXT
-        renderFrame_ = renderEngine->RequestFrame(
-            std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
-#else
         renderFrame_ = renderEngine->RequestFrame(
             std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
-#endif
     }
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::RequestVirtualFrame RenderFrame is null!");

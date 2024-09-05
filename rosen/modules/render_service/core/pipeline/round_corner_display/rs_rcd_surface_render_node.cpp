@@ -254,11 +254,7 @@ bool RSRcdSurfaceRenderNode::IsSurfaceCreated() const
     return rcdExtInfo_.surfaceCreated;
 }
 
-#ifdef NEW_RENDER_CONTEXT
-std::shared_ptr<RSRenderSurface> RSRcdSurfaceRenderNode::GetRSSurface() const
-#else
 std::shared_ptr<RSSurface> RSRcdSurfaceRenderNode::GetRSSurface() const
-#endif
 {
     return surface_;
 }

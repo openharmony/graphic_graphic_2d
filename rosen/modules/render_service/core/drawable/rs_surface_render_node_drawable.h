@@ -21,11 +21,7 @@
 #include <iconsumer_surface.h>
 #include <surface.h>
 #endif
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
-#endif
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
@@ -290,11 +286,7 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
-#else
     std::shared_ptr<RSSurface> surface_ = nullptr;
-#endif
     bool surfaceCreated_ = false;
 
     // UIFIRST

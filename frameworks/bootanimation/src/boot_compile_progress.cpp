@@ -21,10 +21,6 @@
 #include "parameters.h"
 #include "platform/common/rs_system_properties.h"
 #include "recording/recording_canvas.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "render_context_factory.h"
-#include "rs_surface_factory.h"
-#endif
 #include "animation/rs_animation_common.h"
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_interpolator.h"

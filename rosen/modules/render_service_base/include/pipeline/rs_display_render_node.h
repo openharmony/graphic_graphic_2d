@@ -34,11 +34,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {

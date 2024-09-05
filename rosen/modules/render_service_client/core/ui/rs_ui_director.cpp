@@ -36,9 +36,6 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "render_context/memory_handler.h"
-#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -165,11 +162,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         // clean bufferQueue cache
         RSRenderThread::Instance().PostTask([surfaceNode]() {
             if (surfaceNode != nullptr) {
-#ifdef NEW_RENDER_CONTEXT
-                std::shared_ptr<RSRenderSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
-#else
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
-#endif
                 if (rsSurface == nullptr) {
                     ROSEN_LOGE("rsSurface is nullptr");
                     return;
@@ -182,12 +175,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             auto renderContext = RSRenderThread::Instance().GetRenderContext();
             if (renderContext != nullptr) {
 #ifndef ROSEN_CROSS_PLATFORM
-#if defined(NEW_RENDER_CONTEXT)
-                auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
-                MemoryHandler::ClearRedundantResources(drawingContext->GetDrawingContext());
-#else
                 renderContext->ClearRedundantResources();
-#endif
 #endif
             }
         });
