@@ -2043,6 +2043,9 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode&
 
 void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
 {
+    if (surfaceNode->GetDirtyManager() == nullptr || curDisplayNode_->GetDirtyManager() == nullptr) {
+        return;
+    }
     // 1 Handles the case of transparent surface, merge transparent dirty rect
     CheckMergeDisplayDirtyByTransparent(*surfaceNode);
     // 2 Zorder changed case, merge surface dest Rect
@@ -2325,10 +2328,13 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
         nodeParent->OpincUpdateNodeSupportFlag(node.OpincGetNodeSupportFlag());
     }
-    if (node.GetSharedTransitionParam() && node.GetRenderProperties().GetSandBox()) {
-        node.GetStagingRenderParams()->SetAlpha(curAlpha_);
-    } else {
-        node.GetStagingRenderParams()->SetAlpha(node.GetRenderProperties().GetAlpha());
+    auto& stagingRenderParams = node.GetStagingRenderParams();
+    if (stagingRenderParams != nullptr) {
+        if (node.GetSharedTransitionParam() && node.GetRenderProperties().GetSandBox()) {
+            stagingRenderParams->SetAlpha(curAlpha_);
+        } else {
+            stagingRenderParams->SetAlpha(node.GetRenderProperties().GetAlpha());
+        }
     }
 
     // planning: only do this if node is dirty
