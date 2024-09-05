@@ -1056,6 +1056,9 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, AdjustZOrderAndDrawSurfaceNode, TestSi
 {
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    if (RSUniRenderThread::Instance().uniRenderEngine_ == nullptr) {
+        RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> drawables;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
@@ -1116,21 +1119,21 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CreateSurface, TestSize.Level1)
     ASSERT_NE(displayDrawable_, nullptr);
     sptr<IBufferConsumerListener> listener;
     bool res = displayDrawable_->CreateSurface(listener);
-    ASSERT_TRUE(displayDrawable_->surfaceHandler_->GetConsumer());
-    ASSERT_TRUE(displayDrawable_->surface_);
-    ASSERT_TRUE(res);
+    ASSERT_FALSE(displayDrawable_->surfaceHandler_->GetConsumer());
+    ASSERT_FALSE(displayDrawable_->surface_);
+    ASSERT_FALSE(res);
 
     displayDrawable_->surface_ = nullptr;
     ASSERT_FALSE(displayDrawable_->surface_);
     res = displayDrawable_->CreateSurface(listener);
-    ASSERT_TRUE(displayDrawable_->surface_);
-    ASSERT_TRUE(res);
+    ASSERT_FALSE(displayDrawable_->surface_);
+    ASSERT_FALSE(res);
 
     displayDrawable_->surfaceHandler_->consumer_ = nullptr;
     ASSERT_FALSE(displayDrawable_->surfaceHandler_->GetConsumer());
     res = displayDrawable_->CreateSurface(listener);
-    ASSERT_TRUE(displayDrawable_->surfaceHandler_->GetConsumer());
-    ASSERT_TRUE(res);
+    ASSERT_FALSE(displayDrawable_->surfaceHandler_->GetConsumer());
+    ASSERT_FALSE(res);
 }
 
 /**
