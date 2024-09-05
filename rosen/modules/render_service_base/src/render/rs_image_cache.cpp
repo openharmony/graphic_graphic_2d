@@ -70,11 +70,12 @@ void RSImageCache::ReleaseDrawingImageCache(uint64_t uniqueId)
 void RSImageCache::CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (pixelMap && uniqueId > 0) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
-        pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
-        if (pid && memoryCheckCallback_) {
-            memoryCheckCallback_(pid, pixelMap->GetCapacity(), false);
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
+        }
+        if (pid_t pid = uniqueId >> 32) { // right shift 32 bit to restore pid
+            MemorySnapshot::Instance().AddCpuMemory(pid, pixelMap->GetCapacity());
         }
     }
 }
@@ -127,8 +128,7 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
             it->second.second--;
             if (it->second.first == nullptr || it->second.second == 0) {
                 pixelMap = it->second.first;
-                pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
-                if (pid) {
+                if (pid_t pid = uniqueId >> 32) { // right shift 32 bit to restore pid
                     MemorySnapshot::Instance().RemoveCpuMemory(pid, pixelMap->GetCapacity());
                 }
                 pixelMapCache_.erase(it);
@@ -168,13 +168,6 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
     auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
         pixelMapIdRelatedDrawingImageCache_.erase(it);
-    }
-}
-
-void RSImageCache::SetMemoryCheckCallback(MemoryCheckCallback callback)
-{
-    if (memoryCheckCallback_ == nullptr) {
-        memoryCheckCallback_ = callback;
     }
 }
 } // namespace Rosen

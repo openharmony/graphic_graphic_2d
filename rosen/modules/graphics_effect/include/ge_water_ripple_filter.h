@@ -194,7 +194,10 @@ private:
             s_wavePropRatio *= veloDecay;
 
             vec2 b_waveCenter = b_rippleCenter * resRatio;
-            vec2 s_waveCenter = vec2(0.5, 0.) * resRatio;
+            vec2 s_rippleCenter = vec2(0.5, 0.);
+            s_rippleCenter.x = (b_rippleCenter.x == 0.5) ? 0.5 : floor(b_rippleCenter.x + 0.5);
+            s_rippleCenter.y = (b_rippleCenter.y == 0.5) ? 0.5 : floor(b_rippleCenter.y + 0.5);
+            vec2 s_waveCenter = s_rippleCenter * resRatio;
             float b_propDis = distance(uvHomo, b_waveCenter);
             float s_propDis = distance(uvHomo, s_waveCenter);
             vec2 b_vec = uvHomo - b_waveCenter;

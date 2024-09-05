@@ -204,7 +204,7 @@ bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
 void RSSurfaceRenderNode::StoreMustRenewedInfo()
 {
     mustRenewedInfo_ = RSRenderNode::HasMustRenewedInfo() || GetHasSecurityLayer() ||
-        GetHasSkipLayer() || GetHasProtectedLayer();
+        GetHasSkipLayer() || GetHasSnapshotSkipLayer() || GetHasProtectedLayer();
 }
 
 std::string RSSurfaceRenderNode::DirtyRegionDump() const
@@ -393,6 +393,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     // sync skip & security info
     SyncSecurityInfoToFirstLevelNode();
     SyncSkipInfoToFirstLevelNode();
+    SyncSnapshotSkipInfoToFirstLevelNode();
     SyncProtectedInfoToFirstLevelNode();
 }
 
@@ -834,6 +835,22 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
     SyncSkipInfoToFirstLevelNode();
 }
 
+void RSSurfaceRenderNode::SetSnapshotSkipLayer(bool isSnapshotSkipLayer)
+{
+    if (isSnapshotSkipLayer_ == isSnapshotSkipLayer) {
+        return;
+    }
+    specialLayerChanged_ = true;
+    isSnapshotSkipLayer_ = isSnapshotSkipLayer;
+    SetDirty();
+    if (isSnapshotSkipLayer) {
+        snapshotSkipLayerIds_.insert(GetId());
+    } else {
+        snapshotSkipLayerIds_.erase(GetId());
+    }
+    SyncOnTheTreeInfoToFirstLevelNode();
+}
+
 void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
 {
     if (isProtectedLayer_ == isProtectedLayer) {
@@ -867,6 +884,11 @@ bool RSSurfaceRenderNode::GetSkipLayer() const
     return isSkipLayer_;
 }
 
+bool RSSurfaceRenderNode::GetSnapshotSkipLayer() const
+{
+    return isSnapshotSkipLayer_;
+}
+
 bool RSSurfaceRenderNode::GetProtectedLayer() const
 {
     return isProtectedLayer_;
@@ -880,6 +902,11 @@ bool RSSurfaceRenderNode::GetHasSecurityLayer() const
 bool RSSurfaceRenderNode::GetHasSkipLayer() const
 {
     return skipLayerIds_.size() != 0;
+}
+
+bool RSSurfaceRenderNode::GetHasSnapshotSkipLayer() const
+{
+    return !snapshotSkipLayerIds_.empty();
 }
 
 bool RSSurfaceRenderNode::GetHasProtectedLayer() const
@@ -910,6 +937,40 @@ void RSSurfaceRenderNode::SyncSkipInfoToFirstLevelNode()
             firstLevelNode->skipLayerIds_.insert(GetId());
         } else {
             firstLevelNode->skipLayerIds_.erase(GetId());
+        }
+        firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
+    }
+}
+
+void RSSurfaceRenderNode::SyncOnTheTreeInfoToFirstLevelNode()
+{
+    if (!IsOnTheTree() || GetFirstLevelNodeId() == GetId()) {
+        return;
+    }
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    // firstLevelNode is the nearest app window / leash node
+    if (firstLevelNode) {
+        if (isSnapshotSkipLayer_) {
+            firstLevelNode->snapshotSkipLayerIds_.insert(GetId());
+        } else {
+            firstLevelNode->snapshotSkipLayerIds_.erase(GetId());
+        }
+        firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
+    }
+}
+
+void RSSurfaceRenderNode::SyncSnapshotSkipInfoToFirstLevelNode()
+{
+    if (isSnapshotSkipLayer_ == false || GetFirstLevelNodeId() == GetId()) {
+        return;
+    }
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    // firstLevelNode is the nearest app window / leash node
+    if (firstLevelNode) {
+        if (IsOnTheTree()) {
+            firstLevelNode->snapshotSkipLayerIds_.insert(GetId());
+        } else {
+            firstLevelNode->snapshotSkipLayerIds_.erase(GetId());
         }
         firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
     }
@@ -2728,11 +2789,13 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
+    surfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
     surfaceParams->isProtectedLayer_ = isProtectedLayer_;
     surfaceParams->animateState_ = animateState_;
     surfaceParams->isRotating_ = isRotating_;
     surfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
+    surfaceParams->snapshotSkipLayerIds_= snapshotSkipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
     surfaceParams->protectedLayerIds_= protectedLayerIds_;
     surfaceParams->name_= name_;

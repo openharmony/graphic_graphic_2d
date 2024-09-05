@@ -286,6 +286,17 @@ HWTEST_F(RSSystemPropertiesTest, GetDrawMirrorCacheImageEnabled, TestSize.Level1
 }
 
 /**
+ * @tc.name: GetPixelmapDfxEnabled
+ * @tc.desc: GetPixelmapDfxEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetPixelmapDfxEnabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetPixelmapDfxEnabled());
+}
+
+/**
  * @tc.name: GetAFBCEnabled
  * @tc.desc: GetAFBCEnabled Test
  * @tc.type:FUNC

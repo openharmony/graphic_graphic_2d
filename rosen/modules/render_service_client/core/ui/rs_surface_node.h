@@ -83,6 +83,8 @@ public:
     bool GetSecurityLayer() const;
     void SetSkipLayer(bool isSkipLayer);
     bool GetSkipLayer() const;
+    void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
+    bool GetSnapshotSkipLayer() const;
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
     void SetAbilityBGAlpha(uint8_t alpha);
@@ -185,6 +187,7 @@ private:
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool hasFingerprint_ = false;
     bool isChildOperationDisallowed_ { false };
     bool isBootAnimation_ = false;

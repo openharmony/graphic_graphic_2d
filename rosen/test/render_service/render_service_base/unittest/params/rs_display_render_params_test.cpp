@@ -173,6 +173,22 @@ HWTEST_F(RSDisplayRenderParamsTest, HasSkipLayer, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HasSnapshotSkipLayer001
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderParamsTest, HasSnapshotSkipLayer001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    EXPECT_FALSE(params.HasSnapshotSkipLayer());
+
+    params.displayHasSnapshotSkipSurface_[params.screenId_] = true;
+    EXPECT_TRUE(params.HasSnapshotSkipLayer());
+}
+
+/**
  * @tc.name: HasProtectedLayer
  * @tc.desc:
  * @tc.type:FUNC

@@ -183,6 +183,24 @@ HWTEST_F(RSWindowAnimationStubTest, StartApp002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: StartApp003
+ * @tc.desc: Verify the StartApp
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, StartApp003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest StartApp003 start";
+    MessageParcel data1;
+    MessageParcel reply;
+    MessageOption option;
+    data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_START_APP, data1, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest StartApp003 end";
+}
+
+/**
  * @tc.name: AppTransition001
  * @tc.desc: Verify the AppTransition
  * @tc.type:FUNC

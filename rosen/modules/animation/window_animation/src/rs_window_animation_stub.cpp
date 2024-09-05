@@ -63,7 +63,11 @@ int RSWindowAnimationStub::OnRemoteRequest(uint32_t code, MessageParcel& data,
 int RSWindowAnimationStub::StartApp(MessageParcel& data, MessageParcel& reply)
 {
     WALOGD("Window animation start app!");
-    StartingAppType type = static_cast<StartingAppType>(data.ReadInt32());
+    int32_t type = 0;
+    if (!data.ReadInt32(type)) {
+        WALOGE("Failed to read starting app type!");
+        return ERR_INVALID_DATA;
+    }
     sptr<RSWindowAnimationTarget> startingWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
     if (startingWindowTarget == nullptr) {
         WALOGE("Failed to read starting window target!");
@@ -78,7 +82,7 @@ int RSWindowAnimationStub::StartApp(MessageParcel& data, MessageParcel& reply)
         return ERR_INVALID_DATA;
     }
 
-    OnStartApp(type, startingWindowTarget, finishedCallback);
+    OnStartApp(static_cast<StartingAppType>(type), startingWindowTarget, finishedCallback);
     return ERR_NONE;
 }
 
@@ -160,13 +164,17 @@ int RSWindowAnimationStub::MinimizeWindow(MessageParcel& data, MessageParcel& re
 int RSWindowAnimationStub::MinimizeAllWindow(MessageParcel& data, MessageParcel& reply)
 {
     WALOGD("Window animation minimize all window!");
-    size_t dataCount = data.ReadUint32();
+    uint32_t dataCount = 0;
+    if (!data.ReadUint32(dataCount)) {
+        WALOGE("Failed to read window count!");
+        return ERR_INVALID_DATA;
+    }
     if (dataCount > MAX_WINDOW_NUMBER) {
         WALOGE("Windows are too much!");
         return ERR_INVALID_DATA;
     }
     std::vector<sptr<RSWindowAnimationTarget>> minimizingWindows;
-    for (size_t i = 0; i < dataCount; i++) {
+    for (uint32_t i = 0; i < dataCount; i++) {
         sptr<RSWindowAnimationTarget> minimizingWindow(data.ReadParcelable<RSWindowAnimationTarget>());
         if (minimizingWindow == nullptr) {
             WALOGE("Failed to read minimizing window!");

@@ -33,8 +33,6 @@ struct GPUResourceTag;
 struct HpsBlurParameter;
 class GPUContext;
 class GPUContextOptions;
-using MemoryOverCheckCallback = void(*)(const pid_t, const size_t, bool);
-using RemoveMemoryFromSnapshotInfoCallback = std::function<void(const pid_t, const size_t)>;
 class GPUContextImpl : public BaseImpl {
 public:
     GPUContextImpl() {};
@@ -82,9 +80,7 @@ public:
 
     virtual void SetCurrentGpuResourceTag(const GPUResourceTag &tag) = 0;
 
-    virtual void SetMemoryOverCheck(MemoryOverCheckCallback func) = 0;
-
-    virtual void SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func) = 0;
+    virtual void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) = 0;
 
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;

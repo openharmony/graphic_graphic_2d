@@ -168,6 +168,9 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
     bool isSkipLayer = GetData<bool>();
     surfaceNode->SetSkipLayer(isSkipLayer);
     surfaceNode->GetSkipLayer();
+    bool isSnapshotSkipLayer = GetData<bool>();
+    surfaceNode->SetSnapshotSkipLayer(isSnapshotSkipLayer);
+    surfaceNode->GetSnapshotSkipLayer();
     bool hasFingerprint = GetData<bool>();
     surfaceNode->SetFingerprint(hasFingerprint);
     surfaceNode->GetFingerprint();

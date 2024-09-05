@@ -36,16 +36,6 @@ void RSTypefaceCacheTest::TearDownTestCase() {}
 void RSTypefaceCacheTest::SetUp() {}
 void RSTypefaceCacheTest::TearDown() {}
 
-static void MemoryOverCheckTest(const pid_t pid, const size_t size, bool isGpu)
-{
-    MemorySnapshotInfo memoryInfo;
-    if (isGpu) {
-        MemorySnapshot::Instance().AddGpuMemory(pid, size, memoryInfo);
-    } else {
-        MemorySnapshot::Instance().AddCpuMemory(pid, size, memoryInfo);
-    }
-}
-
 /**
  * @tc.name: MemorySnapshotTest001
  * @tc.desc: Verify memory info of RSTypefaceCache
@@ -60,7 +50,6 @@ HWTEST_F(RSTypefaceCacheTest, MemorySnapshotTest001, TestSize.Level1)
     EXPECT_NE(size, 0);
     uint32_t hash = typeface->GetHash();
     EXPECT_NE(hash, 0);
-    RSTypefaceCache::Instance().SetMemoryCheckCallback(MemoryOverCheckTest);
     // app1's pid is 123, app2's pid2 is 456, register same typeface
     pid_t pid1 = 123;
     pid_t pid2 = 456;
@@ -113,7 +102,6 @@ HWTEST_F(RSTypefaceCacheTest, MemorySnapshotTest001, TestSize.Level1)
     // clear context
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid1);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid2);
-    RSTypefaceCache::Instance().SetMemoryCheckCallback(nullptr);
 }
 
 /**
