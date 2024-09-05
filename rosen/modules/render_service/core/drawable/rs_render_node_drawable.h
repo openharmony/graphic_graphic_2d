@@ -189,6 +189,9 @@ private:
     void NodeCacheStateDisable();
     bool BeforeDrawCacheProcessChildNode(NodeStrategyType& cacheStragy, RSRenderParams& params);
     void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params, bool& isOpincDropNodeExt);
+    void DrawWithoutNodeGroupCache(
+        Drawing::Canvas& canvas, const RSRenderParams& params, DrawableCacheType originalCacheType);
+    void DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params);
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;
