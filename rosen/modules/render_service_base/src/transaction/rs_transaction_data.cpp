@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-static constexpr size_t PARCEL_MAX_CPACITY = 2000 * 1024; // upper bound of parcel capacity
+static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
 static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CPACITY
 }
 
