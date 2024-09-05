@@ -50,6 +50,7 @@ public:
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
+    void CheckThread();
 protected:
     RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode = false);
     RSCanvasNode(const RSCanvasNode&) = delete;
@@ -71,6 +72,7 @@ private:
     friend class RSNodeMap;
     void OnBoundsSizeChanged() const override;
     void CreateTextureExportRenderNodeInRT() override;
+    pid_t tid_;
 };
 } // namespace Rosen
 } // namespace OHOS
