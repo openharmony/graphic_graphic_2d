@@ -15,7 +15,6 @@
 
 #include "rs_vk_image_manager.h"
 
-#include "SkImageInfo.h"
 #include "include/core/SkColorSpace.h"
 #include "native_buffer_inner.h"
 #include "platform/common/rs_log.h"
@@ -58,7 +57,7 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
     bool isProtected = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) != 0;
     auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer,
         width, height, isProtected);
-    if (!backendTexture.IsValid()) {
+    if (!backendTexture.IsValid() || !backendTexture.GetTextureInfo().GetVKTextureInfo()) {
         DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
     }
