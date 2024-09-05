@@ -83,13 +83,13 @@ napi_value JsBrush::Constructor(napi_env env, napi_callback_info info)
 
     JsBrush* jsBrush = nullptr;
     if (argCount == 0) {
-        jsBrush = new(std::nothrow) JsBrush();
+        jsBrush = new JsBrush();
     } else {
         JsBrush* otherBrush = nullptr;
         GET_UNWRAP_PARAM(ARGC_ZERO, otherBrush);
         Brush* brush = otherBrush->GetBrush();
         if (brush != nullptr) {
-            jsBrush = new(std::nothrow) JsBrush(*brush);
+            jsBrush = new JsBrush(*brush);
         }
     }
     if (jsBrush == nullptr) {

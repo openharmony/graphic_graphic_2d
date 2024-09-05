@@ -98,13 +98,13 @@ napi_value JsPen::Constructor(napi_env env, napi_callback_info info)
 
     JsPen* jsPen = nullptr;
     if (argCount == 0) {
-        jsPen = new (std::nothrow) JsPen();
+        jsPen = new JsPen();
     } else {
         JsPen* otherPen = nullptr;
         GET_UNWRAP_PARAM(ARGC_ZERO, otherPen);
         Pen* pen = otherPen->GetPen();
         if (pen != nullptr) {
-            jsPen = new (std::nothrow) JsPen(*pen);
+            jsPen = new JsPen(*pen);
         }
     }
     if (jsPen == nullptr) {

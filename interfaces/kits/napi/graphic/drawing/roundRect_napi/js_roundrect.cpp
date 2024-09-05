@@ -83,11 +83,7 @@ napi_value JsRoundRect::Constructor(napi_env env, napi_callback_info info)
     double yRad = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, yRad);
 
-    JsRoundRect* jsRoundRect = new(std::nothrow) JsRoundRect(drawingRect, xRad, yRad);
-    if (jsRoundRect == nullptr) {
-        ROSEN_LOGE("JsRoundRect::Constructor Failed");
-        return nullptr;
-    }
+    JsRoundRect* jsRoundRect = new JsRoundRect(drawingRect, xRad, yRad);
     status = napi_wrap(env, jsThis, jsRoundRect,
                        JsRoundRect::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
