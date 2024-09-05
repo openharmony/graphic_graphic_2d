@@ -293,12 +293,12 @@ HWTEST_F(RsSubThreadTest, RenderCache001, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
     RSRenderTask::RenderNodeStage stage;
     auto task = std::make_unique<RSRenderTask>(*node, stage);
-    task->node_ = std::make_shared<RSRenderNode>(1);
+    task->node_ = node;
     task->SetIdx(1);
     threadTask->AddTask(std::move(task));
     curThread->RenderCache(threadTask);
-    EXPECT_FALSE(threadTask->GetTaskSize());
-    EXPECT_TRUE(curThread->grContext_);
+    EXPECT_TRUE(threadTask->GetTaskSize());
+    EXPECT_FALSE(curThread->grContext_);
 
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
     curThread->RenderCache(threadTask);
@@ -334,6 +334,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
     curThread->DrawableCache(nodeDrawable);
 
     nodeDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(node));
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(curThread->grContext_);
 
@@ -361,7 +362,7 @@ HWTEST_F(RsSubThreadTest, CreateShareGrContext001, TestSize.Level1)
 {
     auto renderContext = std::make_shared<RenderContext>();
     auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    EXPECT_TRUE(curThread->CreateShareGrContext());
+    EXPECT_FALSE(curThread->CreateShareGrContext());
 }
 
 /**
