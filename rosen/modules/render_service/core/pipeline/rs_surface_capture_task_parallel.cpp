@@ -103,6 +103,7 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
     }
     if (!captureHandle->CreateResources()) {
         callback->OnSurfaceCapture(id, nullptr);
+        return;
     }
 
     std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
@@ -271,7 +272,6 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         return nullptr;
     }
     uint64_t screenId = node->GetScreenId();
-    RSScreenModeInfo screenModeInfo;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: screenManager is nullptr!");

@@ -26,7 +26,6 @@
 
 #include "hgm_core.h"
 #include "parameter.h"
-#include <parameters.h>
 #include "rs_main_thread.h"
 #include "rs_profiler.h"
 #include "rs_render_service_connection.h"

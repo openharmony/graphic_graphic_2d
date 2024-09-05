@@ -92,7 +92,7 @@ HWTEST_F(RSRenderEngineTest, DrawSurfaceNodeWithParams001, TestSize.Level1)
         auto drawingRecordingCanvas =
             std::make_unique<Drawing::RecordingCanvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
-        canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
     } else {
         canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     }
@@ -122,7 +122,7 @@ HWTEST_F(RSRenderEngineTest, DrawSurfaceNodeWithParams002, TestSize.Level1)
         auto drawingRecordingCanvas =
             std::make_unique<Drawing::RecordingCanvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
-        canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
     } else {
         canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     }
@@ -152,7 +152,7 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
         auto drawingRecordingCanvas =
             std::make_unique<Drawing::RecordingCanvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
-        canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
     } else {
         canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     }
