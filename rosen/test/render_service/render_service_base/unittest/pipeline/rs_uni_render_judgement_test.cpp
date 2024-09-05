@@ -125,6 +125,6 @@ HWTEST_F(RSUniRenderJudgementTest, SafeGetLineTest002, TestSize.Level1)
     EXPECT_EQ(line, "Line 3");
 
     configFile.close();
-    std::remove("test_file.txt");
+    ASSERT_TRUE(std::remove("test_file.txt") == 0);
 }
 } // namespace OHOS::Rosen

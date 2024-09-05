@@ -423,6 +423,10 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null filter");
         return;
     }
+    if (canvas == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null canvas");
+        return;
+    }
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect surface null");

@@ -77,9 +77,7 @@ napi_value JsRegion::Constructor(napi_env env, napi_callback_info info)
     status = napi_wrap(env, jsThis, jsRegion,
                        JsRegion::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
-        if (jsRegion != nullptr) {
-            delete jsRegion;
-        }
+        delete jsRegion;
         ROSEN_LOGE("JsRegion::Constructor Failed to wrap native instance");
         return nullptr;
     }

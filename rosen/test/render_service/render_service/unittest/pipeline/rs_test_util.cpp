@@ -24,9 +24,9 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode()
     config.id = id;
     config.name += std::to_string(id);
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
-    rsSurfaceRenderNode->InitRenderParams();
     csurf = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);
+    rsSurfaceRenderNode->InitRenderParams();
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
     csurf->RegisterConsumerListener(listener);

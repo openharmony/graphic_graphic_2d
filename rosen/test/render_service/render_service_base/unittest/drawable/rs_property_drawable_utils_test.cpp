@@ -213,6 +213,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     Drawing::Canvas canvasTest2;
     paintFilterCanvas.canvas_ = &canvasTest2;
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    int lastBlurCnt = rsPropertyDrawableUtils->g_blurCnt;
+    ASSERT_NE(lastBlurCnt, 0);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, false);
+    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
 /**

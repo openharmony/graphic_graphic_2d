@@ -781,7 +781,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSurfaceOcclusionChangeCallb
     proxy->UnRegisterSurfaceOcclusionChangeCallback(id);
     sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);
     std::vector<float> partitionPoints;
-    ASSERT_EQ(proxy->RegisterSurfaceOcclusionChangeCallback(id, callbackTwo, partitionPoints), 2);
+    ASSERT_EQ(proxy->RegisterSurfaceOcclusionChangeCallback(id, callbackTwo, partitionPoints), 0);
 }
 
 /**

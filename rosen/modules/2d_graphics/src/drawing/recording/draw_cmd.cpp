@@ -614,7 +614,10 @@ void DrawPathOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    OpDataHandle pathHandle;
+    if (path_) {
+        pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    }
     cmdList.AddOp<ConstructorHandle>(pathHandle, paintHandle);
 }
 
@@ -680,7 +683,10 @@ std::shared_ptr<DrawOpItem> DrawShadowStyleOpItem::Unmarshalling(const DrawCmdLi
 
 void DrawShadowStyleOpItem::Marshalling(DrawCmdList& cmdList)
 {
-    auto pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    OpDataHandle pathHandle;
+    if (path_) {
+        pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    }
     cmdList.AddOp<ConstructorHandle>(
         pathHandle, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_, isLimitElevation_);
 }
@@ -713,7 +719,10 @@ std::shared_ptr<DrawOpItem> DrawShadowOpItem::Unmarshalling(const DrawCmdList& c
 
 void DrawShadowOpItem::Marshalling(DrawCmdList& cmdList)
 {
-    auto pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    OpDataHandle pathHandle;
+    if (path_) {
+        pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    }
     cmdList.AddOp<ConstructorHandle>(
         pathHandle, planeParams_, devLightPos_, lightRadius_, ambientColor_, spotColor_, flag_);
 }
@@ -746,7 +755,10 @@ void DrawRegionOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto regionHandle = CmdListHelper::AddRegionToCmdList(cmdList, *region_);
+    OpDataHandle regionHandle;
+    if (region_) {
+        regionHandle = CmdListHelper::AddRegionToCmdList(cmdList, *region_);
+    }
     cmdList.AddOp<ConstructorHandle>(regionHandle, paintHandle);
 }
 
@@ -778,7 +790,10 @@ void DrawVerticesOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto opDataHandle = CmdListHelper::AddVerticesToCmdList(cmdList, *vertices_);
+    OpDataHandle opDataHandle;
+    if (vertices_) {
+        opDataHandle = CmdListHelper::AddVerticesToCmdList(cmdList, *vertices_);
+    }
     cmdList.AddOp<ConstructorHandle>(opDataHandle, mode_, paintHandle);
 }
 
@@ -836,7 +851,10 @@ std::shared_ptr<DrawOpItem> DrawImageNineOpItem::Unmarshalling(const DrawCmdList
 
 void DrawImageNineOpItem::Marshalling(DrawCmdList& cmdList)
 {
-    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
+    OpDataHandle imageHandle;
+    if (image_) {
+        imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
+    }
     BrushHandle brushHandle;
     if (hasBrush_) {
         BrushToBrushHandle(brush_, cmdList, brushHandle);
@@ -880,7 +898,10 @@ void DrawImageLatticeOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
+    OpDataHandle imageHandle;
+    if (image_) {
+        imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
+    }
     auto latticeHandle =  CmdListHelper::AddLatticeToCmdList(cmdList, lattice_);
     cmdList.AddOp<ConstructorHandle>(imageHandle, latticeHandle, dst_, filter_, paintHandle);
 }
@@ -920,7 +941,10 @@ void DrawAtlasOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *atlas_);
+    OpDataHandle imageHandle;
+    if (atlas_) {
+        imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *atlas_);
+    }
     auto xformData = CmdListHelper::AddVectorToCmdList<RSXform>(cmdList, xform_);
     auto texData = CmdListHelper::AddVectorToCmdList<Rect>(cmdList, tex_);
     auto colorData = CmdListHelper::AddVectorToCmdList<ColorQuad>(cmdList, colors_);
@@ -958,7 +982,10 @@ void DrawBitmapOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto bitmapHandle = CmdListHelper::AddBitmapToCmdList(cmdList, *bitmap_);
+    ImageHandle bitmapHandle;
+    if (bitmap_) {
+        bitmapHandle = CmdListHelper::AddBitmapToCmdList(cmdList, *bitmap_);
+    }
     cmdList.AddOp<ConstructorHandle>(bitmapHandle, px_, py_, paintHandle);
 }
 
@@ -994,7 +1021,10 @@ void DrawImageOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
+    OpDataHandle imageHandle;
+    if (image_) {
+        imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
+    }
     cmdList.AddOp<ConstructorHandle>(imageHandle, px_, py_, samplingOptions_, paintHandle);
 }
 
@@ -1041,7 +1071,10 @@ void DrawImageRectOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
+    OpDataHandle imageHandle;
+    if (image_) {
+        imageHandle = CmdListHelper::AddImageToCmdList(cmdList, *image_);
+    }
     cmdList.AddOp<ConstructorHandle>(imageHandle, src_, dst_, sampling_, constraint_, paintHandle);
 }
 
@@ -1083,7 +1116,10 @@ std::shared_ptr<DrawOpItem> DrawPictureOpItem::Unmarshalling(const DrawCmdList& 
 
 void DrawPictureOpItem::Marshalling(DrawCmdList& cmdList)
 {
-    auto pictureHandle = CmdListHelper::AddPictureToCmdList(cmdList, *picture_);
+    OpDataHandle pictureHandle;
+    if (picture_) {
+        pictureHandle = CmdListHelper::AddPictureToCmdList(cmdList, *picture_);
+    }
     cmdList.AddOp<ConstructorHandle>(pictureHandle);
 }
 
@@ -1331,6 +1367,9 @@ bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cm
     }
 
     Canvas* offscreenCanvas = offscreenSurface->GetCanvas().get();
+    if (!offscreenCanvas) {
+        return false;
+    }
 
     // align draw op to [0, 0]
     if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
@@ -1388,6 +1427,9 @@ std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
     }
 
     Canvas* offscreenCanvas = offscreenSurface->GetCanvas().get();
+    if (!offscreenCanvas) {
+        return nullptr;
+    }
 
     // align draw op to [0, 0]
     if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
@@ -1578,7 +1620,10 @@ std::shared_ptr<DrawOpItem> ClipPathOpItem::Unmarshalling(const DrawCmdList& cmd
 
 void ClipPathOpItem::Marshalling(DrawCmdList& cmdList)
 {
-    auto pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    OpDataHandle pathHandle;
+    if (path_) {
+        pathHandle = CmdListHelper::AddPathToCmdList(cmdList, *path_);
+    }
     cmdList.AddOp<ConstructorHandle>(pathHandle, clipOp_, doAntiAlias_);
 }
 
@@ -1607,7 +1652,10 @@ std::shared_ptr<DrawOpItem> ClipRegionOpItem::Unmarshalling(const DrawCmdList& c
 
 void ClipRegionOpItem::Marshalling(DrawCmdList& cmdList)
 {
-    auto regionHandle = CmdListHelper::AddRegionToCmdList(cmdList, *region_);
+    OpDataHandle regionHandle;
+    if (region_) {
+        regionHandle = CmdListHelper::AddRegionToCmdList(cmdList, *region_);
+    }
     cmdList.AddOp<ConstructorHandle>(regionHandle, clipOp_);
 }
 

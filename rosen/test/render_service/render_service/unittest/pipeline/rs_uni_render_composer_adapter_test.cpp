@@ -99,6 +99,16 @@ HWTEST_F(RSUniRenderComposerAdapterTest, Start001, TestSize.Level1)
     surfaceNode->SetSrcRect(dstRect);
     surfaceNode->SetDstRect(dstRect);
     auto surfaceDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    auto& params = surfaceDrawable->GetRenderParams();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
+    surfaceParams->SetBuffer(surfaceNode->GetRSSurfaceHandler()->GetBuffer(),
+        surfaceNode->GetRSSurfaceHandler()->GetDamageRegion());
+    RSLayerInfo layerInfo;
+    layerInfo.srcRect.w = 1;
+    layerInfo.srcRect.h = 1;
+    layerInfo.dstRect.w = 1;
+    layerInfo.dstRect.h = 1;
+    surfaceParams->SetLayerInfo(layerInfo);
     ASSERT_NE(surfaceDrawable, nullptr);
     auto layer1 =
         composerAdapter_->CreateLayer(static_cast<DrawableV2::RSSurfaceRenderNodeDrawable&>(*surfaceDrawable));
@@ -127,7 +137,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo001, TestSize.Level1)
     SetUp();
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
     ASSERT_NE(drawable, nullptr);
-    composerAdapter_->BuildComposeInfo(static_cast<DrawableV2::RSDisplayRenderNodeDrawable&>(*drawable));
+    auto& params = drawable->GetRenderParams();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
+    surfaceParams->SetBuffer(surfaceNode->GetRSSurfaceHandler()->GetBuffer(),
+        surfaceNode->GetRSSurfaceHandler()->GetDamageRegion());
+    composerAdapter_->BuildComposeInfo(static_cast<DrawableV2::RSSurfaceRenderNodeDrawable&>(*drawable));
 }
 
 /**

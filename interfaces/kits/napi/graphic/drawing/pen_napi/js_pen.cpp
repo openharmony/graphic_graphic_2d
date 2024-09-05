@@ -143,6 +143,7 @@ JsPen::JsPen(const Pen& pen)
 JsPen::~JsPen()
 {
     delete pen_;
+    pen_ = nullptr;
 }
 
 napi_value JsPen::SetColor(napi_env env, napi_callback_info info)

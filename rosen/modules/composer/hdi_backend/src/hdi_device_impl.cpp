@@ -206,7 +206,7 @@ int32_t HdiDeviceImpl::SetScreenOverlayResolution(uint32_t screenId, uint32_t wi
 int32_t HdiDeviceImpl::GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status)
 {
     CHECK_FUNC(g_composer);
-    HDI::Display::Composer::V1_0::DispPowerStatus hdiStatus;
+    Composer::V1_0::DispPowerStatus hdiStatus;
     int32_t ret = g_composer->GetDisplayPowerStatus(screenId, hdiStatus);
     if (ret == GRAPHIC_DISPLAY_SUCCESS) {
         status = static_cast<GraphicDispPowerStatus>(hdiStatus);
@@ -218,7 +218,7 @@ int32_t HdiDeviceImpl::SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerS
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetDisplayPowerStatus(screenId,
-        static_cast<HDI::Display::Composer::V1_0::DispPowerStatus>(status));
+        static_cast<Composer::V1_0::DispPowerStatus>(status));
 }
 
 int32_t HdiDeviceImpl::GetScreenBacklight(uint32_t screenId, uint32_t &level)
@@ -504,8 +504,8 @@ int32_t HdiDeviceImpl::SetLayerBuffer(uint32_t screenId, uint32_t layerId, const
 int32_t HdiDeviceImpl::SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type)
 {
     CHECK_FUNC(g_composer);
-    HDI::Display::Composer::V1_0::CompositionType hdiType
-        = static_cast<HDI::Display::Composer::V1_0::CompositionType>(type);
+    Composer::V1_0::CompositionType hdiType
+        = static_cast<Composer::V1_0::CompositionType>(type);
     return g_composer->SetLayerCompositionType(screenId, layerId, hdiType);
 }
 
@@ -670,7 +670,7 @@ int32_t HdiDeviceImpl::CreateLayer(uint32_t screenId, const GraphicLayerInfo &la
         .width = layerInfo.width,
         .height = layerInfo.height,
         .type = static_cast<LayerType>(layerInfo.type),
-        .pixFormat = static_cast<HDI::Display::Composer::V1_0::PixelFormat>(layerInfo.pixFormat),
+        .pixFormat = static_cast<Composer::V1_0::PixelFormat>(layerInfo.pixFormat),
     };
     return g_composer->CreateLayer(screenId, hdiLayerInfo, cacheCount, layerId);
 }

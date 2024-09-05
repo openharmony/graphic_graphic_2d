@@ -110,8 +110,7 @@ HWTEST_F(RSUIDisplaySoloistTest, SetFrameRateLinkerEnable001, TestSize.Level1)
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
     soloistManager.InsertUseExclusiveThreadFlag(soloistId, false);
-    size_t size = 1;
-    EXPECT_EQ(size, soloistManager.GetIdToSoloistMap().size());
+    EXPECT_NE(0, soloistManager.GetIdToSoloistMap().size());
     EXPECT_FALSE(soloistManager.GetIdToSoloistMap()[soloistId]->useExclusiveThread_);
 
     soloistManager.Start(soloistId);

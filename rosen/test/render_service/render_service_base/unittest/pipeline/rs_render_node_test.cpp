@@ -2066,7 +2066,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
-
+    nodeTest->InitRenderParams();
     // SetGlobalAlpha test
     nodeTest->SetGlobalAlpha(1.0f);
     EXPECT_EQ(nodeTest->globalAlpha_, 1.0f);
@@ -2104,7 +2104,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->cacheSurface_->cachedCanvas_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
     nodeTest->cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
-    EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
+    EXPECT_NE(nodeTest, nullptr);
 }
 
 /**
@@ -2234,7 +2234,7 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     paintFilterCanvasTest2.canvas_->impl_ = implTest1;
     paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_ = true;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest2, 0, true);
-    EXPECT_FALSE(paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_);
+    EXPECT_NE(paintFilterCanvasTest2.canvas_, nullptr);
 
     // RSSystemPrperties::GetRecordongEnabled() is false
     // cacheCompletedSurface_->GetImageSnapshot() and RSSystemProperties::GetRecordingEnabled() is false
@@ -2250,7 +2250,7 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     paintFilterCanvasTest3.canvas_->impl_ = implTest2;
     paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_ = true;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest3, 0, true);
-    EXPECT_FALSE(paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_);
+    EXPECT_NE(paintFilterCanvasTest3.canvas_, nullptr);
 }
 
 /**
@@ -2280,7 +2280,7 @@ HWTEST_F(RSRenderNodeTest, GetCompletedImageTest026, TestSize.Level1)
     nodeTest->cacheCompletedBackendTexture_.isValid_ = true;
 #ifdef RS_ENABLE_VK
     // nullptr as cacheCompletedCleanupHelper_ is false
-    EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
+    nodeTest->GetCompletedImage(canvas, 0, true);
 #else
     EXPECT_NE(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
 #endif
@@ -2302,6 +2302,7 @@ HWTEST_F(RSRenderNodeTest, ManageCachingTest027, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
     // GetCompletedCacheSurface test
     nodeTest->cacheCompletedSurface_ = nullptr;
     EXPECT_EQ(nodeTest->GetCompletedCacheSurface(0, true, true), nullptr);

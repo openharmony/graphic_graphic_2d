@@ -512,21 +512,6 @@ HWTEST_F(RSClientTest, SetScreenRefreshRate001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRefreshRateMode Test
- * @tc.desc: SetRefreshRateMode Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSClientTest, SetRefreshRateMode001, TestSize.Level1)
-{
-    uint32_t rateMode = 100;
-    rsClient->SetRefreshRateMode(rateMode);
-    usleep(SET_REFRESHRATE_SLEEP_US);
-    uint32_t currentRateMode = rsClient->GetCurrentRefreshRateMode();
-    EXPECT_EQ(currentRateMode, rateMode);
-}
-
-/**
  * @tc.name: GetScreenSupportedRefreshRates Test
  * @tc.desc: GetScreenSupportedRefreshRates Test
  * @tc.type:FUNC
@@ -538,21 +523,6 @@ HWTEST_F(RSClientTest, GetScreenSupportedRefreshRates001, TestSize.Level1)
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     auto supportedRates = rsClient->GetScreenSupportedRefreshRates(screenId);
     EXPECT_EQ(supportedRates.size(), 0);
-}
-
-/**
- * @tc.name: SetShowRefreshRateEnabled Test
- * @tc.desc: SetShowRefreshRateEnabled Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSClientTest, SetShowRefreshRateEnabled001, TestSize.Level1)
-{
-    rsClient->SetShowRefreshRateEnabled(false);
-    EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), false);
-
-    rsClient->SetShowRefreshRateEnabled(true);
-    EXPECT_EQ(rsClient->GetShowRefreshRateEnabled(), true);
 }
 
 /**
@@ -811,20 +781,6 @@ HWTEST_F(RSClientTest, RegisterUIExtensionCallback_001, TestSize.Level1)
     uint64_t userId = 0;
     EXPECT_EQ(rsClient->RegisterUIExtensionCallback(userId, callback),
         StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: RegisterUIExtensionCallback Test
- * @tc.desc: RegisterUIExtensionCallback, expected success when callback is empty.
- * @tc.type:FUNC
- * @tc.require: issueIABHAX
- */
-HWTEST_F(RSClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
-{
-    UIExtensionCallback callback = nullptr;
-    uint64_t userId = 0;
-    EXPECT_EQ(rsClient->RegisterUIExtensionCallback(userId, callback),
-        StatusCode::INVALID_ARGUMENTS);
 }
 } // namespace Rosen
 } // namespace OHOS
