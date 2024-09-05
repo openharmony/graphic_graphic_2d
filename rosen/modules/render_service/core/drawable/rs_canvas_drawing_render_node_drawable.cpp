@@ -502,6 +502,10 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
     if (!backendTexture_.IsValid()) {
         return;
     }
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage canvas.GetGPUContext is nullptr");
+        return;
+    }
     if (captureImage_ && captureImage_->IsValid(canvas.GetGPUContext().get())) {
         canvas.DrawImage(*captureImage_, 0, 0, Drawing::SamplingOptions());
         return;
