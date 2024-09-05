@@ -169,8 +169,8 @@ enum class RSModifierType : int16_t {
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
-using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
 
+using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
 enum class RSRenderPropertyType : int16_t {
     INVALID = 0,
     PROPERTY_FLOAT,
