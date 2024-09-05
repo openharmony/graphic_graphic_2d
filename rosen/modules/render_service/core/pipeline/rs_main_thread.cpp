@@ -663,18 +663,6 @@ void RSMainThread::Init()
     SubscribeAppState();
     PrintCurrentStatus();
     RSLuminanceControl::Get().Init();
-    if (isUniRender_) {
-        auto grContext = GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-        if (grContext == nullptr) {
-            return;
-        }
-        RSImageCache::Instance().SetMemoryCheckCallback(MemoryManager::MemoryOverCheck);
-        RSTypefaceCache::Instance().SetMemoryCheckCallback(MemoryManager::MemoryOverCheck);
-        grContext->SetMemoryOverCheck(MemoryManager::MemoryOverCheck);
-        grContext->SetRemoveMemoryFromSnapshotInfo([](const pid_t pid, const size_t size) {
-            MemorySnapshot::Instance().RemoveGpuMemory(pid, size);
-        });
-    }
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)

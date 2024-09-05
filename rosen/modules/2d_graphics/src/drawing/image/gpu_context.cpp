@@ -161,14 +161,9 @@ void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     impl_->SetCurrentGpuResourceTag(tag);
 }
 
-void GPUContext::SetMemoryOverCheck(MemoryOverCheckCallback func)
+void GPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
 {
-    impl_->SetMemoryOverCheck(func);
-}
-
-void GPUContext::SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func)
-{
-    impl_->SetRemoveMemoryFromSnapshotInfo(func);
+    impl_->GetUpdatedMemoryMap(out);
 }
 
 void GPUContext::ResetContext()

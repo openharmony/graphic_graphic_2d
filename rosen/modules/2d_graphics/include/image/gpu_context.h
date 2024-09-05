@@ -251,16 +251,10 @@ public:
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
 
     /**
-     * @brief                   Set MemoryOverCheck callback.
-     * @param func              MemoryOverCheck callback.
+     * @brief                   Get updated memory map.
+     * @param out               Updated memory map.
      */
-    void SetMemoryOverCheck(MemoryOverCheckCallback func);
-
-    /**
-     * @brief                   Set RemoveMemoryFromSnapshotInfo callback.
-     * @param func              RemoveMemoryFromSnapshotInfo callback.
-     */
-    void SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func);
+    void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out);
 
 #ifdef RS_ENABLE_VK
     /**

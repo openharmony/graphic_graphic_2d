@@ -351,18 +351,13 @@ void SkiaGPUContext::SetGrContext(const sk_sp<GrDirectContext>& grContext)
     grContext_ = grContext;
 }
 
-void SkiaGPUContext::SetMemoryOverCheck(MemoryOverCheckCallback func)
+void SkiaGPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
 {
-    if (grContext_ != nullptr) {
-        grContext_->setMemoryOverCheck(func);
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::GetUpdatedMemoryMap, grContext_ is nullptr");
+        return;
     }
-}
-
-void SkiaGPUContext::SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func)
-{
-    if (grContext_ != nullptr) {
-        grContext_->setRemoveMemoryFromSnapshotInfo(func);
-    }
+    grContext_->getUpdatedMemoryMap(out);
 }
 
 #ifdef RS_ENABLE_VK

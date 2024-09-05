@@ -47,7 +47,7 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
     static float GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext);
-    static void MemoryOverCheck(const pid_t pid, const size_t size, bool isGpu);
+    static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
 
 private:
@@ -67,5 +67,6 @@ private:
 
     static std::mutex mutex_;
     static std::unordered_map<pid_t, std::pair<std::string, uint64_t>> pidInfo_;
+    static uint32_t frameCount_;
 };
 } // namespace OHOS::Rosen
