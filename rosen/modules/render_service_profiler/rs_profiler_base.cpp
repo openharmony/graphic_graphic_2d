@@ -306,6 +306,11 @@ void RSProfiler::TimePauseClear()
     g_pauseAfterTime = 0;
 }
 
+uint64_t RSProfiler::TimePauseGet()
+{
+    return g_pauseAfterTime;
+}
+
 std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(const RSContext& context)
 {
     const std::shared_ptr<RSBaseRenderNode>& root = context.GetGlobalRootRenderNode();

@@ -232,6 +232,7 @@ private:
     RSB_EXPORT static void TimePauseAt(uint64_t curTime, uint64_t newPauseAfterTime);
     RSB_EXPORT static void TimePauseResume(uint64_t curTime);
     RSB_EXPORT static void TimePauseClear();
+    RSB_EXPORT static uint64_t TimePauseGet();
 
     RSB_EXPORT static std::shared_ptr<RSDisplayRenderNode> GetDisplayNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
@@ -259,15 +260,17 @@ private:
         RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
     RSB_EXPORT static void UnmarshalNodeModifiers(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
 
+    RSB_EXPORT static NodeId AdjustNodeId(NodeId nodeId, bool clearMockFlag);
+
     // RSRenderNode
     RSB_EXPORT static std::string DumpRenderProperties(const RSRenderNode& node);
     RSB_EXPORT static std::string DumpModifiers(const RSRenderNode& node);
     RSB_EXPORT static std::string DumpSurfaceNode(const RSRenderNode& node);
 
     // JSON
-    static void RenderServiceTreeDump(JsonWriter& out);
-    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out);
-    RSB_EXPORT static void DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out);
+    static void RenderServiceTreeDump(JsonWriter& out, pid_t pid);
+    RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag = false);
+    RSB_EXPORT static void DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag);
     RSB_EXPORT static void DumpNodeSubsurfaces(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out);
@@ -332,6 +335,7 @@ private:
     // Network interface
     using Command = void (*)(const ArgList&);
     static Command GetCommand(const std::string& command);
+    static void ProcessPauseMessage();
     static void ProcessCommands();
     static void Respond(const std::string& message);
     static void SetSystemParameter(const ArgList& args);

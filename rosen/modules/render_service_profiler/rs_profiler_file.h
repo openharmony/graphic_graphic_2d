@@ -122,8 +122,9 @@ public:
 
     static const std::string& GetDefaultPath();
 
-    double ConvertVsyncId2Time(int64_t vsyncId);
     void CacheVsyncId2Time(uint32_t layer);
+    double ConvertVsyncId2Time(int64_t vsyncId);
+    int64_t ConvertTime2VsyncId(double time);
 
 private:
     void WriteHeaders();

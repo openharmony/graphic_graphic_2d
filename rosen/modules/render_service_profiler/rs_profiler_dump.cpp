@@ -28,10 +28,10 @@
 
 namespace OHOS::Rosen {
 
-void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out)
+void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag)
 {
     out.PushObject();
-    DumpNodeBaseInfo(node, out);
+    DumpNodeBaseInfo(node, out, clearMockFlag);
     DumpNodeProperties(node.GetRenderProperties(), out);
     DumpNodeOptionalFlags(node, out);
     DumpNodeDrawCmdModifiers(node, out);
@@ -43,7 +43,7 @@ void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out)
     if (node.GetSortedChildren()) {
         for (auto& child : *node.GetSortedChildren()) {
             if (child) {
-                DumpNode(*child, children);
+                DumpNode(*child, children, clearMockFlag);
             }
         }
     }
@@ -51,26 +51,37 @@ void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out)
     out.PopObject();
 }
 
-void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out)
+NodeId RSProfiler::AdjustNodeId(NodeId nodeId, bool clearMockFlag)
+{
+    if (clearMockFlag) {
+        constexpr int shift = 30 + 32;
+        constexpr uint64_t mask = (uint64_t)1 << shift;
+        return nodeId & ~mask;
+    }
+    return nodeId;
+}
+
+void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag)
 {
     std::string type;
     node.DumpNodeType(node.GetType(), type);
     out["type"] = type;
-    out["id"] = node.GetId();
-    out["instanceRootNodeId"] = node.GetInstanceRootNodeId();
+    out["id"] = AdjustNodeId(node.GetId(), clearMockFlag);
+    out["instanceRootNodeId"] = AdjustNodeId(node.GetInstanceRootNodeId(), clearMockFlag);
     DumpNodeSubsurfaces(node, out);
     auto sharedTrans = node.GetSharedTransitionParam();
     if (sharedTrans) {
         out["SharedTransitionParam"] =
             std::to_string(sharedTrans->inNodeId_) + " -> " + std::to_string(sharedTrans->outNodeId_);
+        std::to_string(AdjustNodeId(sharedTrans->inNodeId_, clearMockFlag)) + " -> " +
+            std::to_string(AdjustNodeId(sharedTrans->outNodeId_, clearMockFlag));
     }
     if (node.IsSuggestedDrawInGroup()) {
-        const auto& renderParams = const_cast<RSRenderNode&>(node).GetStagingRenderParams();
         out["nodeGroup"] = static_cast<int>(node.nodeGroupType_);
-        out["nodeGroupReuseCache"] = renderParams ? static_cast<int>(!renderParams->GetNeedUpdateCache()) : 0;
     }
     if (node.GetUifirstRootNodeId() != INVALID_NODEID) {
         out["uifirstRootNodeId"] = node.GetUifirstRootNodeId();
+        out["uifirstRootNodeId"] = AdjustNodeId(node.GetUifirstRootNodeId(), clearMockFlag);
     }
     DumpNodeSubClassNode(node, out);
 }
