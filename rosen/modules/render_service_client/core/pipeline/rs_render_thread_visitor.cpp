@@ -120,9 +120,11 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         }
         dirtyFlag_ = false;
         isIdle_ = false;
+        parentSurfaceNode_ = node.shared_from_this();
         PrepareCanvasRenderNode(node);
         isIdle_ = true;
     } else {
+        parentSurfaceNode_ = node.shared_from_this();
         PrepareCanvasRenderNode(node);
     }
 }
@@ -184,13 +186,16 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.SetContextClipRegion(Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()));
         }
     }
-    dirtyFlag_ = node.Update(*curDirtyManager_, nodeParent, dirtyFlag_);
+    dirtyFlag_ = node.Update(*curDirtyManager_, parentSurfaceNode_, dirtyFlag_);
+    auto parentSurfaceNode = parentSurfaceNode_;
+    parentSurfaceNode_ = node.shared_from_this();
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::SURFACE_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
     ResetAndPrepareChildrenNode(node, nodeParent);
     dirtyFlag_ = dirtyFlag;
+    parentSurfaceNode_ = parentSurfaceNode;
 }
 
 void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
