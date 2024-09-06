@@ -104,6 +104,8 @@ private:
     RectF surfaceNodeParentBoundsRect_;
     std::vector<NodeId> childSurfaceNodeIds_;
     Drawing::Matrix parentSurfaceNodeMatrix_;
+    // record parent surfaceNode to update absMatrix
+    std::shared_ptr<RSRenderNode> parentSurfaceNode_ = nullptr;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVector_;
 
