@@ -1,0 +1,57 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+## Build libnative_color_space_manager.so
+
+config("native_color_space_manager_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+}
+
+ohos_shared_library("libnative_color_space_manager") {
+  sources = [ "native_color_space_manager.cpp" ]
+
+  include_dirs = [
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/interfaces/inner_api/color_manager",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/utils/color_manager/export",
+  ]
+
+  configs = [ ":native_color_space_manager_config" ]
+
+  output_extension = "so"
+
+  deps = [
+    "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  innerapi_tags = [ "ndk" ]
+
+  external_deps = [ "hilog:libhilog" ]
+  public_external_deps = [ "c_utils:utils" ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+## Build libnative_color_space_manager.so
