@@ -580,51 +580,59 @@ private:
     // added for update dirty region dfx
     RectI GetDirtyRect(RectI& drawRegion) const;
 
-    bool visible_ = true;
-    bool clipToBounds_ = false;
-    bool clipToFrame_ = false;
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool contentDirty_ = false;
     bool curIsDirty_ = false;
     bool curGeoDirty_ = false;
     bool curContentDirty_ = false;
-    bool isDrawn_ = false;
-    bool alphaNeedApply_ = false;
-    bool systemBarEffect_ = false;
-
     bool hasBounds_ = false;
-    bool useEffect_ = false;
-    bool useShadowBatching_ = false;
-    bool needSkipShadow_ = false;
-
-    int colorBlendMode_ = 0;
-    int colorBlendApplyType_ = 0;
-
-    std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
-    float waterRippleProgress_ = 0.0f;
-
-    std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
-    float flyOutDegree_ = 0.0f;
-
-    std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
-    std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
-
-    Gravity frameGravity_ = Gravity::DEFAULT;
-
-    std::shared_ptr<RectF> drawRegion_ = nullptr;
-
-    float alpha_ = 1.f;
-    bool alphaOffscreen_ = false;
-
+    bool isSpherizeValid_ = false;
+    float frameOffsetX_ = 0.f;
+    float frameOffsetY_ = 0.f;
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     RSObjGeometry frameGeo_;
-
+    bool clipToBounds_ = false;
+    bool clipToFrame_ = false;
+    // partial update
+    bool colorFilterNeedUpdate_ = false;
+    bool pixelStretchNeedUpdate_ = false;
+    bool filterNeedUpdate_ = false;
+    bool greyCoefNeedUpdate_ = false;
+    bool visible_ = true;
+    bool isDrawn_ = false;
+    float alpha_ = 1.f;
+    bool foregroundEffectDirty_ = false;
+    bool needFilter_ = false;
+    bool useEffect_ = false;
+    bool alphaOffscreen_ = false;
+    std::optional<Vector4f> pixelStretch_;
+    std::optional<Vector4f> pixelStretchPercent_;
+    std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
+    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
+    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
+    std::shared_ptr<RSFilter> filter_ = nullptr;
+    std::unique_ptr<Sandbox> sandbox_ = nullptr;
+    std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
     std::shared_ptr<RSIlluminated> illuminatedPtr_ = nullptr;
+    std::optional<Vector4f> cornerRadius_;
+    Gravity frameGravity_ = Gravity::DEFAULT;
+    std::optional<RSShadow> shadow_;
 
+    bool alphaNeedApply_ = false;
+    bool systemBarEffect_ = false;
+    bool useShadowBatching_ = false;
+    bool needSkipShadow_ = false;
+    int colorBlendMode_ = 0;
+    int colorBlendApplyType_ = 0;
+    float waterRippleProgress_ = 0.0f;
+    std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
+    std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
+    float flyOutDegree_ = 0.0f;
     float foregroundEffectRadius_ = 0.f;
-    std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
+    std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
+    std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
     std::shared_ptr<MotionBlurParam> motionBlurPara_ = nullptr;
     std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
@@ -633,50 +641,38 @@ private:
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
-    std::optional<Vector4f> cornerRadius_;
     std::optional<Decoration> decoration_;
-    std::shared_ptr<RSFilter> filter_ = nullptr;
     std::shared_ptr<RSMask> mask_ = nullptr;
-    std::optional<RSShadow> shadow_;
     std::optional<Matrix3f> sublayerTransform_;
     float spherizeDegree_ = 0.f;
-    bool isSpherizeValid_ = false;
     float lightUpEffectDegree_ = 1.0f;
-    std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
-    std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
-    bool foregroundEffectDirty_ = false;
-
     float attractFraction_ = 0.f;
-    Vector2f attractDstPoint_ = {0.f, 0.f};
     bool isAttractionValid_ = false;
+    bool haveEffectRegion_ = false;
+    Vector2f attractDstPoint_ = {0.f, 0.f};
     RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
 
     // filter property
     float backgroundBlurRadius_ = 0.f;
     float backgroundBlurSaturation_ = 1.f;
     float backgroundBlurBrightness_ = 1.f;
-    Color backgroundMaskColor_ = RSColor();
     int backgroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
+    Color backgroundMaskColor_ = RSColor();
     float backgroundBlurRadiusX_ = 0.f;
     float backgroundBlurRadiusY_ = 0.f;
 
     float foregroundBlurRadius_ = 0.f;
     float foregroundBlurSaturation_ = 1.f;
     float foregroundBlurBrightness_ = 1.f;
-    Color foregroundMaskColor_ = RSColor();
     int foregroundColorMode_ = BLUR_COLOR_MODE::DEFAULT;
+    Color foregroundMaskColor_ = RSColor();
     float foregroundBlurRadiusX_ = 0.f;
     float foregroundBlurRadiusY_ = 0.f;
 
     std::weak_ptr<RSRenderNode> backref_;
-
-    std::optional<Vector4f> pixelStretch_;
-    std::optional<Vector4f> pixelStretchPercent_;
-    int pixelStretchTileMode_ = 0;
-
     std::optional<Vector4f> aiInvert_;
     std::optional<RRect> clipRRect_;
-
+    int pixelStretchTileMode_ = 0;
     std::optional<float> grayScale_;
     std::optional<float> brightness_;
     std::optional<float> contrast_;
@@ -701,20 +697,10 @@ private:
     void UpdateFilter();
     void UpdateForegroundFilter();
 
-    // partial update
-    bool colorFilterNeedUpdate_ = false;
-    bool pixelStretchNeedUpdate_ = false;
-    bool filterNeedUpdate_ = false;
-    bool greyCoefNeedUpdate_ = false;
-    float frameOffsetX_ = 0.f;
-    float frameOffsetY_ = 0.f;
-    bool needFilter_ = false;
     RRect rrect_ = RRect{};
     Drawing::Matrix prevAbsMatrix_;
-
     RSRenderParticleVector particles_;
     std::shared_ptr<Drawing::ColorFilter> colorFilter_ = nullptr;
-    bool haveEffectRegion_ = false;
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
@@ -724,8 +710,6 @@ private:
 #endif
     static const bool IS_UNI_RENDER;
     static const bool FOREGROUND_FILTER_ENABLED;
-
-    std::unique_ptr<Sandbox> sandbox_ = nullptr;
 
     friend class RSBackgroundImageDrawable;
     friend class RSCanvasRenderNode;
