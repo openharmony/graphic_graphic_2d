@@ -157,10 +157,6 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph",
   ]
 
-  if (is_arkui_x) {
-    include_dirs +=
-        [ "//foundation/multimedia/image_framework/mock/native/include/log" ]
-  }
   defines = [ "OHOS_SUPPORT" ]
 
   sources = [
@@ -204,6 +200,7 @@ ohos_source_set("skia_paragraph") {
 
   if (is_arkui_x) {
     deps += [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/skia:skia_$platform",
     ]
