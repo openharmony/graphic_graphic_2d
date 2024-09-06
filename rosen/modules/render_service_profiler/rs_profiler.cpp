@@ -175,20 +175,30 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
 
 void RSProfiler::Init(RSRenderService* renderService)
 {
-    if (!IsEnabled()) {
-        return;
-    }
-
     g_renderService = renderService;
     g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
     g_context = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
-    if (!IsBetaRecordEnabled()) {
-        static auto const networkRunLambda = []() {
-            Network::Run();
-        };
-        static std::thread const thread(networkRunLambda);
+    RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
+    RSSystemProperties::WatchSystemProperty(SYS_KEY_BETARECORDING, OnFlagChangedCallback, nullptr);
+
+    if (!IsEnabled()) {
+        return;
     }
+
+    OnWorkModeChanged();
+}
+
+void RSProfiler::StartNetworkThread()
+{
+    if (Network::IsRunning()) {
+        return;
+    }
+    auto networkRunLambda = []() {
+        Network::Run();
+    };
+    std::thread thread(networkRunLambda);
+    thread.detach();
 }
 
 void RSProfiler::OnCreateConnection(pid_t pid)
@@ -337,8 +347,59 @@ std::vector<pid_t> RSProfiler::GetConnectionsPids()
     return pids;
 }
 
+void RSProfiler::OnFlagChangedCallback(const char *key, const char *value, void *context)
+{
+    constexpr int8_t two = 2;
+    if (!strcmp(key, SYS_KEY_ENABLED)) {
+        signalFlagChanged_ = two;
+        AwakeRenderServiceThread();
+    }
+    if (!strcmp(key, SYS_KEY_BETARECORDING)) {
+        signalFlagChanged_ = two;
+        AwakeRenderServiceThread();
+    }
+}
+
+void RSProfiler::OnWorkModeChanged()
+{
+    if (IsEnabled()) {
+        if (IsBetaRecordEnabled()) {
+            Network::Stop();
+            StartBetaRecord();
+        } else {
+            StopBetaRecord();
+            StartNetworkThread();
+        }
+    } else {
+        StopBetaRecord();
+        RecordStop(ArgList());
+        Network::Stop();
+    }
+}
+
+void RSProfiler::ProcessSignalFlag()
+{
+    if (signalFlagChanged_ <= 0) {
+        return;
+    }
+
+    signalFlagChanged_--;
+    if (!signalFlagChanged_) {
+        bool newEnabled = RSSystemProperties::GetProfilerEnabled();
+        bool newBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
+        if (IsEnabled() != newEnabled || IsBetaRecordEnabled() != newBetaRecord) {
+            enabled_ = newEnabled;
+            betaRecordingEnabled_ = newBetaRecord;
+            OnWorkModeChanged();
+        }
+    }
+    AwakeRenderServiceThread();
+}
+
 void RSProfiler::OnProcessCommand()
 {
+    ProcessSignalFlag();
+
     if (!IsEnabled()) {
         return;
     }
