@@ -52,8 +52,8 @@ constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
-constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 constexpr int64_t REFRESH_PERIOD = 16666667; // 16666667ns == 16.666667ms
+constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 
 static void SetThreadHighPriority()
 {
@@ -735,11 +735,6 @@ void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor
     rsVSyncDistributor_ = rsVSyncDistributor;
 }
 
-void VSyncGenerator::SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor)
-{
-    appVSyncDistributor_ = appVSyncDistributor;
-}
-
 void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
 {
     if (lastPeriod_ == period_) {
@@ -769,6 +764,11 @@ void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
         frameRateChanging_ = false;
         ScopedBytrace forceEnd("frameRateChanging_ = false, forceEnd");
     }
+}
+
+void VSyncGenerator::SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor)
+{
+    appVSyncDistributor_ = appVSyncDistributor;
 }
 
 void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime)

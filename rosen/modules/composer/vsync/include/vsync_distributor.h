@@ -60,24 +60,22 @@ public:
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
-
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
 
     int32_t rate_; // used for LTPS
     int32_t highPriorityRate_ = -1;
     bool highPriorityState_ = false;
     ConnectionInfo info_;
-    int32_t proxyPid_;
     bool triggerThisTime_ = false; // used for LTPO
     uint64_t id_ = 0;
     uint64_t windowNodeId_ = 0;
     uint32_t vsyncPulseFreq_ = 1;
     int64_t referencePulseCount_ = 0;
     uint32_t refreshRate_ = 0;
+    int32_t proxyPid_;
     bool rnvTrigger_ = false;
 private:
     VsyncError CleanAllLocked();
-    VsyncError GetRemoteDistributorLocked(sptr<VSyncDistributor> &distributor);
     class VSyncConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit VSyncConnectionDeathRecipient(wptr<VSyncConnection> conn);
@@ -180,11 +178,11 @@ private:
     bool vsyncEnabled_;
     std::string name_;
     bool vsyncThreadRunning_ = false;
-    std::unordered_map<int32_t, int32_t> connectionCounter_;
     std::vector<std::pair<uint64_t, uint32_t>> changingConnsRefreshRates_; // std::pair<id, refresh rate>
     VSyncMode vsyncMode_ = VSYNC_MODE_LTPS; // default LTPS
     std::mutex changingConnsRefreshRatesMtx_;
     uint32_t generatorRefreshRate_ = 0;
+    std::unordered_map<int32_t, int32_t> connectionCounter_;
     uint32_t countTraceValue_ = 0;
 #if defined(RS_ENABLE_DVSYNC)
     int32_t GetUIDVsyncPid();

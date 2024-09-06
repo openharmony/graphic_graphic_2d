@@ -161,9 +161,7 @@ void VSyncSampler::UpdateReferenceTimeLocked()
         referenceTime_ = samples_[firstSampleIndex_];
         CheckIfFirstRefreshAfterIdleLocked();
         CreateVSyncGenerator()->UpdateMode(0, phase_, referenceTime_);
-    }
-    // check if the actual framerate is changed, at least 2 samples
-    if (isFrameRateChanging && (numSamples_ >= 2)) {
+    } else if (isFrameRateChanging && (numSamples_ >= 2)) { // at least 2 samples
         int64_t prevSample = samples_[(firstSampleIndex_ + numSamples_ - 2) % MAX_SAMPLES]; // at least 2 samples
         int64_t latestSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
         CheckIfFirstRefreshAfterIdleLocked();
@@ -212,19 +210,7 @@ void VSyncSampler::UpdateModeLocked()
 
         referenceTime_ = samples_[firstSampleIndex_];
 
-        double scale = 2.0 * PI / period_;
-        double deltaAvgX = 0;
-        double deltaAvgY = 0;
-        for (uint32_t i = 1; i < numSamples_; i++) {
-            double delta = (samples_[(firstSampleIndex_ + i) % MAX_SAMPLES] - referenceTime_) % period_ * scale;
-            deltaAvgX += cos(delta);
-            deltaAvgY += sin(delta);
-        }
-
-        deltaAvgX /= double(numSamples_ - 1);
-        deltaAvgY /= double(numSamples_ - 1);
-
-        phase_ = int64_t(::atan2(deltaAvgY, deltaAvgX) / scale);
+        ComputePhaseLocked();
 
         modeUpdated_ = true;
         CheckIfFirstRefreshAfterIdleLocked();
@@ -296,6 +282,23 @@ void VSyncSampler::CheckIfFirstRefreshAfterIdleLocked()
         (curFenceTimeStamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
         CreateVSyncGenerator()->StartRefresh();
     }
+}
+
+void VSyncSampler::ComputePhaseLocked()
+{
+    double scale = 2.0 * PI / period_;
+    double deltaAvgX = 0;
+    double deltaAvgY = 0;
+    for (uint32_t i = 1; i < numSamples_; i++) {
+        double delta = (samples_[(firstSampleIndex_ + i) % MAX_SAMPLES] - referenceTime_) % period_ * scale;
+        deltaAvgX += cos(delta);
+        deltaAvgY += sin(delta);
+    }
+
+    deltaAvgX /= double(numSamples_ - 1);
+    deltaAvgY /= double(numSamples_ - 1);
+
+    phase_ = int64_t(::atan2(deltaAvgY, deltaAvgX) / scale);
 }
 
 int64_t VSyncSampler::GetPeriod() const
