@@ -616,7 +616,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
     bool isHdrOn = params->GetHDRPresent();
-    RS_LOGD("SetHDRPresent: %{public}d OnDraw", isHdrOn);
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR isHdrOn: %{public}d", isHdrOn);
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
@@ -657,11 +657,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     ScreenId screenId = curScreenInfo.id;
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
     curCanvas_->SetScreenId(screenId);
-    if (isHdrOn) {
-        // 0 means defalut hdrBrightnessRatio
-        float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
-        curCanvas_->SetBrightnessRatio(hdrBrightnessRatio);
+    // 0 means defalut hdrBrightnessRatio
+    float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
+    if (!isHdrOn) {
+        params->SetBrightnessRatio(hdrBrightnessRatio);
+        hdrBrightnessRatio = 1.0f;
     }
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR content in UniRender:%{public}d, BrightnessRatio:%{public}f",
+        isHdrOn, hdrBrightnessRatio);
 
     curCanvas_->SetDisableFilterCache(params->GetZoomed());
 
@@ -709,7 +712,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                     }
                     ClearTransparentBeforeSaveLayer();
                     FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST,
-                        Drawing::MipmapMode::NONE), RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
+                        Drawing::MipmapMode::NONE), hdrBrightnessRatio);
                     uniParam->SetOpDropped(isOpDropped);
                 } else {
                     RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw canvasBackup_ is nullptr");
