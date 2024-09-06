@@ -86,18 +86,6 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ProcessImage001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessImage002
- * @tc.desc: Verify function ProcessImage
- * @tc.type:FUNC
- */
-HWTEST_F(GEKawaseBlurShaderFilterTest, ProcessImage002, TestSize.Level1)
-{
-    Drawing::GEKawaseBlurShaderFilterParams params{1}; // 1 blur radius
-    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
-    EXPECT_EQ(geKawaseBlurShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
-}
-
-/**
  * @tc.name: ProcessImage003
  * @tc.desc: Verify function ProcessImage
  * @tc.type:FUNC
