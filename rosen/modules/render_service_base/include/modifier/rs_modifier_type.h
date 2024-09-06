@@ -170,18 +170,7 @@ enum class RSModifierType : int16_t {
     MAX_RS_MODIFIER_TYPE,
 };
 
-enum class RSPropertyModifierType : uint8_t {
-    GEOMETRY = 0,
-    BACKGROUND,
-    CONTENT,
-    FOREGROUND,
-    OVERLAY,
-    APPEARANCE,
-    CUSTOM,
-};
-
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
-
 enum class RSRenderPropertyType : int16_t {
     INVALID = 0,
     PROPERTY_FLOAT,

@@ -253,7 +253,7 @@ void RSProfiler::DumpNodePropertiesTransform(const RSProperties& properties, Jso
     if (!ROSEN_EQ(properties.GetPositionZ(), 0.f)) {
         out["PositionZ"] = properties.GetPositionZ();
     }
-    RSTransform defaultTransform;
+    Transform defaultTransform;
     Vector2f pivot = properties.GetPivot();
     if ((!ROSEN_EQ(pivot[0], defaultTransform.pivotX_) || !ROSEN_EQ(pivot[1], defaultTransform.pivotY_))) {
         out["Pivot"] = { pivot[0], pivot[1] };

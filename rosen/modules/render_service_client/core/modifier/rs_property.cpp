@@ -51,13 +51,6 @@ void RSPropertyBase::MarkModifierDirty()
     }
 }
 
-void RSPropertyBase::MarkNodeDirty()
-{
-    if (auto modifier = modifier_.lock()) {
-        modifier->MarkNodeDirty();
-    }
-}
-
 void RSPropertyBase::UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node)
 {
     if (type_ == RSModifierType::BOUNDS || type_ == RSModifierType::FRAME) {

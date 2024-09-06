@@ -3557,7 +3557,7 @@ std::string RSProperties::Dump() const
     }
 
     // Pivot
-    std::unique_ptr<RSTransform> defaultTrans = std::make_unique<RSTransform>();
+    std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
         return "Failed to memset_s for Pivot, ret=" + std::to_string(ret);
