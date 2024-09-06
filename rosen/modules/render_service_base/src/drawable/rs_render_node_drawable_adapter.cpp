@@ -409,6 +409,21 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     }
 }
 
+void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
+    Drawing::Canvas& canvas, const RSRenderParams& params)
+{
+    // The shadow without shadowRect has drawn in Nodegroup's cache, so we can't draw it again
+    if (!params.GetShadowRect().IsEmpty()) {
+        DrawBackground(canvas, params.GetBounds());
+    } else {
+        DrawRangeImpl(
+            canvas, params.GetBounds(), drawCmdIndex_.foregroundFilterBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
+    }
+    if (curDrawingCacheRoot_) {
+        curDrawingCacheRoot_->ReduceFilterRectSize(ClipHoleForCacheSize(params));
+    }
+}
+
 void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas,
     const Drawing::Rect& rect) const
 {
@@ -451,6 +466,13 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
 }
+
+int RSRenderNodeDrawableAdapter::ClipHoleForCacheSize(const RSRenderParams& params) const
+{
+    return int(drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty()) +
+           int(drawCmdIndex_.backgroundFilterIndex_ != -1) + int(drawCmdIndex_.useEffectIndex_ != -1);
+}
+
 int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
 {
     switch (skipType_) {
