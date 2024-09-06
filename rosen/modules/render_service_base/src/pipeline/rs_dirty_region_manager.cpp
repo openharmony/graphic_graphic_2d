@@ -273,7 +273,8 @@ void RSDirtyRegionManager::UpdateDirtyByAligned(int32_t alignedBits)
 void RSDirtyRegionManager::UpdateDirtyRegionInfoForDfx(NodeId id, RSRenderNodeType nodeType,
     DirtyRegionType dirtyType, const RectI& rect)
 {
-    if (dirtyType >= DirtyRegionType::TYPE_AMOUNT || dirtyType < 0 || rect.IsEmpty()) {
+    if ((dirtyType >= dirtyCanvasNodeInfo_.size()) || (dirtyType >= DirtyRegionType::TYPE_AMOUNT) ||
+        (dirtyType < 0) || (rect.IsEmpty())) {
         return;
     }
     if (nodeType == RSRenderNodeType::CANVAS_NODE) {
@@ -287,7 +288,8 @@ void RSDirtyRegionManager::GetDirtyRegionInfo(std::map<NodeId, RectI>& target,
     RSRenderNodeType nodeType, DirtyRegionType dirtyType) const
 {
     target.clear();
-    if (dirtyType >= DirtyRegionType::TYPE_AMOUNT || dirtyType < 0) {
+    if ((dirtyType >= dirtyCanvasNodeInfo_.size()) || (dirtyType >= DirtyRegionType::TYPE_AMOUNT) ||
+        (dirtyType < 0)) {
         return;
     }
     if (nodeType == RSRenderNodeType::CANVAS_NODE) {
