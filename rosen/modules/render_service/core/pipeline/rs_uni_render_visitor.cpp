@@ -289,7 +289,7 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
 {
     if (node.GetHDRPresent()) {
         RS_LOGD("SetHDRPresent true, surfaceNode: %{public}" PRIu64 "", node.GetId());
-        hasHdrpresent_ = true;
+        hasUniRenderHdrSurface_ = true;
     }
     if (hasFingerprint_) {
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormat hasFingerprint is true.");
@@ -321,27 +321,23 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
 void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
     if (!RSSystemProperties::GetHDRImageEnable()) {
-        hasHdrpresent_ = false;
+        hasUniRenderHdrSurface_ = false;
     }
-    RS_LOGD("SetHDRPresent: [%{public}d] prepare", hasHdrpresent_);
+    RS_LOGD("RSUniRenderVisitor::HandlePixelFormat HDR hasUniRenderHdrSurface:%{public}d", hasUniRenderHdrSurface_);
     auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
     if (!stagingDisplayParams) {
         RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get StagingRenderParams failed.");
         return;
     }
     ScreenId screenId = stagingDisplayParams->GetScreenId();
-    RSLuminanceControl::Get().SetHdrStatus(screenId, hasHdrpresent_);
+    RSLuminanceControl::Get().SetHdrStatus(screenId, hasUniRenderHdrSurface_);
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
-    if (!hasHdrpresent_ && !hasUniRenderHdrSurface_) {
+    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d brightnessRatio:%f", isHdrOn, hasUniRenderHdrSurface_, brightnessRatio);
+    if (!hasUniRenderHdrSurface_) {
         isHdrOn = false;
-        node.SetBrightnessRatio(brightnessRatio);
-        RS_LOGD("no hdr content in uniRender, brightness ratio: %{public}f handled in composer", brightnessRatio);
-    } else {
-        // 1.0f means that dss composer don't brightness discount.
-        node.SetBrightnessRatio(1.0f);
-        RS_LOGD("hdr content in uniRender, brightness ratio: %{public}f handled in uniRender", brightnessRatio);
     }
+    RS_LOGD("RSUniRenderVisitor::HandlePixelFormat HDR isHdrOn:%{public}d", isHdrOn);
     node.SetHDRPresent(isHdrOn);
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
