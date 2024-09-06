@@ -420,7 +420,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
 #endif
 }
 
-void DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext)
+void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext)
 {
     log.AppendFormat("\n---------------\ndumpGpuStats:\n");
     std::string stat;

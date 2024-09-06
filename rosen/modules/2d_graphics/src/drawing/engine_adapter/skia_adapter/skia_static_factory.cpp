@@ -24,6 +24,7 @@
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "skia_adapter/skia_typeface.h"
+#include "skia_adapter/skia_utils.h"
 #include "utils/system_properties.h"
 
 namespace OHOS {
@@ -206,6 +207,11 @@ std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupP
 std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
 {
     return SkiaBlender::CreateWithBlendMode(mode);
+}
+
+void SkiaStaticFactory::SetVmaCacheStatus(bool flag)
+{
+    SkiaUtils::SetVmaCacheStatus(flag);
 }
 } // namespace Drawing
 } // namespace Rosen

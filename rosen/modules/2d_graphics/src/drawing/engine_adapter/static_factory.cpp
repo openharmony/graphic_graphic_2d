@@ -361,7 +361,7 @@ void StaticFactory::SetVmaCacheStatus(bool flag)
 {
 #ifdef RS_ENABLE_VK
     if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
-        SkSetVmaCacheFlag(flag);
+        EngineStaticFactory::SetVmaCacheStatus(flag);
     }
 #endif
 }
