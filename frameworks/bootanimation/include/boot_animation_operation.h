@@ -24,10 +24,6 @@
 #include "boot_compile_progress.h"
 #include "boot_player.h"
 #include "event_handler.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "render_context_factory.h"
-#include "rs_surface_factory.h"
-#endif
 #include <render_context/render_context.h>
 #include <ui/rs_display_node.h>
 #include <ui/rs_surface_extractor.h>
@@ -69,9 +65,6 @@ private:
     std::thread eventThread_;
     std::condition_variable eventCon_;
 
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<OHOS::Rosen::RSRenderSurface> rsSurface_;
-#endif
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface_;
     std::shared_ptr<OHOS::Rosen::RSDisplayNode> rsDisplayNode_;
     std::shared_ptr<OHOS::Rosen::RSSurfaceNode> rsSurfaceNode_;

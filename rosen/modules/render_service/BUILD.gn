@@ -254,11 +254,6 @@ ohos_shared_library("librender_service") {
 
   public_external_deps = [ "skia:skia_canvaskit" ]
 
-  if (defined(use_new_render_context) && use_new_render_context) {
-    include_dirs += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-    defines += [ "NEW_RENDER_CONTEXT" ]
-  }
-
   if (defined(rs_enable_parallel_upload) && rs_enable_parallel_upload) {
     sources += [
       "core/pipeline/parallel_render/resource/rs_upload_resource_thread.cpp",

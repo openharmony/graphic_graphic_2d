@@ -30,12 +30,8 @@
 #include "surface_delegate.h"
 #endif
 
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
 #include "platform/common/rs_surface_ext.h"
-#endif
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 
@@ -173,11 +169,7 @@ private:
     void CreateTextureExportRenderNodeInRT() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_;
-#else
     std::shared_ptr<RSSurface> surface_;
-#endif
     std::string name_;
     std::string bundleName_;
     mutable std::mutex mutex_;

@@ -120,11 +120,7 @@ using PlayerParams = struct PlayerParams {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     OHOS::sptr<OHOS::Surface> surface;
 #endif
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<OHOS::Rosen::RSRenderSurface> rsSurface;
-#else
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface;
-#endif
     Rosen::ScreenId screenId;
     bool soundEnabled = false;
     BootAnimationCallback* callback;

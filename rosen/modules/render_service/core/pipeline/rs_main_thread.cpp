@@ -109,10 +109,6 @@
 #include "rs_upload_resource_thread.h"
 #endif
 
-#ifdef NEW_RENDER_CONTEXT
-#include "render_context/memory_handler.h"
-#endif
-
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -573,13 +569,8 @@ void RSMainThread::Init()
     /* move to render thread ? */
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         int cacheLimitsTimes = 3;
-#ifdef NEW_RENDER_CONTEXT
-        auto gpuContext = isUniRender_? uniRenderEngine_->GetDrawingContext()->GetDrawingContext() :
-            renderEngine_->GetDrawingContext()->GetDrawingContext();
-#else
         auto gpuContext = isUniRender_? GetRenderEngine()->GetRenderContext()->GetDrGPUContext() :
             renderEngine_->GetRenderContext()->GetDrGPUContext();
-#endif
         if (gpuContext == nullptr) {
             RS_LOGE("RSMainThread::Init gpuContext is nullptr!");
             return;

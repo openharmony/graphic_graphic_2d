@@ -24,13 +24,8 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/round_corner_display/rs_round_corner_config.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#include "render_context_base.h"
-#else
 #include "platform/drawing/rs_surface.h"
 #include "render_context/render_context.h"
-#endif
 #include "sync_fence.h"
 #include <filesystem>
 #include "include/core/SkBitmap.h"
@@ -111,11 +106,7 @@ public:
 
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
     bool IsSurfaceCreated() const;
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> GetRSSurface() const;
-#else
     std::shared_ptr<RSSurface> GetRSSurface() const;
-#endif
     sptr<IBufferConsumerListener> GetConsumerListener() const;
     RcdSourceInfo rcdSourceInfo;
     void SetRcdBufferWidth(uint32_t width);
@@ -147,11 +138,7 @@ private:
     uint32_t GetRcdBufferHeight() const;
     uint32_t GetRcdBufferSize() const;
 
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
-#else
     std::shared_ptr<RSSurface> surface_ = nullptr;
-#endif
     sptr<IBufferConsumerListener> consumerListener_;
 
     RcdExtInfo rcdExtInfo_;

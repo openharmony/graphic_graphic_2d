@@ -629,10 +629,6 @@ ohos_shared_library("librender_service_base") {
 
   external_deps = [ "hilog:libhilog" ]
 
-  if (defined(use_new_render_context) && use_new_render_context) {
-    public_deps += [ "src/render_backend:librender_backend" ]
-  }
-
   public_external_deps = []
   if (rosen_is_ohos) {
     public_external_deps += [
@@ -670,10 +666,6 @@ ohos_source_set("librender_service_base_static") {
     ":render_service_base_src",
     "src/platform:platform",
   ]
-
-  if (defined(use_new_render_context) && use_new_render_context) {
-    public_deps += [ "src/render_backend:librender_backend" ]
-  }
 
   public_external_deps = []
   if (rosen_is_ohos) {

@@ -1318,15 +1318,9 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas)
     Drawing::Brush brush;
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-#ifdef NEW_RENDER_CONTEXT
-    RSTagTracker tagTracker(
-        renderEngine->GetDrawingContext()->GetDrawingContext(),
-        RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
-#else
     RSTagTracker tagTracker(
         renderEngine->GetRenderContext()->GetDrGPUContext(),
         RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
-#endif
 #endif
     Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
     canvas.SaveLayer(slr);

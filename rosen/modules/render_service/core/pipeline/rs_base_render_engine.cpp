@@ -26,17 +26,11 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#if defined(NEW_RENDER_CONTEXT)
-#include "render_context_factory.h"
-#include "rs_surface_factory.h"
-#include "ohos/rs_render_surface_ohos.h"
-#else
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
-#endif
 #endif
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
@@ -57,20 +51,6 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 void RSBaseRenderEngine::Init(bool independentContext)
 {
     (void)independentContext;
-#if defined(NEW_RENDER_CONTEXT)
-    RenderType renderType = RenderType::RASTER;
-#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::OPENGL) {
-        renderType = RenderType::GLES;
-    } else if (RSSystemProperties::IsUseVulkan()) {
-        renderType = RenderType::VULKAN;
-    }
-#endif
-    renderContext_ = RenderContextBaseFactory::CreateRenderContext(renderType);
-    renderContext_->Init();
-    drawingContext_ = std::make_shared<Rosen::DrawingContext>(renderContext_->GetRenderType());
-    drawingContext_->SetUpDrawingContext();
-#else
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = std::make_shared<RenderContext>();
 #ifdef RS_ENABLE_GL
@@ -94,14 +74,8 @@ void RSBaseRenderEngine::Init(bool independentContext)
     renderContext_->SetUpGpuContext();
 #endif
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-#endif
 #if defined(RS_ENABLE_EGLIMAGE)
-#if defined(NEW_RENDER_CONTEXT)
-    std::shared_ptr<RSRenderSurfaceFrame> frame = renderContext_->GetRSRenderSurfaceFrame();
-    eglImageManager_ = std::make_shared<RSEglImageManager>(frame->eglState->eglDisplay);
-#else
     eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
-#endif
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
@@ -271,17 +245,10 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-#ifdef NEW_RENDER_CONTEXT
-std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
-    const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
-    const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
-    const FrameContextConfig& frameContextConfig)
-#else
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const std::shared_ptr<RSSurfaceOhos>& rsSurface,
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
     const FrameContextConfig& frameContextConfig)
-#endif
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -322,26 +289,6 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     rsSurface->SetSurfaceBufferUsage(bufferUsage);
 
     // check if we can use GPU context
-#if defined(NEW_RENDER_CONTEXT)
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    if (forceCPU) {
-        std::shared_ptr<RenderContextBase> renderContextRaster = RenderContextBaseFactory::CreateRenderContext(
-            RenderType::RASTER);
-        renderContextRaster->Init();
-        std::shared_ptr<DrawingContext> drawingContextRaster = std::make_shared<DrawingContext>(RenderType::RASTER);
-        rsSurface->SetRenderContext(renderContextRaster);
-        rsSurface->SetDrawingContext(drawingContextRaster);
-        RS_LOGD("RSBaseRenderEngine::RequestFrame force CPU");
-    } else {
-        if (renderContext_ != nullptr) {
-            rsSurface->SetRenderContext(renderContext_);
-        }
-        if (drawingContext_ != nullptr) {
-            rsSurface->SetDrawingContext(drawingContext_);
-        }
-    }
-#endif
-#else
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL &&
         renderContext_ != nullptr) {
@@ -353,7 +300,6 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
         std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetSkContext(skContext_);
     }
 #endif
-#endif
     auto surfaceFrame = rsSurface->RequestFrame(config.width, config.height, 0, useAFBC,
         frameContextConfig.isProtected);
     RS_OPTIONAL_TRACE_END();
@@ -361,11 +307,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
         RS_LOGE("RSBaseRenderEngine::RequestFrame: request SurfaceFrame failed!");
         return nullptr;
     }
-#ifdef NEW_RENDER_CONTEXT
-    return std::make_unique<RSRenderFrame>(rsSurface);
-#else
     return std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
-#endif
 }
 
 std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surface>& targetSurface,
@@ -379,12 +321,6 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
         return nullptr;
     }
 
-#if defined(NEW_RENDER_CONTEXT)
-    std::shared_ptr<RSRenderSurfaceOhos> rsSurface = nullptr;
-    std::shared_ptr<RSRenderSurface> renderSurface = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS,
-        targetSurface);
-    rsSurface = std::static_pointer_cast<RSRenderSurfaceOhos>(renderSurface);
-#else
     std::shared_ptr<RSSurfaceOhos> rsSurface = nullptr;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -403,17 +339,11 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(const sptr<Surfa
     if (rsSurface == nullptr) {
         rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
     }
-#endif
     RS_OPTIONAL_TRACE_END();
     return RequestFrame(rsSurface, config, forceCPU, useAFBC, frameContextConfig);
 }
 
-#ifdef NEW_RENDER_CONTEXT
-std::shared_ptr<RSRenderSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surface>& targetSurface,
-    bool forceCPU)
-#else
 std::shared_ptr<RSSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU)
-#endif
 {
     RS_TRACE_FUNC();
     if (targetSurface == nullptr) {
@@ -422,12 +352,6 @@ std::shared_ptr<RSSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surf
         return nullptr;
     }
 
-#if defined(NEW_RENDER_CONTEXT)
-    std::shared_ptr<RSRenderSurfaceOhos> rsSurface = nullptr;
-    std::shared_ptr<RSRenderSurface> renderSurface = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS,
-        targetSurface);
-    rsSurface = std::static_pointer_cast<RSRenderSurfaceOhos>(renderSurface);
-#else
     std::shared_ptr<RSSurfaceOhos> rsSurface = nullptr;
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -446,17 +370,11 @@ std::shared_ptr<RSSurfaceOhos> RSBaseRenderEngine::MakeRSSurface(const sptr<Surf
     if (rsSurface == nullptr) {
         rsSurface = std::make_shared<RSSurfaceOhosRaster>(targetSurface);
     }
-#endif
     return rsSurface;
 }
 
-#ifdef NEW_RENDER_CONTEXT
-void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
-    std::shared_ptr<RSRenderSurfaceOhos> surfaceOhos)
-#else
 void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
     std::shared_ptr<RSSurfaceOhos> surfaceOhos)
-#endif
 {
     if (surfaceOhos == nullptr) {
         RS_LOGE("RSBaseRenderEngine::SetUiTimeStamp: surfaceOhos is null!");
@@ -468,12 +386,8 @@ void RSBaseRenderEngine::SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& re
         return;
     }
 
-#ifdef NEW_RENDER_CONTEXT
-    surfaceOhos->SetUiTimeStamp();
-#else
     auto& frame = renderFrame->GetFrame();
     surfaceOhos->SetUiTimeStamp(frame);
-#endif
 }
 
 void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSDisplayRenderNode& node,
