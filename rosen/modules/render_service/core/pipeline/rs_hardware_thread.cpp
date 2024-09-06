@@ -318,6 +318,11 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
         RS_LOGD("FrameRateMgr is null");
         return;
     }
+    auto screenRefreshRateImme = hgmCore.GetScreenRefreshRateImme();
+    if (screenRefreshRateImme > 0) {
+        RS_LOGD("ExecuteSwitchRefreshRate:rate change: %{public}u -> %{public}u", refreshRate, screenRefreshRateImme);
+        refreshRate = screenRefreshRateImme;
+    }
     ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
