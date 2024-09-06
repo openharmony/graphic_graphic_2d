@@ -732,6 +732,29 @@ void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle*, int /* OH_Drawing_Te
 void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_TextDecoration */);
 
 /**
+ * @brief Add the text decoration.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the text decoration to add. For details, see the enum <b>OH_Drawing_TextDecoration</b>.
+ * @since 14
+ * @version 1.0
+ */
+void OH_Drawing_AddTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_TextDecoration */);
+
+/**
+ * @brief Remove the text decoration.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the text decoration to remove, shoud be match existing text decorations.
+ * For details, see the enum <b>OH_Drawing_TextDecoration</b>.
+ * @since 14
+ * @version 1.0
+ */
+void OH_Drawing_RemoveTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_TextDecoration */);
+
+/**
  * @brief Sets the color for the text decoration.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

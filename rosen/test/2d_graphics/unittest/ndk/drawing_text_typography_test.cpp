@@ -2477,4 +2477,72 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level
     OH_Drawing_PointDestroy(offset);
     EXPECT_TRUE(shadow != nullptr);
 }
+
+/*
+ * @tc.name: OH_Drawing_AddTextStyleDecorationTest
+ * @tc.desc: test for add multiple text decoration
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_AddTextStyleDecorationTest, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, -1);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_OVERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(nullptr, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration,
+        TextDecoration::UNDERLINE | TextDecoration::OVERLINE | TextDecoration::LINE_THROUGH);
+
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::NONE);
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_RemoveTextStyleDecorationTest
+ * @tc.desc: test for remove specific text decoration
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_RemoveTextStyleDecorationTest, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_OVERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, -1);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_RemoveTextStyleDecoration(nullptr, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle,
+        TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_OVERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration,
+        TextDecoration::UNDERLINE | TextDecoration::OVERLINE | TextDecoration::LINE_THROUGH);
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
 } // namespace OHOS

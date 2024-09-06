@@ -299,6 +299,30 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
     ConvertToOriginalText<TextStyle>(style)->decoration = rosenDecoration;
 }
 
+void OH_Drawing_AddTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
+{
+    if (style != nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH))) {
+        return;
+    }
+    TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
+    if (rosenTextStyle) {
+        rosenTextStyle->decoration = static_cast<TextDecoration>(rosenTextStyle->decoration | decoration);
+    }
+}
+
+void OH_Drawing_RemoveTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
+{
+    if (style != nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH))) {
+        return;
+    }
+    TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
+    if (rosenTextStyle) {
+        rosenTextStyle->decoration = static_cast<TextDecoration>(rosenTextStyle->decoration & ~decoration);
+    }
+}
+
 void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle* style, uint32_t color)
 {
     if (!style) {
