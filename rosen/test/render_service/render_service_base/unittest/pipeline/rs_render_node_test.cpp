@@ -618,20 +618,20 @@ HWTEST_F(RSRenderNodeTest, GetFilterRectTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     auto rect = node.GetFilterRect();
-    EXPECT_TRUE(rect.ToString().compare("(0, 0, 0, 0)") == 0);
+    EXPECT_TRUE(rect.ToString().compare("[0, 0, 0, 0]") == 0);
 
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     node.renderContent_->renderProperties_.SetClipBounds(rsPath);
     auto rect1 = node.GetFilterRect();
-    EXPECT_TRUE(rect1.ToString().compare("(0, 0, 0, 0)") == 0);
+    EXPECT_TRUE(rect1.ToString().compare("[0, 0, 0, 0]") == 0);
 
     node.renderContent_->renderProperties_.boundsGeo_ = nullptr;
     auto rect2 = node.GetFilterRect();
-    EXPECT_TRUE(rect2.ToString().compare("(0, 0, 0, 0)") == 0);
+    EXPECT_TRUE(rect2.ToString().compare("[0, 0, 0, 0]") == 0);
 }
 
 /**
- * @tc.name: GetFilterRectTest
+ * @tc.name: CalVisibleFilterRectTest
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: issueI9T3XY
@@ -641,7 +641,7 @@ HWTEST_F(RSRenderNodeTest, CalVisibleFilterRectTest, TestSize.Level1)
     RSRenderNode node(id, context);
     RectI prepareClipRect { 1, 1, 1, 1 };
     node.CalVisibleFilterRect(prepareClipRect);
-    EXPECT_TRUE(node.filterRegion_.ToString().compare("(0, 0, 0, 0)") == 0);
+    EXPECT_TRUE(node.filterRegion_.ToString().compare("[0, 0, 0, 0]") == 0);
 }
 
 /**

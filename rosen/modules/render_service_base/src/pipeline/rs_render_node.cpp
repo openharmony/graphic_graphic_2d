@@ -1314,8 +1314,10 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     // 2. update geoMatrix by parent for dirty collection
     // update geoMatrix and accumGeoDirty if needed
     auto parent = GetParent().lock();
-    if (!accumGeoDirty && parent && parent->GetGeoUpdateDelay()) {
+    if (parent && parent->GetGeoUpdateDelay()) {
         accumGeoDirty = true;
+        // Set geometry update delay flag recursively to update node's old dirty in subTree
+        SetGeoUpdateDelay(true);
     }
     auto& properties = GetMutableRenderProperties();
     if (accumGeoDirty || properties.NeedClip() || properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
@@ -1339,8 +1341,10 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
-    if ((IsDirty() || clipAbsDrawRectChange_ || (parent && parent->GetAccumulatedClipFlagChange())) &&
-        (shouldPaint_ || isLastVisible_)) {
+    // Only when satisfy following conditions, absDirtyRegion should update:
+    // 1.The node is dirty; 2.The clip absDrawRect change; 3.Parent clip property change or has GeoUpdateDelay dirty;
+    if ((IsDirty() || clipAbsDrawRectChange_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
+        parent->GetGeoUpdateDelay()))) && (shouldPaint_ || isLastVisible_)) {
         // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
         UpdateDirtyRegionInfoForDFX(dirtyManager);
@@ -3533,6 +3537,10 @@ RectI RSRenderNode::GetOldDirty() const
 RectI RSRenderNode::GetOldDirtyInSurface() const
 {
     return oldDirtyInSurface_;
+}
+RectI RSRenderNode::GetOldClipRect() const
+{
+    return oldClipRect_;
 }
 void RSRenderNode::SetOldDirtyInSurface(RectI oldDirtyInSurface)
 {
