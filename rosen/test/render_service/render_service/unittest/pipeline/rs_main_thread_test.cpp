@@ -654,7 +654,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest003, TestSize.L
     pid_t pid = 1;
     transactionData->SetSendingPid(pid);
     RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
-    
+
     NodeId id = 1;
     auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
     mainThread->context_->RegisterAnimatingRenderNode(node);
@@ -675,7 +675,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest004, TestSize.L
     pid_t pid = 1;
     transactionData->SetSendingPid(pid);
     RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
-    
+
     NodeId firstWindowNodeId = 2;
     auto firstWindowNode = std::make_shared<RSSurfaceRenderNode>(firstWindowNodeId, mainThread->context_);
     firstWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
@@ -685,7 +685,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest004, TestSize.L
     firstWindowNode->AddChild(firstWindowChildNode);
     firstWindowNode->GenerateFullChildrenList();
     mainThread->context_->nodeMap.RegisterRenderNode(firstWindowNode);
-    
+
     NodeId secondWindowNodeId = 2;
     auto secondWindowNode = std::make_shared<RSSurfaceRenderNode>(secondWindowNodeId, mainThread->context_);
     secondWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
@@ -2870,6 +2870,36 @@ HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetLuminanceChangingStatus
+ * @tc.desc: SetLuminanceChangingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, SetLuminanceChangingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), false);
+    mainThread->SetLuminanceChangingStatus(true);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), true);
+}
+
+/**
+ * @tc.name: ExchangeLuminanceChangingStatus
+ * @tc.desc: ExchangeLuminanceChangingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, ExchangeLuminanceChangingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetLuminanceChangingStatus(true);
+    ASSERT_EQ(mainThread->ExchangeLuminanceChangingStatus(), true);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), false);
+}
+
+/**
  * @tc.name: CalcOcclusionImplementation001
  * @tc.desc: calculate occlusion when surfaces do not overlap
  * @tc.type: FUNC
@@ -2896,7 +2926,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation001, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -2935,7 +2965,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation002, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -2974,7 +3004,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation003, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -3014,7 +3044,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation004, TestSize.Level1)
     nodeTop->SetDstRect(rectTop);
     // The top node is transparent
     nodeTop->SetGlobalAlpha(0.0f);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -3056,7 +3086,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
     // The top node is transparent
     nodeTop->SetGlobalAlpha(0.0f);
     nodeTop->isFilterCacheValidForOcclusion_ = true;
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
