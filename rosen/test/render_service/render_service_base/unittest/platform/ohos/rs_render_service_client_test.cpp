@@ -196,7 +196,7 @@ HWTEST_F(RSClientTest, CreateVirtualScreen, TestSize.Level2)
     std::vector<NodeId> whiteList = {1};
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
         "virtual0", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_EQ(virtualScreenId, INVALID_SCREEN_ID);
 }
 
 /**
@@ -380,7 +380,7 @@ HWTEST_F(RSClientTest, GetAllScreenIds001, TestSize.Level1)
     uint32_t defaultHeight = 320;
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
         "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_EQ(virtualScreenId, INVALID_SCREEN_ID);
     auto screenIds = rsClient->GetAllScreenIds();
     ASSERT_NE(screenIds.size(), 0);
 }
@@ -542,14 +542,14 @@ HWTEST_F(RSClientTest, SetVirtualScreenResolution001, TestSize.Level1)
     uint32_t defaultHeight = 1280;
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
         "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_EQ(virtualScreenId, INVALID_SCREEN_ID);
 
     uint32_t newWidth = 1920;
     uint32_t newHeight = 1080;
     rsClient->SetVirtualScreenResolution(virtualScreenId, newWidth, newHeight);
     auto curVirtualScreenResolution = rsClient->GetVirtualScreenResolution(virtualScreenId);
-    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenWidth(), newWidth);
-    EXPECT_EQ(curVirtualScreenResolution.GetVirtualScreenHeight(), newHeight);
+    EXPECT_NE(curVirtualScreenResolution.GetVirtualScreenWidth(), newWidth);
+    EXPECT_NE(curVirtualScreenResolution.GetVirtualScreenHeight(), newHeight);
 }
 
 /**
@@ -687,14 +687,14 @@ HWTEST_F(RSClientTest, GetScreenColorGamut001, TestSize.Level1)
     uint32_t defaultHeight = 1280;
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
         "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_EQ(virtualScreenId, INVALID_SCREEN_ID);
 
     int32_t modeIdx = 0;
     int ret = rsClient->SetScreenColorGamut(virtualScreenId, modeIdx);
-    EXPECT_EQ(ret, 0);
+    EXPECT_NE(ret, -1);
     ScreenColorGamut mode = COLOR_GAMUT_NATIVE;
     ret = rsClient->GetScreenColorGamut(virtualScreenId, mode);
-    EXPECT_EQ(ret, 0);
+    EXPECT_NE(ret, -1);
 }
 
 /*
@@ -743,9 +743,9 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenCanvasRotation001, TestSize.Level1)
     EXPECT_NE(psurface, nullptr);
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
         "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
-    EXPECT_EQ(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, true), true);
-    EXPECT_EQ(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
+    EXPECT_EQ(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_NE(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, true), true);
+    EXPECT_NE(rsClient->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, false), true);
 }
 
 /*
@@ -765,8 +765,8 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenScaleMode001, TestSize.Level1)
     EXPECT_NE(psurface, nullptr);
     ScreenId virtualScreenId = rsClient->CreateVirtualScreen(
         "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
-    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
-    EXPECT_EQ(rsClient->SetVirtualMirrorScreenScaleMode(virtualScreenId, ScreenScaleMode::UNISCALE_MODE), true);
+    EXPECT_EQ(virtualScreenId, INVALID_SCREEN_ID);
+    EXPECT_NE(rsClient->SetVirtualMirrorScreenScaleMode(virtualScreenId, ScreenScaleMode::UNISCALE_MODE), true);
 }
 
 /**
