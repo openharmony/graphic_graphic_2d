@@ -554,9 +554,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
         if (forceUpdateCallback_ != nullptr) {
             forceUpdateCallback_(false, true);
         }
-        schedulePreferredFpsChange_ = true;
     }
-    FrameRateReport();
     changeGeneratorRateValid_.store(false);
 }
 
@@ -826,8 +824,6 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     UpdateEnergyConsumptionConfig();
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
-    schedulePreferredFpsChange_ = true;
-    FrameRateReport();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
 }
 
@@ -874,8 +870,6 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     multiAppStrategy_.CalcVote();
     hgmCore.SetLtpoConfig();
     MarkVoteChange();
-    schedulePreferredFpsChange_ = true;
-    FrameRateReport();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
 
     // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready
@@ -1025,7 +1019,8 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         }
         return;
     }
-    currRefreshRate_ = refreshRate;
+    schedulePreferredFpsChange_ = true;
+    FrameRateReport();
 
     bool frameRateChanged = false;
     if (rsFrameRateLinker_ != nullptr) {
@@ -1041,9 +1036,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
             if (forceUpdateCallback_ != nullptr) {
                 forceUpdateCallback_(false, true);
             }
-            schedulePreferredFpsChange_ = true;
         }
-        FrameRateReport();
     }
     ReportHiSysEvent(resultVoteInfo);
 }
