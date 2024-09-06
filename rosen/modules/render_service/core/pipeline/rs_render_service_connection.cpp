@@ -1698,9 +1698,6 @@ void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t to
         return;
     }
     mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
-    if (touchStatus == TouchStatus::TOUCH_DOWN) {
-        GrDirectContext::setLastTouchDownTime();
-    }
 }
 
 void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
