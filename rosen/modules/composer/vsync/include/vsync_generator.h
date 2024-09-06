@@ -75,7 +75,7 @@ public:
 
     virtual void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
     virtual void SetFrameRateChangingStatus(bool frameRateChanging) = 0;
-    virtual void SetAppDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
+    virtual void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();

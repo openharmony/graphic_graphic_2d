@@ -542,6 +542,9 @@ void VSyncDistributor::EnableVSync()
         controller_->SetCallback(this);
         controller_->SetEnable(true, vsyncEnabled_);
     }
+#if defined(RS_ENABLE_DVSYNC)
+        dvsync_->RecordEnableVsync();
+#endif
 }
 
 void VSyncDistributor::DisableVSync()
@@ -1153,7 +1156,11 @@ VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSy
 {
 #if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
-    dvsync_->RuntimeMark(dvsyncSwitch ? connection : nullptr);
+    if (dvsyncSwitch) {
+        dvsync_->RuntimeMark(connection);
+    } else {
+        dvsync_->RuntimeMark(nullptr);
+    }
 #endif
     return VSYNC_ERROR_OK;
 }
