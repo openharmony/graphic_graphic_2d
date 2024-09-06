@@ -182,7 +182,7 @@ public:
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId);
+        int32_t pid, int32_t uid, const std::string bundleName, const std::string abilityName, uint64_t focusNodeId);
     const std::unordered_map<NodeId, bool>& GetCacheCmdSkippedNodes() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;

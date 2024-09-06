@@ -456,19 +456,22 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSu
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
     int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
-    return RSMainThread::Instance()->ScheduleTask(
-        [=, weakThis = wptr<RSRenderServiceConnection>(this)]() -> int32_t {
+    if (mainThread_ == nullptr) {
+        return INVALID_ARGUMENTS;
+    }
+    mainThread_->ScheduleTask(
+        [=, weakThis = wptr<RSRenderServiceConnection>(this)]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (connection == nullptr) {
-                return RS_CONNECTION_ERROR;
+                return;
             }
             if (connection->mainThread_ == nullptr) {
-                return INVALID_ARGUMENTS;
+                return;
             }
             connection->mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
-            return SUCCESS;
         }
-    ).get();
+    );
+    return SUCCESS;
 }
 
 ScreenId RSRenderServiceConnection::GetDefaultScreenId()
