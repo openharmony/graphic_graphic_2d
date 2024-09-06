@@ -1041,7 +1041,7 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
     RequestNextVSync();
 #else
     transactionFlags += " cache (" + std::to_string(pid) + "," + std::to_string(curIndex) + ")";
-    RS_TRACE_NAME("trigger NextVsync for Dvsync-Cached command");
+    RS_TRACE_NAME("RSMainThread::CheckAndUpdateTransactionIndex Trigger NextVsync");
     if (rsVSyncDistributor_->IsUiDvsyncOn()) {
         RequestNextVSync("fromRsMainCommand", timestamp_);
     } else {
