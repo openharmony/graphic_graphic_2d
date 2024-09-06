@@ -67,7 +67,6 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
-constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
 constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
@@ -834,22 +833,6 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
         PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
-void RSUniRenderThread::PreAllocateTextureBetweenFrames()
-{
-    if (!RSSystemProperties::IsPhoneType()) {
-        return;
-    }
-    RemoveTask(PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES);
-    PostTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("PreAllocateTextureBetweenFrames");
-            GrDirectContext::preAllocateTextureBetweenFrames();
-        },
-        PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES,
-        0,
-        AppExecFwk::EventQueue::Priority::LOW);
-}
-
 void RSUniRenderThread::FlushGpuMemoryInWaitQueueBetweenFrames()
 {
     if (!uniRenderEngine_) {
@@ -892,9 +875,6 @@ void RSUniRenderThread::SuppressGpuCacheBelowCertainRatioBetweenFrames()
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
 {
-    if (RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()) {
-        PreAllocateTextureBetweenFrames();
-    }
     if (RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()) {
         FlushGpuMemoryInWaitQueueBetweenFrames();
     }

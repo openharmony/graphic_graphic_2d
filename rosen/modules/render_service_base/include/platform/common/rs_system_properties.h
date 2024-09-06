@@ -207,7 +207,6 @@ public:
     static bool GetBlurExtraFilterEnabled();
     static bool GetDiscardCanvasBeforeFilterEnabled();
     static bool GetPurgeBetweenFramesEnabled();
-    static bool GetPreAllocateTextureBetweenFramesEnabled();
     static bool GetGpuMemoryAsyncReclaimerEnabled();
     static bool GetGpuCacheSuppressWindowEnabled();
 
