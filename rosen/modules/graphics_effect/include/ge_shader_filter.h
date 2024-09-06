@@ -18,7 +18,6 @@
 
 #include "draw/canvas.h"
 #include "image/image.h"
-#include "ge_shader.h"
 
 namespace OHOS {
 namespace Rosen {
