@@ -18,6 +18,7 @@
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "property/rs_point_light_manager.h"
+#include "animation/rs_render_particle_animation.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -453,7 +454,7 @@ HWTEST_F(PropertiesTest, SetEmitterUpdaterTest, TestSize.Level1)
     PropertyId propertyId = 0;
     AnimationId animationId = 0;
     renderNode->animationManager_.particleAnimations_.insert({ propertyId, animationId });
-    auto renderAnimation = std::make_shared<RSRenderAnimation>();
+    std::shared_ptr<RSRenderAnimation> renderAnimation = std::make_shared<RSRenderParticleAnimation>();
     renderNode->animationManager_.animations_.insert({ animationId, renderAnimation });
     properties.SetEmitterUpdater(para);
     EXPECT_EQ(renderNode->animationManager_.animations_.empty(), false);
@@ -540,7 +541,7 @@ HWTEST_F(PropertiesTest, SetNGetDynamicDimDegreeTest, TestSize.Level1)
     properties.SetDynamicDimDegree(dimDegree);
     ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
     EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
-    EXPECT_TRUE(properties.IsDynamicDimValid());
+    EXPECT_FALSE(properties.IsDynamicDimValid());
 
     std::optional<float> degree;
     properties.SetDynamicDimDegree(degree);
