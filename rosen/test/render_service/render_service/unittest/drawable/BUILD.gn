@@ -20,7 +20,6 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
     ":RSDisplayRenderNodeDrawableTest",

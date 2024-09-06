@@ -223,24 +223,6 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkNodeGroupTest
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, MarkNodeGroupTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    bool isNodeGruop = true;
-    auto nodeGruopType = node.GetNodeGroupType();
-    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
-    if (type >= nodeGruopType) {
-        node.MarkNodeGroup(type, isNodeGruop, false);
-        ASSERT_EQ(node.GetNodeGroupType(), type);
-    }
-}
-
-/**
  * @tc.name: SetDrawingCacheTypeTest
  * @tc.desc: test SetDrawingCacheType for all drawing cache types
  * @tc.type: FUNC

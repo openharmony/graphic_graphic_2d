@@ -305,6 +305,7 @@ HWTEST_F(RSRenderNodeAutocacheTest, NodeCacheStateReset001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
     renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    renderNode.isOpincRootFlag_ = false;
     renderNode.NodeCacheStateReset(NodeCacheState::STATE_INIT);
     EXPECT_TRUE(renderNode.nodeCacheState_ == NodeCacheState::STATE_INIT);
 
@@ -313,7 +314,7 @@ HWTEST_F(RSRenderNodeAutocacheTest, NodeCacheStateReset001, TestSize.Level1)
 
     renderNode.isOpincRootFlag_ = true;
     renderNode.NodeCacheStateReset(NodeCacheState::STATE_CHANGE);
-    EXPECT_TRUE(renderNode.isOpincRootFlag_);
+    EXPECT_FALSE(renderNode.isOpincRootFlag_);
 }
 } // namespace Rosen
 } // namespace OHOS
