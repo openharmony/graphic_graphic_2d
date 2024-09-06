@@ -104,7 +104,8 @@ HWTEST_F(RSMessageProcessorTest, AddUIMessage002, TestSize.Level1)
     pid = 0;
     auto transactionData = std::make_shared<RSTransactionData>();
     RSMessageProcessor::Instance().transactionMap_[pid] = transactionData;
-    RSMessageProcessor::Instance().AddUIMessage(pid, std::move(command));
+    std::unique_ptr<RSCommand> rsCommand = nullptr;
+    RSMessageProcessor::Instance().AddUIMessage(pid, std::move(rsCommand));
     EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
     EXPECT_EQ(false, RSMessageProcessor::Instance().HasTransaction(pid));
 }
@@ -165,7 +166,8 @@ HWTEST_F(RSMessageProcessorTest, GinstanceValidIsfalseTest, TestSize.Level1)
     messageProcessorTest1 = nullptr;
 
     messageProcessorTest2->AddUIMessage(pid, command);
-    messageProcessorTest2->AddUIMessage(pid, std::move(command));
+    std::unique_ptr<RSCommand> rsCommand = nullptr;
+    messageProcessorTest2->AddUIMessage(pid, std::move(rsCommand));
     EXPECT_FALSE(messageProcessorTest2->HasTransaction());
     EXPECT_FALSE(messageProcessorTest2->HasTransaction(0));
     messageProcessorTest2->ReInitializeMovedMap();
