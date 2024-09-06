@@ -168,7 +168,7 @@ public:
     void SetWatermark(bool watermarkFlag, const std::shared_ptr<Drawing::Image>& watermarkImg)
     {
         watermarkFlag_ = watermarkFlag;
-        watermarkImg_ = std::move(watermarkImg);
+        watermarkImg_ = watermarkImg;
     }
 
     void SetOcclusionEnabled(bool isOcclusionEnabled)

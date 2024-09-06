@@ -3824,7 +3824,7 @@ void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &waterma
 
     watermarkFlag_ = flag;
     if (flag) {
-        watermarkImg_ = RSPixelMapUtil::ExtractDrawingImage(std::move(watermarkImg));
+        watermarkImg_ = RSPixelMapUtil::ExtractDrawingImage(watermarkImg);
     } else {
         watermarkImg_ = nullptr;
     }
