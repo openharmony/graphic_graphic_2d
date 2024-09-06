@@ -792,7 +792,10 @@ HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSucess, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, IsFoldScreenFlag, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::IsFoldScreenFlag());
+    std::string foldScreenFlag = system::GetParameter("const.window.foldscreen.type", "");
+    system::SetParameter("const.window.foldscreen.type", "0");
+    ASSERT_TRUE(RSSystemProperties::IsFoldScreenFlag());
+    system::SetParameter("const.window.foldscreen.type", foldScreenFlag);
 }
 
 /**

@@ -49,7 +49,10 @@ public:
     std::unique_ptr<RSUniRenderComposerAdapter> composerAdapter_;
 };
 
-void RSUniRenderComposerAdapterTest::SetUpTestCase() {}
+void RSUniRenderComposerAdapterTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSUniRenderComposerAdapterTest::TearDownTestCase() {}
 void RSUniRenderComposerAdapterTest::TearDown()
 {
@@ -1285,8 +1288,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
 
     RSDisplayNodeConfig config;
     RSDisplayRenderNode::SharedPtr nodePtr = std::make_shared<RSDisplayRenderNode>(1, config);
-    auto displayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(nodePtr->GetRenderDrawable());
+    auto displayDrawable =std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr));
     auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
     sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
     displayDrawable->CreateSurface(listener);
