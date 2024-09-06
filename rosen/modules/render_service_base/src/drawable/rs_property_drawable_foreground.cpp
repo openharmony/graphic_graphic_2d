@@ -424,17 +424,19 @@ void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canva
         return;
     }
 
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    auto rrect = RSPropertyDrawableUtils::RRect2DrawingRRect(
+    RSBorderGeo borderGeo;
+    borderGeo.rrect = RSPropertyDrawableUtils::RRect2DrawingRRect(
         RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline));
-    canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
-    auto innerRoundRect = RSPropertyDrawableUtils::RRect2DrawingRRect(
+    borderGeo.innerRRect = RSPropertyDrawableUtils::RRect2DrawingRRect(
         RSPropertyDrawableUtils::GetInnerRRectForDrawingBorder(properties, border, isOutline));
-    canvas.ClipRoundRect(innerRoundRect, Drawing::ClipOp::DIFFERENCE, true);
-    Drawing::scalar centerX = innerRoundRect.GetRect().GetLeft() + innerRoundRect.GetRect().GetWidth() / 2;
-    Drawing::scalar centerY = innerRoundRect.GetRect().GetTop() + innerRoundRect.GetRect().GetHeight() / 2;
-    Drawing::Point center = { centerX, centerY };
-    border->DrawBorders(canvas, pen, rrect, center);
+    auto centerX = borderGeo.innerRRect.GetRect().GetLeft() + borderGeo.innerRRect.GetRect().GetWidth() / 2;
+    auto centerY = borderGeo.innerRRect.GetRect().GetTop() + borderGeo.innerRRect.GetRect().GetHeight() / 2;
+    borderGeo.center = { centerX, centerY };
+    auto rect = borderGeo.rrect.GetRect();
+    Drawing::AutoCanvasRestore acr(canvas, false);
+    Drawing::SaveLayerOps slr(&rect, nullptr);
+    canvas.SaveLayer(slr);
+    border->DrawBorders(canvas, pen, borderGeo);
 }
 
 RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
