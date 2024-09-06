@@ -888,14 +888,6 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
-{
-    static bool PreAllocateTextureBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.pre_allocate_texture_between_frames_enabled", "1")
-                       .c_str()) != 0);
-    return PreAllocateTextureBetweenFramesEnabled;
-}
-
 bool RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()
 {
     static bool AsyncFreeVMAMemoryBetweenFramesEnabled =
