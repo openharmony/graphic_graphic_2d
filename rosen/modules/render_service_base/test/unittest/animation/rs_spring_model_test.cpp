@@ -345,6 +345,7 @@ HWTEST_F(RSSpringModelTest, RSSpringModelRSRSRenderPropertyBaseTest001, TestSize
     EXPECT_TRUE(duration != 0.0f);
 
     auto model4 = std::make_shared<RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>>();
+    model4->dampingRatio_ = -1.0;
     duration = model4->EstimateDuration();
     EXPECT_FLOAT_EQ(duration, 0.0f);
     GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRSRSRenderPropertyBaseTest001 end";
