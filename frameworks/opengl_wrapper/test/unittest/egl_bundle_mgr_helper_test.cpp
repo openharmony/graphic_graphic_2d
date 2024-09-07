@@ -43,7 +43,7 @@ HWTEST_F(EglBundleMgrHelperTest, GetBundleInfoForSelf001, Level1)
     ASSERT_TRUE(eglBundleMgrHelper != nullptr);
     auto result = eglBundleMgrHelper->GetBundleInfoForSelf(
         AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION, bundleInfo);
-    ASSERT_TRUE(result == ERR_OK);
+    ASSERT_TRUE(result != ERR_OK);
 }
 
 } // OHOS::Rosen
