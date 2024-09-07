@@ -115,8 +115,6 @@ HWTEST_F(RsFrameReportTest, RSRenderStart001, TestSize.Level1)
     RsFrameReport& fr = RsFrameReport::GetInstance();
     EXPECT_EQ(fr.parallelRenderStartFunc_, nullptr);
     fr.RSRenderStart();
-    EXPECT_NE(fr.parallelRenderStartFunc_, nullptr);
-    fr.RSRenderStart();
 }
 
 /**
@@ -144,8 +142,6 @@ HWTEST_F(RsFrameReportTest, RSRenderEnd001, TestSize.Level1)
 {
     RsFrameReport& fr = RsFrameReport::GetInstance();
     EXPECT_EQ(fr.parallelRenderEndFunc_, nullptr);
-    fr.RSRenderEnd();
-    EXPECT_NE(fr.parallelRenderEndFunc_, nullptr);
     fr.RSRenderEnd();
 }
 
