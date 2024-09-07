@@ -424,6 +424,10 @@ void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vect
 
     CM_ColorSpaceType targetColorSpace = CM_DISPLAY_SRGB;
     for (auto& layer : layers) {
+        if (layer == nullptr) {
+            HLOGW("HdiOutput::SetBufferColorSpace The layer is nullptr");
+            continue;
+        }
         auto layerInfo = layer->GetLayerInfo();
         if (layerInfo == nullptr) {
             HLOGW("HdiOutput::SetBufferColorSpace The info of layer is nullptr");
@@ -478,7 +482,7 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         "SceneViewer Model totemweather0",
     };
 
-    if (layerInfo->GetBuffer() == nullptr) {
+    if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr || layerInfo->GetBuffer() == nullptr) {
         return false;
     }
 
@@ -511,7 +515,9 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
 
     const auto& fbAcquireFence = fbEntry->acquireFence;
     for (auto &layer : compClientLayers) {
-        layer->MergeWithFramebufferFence(fbAcquireFence);
+        if (layer != nullptr) {
+            layer->MergeWithFramebufferFence(fbAcquireFence);
+        }
     }
 
     currFrameBuffer_ = fbEntry->buffer;
@@ -873,6 +879,11 @@ void HdiOutput::ClearFpsDump(std::string &result, const std::string &arg)
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
+            layer->GetLayerInfo()->GetSurface() == nullptr) {
+            result += "layer is null.\n";
+            return;
+        }
         const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
         if (name == arg) {
             result += "\n The fps info of surface [" + name + "] Id["
