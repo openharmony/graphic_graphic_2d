@@ -22,8 +22,8 @@
 using namespace OHOS;
 
 struct OH_NativeImage {
-    OHOS::sptr<OHOS::SurfaceImage> consumer;
-    OHOS::sptr<OHOS::IBufferProducer> producer;
+    OHOS::sptr<OHOS::SurfaceImage> consumer = nullptr;
+    OHOS::sptr<OHOS::IBufferProducer> producer = nullptr;
     OHOS::sptr<OHOS::Surface> pSurface = nullptr;
     struct NativeWindow* nativeWindow = nullptr;
 };

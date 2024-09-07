@@ -414,6 +414,9 @@ void SurfaceImageListener::OnBufferAvailable()
 
 SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
 {
+    if (nativeWindowBuffer == nullptr || fenceFd == nullptr) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -446,6 +449,9 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
 
 SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
+    if (nativeWindowBuffer == nullptr) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
     SurfaceError ret = ReleaseBuffer(nativeWindowBuffer->sfbuffer, fenceFd);
