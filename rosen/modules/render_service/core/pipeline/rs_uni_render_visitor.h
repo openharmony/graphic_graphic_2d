@@ -144,26 +144,6 @@ public:
 
     static void ClearRenderGroupCache();
 
-    const std::vector<NodeId>& GetAllMainAndLeashWindowNodesIds()
-    {
-        return curAllMainAndLeashWindowNodesIds_;
-    }
-
-    const std::map<NodeId, RSVisibleLevel>& GetVisMapForVSyncRate()
-    {
-        return visMapForVSyncRate_;
-    }
-
-    bool GetVSyncRatesChanged() const
-    {
-        return vSyncRatesChanged_;
-    }
-
-    NodeId GetFocusedNodeId() const
-    {
-        return currentFocusedNodeId_;
-    }
-
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     const std::unordered_set<NodeId> GetCurrentBlackList() const;
@@ -308,7 +288,6 @@ private:
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
-    void CollectVSyncRate(RSSurfaceRenderNode& node, RSVisibleLevel visibleLevel);
     void CollectEffectInfo(RSRenderNode& node);
 
     void UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node);
@@ -432,7 +411,6 @@ private:
     int32_t offsetX_ { 0 };
     int32_t offsetY_ { 0 };
     bool isTargetUIFirstDfxEnabled_ = false;
-    bool vSyncRatesChanged_ = false;
     std::vector<std::string> dfxUIFirstSurfaceNames_;
     PartialRenderType partialRenderType_;
     SurfaceRegionDebugType surfaceRegionDebugType_;
@@ -444,7 +422,6 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
-    std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     // vector of last frame mainwindow surface visible info
     static inline VisibleData allLastVisVec_;
     std::mutex occlusionMutex_;
@@ -455,7 +432,6 @@ private:
     RSPointerWindowManager pointerWindowManager_;
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
-    std::map<NodeId, RSVisibleLevel> visMapForVSyncRate_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -125,8 +125,8 @@ bool RSRenderService::Init()
     mainThread_->rsVSyncController_ = rsVSyncController_;
     mainThread_->appVSyncController_ = appVSyncController_;
     mainThread_->vsyncGenerator_ = generator;
-    mainThread_->Init();
     mainThread_->SetAppVSyncDistributor(appVSyncDistributor_);
+    mainThread_->Init();
 
     // Wait samgr ready for up to 5 second to ensure adding service to samgr.
     int status = WaitParameter("bootevent.samgr.ready", "true", 5);
