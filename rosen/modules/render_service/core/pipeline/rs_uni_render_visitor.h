@@ -253,6 +253,7 @@ private:
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void UpdateHwcNodeEnable();
+    void UpdateHwcNodeEnableByNodeBelow();
     void PrevalidateHwcNode();
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status

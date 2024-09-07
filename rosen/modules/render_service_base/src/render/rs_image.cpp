@@ -134,8 +134,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                 ApplyCanvasClip(canvas);
             }
             if (innerRect_.has_value()) {
-                Drawing::Brush brush;
-                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
+                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
             } else if (HDRConvert(samplingOptions, canvas)) {
                 canvas.DrawRect(dst_);
             } else {
@@ -461,8 +460,7 @@ void RSImage::DrawImageOnCanvas(
         dst_.MakeOutset(1, 1);
     }
     if (innerRect_.has_value()) {
-        Drawing::Brush brush;
-        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
+        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
     } else if (hdrImageDraw) {
         canvas.DrawRect(dst_);
     } else {
