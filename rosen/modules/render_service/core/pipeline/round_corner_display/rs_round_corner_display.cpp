@@ -279,25 +279,25 @@ void RoundCornerDisplay::RcdChooseTopResourceType()
         case ScreenRotation::ROTATION_0:
         case ScreenRotation::ROTATION_180:
             if (notchStatus_ == WINDOW_NOTCH_HIDDEN) {
-                RS_LOGD("[%{public}s] prepare TOP_HIDDEN show resource \n", __func__);
+                RS_LOGD("prepare TOP_HIDDEN show resource \n");
                 showResourceType_ = TOP_HIDDEN;
             } else {
-                RS_LOGD("[%{public}s] prepare TOP_PORTRAIT show resource \n", __func__);
+                RS_LOGD("prepare TOP_PORTRAIT show resource \n");
                 showResourceType_ = TOP_PORTRAIT;
             }
             break;
         case ScreenRotation::ROTATION_90:
         case ScreenRotation::ROTATION_270:
             if (notchStatus_ == WINDOW_NOTCH_HIDDEN) {
-                RS_LOGD("[%{public}s] prepare TOP_LADS_ORIT show resource \n", __func__);
+                RS_LOGD("prepare TOP_LADS_ORIT show resource \n");
                 showResourceType_ = TOP_LADS_ORIT;
             } else {
-                RS_LOGD("[%{public}s] prepare TOP_PORTRAIT show resource \n", __func__);
+                RS_LOGD("prepare TOP_PORTRAIT show resource \n");
                 showResourceType_ = TOP_PORTRAIT;
             }
             break;
         default:
-            RS_LOGD("[%{public}s] Unknow orientation, use default type \n", __func__);
+            RS_LOGD("Unknow orientation, use default type \n");
             showResourceType_ = TOP_PORTRAIT;
             break;
     }
