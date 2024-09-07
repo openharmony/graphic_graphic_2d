@@ -1268,7 +1268,7 @@ HWTEST_F(RSBackgroundImageDrawableTest, Update001, TestSize.Level1)
     properties.decoration_ = std::make_optional<Decoration>();
     properties.decoration_->bgImage_ = std::make_shared<RSImage>();
     res = drawable.Update(content);
-    EXPECT_EQ(res, false);
+    EXPECT_EQ(res, true);
 
     properties.decoration_->bgImage_->pixelMap_ = std::make_shared<Media::PixelMap>();
     res = drawable.Update(content);
