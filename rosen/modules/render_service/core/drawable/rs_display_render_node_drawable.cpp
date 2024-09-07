@@ -783,8 +783,9 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
-        mirrorParams->IsSpecialLayerChanged() || lastSecExemption_ != curSecExemption_) {
+        mirrorParams->IsSpecialLayerChanged() || lastSecExemption_ != curSecExemption_ || virtualDirtyRefresh_) {
         GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
+        virtualDirtyRefresh_ = false;
         lastMatrix_ = canvasMatrix;
         lastMirrorMatrix_ = mirrorParams->GetMatrix();
     }
@@ -825,6 +826,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         SetCanvasBlack(*virtualProcesser);
+        virtualDirtyRefresh_ = true;
         return;
     }
     curCanvas_->Save();
