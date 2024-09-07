@@ -85,14 +85,6 @@ public:
     {
         brightnessForHPS_ = brightnessForHPS;
     }
-    void SetColorFilterForHDR(std::shared_ptr<Drawing::ColorFilter> colorFilterForHDR)
-    {
-        colorFilterForHDR_ = colorFilterForHDR;
-    }
-    void ResetColorFilterForHDR()
-    {
-        colorFilterForHDR_.reset();
-    }
     void PreProcess(std::shared_ptr<Drawing::Image>& image);
     void PostProcess(Drawing::Canvas& canvas);
     void ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -108,7 +100,6 @@ private:
     bool canSkipFrame_ = false;
     float saturationForHPS_ = 1.f;
     float brightnessForHPS_ = 1.f;
-    std::shared_ptr<Drawing::ColorFilter> colorFilterForHDR_ = nullptr;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

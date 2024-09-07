@@ -175,7 +175,6 @@ Drawing::Brush RSDrawingFilter::GetBrush() const
     brush.SetAntiAlias(true);
     Drawing::Filter filter;
     filter.SetImageFilter(imageFilter_);
-    filter.SetColorFilter(colorFilterForHDR_);
     brush.SetFilter(filter);
     return brush;
 }
