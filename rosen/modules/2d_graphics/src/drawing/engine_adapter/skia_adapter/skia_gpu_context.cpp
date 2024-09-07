@@ -419,7 +419,7 @@ void SkiaGPUContext::FlushGpuMemoryInWaitQueue()
 void SkiaGPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived)
 {
     if (!grContext_) {
-        LOGD("SkiaGPUContext::FlushGpuMemoryInWaitQueue, grContext_ is nullptr");
+        LOGD("SkiaGPUContext::SuppressGpuCacheBelowCertainRatio, grContext_ is nullptr");
         return;
     }
     grContext_->suppressGpuCacheBelowCertainRatio(nextFrameHasArrived);

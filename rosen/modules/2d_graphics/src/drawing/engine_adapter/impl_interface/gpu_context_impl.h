@@ -91,9 +91,9 @@ public:
 
     virtual void VmaDefragment() = 0;
 
-    virtual void BeginFrame() {}
+    virtual void BeginFrame() = 0;
 
-    virtual void EndFrame() {}
+    virtual void EndFrame() = 0;
 
     virtual void SetGpuCacheSuppressWindowSwitch(bool enabled) = 0;
 
