@@ -1161,13 +1161,22 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_);
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
+        if (GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) {
+            if (ancestorNodeHasAnimation && !node.isUifirstNode_) {
+                /* If window scaling behavior is interrupted by animation on pc, the tag can't be reset, so next
+                 vsync need to mark uifirst on the next frame
+                */
+                node.MarkUifirstNode(true);
+            }
+            return;
+        }
         if (!node.isUifirstNode_) {
             node.isUifirstDelay_++;
             if (node.isUifirstDelay_ > EVENT_STOP_TIMEOUT) {
                 node.isUifirstNode_ = true;
             }
+            return;
         }
-        return;
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
         UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
