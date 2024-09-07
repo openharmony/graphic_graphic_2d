@@ -36,6 +36,7 @@ public:
     bool CachedTransactionDataEmpty();
     void Wait();
 
+    bool IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const;
     bool ReportTransactionDataStatistics(pid_t pid, size_t dataSize, bool isNonSystemAppCalling);
     void ClearTransactionDataStatistics();
 

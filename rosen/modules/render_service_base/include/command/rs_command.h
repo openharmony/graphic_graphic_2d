@@ -21,6 +21,7 @@
 
 #include "common/rs_common_def.h"
 #include "pipeline/rs_context.h"
+#include "recording/draw_cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -70,6 +71,11 @@ public:
         return 0;
     }
 
+    virtual std::shared_ptr<Drawing::DeawCmdList> GetDrawCmdList() const
+    {
+        return nullptr;
+    }
+    
     std::pair<uint16_t, uint16_t> GetUniqueType() const
     {
         return std::make_pair(GetType(), GetSubType());
