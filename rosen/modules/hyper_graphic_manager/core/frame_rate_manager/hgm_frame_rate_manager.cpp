@@ -1019,6 +1019,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         }
         return;
     }
+    currRefreshRate_ = refreshRate;
     schedulePreferredFpsChange_ = true;
     FrameRateReport();
 
