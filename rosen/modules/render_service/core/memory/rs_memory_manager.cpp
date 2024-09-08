@@ -408,4 +408,16 @@ void MemoryManager::DumpMallocStat(std::string& log)
         },
         &log, nullptr);
 }
+
+void MemoryManager::VmaDefragment(Drawing::GPUContext* gpuContext)
+{
+#if defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("VmaDefragment fail, gpuContext is nullptr");
+        return;
+    }
+    RS_TRACE_NAME_FMT("VmaDefragment");
+    gpuContext->VmaDefragment();
+#endif
+}
 } // namespace OHOS::Rosen

@@ -673,6 +673,11 @@ HwcDisabledReasonInfos RSInterfaces::GetHwcDisabledReasonInfo() const
     return hwcDisabledReasonInfo;
 }
 
+void RSInterfaces::SetVmaCacheStatus(bool flag)
+{
+    renderServiceClient_->SetVmaCacheStatus(flag);
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
 {
