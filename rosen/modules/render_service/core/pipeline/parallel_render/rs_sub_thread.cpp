@@ -268,7 +268,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
         RS_TRACE_NAME_FMT("subthread skip node id %llu", nodeId);
         nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
         nodeDrawable->SetSubThreadSkip(true);
-        doingCacheProcessNum--;
+        doingCacheProcessNum_--;
         return;
     }
     if (nodeDrawable->UseDmaBuffer()) {
@@ -290,7 +290,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
 
     // mark nodedrawable can release
     RSUifirstManager::Instance().AddProcessDoneNode(nodeId);
-    doingCacheProcessNum--;
+    doingCacheProcessNum_--;
 }
 
 std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()

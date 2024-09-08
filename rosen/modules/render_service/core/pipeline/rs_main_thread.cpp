@@ -790,6 +790,7 @@ void RSMainThread::CacheCommands()
         cachedTransactionDataMap_[pid].insert(cachedTransactionDataMap_[pid].begin(),
             std::make_move_iterator(skipTransactionDataVec.begin()),
             std::make_move_iterator(skipTransactionDataVec.end()));
+        skipTransactionDataVec.clear();
     }
 }
 
@@ -817,7 +818,7 @@ void RSMainThread::InformHgmNodeInfo()
     }
 }
 
-std::unordered_map<NodeId, bool> RSMainThread::GetCacheCmdSkippedNodes() const
+const std::unordered_map<NodeId, bool>& RSMainThread::GetCacheCmdSkippedNodes() const
 {
     return cacheCmdSkippedNodes_;
 }

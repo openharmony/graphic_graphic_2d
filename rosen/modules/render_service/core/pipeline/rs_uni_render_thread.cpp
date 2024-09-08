@@ -161,11 +161,11 @@ void RSUniRenderThread::Start()
     }
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
-    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+    auto postTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
         RSUniRenderThread::Instance().PostTask(task, name, delayTime, priority);
     };
-    RSRenderNodeGC::Instance().SetRenderTask(PostTaskProxy);
+    RSRenderNodeGC::Instance().SetRenderTask(postTaskProxy);
     PostSyncTask([this] {
         RS_LOGE("RSUniRenderThread Started ...");
         Inittcache();
