@@ -49,7 +49,11 @@ public:
     static float GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext);
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
-
+    static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
+    static void SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled);
+    static void FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext);
+    static void SuppressGpuCacheBelowCertainRatio(
+        Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log);

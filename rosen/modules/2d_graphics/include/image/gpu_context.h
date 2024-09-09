@@ -263,6 +263,18 @@ public:
     void StoreVkPipelineCacheData();
 #endif
 
+    void BeginFrame();
+
+    void EndFrame();
+
+    void SetGpuCacheSuppressWindowSwitch(bool enabled);
+
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled);
+
+    void FlushGpuMemoryInWaitQueue();
+    
+    void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived);
+
     /**
      * @brief       Get the adaptation layer instance, called in the adaptation layer.
      * @param T     The name of Impl class.
