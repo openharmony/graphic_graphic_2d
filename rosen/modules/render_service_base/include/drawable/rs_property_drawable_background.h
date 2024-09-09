@@ -55,18 +55,18 @@ private:
     Drawing::Path stagingPath_;
     Color color_;
     Color stagingColor_;
-    float offsetX_;
-    float stagingOffsetX_;
-    float offsetY_;
-    float stagingOffsetY_;
-    float elevation_;
-    float stagingElevation_;
-    bool isFilled_;
-    bool stagingIsFilled_;
-    float radius_;
-    float stagingRadius_;
-    int colorStrategy_;
-    int stagingColorStrategy_;
+    float offsetX_ = 0.0f;
+    float stagingOffsetX_ = 0.0f;
+    float offsetY_ = 0.0f;
+    float stagingOffsetY_ = 0.0f;
+    float elevation_ = 0.0f;
+    float stagingElevation_ = 0.0f;
+    bool isFilled_ = false;
+    bool stagingIsFilled_ = false;
+    float radius_ = 0.0f;
+    float stagingRadius_ = 0.0f;
+    int colorStrategy_ = 0;
+    int stagingColorStrategy_ = 0;
 };
 
 class RSMaskShadowDrawable : public RSPropertyDrawable {
