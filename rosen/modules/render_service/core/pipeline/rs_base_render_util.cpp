@@ -1119,6 +1119,19 @@ bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
     return true;
 }
 
+GraphicTransformType RSBaseRenderUtil::GetSurfaceBufferTransformType(
+    const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer)
+{
+    auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    if (consumer == nullptr || buffer == nullptr) {
+        return transformType;
+    }
+    if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
+        RS_LOGE("RSBaseRenderUtil::GetSurfaceBufferTransformType GetSurfaceBufferTransformType failed");
+    }
+    return transformType;
+}
+
 Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds)
 {
     Drawing::Matrix matrix;
