@@ -64,9 +64,9 @@ ohos_shared_library("libgraphic_utils") {
     ":test_header",
   ]
   
-  public_external_deps = [
-    "graphic_2d:EGL",
-    "graphic_2d:GLESv3",
+  public_deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
   ]
 
   part_name = "graphic_2d"
