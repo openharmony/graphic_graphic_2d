@@ -71,11 +71,11 @@ public:
         return 0;
     }
 
-    virtual std::shared_ptr<Drawing::DeawCmdList> GetDrawCmdList() const
+    virtual std::shared_ptr<Drawing::DrawCmdList> GetDrawCmdList() const
     {
         return nullptr;
     }
-    
+
     std::pair<uint16_t, uint16_t> GetUniqueType() const
     {
         return std::make_pair(GetType(), GetSubType());

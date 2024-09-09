@@ -57,14 +57,14 @@ public:
         return commandSubType;
     }
 
-    std::shared_ptr<Drawing::DeawCmdList> GetDrawCmdList() const override
+    std::shared_ptr<Drawing::DrawCmdList> GetDrawCmdList() const override
     {
         if constexpr (std::tuple_size<decltype(params_)>::value > 1) {
             using ptrType = typename std::tuple_element<1, decltype(params_)>::type;
             if constexpr (std::is_same<std::shared_ptr<Drawing::DrawCmdList>, ptrType>::value) {
                 return std::get<1>(params_);
             } else if constexpr (std::is_same<std::shared_ptr<RSRenderModifier>, ptrType>::value) {
-                auto& modifier = std::get<1>(pramas_);
+                auto& modifier = std::get<1>(params_);
                 if (modifier) {
                     return modifier->GetPropertyDrawCmdList();
                 }

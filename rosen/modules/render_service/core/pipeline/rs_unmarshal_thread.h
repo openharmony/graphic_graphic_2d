@@ -37,7 +37,8 @@ public:
     void Wait();
 
     bool IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const;
-    bool ReportTransactionDataStatistics(pid_t pid, size_t dataSize, bool isNonSystemAppCalling);
+    bool ReportTransactionDataStatistics(pid_t pid, RSTransactionData* transactionData,
+        bool isNonSystemAppCalling = false);
     void ClearTransactionDataStatistics();
 
 private:
