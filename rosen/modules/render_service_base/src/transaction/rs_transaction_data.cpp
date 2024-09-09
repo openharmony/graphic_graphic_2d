@@ -276,6 +276,13 @@ void RSTransactionData::InsertCommandToMap(NodeId nodeId, std::pair<uint16_t, ui
 bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
     std::string& commandMapDesc) const
 {
+    // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
+    // we temporarily add a white list to avoid abnormal functionality or abnormal display.
+    // The white list will be removed after GetCallingPid interface can return real PID.
+    if (callingPid == 0) {
+        return true;
+    }
+
     std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
     for (const auto& [commandPid, commandTypeMap] : pidToCommandMap_) {
         if (callingPid == commandPid) {
