@@ -189,7 +189,7 @@ bool SkiaImage::BuildSubset(const std::shared_ptr<Image> image, const RectI& rec
 }
 
 bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_ptr<Data>& data, int width, int height,
-    CompressedType type)
+    CompressedType type, const std::shared_ptr<ColorSpace>& colorSpace)
 {
     if (data == nullptr) {
         LOGD("SkiaImage::BuildFromCompressed, build failed, data is invalid");
@@ -198,8 +198,14 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     grContext_ = gpuContext.GetImpl<SkiaGPUContext>()->GetGrContext();
     auto skData = data->GetImpl<SkiaData>()->GetSkData();
     PostSkImgToTargetThread();
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr) {
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
+    }
     skiaImage_ = SkImage::MakeTextureFromCompressed(grContext_.get(),
-        skData, width, height, static_cast<SkImage::CompressionType>(type));
+        skData, width, height, static_cast<SkImage::CompressionType>(type),
+        GrMipmapped::kNo, GrProtected::kNo, skColorSpace);
     return (skiaImage_ != nullptr) ? true : false;
 }
 
