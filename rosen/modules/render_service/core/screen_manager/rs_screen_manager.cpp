@@ -1301,6 +1301,17 @@ void RSScreenManager::GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInf
     GetScreenActiveModeLocked(defaultScreenId_, screenModeInfo);
 }
 
+void RSScreenManager::RealeaseScreenDmaBuffer(uint64_t screenId)
+{
+    auto output = GetOutput(screenId);
+    if (output == nullptr) {
+        RS_LOGE("RSScreenManager::RealeaseScreenDmaBuffer HdiOutput is nullptr!");
+        return;
+    }
+    std::vector<LayerInfoPtr> layer;
+    output->SetLayerInfo(layer);
+}
+
 std::vector<RSScreenModeInfo> RSScreenManager::GetScreenSupportedModes(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);

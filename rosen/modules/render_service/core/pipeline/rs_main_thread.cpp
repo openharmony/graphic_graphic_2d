@@ -4232,23 +4232,5 @@ bool RSMainThread::IsBlurSwitchOpen() const
 {
     return isBlurSwitchOpen_;
 }
-
-void RSMainThread::RealeaseScreenDmaBuffer(uint64_t screenId)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSMainThread::RealeaseScreenDmaBuffer RSScreenManager is nullptr!");
-        return;
-    }
-    auto output = screenManager->GetOutput(screenId);
-    if (output == nullptr) {
-        RS_LOGE("RSMainThread::RealeaseScreenDmaBuffer HdiOutput is nullptr!");
-        return;
-    }
-    std::vector<LayerInfoPtr> layer;
-    RSHardwareThread::Instance().PostTask([&output, &layer]() {
-        output->SetLayerInfo(layer);
-    });
-}
 } // namespace Rosen
 } // namespace OHOS
