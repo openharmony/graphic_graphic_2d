@@ -41,8 +41,8 @@ constexpr int REQUEST_SET_FRAME_LOAD_ID = 100006;
 constexpr int REQUEST_FRAME_AWARE_LOAD = 85;
 constexpr int REQUEST_FRAME_AWARE_NUM = 4;
 constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
-constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 50000; // 500KB
-constexpr size_t TRANSACTION_DATA_KILL_COUNT = 100000; // 1000KB
+constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
+constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
 const std::unique_ptr<AppExecFwk::AppMgrClient>& GetAppMgrClient()
@@ -222,7 +222,7 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
         return false;
     }
     opCount += transactionData->GetCommandCount();
-    auto& payload_temp = transactionData->GetPayLoad();
+    auto& payload_temp = transactionData->GetPayload();
     for (auto& item_temp : payload_temp) {
         auto& cmd = std::get<2>(item_temp);
         if (!cmd) {
@@ -235,7 +235,6 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
             }
         }
     }
-
     {
         std::unique_lock<std::mutex> lock(statisticsMutex_);
         preCount = transactionDataStatistics_[pid];
@@ -246,7 +245,6 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
             return false;
         }
     }
-
     const auto& appMgrClient = GetAppMgrClient();
     int32_t uid = 0;
     std::string bundleName;
@@ -254,7 +252,7 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
 
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, TRANSACTION_REPORT_NAME,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid, "UID", uid,
-        "BUNDLE_NAME", bundleName, "TRANSACTION_DATA_COUNT", totalCount);
+        "BUNDLE_NAME", bundleName, "TRANSACTION_DATA_SIZE", totalCount);
     RS_LOGW("TransactionDataStatistics pid[%d] uid[%d] bundleName[%s] opCount[%{public}zu] exceeded[%{public}d]",
         pid, uid, bundleName.c_str(), totalCount, totalCount > TRANSACTION_DATA_KILL_COUNT);
 
