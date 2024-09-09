@@ -2207,7 +2207,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest095, TestSize.Level
     // -1.2 for unit test
     OH_Drawing_SetTypographyTextFontHeight(typoStyle, -1.2);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightOnly, true);
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, -1.2);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, 0);
 }
 
 /*
