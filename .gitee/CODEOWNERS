@@ -29,4 +29,4 @@ rosen/modules/render_service_base/include/render/ @lyt1024
 rosen/modules/render_service_base/src/render/ @lyt1024
 
 [IPC]
-rosen/modules/render_service/core/transaction/ @zhouzhenkun @dujnan @thelastking
+rosen/modules/render_service/core/transaction/ @hengming-wang
