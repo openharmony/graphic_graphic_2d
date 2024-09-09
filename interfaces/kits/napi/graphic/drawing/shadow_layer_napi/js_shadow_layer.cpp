@@ -60,10 +60,7 @@ napi_value JsShadowLayer::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsShadowLayer *jsShadowLayer = new(std::nothrow) JsShadowLayer();
-    if (jsShadowLayer == nullptr) {
-        return nullptr;
-    }
+    JsShadowLayer *jsShadowLayer = new JsShadowLayer();
     status = napi_wrap(env, jsThis, jsShadowLayer, JsShadowLayer::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsShadowLayer;

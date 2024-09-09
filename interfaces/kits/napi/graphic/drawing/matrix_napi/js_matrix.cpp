@@ -83,11 +83,7 @@ napi_value JsMatrix::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsMatrix* jsMatrix = new(std::nothrow) JsMatrix(std::make_shared<Matrix>());
-    if (jsMatrix == nullptr) {
-        ROSEN_LOGE("JsMatrix::Constructor Failed to create jsMatrix");
-        return nullptr;
-    }
+    JsMatrix* jsMatrix = new JsMatrix(std::make_shared<Matrix>());
 
     status = napi_wrap(env, jsThis, jsMatrix, JsMatrix::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
@@ -113,11 +109,7 @@ napi_value JsMatrix::CreateJsMatrix(napi_env env, const std::shared_ptr<Matrix> 
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
-        auto jsMatrix = new(std::nothrow) JsMatrix(matrix);
-        if (jsMatrix == nullptr) {
-            ROSEN_LOGE("JsMatrix::CreateJsMatrix allocation failed!");
-            return nullptr;
-        }
+        auto jsMatrix = new JsMatrix(matrix);
         napi_create_object(env, &result);
         if (result == nullptr) {
             delete jsMatrix;
