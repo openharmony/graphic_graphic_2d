@@ -190,7 +190,8 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SHOW_WATERMARK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SHOW_WATERMARK");
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SHOW_WATERMARK") &&
+                CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_REFRESH_RATE_MODE): {
