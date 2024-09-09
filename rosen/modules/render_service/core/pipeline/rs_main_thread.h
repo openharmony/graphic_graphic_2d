@@ -46,6 +46,7 @@
 #include "pipeline/rs_draw_frame.h"
 #include "pipeline/rs_graphic_config.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "transaction/rs_transaction_data.h"
@@ -361,6 +362,11 @@ public:
         return systemAnimatedScenesList_.empty();
     }
 
+    RSVsyncRateReduceManager& GetRSVsyncRateReduceManager()
+    {
+        return rsVsyncRateReduceManager_;
+    }
+
     bool IsFirstFrameOfOverdrawSwitch() const
     {
         return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
@@ -395,10 +401,6 @@ private:
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
         std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
     void CalcOcclusion();
-    void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
-        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
-    void SetUniVSyncRateByVisibleLevel(const std::shared_ptr<RSUniRenderVisitor>& visitor);
-    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
     void InitRSEventDetector();
@@ -558,7 +560,6 @@ private:
     mutable std::mutex hardwareThreadTaskMutex_;
     std::condition_variable hardwareThreadTaskCond_;
 
-    std::map<NodeId, RSVisibleLevel> lastVisMapForVsyncRate_;
     VisibleData lastVisVec_;
     std::map<NodeId, uint64_t> lastDrawStatusMap_;
     std::vector<NodeId> curDrawStatusVec_;
@@ -651,7 +652,6 @@ private:
     std::mutex systemAnimatedScenesMutex_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> systemAnimatedScenesList_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> threeFingerScenesList_;
-    bool isReduceVSyncBySystemAnimatedScenes_ = false;
     std::unordered_map<NodeId, // map<node ID, <pid, callback, partition points vector, level>>
         std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>,
         std::vector<float>, uint8_t>> surfaceOcclusionListeners_;
@@ -699,6 +699,7 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     RsParallelType rsParallelType_;
     bool isCurtainScreenOn_ = false;
+    RSVsyncRateReduceManager rsVsyncRateReduceManager_;
 #ifdef RES_SCHED_ENABLE
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
