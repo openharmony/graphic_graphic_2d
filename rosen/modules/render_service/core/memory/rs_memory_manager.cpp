@@ -27,7 +27,9 @@
 #include "include/gpu/GrDirectContext.h"
 #include "src/gpu/GrDirectContextPriv.h"
 
+#include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_singleton.h"
 #include "memory/rs_tag_tracker.h"
 #ifdef NEW_RENDER_CONTEXT
 #include "render_context/memory_handler.h"
@@ -35,8 +37,11 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 
+#include "app_mgr_client.h"
+#include "hisysevent.h"
 #include "image/gpu_context.h"
 
 #ifdef RS_ENABLE_VK
@@ -47,11 +52,18 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
+constexpr uint32_t MEMORY_CHECK_KILL = 500 * (1 << 20); // The memory killing threshold is 500mb.
+constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
+constexpr uint32_t FRAME_NUMBER = 10; // Check memory every ten frames.
 constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 }
+
+std::mutex MemoryManager::mutex_;
+std::unordered_map<pid_t, std::pair<std::string, uint64_t>> MemoryManager::pidInfo_;
+uint32_t MemoryManager::frameCount_ = 0;
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
 {
@@ -114,6 +126,8 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, st
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource exitedPidSet size: %d", exitedPidSet.size());
     gpuContext->PurgeUnlockedResourcesByPid(false, exitedPidSet);
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPidSet);
+    ErasePidInfo(exitedPidSet);
 #endif
 }
 
@@ -430,6 +444,84 @@ void MemoryManager::DumpMallocStat(std::string& log)
             }
         },
         &log, nullptr);
+}
+
+void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    frameCount_++;
+    if (!gpuContext || frameCount_ < FRAME_NUMBER) {
+        return;
+    }
+    frameCount_ = 0;
+    std::unordered_map<pid_t, size_t> gpuMemory;
+    gpuContext->GetUpdatedMemoryMap(gpuMemory);
+
+    auto task = [gpuMemory = std::move(gpuMemory)]() {
+        std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
+        MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuMemory, infoMap);
+        auto now = std::chrono::steady_clock::now().time_since_epoch();
+        uint64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+        std::string bundleName;
+        bool needReport = false;
+        for (const auto& [pid, memoryInfo] : infoMap) {
+            needReport = false;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                auto it = pidInfo_.find(pid);
+                if (it == pidInfo_.end()) {
+                    int32_t uid;
+                    auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+                    appMgrClient.GetBundleNameByPid(pid, bundleName, uid);
+                    pidInfo_.emplace(pid, std::make_pair(bundleName, currentTime + MEMORY_REPORT_INTERVAL));
+                    needReport = true;
+                } else if (currentTime > it->second.second) {
+                    it->second.second = currentTime + MEMORY_REPORT_INTERVAL;
+                    bundleName = it->second.first;
+                    needReport = true;
+                }
+            }
+            if (RSSystemProperties::GetMemoryOverTreminateEnabled() && memoryInfo.TotalMemory() > MEMORY_CHECK_KILL) {
+                KillProcessByPid(pid, memoryInfo, bundleName);
+            } else if (needReport) {
+                MemoryOverReport(pid, memoryInfo, bundleName, "RENDER_MEMORY_OVER_WARNING");
+            }
+        }
+    };
+    RSBackgroundThread::Instance().PostTask(task);
+#endif
+}
+
+void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
+    const std::string& reportName)
+{
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid,
+        "BUNDLE_NAME", bundleName,
+        "CPU_MEMORY", info.cpuMemory,
+        "GPU_MEMORY", info.gpuMemory,
+        "TOTAL_MEMORY", info.TotalMemory());
+    RS_LOGW("RSMemoryOverReport pid[%d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
+        pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
+}
+
+bool MemoryManager::KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName)
+{
+    auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient.KillApplication(bundleName) != AppExecFwk::AppMgrResultCode::RESULT_OK) {
+        RS_LOGW("MemoryManager::KillProcessByPid kill process failed");
+        return false;
+    }
+    MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
+    return true;
+}
+
+void MemoryManager::ErasePidInfo(const std::set<pid_t>& exitedPidSet)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto pid : exitedPidSet) {
+        pidInfo_.erase(pid);
+    }
 }
 
 void MemoryManager::VmaDefragment(Drawing::GPUContext* gpuContext)

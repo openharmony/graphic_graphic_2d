@@ -20,6 +20,7 @@
 
 #include "rs_trace.h"
 
+#include "memory/rs_memory_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_uifirst_manager.h"
@@ -73,6 +74,7 @@ void RSDrawFrame::RenderFrame()
         unirenderInstance_.PurgeCacheBetweenFrames();
     }
     unirenderInstance_.MemoryManagementBetweenFrames();
+    MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     JankStatsRenderFrameEnd(doJankStats);
 }
 

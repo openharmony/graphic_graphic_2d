@@ -100,6 +100,7 @@ public:
 
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag) override;
 
+    void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) override;
 #ifdef RS_ENABLE_VK
     void StoreVkPipelineCacheData() override;
 #endif

@@ -478,6 +478,11 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetLayerCursorEnable()
 {
     return false;
