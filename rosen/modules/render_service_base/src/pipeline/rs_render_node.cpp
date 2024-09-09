@@ -1726,7 +1726,7 @@ void RSRenderNode::MapAndUpdateChildrenRect()
         if (sandbox.has_value() && sharedTransitionParam_ &&
             parentGeoPtr->GetAbsMatrix().Invert(invertAbsParentMatrix)) {
             auto absChildMatrix = geoPtr->GetAbsMatrix();
-            childRelativeToParentMatrix = absChildMatrix * invertAbsParentMatrix;
+            childRelativeToParentMatrix = invertAbsParentMatrix * absChildMatrix;
         } else {
             childRelativeToParentMatrix = geoPtr->GetMatrix();
         }
