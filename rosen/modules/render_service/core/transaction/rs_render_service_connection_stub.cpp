@@ -260,7 +260,7 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     return true;
 }
 
-bool IsPidEqualToCallingPid(pid_t pid, pid_t callingPid)
+bool IsValidCallingPid(pid_t pid, pid_t callingPid)
 {
     return (callingPid == getpid()) || (callingPid == pid);
 }
@@ -385,7 +385,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
             auto nodeId = data.ReadUint64();
-            if (!IsPidEqualToCallingPid(ExtractPid(nodeId), callingPid)) {
+            if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
                 RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
@@ -1262,7 +1262,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP): {
             NodeId id = data.ReadUint64();
-            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetBitmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
                 break;
@@ -1281,7 +1281,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP): {
             NodeId id = data.ReadUint64();
-            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetPixelmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
                 break;
@@ -1318,7 +1318,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t hash = data.ReadUint32();
             RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             // safe check
-            if (IsPidEqualToCallingPid(ExtractPid(uniqueId), callingPid)) {
+            if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
                 std::shared_ptr<Drawing::Typeface> typeface;
                 result = RSMarshallingHelper::Unmarshalling(data, typeface);
                 if (result && typeface) {
@@ -1338,7 +1338,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint64_t uniqueId = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             // safe check
-            if (IsPidEqualToCallingPid(ExtractPid(uniqueId), callingPid)) {
+            if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
                 UnRegisterTypeface(uniqueId);
             } else {
                 RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
@@ -1381,7 +1381,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
             NodeId id = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, id);
-            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The RegisterSurfaceOcclusionChangeCallback isn't legal, nodeId:%{public}" PRIu64 ", "
                     "callingPid:%{public}d", id, callingPid);
                 ret = ERR_INVALID_DATA;
@@ -1413,7 +1413,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
             NodeId id = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, id);
-            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The UnRegisterSurfaceOcclusionChangeCallback isn't legal, nodeId:%{public}" PRIu64 ", "
                     "callingPid:%{public}d", id, callingPid);
                 ret = ERR_INVALID_DATA;
@@ -1510,7 +1510,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED) : {
             auto id = data.ReadUint64();
-            if (!IsPidEqualToCallingPid(ExtractPid(id), callingPid)) {
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The SetHardwareEnabled isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
                 break;
