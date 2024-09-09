@@ -333,6 +333,7 @@ bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
     }
     needSync_ = true;
     stagingPixelStretch_ = pixelStretch;
+    stagingPixelStretchTileMode_ = node.GetRenderProperties().GetPixelStretchTileMode();
     const auto& boundsGeo = node.GetRenderProperties().GetBoundsGeometry();
     stagingBoundsGeoValid_ = boundsGeo && !boundsGeo->IsEmpty();
     stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();
@@ -345,6 +346,7 @@ void RSPixelStretchDrawable::OnSync()
         return;
     }
     pixelStretch_ = std::move(stagingPixelStretch_);
+    pixelStretchTileMode_ = stagingPixelStretchTileMode_;
     boundsGeoValid_ = stagingBoundsGeoValid_;
     stagingBoundsGeoValid_ = false;
     boundsRect_ = stagingBoundsRect_;
@@ -356,7 +358,8 @@ Drawing::RecordingCanvas::DrawFunc RSPixelStretchDrawable::CreateDrawFunc() cons
 {
     auto ptr = std::static_pointer_cast<const RSPixelStretchDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        RSPropertyDrawableUtils::DrawPixelStretch(canvas, ptr->pixelStretch_, ptr->boundsRect_, ptr->boundsGeoValid_);
+        RSPropertyDrawableUtils::DrawPixelStretch(canvas, ptr->pixelStretch_, ptr->boundsRect_, ptr->boundsGeoValid_,
+            static_cast<Drawing::TileMode>(ptr->pixelStretchTileMode_));
     };
 }
 
