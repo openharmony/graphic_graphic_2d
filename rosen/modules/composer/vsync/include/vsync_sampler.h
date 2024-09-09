@@ -91,6 +91,7 @@ private:
     void UpdateReferenceTimeLocked();
     void CheckIfFirstRefreshAfterIdleLocked();
     void ComputePhaseLocked();
+    void SetScreenVsyncEnabledInRSMainThreadInternal(SetScreenVsyncEnabledCallback cb, bool enabled);
 
     int64_t period_;
     int64_t phase_;
