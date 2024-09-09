@@ -105,11 +105,11 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
                         callingPid, conflictCommandPid, commandMapDesc.c_str());
                 return;
             }
-        }
-        bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
-        if (shouldDrop) {
-            RS_LOGW("RSUnmarshalThread::RecvParcel data droped");
-            return;
+            bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
+            if (shouldDrop) {
+                RS_LOGW("RSUnmarshalThread::RecvParcel data droped");
+                return;
+            }
         }
         RS_PROFILER_ON_PARCEL_RECEIVE(parcel.get(), transData.get());
         {
