@@ -1029,4 +1029,313 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest032, TestSize.Level1)
     double offset = OH_Drawing_TextLineGetAlignmentOffset(nullptr, 0.0, 0.0);
     EXPECT_EQ(offset, 0.0);
 }
+
+/*
+ * @tc.name: NativeDrawingLineTest033
+ * @tc.desc: test for the textLine EnumerateCaretOffsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest033, TestSize.Level1)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_TextLineEnumerateCaretOffsets(textLine, [](double offset, int32_t index, bool leadingEdge) {
+            static int offsetNum = 0;
+            if (index == 0 && leadingEdge) {
+                EXPECT_EQ(offset, 0.0);
+            } else {
+                EXPECT_LE(offset, 500.0);
+            }
+            if (offsetNum++ % 2 == 0) {
+                EXPECT_TRUE(leadingEdge);
+            } else {
+                EXPECT_FALSE(leadingEdge);
+            }
+            EXPECT_LE(index, 51);
+            return index > 50;
+        });
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest034
+ * @tc.desc: test for the textLine EnumerateCaretOffsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest034, TestSize.Level1)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 7);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_TextLineEnumerateCaretOffsets(textLine, [](double offset, int32_t index, bool leadingEdge) {
+            EXPECT_GE(index, 0);
+            EXPECT_EQ(offset, 0.0);
+            EXPECT_TRUE(leadingEdge);
+            return true;
+        });
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest035
+ * @tc.desc: test for the textLine EnumerateCaretOffsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest035, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 4);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_TextLineEnumerateCaretOffsets(textLine, [](double offset, int32_t index, bool leadingEdge) {
+            EXPECT_GE(index, 0);
+            EXPECT_EQ(offset, 0.0);
+            EXPECT_TRUE(leadingEdge);
+            return false;
+        });
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest036
+ * @tc.desc: test for the textLine EnumerateCaretOffsets.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest036, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    OH_Drawing_TextLine* textLine = textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    EXPECT_TRUE(textLine != nullptr);
+    OH_Drawing_TextLineEnumerateCaretOffsets(textLine, nullptr);
+    OH_Drawing_TextLineEnumerateCaretOffsets(nullptr, [](double offset, int32_t index, bool leadingEdge) {
+            return false;
+        });
+    OH_Drawing_TextLineEnumerateCaretOffsets(nullptr, nullptr);
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest037
+ * @tc.desc: test for the textLine CreateTruncatedLine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest037, TestSize.Level1)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_TextLine *truncatedLine =
+        OH_Drawing_TextLineCreateTruncatedLine(textLine, 100, ELLIPSIS_MODAL_HEAD, "...");
+        EXPECT_TRUE(truncatedLine != nullptr);
+        OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 250);
+        OH_Drawing_DestroyTextLine(truncatedLine);
+        truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 80, ELLIPSIS_MODAL_MIDDLE, "...");
+        EXPECT_TRUE(truncatedLine == nullptr);
+        truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 50, ELLIPSIS_MODAL_TAIL, "...");
+        EXPECT_TRUE(truncatedLine != nullptr);
+        OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 550);
+        OH_Drawing_DestroyTextLine(truncatedLine);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+/*
+ * @tc.name: NativeDrawingLineTest038
+ * @tc.desc: test for the textLine CreateTruncatedLine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest038, TestSize.Level1)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 7);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_TextLine *truncatedLine =
+        OH_Drawing_TextLineCreateTruncatedLine(textLine, 30, ELLIPSIS_MODAL_TAIL, "123");
+        EXPECT_TRUE(truncatedLine != nullptr);
+        OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 150);
+        OH_Drawing_DestroyTextLine(truncatedLine);
+        truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 30, ELLIPSIS_MODAL_HEAD, "测试");
+        EXPECT_TRUE(truncatedLine != nullptr);
+        OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 300);
+        OH_Drawing_DestroyTextLine(truncatedLine);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest039
+ * @tc.desc: test for the textLine CreateTruncatedLine.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest039, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    OH_Drawing_TextLine* textLine = textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    EXPECT_TRUE(textLine != nullptr);
+
+    OH_Drawing_TextLine *truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(nullptr, 20, ELLIPSIS_MODAL_TAIL, "1");
+    EXPECT_TRUE(truncatedLine == nullptr);
+
+    truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 200, 5, "1");
+    EXPECT_TRUE(truncatedLine == nullptr);
+
+    truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 100, ELLIPSIS_MODAL_TAIL, nullptr);
+    EXPECT_TRUE(truncatedLine == nullptr);
+
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest040
+ * @tc.desc: test for the textLine GetGlyphRuns.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest040, TestSize.Level1)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Array *runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+        EXPECT_TRUE(runs != nullptr);
+        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+        EXPECT_GE(runsSize, 1);
+        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
+            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
+            EXPECT_TRUE(run != nullptr);
+        }
+        OH_Drawing_DestroyRuns(runs);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+/*
+ * @tc.name: NativeDrawingLineTest041
+ * @tc.desc: test for the textLine GetGlyphRuns.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest041, TestSize.Level1)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 7);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Array *runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+        if (index == 3) {
+            EXPECT_TRUE(runs == nullptr);
+            EXPECT_EQ(runsSize, 0);
+        } else if (index == 1 || index == 6) {
+            EXPECT_TRUE(runs != nullptr);
+            EXPECT_EQ(runsSize, 1);
+        } else {
+            EXPECT_TRUE(runs != nullptr);
+            EXPECT_GE(runsSize, 6);
+        }
+        OH_Drawing_DestroyRuns(runs);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+/*
+ * @tc.name: NativeDrawingLineTest042
+ * @tc.desc: test for the textLine GetGlyphRuns.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest042, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 4);
+
+    for (size_t index = 0; index < size - 1; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Array *runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+        EXPECT_TRUE(runs == nullptr);
+        size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+        EXPECT_EQ(runsSize, 0);
+        OH_Drawing_DestroyRuns(runs);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+/*
+ * @tc.name: NativeDrawingLineTest043
+ * @tc.desc: test for the textLine GetGlyphRuns.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest043, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    OH_Drawing_TextLine* textLine = textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    EXPECT_TRUE(textLine != nullptr);
+
+    OH_Drawing_Array *runs = OH_Drawing_TextLineGetGlyphRuns(nullptr);
+    EXPECT_TRUE(runs == nullptr);
+
+    OH_Drawing_DestroyTextLines(textLines);
+}
 }
