@@ -65,6 +65,7 @@ public:
     // count memory for hidumper
     MemoryGraphic CountRSMemory(const pid_t pid);
     float GetAppMemorySizeInMB();
+    const std::unordered_map<NodeId, MemoryInfo>& GetMemNodeMap() { return memNodeMap_; }
 private:
     MemoryTrack() = default;
     ~MemoryTrack() = default;
