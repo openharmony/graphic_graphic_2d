@@ -1380,12 +1380,12 @@ void RSProperties::SetWaterRippleProgress(const float& progress)
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 float RSProperties::GetWaterRippleProgress() const
 {
     return waterRippleProgress_;
 }
- 
+
 void RSProperties::SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params)
 {
     waterRippleParams_ = params;
@@ -1396,12 +1396,12 @@ void RSProperties::SetWaterRippleParams(const std::optional<RSWaterRipplePara>& 
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 std::optional<RSWaterRipplePara> RSProperties::GetWaterRippleParams() const
 {
     return waterRippleParams_;
 }
- 
+
 bool RSProperties::IsWaterRippleValid() const
 {
     uint32_t WAVE_COUNT_MAX = 3;
@@ -1419,12 +1419,12 @@ void RSProperties::SetFlyOutDegree(const float& degree)
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 float RSProperties::GetFlyOutDegree() const
 {
     return flyOutDegree_;
 }
- 
+
 void RSProperties::SetFlyOutParams(const std::optional<RSFlyOutPara>& params)
 {
     flyOutParams_ = params;
@@ -1435,15 +1435,15 @@ void RSProperties::SetFlyOutParams(const std::optional<RSFlyOutPara>& params)
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 std::optional<RSFlyOutPara> RSProperties::GetFlyOutParams() const
 {
     return flyOutParams_;
 }
- 
+
 bool RSProperties::IsFlyOutValid() const
 {
-    return ROSEN_GE(flyOutDegree_, 0.0f) && ROSEN_LE(flyOutDegree_, 1.0f);
+    return ROSEN_GE(flyOutDegree_, 0.0f) && ROSEN_LE(flyOutDegree_, 1.0f) && flyOutParams_.has_value();
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
