@@ -324,7 +324,12 @@ private:
     {
         std::call_once(regScreenCallbackFlag, [&node]() {
             node.SetReleaseTask([](uint64_t screenId) {
-                RSMainThread::Instance()->RealeaseScreenDmaBuffer(screenId);
+                auto screenManager = CreateOrGetScreenManager();
+                if (screenManager == nullptr) {
+                    RS_LOGE("RealeaseScreenDmaBuffer RSScreenManager is nullptr!");
+                    return;
+                }
+                screenManager->RealeaseScreenDmaBuffer(screenId);
             });
         });
     }
