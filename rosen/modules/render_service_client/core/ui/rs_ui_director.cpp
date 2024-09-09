@@ -438,6 +438,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
 
 void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
 {
+    RS_TRACE_NAME_FMT("DumpClientNodeTree dump task[%u] node[%" PRIu64 "]", taskId, nodeId);
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;

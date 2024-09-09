@@ -3777,7 +3777,6 @@ HWTEST_F(RSMainThreadTest, OnDrawingCacheDfxSwitchCallback, TestSize.Level2)
     RSMainThread::OnDrawingCacheDfxSwitchCallback("rosen.drawingCache.enabledDfx", "1", nullptr);
 }
 
-
 /**
  * @tc.name: OnDumpClientNodeTree
  * @tc.desc: test OnDumpClientNodeTree
