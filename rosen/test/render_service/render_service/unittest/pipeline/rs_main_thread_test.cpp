@@ -14,6 +14,9 @@
  */
 #include <parameter.h>
 #include <parameters.h>
+#include <if_system_ability_manager.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
@@ -3454,6 +3457,50 @@ HWTEST_F(RSMainThreadTest, CheckUIExtensionCallbackDataChanged002, TestSize.Leve
     mainThread->lastFrameUIExtensionDataEmpty_ = false;
     mainThread->uiExtensionCallbackData_.clear();
     ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
+}
+
+/**
+ * @tc.name: CheckOnUIExtensionCallback001
+ * @tc.desc: test CheckOnUIExtensionCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, CheckOnUIExtensionCallback001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastFrameUIExtensionDataEmpty_ = false;
+    mainThread->uiExtensionCallbackData_.clear();
+    ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObj = samgr->GetSystemAbility(RENDER_SERVICE);
+    ASSERT_NE(remoteObj, nullptr);
+    auto callback = iface_cast<RSIUIExtensionCallback>(remoteObj);
+    uint64_t userId = 0;
+    pid_t pid = 0;
+    mainThread->RegisterUIExtensionCallback(pid, userId, callback);
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    mainThread->UnRegisterUIExtensionCallback(pid);
+}
+
+/**
+ * @tc.name: CheckOnUIExtensionCallback002
+ * @tc.desc: test RegisterUIExtensionCallback when callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, CheckOnUIExtensionCallback002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t userId = 0;
+    pid_t pid = 0;
+    sptr<RSIUIExtensionCallback> callback = nullptr;
+    mainThread->RegisterUIExtensionCallback(pid, userId, callback);
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    mainThread->UnRegisterUIExtensionCallback(pid);
 }
 
 /**

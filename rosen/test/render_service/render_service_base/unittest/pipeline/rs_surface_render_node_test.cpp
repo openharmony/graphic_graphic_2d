@@ -15,6 +15,14 @@
 
 #include <gtest/gtest.h>
 
+#include <if_system_ability_manager.h>
+#include <iremote_stub.h>
+#include <iservice_registry.h>
+#include <mutex>
+#include <system_ability_definition.h>
+#include <unistd.h>
+
+#include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_thread_visitor.h"
@@ -2096,6 +2104,25 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
     node->UpdateHwcNodeLayerInfo(transform);
     auto layer = node->stagingRenderParams_->GetLayerInfo();
     ASSERT_TRUE(layer.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+}
+
+/**
+ * @tc.name: BufferClearCallbackProxy
+ * @tc.desc: test results of BufferClearCallbackProxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, BufferClearCallbackProxy, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    ASSERT_NE(remoteObject, nullptr);
+    sptr<RSBufferClearCallbackProxy> callback = new RSBufferClearCallbackProxy(remoteObject);
+    ASSERT_NE(callback, nullptr);
+    testNode->RegisterBufferClearListener(callback);
+    testNode->SetNotifyRTBufferAvailable(true);
+    ASSERT_TRUE(testNode->isNotifyRTBufferAvailable_);
 }
 } // namespace Rosen
 } // namespace OHOS

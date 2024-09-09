@@ -82,4 +82,22 @@ HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
     int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE);
 }
+
+/**
+ * @tc.name: OnRemoteRequest003
+ * @tc.desc: Verify function OnRemoteRequest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto rsOcclusionChangeCallbackStub = std::make_shared<RSOcclusionChangeCallbackStubMock>();
+    uint32_t code = 1;
+    data.WriteInterfaceToken(RSIOcclusionChangeCallback::GetDescriptor());
+    EXPECT_TRUE(RSOcclusionChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
+    int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_TRUE(res != ERR_NONE);
+}
 } // namespace OHOS::Rosen

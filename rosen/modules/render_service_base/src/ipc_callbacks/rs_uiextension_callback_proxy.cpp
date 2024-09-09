@@ -37,6 +37,12 @@ void RSUIExtensionCallbackProxy::OnUIExtension(std::shared_ptr<RSUIExtensionData
         return;
     }
 
+    auto remote = Remote();
+    if (remote == nullptr) {
+        ROSEN_LOGE("RSUIExtensionCallbackProxy::OnUIExtension remote is null!");
+        return;
+    }
+
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteParcelable(uiExtensionData.get());
     data.WriteUint64(userId);

@@ -144,13 +144,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
         return;
     }
     RS_LOGD("RSRenderServiceConnection::CleanAll() start.");
-    auto weakThis = wptr<RSRenderServiceConnection>(this);
-    sptr<RSRenderServiceConnection> connection = weakThis.promote();
-    pid_t remotePid = 0;
-    if (connection != nullptr) {
-        remotePid = connection->remotePid_;
-    }
-    RS_TRACE_NAME("RSRenderServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid));
+    RS_TRACE_NAME("RSRenderServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
@@ -214,7 +208,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     }
 
     RS_LOGD("RSRenderServiceConnection::CleanAll() end.");
-    RS_TRACE_NAME("RSRenderServiceConnection CleanAll end, remotePid: " + std::to_string(remotePid));
+    RS_TRACE_NAME("RSRenderServiceConnection CleanAll end, remotePid: " + std::to_string(remotePid_));
 }
 
 RSRenderServiceConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
