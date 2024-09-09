@@ -54,6 +54,7 @@ void RSPhysicalScreenProcessor::PostProcess(RSDisplayRenderNode* node)
 
 void RSPhysicalScreenProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
+    composerAdapter_->SetColorFilterMode(renderEngine_->GetColorFilterMode());
     auto layer = composerAdapter_->CreateLayer(node);
     if (layer == nullptr) {
         RS_LOGD("RSPhysicalScreenProcessor::ProcessSurface: failed to createLayer for"

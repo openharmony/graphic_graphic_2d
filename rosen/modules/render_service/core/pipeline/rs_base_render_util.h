@@ -34,12 +34,38 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_composer_adapter.h"
 #include "pixel_map.h"
 #include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
+struct ComposeInfo {
+    GraphicIRect srcRect;
+    GraphicIRect dstRect;
+    GraphicIRect boundRect;
+    GraphicIRect visibleRect;
+    std::vector<GraphicIRect> dirtyRects;
+    GraphicMatrix matrix;
+    int32_t gravity { 0 };
+    int32_t zOrder { 0 };
+    GraphicLayerAlpha alpha;
+    sptr<SurfaceBuffer> buffer;
+    sptr<SurfaceBuffer> preBuffer;
+    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    GraphicBlendType blendType;
+    bool needClient = false;
+};
+
+static inline int RotateEnumToInt(ScreenRotation rotation)
+{
+    static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
+        {ScreenRotation::ROTATION_0, 0}, {ScreenRotation::ROTATION_90, 90},
+        {ScreenRotation::ROTATION_180, 180}, {ScreenRotation::ROTATION_270, 270}};
+    auto iter = screenRotationEnumToIntMap.find(rotation);
+    return iter != screenRotationEnumToIntMap.end() ? iter->second : 0;
+}
+
+class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
