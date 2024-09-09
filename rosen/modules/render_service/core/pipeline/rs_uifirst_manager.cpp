@@ -258,22 +258,25 @@ void RSUifirstManager::CollectSkipSyncBuffer(std::vector<std::function<void()>>&
     if (buffersToRelease.empty()) {
         return;
     }
-    auto bufferInfo = buffersToRelease.find(id);
-    if (bufferInfo != buffersToRelease.end()) {
-        auto& item = bufferInfo->second;
-        if (!item.buffer || !item.consumer) {
-            buffersToRelease.erase(bufferInfo->first);
-            return;
-        }
-        auto releaseTask = [buffer = item.buffer, consumer = item.consumer,
-            useReleaseFence = item.useFence]() mutable {
-            auto ret = consumer->ReleaseBuffer(buffer, RSHardwareThread::Instance().releaseFence_);
-            if (ret != OHOS::SURFACE_ERROR_OK) {
-                RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
+    for (auto item = buffersToRelease.begin(); item != buffersToRelease.end();) {
+        if (item->id == id) {
+            if (!item->buffer || !item->consumer) {
+                item = buffersToRelease.erase(item);
+                continue;
             }
-        };
-        tasks.emplace_back(releaseTask);
-        buffersToRelease.erase(bufferInfo->first);
+            auto releaseTask = [buffer = item->buffer, consumer = item->consumer,
+                useReleaseFence = item->useFence]() mutable {
+                auto ret = consumer->ReleaseBuffer(buffer, RSHardwareThread::Instance().releaseFence_);
+                if (ret != OHOS::SURFACE_ERROR_OK) {
+                    RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
+                }
+            };
+            tasks.emplace_back(releaseTask);
+            item = buffersToRelease.erase(item);
+            RS_LOGD("ReleaseSkipSyncBuffer fId[%" PRIu64"]", id);
+        } else {
+            ++item;
+        }
     }
 #endif
 }
@@ -630,7 +633,7 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
     if (!uifirstRootNode) {
         RS_TRACE_NAME_FMT("uifirstRootNode %" PRIu64 " null and curNodeId %" PRIu64 " skip sync",
             node->GetFirstLevelNodeId(), node->GetId());
-        return true;
+        return false;
     }
 
     if (uifirstRootNode->IsInstanceOf<RSSurfaceRenderNode>()) {
@@ -638,7 +641,7 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(uifirstRootNode));
         if (!drawableNode) {
             RS_LOGE("RSUifirstManager::CollectSkipSyncNode drawableNode generate failed");
-            return true;
+            return false;
         }
         if (drawableNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING ||
             IsPreFirstLevelNodeDoing(node)) {

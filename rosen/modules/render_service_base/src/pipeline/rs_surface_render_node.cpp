@@ -1172,9 +1172,11 @@ void RSSurfaceRenderNode::OnSkipSync()
         }
         auto context = GetContext().lock();
         if (context && !surfaceParams->GetHardwareEnabled()) {
-            context->GetMutableSkipSyncBuffer()[GetFirstLevelNodeId()] = { preBuffer,
-                GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() };
+            context->GetMutableSkipSyncBuffer().push_back({ GetFirstLevelNodeId(), preBuffer,
+                GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
             surfaceParams->SetPreBuffer(nullptr);
+            RS_LOGD("CollectSkipSyncBuffer fId[%" PRIu64"], sId[%" PRIu64"]",
+                GetFirstLevelNodeId(), surfaceParams->GetId());
         }
     }
 #endif
