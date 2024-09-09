@@ -551,6 +551,10 @@ HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
     return {};
 }
 
+void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
+{
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
 {

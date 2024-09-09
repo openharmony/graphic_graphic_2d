@@ -1389,6 +1389,15 @@ HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
     return renderService->GetHwcDisabledReasonInfo();
 }
 
+void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return;
+    }
+    renderService->SetVmaCacheStatus(flag);
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
 {

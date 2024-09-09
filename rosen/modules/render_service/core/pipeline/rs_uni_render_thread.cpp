@@ -28,6 +28,7 @@
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
 #include "include/gpu/GrDirectContext.h"
+#include "static_factory.h"
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -140,6 +141,11 @@ void RSUniRenderThread::InitGrContext()
         uniRenderEngine_->GetSkContext()->RegisterPostFunc([](const std::function<void()>& task) {
             RSUniRenderThread::Instance().PostImageReleaseTask(task);
         });
+    }
+    if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        if (RSSystemProperties::IsFoldScreenFlag()) {
+            vmaOptimizeFlag_ = true;
+        }
     }
 #endif
 }
@@ -294,6 +300,15 @@ void RSUniRenderThread::Render()
 {
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
+    }
+    if (vmaOptimizeFlag_) { // render this frame with vma cache on/off
+        std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
+        if (vmaCacheCount_ > 0) {
+            vmaCacheCount_--;
+            Drawing::StaticFactory::SetVmaCacheStatus(true);
+        } else {
+            Drawing::StaticFactory::SetVmaCacheStatus(false);
+        }
     }
     Drawing::Canvas canvas;
     RSNodeStats::GetInstance().ClearNodeStats();
@@ -717,6 +732,9 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         auto screenManager_ = CreateOrGetScreenManager();
         screenManager_->ClearFrameBufferIfNeed();
         grContext->FlushAndSubmit(true);
+        if (this->vmaOptimizeFlag_) {
+            MemoryManager::VmaDefragment(grContext);
+        }
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         }
@@ -850,6 +868,17 @@ uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
 void RSUniRenderThread::SetAcquireFence(sptr<SyncFence> acquireFence)
 {
     acquireFence_ = acquireFence;
+}
+
+void RSUniRenderThread::SetVmaCacheStatus(bool flag)
+{
+    static constexpr int MAX_VMA_CACHE_COUNT = 600;
+    RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
+    if (!vmaOptimizeFlag_) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
+    vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
 }
 } // namespace Rosen
 } // namespace OHOS

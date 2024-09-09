@@ -16,6 +16,7 @@
 #include "static_factory.h"
 
 #include "skia_adapter/skia_static_factory.h"
+#include "src/core/SkUtils.h"
 #include "utils/system_properties.h"
 #ifdef ENABLE_DDGR_OPTIMIZE
 #include "ddgr_static_factory.h"
@@ -354,6 +355,15 @@ std::shared_ptr<Blender> StaticFactory::CreateWithBlendMode(BlendMode mode)
     }
 #endif
     return EngineStaticFactory::CreateWithBlendMode(mode);
+}
+
+void StaticFactory::SetVmaCacheStatus(bool flag)
+{
+#ifdef RS_ENABLE_VK
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        SkSetVmaCacheFlag(flag);
+    }
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -213,6 +213,7 @@ void SkiaGPUContext::DumpGpuStats(std::string& out)
     }
     SkString stat;
     grContext_->priv().dumpGpuStats(&stat);
+    grContext_->dumpVmaStats(&stat);
     out = stat.c_str();
 }
 
@@ -377,6 +378,13 @@ std::function<void(const std::function<void()>& task)> SkiaGPUContext::GetPostFu
         return contextPostMap_[uintptr_t(grContext.get())];
     }
     return nullptr;
+}
+
+void SkiaGPUContext::VmaDefragment()
+{
+    if (grContext_ != nullptr) {
+        grContext_->vmaDefragment();
+    }
 }
 
 } // namespace Drawing

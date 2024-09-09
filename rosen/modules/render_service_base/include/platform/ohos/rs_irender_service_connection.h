@@ -283,6 +283,8 @@ public:
 
     virtual HwcDisabledReasonInfos GetHwcDisabledReasonInfo() = 0;
 
+    virtual void SetVmaCacheStatus(bool flag) = 0;
+
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;

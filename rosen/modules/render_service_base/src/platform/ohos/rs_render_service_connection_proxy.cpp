@@ -2546,6 +2546,26 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
     return hwcDisabledReasonInfos;
 }
 
+void RSRenderServiceConnectionProxy::SetVmaCacheStatus(bool flag)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteBool(flag)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVmaCacheStatus %d: Send Request err.", flag);
+        return;
+    }
+}
+
 #ifdef TP_FEATURE_ENABLE
 void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config)
 {

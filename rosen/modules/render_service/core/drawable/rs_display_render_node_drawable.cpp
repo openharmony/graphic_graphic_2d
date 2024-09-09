@@ -52,6 +52,7 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "static_factory.h"
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
@@ -1448,6 +1449,11 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
             static_cast<int32_t>(std::max(params->GetScreenInfo().width, params->GetScreenInfo().height));
         offscreenWidth = maxRenderSize;
         offscreenHeight = maxRenderSize;
+    }
+    if (params->IsRotationChanged()) {
+        if (RSUniRenderThread::Instance().GetVmaOptimizeFlag()) {
+            Drawing::StaticFactory::SetVmaCacheStatus(true); // render this frame with vma cache on
+        }
     }
 
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {
