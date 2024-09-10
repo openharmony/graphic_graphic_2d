@@ -283,6 +283,8 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    void SetLuminanceChangingStatus(bool isLuminanceChanged);
+    bool ExchangeLuminanceChangingStatus();
     bool IsCurtainScreenOn() const;
     void NotifySurfaceCapProcFinish();
     void WaitUntilSurfaceCapProcFinished();
@@ -529,6 +531,9 @@ private:
 
     // Used to refresh the whole display when curtain screen status is changed
     bool isCurtainScreenUsingStatusChanged_ = false;
+
+    // Used to refresh the whole display when luminance is changed
+    std::atomic<bool> isLuminanceChanged_ = false;
 
     // used for blocking mainThread when hardwareThread has 2 and more task to Execute
     mutable std::mutex hardwareThreadTaskMutex_;

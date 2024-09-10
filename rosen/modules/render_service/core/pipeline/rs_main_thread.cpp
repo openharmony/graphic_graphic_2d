@@ -3858,6 +3858,21 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus %{public}d", isCurtainScreenOn);
 }
 
+void RSMainThread::SetLuminanceChangingStatus(bool isLuminanceChanged)
+{
+    isLuminanceChanged_.store(isLuminanceChanged);
+}
+
+bool RSMainThread::ExchangeLuminanceChangingStatus()
+{
+    bool expectChanged = true;
+    if (!isLuminanceChanged_.compare_exchange_weak(expectChanged, false)) {
+        return false;
+    }
+    RS_LOGD("RSMainThread::ExchangeLuminanceChangingStatus changed");
+    return true;
+}
+
 bool RSMainThread::IsCurtainScreenOn() const
 {
     return isCurtainScreenOn_;
@@ -3913,7 +3928,7 @@ void RSMainThread::UpdateLuminance()
         }
     }
     if (isNeedRefreshAll) {
-        isCurtainScreenUsingStatusChanged_ = true;
+        SetLuminanceChangingStatus(true);
         SetDirtyFlag();
         RequestNextVSync();
     }
