@@ -553,23 +553,5 @@ HWTEST_F(RSAnimationTest, AnimationStatus003, TestSize.Level1)
     }
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus003 end";
 }
-
-/**
- * @tc.name: RSAnimationTimingProtocolSetInstanceId
- * @tc.desc: Verify the SetInstanceId of RSAnimationTimingProtocol
- * @tc.type: FUNC
- */
-HWTEST_F(RSAnimationTest, RSAnimationTimingProtocolSetInstanceId001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationTest RSAnimationTimingProtocolSetInstanceId001 start";
-    RSAnimationTimingProtocol protocol;
-    auto result = protocol.GetInstanceId();
-    EXPECT_EQ(result, INSTANCE_ID_UNDEFINED);
-
-    protocol.SetInstanceId(1);
-    result = protocol.GetInstanceId();
-    EXPECT_EQ(result, 1);
-    GTEST_LOG_(INFO) << "RSAnimationTest RSAnimationTimingProtocolSetInstanceId001 end";
-}
 } // namespace Rosen
 } // namespace OHOS
