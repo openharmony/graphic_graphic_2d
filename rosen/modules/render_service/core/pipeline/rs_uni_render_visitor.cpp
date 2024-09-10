@@ -1409,6 +1409,39 @@ void RSUniRenderVisitor::CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node
     node.CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged || hdrChanged, rotationStatusChanged);
 }
 
+// private method, curDisplayNode_ or curSurfaceNode_ will not be nullptr
+void RSUniRenderVisitor::CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty)
+{
+    // Recursively traverses until the globalDirty do not change
+    auto dirtyManager = isGlobalDirty ? curDisplayNode_->GetDirtyManager() : curSurfaceNode_->GetDirtyManager();
+    if (dirtyManager == nullptr) {
+        return;
+    }
+    for (auto it = filterSet.begin(); it != filterSet.end();) {
+        auto dirtyRect = dirtyManager->GetCurrentFrameDirtyRegion();
+        auto filterRegion = Occlusion::Region{ Occlusion::Rect{ it->second } };
+        auto dirtyRegion = Occlusion::Region{ Occlusion::Rect{ dirtyRect } };
+        auto filterDirtyRegion = filterRegion.And(dirtyRegion);
+        if (!filterDirtyRegion.IsEmpty()) {
+            if (isGlobalDirty) {
+                RS_LOGD("RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay global merge, "
+                    "global dirty %{public}s, add filterRegion %{public}s",
+                    dirtyRect.ToString().c_str(), (it->second).ToString().c_str());
+            }
+            dirtyManager->MergeDirtyRect(it->second);
+            it = filterSet.erase(it);
+            if (dirtyRect != dirtyManager->GetCurrentFrameDirtyRegion()) {
+                // When dirtyRegion is changed, collect dirty filter region from begin.
+                // After all filter region is added, the cycle will definitely stop.
+                it = filterSet.begin();
+            }
+        } else {
+            ++it;
+        }
+    }
+    filterSet.clear();
+}
+
 void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRender::QuickPrepare:[%s] nodeId[%" PRIu64 "]"
@@ -1469,6 +1502,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         CheckIsGpuOverDrawBufferOptimizeNode(node);
     }
     PostPrepare(node, !isSubTreeNeedPrepare);
+    CheckMergeFilterDirtyByIntersectWithDirty(curSurfaceNoBelowDirtyFilter_, false);
     curAlpha_ = prevAlpha;
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
@@ -2936,28 +2970,7 @@ void RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay(Occlusion::Region& acc
         filterNode->PostPrepareForBlurFilterNode(*(curDisplayNode_->GetDirtyManager()), needRequestNextVsync_);
     }
 
-    // Recursively traverses until the globalDirty do not change
-    for (auto it = globalFilter_.begin(); it != globalFilter_.end();) {
-        auto lastGlobalDirtyRect = curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion();
-        auto filterRegion = Occlusion::Region{ Occlusion::Rect{ it->second } };
-        auto lastGlobalDirtyRegion = Occlusion::Region{ Occlusion::Rect{ lastGlobalDirtyRect } };
-        auto filterDirtyRegion = filterRegion.And(lastGlobalDirtyRegion);
-        if (!filterDirtyRegion.IsEmpty()) {
-            RS_LOGD("RSUniRenderVisitor::CheckMergeGlobalFilterForDisplay global merge, "
-                "global dirty %{public}s, add filterRegion %{public}s",
-                curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
-                (it->second).ToString().c_str());
-            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(it->second);
-            it = globalFilter_.erase(it);
-            if (lastGlobalDirtyRect != curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion()) {
-                // When DisplayDirtyRegion is changed, collect dirty filter region from begin.
-                // After all filter region is added, the cycle will definitely stop.
-                it = globalFilter_.begin();
-            }
-        } else {
-            ++it;
-        }
-    }
+    CheckMergeFilterDirtyByIntersectWithDirty(globalFilter_, true);
 }
 
 void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
@@ -3342,6 +3355,8 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);
         if (isIntersect) {
             dirtyManager.MergeDirtyRect(globalFilterRect);
+        } else {
+            curSurfaceNoBelowDirtyFilter_.insert({node.GetId(), globalFilterRect});
         }
         if (node.GetRenderProperties().GetFilter()) {
             node.UpdateFilterCacheWithBelowDirty(dirtyManager, true);

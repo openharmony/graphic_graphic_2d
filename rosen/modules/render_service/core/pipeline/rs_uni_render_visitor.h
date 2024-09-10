@@ -314,6 +314,7 @@ private:
     void CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
+    void CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty);
     void CheckMergeTopSurfaceForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
 
     bool IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const;
@@ -653,8 +654,10 @@ private:
     std::unordered_map<NodeId, std::unordered_set<NodeId>> allCacheFilterRects_ = {};
     std::stack<std::unordered_set<NodeId>> curCacheFilterRects_ = {};
 
-    // record nodes in surface which has filter may influence golbalDirty
+    // record nodes in surface which has filter may influence globalDirty
     OcclusionRectISet globalFilter_;
+    // record filter in current surface when there is no below dirty
+    OcclusionRectISet curSurfaceNoBelowDirtyFilter_;
     // record container nodes which need filter
     FilterRectISet containerFilter_;
     // record nodes which has transparent clean filter
