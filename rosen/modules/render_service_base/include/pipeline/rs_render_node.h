@@ -332,8 +332,13 @@ public:
         return shouldPaint_;
     }
 
+    // dirty rect of current frame after update dirty, last frame before update
     RectI GetOldDirty() const;
+    // dirty rect in display of current frame after update dirty, last frame before update
     RectI GetOldDirtyInSurface() const;
+    // clip rect of last frame before post prepare, current frame after post prepare
+    RectI GetOldClipRect() const;
+
     bool IsDirtyRegionUpdated() const;
     void CleanDirtyRegionUpdated();
 
