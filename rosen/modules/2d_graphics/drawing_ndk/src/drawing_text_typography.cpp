@@ -629,7 +629,7 @@ double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography* typography)
 
 double OH_Drawing_TypographyGetLongestLineWithIndent(OH_Drawing_Typography* typography)
 {
-    if (!typography) {
+    if (typography == nullptr) {
         return 0.0;
     }
     return ConvertToOriginalText<Typography>(typography)->GetLongestLineWithIndent();
