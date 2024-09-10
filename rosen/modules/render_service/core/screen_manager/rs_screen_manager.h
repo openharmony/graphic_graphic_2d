@@ -498,6 +498,9 @@ private:
     FoldState TransferAngleToScreenState(float angle);
 #endif
 
+    void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
+    void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
+
     mutable std::mutex mutex_;
     mutable std::mutex blackListMutex_;
     HdiBackend *composer_ = nullptr;
