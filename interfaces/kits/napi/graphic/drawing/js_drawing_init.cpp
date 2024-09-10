@@ -34,7 +34,6 @@
 #include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 #include "text_blob_napi/js_text_blob.h"
-#include "matrix_napi/js_matrix.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
