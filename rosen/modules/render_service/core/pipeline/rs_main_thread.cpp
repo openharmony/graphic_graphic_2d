@@ -3115,6 +3115,7 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
 
 void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
 {
+    RS_TRACE_NAME_FMT("DumpClientNodeTree start task[%u]", taskId);
     std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
     if (nodeTreeDumpTasks_.find(taskId) != nodeTreeDumpTasks_.end()) {
         RS_LOGW("SendClientDumpNodeTreeCommands task[%{public}u] duplicate", taskId);
@@ -3169,6 +3170,7 @@ void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dum
 
     const auto& task = nodeTreeDumpTasks_[taskId];
     size_t completed = task.completionCount;
+    RS_TRACE_NAME_FMT("DumpClientNodeTree end task[%u] completionCount[%zu]", taskId, completed);
     dumpString += "\n-- ClientNodeTreeDump: ";
     for (const auto& [pid, data] : task.data) {
         dumpString += "\n| pid[";
@@ -3187,6 +3189,8 @@ void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dum
 
 void RSMainThread::OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
 {
+    RS_TRACE_NAME_FMT("DumpClientNodeTree collected task[%u] dataSize[%zu] pid[%d]",
+        taskId, result.size(), pid);
     {
         std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
         auto iter = nodeTreeDumpTasks_.find(taskId);
