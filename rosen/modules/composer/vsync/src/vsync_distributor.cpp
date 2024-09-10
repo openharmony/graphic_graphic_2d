@@ -503,7 +503,7 @@ bool VSyncDistributor::PostVSyncEventPreProcess(int64_t &timestamp, std::vector<
             std::unique_lock<std::mutex> locker(mutex_);
             dvsync_->MarkDistributorSleep(true);
             dvsync_->RNVNotify();
-            dvsync_->DelayBeforePostEvent(timestamp, locker);
+            dvsync_->DelayBeforePostEvent(event_.timestamp, locker);
             dvsync_->MarkDistributorSleep(false);
             CollectConns(waitForVSync, timestamp, conns, true);
             hasVsync_.store(false);
