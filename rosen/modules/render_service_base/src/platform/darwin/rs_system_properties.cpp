@@ -438,6 +438,11 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    return false;
+}
+
 SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     return SubTreePrepareCheckType::ENABLED;

@@ -292,6 +292,14 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
     return hwcRegionDfxEnabled;
 }
 
+bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.pixelmapdfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetAFBCEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.afbc.enabled", "1");
