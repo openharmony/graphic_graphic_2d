@@ -84,14 +84,7 @@ public:
         return screenId_;
     }
 
-    inline void SetReleaseTask(ReleaseDmaBufferTask callback)
-    {
-        if (!releaseScreenDmaBufferTask_ && callback) {
-            releaseScreenDmaBufferTask_ = callback;
-        } else {
-            RS_LOGE("RreleaseScreenDmaBufferTask_ register failed!");
-        }
-    }
+    static void SetReleaseTask(ReleaseDmaBufferTask callback);
 
     void SetRogSize(uint32_t rogWidth, uint32_t rogHeight)
     {
@@ -507,7 +500,7 @@ private:
 
     bool curZoomState_ = false;
     bool preZoomState_ = false;
-    ReleaseDmaBufferTask releaseScreenDmaBufferTask_ = nullptr;
+    static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
 };
 } // namespace Rosen
 } // namespace OHOS

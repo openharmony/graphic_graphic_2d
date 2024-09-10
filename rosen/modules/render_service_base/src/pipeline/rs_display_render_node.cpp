@@ -173,6 +173,16 @@ void RSDisplayRenderNode::InitRenderParams()
     }
 }
 
+ReleaseDmaBufferTask RSDisplayRenderNode::releaseScreenDmaBufferTask_;
+void RSDisplayRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
+{
+    if (!releaseScreenDmaBufferTask_ && callback) {
+        releaseScreenDmaBufferTask_ = callback;
+    } else {
+        RS_LOGE("RreleaseScreenDmaBufferTask_ register failed!");
+    }
+}
+
 void RSDisplayRenderNode::OnSync()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSDisplayRenderNode::OnSync global dirty[%s]",
