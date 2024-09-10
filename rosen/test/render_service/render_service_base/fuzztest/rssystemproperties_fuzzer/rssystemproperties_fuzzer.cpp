@@ -95,6 +95,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetHardwareComposerEnabled();
     RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     RSSystemProperties::GetHwcRegionDfxEnabled();
+    RSSystemProperties::GetPixelmapDfxEnabled();
     RSSystemProperties::GetAFBCEnabled();
     RSSystemProperties::GetReleaseResourceEnabled();
     RSSystemProperties::GetRSScreenRoundCornerEnable();

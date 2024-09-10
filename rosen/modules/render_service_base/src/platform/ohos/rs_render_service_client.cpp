@@ -212,7 +212,7 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, std::shared
             continue;
         }
         std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
-        if (i != callbackVector.size() - 1) {
+        if (UNLIKELY(RSSystemProperties::GetPixelmapDfxEnabled()) || (i != callbackVector.size() - 1)) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
