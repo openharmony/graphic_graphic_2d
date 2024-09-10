@@ -93,6 +93,8 @@ private:
     sptr<LocalSocketPair> socketPair_;
     bool isDead_;
     std::mutex mutex_;
+    bool isFirstRequestVsync_ = true;
+    bool isFirstSendVsync_ = true;
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
