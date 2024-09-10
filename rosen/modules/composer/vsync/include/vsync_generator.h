@@ -112,7 +112,7 @@ public:
 
     void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
     void SetFrameRateChangingStatus(bool frameRateChanging) override;
-    void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) override;
+    void SetAppDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
