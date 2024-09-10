@@ -122,6 +122,7 @@ int32_t HdiDeviceImpl::SetScreenConstraint(uint32_t screenId, uint64_t frameId, 
 
 int32_t HdiDeviceImpl::SetScreenVsyncEnabled(uint32_t screenId, bool enabled)
 {
+    HLOGD("SetScreenVsyncEnabled, screenId:%{public}u, enabled:%{public}d", screenId, enabled);
     ScopedBytrace trace("SetScreenVsyncEnabled, screenId:" + std::to_string(screenId) +
                         ", enabled:" + std::to_string(enabled));
     CHECK_FUNC(g_composer);
