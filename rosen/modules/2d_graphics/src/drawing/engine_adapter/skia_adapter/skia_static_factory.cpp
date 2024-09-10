@@ -57,6 +57,11 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromFile(const char path[], int
     return SkiaTypeface::MakeFromFile(path, index);
 }
 
+std::vector<std::shared_ptr<Typeface>> SkiaStaticFactory::GetSystemFonts()
+{
+    return SkiaTypeface::GetSystemFonts();
+}
+
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     return SkiaTypeface::MakeFromStream(std::move(memoryStream), index);
