@@ -272,7 +272,7 @@ napi_value JsParagraph::GetLongestLineWithIndent(napi_env env, napi_callback_inf
 napi_value JsParagraph::OnGetLongestLineWithIndent(napi_env env, napi_callback_info info)
 {
     if (paragraph_ == nullptr) {
-        TEXT_LOGE("paragraph_ is nullptr");
+        TEXT_LOGE("Paragraph is nullptr");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double longestLine = paragraph_->GetLongestLineWithIndent();
