@@ -583,6 +583,12 @@ bool RSDrawable::UpdateDirtySlots(
             }
         }
     }
+    // If at this point the child node happens to be null, and the scenario involves deleting the child node
+    // when the parent node is not on the tree, it is necessary to manually mark drawableAddedOrRemoved as true.
+    if (!drawableAddedOrRemoved && dirtySlots.count(RSDrawableSlot::CHILDREN) &&
+        drawableVec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] == nullptr) {
+        drawableAddedOrRemoved = true;
+    }
 
     return drawableAddedOrRemoved;
 }
