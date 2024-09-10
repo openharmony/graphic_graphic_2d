@@ -22,15 +22,15 @@
 namespace OHOS {
 namespace Rosen {
 // 0.22 means the ratio of deformation distance of the first four points a, a1, b1, b to width when fly out
-static const float FLYOUT_DEFORM_PERCENTAGE_ONE = 0.22;
+static const float FLYOUT_DEFORM_PERCENTAGE_ONE = 0.22f;
 // 0.19 means the ratio of deformation distance of the points a2, b2 to width when fly out
-static const float FLYOUT_DEFORM_PERCENTAGE_TWO = 0.19;
+static const float FLYOUT_DEFORM_PERCENTAGE_TWO = 0.19f;
 // 0.07 means the ratio of deformation distance of the points c3, c2, d3, d2 to width when fly in
-static const float FLYIN_DEFORM_PERCENTAGE_ONE = 0.07;
+static const float FLYIN_DEFORM_PERCENTAGE_ONE = 0.07f;
 // 0.04 means the ratio of deformation distance of the points c3, c2, d3, d2 to height when fly in
-static const float FLYIN_DEFORM_PERCENTAGE_HEIGHT = 0.04;
+static const float FLYIN_DEFORM_PERCENTAGE_HEIGHT = 0.04f;
 // 0.21 means the ratio of deformation distance of the points e, e2, f, f2 to width when fly in
-static const float FLYIN_DEFORM_PERCENTAGE_TWO = 0.21;
+static const float FLYIN_DEFORM_PERCENTAGE_TWO = 0.21f;
 static const size_t POINT_NUM = 12; // 12 anchor points of a patch
 static const uint32_t FLY_OUT_MODE = 0;
 static const uint32_t FLY_IN_MODE = 1;
@@ -54,12 +54,6 @@ std::string RSFlyOutShaderFilter::GetDescription()
     return "RSFlyOutShaderFilter " + std::to_string(degree_);
 }
 
-bool RSFlyOutShaderFilter::IsValid() const
-{
-    constexpr float epsilon = 0.001f;
-    return degree_ > epsilon;
-}
-
 float RSFlyOutShaderFilter::GetDegree() const
 {
     return degree_;
@@ -73,6 +67,9 @@ uint32_t RSFlyOutShaderFilter::GetFlyMode() const
 Drawing::Brush RSFlyOutShaderFilter::GetBrush(const std::shared_ptr<Drawing::Image>& image) const
 {
     Drawing::Brush brush;
+    if (image == nullptr) {
+        return brush;
+    }
     brush.SetBlendMode(Drawing::BlendMode::SRC_OVER);
     Drawing::SamplingOptions samplingOptions;
     Drawing::Matrix scaleMat;
@@ -117,7 +114,7 @@ void RSFlyOutShaderFilter::CalculateDeformation(std::array<Drawing::Point, POINT
 void RSFlyOutShaderFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
-    if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
+    if (image == nullptr || image->GetWidth() <= 0 || image->GetHeight() <= 0) {
         ROSEN_LOGE("RSFlyOutShaderFilter::shader error");
         return;
     }

@@ -5753,6 +5753,24 @@ HWTEST_F(RSNodeTest, SetPixelStretchPercent, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetFlyOutParams
+ * @tc.desc: test results of SetFlyOutParams
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSNodeTest, SetFlyOutParams, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    // for test
+    uint32_t flyMode = 0;
+    RSFlyOutPara rs_fly_out_param = {
+        flyMode
+    };
+    rsNode->SetFlyOutParams(rs_fly_out_param, 0.2f);
+    EXPECT_EQ(rs_fly_out_param.flyMode, 0);
+}
+
+/**
  * @tc.name: SetNodeName
  * @tc.desc: test results of SetNodeName
  * @tc.type: FUNC
