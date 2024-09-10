@@ -54,7 +54,6 @@ private:
     void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
-    void DumpNode(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
     void FPSDUMPProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
     void FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,

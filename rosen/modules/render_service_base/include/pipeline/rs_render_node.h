@@ -36,7 +36,6 @@
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "image/gpu_context.h"
-#include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -184,7 +183,6 @@ public:
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
 
     void DumpTree(int32_t depth, std::string& ou) const;
-    void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
 

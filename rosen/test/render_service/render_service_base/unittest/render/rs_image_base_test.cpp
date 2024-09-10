@@ -84,23 +84,6 @@ HWTEST_F(RSImageBaseTest, SetPixelMapTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpPictureTest
- * @tc.desc: Verify function DumpPicture
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
- */
-HWTEST_F(RSImageBaseTest, DumpPictureTest, TestSize.Level1)
-{
-    auto imageBase = std::make_shared<RSImageBase>();
-    DfxString info;
-    imageBase->DumpPicture(info);
-    auto pixelmap = std::make_shared<Media::PixelMap>();
-    imageBase->SetPixelMap(pixelmap);
-    imageBase->DumpPicture(info);
-    EXPECT_NE(imageBase->pixelMap_, nullptr);
-}
-
-/**
  * @tc.name: SetSrcRectTest
  * @tc.desc: Verify function SetSrcRect
  * @tc.type:FUNC

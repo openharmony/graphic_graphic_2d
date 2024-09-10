@@ -22,7 +22,6 @@
 #include "common/rs_rect.h"
 #include <memory>
 #include "draw/canvas.h"
-#include "memory/rs_dfx_string.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -59,7 +58,6 @@ public:
     void UpdateNodeIdToPicture(NodeId nodeId);
     void MarkRenderServiceImage();
     std::shared_ptr<Media::PixelMap> GetPixelMap() const;
-    void DumpPicture(DfxString& info) const;
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel) const;
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);

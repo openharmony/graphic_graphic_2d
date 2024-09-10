@@ -2194,11 +2194,6 @@ void RSRenderNode::RemoveAllModifiers()
     renderContent_->drawCmdModifiers_.clear();
 }
 
-void RSRenderNode::DumpNodeInfo(DfxString& log)
-{
-    // Drawing is not supported
-}
-
 void RSRenderNode::AccmulateDirtyInOcclusion(bool isOccluded)
 {
     if (isOccluded) {
