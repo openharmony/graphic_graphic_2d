@@ -496,26 +496,6 @@ bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetric
     return true;
 }
 
-bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetrics)
-{
-    if (argValue == nullptr) {
-        return false;
-    }
-    napi_value tempValue = nullptr;
-    napi_get_named_property(env, argValue, "textStyle", &tempValue);
-    OHOS::Rosen::TextStyle tempTextStyle;
-    if (tempValue != nullptr && GetTextStyleFromJS(env, tempValue, tempTextStyle)) {
-        runMetrics.textStyle = &tempTextStyle;
-    }
-
-    napi_get_named_property(env, argValue, "fontMetrics", &tempValue);
-    Drawing::FontMetrics tempFontMetrics;
-    if (tempValue != nullptr && GetFontMetricsFromJS(env, tempValue, tempFontMetrics)) {
-        runMetrics.fontMetrics = tempFontMetrics;
-    }
-    return true;
-}
-
 void SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle)
 {
     napi_value tempValue = nullptr;
