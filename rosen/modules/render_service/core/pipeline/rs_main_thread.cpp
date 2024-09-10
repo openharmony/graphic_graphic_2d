@@ -3076,37 +3076,40 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
 
         dumpString += "\n====================================\n";
         RSUniRenderThread::Instance().RenderServiceTreeDump(dumpString);
-
-        // dump all node info
-        std::string node_str = "";
-        std::string type_str = "";
-        int count = 0;
-        for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
-            auto node = context_->GetMutableNodeMap().GetRenderNode(nodeId);
-            if (node) {
-                RSRenderNode::DumpNodeType(node->GetType(), type_str);
-                node_str = "nodeId: " + std::to_string(nodeId) +
-                    ", [info] pid: " + std::to_string(info.pid) + ", type: "+ type_str +
-                    ", width: " + std::to_string(node->GetOptionalBufferSize().x_) +
-                    ", height: " + std::to_string(node->GetOptionalBufferSize().y_) +
-                    (node->IsOnTheTree() ? ", ontree;\n" : ", offtree;\n");
-                dumpString += node_str.c_str();
-                count++;
-                type_str = "";
-            } else {
-                node_str = "nodeId: " + std::to_string(nodeId) +
-                    ", [info] pid: " + std::to_string(info.pid) + ", node is nullptr;\n";
-                dumpString += node_str.c_str();
-            }
-            node_str = "";
-            if (count > 2500) { // 2500 is the max dump size.
-                dumpString += "Total node size > 2500, only record the first 2500.\n";
-                break;
-            }
-        }
     } else {
         dumpString += g_dumpStr;
         g_dumpStr = "";
+    }
+}
+
+void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
+{
+    // dump all node info
+    std::string node_str = "";
+    std::string type_str = "";
+    int count = 0;
+    for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
+        auto node = context_->GetMutableNodeMap().GetRenderNode(nodeId);
+        if (node) {
+            RSRenderNode::DumpNodeType(node->GetType(), type_str);
+            node_str = "nodeId: " + std::to_string(nodeId) +
+                ", [info] pid: " + std::to_string(info.pid) + ", type: "+ type_str +
+                ", width: " + std::to_string(node->GetOptionalBufferSize().x_) +
+                ", height: " + std::to_string(node->GetOptionalBufferSize().y_) +
+                (node->IsOnTheTree() ? ", ontree;" : ", offtree;");
+            log.AppendFormat("%s\n", node_str.c_str());
+            count++;
+            type_str = "";
+        } else {
+            node_str = "nodeId: " + std::to_string(nodeId) +
+                ", [info] pid: " + std::to_string(info.pid) + ", node is nullptr;";
+            log.AppendFormat("%s\n", node_str.c_str());
+        }
+        node_str = "";
+        if (count > 2500) { // 2500 is the max dump size.
+            log.AppendFormat("Total node size > 2500, only record the first 2500.\n");
+            break;
+        }
     }
 }
 
