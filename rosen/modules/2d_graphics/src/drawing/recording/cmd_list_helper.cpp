@@ -46,6 +46,7 @@ static int ColorTypeToBytesPerPixel(ColorType colorType)
             return 2;
         case ColorType::COLORTYPE_RGBA_8888:
         case ColorType::COLORTYPE_BGRA_8888:
+        case ColorType::COLORTYPE_RGB_888X:
         case ColorType::COLORTYPE_N32:
             return 4;
         case ColorType::COLORTYPE_RGBA_F16:

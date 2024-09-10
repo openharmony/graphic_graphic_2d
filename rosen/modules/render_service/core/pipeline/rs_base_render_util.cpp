@@ -912,6 +912,8 @@ Drawing::ColorType RSBaseRenderUtil::GetColorTypeFromBufferFormat(int32_t pixelF
     switch (pixelFmt) {
         case GRAPHIC_PIXEL_FMT_RGBA_8888:
             return Drawing::ColorType::COLORTYPE_RGBA_8888;
+        case GRAPHIC_PIXEL_FMT_RGBX_8888:
+            return Drawing::ColorType::COLORTYPE_RGB_888X;
         case GRAPHIC_PIXEL_FMT_BGRA_8888 :
             return Drawing::ColorType::COLORTYPE_BGRA_8888;
         case GRAPHIC_PIXEL_FMT_RGB_565:
