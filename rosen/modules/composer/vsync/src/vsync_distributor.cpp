@@ -537,10 +537,10 @@ void VSyncDistributor::EnableVSync()
     if (controller_ != nullptr && vsyncEnabled_ == false) {
         controller_->SetCallback(this);
         controller_->SetEnable(true, vsyncEnabled_);
-    }
 #if defined(RS_ENABLE_DVSYNC)
         dvsync_->RecordEnableVsync();
 #endif
+    }
 }
 
 void VSyncDistributor::DisableVSync()
@@ -1026,8 +1026,7 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bo
             isNeedNotify = true;
         }
     }
-
-    if (isNeedNotify) {
+if (isNeedNotify) {
 #if defined(RS_ENABLE_DVSYNC)
         if (dvsync_->IsFeatureEnabled()) {
             con_.notify_all();
@@ -1037,7 +1036,6 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bo
             EnableVSync();
         }
     }
-
     return VSYNC_ERROR_OK;
 }
 
@@ -1055,6 +1053,7 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
     if (iter == connectionsMap_.end()) {
         return resCode;
     }
+    
     bool isNeedNotify = false;
     for (auto& connection : iter->second) {
         if (connection && connection->highPriorityRate_ != rate) {
@@ -1186,7 +1185,7 @@ void VSyncDistributor::RecordVsyncModeChange(uint32_t refreshRate, int64_t perio
 #endif
 }
 
-bool VSyncDistributor::IsUiDvsyncOn()
+bool  VSyncDistributor::IsUiDvsyncOn()
 {
 #if defined(RS_ENABLE_DVSYNC)
     return dvsync_->IsUiDvsyncOn();
@@ -1194,7 +1193,6 @@ bool VSyncDistributor::IsUiDvsyncOn()
     return false;
 #endif
 }
-
 int64_t VSyncDistributor::GetUiCommandDelayTime()
 {
 #if defined(RS_ENABLE_DVSYNC)
