@@ -312,7 +312,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable005, TestSize.Le
     drawable.MakeFromTextureForVK(canvas, buffer);
     ASSERT_TRUE(true);
     delete buffer;
-    FreeBufferHandle(handle);
 }
 #endif
 

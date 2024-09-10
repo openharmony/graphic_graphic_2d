@@ -142,7 +142,7 @@ bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
         ::close(fd);
         return false;
     }
-    void* fdPtr = new int32_t();
+    void* fdPtr = new (std::nothrow) int32_t();
     if (fdPtr == nullptr) {
         ::munmap(ptr, size);
         ::close(fd);
