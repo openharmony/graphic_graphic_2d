@@ -333,6 +333,7 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log)
 {
     log.AppendFormat("\n----------\nRenderService caches:\n");
     MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
+    RSMainThread::Instance()->RenderServiceAllNodeDump(log);
 }
 
 void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
