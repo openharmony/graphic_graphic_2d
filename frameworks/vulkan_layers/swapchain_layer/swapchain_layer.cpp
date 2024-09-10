@@ -534,7 +534,8 @@ VkSurfaceTransformFlagBitsKHR TranslateNativeToVulkanTransformHint(OH_NativeBuff
     }
 }
 
-OH_NativeBuffer_TransformType TranslateVulkanToNativeTransformHint(VkSurfaceTransformFlagBitsKHR transform)
+//Use to compare preTransform to transformHint
+OH_NativeBuffer_TransformType TranslateVulkanToNativeTransform(VkSurfaceTransformFlagBitsKHR transform)
 {
     switch (transform) {
         case VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR:
@@ -549,6 +550,31 @@ OH_NativeBuffer_TransformType TranslateVulkanToNativeTransformHint(VkSurfaceTran
             return NATIVEBUFFER_FLIP_H;
         case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR:
             return NATIVEBUFFER_FLIP_V_ROT90;
+        case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR:
+            return NATIVEBUFFER_FLIP_V;
+        case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR:
+            return NATIVEBUFFER_FLIP_H_ROT90;
+        default:
+            return NATIVEBUFFER_ROTATE_NONE;
+    }
+}
+
+//After pre-rotation, the window needs to be rotated counterclockwise to the corresponding angle
+OH_NativeBuffer_TransformType InvertTransformToNative(VkSurfaceTransformFlagBitsKHR transform)
+{
+    switch (transform) {
+        case VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR:
+            return NATIVEBUFFER_ROTATE_NONE;
+        case VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR:
+            return NATIVEBUFFER_ROTATE_90;
+        case VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR:
+            return NATIVEBUFFER_ROTATE_180;
+        case VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR:
+            return NATIVEBUFFER_ROTATE_270;
+        case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR:
+            return NATIVEBUFFER_FLIP_H;
+        case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR:
+            return NATIVEBUFFER_FLIP_H_ROT270;
         case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR:
             return NATIVEBUFFER_FLIP_V;
         case VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR:
@@ -597,8 +623,11 @@ VKAPI_ATTR VkResult SetWindowBufferGeometry(NativeWindow* window, int width, int
     return VK_SUCCESS;
 }
 
-VKAPI_ATTR VkResult SetWindowTransform(NativeWindow* window, OH_NativeBuffer_TransformType transformType)
+VKAPI_ATTR VkResult SetWindowTransform(NativeWindow* window, const VkSwapchainCreateInfoKHR* createInfo)
 {
+    OH_NativeBuffer_TransformType transformType = InvertTransformToNative(createInfo->preTransform);
+    SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
+        static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
     if (window == nullptr) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
@@ -606,6 +635,17 @@ VKAPI_ATTR VkResult SetWindowTransform(NativeWindow* window, OH_NativeBuffer_Tra
     if (err != OHOS::GSERROR_OK) {
         SWLOGE("NativeWindow Set Transform failed: %{public}d", err);
         return VK_ERROR_SURFACE_LOST_KHR;
+    }
+
+    OH_NativeBuffer_TransformType transformHint = NATIVEBUFFER_ROTATE_NONE;
+    err = NativeWindowGetTransformHint(window, &transformHint);
+    if (err != OHOS::GSERROR_OK) {
+        SWLOGE("NativeWindow get TransformHint failed, error num : %{public}d", err);
+        return VK_ERROR_SURFACE_LOST_KHR;
+    }
+    if (transformHint != TranslateVulkanToNativeTransform(createInfo->preTransform)) {
+        SWLOGE("The App Is Not Doing Pre-rotation, transformHint: %{public}d, preTransform(to native): %{public}d",
+               transformHint, TranslateVulkanToNativeTransform(createInfo->preTransform));
     }
 
     return VK_SUCCESS;
@@ -733,10 +773,7 @@ VKAPI_ATTR VkResult SetWindowInfo(VkDevice device, const VkSwapchainCreateInfoKH
     }
 
     // Set Transform
-    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransformHint(createInfo->preTransform);
-    SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
-        static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
-    if (SetWindowTransform(window, transformType) != VK_SUCCESS) {
+    if (SetWindowTransform(window, createInfo) != VK_SUCCESS) {
         return VK_ERROR_SURFACE_LOST_KHR;
     }
 
@@ -884,7 +921,7 @@ VKAPI_ATTR VkResult VKAPI_CALL CreateSwapchainKHR(VkDevice device, const VkSwapc
         return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
-    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransformHint(createInfo->preTransform);
+    OH_NativeBuffer_TransformType transformType = TranslateVulkanToNativeTransform(createInfo->preTransform);
     SWLOGD("Swapchain translate VkSurfaceTransformFlagBitsKHR:%{public}d to OH_NativeBuffer_TransformType:%{public}d",
         static_cast<int>(createInfo->preTransform), static_cast<int>(transformType));
     Swapchain* swapchain = new (mem) Swapchain(surface, numImages, createInfo->presentMode, transformType);
