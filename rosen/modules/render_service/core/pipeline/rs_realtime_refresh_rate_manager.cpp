@@ -46,7 +46,7 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
     frameRateMgr->SetShowRefreshRateEnabled(enableState_);
 
     if (enableState_) {
-        updateFpsThread_ = std::thread([&, frameRateMgr]() {
+        updateFpsThread_ = std::thread([this, &hgmCore, frameRateMgr]() {
             uint32_t lastRefreshRate = 0;
             uint32_t lastRealtimeRefreshRate = 0;
             currRealtimeRefreshRate_ = 1;

@@ -164,11 +164,9 @@ void HgmFrameRateManager::InitRsIdleTimer()
     auto resetTask = [this] () {
         PolicyConfigData::StrategyConfig strategy;
         multiAppStrategy_.GetVoteRes(strategy);
-        auto resetRefreshRate = std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
-        if (minIdleFps_ != resetRefreshRate) {
-            minIdleFps_ = resetRefreshRate;
-            DeliverRefreshRateVote({"VOTER_IDLE", minIdleFps_, minIdleFps_}, ADD_VOTE);
-        }
+        minIdleFps_ = static_cast<int32_t>(OLED_60_HZ);
+        idleFps_ = std::max(strategy.min, minIdleFps_);
+        HandleIdleEvent(true);
     };
     auto timeoutTask = [this] () {
         PolicyConfigData::StrategyConfig strategy;

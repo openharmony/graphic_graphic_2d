@@ -185,7 +185,7 @@ void HgmSimpleTimer::Start()
     } else {
         Reset(); // Reset() only take effect when running
         if (resetCallback_) {
-            resetCallback_();
+            handler_->PostTask(resetCallback_);
         }
         handler_->PostTask([this] () { Loop(); }, name_, interval_.count());
     }
