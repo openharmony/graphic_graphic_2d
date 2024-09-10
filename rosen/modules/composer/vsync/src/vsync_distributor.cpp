@@ -131,6 +131,10 @@ VsyncError VSyncConnection::RequestNextVSync(const std::string &fromWhom, int64_
         if (distributor == nullptr) {
             return VSYNC_ERROR_NULLPTR;
         }
+        if (isFirstRequestVsync_) {
+            isFirstRequestVsync_ = false;
+            VLOGI("First vsync is requested, name: %{public}s", info_.name_.c_str());
+        }
     }
     return distributor->RequestNextVSync(this, fromWhom, lastVSyncTS);
 }
@@ -173,6 +177,10 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     // 1, 2: index of array data.
     data[1] = period;
     data[2] = vsyncCount;
+    if (isFirstSendVsync_) {
+        isFirstSendVsync_ = false;
+        VLOGI("First vsync has send to : %{public}s", info_.name_.c_str());
+    }
     int32_t ret = socketPair->SendData(data, sizeof(data));
     if (ret == ERRNO_EAGAIN) {
         RS_TRACE_NAME("remove the earlies data and SendData again.");
