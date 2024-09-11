@@ -74,7 +74,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
         if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
-                ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node id in DrawableCache is %{public}lu", id);
+                ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node id in DrawableCache is %{public}llu", id);
                 return ptr;
             } else {
                 RenderNodeDrawableCache_.erase(cacheIt);
