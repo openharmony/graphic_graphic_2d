@@ -255,6 +255,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
+        if (isProtectedLayer_) {
+            return false;
+        }
         return isHardwareForcedDisabled_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
     }
@@ -441,6 +444,7 @@ public:
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
+    void SetForceClientForDRMOnly(bool forceClient);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
@@ -1261,6 +1265,7 @@ private:
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
+    bool forceClientForDRMOnly_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
