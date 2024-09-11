@@ -177,5 +177,8 @@ void OH_Drawing_RectCopy(OH_Drawing_Rect* sRect, OH_Drawing_Rect* dRect)
 
 void OH_Drawing_RectDestroy(OH_Drawing_Rect* cRect)
 {
+    if (!cRect) {
+        return;
+    }
     delete CastToRect(cRect);
 }

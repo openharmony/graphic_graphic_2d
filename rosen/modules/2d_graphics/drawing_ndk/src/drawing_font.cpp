@@ -360,6 +360,9 @@ bool OH_Drawing_FontIsEmbeddedBitmaps(const OH_Drawing_Font* cFont)
 
 void OH_Drawing_FontDestroy(OH_Drawing_Font* cFont)
 {
+    if (!cFont) {
+        return;
+    }
     delete CastToFont(cFont);
 }
 

@@ -41,6 +41,9 @@ OH_Drawing_Image* OH_Drawing_ImageCreate()
 
 void OH_Drawing_ImageDestroy(OH_Drawing_Image* cImage)
 {
+    if (!cImage) {
+        return;
+    }
     delete CastToImage(cImage);
 }
 

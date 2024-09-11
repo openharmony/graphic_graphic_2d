@@ -96,6 +96,9 @@ OH_Drawing_Corner_Radii OH_Drawing_RoundRectGetCorner(OH_Drawing_RoundRect* cRou
 
 void OH_Drawing_RoundRectDestroy(OH_Drawing_RoundRect* cRoundRect)
 {
+    if (!cRoundRect) {
+        return;
+    }
     delete CastToRoundRect(cRoundRect);
 }
 
