@@ -1153,6 +1153,11 @@ void RSRenderNode::FallbackAnimationsToRoot()
         target->animationManager_.AddAnimation(std::move(animation));
     }
     animationManager_.animations_.clear();
+    // Check the next frame's VSync has been requested. If there is no request, add another VSync request
+    if (!context->IsNeedRequestNextVsync()) {
+        context->SetNeedRequestNextVsync(true);
+        context->RequestVsync();
+    }
 }
 
 void RSRenderNode::ActivateDisplaySync()
