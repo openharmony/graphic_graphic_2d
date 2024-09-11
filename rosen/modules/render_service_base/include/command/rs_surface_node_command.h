@@ -63,7 +63,6 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_SKIP_DRAW,
     SURFACE_NODE_SET_WATERMARK,
     SURFACE_NODE_SET_WATERMARK_ENABLED,
-    SURFACE_NODE_SET_LAYER_TOP,
     SURFACE_NODE_SET_WINDOW_MODE,
 };
 
@@ -91,7 +90,6 @@ public:
     static void SetAbilityBGAlpha(RSContext& context, NodeId id, uint8_t alpha);
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
     static void MarkUIHidden(RSContext& context, NodeId nodeId, bool isHidden);
-    static void SetLayerTop(RSContext& context, NodeId nodeId, std::string nodeIdStr, bool isTop);
     static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType);
     static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, float density);
     static void SetAnimationFinished(RSContext& context, NodeId nodeId);
@@ -190,8 +188,6 @@ ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
 ADD_COMMAND(RSSurfaceNodeSetWatermarkEnabled,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED, SurfaceNodeCommandHelper::SetWatermarkEnabled,
     NodeId, std::string, bool))
-ADD_COMMAND(RSSurfaceNodeSetLayerTop,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_LAYER_TOP, SurfaceNodeCommandHelper::SetLayerTop, NodeId, std::string, bool))
 ADD_COMMAND(RSSurfaceNodeSetWindowMode,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_WINDOW_MODE, SurfaceNodeCommandHelper::SetWindowMode, NodeId, RSWindowMode))
 } // namespace Rosen

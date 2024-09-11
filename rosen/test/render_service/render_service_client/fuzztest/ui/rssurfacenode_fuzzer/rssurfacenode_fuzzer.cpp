@@ -186,10 +186,6 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
     bool isBootAnimation = GetData<bool>();
     surfaceNode->SetBootAnimation(isBootAnimation);
     surfaceNode->GetBootAnimation();
-    bool isLayerTop = GetData<bool>();
-    std::string surfaceNodeName = GetData<std::string>();
-    surfaceNode->SetLayerTop(surfaceNodeName, isLayerTop);
-    surfaceNode->IsLayerTop();
     return true;
 }
 

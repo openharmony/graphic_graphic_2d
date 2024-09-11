@@ -605,5 +605,9 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 {
 }
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

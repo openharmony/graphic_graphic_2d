@@ -71,6 +71,18 @@ HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsCommonVerificationPassedTest, 
     ASSERT_EQ(verifier->IsCommonVerificationPassed(code), true);
 }
 
+/**
+ * @tc.name: IsStylusServiceCallingTest
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:IAOZFC
+ */
+HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsStylusServiceCallingTest, testing::ext::TestSize.Level1)
+{
+    const std::string callingCode = "RSInterfaceCodeAccessVerifierBaseTest::IsStylusServiceCallingTest";
+    auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
+    ASSERT_EQ(verifier->IsStylusServiceCalling(callingCode), true);
+}
 #ifdef ENABLE_IPC_SECURITY
 /**
  * @tc.name: IsInterfaceCodeAccessibleTest001
@@ -227,6 +239,19 @@ HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsSystemCallingTest001, testing:
     auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
     bool res = verifier->IsSystemCalling(callingCode);
     ASSERT_EQ(res, true);
+}
+
+/**
+ * @tc.name: IsStylusServiceCallingTest001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:IAOZFC
+ */
+HWTEST_F(RSInterfaceCodeAccessVerifierBaseTest, IsStylusServiceCallingTest001, testing::ext::TestSize.Level1)
+{
+    const std::string callingCode = "RSInterfaceCodeAccessVerifierBaseTest::IsStylusServiceCallingTest001";
+    auto verifier = std::make_unique<RSIBufferAvailableCallbackInterfaceCodeAccessVerifier>();
+    ASSERT_EQ(verifier->IsStylusServiceCalling(callingCode), false);
 }
 #endif
 } // namespace OHOS::Rosen

@@ -289,6 +289,8 @@ public:
     bool SetAncoForceDoDirect(bool direct);
 
     void SetFreeMultiWindowStatus(bool enable);
+
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

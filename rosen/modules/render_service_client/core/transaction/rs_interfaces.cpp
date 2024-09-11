@@ -728,5 +728,9 @@ void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
     renderServiceClient_->SetFreeMultiWindowStatus(enable);
 }
 
+void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
 } // namespace Rosen
 } // namespace OHOS
