@@ -100,8 +100,9 @@ void OH_Drawing_TypefaceDestroy(OH_Drawing_Typeface* cTypeface)
     if (cTypeface == nullptr) {
         return;
     }
-    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() != nullptr) {
-        Drawing::Typeface::GetTypefaceUnRegisterCallBack()(TypefaceMgr::GetInstance().Find(cTypeface));
+    auto typeface = TypefaceMgr::GetInstance().Find(cTypeface);
+    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() != nullptr && typeface) {
+        Drawing::Typeface::GetTypefaceUnRegisterCallBack()(typeface);
     }
     TypefaceMgr::GetInstance().Remove(cTypeface);
 }

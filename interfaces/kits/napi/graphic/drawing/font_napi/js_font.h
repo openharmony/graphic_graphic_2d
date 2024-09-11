@@ -81,11 +81,11 @@ private:
     napi_value OnGetTypeface(napi_env env, napi_callback_info info);
     napi_value OnGetSize(napi_env env, napi_callback_info info);
     napi_value OnGetMetrics(napi_env env, napi_callback_info info);
-    napi_value OnMeasureSingleCharacter(napi_env env, napi_callback_info info);
     napi_value OnGetWidths(napi_env env, napi_callback_info info);
     napi_value OnIsBaselineSnap(napi_env env, napi_callback_info info);
     napi_value OnIsEmbeddedBitmaps(napi_env env, napi_callback_info info);
     napi_value OnIsForceAutoHinting(napi_env env, napi_callback_info info);
+    napi_value OnMeasureSingleCharacter(napi_env env, napi_callback_info info);
     napi_value OnMeasureText(napi_env env, napi_callback_info info);
     napi_value OnSetScaleX(napi_env env, napi_callback_info info);
     napi_value OnSetSkewX(napi_env env, napi_callback_info info);
