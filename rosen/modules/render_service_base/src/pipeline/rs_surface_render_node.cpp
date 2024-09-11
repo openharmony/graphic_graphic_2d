@@ -3025,6 +3025,9 @@ void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEn
 
 void RSSurfaceRenderNode::SetAbilityState(bool abilityState)
 {
+    ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s", GetId(),
+    abilityState ? "foreground" : "background");
+
     if (abilityState_ == abilityState) {
         return;
     }

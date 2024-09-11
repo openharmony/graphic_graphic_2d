@@ -198,9 +198,13 @@ std::tuple<bool, bool, bool> RSAnimationManager::AnimateBackground(int64_t time,
         &needRequestNextVsync, nodeIsOnTheTree, &isCalculateAnimationValue](auto& iter) -> bool {
         auto& animation = iter.second;
         if (animation->GetRepeatCount() == -1) {
+            ROSEN_LOGD("RSAnimationManager::AnimateBackground, infinite loop animation, animation id:[%{public}" PRIu64 "]",
+            animation->GetAnimationId());
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
             return false;
         } else {
+            ROSEN_LOGD("RSAnimationManager::AnimateBackground, finite loop animation, animation id:[%{public}" PRIu64 "]",
+            animation->GetAnimationId());
             OnAnimationFinished(animation);
             return true;
         }

@@ -877,6 +877,8 @@ void RSSurfaceNode::SetAbilityState(bool abilityState)
         std::make_unique<RSSurfaceNodeSetAbilityState>(GetId(), abilityState);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
+        ROSEN_LOGD("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s", GetId(),
+        abilityState ? "foreground" : "background");
         transactionProxy->AddCommand(command, true);
     }
 }

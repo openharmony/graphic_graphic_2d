@@ -127,7 +127,6 @@ void RSRenderServiceListener::OnGoBackground()
         ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, go background", node->GetId());
         node->SetContentDirty();
         node->ResetHardwareEnabledStates();
-        node->SetAbilityState(false);
     });
 }
 

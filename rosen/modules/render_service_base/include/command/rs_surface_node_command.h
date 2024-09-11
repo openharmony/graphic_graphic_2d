@@ -196,7 +196,7 @@ ADD_COMMAND(RSSurfaceNodeSetLayerTop,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_LAYER_TOP, SurfaceNodeCommandHelper::SetLayerTop, NodeId, std::string, bool))
 ADD_COMMAND(RSSurfaceNodeSetWindowMode,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_WINDOW_MODE, SurfaceNodeCommandHelper::SetWindowMode, NodeId, RSWindowMode))
-ADD_COMMAND(RSSurfaceNodeSetAbilityState, 
+ADD_COMMAND(RSSurfaceNodeSetAbilityState,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_ABILITY_STATE, SurfaceNodeCommandHelper::SetAbilityState, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
