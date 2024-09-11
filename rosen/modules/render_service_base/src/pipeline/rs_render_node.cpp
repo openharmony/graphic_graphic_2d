@@ -315,6 +315,7 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
         drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
         stagingDrawCmdList_.clear();
         drawCmdListNeedSync_ = true;
+        uifirstNeedSync_ = true;
         AddToPendingSyncList();
     }
     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node remove child", GetId());
