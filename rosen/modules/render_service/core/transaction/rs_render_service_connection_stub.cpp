@@ -721,7 +721,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
                 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SURFACE_CAPTURE");
-            permissions.selfCapture = ExtractPid(id) == callingPid;
+            // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
+            // we temporarily add a white list to avoid abnormal functionality or abnormal display.
+            // The white list will be removed after GetCallingPid interface can return real PID.
+            permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
             TakeSurfaceCapture(id, cb, captureConfig, permissions);
             break;
         }
