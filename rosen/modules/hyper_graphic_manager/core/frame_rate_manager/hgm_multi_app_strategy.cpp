@@ -181,22 +181,22 @@ HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::Stra
     return GetAppStrategyConfig(pkgName, strategyRes);
 }
 
-std::unordered_map<std::string, std::pair<pid_t, int32_t>> HgmMultiAppStrategy::GetPidAppType()
+std::unordered_map<std::string, std::pair<pid_t, int32_t>> HgmMultiAppStrategy::GetPidAppType() const
 {
     return pidAppTypeMap_;
 }
 
-std::unordered_map<pid_t, std::pair<int32_t, std::string>> HgmMultiAppStrategy::GetForegroundPidApp()
+std::unordered_map<pid_t, std::pair<int32_t, std::string>> HgmMultiAppStrategy::GetForegroundPidApp() const
 {
     return foregroundPidAppMap_;
 }
 
-HgmLRUCache<pid_t> HgmMultiAppStrategy::GetBackgroundPid()
+HgmLRUCache<pid_t> HgmMultiAppStrategy::GetBackgroundPid() const
 {
     return backgroundPid_;
 }
 
-std::vector<std::string> HgmMultiAppStrategy::GetPackages()
+std::vector<std::string> HgmMultiAppStrategy::GetPackages() const
 {
     return pkgs_;
 }
@@ -238,7 +238,7 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
     screenSettingCache_ = screenConfig[curRefreshRateMode];
 }
 
-PolicyConfigData::ScreenSetting HgmMultiAppStrategy::GetScreenSetting()
+PolicyConfigData::ScreenSetting HgmMultiAppStrategy::GetScreenSetting() const
 {
     return screenSettingCache_;
 }
@@ -248,7 +248,7 @@ void HgmMultiAppStrategy::SetScreenSetting(const PolicyConfigData::ScreenSetting
     screenSettingCache_ = screenSetting;
 }
 
-PolicyConfigData::StrategyConfigMap HgmMultiAppStrategy::GetStrategyConfigs()
+PolicyConfigData::StrategyConfigMap HgmMultiAppStrategy::GetStrategyConfigs() const
 {
     return strategyConfigMapCache_;
 }

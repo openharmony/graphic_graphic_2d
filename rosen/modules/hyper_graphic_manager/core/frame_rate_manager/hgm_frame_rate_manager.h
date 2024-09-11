@@ -167,7 +167,7 @@ public:
     }
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
-    std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
+    static std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
         std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes);
 private:
     void Reset();
@@ -180,7 +180,7 @@ private:
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
     void FrameRateReport();
-    uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
+    uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     int32_t GetPreferredFps(const std::string& type, float velocity) const;
     static float PixelToMM(float velocity);
@@ -192,8 +192,8 @@ private:
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     void MarkVoteChange(const std::string& voter = "");
-    bool IsCurrentScreenSupportAS();
-    void ProcessAdaptiveSync(std::string voterName);
+    static bool IsCurrentScreenSupportAS();
+    void ProcessAdaptiveSync(const std::string& voterName);
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);

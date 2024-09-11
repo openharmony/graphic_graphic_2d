@@ -556,7 +556,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     changeGeneratorRateValid_.store(false);
 }
 
-uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range)
+uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const
 {
     // Find current refreshRate by FrameRateRange. For example:
     // 1. FrameRateRange[min, max, preferred] is [24, 48, 48], supported refreshRates
@@ -1174,14 +1174,18 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
 
 bool HgmFrameRateManager::IsCurrentScreenSupportAS()
 {
+    auto hdiDevice = HdiDevice::GetInstance();
+    if (hdiDevice == nullptr) {
+        return false;
+    }
     ScreenId id = HgmCore::Instance().GetActiveScreenId();
     ScreenPhysicalId screenId = static_cast<ScreenPhysicalId>(id);
-    uint64_t propertyAS_ = 0;
-    (void)HdiDevice::GetInstance()->GetDisplayProperty(screenId, ADAPTIVE_SYNC_PROPERTY, propertyAS_);
-    return propertyAS_ == DISPLAY_SUCCESS;
+    uint64_t propertyAS = 0;
+    hdiDevice->GetDisplayProperty(screenId, ADAPTIVE_SYNC_PROPERTY, propertyAS);
+    return propertyAS == DISPLAY_SUCCESS;
 }
 
-void HgmFrameRateManager::ProcessAdaptiveSync(std::string voterName)
+void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
 {
     bool isAdaptiveSyncEnabled = HgmCore::Instance().GetAdaptiveSyncEnabled();
     if (!isAdaptiveSyncEnabled) {

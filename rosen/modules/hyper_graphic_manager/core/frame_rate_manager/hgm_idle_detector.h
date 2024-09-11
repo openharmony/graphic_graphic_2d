@@ -39,7 +39,7 @@ public:
         appSupported_ = appSupported;
     }
 
-    bool GetAppSupportedState()
+    bool GetAppSupportedState() const
     {
         return appSupported_;
     }
