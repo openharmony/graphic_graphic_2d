@@ -338,5 +338,12 @@ void SurfaceNodeCommandHelper::SetWindowMode(RSContext& context, NodeId nodeId, 
         node->SetRSWindowMode(mode);
     }
 }
+
+void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId, bool abilityState)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetAbilityState(abilityState);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

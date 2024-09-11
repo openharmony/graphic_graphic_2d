@@ -3028,5 +3028,18 @@ RSWindowMode RSSurfaceRenderNode::GetRSWindowMode() const
 {
     return windowMode_;
 }
+
+void RSSurfaceRenderNode::SetAbilityState(bool abilityState)
+{
+    if (abilityState_ == abilityState) {
+        return;
+    }
+    abilityState_ = abilityState;
+}
+
+bool RSSurfaceRenderNode::GetAbilityState() const
+{
+    return abilityState_;
+}
 } // namespace Rosen
 } // namespace OHOS

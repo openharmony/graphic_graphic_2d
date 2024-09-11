@@ -50,6 +50,7 @@ public:
 
     bool ContainPid(pid_t pid) const;
     void FilterNodeByPid(pid_t pid);
+    bool GetAbilityStateById(NodeId id) const;
     void MoveRenderNodeMap(
         std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap, pid_t pid);
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;

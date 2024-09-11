@@ -137,6 +137,7 @@ void RSUIDirector::GoForeground(bool isTextureExport)
         auto surfaceNode = surfaceNode_.lock();
         if (surfaceNode) {
             surfaceNode->MarkUIHidden(false);
+            surfaceNode->SetAbilityState(true);
         }
     }
 }
@@ -155,6 +156,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         auto surfaceNode = surfaceNode_.lock();
         if (surfaceNode) {
             surfaceNode->MarkUIHidden(true);
+            surfaceNode->SetAbilityState(false);
         }
         if (isTextureExport || isUniRenderEnabled_) {
             return;

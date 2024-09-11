@@ -144,6 +144,8 @@ public:
     static void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetAbilityState(bool abilityState);
+    bool GetAbilityState() const;
 
     void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
@@ -186,6 +188,7 @@ private:
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
+    bool abilityState_ = true;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

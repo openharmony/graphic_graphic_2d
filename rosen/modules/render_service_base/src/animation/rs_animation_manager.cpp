@@ -184,6 +184,33 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool node
     return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
+std::tuple<bool, bool, bool> RSAnimationManager::AnimateBackground(int64_t time, bool nodeIsOnTheTree)
+{
+    // process animation
+    bool hasRunningAnimation = false;
+    bool needRequestNextVsync = false;
+    // isCalculateAnimationValue is embedded modify for stat animate frame drop
+    bool isCalculateAnimationValue = false;
+    rsRange_.Reset();
+    rateDecider_.Reset();
+    // iterate and execute all animations, remove finished animations
+    EraseIf(animations_, [this, &hasRunningAnimation, time,
+        &needRequestNextVsync, nodeIsOnTheTree, &isCalculateAnimationValue](auto& iter) -> bool {
+        auto& animation = iter.second;
+        if (animation->GetRepeatCount() == -1) {
+            hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
+            return false;
+        } else {
+            OnAnimationFinished(animation);
+            return true;
+        }
+    });
+    rateDecider_.MakeDecision(frameRateGetFunc_);
+    isCalculateAnimationValue = isCalculateAnimationValue && nodeIsOnTheTree;
+
+    return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
+}
+
 void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func)
 {
     rateDecider_.SetEnable(enabled);

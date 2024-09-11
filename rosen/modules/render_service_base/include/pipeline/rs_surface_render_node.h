@@ -450,6 +450,10 @@ public:
     void SetProtectedLayer(bool isProtectedLayer);
     void SetForceClientForDRMOnly(bool forceClient);
 
+    // set ability state that surfaceNode belongs to as foreground or background
+    void SetAbilityState(bool abilityState);
+    bool GetAbilityState() const;
+
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
@@ -1295,6 +1299,7 @@ private:
     bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
     SurfaceId surfaceId_ = 0;
+    bool abilityState_ = true;
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;

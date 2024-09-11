@@ -879,5 +879,20 @@ void RSSurfaceNode::SetRSWindowMode(RSWindowMode mode)
         transactionProxy->AddCommand(command, true);
     }
 }
+
+void RSSurfaceNode::SetAbilityState(bool abilityState)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetAbilityState>(GetId(), abilityState);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
+
+bool RSSurfaceNode::GetAbilityState() const
+{
+    return abilityState_;
+}
 } // namespace Rosen
 } // namespace OHOS

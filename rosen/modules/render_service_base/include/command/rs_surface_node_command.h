@@ -65,6 +65,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_WATERMARK_ENABLED,
     SURFACE_NODE_SET_LAYER_TOP,
     SURFACE_NODE_SET_WINDOW_MODE,
+    SURFACE_NODE_SET_ABILITY_STATE,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -112,6 +113,7 @@ public:
             std::shared_ptr<Media::PixelMap> watermark);
     static void SetWatermarkEnabled(RSContext& context, NodeId nodeId, const std::string& name, bool isEnabled);
     static void SetWindowMode(RSContext& context, NodeId nodeId, RSWindowMode mode);
+    static void SetAbilityState(RSContext& context, NodeId nodeId, bool abilityState);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -199,6 +201,8 @@ ADD_COMMAND(RSSurfaceNodeSetLayerTop,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_LAYER_TOP, SurfaceNodeCommandHelper::SetLayerTop, NodeId, std::string, bool))
 ADD_COMMAND(RSSurfaceNodeSetWindowMode,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_WINDOW_MODE, SurfaceNodeCommandHelper::SetWindowMode, NodeId, RSWindowMode))
+ADD_COMMAND(RSSurfaceNodeSetAbilityState, 
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_ABILITY_STATE, SurfaceNodeCommandHelper::SetAbilityState, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H
