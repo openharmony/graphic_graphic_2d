@@ -478,36 +478,20 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteString(name)) {
-        return INVALID_SCREEN_ID;
-    }
-    if (!data.WriteUint32(width)) {
-        return INVALID_SCREEN_ID;
-    }
-    if (!data.WriteUint32(height)) {
-        return INVALID_SCREEN_ID;
-    }
+    data.WriteString(name);
+    data.WriteUint32(width);
+    data.WriteUint32(height);
 
-    bool success = true;
-    if (surface == nullptr) {
-        success = data.WriteRemoteObject(nullptr);
+    if (surface==nullptr) {
+        data.WriteRemoteObject(nullptr);
     } else {
         auto producer = surface->GetProducer();
-        success = data.WriteRemoteObject(producer->AsObject());
-    }
-    if (!success) {
-        return INVALID_SCREEN_ID;
+        data.WriteRemoteObject(producer->AsObject());
     }
 
-    if (!data.WriteUint64(mirrorId)) {
-        return INVALID_SCREEN_ID;
-    }
-    if (!data.WriteInt32(flags)) {
-        return INVALID_SCREEN_ID;
-    }
-    if (!data.WriteUInt64Vector(whiteList)) {
-        return INVALID_SCREEN_ID;
-    }
+    data.WriteUint64(mirrorId);
+    data.WriteInt32(flags);
+    data.WriteUInt64Vector(whiteList);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -2349,14 +2333,10 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
         return RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    bool success = true;
     if (callback) {
-        success = data.WriteRemoteObject(callback->AsObject());
+        data.WriteRemoteObject(callback->AsObject());
     } else {
-        success = data.WriteRemoteObject(nullptr);
-    }
-    if (!success) {
-        return WRITE_PARCEL_ERR;
+        data.WriteRemoteObject(nullptr);
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
