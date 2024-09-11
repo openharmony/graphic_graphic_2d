@@ -49,6 +49,7 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_ui_capture.h"
+#include "pipeline/rs_unmarshal_thread.h"
 #include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -265,6 +266,16 @@ void RSRenderServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRemot
 void RSRenderServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     if (!mainThread_) {
+        return;
+    }
+    pid_t callingPid = GetCallingPid();
+    bool isTokenTypeValid = true;
+    bool isNonSystemAppCalling = false;
+    RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+    bool shouldDrop = RSUnmarshalThread::Instance().ReportTransactionDataStatistics(
+        callingPid, transactionData.get(), isNonSystemAppCalling);
+    if (shouldDrop) {
+        RS_LOGW("RSRenderServiceConnection::CommitTransaction data droped");
         return;
     }
     bool isProcessBySingleFrame = mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);

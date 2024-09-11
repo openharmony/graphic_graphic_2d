@@ -100,25 +100,24 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel002, TestSize.Level1)
  * @tc.name: TransactionDataStatistics001
  * @tc.desc: Test ReportTransactionDataStatistics and ClearTransactionDataStatistics
  * @tc.type: FUNC
- * @tc.require: issueIAM34I
+ * @tc.require: issueIAPMUF
  */
 HWTEST_F(RSUnmarshalThreadTest, TransactionDataStatistics001, TestSize.Level1)
 {
     constexpr pid_t callingPid = -1; // invalid pid
-    constexpr size_t dataSizeBelow = 400 * 1024; // 400KB
-    constexpr size_t dataSizeAbove = 2000 * 1024; // 2000KB
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
     constexpr bool isSystemCall = false;
     auto& instance = RSUnmarshalThread::Instance();
     bool terminateEnabled = RSSystemProperties::GetTransactionTerminateEnabled();
 
     RSUnmarshalThread::Instance().ClearTransactionDataStatistics();
-    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, dataSizeBelow, !isSystemCall), false);
-    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, dataSizeAbove, !isSystemCall), terminateEnabled);
-    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, dataSizeAbove, !isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), !isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), !isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), !isSystemCall), false);
 
     RSUnmarshalThread::Instance().ClearTransactionDataStatistics();
-    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, dataSizeBelow, isSystemCall), false);
-    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, dataSizeAbove, isSystemCall), false);
-    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, dataSizeAbove, isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
 }
 }
