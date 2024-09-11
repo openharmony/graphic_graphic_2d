@@ -1203,6 +1203,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         surfaceNode->ResetAnimateState();
         surfaceNode->ResetRotateState();
         surfaceNode->ResetSpecialLayerChangedFlag();
+        // Update self-drawing surface color space into to its parent surface, to decouple prepare skip.
+        surfaceNode->UpdateColorSpaceToIntanceRootNode();
         // Reset BasicGeoTrans info at the beginning of cmd process
         if (surfaceNode->IsLeashOrMainWindow()) {
             surfaceNode->ResetIsOnlyBasicGeoTransform();
