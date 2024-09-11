@@ -109,10 +109,10 @@ void ColorMatrix::SetScale(scalar sr, scalar sg, scalar sb, scalar sa)
         LOGD("Drawing: ColorMatrix memset_s failed");
         return;
     }
-    array_[0] = sr;  // red vector scale
-    array_[6] = sg;  // green vector scale
-    array_[12] = sb; // blue vector scale
-    array_[18] = sa; // alpha vetor scale
+    array_[0] = sr;  // 0 means red vector scale
+    array_[6] = sg;  // 6 means green vector scale
+    array_[12] = sb; // 12 means blue vector scale
+    array_[18] = sa; // 18 means alpha vetor scale
 }
 
 void ColorMatrix::SetSaturation(scalar sat)
