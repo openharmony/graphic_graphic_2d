@@ -559,7 +559,8 @@ void VSyncDistributor::DisableVSync()
 }
 
 #if defined(RS_ENABLE_DVSYNC)
-void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
+void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period,
+    uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
     std::unique_lock<std::mutex> locker(mutex_);
     vsyncMode_ = vsyncMode;
@@ -587,12 +588,11 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     }
 
     if (refreshRate > 0) {
-        uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
-        event_.vsyncPulseCount += static_cast<int64_t>(maxRefreshRate / refreshRate);
+        event_.vsyncPulseCount += static_cast<int64_t>(vsyncMaxRefreshRate / refreshRate);
         generatorRefreshRate_ = refreshRate;
     }
 
-    ChangeConnsRateLocked();
+    ChangeConnsRateLocked(vsyncMaxRefreshRate);
     RS_TRACE_NAME_FMT("pendingRNVInVsync: %d DVSyncOn: %d isRS:%d", pendingRNVInVsync_, IsDVsyncOn(), isRs_);
     if (dvsync_->WaitCond() || pendingRNVInVsync_) {
         con_.notify_all();
@@ -602,7 +602,8 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
 }
 #endif
 
-void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
+void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period,
+    uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
     std::vector<sptr<VSyncConnection>> conns;
     uint32_t generatorRefreshRate;
@@ -615,12 +616,11 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
         vsyncCount = event_.vsyncCount;
 
         if (refreshRate > 0) {
-            uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
-            event_.vsyncPulseCount += static_cast<int64_t>(maxRefreshRate / refreshRate);
+            event_.vsyncPulseCount += static_cast<int64_t>(vsyncMaxRefreshRate / refreshRate);
             generatorRefreshRate_ = refreshRate;
         }
         vsyncMode_ = vsyncMode;
-        ChangeConnsRateLocked();
+        ChangeConnsRateLocked(vsyncMaxRefreshRate);
 
         if (vsyncMode_ == VSYNC_MODE_LTPO) {
             CollectConnectionsLTPO(waitForVSync, now, conns, event_.vsyncPulseCount);
@@ -661,15 +661,16 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
     }
 }
 
-void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
+void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period,
+    uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
 #if defined(RS_ENABLE_DVSYNC)
     if (dvsync_->IsFeatureEnabled()) {
-        OnDVSyncTrigger(now, period, refreshRate, vsyncMode);
+        OnDVSyncTrigger(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
     } else
 #endif
     {
-        OnVSyncTrigger(now, period, refreshRate, vsyncMode);
+        OnVSyncTrigger(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
     }
 }
 
@@ -1088,10 +1089,9 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
     return VSYNC_ERROR_OK;
 }
 
-void VSyncDistributor::ChangeConnsRateLocked()
+void VSyncDistributor::ChangeConnsRateLocked(uint32_t vsyncMaxRefreshRate)
 {
     std::lock_guard<std::mutex> locker(changingConnsRefreshRatesMtx_);
-    uint32_t maxRefreshRate = CreateVSyncGenerator()->GetVSyncMaxRefreshRate();
     for (auto connRefreshRate : changingConnsRefreshRates_) {
         for (auto conn : connections_) {
             if (conn->id_ != connRefreshRate.first) {
@@ -1099,13 +1099,13 @@ void VSyncDistributor::ChangeConnsRateLocked()
             }
             uint32_t refreshRate = connRefreshRate.second;
             if ((generatorRefreshRate_ == 0) || (refreshRate == 0) ||
-                (maxRefreshRate % refreshRate != 0) || (generatorRefreshRate_ % refreshRate != 0)) {
+                (vsyncMaxRefreshRate % refreshRate != 0) || (generatorRefreshRate_ % refreshRate != 0)) {
                 conn->refreshRate_ = 0;
                 conn->vsyncPulseFreq_ = 1;
                 continue;
             }
             conn->refreshRate_ = refreshRate;
-            conn->vsyncPulseFreq_ = maxRefreshRate / refreshRate;
+            conn->vsyncPulseFreq_ = vsyncMaxRefreshRate / refreshRate;
             conn->referencePulseCount_ = event_.vsyncPulseCount;
         }
     }

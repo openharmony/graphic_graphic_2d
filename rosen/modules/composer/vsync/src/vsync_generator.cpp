@@ -127,9 +127,6 @@ VSyncGenerator::~VSyncGenerator()
         std::unique_lock<std::mutex> locker(mutex_);
         vsyncThreadRunning_ = false;
     }
-    if (std::this_thread::get_id() == thread_.get_id()) {
-        return;
-    }
 
     if (thread_.joinable()) {
         con_.notify_all();
@@ -142,8 +139,10 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
 {
     SCOPED_DEBUG_TRACE_FMT("occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
     std::vector<Listener> listeners;
+    uint32_t vsyncMaxRefreshRate = 360;
     {
         std::unique_lock<std::mutex> locker(mutex_);
+        vsyncMaxRefreshRate = vsyncMaxRefreshRate_;
         int64_t newOccurTimestamp = SystemTime();
         if (isWakeup) {
             UpdateWakeupDelay(newOccurTimestamp, nextTimeStamp);
@@ -160,7 +159,8 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
     for (uint32_t i = 0; i < listeners.size(); i++) {
         RS_TRACE_NAME_FMT("listener phase is %ld", listeners[i].phase_);
         if (listeners[i].callback_ != nullptr) {
-            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
+            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_,
+                periodRecord_, currRefreshRate_, vsyncMode_, vsyncMaxRefreshRate);
         }
     }
 }
@@ -736,6 +736,7 @@ uint32_t VSyncGenerator::GetVSyncMaxRefreshRate()
 
 VsyncError VSyncGenerator::SetVSyncMaxRefreshRate(uint32_t refreshRate)
 {
+    std::lock_guard<std::mutex> locker(mutex_);
     if (refreshRate < VSYNC_MAX_REFRESHRATE_RANGE_MIN ||
         refreshRate > VSYNC_MAX_REFRESHRATE_RANGE_MAX) {
         VLOGE("Not support max refresh rate: %{public}u", refreshRate);
