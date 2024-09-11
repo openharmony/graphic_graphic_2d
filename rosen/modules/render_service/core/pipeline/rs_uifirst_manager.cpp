@@ -627,6 +627,55 @@ static inline void SetUifirstSkipPartialSync(const std::shared_ptr<RSRenderNode>
     node->SetUifirstSkipPartialSync(true);
 }
 
+CacheProcessStatus& RSUifirstManager::GetUifirstCachedState(NodeId id)
+{
+    auto ret = uifirstCacheState_.insert({ id, CacheProcessStatus::UNKNOWN });
+    auto& curRootIdState = ret.first->second;
+    if (curRootIdState == CacheProcessStatus::UNKNOWN) {
+        /* first time to get the state of uifirstRoot, and cache the state for the remaining other times */
+        auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
+        if (uifirstRootNodeDrawable && uifirstRootNodeDrawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
+            auto drawableNode =
+                std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(uifirstRootNodeDrawable);
+            curRootIdState = drawableNode->GetCacheSurfaceProcessedStatus();
+        }
+    }
+    return curRootIdState;
+}
+
+bool RSUifirstManager::CollectSkipSyncNodeWithDrawableState(const std::shared_ptr<RSRenderNode> &node, bool& canSkip)
+{
+    auto drawable = node->GetRenderDrawable();
+    if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
+        RS_LOGE("RSUifirstManager::CollectSkipSyncNode drawable/params nullptr");
+        // must not be in the DOING state with the invalid drawable.
+        canSkip = false;
+        return true;
+    }
+    auto& params = drawable->GetRenderParams();
+    // if node's UifirstRootNodeId is valid (e.g. ArkTsCard), use it first
+    auto uifirstRootId = params->GetUifirstRootNodeId() != INVALID_NODEID ?
+        params->GetUifirstRootNodeId() : params->GetFirstLevelNodeId();
+    auto& curRootIdState = GetUifirstCachedState(uifirstRootId);
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%" PRIu64 " %" PRIu64 "] drawable[%"
+        PRIu64 " %" PRIu64 "] and curNodeId [%" PRIu64"] cacheState[%d]",
+        node->GetStagingRenderParams()->GetUifirstRootNodeId(), node->GetStagingRenderParams()->GetFirstLevelNodeId(),
+        params->GetUifirstRootNodeId(), params->GetFirstLevelNodeId(), node->GetId(), curRootIdState);
+
+    if (curRootIdState == CacheProcessStatus::DOING ||
+        /* unknow state to check prefirstLevelNode */
+        (uifirstRootId == INVALID_NODEID && IsPreFirstLevelNodeDoing(node))) {
+        pendingSyncForSkipBefore_[uifirstRootId].push_back(node);
+        auto isUifirstRootNode = (uifirstRootId == node->GetId());
+        RS_OPTIONAL_TRACE_NAME_FMT("%s %" PRIu64 " root%" PRIu64,
+            isUifirstRootNode ? "set partial_sync" : "CollectSkipSyncNode", node->GetId(), uifirstRootId);
+        SetUifirstSkipPartialSync(node, isUifirstRootNode);
+        canSkip = !isUifirstRootNode;
+        return true;
+    }
+    return false;
+}
+
 bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node)
 {
     if (!node) {
@@ -636,42 +685,15 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
         pendingPostCardNodes_.find(node->GetId()) != pendingPostCardNodes_.end()) {
         node->SetUifirstSyncFlag(true);
     }
-    // if node's UifirstRootNodeId is valid (e.g. ArkTsCard), use it first
-    auto uifirstRootNode = node->GetUifirstRootNodeId() != INVALID_NODEID ?
-        node->GetUifirstRootNode() : node->GetFirstLevelNode();
-    if (!uifirstRootNode) {
-        RS_TRACE_NAME_FMT("uifirstRootNode %" PRIu64 " null and curNodeId %" PRIu64 " skip sync",
-            node->GetFirstLevelNodeId(), node->GetId());
-        return false;
+    bool canSkip = false;
+    if (CollectSkipSyncNodeWithDrawableState(node, canSkip)) {
+        return canSkip;
     }
 
-    if (uifirstRootNode->IsInstanceOf<RSSurfaceRenderNode>()) {
-        auto drawableNode = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
-            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(uifirstRootNode));
-        if (!drawableNode) {
-            RS_LOGE("RSUifirstManager::CollectSkipSyncNode drawableNode generate failed");
-            return false;
-        }
-        if (drawableNode->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING ||
-            IsPreFirstLevelNodeDoing(node)) {
-            pendingSyncForSkipBefore_[uifirstRootNode->GetId()].push_back(node);
-            auto isUifirstRootNode = (uifirstRootNode->GetId() == node->GetId());
-            RS_OPTIONAL_TRACE_NAME_FMT("set %s %" PRIu64 " root%" PRIu64,
-                isUifirstRootNode ? "set partial_sync" : "CollectSkipSyncNode",
-                node->GetId(), uifirstRootNode->GetId());
-            SetUifirstSkipPartialSync(node, isUifirstRootNode);
-            return !isUifirstRootNode;
-        }
-    } else if (IsPreFirstLevelNodeDoing(node)) {
-        pendingSyncForSkipBefore_[uifirstRootNode->GetId()].push_back(node);
-        RS_OPTIONAL_TRACE_NAME_FMT("CollectSkipSyncNode root %" PRIu64", node %" PRIu64,
-            uifirstRootNode->GetId(), node->GetId());
-        return true;
-    }
     if (NodeIsInCardWhiteList(*node) && processingCardNodeSkipSync_.count(node->GetUifirstRootNodeId())) {
         pendingSyncForSkipBefore_[node->GetUifirstRootNodeId()].push_back(node);
         auto isUifirstRootNode = (node->GetUifirstRootNodeId() == node->GetId());
-        RS_OPTIONAL_TRACE_NAME_FMT("set %s %" PRIu64 " root%" PRIu64,
+        RS_OPTIONAL_TRACE_NAME_FMT("%s %" PRIu64 " root%" PRIu64,
             isUifirstRootNode ? "set partial_sync card" : "CollectSkipSyncNode card",
             node->GetId(), node->GetInstanceRootNodeId());
         SetUifirstSkipPartialSync(node, isUifirstRootNode);
@@ -680,7 +702,7 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
     if (processingNodePartialSync_.count(node->GetInstanceRootNodeId()) > 0) {
         pendingSyncForSkipBefore_[node->GetInstanceRootNodeId()].push_back(node);
         auto isInstanceRootNode = (node->GetInstanceRootNodeId() == node->GetId());
-        RS_OPTIONAL_TRACE_NAME_FMT("set %s %" PRIu64 " root%" PRIu64,
+        RS_OPTIONAL_TRACE_NAME_FMT("%s %" PRIu64 " root%" PRIu64,
             isInstanceRootNode ? "set partial_sync" : "CollectSkipSyncNode",
             node->GetId(), node->GetInstanceRootNodeId());
         SetUifirstSkipPartialSync(node, isInstanceRootNode);
@@ -755,19 +777,12 @@ bool RSUifirstManager::IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> no
         return true;
     }
     auto& preFirstLevelNodeIdSet = node->GetMutablePreFirstLevelNodeIdSet();
-    for (auto it = preFirstLevelNodeIdSet.begin(); it != preFirstLevelNodeIdSet.end();) {
-        auto predrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(*it);
-        if (!predrawable || predrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
-            it = preFirstLevelNodeIdSet.erase(it);
-            continue;
-        }
-        auto preSurfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(predrawable);
-        if (preSurfaceDrawable->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSUifirstManager::IsPreFirstLevelNodeDoing DOING preDrawable Id %" PRIu64
-                " curNode Id %" PRIu64 "", preSurfaceDrawable->GetId(), node->GetUifirstRootNodeId());
+    for (auto it = preFirstLevelNodeIdSet.begin(); it != preFirstLevelNodeIdSet.end();
+         it = preFirstLevelNodeIdSet.erase(it)) {
+        auto& curRootIdState = GetUifirstCachedState(*it);
+        if (curRootIdState == CacheProcessStatus::DOING) {
             return true;
         }
-        it++;
     }
     return false;
 }
@@ -853,6 +868,7 @@ void RSUifirstManager::PostUifistSubTasks()
     } else {
         ClearSubthreadRes();
     }
+    UifirstCurStateClear();
 }
 
 bool RSUifirstManager::IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId)
@@ -1516,5 +1532,59 @@ UiFirstModeType RSUifirstManager::GetUiFirstMode()
     return UiFirstModeType::SINGLE_WINDOW_MODE;
 }
 
+bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSSurfaceRenderParams& params, bool checkMatch)
+{
+    if (checkMatch && IsCurFirstLevelMatch(params)) {
+        return true;
+    }
+    return CheckAndWaitPreFirstLevelDrawableNotify(params);
+}
+
+bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify(const RSSurfaceRenderParams& params)
+{
+    auto firstLevelNodeId = params.GetFirstLevelNodeId();
+    auto uifirstRootNodeId = params.GetUifirstRootNodeId();
+    auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
+    auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(rootId);
+    if (!uifirstRootNodeDrawable || uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+        return false;
+    }
+    auto uifirstRootSurfaceNodeDrawable =
+        std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(uifirstRootNodeDrawable);
+
+    RS_TRACE_NAME_FMT("CheckAndWaitPreFirstLevelDrawableNotify %" PRIu64 " wait for %" PRIu64 "",
+        params.GetId(), uifirstRootSurfaceNodeDrawable->GetId());
+
+    static constexpr auto TIME_OUT = std::chrono::milliseconds(32); // 32ms
+    auto pred = [uifirstRootSurfaceNodeDrawable] {
+        auto curState = uifirstRootSurfaceNodeDrawable->GetCacheSurfaceProcessedStatus();
+        return curState == CacheProcessStatus::DONE || curState == CacheProcessStatus::UNKNOWN ||
+            uifirstRootSurfaceNodeDrawable->IsSubThreadSkip();
+    };
+    std::unique_lock<std::mutex> lock(notifyMutex_);
+    notifyCv_.wait_for(lock, TIME_OUT, pred);
+    return pred();
+}
+
+bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSSurfaceRenderParams& params)
+{
+    auto uifirstRootNodeId = params.GetUifirstRootNodeId();
+    auto firstLevelNodeId = params.GetFirstLevelNodeId();
+
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUiFirstProcessStateCheckerHelper IsCurFirstLevelMatch In node[%"
+        PRIu64 "  %" PRIu64"] cur[%" PRIu64 "  %" PRIu64 "] in nodeId[%" PRIu64 "]",
+        uifirstRootNodeId, firstLevelNodeId, curUifirstRootNodeId_, curFirstLevelNodeId_, params.GetId());
+
+    if (curUifirstRootNodeId_ == INVALID_NODEID && curFirstLevelNodeId_ == INVALID_NODEID) {
+        // should draw because uifirst may not inited
+        return true;
+    }
+    auto uiFirstCheckRet = uifirstRootNodeId == curUifirstRootNodeId_ && curUifirstRootNodeId_ != INVALID_NODEID;
+    auto firstLevelCheckRet = firstLevelNodeId == curFirstLevelNodeId_ && curFirstLevelNodeId_ != INVALID_NODEID;
+    if (uiFirstCheckRet || firstLevelCheckRet) {
+        return true;
+    }
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
