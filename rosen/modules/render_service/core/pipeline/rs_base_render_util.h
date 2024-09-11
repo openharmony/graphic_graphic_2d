@@ -48,6 +48,7 @@ struct ComposeInfo {
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
     GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
+    int32_t sdrNit { 0 };
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };
 };
@@ -129,7 +130,7 @@ public:
     static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bounds,
         const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
     static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
-        
+
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);

@@ -116,6 +116,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
+    layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
 
@@ -159,6 +160,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         surfaceDrawable.GetConsumerOnDraw(), params.GetAcquireFence());
     layer->SetNodeId(surfaceDrawable.GetId());
     auto& renderParams = static_cast<RSSurfaceRenderParams&>(params);
+    layer->SetSdrNit(renderParams.GetSdrNit());
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
