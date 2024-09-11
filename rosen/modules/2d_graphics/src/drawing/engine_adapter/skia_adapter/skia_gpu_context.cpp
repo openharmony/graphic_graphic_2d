@@ -351,6 +351,15 @@ void SkiaGPUContext::SetGrContext(const sk_sp<GrDirectContext>& grContext)
     grContext_ = grContext;
 }
 
+void SkiaGPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::GetUpdatedMemoryMap, grContext_ is nullptr");
+        return;
+    }
+    grContext_->getUpdatedMemoryMap(out);
+}
+
 #ifdef RS_ENABLE_VK
 void SkiaGPUContext::StoreVkPipelineCacheData()
 {
@@ -386,7 +395,6 @@ void SkiaGPUContext::VmaDefragment()
         grContext_->vmaDefragment();
     }
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

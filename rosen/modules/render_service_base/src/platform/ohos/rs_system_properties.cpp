@@ -1061,5 +1061,12 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;
 }
+
+bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+{
+    static bool flag =
+        std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
+    return flag;
+}
 } // namespace Rosen
 } // namespace OHOS

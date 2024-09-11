@@ -250,6 +250,12 @@ public:
      */
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
 
+    /**
+     * @brief                   Get updated memory map.
+     * @param out               Updated memory map.
+     */
+    void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out);
+
 #ifdef RS_ENABLE_VK
     /**
      * @brief                   Store vulkan pipeline cache
