@@ -49,6 +49,8 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     if (preValidateFunc_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load func failed, reason: %{public}s", __func__, __LINE__, dlerror());
         dlclose(preValidateHandle_);
+        preValidateHandle_ = nullptr;
+        return;
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess = true;
@@ -58,6 +60,7 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
 {
     if (preValidateHandle_) {
         dlclose(preValidateHandle_);
+        preValidateHandle_ = nullptr;
     }
 }
 

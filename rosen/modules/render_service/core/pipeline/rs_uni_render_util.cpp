@@ -94,8 +94,11 @@ void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNo
             continue;
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (surfaceParams == nullptr || !surfaceParams->IsAppWindow()) {
+            continue;
+        }
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
-        if (surfaceParams == nullptr || !surfaceParams->IsAppWindow() || !surfaceDirtyManager) {
+        if (surfaceDirtyManager == nullptr) {
             continue;
         }
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %" PRIu64"",
@@ -679,6 +682,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& s
 BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU)
 {
     BufferDrawParam params;
+    if (layer == nullptr) {
+        return params;
+    }
     params.useCPU = forceCPU;
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
@@ -1599,9 +1605,9 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
         return;
     }
     dstRect = {resDstRect.left_, resDstRect.top_, resDstRect.width_, resDstRect.height_};
-    srcRect.left_ = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
+    srcRect.left_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.left_ - dstRectI.left_) *
         originSrcRect.width_ / dstRectI.width_);
-    srcRect.top_ = resDstRect.IsEmpty() ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
+    srcRect.top_ = (resDstRect.IsEmpty() || dstRectI.IsEmpty()) ? 0 : std::ceil((resDstRect.top_ - dstRectI.top_) *
         originSrcRect.height_ / dstRectI.height_);
     srcRect.width_ = dstRectI.IsEmpty() ? 0 : originSrcRect.width_ * resDstRect.width_ / dstRectI.width_;
     srcRect.height_ = dstRectI.IsEmpty() ? 0 : originSrcRect.height_ * resDstRect.height_ / dstRectI.height_;

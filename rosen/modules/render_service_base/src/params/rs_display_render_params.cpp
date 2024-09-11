@@ -147,7 +147,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     allMainAndLeashSurfaceDrawables_.clear();
     for (auto& surfaceNode : allMainAndLeashSurfaces_) {
         auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(surfaceNode->GetId());
-        if (ptr == nullptr) {
+        if (ptr == nullptr || ptr->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
             continue;
         }
         allMainAndLeashSurfaceDrawables_.push_back(ptr);
