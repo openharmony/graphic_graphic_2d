@@ -390,7 +390,16 @@ void RSProfiler::ProcessSignalFlag()
     if (!signalFlagChanged_) {
         bool newEnabled = RSSystemProperties::GetProfilerEnabled();
         bool newBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
-        if (IsEnabled() != newEnabled || IsBetaRecordEnabled() != newBetaRecord) {
+        if (enabled_ && !newEnabled) {
+            const ArgList dummy;
+            if (GetMode() == Mode::READ) {
+                PlaybackStop(dummy);
+            }
+            if (GetMode() == Mode::WRITE) {
+                RecordStop(dummy);
+            }
+        }
+        if (enabled_ != newEnabled || IsBetaRecordEnabled() != newBetaRecord) {
             enabled_ = newEnabled;
             betaRecordingEnabled_ = newBetaRecord;
             OnWorkModeChanged();

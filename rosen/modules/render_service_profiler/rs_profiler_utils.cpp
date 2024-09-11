@@ -562,7 +562,7 @@ void Utils::FileRead(FILE* file, void* data, size_t size)
 
 void Utils::FileWrite(FILE* file, const void* data, size_t size)
 {
-    const size_t maxDataSize = 300'000'000; // To make sure size is a valid value
+    const size_t maxDataSize = 2'000'000'000; // To make sure size is a valid value
     if (!data || (size == 0) || (size > maxDataSize)) {
         HRPE("FileWrite: data or size is invalid, size %zu", size); // NOLINT
         return;

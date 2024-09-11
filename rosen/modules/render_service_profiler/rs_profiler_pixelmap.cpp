@@ -31,6 +31,7 @@
 #include "rs_profiler_utils.h"
 
 #include "transaction/rs_marshalling_helper.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS::Media {
 
@@ -572,7 +573,8 @@ using PixelMapHelper = Media::ImageSource;
 
 Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
 {
-    if (!IsEnabled()) {
+    bool isClientEnabled = parcel.ReadBool();
+    if (!isClientEnabled) {
         return Media::PixelMap::Unmarshalling(parcel);
     }
 
@@ -585,7 +587,10 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
         return false;
     }
 
-    if (!IsEnabled()) {
+    bool isClientEnabled = RSSystemProperties::GetProfilerEnabled();
+    parcel.WriteBool(isClientEnabled);
+    
+    if (!isClientEnabled) {
         return map->Marshalling(parcel);
     }
 

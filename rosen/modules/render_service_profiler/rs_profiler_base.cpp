@@ -1043,7 +1043,10 @@ static const uint8_t* GetCachedAshmemData(uint64_t id)
 
 void RSProfiler::WriteParcelData(Parcel& parcel)
 {
-    if (!IsEnabled()) {
+    bool isClientEnabled = RSSystemProperties::GetProfilerEnabled();
+    parcel.WriteBool(isClientEnabled);
+    
+    if (!isClientEnabled) {
         return;
     }
 
@@ -1052,7 +1055,8 @@ void RSProfiler::WriteParcelData(Parcel& parcel)
 
 const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc)
 {
-    if (!IsEnabled()) {
+    bool isClientEnabled = parcel.ReadBool();
+    if (!isClientEnabled) {
         return RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
     }
 
