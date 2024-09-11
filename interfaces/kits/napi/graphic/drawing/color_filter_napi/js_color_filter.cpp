@@ -83,11 +83,7 @@ napi_value JsColorFilter::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsColorFilter *jsColorFilter = new(std::nothrow) JsColorFilter();
-    if (!jsColorFilter) {
-        ROSEN_LOGE("Failed to create JsColorFilter");
-        return nullptr;
-    }
+    JsColorFilter *jsColorFilter = new JsColorFilter();
 
     status = napi_wrap(env, jsThis, jsColorFilter, JsColorFilter::Destructor, nullptr, nullptr);
     if (status != napi_ok) {

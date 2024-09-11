@@ -64,16 +64,12 @@ napi_value JsSamplingOptions::Constructor(napi_env env, napi_callback_info info)
     std::shared_ptr<SamplingOptions> samplingOptions = nullptr;
     if (argCount == ARGC_ZERO) {
         samplingOptions = std::make_shared<SamplingOptions>();
-        jsSamplingOptions = new(std::nothrow) JsSamplingOptions(samplingOptions);
+        jsSamplingOptions = new JsSamplingOptions(samplingOptions);
     } else {
         int32_t jsFilterMode = 0;
         GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ZERO, jsFilterMode);
         samplingOptions = std::make_shared<SamplingOptions>(FilterMode(jsFilterMode));
-        jsSamplingOptions = new(std::nothrow) JsSamplingOptions(samplingOptions);
-    }
-    if (jsSamplingOptions == nullptr) {
-        ROSEN_LOGE("JsSamplingOptions::Constructor failed to new jsSamplingOptions");
-        return nullptr;
+        jsSamplingOptions = new JsSamplingOptions(samplingOptions);
     }
 
     status = napi_wrap(env, jsThis, jsSamplingOptions,

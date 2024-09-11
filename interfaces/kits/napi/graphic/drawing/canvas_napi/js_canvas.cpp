@@ -347,12 +347,7 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
 
     Canvas* canvas = new Canvas();
     canvas->Bind(bitmap);
-    JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(canvas, true);
-    if (!jsCanvas) {
-        delete canvas;
-        ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
-        return nullptr;
-    }
+    JsCanvas *jsCanvas = new JsCanvas(canvas, true);
     status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsCanvas;
@@ -408,11 +403,7 @@ napi_value JsCanvas::CreateJsCanvas(napi_env env, Canvas* canvas)
         ROSEN_LOGE("Drawing_napi: canvas is nullptr");
         return nullptr;
     }
-    JsCanvas *jsCanvas = new(std::nothrow) JsCanvas(canvas);
-    if (!jsCanvas) {
-        ROSEN_LOGE("Drawing_napi: Failed to create JsCanvas");
-        return nullptr;
-    }
+    JsCanvas *jsCanvas = new JsCanvas(canvas);
     napi_create_object(env, &result);
     if (result == nullptr) {
         delete jsCanvas;
@@ -1136,7 +1127,12 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
     }
 
-    auto vertices = new float[verticesSize];
+    auto vertices = new (std::nothrow) float[verticesSize];
+    if (!vertices) {
+        ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh create array with size of vertices failed");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Size of vertices exceed memory limit.");
+    }
+    
     for (uint32_t i = 0; i < verticesSize; i++) {
         napi_value tempVertex = nullptr;
         napi_get_element(env, verticesArray, i, &tempVertex);
@@ -1168,7 +1164,12 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    auto colors = new uint32_t[colorsSize];
+    auto colors = new (std::nothrow) uint32_t[colorsSize];
+    if (!colors) {
+        ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh create array with size of colors failed");
+        delete []vertices;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Size of colors exceed memory limit.");
+    }
     for (uint32_t i = 0; i < colorsSize; i++) {
         napi_value tempColor = nullptr;
         napi_get_element(env, colorsArray, i, &tempColor);

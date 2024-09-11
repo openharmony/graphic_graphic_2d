@@ -64,11 +64,7 @@ napi_value JsTypeface::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsTypeface *jsTypeface = new(std::nothrow) JsTypeface(JsTypeface::LoadZhCnTypeface());
-    if (!jsTypeface) {
-        ROSEN_LOGE("Failed to create JsTypeface");
-        return nullptr;
-    }
+    JsTypeface *jsTypeface = new JsTypeface(JsTypeface::LoadZhCnTypeface());
 
     status = napi_wrap(env, jsThis, jsTypeface, JsTypeface::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
@@ -99,11 +95,7 @@ napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Type
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
-        auto jsTypeface = new(std::nothrow) JsTypeface(typeface);
-        if (jsTypeface == nullptr) {
-            ROSEN_LOGE("JsTypeface::CreateJsTypeface allocation failed!");
-            return nullptr;
-        }
+        auto jsTypeface = new JsTypeface(typeface);
         napi_create_object(env, &result);
         if (result == nullptr) {
             delete jsTypeface;
@@ -170,11 +162,7 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsTypeface::MakeFromFile create rawTypeface failed!");
         return nullptr;
     }
-    auto typeface = new(std::nothrow) JsTypeface(rawTypeface);
-    if (typeface == nullptr) {
-        ROSEN_LOGE("JsTypeface::MakeFromFile New Typeface failed!");
-        return nullptr;
-    }
+    auto typeface = new JsTypeface(rawTypeface);
     std::string pathStr(text);
     if (pathStr.substr(0, G_SYSTEM_FONT_DIR.length()) != G_SYSTEM_FONT_DIR &&
         Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
