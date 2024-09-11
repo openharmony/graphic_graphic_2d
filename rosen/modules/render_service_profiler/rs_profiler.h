@@ -181,7 +181,7 @@ public:
     RSB_EXPORT static std::unordered_map<AnimationId, std::vector<int64_t>> &AnimeGetStartTimes();
     RSB_EXPORT static int64_t AnimeSetStartTime(AnimationId id, int64_t nanoTime);
     RSB_EXPORT static std::string SendMessageBase();
-    RSB_EXPORT static void SendMessageBase(const std::string msg);
+    RSB_EXPORT static void SendMessageBase(const std::string& msg);
     RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
 
 public:

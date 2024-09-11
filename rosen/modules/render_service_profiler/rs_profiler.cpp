@@ -563,7 +563,7 @@ void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
 {
     g_renderServiceRenderCpuId = Utils::GetCpuId();
 
-    if (g_calcPerfNode == 0 || g_calcPerfNodeTry < 0 || g_calcPerfNodeTry > CALC_PERF_NODE_TIME_COUNT) {
+    if (g_calcPerfNode == 0 || g_calcPerfNodeTry < 0 || g_calcPerfNodeTry >= CALC_PERF_NODE_TIME_COUNT) {
         return;
     }
 

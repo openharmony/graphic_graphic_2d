@@ -662,9 +662,9 @@ const std::vector<std::pair<uint64_t, int64_t>>& RSFile::GetAnimeStartTimes() co
     return headerAnimeStartTimes_;
 }
 
-void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& value)
+void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& startTimes)
 {
-    headerAnimeStartTimes_ = value;
+    headerAnimeStartTimes_ = startTimes;
     wasChanged_ = true;
 }
 
