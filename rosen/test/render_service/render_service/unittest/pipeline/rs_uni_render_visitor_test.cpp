@@ -3707,6 +3707,53 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeSurfaceDirtysForDisplay001, TestSize.
     ASSERT_EQ(rsUniRenderVisitor->curDisplayDirtyManager_->dirtyRegion_.left_, 0);
 }
 
+
+/*
+ * @tc.name: UpdateDisplayDirtyAndExtendVisibleRegion
+ * @tc.desc: Test UpdateDisplayDirtyAndExtendVisibleRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIAN75I
+*/
+HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayDirtyAndExtendVisibleRegion, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->UpdateDisplayDirtyAndExtendVisibleRegion();
+
+    RSDisplayNodeConfig displayConfig;
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(5, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    ASSERT_NE(rsDisplayRenderNode->GetDirtyManager(), nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareDisplayRenderNode(*rsDisplayRenderNode);
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    rsDisplayRenderNode->RecordMainAndLeashSurfaces(surfaceNode);
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(canvasNode, nullptr);
+    auto& property = canvasNode->GetMutableRenderProperties();
+    property.SetLightUpEffect(0.2f);
+    property.UpdateFilter();
+    surfaceNode->UpdateVisibleFilterChild(*canvasNode);
+    auto visibleFilterChildren = surfaceNode->GetVisibleFilterChild();
+    ASSERT_NE(visibleFilterChildren.size(), 0);
+    rsUniRenderVisitor->UpdateDisplayDirtyAndExtendVisibleRegion();
+
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(canvasNode);
+    auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(canvasNode->GetId());
+    ASSERT_NE(filterNode, nullptr);
+    rsUniRenderVisitor->UpdateDisplayDirtyAndExtendVisibleRegion();
+
+    Occlusion::Region region{ Occlusion::Rect{ 0, 0, 100, 100 } };
+    surfaceNode->SetVisibleRegion(region);
+    canvasNode->SetOldDirtyInSurface({ 50, 50, 70, 70 });
+    rsUniRenderVisitor->UpdateDisplayDirtyAndExtendVisibleRegion();
+}
+
 /*
  * @tc.name: CheckMergeDisplayDirtyByTransparent001
  * @tc.desc: Test CheckMergeDisplayDirtyByTransparent with transparent node
