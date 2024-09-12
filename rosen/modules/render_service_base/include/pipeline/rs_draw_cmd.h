@@ -32,13 +32,15 @@
 #include "surface_buffer.h"
 #include "external_window.h"
 #endif
-#ifdef RS_ENABLE_VK
-#include "backend/native_buffer_utils.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
+#ifdef RS_ENABLE_VK
+namespace NativeBufferUtils {
+class VulkanCleanupHelper;
+}
+#endif
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(
@@ -85,10 +87,10 @@ private:
 #endif
     mutable OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
     mutable pid_t tid_ = 0;
-#endif
 #ifdef RS_ENABLE_VK
     mutable Drawing::BackendTexture backendTexture_ = {};
     mutable NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper_ = nullptr;
+#endif
 #endif
     std::shared_ptr<Drawing::Image> image_;
     Drawing::AdaptiveImageInfo imageInfo_;
