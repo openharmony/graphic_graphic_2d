@@ -97,14 +97,14 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
                 shaderFilter = std::make_shared<GELinearGradientBlurShaderFilter>(*linearGradientBlurParams);
                 break;
             }
-            case Drawing::GEVisualEffectImpl::FilterType::WATER_RIPPLE: {
-                const auto& waterRippleParams = ve->GetWaterRippleParams();
-                shaderFilter = std::make_shared<GEWaterRippleFilter>(*waterRippleParams);
-                break;
-            }
             case Drawing::GEVisualEffectImpl::FilterType::MAGNIFIER: {
                 const auto& magnifierParams = ve->GetMagnifierParams();
                 shaderFilter = std::make_shared<GEMagnifierShaderFilter>(*magnifierParams);
+                break;
+            }
+            case Drawing::GEVisualEffectImpl::FilterType::WATER_RIPPLE: {
+                const auto& waterRippleParams = ve->GetWaterRippleParams();
+                shaderFilter = std::make_shared<GEWaterRippleFilter>(*waterRippleParams);
                 break;
             }
             default:
