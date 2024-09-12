@@ -1568,6 +1568,18 @@ void RSUniRenderVisitor::ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& h
     if (ROSEN_EQ(alpha, 0.0f)) {
         return;
     }
+
+    if (curSurfaceNode_ && curSurfaceNode_->GetVisibleRegion().IsEmpty()) {
+        RS_LOGD("rs debug: name:%{public}s id:%{public}" PRIu64 " not visible, skip",
+            curSurfaceNode_->GetName().c_str(), curSurfaceNode_->GetId());
+        return;
+    }
+    if (!hwcNodePtr->GetRSSurfaceHandler() || !hwcNodePtr->GetRSSurfaceHandler()->GetBuffer()) {
+        RS_LOGD("rs debug: name:%{public}s id:%{public}" PRIu64 " handler or buffer is null, skip",
+            hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
+        return;
+    }
+
     ancoHasGpu = (ancoHasGpu || hwcNodePtr->IsHardwareForcedDisabled());
 }
 
