@@ -237,6 +237,7 @@ void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_
     for (auto iter = oldScbPids.begin(); iter != oldScbPids.end(); ++iter) {
         oldPidsStr << *iter << ",";
     }
+    DoFlushModifier();
     ROSEN_LOGI("SetScbNodePid %{public}s", oldPidsStr.str().c_str());
 }
 
