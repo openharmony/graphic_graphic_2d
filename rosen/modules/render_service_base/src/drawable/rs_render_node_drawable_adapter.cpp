@@ -65,10 +65,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         return node->renderDrawable_;
     }
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
-        {
-            std::lock_guard<std::mutex> lock(cacheMapMutex_);
-            RenderNodeDrawableCache_.erase(ptr->nodeId_); // Remove from cache before deleting
-        }
+        RemoveDrawableFromCache(ptr->nodeId_); // Remove from cache before deleting
         RSRenderNodeGC::DrawableDestructor(ptr);
     };
     auto id = node->GetId();
@@ -77,6 +74,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
         if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
+                ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node id in Cache is %{public}" PRIu64, id);
                 return ptr;
             } else {
                 RenderNodeDrawableCache_.erase(cacheIt);
@@ -484,6 +482,12 @@ int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
         default:
             return -1;
     }
+}
+
+void RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(const NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(cacheMapMutex_);
+    RenderNodeDrawableCache_.erase(nodeId);
 }
 
 void RSRenderNodeDrawableAdapter::RegisterClearSurfaceFunc(ClearSurfaceTask task)
