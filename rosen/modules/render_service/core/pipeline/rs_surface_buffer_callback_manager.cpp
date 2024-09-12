@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "platform/common/rs_log.h"
 #include "rs_hardware_thread.h"
@@ -6,7 +21,7 @@
 namespace OHOS {
 namespace Rosen {
 void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
-        sptr<RSISurfaceBufferCallback> callback)
+    sptr<RSISurfaceBufferCallback> callback)
 {
     std::unique_lock<std::shared_mutex> lock { registerSurfaceBufferCallbackMutex_ };
     auto iter = surfaceBufferCallbacks_.find({pid, uid});
@@ -30,8 +45,7 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, 
     }
 }
 
-RSSurfaceBufferCallbackManager::SurfaceBufferOpItemCallback
-RSSurfaceBufferCallbackManager::GetSurfaceBufferOpItemCallback()
+std::function<void(pid_t, uint64_t, uint32_t)> RSSurfaceBufferCallbackManager::GetSurfaceBufferOpItemCallback()
 {
     return [this](pid_t pid, uint64_t uid, uint32_t surfaceBufferId) {
         OnSurfaceBufferOpItemDestruct(pid, uid, surfaceBufferId);

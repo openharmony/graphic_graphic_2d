@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef RENDER_SERVICE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
+#define RENDER_SERVICE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
+
 #include <functional>
 #include <map>
 #include <mutex>
@@ -21,9 +24,6 @@
 #include <vector>
 
 #include "refbase.h"
-
-#ifndef RENDER_SERVICE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
-#define RENDER_SERVICE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
 
 namespace OHOS {
 namespace Rosen {
@@ -39,8 +39,7 @@ public:
         sptr<RSISurfaceBufferCallback> callback);
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
-    using SurfaceBufferOpItemCallback = std::function<void(pid_t, uint64_t, uint32_t)>;
-    SurfaceBufferOpItemCallback GetSurfaceBufferOpItemCallback();
+    std::function<void(pid_t, uint64_t, uint32_t)> GetSurfaceBufferOpItemCallback();
     
 private:
     sptr<RSISurfaceBufferCallback> GetSurfaceBufferCallback(pid_t pid, uint64_t uid) const;
@@ -53,7 +52,7 @@ private:
     std::map<std::pair<pid_t, uint64_t>, sptr<RSISurfaceBufferCallback>>
         surfaceBufferCallbacks_;
     std::map<std::pair<pid_t, uint64_t>, std::vector<uint32_t>> stagingSurfaceBufferIds_;
-     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
+    mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
 
     friend class RSMainThread;
