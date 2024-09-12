@@ -495,6 +495,8 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
+    target->firstLevelNodeId_ = firstLevelNodeId_;
+    target->uifirstRootNodeId_ = uifirstRootNodeId_;
     needSync_ = false;
 }
 
@@ -524,6 +526,36 @@ void RSRenderParams::SetParentSurfaceMatrix(const Drawing::Matrix& parentSurface
 const Drawing::Matrix& RSRenderParams::GetParentSurfaceMatrix()
 {
     return parentSurfaceMatrix_;
+}
+
+bool RSRenderParams::SetFirstLevelNode(NodeId firstLevelNodeId)
+{
+    if (firstLevelNodeId_ == firstLevelNodeId) {
+        return false;
+    }
+    firstLevelNodeId_ = firstLevelNodeId;
+    needSync_ = true;
+    return true;
+}
+
+NodeId RSRenderParams::GetFirstLevelNodeId() const
+{
+    return firstLevelNodeId_;
+}
+
+bool RSRenderParams::SetUiFirstRootNode(NodeId uifirstRootNodeId)
+{
+    if (uifirstRootNodeId_ == uifirstRootNodeId) {
+        return false;
+    }
+    uifirstRootNodeId_ = uifirstRootNodeId;
+    needSync_ = true;
+    return true;
+}
+
+NodeId RSRenderParams::GetUifirstRootNodeId() const
+{
+    return uifirstRootNodeId_;
 }
 
 // overrided surface params
