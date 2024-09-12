@@ -1997,6 +1997,49 @@ void RSRenderServiceConnection::SetFreeMultiWindowStatus(bool enable)
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    sptr<RSISurfaceBufferCallback> callback)
+{
+    if (!mainThread_) {
+        ROSEN_LOGE("RSRenderServiceConnection::RegisterSurfaceBufferCallback"
+            " Pair:[Pid: %{public}d, Uid: %{public}s] mainThread == nullptr",
+            pid, std::to_string(uid).c_str());
+        return;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), pid, uid, callback]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection || !connection->mainThread_) {
+            ROSEN_LOGE("RSRenderServiceConnection::RegisterSurfaceBufferCallback"
+                " Pair:[Pid: %{public}d, Uid: %{public}s] connection/mainThread == nullptr",
+                pid, std::to_string(uid).c_str());
+            return;
+        }
+        connection->mainThread_->RegisterSurfaceBufferCallback(pid, uid, callback);
+    };
+    mainThread_->PostTask(task);
+}
+
+void RSRenderServiceConnection::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    if (!mainThread_) {
+        ROSEN_LOGE("RSRenderServiceConnection::UnregisterSurfaceBufferCallback"
+            " Pair:[Pid: %{public}d, Uid: %{public}s] mainThread == nullptr",
+            pid, std::to_string(uid).c_str());
+        return;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), pid, uid]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection || !connection->mainThread_) {
+            ROSEN_LOGE("RSRenderServiceConnection::UnregisterSurfaceBufferCallback"
+                " Pair:[Pid: %{public}d, Uid: %{public}s] connection/mainThread == nullptr",
+                pid, std::to_string(uid).c_str());
+            return;
+        }
+        connection->mainThread_->UnregisterSurfaceBufferCallback(pid, uid);
+    };
+    mainThread_->PostTask(task);
+}
+
 void RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     if (mainThread_ == nullptr) {

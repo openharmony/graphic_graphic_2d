@@ -440,9 +440,11 @@ HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
     int offSetY = 1;
     int width = 1;
     int height = 1;
+    pid_t pid = {};
+    uint64_t uid = {};
     Drawing::PaintHandle paintHandle;
     Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
-        surfaceBufferId, offSetX, offSetY, width, height, paintHandle);
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, paintHandle);
     Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
     Drawing::Canvas canvas;
     Drawing::Rect rect;

@@ -45,6 +45,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_draw_frame.h"
 #include "pipeline/rs_graphic_config.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
@@ -375,6 +376,9 @@ public:
     {
         return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
     }
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid, sptr<RSISurfaceBufferCallback> callback);
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -723,6 +727,8 @@ private:
 
     // graphic config
     bool isBlurSwitchOpen_ = true;
+
+    RSSurfaceBufferCallbackManager surfaceBufferCallbackMgr_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

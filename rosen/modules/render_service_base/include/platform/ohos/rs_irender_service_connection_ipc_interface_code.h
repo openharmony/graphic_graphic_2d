@@ -133,6 +133,8 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     NEED_REGISTER_TYPEFACE,
     CREATE_DISPLAY_NODE,
     SET_FREE_MULTI_WINDOW_STATUS,
+    REGISTER_SURFACE_BUFFER_CALLBACK,
+    UNREGISTER_SURFACE_BUFFER_CALLBACK,
     SET_LAYER_TOP,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
