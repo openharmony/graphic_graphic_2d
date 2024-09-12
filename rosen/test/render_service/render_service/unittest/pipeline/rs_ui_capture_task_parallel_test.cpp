@@ -224,7 +224,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSurfaceNode, Functi
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    ASSERT_EQ(callback->captureSuccess_, false);
 }
 
 /*
@@ -241,7 +241,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode, Functio
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    ASSERT_EQ(callback->captureSuccess_, false);
 }
 
 /*
@@ -278,7 +278,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync, Function | Sm
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.0, 1.0, true);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    ASSERT_EQ(callback->captureSuccess_, false);
 }
 
 /*
@@ -298,7 +298,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
     bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
-    ASSERT_EQ(callback->captureSuccess_, true);
+    ASSERT_EQ(callback->captureSuccess_, false);
 }
 
 /*

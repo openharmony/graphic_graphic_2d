@@ -50,11 +50,11 @@ public:
     float GetAppGpuMemoryInMB();
     unsigned int GetDoingCacheProcessNum()
     {
-        return doingCacheProcessNum.load();
+        return doingCacheProcessNum_.load();
     }
     inline void DoingCacheProcessNumInc()
     {
-        doingCacheProcessNum++;
+        doingCacheProcessNum_++;
     }
     void DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
     void DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
@@ -79,7 +79,7 @@ private:
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
-    std::atomic<unsigned int> doingCacheProcessNum = 0;
+    std::atomic<unsigned int> doingCacheProcessNum_ = 0;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_H

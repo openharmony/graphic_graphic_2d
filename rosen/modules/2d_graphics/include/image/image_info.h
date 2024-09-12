@@ -95,6 +95,7 @@ public:
                 return 2;
             case COLORTYPE_RGBA_8888:
             case COLORTYPE_BGRA_8888:
+            case COLORTYPE_RGB_888X:
             case COLORTYPE_N32:
                 return 4;
             default:

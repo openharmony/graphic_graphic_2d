@@ -98,7 +98,7 @@ HWTEST(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
     } else {
         drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
         drawingRecordingCanvas->SetGrRecordingContext(uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext());
-        canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
     }
     ASSERT_NE(canvas, nullptr);
     std::vector<LayerInfoPtr> layers;
@@ -150,7 +150,7 @@ HWTEST(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
     } else {
         drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
         drawingRecordingCanvas->SetGrRecordingContext(uniRenderEngine->GetRenderContext()->GetSharedDrGPUContext());
-        canvas = std::make_shared<RSPaintFilterCanvas>(std::move(drawingRecordingCanvas).get());
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
     }
     ASSERT_NE(canvas, nullptr);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();

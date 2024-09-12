@@ -22,8 +22,8 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "draw/surface.h"
 #include "draw/color.h"
+#include "draw/surface.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_base_render_node.h"
@@ -62,9 +62,11 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     }
     std::unique_ptr<Media::PixelMap> pixelmap;
     visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(captureConfig_, RSUniRenderJudgement::IsUniRender());
+    std::string nodeName("RSSurfaceCaptureTask");
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
+        nodeName = surfaceNode->GetName();
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
         visitor_->SetHasingSecurityOrSkipOrProtectedLayer(FindSecurityOrSkipOrProtectedLayer());
         pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender(),
@@ -96,7 +98,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
     }
 #endif
-    RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE);
+    RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelmap);
     if (surface == nullptr) {
@@ -423,7 +425,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
                 RS_LOGE("RSSurfaceCaptureTask::CreateSurface: renderContext is nullptr");
                 return nullptr;
             }
-            renderContext->SetUpGpuContext(nullptr);
+            renderContext->SetUpGpuContext();
             return Drawing::Surface::MakeRenderTarget(renderContext->GetDrGPUContext(), false, info);
 #endif
         }

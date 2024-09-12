@@ -80,11 +80,7 @@ napi_value JsTextBlob::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsTextBlob *jsTextBlob = new(std::nothrow) JsTextBlob(env, drawingTextBlob);
-    if (!jsTextBlob) {
-        ROSEN_LOGE("Failed to create JsTextBlob");
-        return nullptr;
-    }
+    JsTextBlob *jsTextBlob = new JsTextBlob(env, drawingTextBlob);
 
     status = napi_wrap(env, jsThis, jsTextBlob,
                        JsTextBlob::Destructor, nullptr, nullptr);

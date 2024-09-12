@@ -30,7 +30,6 @@ public:
     RSFlyOutShaderFilter operator=(const RSFlyOutShaderFilter&) = delete;
     ~RSFlyOutShaderFilter() override;
 
-    bool IsValid() const override;
     std::string GetDescription() override;
     Drawing::Brush GetBrush(const std::shared_ptr<Drawing::Image>& image) const;
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,

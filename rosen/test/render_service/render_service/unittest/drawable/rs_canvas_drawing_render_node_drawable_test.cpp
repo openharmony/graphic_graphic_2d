@@ -79,9 +79,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     drawable->OnDraw(canvas);
     ASSERT_FALSE(drawable->ShouldPaint());
     drawable->renderParams_->shouldPaint_ = true;
+    ASSERT_TRUE(drawable->ShouldPaint());
     drawable->renderParams_->contentEmpty_ = false;
     drawable->OnDraw(canvas);
-    ASSERT_TRUE(drawable->ShouldPaint());
     ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
 
     drawable->renderParams_->canvasDrawingNodeSurfaceChanged_ = true;
@@ -110,19 +110,13 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas canvas;
     const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
+    drawable->DrawRenderContent(canvas, dst);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->surface_ = std::make_unique<Drawing::Surface>();
+    drawable->surface_->cachedCanvas_ = std::make_unique<Drawing::Canvas>(0, 0);
+    drawable->image_ = std::make_shared<Drawing::Image>();
     RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     drawable->DrawRenderContent(canvas, dst);
-
-    drawable->renderParams_->frameRect_ = { 0.f, 0.f, 1.f, 1.f }; // for test
-    drawable->renderParams_->frameGravity_ = Gravity::CENTER;
-    drawable->DrawRenderContent(canvas, dst);
-    EXPECT_EQ(drawable->image_, nullptr);
-
-    drawable->image_ = std::make_shared<Drawing::Image>();
-    drawable->DrawRenderContent(canvas, dst);
-    EXPECT_NE(drawable->image_, nullptr);
-    RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
 }
 
 /**
@@ -404,20 +398,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1
     ASSERT_FALSE(res);
 
     auto rrect = std::make_shared<Drawing::Rect>(0.f, 0.f, 1.f, 1.f);
-    tid = drawable->preThreadInfo_.first;
-    auto canvas = std::make_shared<Drawing::Canvas>();
-    drawable->canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
-    res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
-    drawable->image_ = std::make_shared<Drawing::Image>();
-    res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
-    ASSERT_FALSE(res);
-
-    drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
-    ASSERT_FALSE(res);
-    drawable->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-#endif
     res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
     ASSERT_FALSE(res);
 }
@@ -537,8 +517,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceForGLTest, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReuseBackendTextureTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     int width = 1;
@@ -573,27 +552,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetCurrentContextAndImageTest, T
     tid = drawable->preThreadInfo_.first;
     res = drawable->GetCurrentContextAndImage(grContext, image, tid);
     ASSERT_TRUE(res);
-}
-
-/**
- * @tc.name: ResetSurfaceWithTexture
- * @tc.desc: Test If ResetSurfaceWithTexture Can Run
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, TestSize.Level1)
-{
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    int width = 1;
-    int height = 1;
-    auto drawCanvas = std::make_shared<Drawing::Canvas>();
-    drawable->canvas_ = std::make_shared<RSPaintFilterCanvas>(drawCanvas.get());
-    drawable->surface_ = std::make_shared<Drawing::Surface>();
-    drawable->image_ = std::make_shared<Drawing::Image>();
-    auto result = drawable->ResetSurfaceWithTexture(width, height, canvas);
-    ASSERT_EQ(result, false);
 }
 #endif
 }

@@ -56,7 +56,7 @@ public:
     static std::shared_ptr<Drawing::Blender> MakeDynamicBrightnessBlender(const RSDynamicBrightnessPara& params);
     static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
-        const RectF& boundsRect, const bool boundsGeoValid);
+        const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode);
     static Drawing::Path CreateShadowPath(const std::shared_ptr<RSPath> rsPath,
         const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect);
     static void DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX, const float& offsetY,

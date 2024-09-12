@@ -26,7 +26,6 @@
 
 #include "hgm_core.h"
 #include "parameter.h"
-#include <parameters.h>
 #include "rs_main_thread.h"
 #include "rs_profiler.h"
 #include "rs_render_service_connection.h"
@@ -482,56 +481,28 @@ static bool IsNumber(const std::string& type)
     return number == type.length();
 }
 
-static bool ExtractDumpInfo(std::unordered_set<std::u16string>& argSets, std::string& dumpInfo, std::u16string title)
-{
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        dumpInfo.append("\n---------------\n Not in UniRender and no information");
-        return false;
-    }
-    if (argSets.size() < 2) {
-        dumpInfo.append("\n---------------\n no need extract info");
-        return false;
-    }
-    argSets.erase(title);
-    if (!argSets.empty()) {
-        dumpInfo = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-    }
-    return true;
-}
-
 void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
-    std::string type;
-    bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpMem");
-    if (!isSuccess) {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n---------------\nNot in UniRender and no information");
+    } else {
+        std::string type;
+        if (argSets.size() > 1) {
+            argSets.erase(u"dumpMem");
+            if (!argSets.empty()) {
+                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            }
+        }
+        int pid = 0;
+        if (!type.empty() && IsNumber(type)) {
+            pid = std::stoi(type);
+        }
+        mainThread_->ScheduleTask(
+            [this, &argSets, &dumpString, &type, &pid]() {
+                return mainThread_->DumpMem(argSets, dumpString, type, pid);
+            }).wait();
         return;
     }
-    int pid = 0;
-    if (!type.empty() && IsNumber(type) && type.length() < 10) {
-        pid = std::stoi(type);
-    }
-    mainThread_->ScheduleTask(
-        [this, &argSets, &dumpString, &type, &pid]() {
-            return mainThread_->DumpMem(argSets, dumpString, type, pid);
-        }).wait();
-}
-
-void RSRenderService::DumpNode(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
-{
-    std::string type;
-    bool isSuccess = ExtractDumpInfo(argSets, type, u"dumpNode");
-    if (!isSuccess) {
-        return;
-    }
-    uint64_t nodeId = 0;
-    if (!type.empty() && IsNumber(type) && type.length() < 20) {
-        nodeId = std::stoull(type);
-    }
-    mainThread_->ScheduleTask(
-        [this, &dumpString, &nodeId]() {
-            return mainThread_->DumpNode(dumpString, nodeId);
-        }).wait();
-    
 }
 
 void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
@@ -561,7 +532,6 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg11(u"dumpMem");
     std::u16string arg12(u"surfacenode");
     std::u16string arg13(u"fpsClear");
-    std::u16string arg14(u"dumpNode");
     std::u16string arg15(u"fpsCount");
     std::u16string arg16(u"clearFpsCount");
     std::u16string arg17(u"hitchs");
@@ -616,9 +586,6 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
             mainThread_->ScheduleTask(
                 [this, &dumpString, &id]() { return DumpSurfaceNode(dumpString, id); }).wait();
         }
-    }
-    if (argSets.count(arg14)) {
-        DumpNode(argSets, dumpString);
     }
     FPSDUMPProcess(argSets, dumpString, arg3);
     FPSDUMPClearProcess(argSets, dumpString, arg13);

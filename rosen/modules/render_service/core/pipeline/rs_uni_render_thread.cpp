@@ -28,6 +28,7 @@
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
 #include "include/gpu/GrDirectContext.h"
+#include "static_factory.h"
 #include "memory/rs_memory_manager.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -65,7 +66,6 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
-constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
 constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES = "AsyncFreeVMAMemoryBetweenFrames";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
@@ -141,6 +141,11 @@ void RSUniRenderThread::InitGrContext()
             RSUniRenderThread::Instance().PostImageReleaseTask(task);
         });
     }
+    if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        if (RSSystemProperties::IsFoldScreenFlag()) {
+            vmaOptimizeFlag_ = true;
+        }
+    }
 #endif
 }
 
@@ -161,11 +166,11 @@ void RSUniRenderThread::Start()
     }
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
-    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+    auto postTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
         RSUniRenderThread::Instance().PostTask(task, name, delayTime, priority);
     };
-    RSRenderNodeGC::Instance().SetRenderTask(PostTaskProxy);
+    RSRenderNodeGC::Instance().SetRenderTask(postTaskProxy);
     PostSyncTask([this] {
         RS_LOGE("RSUniRenderThread Started ...");
         Inittcache();
@@ -294,6 +299,15 @@ void RSUniRenderThread::Render()
 {
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
+    }
+    if (vmaOptimizeFlag_) { // render this frame with vma cache on/off
+        std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
+        if (vmaCacheCount_ > 0) {
+            vmaCacheCount_--;
+            Drawing::StaticFactory::SetVmaCacheStatus(true);
+        } else {
+            Drawing::StaticFactory::SetVmaCacheStatus(false);
+        }
     }
     Drawing::Canvas canvas;
     RSNodeStats::GetInstance().ClearNodeStats();
@@ -577,9 +591,62 @@ bool RSUniRenderThread::IsCurtainScreenOn() const
     return renderThreadParams_ ? renderThreadParams_->IsCurtainScreenOn() : false;
 }
 
+ std::string FormatNumber(size_t number)
+{
+    constexpr uint8_t FORMATE_NUM_STEP = 3;
+    std::string strNumber = std::to_string(number);
+    int n = strNumber.length();
+    for (int i = n - FORMATE_NUM_STEP; i > 0; i -= FORMATE_NUM_STEP) {
+        strNumber.insert(i, ",");
+    }
+    return strNumber;
+}
+
+static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
+{
+    gpuContext->Flush();
+    SkGraphics::PurgeAllCaches();
+    gpuContext->FreeGpuResources();
+    gpuContext->PurgeUnlockedResources(true);
+#ifdef NEW_RENDER_CONTEXT
+    MemoryHandler::ClearShader();
+#else
+    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    rendercontext->CleanAllShaderCache();
+#endif
+    gpuContext->FlushAndSubmit(true);
+}
+
+static void TrimMemShaderType()
+{
+#ifdef NEW_RENDER_CONTEXT
+    MemoryHandler::ClearShader();
+#else
+    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    rendercontext->CleanAllShaderCache();
+#endif
+}
+
+static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,
+    std::string& type, const std::string& typeGpuLimit)
+{
+    size_t cacheLimit = 0;
+    int maxResources;
+    gpuContext->GetResourceCacheLimits(&maxResources, &cacheLimit);
+
+    std::string strM = type.substr(typeGpuLimit.length());
+    size_t sizeM = std::stoul(strM);
+    size_t maxResourcesBytes = sizeM * 1000 * 1000L; // max 4G
+
+    gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
+    dumpString.append("setgpulimit: " + FormatNumber(cacheLimit)
+        + "==>" + FormatNumber(maxResourcesBytes) + "\n");
+}
+
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 {
     auto task = [this, &dumpString, &type] {
+        std::string typeGpuLimit = "setgpulimit";
         if (!uniRenderEngine_) {
             return;
         }
@@ -592,17 +659,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
             return;
         }
         if (type.empty()) {
-            gpuContext->Flush();
-            SkGraphics::PurgeAllCaches();
-            gpuContext->FreeGpuResources();
-            gpuContext->PurgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-            MemoryHandler::ClearShader();
-#else
-            std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-            rendercontext->CleanAllShaderCache();
-#endif
-            gpuContext->FlushAndSubmit(true);
+            TrimMemEmptyType(gpuContext);
         } else if (type == "cpu") {
             gpuContext->Flush();
             SkGraphics::PurgeAllCaches();
@@ -620,18 +677,15 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
             gpuContext->PurgeUnlockedResources(false);
             gpuContext->FlushAndSubmit(true);
         } else if (type == "shader") {
-#ifdef NEW_RENDER_CONTEXT
-            MemoryHandler::ClearShader();
-#else
-            std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-            rendercontext->CleanAllShaderCache();
-#endif
+            TrimMemShaderType();
         } else if (type == "flushcache") {
             int ret = mallopt(M_FLUSH_THREAD_CACHE, 0);
             dumpString.append("flushcache " + std::to_string(ret) + "\n");
+        } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
+            TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
             uint32_t pid = static_cast<uint32_t>(std::stoll(type));
-            Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+            Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
         dumpString.append("trimMem: " + type + "\n");
@@ -717,6 +771,9 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         auto screenManager_ = CreateOrGetScreenManager();
         screenManager_->ClearFrameBufferIfNeed();
         grContext->FlushAndSubmit(true);
+        if (this->vmaOptimizeFlag_) {
+            MemoryManager::VmaDefragment(grContext);
+        }
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         }
@@ -770,22 +827,6 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
         PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
-void RSUniRenderThread::PreAllocateTextureBetweenFrames()
-{
-    if (!RSSystemProperties::IsPhoneType()) {
-        return;
-    }
-    RemoveTask(PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES);
-    PostTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("PreAllocateTextureBetweenFrames");
-            GrDirectContext::preAllocateTextureBetweenFrames();
-        },
-        PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES,
-        0,
-        AppExecFwk::EventQueue::Priority::LOW);
-}
-
 void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
 {
     RemoveTask(ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES);
@@ -801,9 +842,6 @@ void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
 {
-    if (RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()) {
-        PreAllocateTextureBetweenFrames();
-    }
     if (RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()) {
         AsyncFreeVMAMemoryBetweenFrames();
     }
@@ -850,6 +888,17 @@ uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
 void RSUniRenderThread::SetAcquireFence(sptr<SyncFence> acquireFence)
 {
     acquireFence_ = acquireFence;
+}
+
+void RSUniRenderThread::SetVmaCacheStatus(bool flag)
+{
+    static constexpr int MAX_VMA_CACHE_COUNT = 600;
+    RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
+    if (!vmaOptimizeFlag_) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
+    vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
 }
 } // namespace Rosen
 } // namespace OHOS

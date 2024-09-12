@@ -176,6 +176,10 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
             return false;
         }
         std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
+        if (interpolator == nullptr) {
+            ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling interpolator failed");
+            return false;
+        }
         keyframes_.emplace_back(std::make_tuple(tupValue0, tupValue1, interpolator));
     }
     return true;
@@ -195,6 +199,10 @@ bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int 
             return false;
         }
         std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
+        if (interpolator == nullptr) {
+            ROSEN_LOGE("RSRenderKeyframeAnimation::ParseDurationParam, Unmarshalling interpolator failed");
+            return false;
+        }
         durationKeyframes_.emplace_back(std::make_tuple(startFraction, endFraction, tupValue1, interpolator));
     }
     return true;

@@ -53,5 +53,8 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromColorFilter(
 
 void OH_Drawing_ImageFilterDestroy(OH_Drawing_ImageFilter* cImageFilter)
 {
+    if (!cImageFilter) {
+        return;
+    }
     delete reinterpret_cast<ImageFilter*>(cImageFilter);
 }

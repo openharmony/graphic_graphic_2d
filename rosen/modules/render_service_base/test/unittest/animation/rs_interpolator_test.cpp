@@ -217,5 +217,19 @@ HWTEST_F(RSInterpolatorTest, Unmarshalling001, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSInterpolatorTest Unmarshalling001 end";
 }
+
+/**
+ * @tc.name: Unmarshalling002
+ * @tc.desc: Verify the Interpolate of RSInterpolator Unmarshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSInterpolatorTest, Unmarshalling002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Unmarshalling002 start";
+    Parcel parcel;
+    std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
+    EXPECT_EQ(interpolator, nullptr);
+    GTEST_LOG_(INFO) << "RSInterpolatorTest Unmarshalling002 end";
+}
 } // namespace Rosen
 } // namespace OHOS

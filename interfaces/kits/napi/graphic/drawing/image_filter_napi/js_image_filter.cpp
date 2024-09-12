@@ -78,11 +78,7 @@ napi_value JsImageFilter::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsImageFilter *jsImageFilter = new(std::nothrow) JsImageFilter();
-    if (!jsImageFilter) {
-        ROSEN_LOGE("JsImageFilter::Constructor Failed to create JsImageFilter");
-        return nullptr;
-    }
+    JsImageFilter *jsImageFilter = new JsImageFilter();
 
     status = napi_wrap(env, jsThis, jsImageFilter, JsImageFilter::Destructor, nullptr, nullptr);
     if (status != napi_ok) {

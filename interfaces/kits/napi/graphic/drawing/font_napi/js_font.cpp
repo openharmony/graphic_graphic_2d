@@ -105,14 +105,9 @@ napi_value JsFont::Constructor(napi_env env, napi_callback_info info)
 
     std::shared_ptr<Font> font = std::make_shared<Font>();
     font->SetTypeface(JsTypeface::LoadZhCnTypeface());
-    JsFont *jsFont = new(std::nothrow) JsFont(font);
-    if (!jsFont) {
-        ROSEN_LOGE("Failed to create JsFont");
-        return nullptr;
-    }
+    JsFont *jsFont = new JsFont(font);
 
-    status = napi_wrap(env, jsThis, jsFont,
-                       JsFont::Destructor, nullptr, nullptr);
+    status = napi_wrap_async_finalizer(env, jsThis, jsFont, JsFont::Destructor, nullptr, nullptr, 0);
     if (status != napi_ok) {
         delete jsFont;
         ROSEN_LOGE("Failed to wrap native instance");
@@ -468,6 +463,50 @@ napi_value JsFont::OnIsForceAutoHinting(napi_env env, napi_callback_info info)
     return CreateJsValue(env, isForceAutoHinting);
 }
 
+napi_value JsFont::OnGetWidths(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        ROSEN_LOGE("JsFont::OnGetWidths font is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    uint32_t fontSize = 0;
+    napi_get_array_length(env, argv[ARGC_ZERO], &fontSize);
+    if (fontSize == 0) {
+        return nullptr;
+    }
+
+    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
+    for (uint32_t i = 0; i < fontSize; i++) {
+        napi_value tempglyph = nullptr;
+        napi_get_element(env, argv[ARGC_ZERO], i, &tempglyph);
+        uint32_t glyph_t = 0;
+        bool isColorOk = ConvertFromJsValue(env, tempglyph, glyph_t);
+        if (!isColorOk) {
+            ROSEN_LOGE("JsFont::OnGetWidths Argv[ARGC_ZERO] is invalid");
+            return nullptr;
+        }
+        glyphPtr[i] = glyph_t;
+    }
+
+    std::unique_ptr<float[]> widthPtr = std::make_unique<float[]>(fontSize);
+    m_font->GetWidths(glyphPtr.get(), fontSize, widthPtr.get());
+    napi_value widthJsArray;
+    napi_status status = napi_create_array(env, &widthJsArray);
+    if (status != napi_ok) {
+        ROSEN_LOGE("failed to napi_create_array");
+        return nullptr;
+    }
+    for (size_t i = 0; i < fontSize; i++) {
+        napi_value element = CreateJsValue(env, widthPtr[i]);
+        napi_set_element(env, widthJsArray, i, element);
+    }
+    return widthJsArray;
+}
+
 napi_value JsFont::OnSetSize(napi_env env, napi_callback_info info)
 {
     if (m_font == nullptr) {
@@ -533,50 +572,6 @@ napi_value JsFont::OnGetTypeface(napi_env env, napi_callback_info info)
 
     std::shared_ptr<Typeface> typeface = m_font->GetTypeface();
     return JsTypeface::CreateJsTypeface(env, typeface);
-}
-
-napi_value JsFont::OnGetWidths(napi_env env, napi_callback_info info)
-{
-    if (m_font == nullptr) {
-        ROSEN_LOGE("JsFont::OnGetWidths font is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
-
-    napi_value argv[ARGC_ONE] = { nullptr };
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
-
-    uint32_t fontSize = 0;
-    napi_get_array_length(env, argv[ARGC_ZERO], &fontSize);
-    if (fontSize == 0) {
-        return nullptr;
-    }
-
-    std::unique_ptr<uint16_t[]> glyphPtr = std::make_unique<uint16_t[]>(fontSize);
-    for (uint32_t i = 0; i < fontSize; i++) {
-        napi_value tempglyph = nullptr;
-        napi_get_element(env, argv[ARGC_ZERO], i, &tempglyph);
-        uint32_t glyph_t = 0;
-        bool isColorOk = ConvertFromJsValue(env, tempglyph, glyph_t);
-        if (!isColorOk) {
-            ROSEN_LOGE("JsFont::OnGetWidths Argv[ARGC_ZERO] is invalid");
-            return nullptr;
-        }
-        glyphPtr[i] = glyph_t;
-    }
-
-    std::unique_ptr<float[]> widthPtr = std::make_unique<float[]>(fontSize);
-    m_font->GetWidths(glyphPtr.get(), fontSize, widthPtr.get());
-    napi_value widthJsArray;
-    napi_status status = napi_create_array(env, &widthJsArray);
-    if (status != napi_ok) {
-        ROSEN_LOGE("failed to napi_create_array");
-        return nullptr;
-    }
-    for (size_t i = 0; i < fontSize; i++) {
-        napi_value element = CreateJsValue(env, widthPtr[i]);
-        napi_set_element(env, widthJsArray, i, element);
-    }
-    return widthJsArray;
 }
 
 napi_value JsFont::OnMeasureSingleCharacter(napi_env env, napi_callback_info info)

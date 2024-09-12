@@ -98,7 +98,7 @@ private:
     std::shared_ptr<Drawing::GPUContext> mSkContext = nullptr;
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer,
         int32_t width, int32_t height, int& fenceFd, bool useAFBC, bool isProtected = false);
-    void CreateVkSemaphore(VkSemaphore* semaphore,
+    void CreateVkSemaphore(VkSemaphore& semaphore,
         RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
 };
 

@@ -140,11 +140,6 @@ void Brush::SetBlenderEnabled(bool blenderEnabled)
     blenderEnabled_ = blenderEnabled;
 }
 
-bool Brush::IsAntiAlias() const
-{
-    return antiAlias_;
-}
-
 void Brush::SetAntiAlias(bool aa)
 {
     antiAlias_ = aa;

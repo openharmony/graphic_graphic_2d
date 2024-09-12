@@ -42,6 +42,8 @@ private:
     float aiBarThreshold_;
     float aiBarOpacity_;
     float aiBarSaturation_;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeBinarizationShader(
+        float imageWidth, float imageHeight, std::shared_ptr<Drawing::ShaderEffect> imageShader);
 };
 
 } // namespace Rosen

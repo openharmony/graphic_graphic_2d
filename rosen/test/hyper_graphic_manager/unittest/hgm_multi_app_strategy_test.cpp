@@ -425,10 +425,10 @@ HWTEST_F(HgmMultiAppStrategyTest, UseStrategyNum, Function | SmallTest | Level1)
             ASSERT_EQ(strategyConfig.max, fps0);
         }
         STEP("2. empty pkgs") {
-            multiAppStrategy_->HandlePkgsEvent({});
+            multiAppStrategy_->HandlePkgsEvent({ pkgName1, otherPkgName });
             multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, OledRefreshRate::OLED_NULL_HZ);
-            ASSERT_EQ(strategyConfig.max, OledRefreshRate::OLED_120_HZ);
+            ASSERT_EQ(strategyConfig.min, fps0);
+            ASSERT_EQ(strategyConfig.max, fps0);
         }
     }
 }

@@ -180,7 +180,7 @@ public:
 
     void SetFocusAppInfo(
         int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId);
-    std::unordered_map<NodeId, bool> GetCacheCmdSkippedNodes() const;
+    const std::unordered_map<NodeId, bool>& GetCacheCmdSkippedNodes() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
     sptr<VSyncController> rsVSyncController_;
@@ -204,7 +204,6 @@ public:
     void ForceRefreshForUni();
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0);
-    void DumpNode(std::string& result, uint64_t nodeId) const;
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
@@ -283,6 +282,8 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    void SetLuminanceChangingStatus(bool isLuminanceChanged);
+    bool ExchangeLuminanceChangingStatus();
     bool IsCurtainScreenOn() const;
     void NotifySurfaceCapProcFinish();
     void WaitUntilSurfaceCapProcFinished();
@@ -529,6 +530,9 @@ private:
 
     // Used to refresh the whole display when curtain screen status is changed
     bool isCurtainScreenUsingStatusChanged_ = false;
+
+    // Used to refresh the whole display when luminance is changed
+    std::atomic<bool> isLuminanceChanged_ = false;
 
     // used for blocking mainThread when hardwareThread has 2 and more task to Execute
     mutable std::mutex hardwareThreadTaskMutex_;

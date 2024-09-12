@@ -190,7 +190,8 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SHOW_WATERMARK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SHOW_WATERMARK");
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SHOW_WATERMARK") &&
+                CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_REFRESH_RATE_MODE): {
@@ -202,7 +203,8 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
-            hasPermission = IsSystemApp();
+            hasPermission = IsSystemApp() ||
+                IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_REFRESH_RATES");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED): {
@@ -277,6 +279,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
 #endif
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_STATUS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VMA_CACHE_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VMA_CACHE_STATUS");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_PIXEL_FORMAT): {

@@ -36,7 +36,6 @@
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "image/gpu_context.h"
-#include "memory/rs_dfx_string.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -184,7 +183,6 @@ public:
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
 
     void DumpTree(int32_t depth, std::string& ou) const;
-    void DumpNodeInfo(DfxString& log);
 
     virtual bool HasDisappearingTransition(bool recursive = true) const;
 
@@ -332,8 +330,13 @@ public:
         return shouldPaint_;
     }
 
+    // dirty rect of current frame after update dirty, last frame before update
     RectI GetOldDirty() const;
+    // dirty rect in display of current frame after update dirty, last frame before update
     RectI GetOldDirtyInSurface() const;
+    // clip rect of last frame before post prepare, current frame after post prepare
+    RectI GetOldClipRect() const;
+
     bool IsDirtyRegionUpdated() const;
     void CleanDirtyRegionUpdated();
 

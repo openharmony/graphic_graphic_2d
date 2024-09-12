@@ -1012,6 +1012,10 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
 {
     auto& properties = content.GetRenderProperties();
     const auto& image = properties.GetBgImage();
+    if (image == nullptr) {
+        RS_LOGE("RSBackgroundImageDrawable::Draw image is nullptr");
+        return;
+    }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto pixelMap = image->GetPixelMap();

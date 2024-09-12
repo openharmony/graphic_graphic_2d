@@ -182,6 +182,7 @@ ohos_source_set("render_service_base_src") {
 
     #memory
     "src/memory/rs_memory_graphic.cpp",
+    "src/memory/rs_memory_snapshot.cpp",
     "src/memory/rs_memory_track.cpp",
     "src/memory/rs_tag_tracker.cpp",
 
@@ -258,7 +259,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_grey_shader_filter.cpp",
     "src/render/rs_hps_blur.cpp",
-    "src/render/rs_hps_blur_shader_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",

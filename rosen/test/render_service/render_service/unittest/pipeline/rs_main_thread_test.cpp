@@ -49,6 +49,19 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void* CreateParallelSyncSignal(uint32_t count);
+
+private:
+    static inline BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
 };
 
 void RSMainThreadTest::SetUpTestCase()
@@ -654,7 +667,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest003, TestSize.L
     pid_t pid = 1;
     transactionData->SetSendingPid(pid);
     RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
-    
+
     NodeId id = 1;
     auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
     mainThread->context_->RegisterAnimatingRenderNode(node);
@@ -675,7 +688,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest004, TestSize.L
     pid_t pid = 1;
     transactionData->SetSendingPid(pid);
     RSSingleFrameComposer::AddOrRemoveAppPidToMap(true, pid);
-    
+
     NodeId firstWindowNodeId = 2;
     auto firstWindowNode = std::make_shared<RSSurfaceRenderNode>(firstWindowNodeId, mainThread->context_);
     firstWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
@@ -685,7 +698,7 @@ HWTEST_F(RSMainThreadTest, IsNeedProcessBySingleFrameComposerTest004, TestSize.L
     firstWindowNode->AddChild(firstWindowChildNode);
     firstWindowNode->GenerateFullChildrenList();
     mainThread->context_->nodeMap.RegisterRenderNode(firstWindowNode);
-    
+
     NodeId secondWindowNodeId = 2;
     auto secondWindowNode = std::make_shared<RSSurfaceRenderNode>(secondWindowNodeId, mainThread->context_);
     secondWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
@@ -1822,6 +1835,54 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ConsumeAndUpdateAllNodes004
+ * @tc.desc: ConsumeAndUpdateAllNodes004 Test
+ * @tc.type: FUNC
+ * @tc.require: issueIANQPF
+ */
+HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->timestamp_ = 1000;
+    // prepare nodemap
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    rsSurfaceRenderNode->isHardwareEnabledNode_ = true;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(rsSurfaceRenderNode);
+    auto rsSurfaceHandlerPtr_ = rsSurfaceRenderNode->GetRSSurfaceHandler();
+    ASSERT_NE(rsSurfaceHandlerPtr_, nullptr);
+    auto surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    sptr<Surface> psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(5);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    RSSurfaceHandler::SurfaceBufferEntry bufferEntry;
+    bufferEntry.timestamp = 0;
+    ret = psurf->RequestBuffer(bufferEntry.buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    rsSurfaceHandlerPtr_->CacheBuffer(bufferEntry);
+    rsSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
+    ASSERT_TRUE(rsSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
+    mainThread->ConsumeAndUpdateAllNodes();
+    mainThread->isUniRender_ = isUniRender;
+#endif
+}
+
+/**
  * @tc.name: CollectInfoForHardwareComposer003
  * @tc.desc: CollectInfoForHardwareComposer003 Test
  * @tc.type: FUNC
@@ -2870,6 +2931,36 @@ HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetLuminanceChangingStatus
+ * @tc.desc: SetLuminanceChangingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, SetLuminanceChangingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), false);
+    mainThread->SetLuminanceChangingStatus(true);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), true);
+}
+
+/**
+ * @tc.name: ExchangeLuminanceChangingStatus
+ * @tc.desc: ExchangeLuminanceChangingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, ExchangeLuminanceChangingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetLuminanceChangingStatus(true);
+    ASSERT_EQ(mainThread->ExchangeLuminanceChangingStatus(), true);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), false);
+}
+
+/**
  * @tc.name: CalcOcclusionImplementation001
  * @tc.desc: calculate occlusion when surfaces do not overlap
  * @tc.type: FUNC
@@ -2896,7 +2987,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation001, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -2935,7 +3026,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation002, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -2974,7 +3065,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation003, TestSize.Level1)
     nodeTop->oldDirtyInSurface_ = rectTop;
     nodeTop->SetDstRect(rectTop);
     nodeTop->opaqueRegion_ = Occlusion::Region(rectTop);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -3014,7 +3105,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation004, TestSize.Level1)
     nodeTop->SetDstRect(rectTop);
     // The top node is transparent
     nodeTop->SetGlobalAlpha(0.0f);
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
@@ -3056,7 +3147,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
     // The top node is transparent
     nodeTop->SetGlobalAlpha(0.0f);
     nodeTop->isFilterCacheValidForOcclusion_ = true;
-    
+
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;

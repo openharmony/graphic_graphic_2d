@@ -16,6 +16,7 @@
 #include "memory/rs_memory_manager.h"
 
 #include <malloc.h>
+#include <string>
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
 
@@ -26,7 +27,9 @@
 #include "include/gpu/GrDirectContext.h"
 #include "src/gpu/GrDirectContextPriv.h"
 
+#include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_singleton.h"
 #include "memory/rs_tag_tracker.h"
 #ifdef NEW_RENDER_CONTEXT
 #include "render_context/memory_handler.h"
@@ -34,8 +37,11 @@
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 
+#include "app_mgr_client.h"
+#include "hisysevent.h"
 #include "image/gpu_context.h"
 
 #ifdef RS_ENABLE_VK
@@ -46,11 +52,18 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t MEMUNIT_RATE = 1024;
+constexpr uint32_t MEMORY_CHECK_KILL = 500 * (1 << 20); // The memory killing threshold is 500mb.
+constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
+constexpr uint32_t FRAME_NUMBER = 10; // Check memory every ten frames.
 constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 }
+
+std::mutex MemoryManager::mutex_;
+std::unordered_map<pid_t, std::pair<std::string, uint64_t>> MemoryManager::pidInfo_;
+uint32_t MemoryManager::frameCount_ = 0;
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
 {
@@ -86,7 +99,7 @@ void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawi
 void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+    Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseAllGpuResource");
     ReleaseAllGpuResource(gpuContext, tag);
 #endif
 }
@@ -113,6 +126,8 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* gpuContext, st
     }
     RS_TRACE_NAME_FMT("ReleaseUnlockGpuResource exitedPidSet size: %d", exitedPidSet.size());
     gpuContext->PurgeUnlockedResourcesByPid(false, exitedPidSet);
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPidSet);
+    ErasePidInfo(exitedPidSet);
 #endif
 }
 
@@ -131,7 +146,7 @@ void MemoryManager::PurgeCacheBetweenFrames(Drawing::GPUContext* gpuContext, boo
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, NodeId surfaceNodeId)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0);
+    Drawing::GPUResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0, "ReleaseUnlockGpuResource");
     ReleaseUnlockGpuResource(grContext, tag);
 #endif
 }
@@ -139,7 +154,7 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, Nod
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+    Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
 #endif
 }
@@ -179,7 +194,8 @@ float MemoryManager::GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext)
     auto total = trace.GetGpuMemorySizeInMB();
     float rsMemSize = 0.f;
     for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
-        Drawing::GPUResourceTag resourceTag(0, 0, 0, tagtype);
+        Drawing::GPUResourceTag resourceTag(0, 0, 0, tagtype,
+            RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype)));
         Drawing::TraceMemoryDump gpuTrace("category", true);
         gpuContext->DumpMemoryStatisticsByTag(&gpuTrace, resourceTag);
         rsMemSize += gpuTrace.GetGpuMemorySizeInMB();
@@ -220,7 +236,7 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* 
     // Count mem of Skia GPU
     if (gpuContext) {
         Drawing::TraceMemoryDump gpuTracer("category", true);
-        Drawing::GPUResourceTag tag(pid, 0, 0, 0);
+        Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
         gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, tag);
         float gpuMem = gpuTracer.GetGLMemorySize();
         totalMemGraphic.IncreaseGpuMemory(gpuMem);
@@ -254,14 +270,19 @@ static std::tuple<uint64_t, std::string, RectI> FindGeoById(uint64_t nodeId)
         (node->GetRenderProperties().GetBoundsGeometry())->GetAbsRect();
     // Obtain the window according to childId
     auto parent = node->GetParent().lock();
+    bool windowsNameFlag = false;
     while (parent) {
         if (parent->IsInstanceOf<RSSurfaceRenderNode>()) {
             const auto& surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(parent);
             windowName = surfaceNode->GetName();
             windowId = surfaceNode->GetId();
+            windowsNameFlag = true;
             break;
         }
         parent = parent->GetParent().lock();
+    }
+    if (!windowsNameFlag) {
+        windowName = "EXISTS-BUT-NO-SURFACE";
     }
     return { windowId, windowName, nodeFrameRect };
 }
@@ -275,7 +296,16 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log)
 void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
 {
     // CPU
-    log.AppendFormat("\n----------\nSkia CPU caches:\n");
+    std::string cpuInfo = "Skia CPU caches : pid:" + std::to_string(getpid()) +
+        ", threadId:" + std::to_string(gettid());
+#ifdef ROSEN_OHOS
+    char threadName[16]; // thread name is restricted to 16 bytes
+    auto result = pthread_getname_np(pthread_self(), threadName, sizeof(threadName));
+    if (result == 0) {
+        cpuInfo = cpuInfo + ", threadName: " + threadName;
+    }
+#endif
+    log.AppendFormat("\n----------\n%s\n", cpuInfo.c_str());
     log.AppendFormat("Font Cache (CPU):\n");
     log.AppendFormat("  Size: %.2f kB \n", Drawing::SkiaGraphics::GetFontCacheUsed() / MEMUNIT_RATE);
     log.AppendFormat("  Glyph Count: %d \n", Drawing::SkiaGraphics::GetFontCacheCountUsed());
@@ -338,7 +368,7 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
     }
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     for (auto& nodeTag : nodeTags) {
-        Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0);
+        Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0, nodeTag.second);
         DumpGpuCache(log, gpuContext, &tag, nodeTag.second);
     }
 #endif
@@ -353,15 +383,22 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     }
     /* GPU */
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    std::string gpuInfo;
+    std::string gpuInfo = "pid:" + std::to_string(getpid()) + ", threadId:" + std::to_string(gettid());
+#ifdef ROSEN_OHOS
+    char threadName[16]; // thread name is restricted to 16 bytes
+    auto result = pthread_getname_np(pthread_self(), threadName, sizeof(threadName));
+    if (result == 0) {
+        gpuInfo = gpuInfo + ", threadName: " + threadName;
+    }
+#endif
     // total
     DumpGpuCache(log, gpuContext, nullptr, gpuInfo);
     // Get memory of window by tag
     DumpAllGpuInfo(log, gpuContext, nodeTags);
     for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
-        Drawing::GPUResourceTag tag(0, 0, 0, tagtype);
-        std::string tagType = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
-        DumpGpuCache(log, gpuContext, &tag, tagType);
+        std::string tagTypeName = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
+        Drawing::GPUResourceTag tag(0, 0, 0, tagtype, tagTypeName);
+        DumpGpuCache(log, gpuContext, &tag, tagTypeName);
     }
     // cache limit
     size_t cacheLimit = 0;
@@ -407,5 +444,95 @@ void MemoryManager::DumpMallocStat(std::string& log)
             }
         },
         &log, nullptr);
+}
+
+void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    frameCount_++;
+    if (!gpuContext || frameCount_ < FRAME_NUMBER) {
+        return;
+    }
+    frameCount_ = 0;
+    std::unordered_map<pid_t, size_t> gpuMemory;
+    gpuContext->GetUpdatedMemoryMap(gpuMemory);
+
+    auto task = [gpuMemory = std::move(gpuMemory)]() {
+        std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
+        MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuMemory, infoMap);
+        auto now = std::chrono::steady_clock::now().time_since_epoch();
+        uint64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+        std::string bundleName;
+        bool needReport = false;
+        for (const auto& [pid, memoryInfo] : infoMap) {
+            needReport = false;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                auto it = pidInfo_.find(pid);
+                if (it == pidInfo_.end()) {
+                    int32_t uid;
+                    auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+                    appMgrClient.GetBundleNameByPid(pid, bundleName, uid);
+                    pidInfo_.emplace(pid, std::make_pair(bundleName, currentTime + MEMORY_REPORT_INTERVAL));
+                    needReport = true;
+                } else if (currentTime > it->second.second) {
+                    it->second.second = currentTime + MEMORY_REPORT_INTERVAL;
+                    bundleName = it->second.first;
+                    needReport = true;
+                }
+            }
+            if (RSSystemProperties::GetMemoryOverTreminateEnabled() && memoryInfo.TotalMemory() > MEMORY_CHECK_KILL) {
+                KillProcessByPid(pid, memoryInfo, bundleName);
+            } else if (needReport) {
+                MemoryOverReport(pid, memoryInfo, bundleName, "RENDER_MEMORY_OVER_WARNING");
+            }
+        }
+    };
+    RSBackgroundThread::Instance().PostTask(task);
+#endif
+}
+
+void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
+    const std::string& reportName)
+{
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid,
+        "BUNDLE_NAME", bundleName,
+        "CPU_MEMORY", info.cpuMemory,
+        "GPU_MEMORY", info.gpuMemory,
+        "TOTAL_MEMORY", info.TotalMemory());
+    RS_LOGW("RSMemoryOverReport pid[%d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
+        pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
+}
+
+bool MemoryManager::KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName)
+{
+    auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient.KillApplication(bundleName) != AppExecFwk::AppMgrResultCode::RESULT_OK) {
+        RS_LOGW("MemoryManager::KillProcessByPid kill process failed");
+        return false;
+    }
+    MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
+    return true;
+}
+
+void MemoryManager::ErasePidInfo(const std::set<pid_t>& exitedPidSet)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto pid : exitedPidSet) {
+        pidInfo_.erase(pid);
+    }
+}
+
+void MemoryManager::VmaDefragment(Drawing::GPUContext* gpuContext)
+{
+#if defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("VmaDefragment fail, gpuContext is nullptr");
+        return;
+    }
+    RS_TRACE_NAME_FMT("VmaDefragment");
+    gpuContext->VmaDefragment();
+#endif
 }
 } // namespace OHOS::Rosen

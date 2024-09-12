@@ -119,7 +119,7 @@ void RSScreenManager::RegisterSensorCallback()
     int32_t setBatchRet;
     int32_t activateRet;
     int tryCnt = 0;
-    const int tryLimit = 5; // 5 times failure limit
+    constexpr int tryLimit = 5; // 5 times failure limit
     do {
         subscribeRet = SubscribeSensor(SENSOR_TYPE_ID_POSTURE, &user);
         RS_LOGI("RSScreenManager RegisterSensorCallback, subscribeRet: %{public}d", subscribeRet);

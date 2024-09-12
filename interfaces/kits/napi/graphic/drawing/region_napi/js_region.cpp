@@ -69,17 +69,11 @@ napi_value JsRegion::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
     auto region = std::make_shared<Region>();
-    JsRegion* jsRegion = new(std::nothrow) JsRegion(region);
-    if (jsRegion == nullptr) {
-        ROSEN_LOGE("JsRegion::Constructor failed to new region");
-        return nullptr;
-    }
+    JsRegion* jsRegion = new JsRegion(region);
     status = napi_wrap(env, jsThis, jsRegion,
                        JsRegion::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
-        if (jsRegion != nullptr) {
-            delete jsRegion;
-        }
+        delete jsRegion;
         ROSEN_LOGE("JsRegion::Constructor Failed to wrap native instance");
         return nullptr;
     }

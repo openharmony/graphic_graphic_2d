@@ -161,6 +161,11 @@ void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     impl_->SetCurrentGpuResourceTag(tag);
 }
 
+void GPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
+{
+    impl_->GetUpdatedMemoryMap(out);
+}
+
 void GPUContext::ResetContext()
 {
     impl_->ResetContext();
@@ -183,6 +188,10 @@ GPUContextOptions::PersistentCache* GPUContextOptions::GetPersistentCache() cons
     return persistentCache_;
 }
 
+void GPUContext::VmaDefragment()
+{
+    impl_->VmaDefragment();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

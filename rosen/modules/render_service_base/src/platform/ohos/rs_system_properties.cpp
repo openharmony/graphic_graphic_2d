@@ -281,7 +281,7 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
 bool RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()
 {
     static bool hardwareComposerMirrorEnabled =
-        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "0") != "0";
+        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "1") != "0";
     return hardwareComposerMirrorEnabled;
 }
 
@@ -290,6 +290,14 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
     static bool hwcRegionDfxEnabled = system::GetParameter(
         "persist.rosen.hwcRegionDfx.enabled", "0") != "0";
     return hwcRegionDfxEnabled;
+}
+
+bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.pixelmapdfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
 }
 
 bool RSSystemProperties::GetAFBCEnabled()
@@ -888,14 +896,6 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
-{
-    static bool PreAllocateTextureBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.pre_allocate_texture_between_frames_enabled", "1")
-                       .c_str()) != 0);
-    return PreAllocateTextureBetweenFramesEnabled;
-}
-
 bool RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()
 {
     static bool AsyncFreeVMAMemoryBetweenFramesEnabled =
@@ -1060,6 +1060,13 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;
+}
+
+bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+{
+    static bool flag =
+        std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
+    return flag;
 }
 } // namespace Rosen
 } // namespace OHOS

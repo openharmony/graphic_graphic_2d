@@ -35,20 +35,13 @@ public:
 
     enum YUVColorSpace : int {
         JPEG_FULL_YUVCOLORSPACE,      // describes full range
-        BT2020_10BIT_LIMITED_YUVCOLORSPACE,
         IDENTITY_YUVCOLORSPACE,       // maps Y->R, U->G, V->B
         LASTENUM_YUVCOLORSPACE = IDENTITY_YUVCOLORSPACE      // last valid value
     };
 
-    enum class YUVDataType {
-        UNORM_8,
-        UNORM_16,
-    };
-
     YUVInfo() = default;
-    YUVInfo(int width, int height, PlaneConfig config, SubSampling sampling, YUVColorSpace colorSpace, YUVDataType type)
-        : width_(width), height_(height), planeConfig_(config), subSampling_(sampling),
-          yuvColorSpace_(colorSpace), type_(type) {}
+    YUVInfo(int width, int height, PlaneConfig config, SubSampling sampling, YUVColorSpace colorSpace)
+        : width_(width), height_(height), planeConfig_(config), subSampling_(sampling), yuvColorSpace_(colorSpace) {}
     ~YUVInfo() = default;
 
     int GetWidth() const
@@ -76,18 +69,12 @@ public:
         return yuvColorSpace_;
     }
 
-    YUVDataType GetDataType() const
-    {
-        return type_;
-    }
-
 private:
     int width_ = 0;
     int height_ = 0;
     PlaneConfig planeConfig_ = PlaneConfig::UNKNOWN;
     SubSampling subSampling_ = SubSampling::UNKNOWN;
     YUVColorSpace yuvColorSpace_ = YUVColorSpace::IDENTITY_YUVCOLORSPACE;
-    YUVDataType type_ = YUVDataType::UNORM_8;
 };
 } // namespace Drawing
 } // namespace Rosen

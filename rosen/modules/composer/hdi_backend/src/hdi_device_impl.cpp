@@ -89,18 +89,17 @@ int32_t HdiDeviceImpl::RegHotPlugCallback(HotPlugCallback callback, void *data)
     return g_composer->RegHotPlugCallback(callback, data);
 }
 
-int32_t HdiDeviceImpl::RegRefreshCallback(RefreshCallback callback, void *data)
-{
-    CHECK_FUNC(g_composer);
-    return g_composer->RegRefreshCallback(callback, data);
-}
-
-
 bool HdiDeviceImpl::RegHwcDeadCallback(OnHwcDeadCallback callback, void *data)
 {
     CHECK_FUNC(g_composer);
     sptr<HwcDeathRecipient> recipient = new HwcDeathRecipient(callback, data);
     return g_composer->AddDeathRecipient(recipient);
+}
+
+int32_t HdiDeviceImpl::RegRefreshCallback(RefreshCallback callback, void *data)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->RegRefreshCallback(callback, data);
 }
 
 int32_t HdiDeviceImpl::RegScreenVBlankCallback(uint32_t screenId, VBlankCallback callback, void *data)
@@ -206,7 +205,7 @@ int32_t HdiDeviceImpl::SetScreenOverlayResolution(uint32_t screenId, uint32_t wi
 int32_t HdiDeviceImpl::GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus &status)
 {
     CHECK_FUNC(g_composer);
-    HDI::Display::Composer::V1_0::DispPowerStatus hdiStatus;
+    Composer::V1_0::DispPowerStatus hdiStatus;
     int32_t ret = g_composer->GetDisplayPowerStatus(screenId, hdiStatus);
     if (ret == GRAPHIC_DISPLAY_SUCCESS) {
         status = static_cast<GraphicDispPowerStatus>(hdiStatus);
@@ -217,8 +216,7 @@ int32_t HdiDeviceImpl::GetScreenPowerStatus(uint32_t screenId, GraphicDispPowerS
 int32_t HdiDeviceImpl::SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status)
 {
     CHECK_FUNC(g_composer);
-    return g_composer->SetDisplayPowerStatus(screenId,
-        static_cast<HDI::Display::Composer::V1_0::DispPowerStatus>(status));
+    return g_composer->SetDisplayPowerStatus(screenId, static_cast<Composer::V1_0::DispPowerStatus>(status));
 }
 
 int32_t HdiDeviceImpl::GetScreenBacklight(uint32_t screenId, uint32_t &level)
@@ -504,8 +502,7 @@ int32_t HdiDeviceImpl::SetLayerBuffer(uint32_t screenId, uint32_t layerId, const
 int32_t HdiDeviceImpl::SetLayerCompositionType(uint32_t screenId, uint32_t layerId, GraphicCompositionType type)
 {
     CHECK_FUNC(g_composer);
-    HDI::Display::Composer::V1_0::CompositionType hdiType
-        = static_cast<HDI::Display::Composer::V1_0::CompositionType>(type);
+    Composer::V1_0::CompositionType hdiType = static_cast<Composer::V1_0::CompositionType>(type);
     return g_composer->SetLayerCompositionType(screenId, layerId, hdiType);
 }
 
@@ -670,7 +667,7 @@ int32_t HdiDeviceImpl::CreateLayer(uint32_t screenId, const GraphicLayerInfo &la
         .width = layerInfo.width,
         .height = layerInfo.height,
         .type = static_cast<LayerType>(layerInfo.type),
-        .pixFormat = static_cast<HDI::Display::Composer::V1_0::PixelFormat>(layerInfo.pixFormat),
+        .pixFormat = static_cast<Composer::V1_0::PixelFormat>(layerInfo.pixFormat),
     };
     return g_composer->CreateLayer(screenId, hdiLayerInfo, cacheCount, layerId);
 }

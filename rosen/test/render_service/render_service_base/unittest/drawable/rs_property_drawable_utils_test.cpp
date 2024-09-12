@@ -213,6 +213,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     Drawing::Canvas canvasTest2;
     paintFilterCanvas.canvas_ = &canvasTest2;
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    int lastBlurCnt = rsPropertyDrawableUtils->g_blurCnt;
+    ASSERT_NE(lastBlurCnt, 0);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, false);
+    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
 /**
@@ -345,13 +349,16 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest013, testing::ext::Tes
     RSPaintFilterCanvas paintFilterCanvasTest(&canvasTest);
     RectF boundsRect = RectF(0.0f, 0.0f, 1.0f, 1.0f);
     std::optional<Vector4f> pixelStretch = std::nullopt;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
     pixelStretch = 1.0f;
     paintFilterCanvasTest.surface_ = nullptr;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
     Drawing::Surface surface;
     paintFilterCanvasTest.surface_ = &surface;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
 }
 
 /**

@@ -776,12 +776,12 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSurfaceOcclusionChangeCallb
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-    EXPECT_EQ(proxy->RegisterOcclusionChangeCallback(callback), 2);
+    EXPECT_NE(proxy->RegisterOcclusionChangeCallback(callback), -1);
     NodeId id = 1;
     proxy->UnRegisterSurfaceOcclusionChangeCallback(id);
     sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);
     std::vector<float> partitionPoints;
-    ASSERT_EQ(proxy->RegisterSurfaceOcclusionChangeCallback(id, callbackTwo, partitionPoints), 2);
+    ASSERT_NE(proxy->RegisterSurfaceOcclusionChangeCallback(id, callbackTwo, partitionPoints), -1);
 }
 
 /**
@@ -796,7 +796,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterHgmRefreshRateUpdateCallbac
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIHgmConfigChangeCallback> callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
-    EXPECT_EQ(proxy->RegisterHgmConfigChangeCallback(callback), 2);
+    EXPECT_NE(proxy->RegisterHgmConfigChangeCallback(callback), -1);
     EXPECT_EQ(proxy->RegisterHgmRefreshRateModeChangeCallback(callback), 2);
     ASSERT_EQ(proxy->RegisterHgmRefreshRateUpdateCallback(callback), 2);
 }

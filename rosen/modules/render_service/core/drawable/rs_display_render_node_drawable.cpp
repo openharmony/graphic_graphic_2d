@@ -52,6 +52,7 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "static_factory.h"
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
@@ -608,7 +609,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 uniParam->SetOpDropped(false);
                 // draw black background in rotation for camera
                 curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-                PrepareOffscreenRender(*this);
+                PrepareOffscreenRender(*this, true);
             }
 
             if (uniParam->IsOpDropped()) {
@@ -648,10 +649,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
 
         specialLayerType_ = GetSpecialLayerType(*params);
-        if (uniParam->HasMirrorDisplay() && UNLIKELY(!params->IsRotationChanged()) &&
-            curCanvas_->GetSurface() != nullptr && specialLayerType_ == NO_SPECIAL_LAYER) {
+        if (uniParam->HasMirrorDisplay() && curCanvas_->GetSurface() != nullptr &&
+            specialLayerType_ == NO_SPECIAL_LAYER) {
             cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
-        } else if (!uniParam->HasMirrorDisplay()) {
+        } else {
             SetCacheImgForCapture(nullptr);
         }
     }
@@ -721,9 +722,6 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
         specialLayerType_ != NO_SPECIAL_LAYER) {
         DrawMirror(params, virtualProcesser,
             &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
-    } else if (hardwareDrawables.size() > 0 && RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()) {
-        DrawMirror(params, virtualProcesser,
-            &RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes, *uniParam);
     } else {
         DrawMirrorCopy(*mirroredDrawable, params, virtualProcesser, *uniParam);
     }
@@ -783,8 +781,9 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
-        mirrorParams->IsSpecialLayerChanged() || lastSecExemption_ != curSecExemption_) {
+        mirrorParams->IsSpecialLayerChanged() || lastSecExemption_ != curSecExemption_ || virtualDirtyRefresh_) {
         GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
+        virtualDirtyRefresh_ = false;
         lastMatrix_ = canvasMatrix;
         lastMirrorMatrix_ = mirrorParams->GetMatrix();
     }
@@ -825,6 +824,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         SetCanvasBlack(*virtualProcesser);
+        virtualDirtyRefresh_ = true;
         return;
     }
     curCanvas_->Save();
@@ -904,8 +904,11 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
         RS_TRACE_NAME("DrawMirrorCopy with cacheImage");
         curCanvas_ = virtualProcesser->GetCanvas();
         if (curCanvas_) {
+            RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
             mirrorDrawable.DrawHardwareEnabledNodesMissedInCacheImage(*curCanvas_);
             RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
+            mirrorDrawable.DrawHardwareEnabledTopNodesMissedInCacheImage(*curCanvas_);
+            RSUniRenderThread::ResetCaptureParam();
         }
     } else {
         RS_TRACE_NAME("DrawMirrorCopy with displaySurface");
@@ -1246,6 +1249,20 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodesMissedInCacheImage(Dra
     }
 }
 
+void RSDisplayRenderNodeDrawable::DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas)
+{
+    auto params = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
+    if (!params) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodesMissedInCacheImage params is null!");
+        return;
+    }
+
+    Drawing::AutoCanvasRestore acr(canvas, true);
+    if (params->GetHardwareEnabledTopDrawables().size() != 0) {
+        AdjustZOrderAndDrawSurfaceNode(params->GetHardwareEnabledTopDrawables(), canvas, *params);
+    }
+}
+
 void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const
 {
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -1340,7 +1357,6 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
     });
 
     Drawing::AutoCanvasRestore acr(canvas, true);
-    canvas.ConcatMatrix(params.GetMatrix());
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         RS_LOGE("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode, rscanvas us nullptr");
@@ -1356,8 +1372,7 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         // SelfDrawingNodes need to use LayerMatrix(totalMatrix) when doing capturing
         auto matrix = surfaceParams->GetLayerInfo().matrix;
-        matrix.PostScale(RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
-        canvas.SetMatrix(matrix);
+        canvas.ConcatMatrix(matrix);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
         surfaceNodeDrawable->DealWithSelfDrawingNodeBuffer(*rscanvas, *surfaceParams);
     }
@@ -1426,7 +1441,8 @@ void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
     }
 }
 
-void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable)
+void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
+    bool useFixedSize)
 {
     // params not null in caller
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
@@ -1438,13 +1454,18 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     int32_t offscreenWidth = static_cast<int32_t>(screenInfo.width);
     int32_t offscreenHeight = static_cast<int32_t>(screenInfo.height);
     // use fixed surface size in order to reduce create texture
-    if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
+    if (useFixedSize && (RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
         && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
         int32_t maxRenderSize =
             static_cast<int32_t>(std::max(params->GetScreenInfo().width, params->GetScreenInfo().height));
         offscreenWidth = maxRenderSize;
         offscreenHeight = maxRenderSize;
+    }
+    if (params->IsRotationChanged()) {
+        if (RSUniRenderThread::Instance().GetVmaOptimizeFlag()) {
+            Drawing::StaticFactory::SetVmaCacheStatus(true); // render this frame with vma cache on
+        }
     }
 
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {

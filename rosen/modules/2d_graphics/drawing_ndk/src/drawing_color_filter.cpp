@@ -77,5 +77,8 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLuma()
 
 void OH_Drawing_ColorFilterDestroy(OH_Drawing_ColorFilter* cColorFilter)
 {
+    if (!cColorFilter) {
+        return;
+    }
     delete CastToColorFilter(cColorFilter);
 }

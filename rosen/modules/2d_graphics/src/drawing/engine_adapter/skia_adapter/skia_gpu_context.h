@@ -100,6 +100,7 @@ public:
 
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag) override;
 
+    void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) override;
 #ifdef RS_ENABLE_VK
     void StoreVkPipelineCacheData() override;
 #endif
@@ -113,6 +114,8 @@ public:
     void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) override;
 
     static std::function<void(const std::function<void()>& task)> GetPostFunc(sk_sp<GrDirectContext> grContext);
+
+    void VmaDefragment() override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

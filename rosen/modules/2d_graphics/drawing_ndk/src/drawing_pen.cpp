@@ -124,6 +124,9 @@ OH_Drawing_Pen* OH_Drawing_PenCopy(OH_Drawing_Pen* cPen)
 
 void OH_Drawing_PenDestroy(OH_Drawing_Pen* cPen)
 {
+    if (!cPen) {
+        return;
+    }
     delete CastToPen(cPen);
 }
 

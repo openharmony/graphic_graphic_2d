@@ -163,7 +163,7 @@ private:
     // load single image as Drawingimage
     static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
 
-    static bool DecodeBitmap(std::shared_ptr<Drawing::Image> drImage, Drawing::Bitmap &bitmap);
+    static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
     bool SetHardwareLayerSize();
 
     // load all images according to the resolution

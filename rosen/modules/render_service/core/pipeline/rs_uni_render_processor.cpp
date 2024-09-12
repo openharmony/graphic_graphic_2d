@@ -236,7 +236,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetLayerSize(dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
     bool forceClient = RSSystemProperties::IsForceClient() ||
-        (params.GetIsProtectedLayer() && params.GetAnimateState());
+        (params.GetIsProtectedLayer() && (params.GetAnimateState() || params.GetForceClientForDRMOnly()));
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 

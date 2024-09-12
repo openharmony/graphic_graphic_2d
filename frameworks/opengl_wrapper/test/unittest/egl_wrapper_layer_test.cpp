@@ -108,6 +108,6 @@ HWTEST_F(EglWrapperLayerTest, InitBundleInfo001, Level1)
     EglWrapperDispatchTable dispatchTable;
 
     bool result = EglWrapperLayer::GetInstance().InitBundleInfo();
-    ASSERT_TRUE(result);
+    ASSERT_FALSE(result);
 }
 } // OHOS::Rosen

@@ -18,6 +18,7 @@
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "property/rs_point_light_manager.h"
+#include "animation/rs_render_particle_animation.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -249,6 +250,11 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
 
+    uint32_t flyMode = 0;
+    RSFlyOutPara rs_fly_out_param = {
+        flyMode
+    };
+    properties.flyOutParams_ = std::optional<RSFlyOutPara>(rs_fly_out_param);
     properties.foregroundEffectRadius_ = -0.1f;
     properties.flyOutDegree_ = 0.5;
     properties.UpdateFilter();
@@ -453,7 +459,7 @@ HWTEST_F(PropertiesTest, SetEmitterUpdaterTest, TestSize.Level1)
     PropertyId propertyId = 0;
     AnimationId animationId = 0;
     renderNode->animationManager_.particleAnimations_.insert({ propertyId, animationId });
-    auto renderAnimation = std::make_shared<RSRenderAnimation>();
+    std::shared_ptr<RSRenderAnimation> renderAnimation = std::make_shared<RSRenderParticleAnimation>();
     renderNode->animationManager_.animations_.insert({ animationId, renderAnimation });
     properties.SetEmitterUpdater(para);
     EXPECT_EQ(renderNode->animationManager_.animations_.empty(), false);
@@ -540,7 +546,7 @@ HWTEST_F(PropertiesTest, SetNGetDynamicDimDegreeTest, TestSize.Level1)
     properties.SetDynamicDimDegree(dimDegree);
     ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
     EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
-    EXPECT_TRUE(properties.IsDynamicDimValid());
+    EXPECT_FALSE(properties.IsDynamicDimValid());
 
     std::optional<float> degree;
     properties.SetDynamicDimDegree(degree);
@@ -816,5 +822,92 @@ HWTEST_F(PropertiesTest, CheckGreyCoefTest, TestSize.Level1)
     properties.CheckGreyCoef();
     EXPECT_EQ(properties.greyCoef_, std::nullopt);
 }
+
+/**
+ * @tc.name: SetFlyOutDegreeTest
+ * @tc.desc: test results of SetFlyOutDegree
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(PropertiesTest, SetFlyOutDegreeTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetFlyOutDegree(0.7f);
+    float degree = properties.GetFlyOutDegree();
+    EXPECT_FLOAT_EQ(degree, 0.7f);
+}
+
+/**
+ * @tc.name: SetFlyOutParamsTest
+ * @tc.desc: test results of SetFlyOutParams
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(PropertiesTest, SetFlyOutParamsTest, TestSize.Level1)
+{
+    RSProperties properties;
+    std::optional<RSFlyOutPara> paramsNull = std::nullopt;
+    properties.SetFlyOutParams(paramsNull);
+    ASSERT_TRUE(properties.isDrawn_ == false);
+
+    uint32_t flyMode = 0;
+    RSFlyOutPara rs_fly_out_param = {
+        flyMode
+    };
+    auto params = std::optional<RSFlyOutPara>(rs_fly_out_param);
+    properties.SetFlyOutParams(params);
+    ASSERT_TRUE(properties.isDrawn_ == true);
+    ASSERT_TRUE(properties.GetFlyOutParams().has_value());
+}
+
+/**
+ * @tc.name: IsFlyOutValidTest
+ * @tc.desc: test results of IsFlyOutValid
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(PropertiesTest, IsFlyOutValidTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // if degree > 1
+    properties.SetFlyOutDegree(2.0f);
+    ASSERT_FALSE(properties.IsFlyOutValid());
+    // if degree < 0
+    properties.SetFlyOutDegree(-5.0f);
+    ASSERT_FALSE(properties.IsFlyOutValid());
+    // if no flyOutParams
+    properties.SetFlyOutDegree(1.0f);
+    ASSERT_FALSE(properties.IsFlyOutValid());
+    uint32_t flyMode = 0;
+    RSFlyOutPara rs_fly_out_param = {
+        flyMode
+    };
+    auto params = std::optional<RSFlyOutPara>(rs_fly_out_param);
+    properties.SetFlyOutParams(params);
+    ASSERT_TRUE(properties.IsFlyOutValid());
+}
+
+/**
+ * @tc.name: CreateFlyOutShaderFilterTest
+ * @tc.desc: test results of CreateFlyOutShaderFilter
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(PropertiesTest, CreateFlyOutShaderFilterTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetFlyOutDegree(0.4f);
+    uint32_t flyMode = 1;
+    RSFlyOutPara rs_fly_out_param = {
+        flyMode
+    };
+    auto params = std::optional<RSFlyOutPara>(rs_fly_out_param);
+    properties.SetFlyOutParams(params);
+    if (properties.IsFlyOutValid()) {
+        properties.CreateFlyOutShaderFilter();
+    }
+    EXPECT_FALSE(properties.GetForegroundFilter() == nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

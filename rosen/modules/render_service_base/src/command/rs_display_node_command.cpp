@@ -35,6 +35,10 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
             return;
         }
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node);
+        if (displayNode == nullptr) {
+            RS_LOGE("DisplayNodeCommandHelper::Create displayNode is nullptr");
+            return;
+        }
         displayNode->SetMirrorSource(mirrorSourceNode);
     }
 }

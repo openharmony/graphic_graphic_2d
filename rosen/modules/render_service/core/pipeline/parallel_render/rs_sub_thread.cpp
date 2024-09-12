@@ -214,7 +214,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         }
 
         RSTagTracker nodeProcessTracker(grContext_.get(), surfaceNodePtr->GetId(),
-            RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+            RSTagTracker::TAGTYPE::TAG_SUB_THREAD, surfaceNodePtr->GetName());
         bool needNotify = !surfaceNodePtr->HasCachedTexture();
         nodeDrawable->Process(visitor);
         nodeProcessTracker.SetTagEnd();
@@ -222,7 +222,7 @@ void RSSubThread::RenderCache(const std::shared_ptr<RSSuperRenderTask>& threadTa
         if (cacheSurface) {
             RS_TRACE_NAME_FMT("Rendercache skSurface flush and submit");
             RSTagTracker nodeFlushTracker(grContext_.get(), surfaceNodePtr->GetId(),
-                RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+                RSTagTracker::TAGTYPE::TAG_SUB_THREAD, surfaceNodePtr->GetName());
             cacheSurface->FlushAndSubmit(true);
             nodeFlushTracker.SetTagEnd();
         }
@@ -261,14 +261,14 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     nodeDrawable->SetSubThreadSkip(false);
 
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s]", nodeDrawable->GetName().c_str());
-    RSTagTracker tagTracker(grContext_.get(), nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+    RSTagTracker tagTracker(grContext_.get(), nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
     if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount() &&
         nodeDrawable->HasCachedTexture()) {
         RS_TRACE_NAME_FMT("subthread skip node id %llu", nodeId);
         nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
         nodeDrawable->SetSubThreadSkip(true);
-        doingCacheProcessNum--;
+        doingCacheProcessNum_--;
         return;
     }
     if (nodeDrawable->UseDmaBuffer()) {
@@ -290,7 +290,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
 
     // mark nodedrawable can release
     RSUifirstManager::Instance().AddProcessDoneNode(nodeId);
-    doingCacheProcessNum--;
+    doingCacheProcessNum_--;
 }
 
 std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()

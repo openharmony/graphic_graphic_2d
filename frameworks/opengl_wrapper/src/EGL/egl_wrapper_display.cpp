@@ -689,7 +689,7 @@ EGLBoolean EglWrapperDisplay::SwapBuffers(EGLSurface surf)
 
     EglWrapperSurface *surfPtr = EglWrapperSurface::GetWrapperSurface(surf);
     if (!CheckObject(surfPtr)) {
-        if (surfPtr->GetEglSurface() == nullptr) {
+        if (surfPtr != nullptr && surfPtr->GetEglSurface() == nullptr) {
             WLOGE("INparament is invalid.");
             return EGL_FALSE;
         }

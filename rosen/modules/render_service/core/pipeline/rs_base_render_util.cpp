@@ -912,6 +912,8 @@ Drawing::ColorType RSBaseRenderUtil::GetColorTypeFromBufferFormat(int32_t pixelF
     switch (pixelFmt) {
         case GRAPHIC_PIXEL_FMT_RGBA_8888:
             return Drawing::ColorType::COLORTYPE_RGBA_8888;
+        case GRAPHIC_PIXEL_FMT_RGBX_8888:
+            return Drawing::ColorType::COLORTYPE_RGB_888X;
         case GRAPHIC_PIXEL_FMT_BGRA_8888 :
             return Drawing::ColorType::COLORTYPE_BGRA_8888;
         case GRAPHIC_PIXEL_FMT_RGB_565:
@@ -1117,6 +1119,19 @@ bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
         return false;
     }
     return true;
+}
+
+GraphicTransformType RSBaseRenderUtil::GetSurfaceBufferTransformType(
+    const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer)
+{
+    auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    if (consumer == nullptr || buffer == nullptr) {
+        return transformType;
+    }
+    if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
+        RS_LOGE("RSBaseRenderUtil::GetSurfaceBufferTransformType GetSurfaceBufferTransformType failed");
+    }
+    return transformType;
 }
 
 Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds)

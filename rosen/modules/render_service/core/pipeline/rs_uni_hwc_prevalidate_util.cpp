@@ -13,19 +13,21 @@
  * limitations under the License.
  */
 
+#include "pipeline/rs_uni_hwc_prevalidate_util.h"
+
 #include <dlfcn.h>
 #include <functional>
 #include <string>
 
-#include "common/rs_common_hook.h"
-#include "common/rs_obj_abs_geometry.h"
 #include "rs_base_render_util.h"
 #include "rs_uni_render_util.h"
+
+#include "common/rs_common_hook.h"
+#include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_uni_hwc_prevalidate_util.h"
 #include "platform/common/rs_log.h"
-#include "drawable/rs_display_render_node_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,7 +40,7 @@ RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
 
 RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
 {
-    preValidateHandle_ = dlopen("/chipset/lib64/chipsetsdk/libdss_enhance.z.so", RTLD_LAZY);
+    preValidateHandle_ = dlopen("libdss_enhance.z.so", RTLD_LAZY);
     if (preValidateHandle_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load library failed, reason: %{public}s", __func__, __LINE__, dlerror());
         return;
@@ -47,6 +49,8 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     if (preValidateFunc_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load func failed, reason: %{public}s", __func__, __LINE__, dlerror());
         dlclose(preValidateHandle_);
+        preValidateHandle_ = nullptr;
+        return;
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess = true;
@@ -56,6 +60,7 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
 {
     if (preValidateHandle_) {
         dlclose(preValidateHandle_);
+        preValidateHandle_ = nullptr;
     }
 }
 

@@ -21,7 +21,7 @@ namespace OHOS {
 namespace Rosen {
 DCLCommand::DCLCommand(int32_t argc, char* argv[])
 {
-    std::vector<std::string> argvNew(argv + 1, argv + argc);
+    std::vector<std::string> argvNew(argv, argv + argc);
     ParseCommand(argvNew);
 }
 

@@ -521,13 +521,13 @@ int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuff
         interval, rangeSize);
     return StatusCode::SUCCESS;
 }
- 
+
 int32_t RSRenderServiceConnection::SetPointerColorInversionEnabled(bool enable)
 {
     RSPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(enable);
     return StatusCode::SUCCESS;
 }
- 
+
 int32_t RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback(
     sptr<RSIPointerLuminanceChangeCallback> callback)
 {
@@ -538,7 +538,7 @@ int32_t RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback(
     RSPointerRenderManager::GetInstance().RegisterPointerLuminanceChangeCallback(remotePid_, callback);
     return StatusCode::SUCCESS;
 }
- 
+
 int32_t RSRenderServiceConnection::UnRegisterPointerLuminanceChangeCallback()
 {
     RSPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
@@ -1075,6 +1075,18 @@ void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
     }
     RSLuminanceControl::Get().SetSdrLuminance(id, level);
     if (RSLuminanceControl::Get().IsHdrOn(id) && level > 0) {
+        auto task = [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                RS_LOGE("RSRenderServiceConnection::SetScreenBacklight fail");
+                return;
+            }
+            connection->mainThread_->SetForceUpdateUniRenderFlag(true);
+            connection->mainThread_->SetLuminanceChangingStatus(true);
+            connection->mainThread_->SetDirtyFlag();
+            connection->mainThread_->RequestNextVSync();
+        };
+        mainThread_->PostTask(task);
         return;
     }
 
@@ -1093,7 +1105,7 @@ void RSRenderServiceConnection::RegisterBufferClearListener(
     if (!mainThread_) {
         return;
     }
-    auto registerBufferClearListener = 
+    auto registerBufferClearListener =
         [id, callback, weakThis = wptr<RSRenderServiceConnection>(this)]() -> bool {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (!connection) {
@@ -1698,9 +1710,6 @@ void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t to
         return;
     }
     mainThread_->GetFrameRateMgr()->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
-    if (touchStatus == TouchStatus::TOUCH_DOWN) {
-        GrDirectContext::setLastTouchDownTime();
-    }
 }
 
 void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
@@ -1799,6 +1808,11 @@ LayerComposeInfo RSRenderServiceConnection::GetLayerComposeInfo()
 HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
 {
     return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
+}
+
+void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
+{
+    renderThread_.SetVmaCacheStatus(flag);
 }
 
 #ifdef TP_FEATURE_ENABLE

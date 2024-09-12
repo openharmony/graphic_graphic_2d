@@ -282,6 +282,7 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw %s should not paint", name_.c_str());
         return;
     }
 
@@ -366,12 +367,19 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    Drawing::GPUContext* gpuContext = renderEngine_->GetRenderContext()->GetDrGPUContext();
-    RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    auto realTid = gettid();
+    if (realTid == RSUniRenderThread::Instance().GetTid()) {
+        gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
+    } else {
+        gpuContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
+    }
+    RSTagTracker tagTracker(gpuContext.get(), surfaceParams->GetId(),
+        RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceParams->GetName());
 
     // Draw base pipeline start
     RSAutoCanvasRestore acr(rscanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
-    bool needOffscreen = (gettid() == RSUniRenderThread::Instance().GetTid()) &&
+    bool needOffscreen = (realTid == RSUniRenderThread::Instance().GetTid()) &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
         (surfaceParams->GetVisibleRegion().Area() == surfaceParams->GetOpaqueRegion().Area());

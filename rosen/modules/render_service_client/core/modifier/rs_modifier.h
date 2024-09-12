@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_MODIFIER_H
 
 #include "common/rs_macros.h"
-#include "common/rs_obj_abs_geometry.h"
 #include "modifier/rs_property.h"
 
 namespace OHOS {
@@ -62,28 +61,16 @@ protected:
         }
     }
 
-    virtual RSPropertyModifierType GetPropertyModifierType() const = 0;
-
-    std::weak_ptr<RSNode> GetTarget() const
-    {
-        return property_->target_;
-    }
-
-    virtual void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) {}
-
     void AttachProperty(const std::shared_ptr<RSPropertyBase>& property);
 
     void AttachToNode(const std::shared_ptr<RSNode> target)
     {
         property_->target_ = std::weak_ptr<RSNode>(target);
-        property_->AttachModifier(shared_from_this());
-        MarkNodeDirty();
         OnAttachToNode(target);
     }
 
     void DetachFromNode()
     {
-        MarkNodeDirty();
         property_->target_.reset();
     }
 
@@ -105,8 +92,6 @@ protected:
 
     void SetDirty(const bool isDirty);
 
-    virtual void MarkNodeDirty() {}
-
     void ResetRSNodeExtendModifierDirty();
 
     bool isDirty_ { false };
@@ -126,19 +111,6 @@ public:
     {}
 
     virtual ~RSGeometryModifier() = default;
-
-protected:
-    RSPropertyModifierType GetPropertyModifierType() const override
-    {
-        return RSPropertyModifierType::GEOMETRY;
-    }
-
-    void MarkNodeDirty() override
-    {
-        if (auto node = GetTarget().lock()) {
-            node->MarkDirty(NodeDirtyType::GEOMETRY, true);
-        }
-    }
 };
 
 class RSC_EXPORT RSBackgroundModifier : public RSModifier {
@@ -148,12 +120,6 @@ public:
     {}
 
     virtual ~RSBackgroundModifier() = default;
-
-protected:
-    RSPropertyModifierType GetPropertyModifierType() const override
-    {
-        return RSPropertyModifierType::BACKGROUND;
-    }
 };
 
 class RSC_EXPORT RSContentModifier : public RSModifier {
@@ -163,12 +129,6 @@ public:
     {}
 
     virtual ~RSContentModifier() = default;
-
-protected:
-    RSPropertyModifierType GetPropertyModifierType() const override
-    {
-        return RSPropertyModifierType::CONTENT;
-    }
 };
 
 class RSC_EXPORT RSForegroundModifier : public RSModifier {
@@ -178,12 +138,6 @@ public:
     {}
 
     virtual ~RSForegroundModifier() = default;
-
-protected:
-    RSPropertyModifierType GetPropertyModifierType() const override
-    {
-        return RSPropertyModifierType::FOREGROUND;
-    }
 };
 
 class RSC_EXPORT RSOverlayModifier : public RSModifier {
@@ -193,12 +147,6 @@ public:
     {}
 
     virtual ~RSOverlayModifier() = default;
-
-protected:
-    RSPropertyModifierType GetPropertyModifierType() const override
-    {
-        return RSPropertyModifierType::OVERLAY;
-    }
 };
 
 class RSC_EXPORT RSAppearanceModifier : public RSModifier {
@@ -208,19 +156,6 @@ public:
     {}
 
     virtual ~RSAppearanceModifier() = default;
-
-protected:
-    RSPropertyModifierType GetPropertyModifierType() const override
-    {
-        return RSPropertyModifierType::APPEARANCE;
-    }
-
-    void MarkNodeDirty() override
-    {
-        if (auto node = GetTarget().lock()) {
-            node->MarkDirty(NodeDirtyType::APPEARANCE, true);
-        }
-    }
 };
 } // namespace Rosen
 } // namespace OHOS

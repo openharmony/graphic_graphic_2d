@@ -44,10 +44,8 @@ void RSRenderNodeGCTest::TearDown() {}
  */
 HWTEST_F(RSRenderNodeGCTest, NodeDestructor001, TestSize.Level1)
 {
-    RSRenderNodeGC& node = RSRenderNodeGC::Instance();
-    RSRenderNode renderNode(0);
-    RSRenderNode* ptr = &renderNode;
-    node.NodeDestructor(ptr);
+    auto ptr = std::make_shared<RSRenderNode>(0);
+    RSRenderNodeGC::NodeDestructor(ptr.get());
     EXPECT_TRUE(ptr != nullptr);
 }
 
@@ -63,12 +61,11 @@ HWTEST_F(RSRenderNodeGCTest, NodeDestructorInner001, TestSize.Level1)
     node.NodeDestructorInner(nullptr);
     EXPECT_TRUE(node.nodeBucket_.size() == 1);
 
-    RSRenderNode renderNode(0);
-    RSRenderNode* ptr = &renderNode;
-    node.NodeDestructorInner(ptr);
+    auto ptr = std::make_shared<RSRenderNode>(0);
+    node.NodeDestructorInner(ptr.get());
     EXPECT_TRUE(ptr != nullptr);
 
-    node.NodeDestructorInner(ptr);
+    node.NodeDestructorInner(ptr.get());
     EXPECT_TRUE(ptr != nullptr);
 }
 

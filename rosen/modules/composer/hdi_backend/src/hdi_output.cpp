@@ -469,6 +469,7 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
     static const std::unordered_set<std::string> videoLayers {
         "xcomponentIdSurface",
         "componentIdSurface",
+        "SceneViewer Model totemweather0",
     };
 
     if (layerInfo->GetBuffer() == nullptr) {

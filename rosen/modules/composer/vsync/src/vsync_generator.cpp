@@ -52,8 +52,8 @@ constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
-constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 constexpr int64_t REFRESH_PERIOD = 16666667; // 16666667ns == 16.666667ms
+constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 
 static void SetThreadHighPriority()
 {
@@ -566,6 +566,9 @@ uint32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
         return 0;
     }
     int32_t actualRefreshRate = round(1.0/((double)period/1000000000.0)); // 1.0s == 1000000000.0ns
+    if (actualRefreshRate == 0) {
+        return 0;
+    }
     int32_t refreshRate = actualRefreshRate;
     int32_t diff = 0;
     // 在actualRefreshRate附近找一个能被VSYNC_MAX_REFRESHRATE整除的刷新率作为训练pulse的参考刷新率
@@ -732,11 +735,6 @@ void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor
     rsVSyncDistributor_ = rsVSyncDistributor;
 }
 
-void VSyncGenerator::SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor)
-{
-    appVSyncDistributor_ = appVSyncDistributor;
-}
-
 void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
 {
     if (lastPeriod_ == period_) {
@@ -766,6 +764,11 @@ void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
         frameRateChanging_ = false;
         ScopedBytrace forceEnd("frameRateChanging_ = false, forceEnd");
     }
+}
+
+void VSyncGenerator::SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor)
+{
+    appVSyncDistributor_ = appVSyncDistributor;
 }
 
 void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime)

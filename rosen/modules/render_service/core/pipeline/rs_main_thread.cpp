@@ -790,6 +790,7 @@ void RSMainThread::CacheCommands()
         cachedTransactionDataMap_[pid].insert(cachedTransactionDataMap_[pid].begin(),
             std::make_move_iterator(skipTransactionDataVec.begin()),
             std::make_move_iterator(skipTransactionDataVec.end()));
+        skipTransactionDataVec.clear();
     }
 }
 
@@ -817,7 +818,7 @@ void RSMainThread::InformHgmNodeInfo()
     }
 }
 
-std::unordered_map<NodeId, bool> RSMainThread::GetCacheCmdSkippedNodes() const
+const std::unordered_map<NodeId, bool>& RSMainThread::GetCacheCmdSkippedNodes() const
 {
     return cacheCmdSkippedNodes_;
 }
@@ -1033,20 +1034,6 @@ void RSMainThread::ProcessCommandForUniRender()
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s transactionDataEffective not empty", __func__);
     }
-    const auto& nodeMap = context_->GetNodeMap();
-    nodeMap.TraverseCanvasDrawingNodes([](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
-        if (canvasDrawingNode == nullptr) {
-            return;
-        }
-        if (canvasDrawingNode->IsNeedProcess()) {
-            auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasDrawingNode);
-            if (!drawableNode) {
-                return;
-            }
-            std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->
-                PlaybackInCorrespondThread();
-        }
-    });
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     transactionFlags_ = transactionFlags;
     for (auto& rsTransactionElem: *transactionDataEffective) {
@@ -1256,9 +1243,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 auto preBuffer = surfaceHandler.GetPreBuffer().buffer;
                 surfaceNode->UpdateBufferInfo(buffer,
                     surfaceHandler.GetDamageRegion(), surfaceHandler.GetAcquireFence(), preBuffer);
-                if (surfaceHandler.GetBufferSizeChanged()) {
+                if (surfaceHandler.GetBufferSizeChanged() || surfaceHandler.GetBufferTransformTypeChanged()) {
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
+                    surfaceHandler.SetBufferTransformTypeChanged(false);
                     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode buffer size changed",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                     RS_LOGI("ConsumeAndUpdateAllNodes name:%{public}s id:%{public}" PRIu64" buffer size changed, "
@@ -1467,7 +1455,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
 
     // check all children of global root node, and only disable hardware composer
-    // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE
+    // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
     auto itr = std::find_if(children->begin(), children->end(), [](const std::shared_ptr<RSRenderNode>& child) -> bool {
             if (child == nullptr) {
@@ -1477,15 +1465,20 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 return false;
             }
             auto displayNodeSp = std::static_pointer_cast<RSDisplayRenderNode>(child);
+            if (displayNodeSp->GetMirrorSource().lock()) {
+                // wired projection case
+                return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
+            }
             return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     });
 
-    bool isExpandScreenCase = itr != children->end();
+    bool isExpandScreenOrWiredProjectionCase = itr != children->end();
     bool enableHwcForMirrorMode = RSSystemProperties::GetHardwareComposerEnabledForMirrorMode();
     // [PLANNING] GetChildrenCount > 1 indicates multi display, only Mirror Mode need be marked here
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
     isHardwareForcedDisabled_ = isHardwareForcedDisabled_ || doWindowAnimate_ ||
-        (isMultiDisplay && (isExpandScreenCase || !enableHwcForMirrorMode) && !hasProtectedLayer_) || hasColorFilter;
+        (isMultiDisplay && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode) && !hasProtectedLayer_) ||
+        hasColorFilter;
     RS_OPTIONAL_TRACE_NAME_FMT("hwc debug global: CheckIfHardwareForcedDisabled isHardwareForcedDisabled_:%d "
         "doWindowAnimate_:%d isMultiDisplay:%d hasColorFilter:%d",
         isHardwareForcedDisabled_, doWindowAnimate_.load(), isMultiDisplay, hasColorFilter);
@@ -3171,19 +3164,6 @@ void RSMainThread::TrimMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
-void RSMainThread::DumpNode(std::string& result, uint64_t nodeId) const
-{
-    const auto& nodeMap = context_->GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (!node) {
-        result.append("have no this node");
-        return;
-    }
-    DfxString log;
-    node->DumpNodeInfo(log);
-    result.append(log.GetString());
-}
-
 void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
     std::string& type, pid_t pid)
 {
@@ -3871,6 +3851,21 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus %{public}d", isCurtainScreenOn);
 }
 
+void RSMainThread::SetLuminanceChangingStatus(bool isLuminanceChanged)
+{
+    isLuminanceChanged_.store(isLuminanceChanged);
+}
+
+bool RSMainThread::ExchangeLuminanceChangingStatus()
+{
+    bool expectChanged = true;
+    if (!isLuminanceChanged_.compare_exchange_weak(expectChanged, false)) {
+        return false;
+    }
+    RS_LOGD("RSMainThread::ExchangeLuminanceChangingStatus changed");
+    return true;
+}
+
 bool RSMainThread::IsCurtainScreenOn() const
 {
     return isCurtainScreenOn_;
@@ -3926,7 +3921,7 @@ void RSMainThread::UpdateLuminance()
         }
     }
     if (isNeedRefreshAll) {
-        isCurtainScreenUsingStatusChanged_ = true;
+        SetLuminanceChangingStatus(true);
         SetDirtyFlag();
         RequestNextVSync();
     }

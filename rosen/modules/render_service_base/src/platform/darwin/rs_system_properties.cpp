@@ -438,6 +438,11 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    return false;
+}
+
 SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     return SubTreePrepareCheckType::ENABLED;
@@ -474,6 +479,11 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 }
 
 bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetMemoryOverTreminateEnabled()
 {
     return false;
 }

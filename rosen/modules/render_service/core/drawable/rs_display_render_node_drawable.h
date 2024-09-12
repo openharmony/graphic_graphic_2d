@@ -41,6 +41,7 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSDisplayRenderParams& params);
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
+    void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
@@ -177,7 +178,7 @@ private:
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
-    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable);
+    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool SkipDisplayIfScreenOff() const;
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
@@ -227,6 +228,7 @@ private:
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
     int64_t lastRefreshTime_ = 0;
+    bool virtualDirtyRefresh_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

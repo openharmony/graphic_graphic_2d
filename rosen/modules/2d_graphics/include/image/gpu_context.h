@@ -46,12 +46,13 @@ enum class PathRenderers : uint32_t {
 struct GPUResourceTag {
     GPUResourceTag()
         : fPid(0), fTid(0), fWid(0), fFid(0) {}
-    GPUResourceTag(uint32_t pid, uint32_t tid, uint32_t wid, uint32_t fid)
-        : fPid(pid), fTid(tid), fWid(wid), fFid(fid) {}
+    GPUResourceTag(uint32_t pid, uint32_t tid, uint32_t wid, uint32_t fid, const std::string& name)
+        : fPid(pid), fTid(tid), fWid(wid), fFid(fid), fName(name) {}
     uint32_t fPid;
     uint32_t fTid;
     uint32_t fWid;
     uint32_t fFid;
+    std::string fName;
 };
 
 /**
@@ -249,6 +250,12 @@ public:
      */
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
 
+    /**
+     * @brief                   Get updated memory map.
+     * @param out               Updated memory map.
+     */
+    void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out);
+
 #ifdef RS_ENABLE_VK
     /**
      * @brief                   Store vulkan pipeline cache
@@ -268,6 +275,11 @@ public:
     }
 
     void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func);
+
+    /**
+     * @brief                   Defragment or clear Vma Cache if needed
+     */
+    void VmaDefragment();
 private:
     std::shared_ptr<GPUContextImpl> impl_;
 };

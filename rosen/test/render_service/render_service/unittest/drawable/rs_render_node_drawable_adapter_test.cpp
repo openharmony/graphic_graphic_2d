@@ -178,9 +178,9 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
     int32_t depth = 3;
     std::string out;
     auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(node);
     node->DumpDrawableTree(depth, out);
-    EXPECT_EQ(adapter->renderNode_.lock(), nullptr);
+    EXPECT_NE(adapter->renderNode_.lock(), nullptr);
     EXPECT_TRUE(!out.empty());
     out.clear();
 
@@ -192,7 +192,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
     childDrawable->childrenDrawableVec_.emplace_back(childAdapter);
     renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = childDrawable;
     adapter->renderNode_ = renderNode;
-    node->DumpDrawableTree(depth, out);
+    renderNode->DumpDrawableTree(depth, out);
     EXPECT_TRUE(out.size() > depth);
 }
 
@@ -223,7 +223,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
 {
     NodeId id = 5;
     auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(node);
     auto retStr = node->DumpDrawableVec();
     EXPECT_TRUE(retStr.empty());
 
@@ -233,9 +233,10 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
     auto foregroundStyle = std::make_shared<RSChildrenDrawableBrotherAdapter>();
     renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_STYLE)] = std::move(foregroundStyle);
     adapter->renderNode_ = renderNode;
-    retStr = node->DumpDrawableVec();
+    retStr = renderNode->DumpDrawableVec();
     EXPECT_GT(retStr.length(), 2);
 }
+
 /**
  * @tc.name: QuickRejectTest
  * @tc.desc: Test QuickReject

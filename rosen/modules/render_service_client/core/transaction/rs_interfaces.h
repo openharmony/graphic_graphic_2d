@@ -270,6 +270,8 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
 
+    void SetVmaCacheStatus(bool flag);
+
 #ifdef TP_FEATURE_ENABLE
     void SetTpFeatureConfig(int32_t feature, const char* config);
 #endif

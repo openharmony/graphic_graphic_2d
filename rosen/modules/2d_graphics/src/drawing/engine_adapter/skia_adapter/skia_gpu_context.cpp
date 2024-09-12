@@ -213,6 +213,7 @@ void SkiaGPUContext::DumpGpuStats(std::string& out)
     }
     SkString stat;
     grContext_->priv().dumpGpuStats(&stat);
+    grContext_->dumpVmaStats(&stat);
     out = stat.c_str();
 }
 
@@ -240,7 +241,7 @@ void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, cons
         LOGD("SkiaGPUContext::PurgeUnlockedResourcesByTag, grContext_ is nullptr");
         return;
     }
-    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid);
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->purgeUnlockedResourcesByTag(scratchResourcesOnly, grTag);
 }
 
@@ -278,7 +279,7 @@ void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
         LOGD("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
         return;
     }
-    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid);
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->releaseByTag(grTag);
 }
 
@@ -307,7 +308,7 @@ void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump,
         LOGD("SkiaGPUContext::DumpMemoryStatisticsByTag, sktraceMemoryDump is nullptr");
         return;
     }
-    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid);
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->dumpMemoryStatisticsByTag(skTraceMemoryDump, grTag);
 }
 
@@ -336,7 +337,7 @@ void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
         LOGD("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
         return;
     }
-    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid);
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->setCurrentGrResourceTag(grTag);
 }
 
@@ -348,6 +349,15 @@ sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const
 void SkiaGPUContext::SetGrContext(const sk_sp<GrDirectContext>& grContext)
 {
     grContext_ = grContext;
+}
+
+void SkiaGPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::GetUpdatedMemoryMap, grContext_ is nullptr");
+        return;
+    }
+    grContext_->getUpdatedMemoryMap(out);
 }
 
 #ifdef RS_ENABLE_VK
@@ -379,6 +389,12 @@ std::function<void(const std::function<void()>& task)> SkiaGPUContext::GetPostFu
     return nullptr;
 }
 
+void SkiaGPUContext::VmaDefragment()
+{
+    if (grContext_ != nullptr) {
+        grContext_->vmaDefragment();
+    }
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

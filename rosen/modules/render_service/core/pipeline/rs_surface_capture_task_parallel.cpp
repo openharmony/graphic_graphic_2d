@@ -103,6 +103,7 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
     }
     if (!captureHandle->CreateResources()) {
         callback->OnSurfaceCapture(id, nullptr);
+        return;
     }
 
     std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
@@ -165,7 +166,13 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     SetupGpuContext();
-    RSTagTracker tagTracker(gpuContext_.get(), nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE);
+    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_));
+    std::string nodeName("RSSurfaceCaptureTaskParallel");
+    if (surfaceNode != nullptr) {
+        nodeName = surfaceNode->GetName();
+    }
+    RSTagTracker tagTracker(gpuContext_.get(), nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelMap_);
     if (surface == nullptr) {
@@ -261,7 +268,6 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         return nullptr;
     }
     uint64_t screenId = node->GetScreenId();
-    RSScreenModeInfo screenModeInfo;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: screenManager is nullptr!");

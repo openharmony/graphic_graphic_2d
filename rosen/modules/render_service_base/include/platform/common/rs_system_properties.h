@@ -158,6 +158,7 @@ public:
     static bool GetHardwareComposerEnabled();
     static bool GetHardwareComposerEnabledForMirrorMode();
     static bool GetHwcRegionDfxEnabled();
+    static bool GetPixelmapDfxEnabled();
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
     static bool GetRSScreenRoundCornerEnable();
@@ -200,7 +201,6 @@ public:
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
     static bool GetPurgeBetweenFramesEnabled();
-    static bool GetPreAllocateTextureBetweenFramesEnabled();
     static bool GetAsyncFreeVMAMemoryBetweenFramesEnabled();
 
     static bool GetAnimationCacheEnabled();
@@ -267,6 +267,7 @@ public:
     }
 
     static int GetRSNodeLimit();
+    static bool GetMemoryOverTreminateEnabled();
 
 private:
     RSSystemProperties() = default;

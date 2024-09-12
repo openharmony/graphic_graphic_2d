@@ -172,6 +172,11 @@ public:
                              buffer->GetHeight() != preBuffer_.buffer->GetHeight();
     }
 
+    void SetBufferTransformTypeChanged(bool flag)
+    {
+        bufferTransformTypeChanged_ = flag;
+    }
+
     bool CheckScalingModeChanged()
     {
         if (!HasConsumer() || buffer_.buffer == nullptr) {
@@ -224,6 +229,11 @@ public:
     bool GetBufferSizeChanged()
     {
         return bufferSizeChanged_;
+    }
+
+    bool GetBufferTransformTypeChanged() const
+    {
+        return bufferTransformTypeChanged_;
     }
 
     bool HasConsumer() const
@@ -280,6 +290,7 @@ private:
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
+    bool bufferTransformTypeChanged_ = false;
     std::map<uint64_t, SurfaceBufferEntry> bufferCache_;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 };

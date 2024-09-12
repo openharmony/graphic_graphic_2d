@@ -81,10 +81,10 @@ HWTEST_F(RSSystemPropertiesTest, GetRecordingEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetUniRenderEnabled, TestSize.Level1)
 {
-    ASSERT_TRUE(RSSystemProperties::GetUniRenderEnabled());
     // it is not possible to change RSSystemProperties::isUniRenderEnabled from test
     // check the second API calling returns the same value
-    ASSERT_TRUE(RSSystemProperties::GetUniRenderEnabled());
+    RSSystemProperties::isUniRenderEnabled_ = false;
+    ASSERT_FALSE(RSSystemProperties::GetUniRenderEnabled());
 }
 
 /**
@@ -269,6 +269,17 @@ HWTEST_F(RSSystemPropertiesTest, GetHardwareComposerEnabled, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, GetHwcRegionDfxEnabled, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::GetHwcRegionDfxEnabled());
+}
+
+/**
+ * @tc.name: GetPixelmapDfxEnabled
+ * @tc.desc: GetPixelmapDfxEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetPixelmapDfxEnabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetPixelmapDfxEnabled());
 }
 
 /**
@@ -792,7 +803,10 @@ HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSucess, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, IsFoldScreenFlag, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::IsFoldScreenFlag());
+    std::string foldScreenFlag = system::GetParameter("const.window.foldscreen.type", "");
+    system::SetParameter("const.window.foldscreen.type", "0");
+    ASSERT_TRUE(RSSystemProperties::IsFoldScreenFlag());
+    system::SetParameter("const.window.foldscreen.type", foldScreenFlag);
 }
 
 /**

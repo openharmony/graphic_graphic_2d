@@ -308,6 +308,13 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
+    if (!isOnTheTree_) {
+        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
+        stagingDrawCmdList_.clear();
+        drawCmdListNeedSync_ = true;
+        AddToPendingSyncList();
+    }
     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node remove child", GetId());
     SetContentDirty();
     isFullChildrenListValid_ = false;
@@ -1314,8 +1321,10 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     // 2. update geoMatrix by parent for dirty collection
     // update geoMatrix and accumGeoDirty if needed
     auto parent = GetParent().lock();
-    if (!accumGeoDirty && parent && parent->GetGeoUpdateDelay()) {
+    if (parent && parent->GetGeoUpdateDelay()) {
         accumGeoDirty = true;
+        // Set geometry update delay flag recursively to update node's old dirty in subTree
+        SetGeoUpdateDelay(true);
     }
     auto& properties = GetMutableRenderProperties();
     if (accumGeoDirty || properties.NeedClip() || properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
@@ -1339,8 +1348,10 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
-    if ((IsDirty() || clipAbsDrawRectChange_ || (parent && parent->GetAccumulatedClipFlagChange())) &&
-        (shouldPaint_ || isLastVisible_)) {
+    // Only when satisfy following conditions, absDirtyRegion should update:
+    // 1.The node is dirty; 2.The clip absDrawRect change; 3.Parent clip property change or has GeoUpdateDelay dirty;
+    if ((IsDirty() || clipAbsDrawRectChange_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
+        parent->GetGeoUpdateDelay()))) && (shouldPaint_ || isLastVisible_)) {
         // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
         UpdateDirtyRegionInfoForDFX(dirtyManager);
@@ -2181,11 +2192,6 @@ void RSRenderNode::RemoveAllModifiers()
 {
     modifiers_.clear();
     renderContent_->drawCmdModifiers_.clear();
-}
-
-void RSRenderNode::DumpNodeInfo(DfxString& log)
-{
-    // Drawing is not supported
 }
 
 void RSRenderNode::AccmulateDirtyInOcclusion(bool isOccluded)
@@ -3533,6 +3539,10 @@ RectI RSRenderNode::GetOldDirty() const
 RectI RSRenderNode::GetOldDirtyInSurface() const
 {
     return oldDirtyInSurface_;
+}
+RectI RSRenderNode::GetOldClipRect() const
+{
+    return oldClipRect_;
 }
 void RSRenderNode::SetOldDirtyInSurface(RectI oldDirtyInSurface)
 {
