@@ -123,8 +123,7 @@ HWTEST_F(SkiaStaticFactoryTest, MakeFromYUVAPixmaps001, TestSize.Level1)
 {
     OHOS::Rosen::Drawing::GPUContext gpuContext;
     YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
-        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE,
-        YUVInfo::YUVDataType::UNORM_8);
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
 
     auto skiaStatic = SkiaStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, nullptr);
 
