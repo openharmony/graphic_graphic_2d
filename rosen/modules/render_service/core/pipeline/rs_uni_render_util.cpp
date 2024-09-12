@@ -320,8 +320,8 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     }
     uint32_t srcWidth = static_cast<uint32_t>(params.srcRect.GetWidth());
     uint32_t srcHeight = static_cast<uint32_t>(params.srcRect.GetHeight());
-    uint32_t newWidth = 0;
-    uint32_t newHeight = 0;
+    float newWidth = 0.0f;
+    float newHeight = 0.0f;
     // Canvas is able to handle the situation when the window is out of screen, using bounds instead of dst.
     uint32_t boundsWidth = static_cast<uint32_t>(localBounds.GetWidth());
     uint32_t boundsHeight = static_cast<uint32_t>(localBounds.GetHeight());
@@ -348,17 +348,17 @@ void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<Surfac
     newHeight = newHeight * srcHeight / boundsHeight;
     newWidth = newWidth * srcWidth / boundsWidth;
     if (newWidth < srcWidth) {
-        auto halfdw = (srcWidth - newWidth) / 2;
+        float halfdw = (srcWidth - newWidth) / 2;
         params.dstRect =
-            Drawing::Rect(params.srcRect.GetLeft() + static_cast<int32_t>(halfdw), params.srcRect.GetTop(),
-                params.srcRect.GetLeft() + static_cast<int32_t>(halfdw) + static_cast<int32_t>(newWidth),
+            Drawing::Rect(params.srcRect.GetLeft() + halfdw, params.srcRect.GetTop(),
+                params.srcRect.GetLeft() + halfdw + newWidth,
                 params.srcRect.GetTop() + params.srcRect.GetHeight());
     } else if (newHeight < srcHeight) {
-        auto halfdh = (srcHeight - newHeight) / 2;
+        float halfdh = (srcHeight - newHeight) / 2;
         params.dstRect =
-            Drawing::Rect(params.srcRect.GetLeft(), params.srcRect.GetTop() + static_cast<int32_t>(halfdh),
+            Drawing::Rect(params.srcRect.GetLeft(), params.srcRect.GetTop() + halfdh,
                 params.srcRect.GetLeft() + params.srcRect.GetWidth(),
-                params.srcRect.GetTop() + static_cast<int32_t>(halfdh) + static_cast<int32_t>(newHeight));
+                params.srcRect.GetTop() + halfdh + newHeight);
     }
     RS_LOGD("RsDebug RSUniRenderUtil::SrcRectScaleFit name:%{public}s,"
         " dstRect [%{public}f %{public}f %{public}f %{public}f]",
