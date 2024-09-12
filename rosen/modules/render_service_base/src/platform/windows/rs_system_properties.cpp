@@ -531,5 +531,10 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

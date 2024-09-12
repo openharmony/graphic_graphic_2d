@@ -30,6 +30,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "modifier/rs_modifier_type.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -4134,6 +4135,16 @@ void RSRenderNode::ValidateLightResources()
     }
     if (properties.illuminatedPtr_ && properties.illuminatedPtr_->IsIlluminatedValid()) {
         RSPointLightManager::Instance()->AddDirtyIlluminated(weak_from_this());
+    }
+}
+
+void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
+{
+    const auto& properties = GetRenderProperties();
+    if (properties.GetBackgroundFilter()) {
+        if (auto filterDrawable = GetFilterDrawable(false)) {
+            filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
+        }
     }
 }
 

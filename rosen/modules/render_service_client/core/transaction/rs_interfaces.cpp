@@ -312,6 +312,11 @@ bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typefa
     return true;
 }
 
+bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
+{
+    return renderServiceClient_->SetGlobalDarkColorMode(isDark);
+}
+
 #ifndef ROSEN_ARKUI_X
 int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {

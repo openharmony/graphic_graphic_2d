@@ -176,6 +176,11 @@ public:
         return isTextureExportNode_;
     }
 
+    inline RectI GetFilterRegion() const
+    {
+        return filterRegion_;
+    }
+
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
     // return children and disappeared children, not guaranteed to be sorted by z-index
     ChildrenListSharedPtr GetChildren() const;
@@ -745,7 +750,7 @@ public:
     {
         return renderDrawable_;
     }
-
+    void MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark);
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -826,6 +831,7 @@ protected:
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
+    bool flagIntersectWithDRM_ = false;
 private:
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;

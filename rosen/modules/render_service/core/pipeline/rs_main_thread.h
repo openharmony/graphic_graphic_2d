@@ -152,6 +152,16 @@ public:
         return isHardwareEnabledBufferUpdated_;
     }
 
+    void SetGlobalDarkColorMode(bool isDark)
+    {
+        isGlobalDarkColorMode_ = isDark;
+    }
+
+    bool GetGlobalDarkColorMode() const
+    {
+        return isGlobalDarkColorMode_;
+    }
+
     /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */
@@ -588,6 +598,7 @@ private:
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
+    std::atomic<bool> isGlobalDarkColorMode_ = false;
 
     std::atomic_bool noNeedToPostTask_ = false;
 

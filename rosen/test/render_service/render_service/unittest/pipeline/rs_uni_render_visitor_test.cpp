@@ -3224,6 +3224,23 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOccludedStatusWithFilterNode002, TestSize
 }
 
 /*
+ * @tc.name: MarkBlurIntersectWithDRM
+ * @tc.desc: Test RSUniRenderVisitorTest.MarkBlurIntersectWithDRM001 while surface node nullptr
+ * @tc.type: FUNC
+ * @tc.require: issuesIAQZ4I
+ */
+HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM001, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->MarkBlurIntersectWithDRM(surfaceNode);
+}
+
+/*
  * @tc.name: CheckMergeDisplayDirtyByTransparentFilter
  * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeDisplayDirtyByTransparentFilter with mainWindow
  * @tc.type: FUNC
