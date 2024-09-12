@@ -20,6 +20,7 @@
 #include "draw/pen.h"
 #include "effect/filter.h"
 #include "utils/scalar.h"
+#include "text/hm_symbol.h"
 
 namespace OHOS {
 namespace Rosen {
