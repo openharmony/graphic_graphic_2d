@@ -1917,6 +1917,24 @@ uint32_t RSScreenManager::GetActualScreensNum() const
     return num;
 }
 
+ScreenInfo RSScreenManager::GetActualScreenMaxResolution() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    uint32_t maxResolution = 0;
+    ScreenId maxScreenId = 0;
+    for (const auto &[id, screen] : screens_) {
+        if (!screen || screen->IsVirtual()) {
+            continue;
+        }
+        uint32_t resolution = screen->PhyWidth() * screen->PhyHeight();
+        if (resolution > maxResolution) {
+            maxScreenId = id;
+            maxResolution = resolution;
+        }
+    }
+    return QueryScreenInfoLocked(maxScreenId);
+}
+
 int32_t RSScreenManager::GetScreenColorGamut(ScreenId id, ScreenColorGamut &mode) const
 {
     std::lock_guard<std::mutex> lock(mutex_);

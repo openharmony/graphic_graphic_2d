@@ -189,6 +189,9 @@ constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
 constexpr const char* MEM_GPU_TYPE = "gpu";
 #endif
+constexpr size_t MEMUNIT_RATE = 1024;
+constexpr size_t MAX_GPU_CONTEXT_CACHE_SIZE = 1024 * MEMUNIT_RATE * MEMUNIT_RATE;   // 1G
+
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
     { 2, 10022 },
@@ -657,7 +660,40 @@ void RSMainThread::Init()
     });
     SubscribeAppState();
     PrintCurrentStatus();
+    UpdateGpuContextCacheSize();
     RSLuminanceControl::Get().Init();
+}
+
+
+void RSMainThread::UpdateGpuContextCacheSize()
+{
+    auto gpuContext = isUniRender_? GetRenderEngine()->GetRenderContext()->GetDrGPUContext() :
+        renderEngine_->GetRenderContext()->GetDrGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSMainThread::UpdateGpuContextCacheSize gpuContext is nullptr!");
+        return;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSMainThread::UpdateGpuContextCacheSize screenManager is nullptr");
+        return;
+    }
+    size_t cacheLimitsResourceSize = 0;
+    size_t maxResourcesSize = 0;
+    int32_t maxResources = 0;
+    gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
+    auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
+    constexpr size_t baseResourceSize = 500;    // 500 M memory is baseline
+    constexpr int32_t baseResolutionWidth = 1260;   // 1260 base resolution width
+    constexpr int32_t baseResolutionHeight = 2720; // 2720 base resolution height
+    cacheLimitsResourceSize = baseResourceSize * maxScreenInfo.phyWidth / baseResolutionWidth
+        * maxScreenInfo.phyHeight / baseResolutionHeight
+        * MEMUNIT_RATE * MEMUNIT_RATE; // 500M memory is resolution: (1260 x 2720), adjust by actual Resolution
+    cacheLimitsResourceSize = cacheLimitsResourceSize > MAX_GPU_CONTEXT_CACHE_SIZE ?
+        MAX_GPU_CONTEXT_CACHE_SIZE : cacheLimitsResourceSize;
+    if (cacheLimitsResourceSize > maxResourcesSize) {
+        gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
+    }
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
