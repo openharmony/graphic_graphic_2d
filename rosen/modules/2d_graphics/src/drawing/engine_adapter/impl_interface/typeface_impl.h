@@ -32,7 +32,6 @@ class TypefaceImpl : public BaseImpl {
 public:
     ~TypefaceImpl() override = default;
     virtual std::string GetFamilyName() const = 0;
-    virtual std::string GetFontPath() const = 0;
     virtual FontStyle GetFontStyle() const = 0;
     virtual size_t GetTableSize(uint32_t tag) const = 0;
     virtual size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const = 0;

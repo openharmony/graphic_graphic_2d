@@ -42,7 +42,6 @@
 #include "drawing_color.h"
 #include "drawing_font.h"
 #include "drawing_text_declaration.h"
-#include "drawing_text_font_descriptor.h" // External interface, do not delete.
 #include "drawing_types.h"
 
 #include "stdint.h"
@@ -191,6 +190,35 @@ typedef struct {
     /** baselineoffset of placeholder */
     double baselineOffset;
 } OH_Drawing_PlaceholderSpan;
+
+/**
+ * @brief Describes the font information.
+ *
+ * @since 12
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontDescriptor {
+    /** The file path of System font */
+    char* path;
+    /** A name that uniquely identifies the font */
+    char* postScriptName;
+    /** The name of System font */
+    char* fullName;
+    /** The family of System font */
+    char* fontFamily;
+    /** The subfont family of the system font */
+    char* fontSubfamily;
+    /** The weight of System font */
+    int weight;
+    /** The width of System font */
+    int width;
+    /** Whether the system font is tilted */
+    int italic;
+    /** Whether the system font is compact */
+    bool monoSpace;
+    /** whether symbolic fonts are supported */
+    bool symbolic;
+} OH_Drawing_FontDescriptor;
 
 /**
  * @brief The metrics of line.
@@ -1431,6 +1459,26 @@ OH_Drawing_Range* OH_Drawing_TypographyGetLineTextRange(OH_Drawing_Typography*, 
  * @version 1.0
  */
 bool OH_Drawing_TypographyGetLineInfo(OH_Drawing_Typography*, int, bool, bool, OH_Drawing_LineMetrics*);
+
+/**
+ * @brief Creates an <b>OH_Drawing_FontDescriptor</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @return Returns the pointer to the font descriptor object <b>OH_Drawing_FontDescriptor</b> created.
+ * @since 12
+ * @version 1.0
+ */
+OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void);
+
+/**
+ * @brief Releases the memory occupied by an <b>OH_Drawing_FontDescriptor</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_FontDescriptor the pointer to the font descriptor object <b>OH_Drawing_FontDescriptor</b>.
+ * @since 12
+ * @version 1.0
+ */
+void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor*);
 
 /**
  * @brief Creates an <b>OH_Drawing_FontParser</b> object.
