@@ -775,7 +775,7 @@ void RSPropertyDrawableUtils::DrawBinarization(Drawing::Canvas* canvas, const st
 }
 
 void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
-    const RectF& boundsRect, const bool boundsGeoValid)
+    const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
 {
     if (!pixelStretch.has_value()) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
@@ -869,7 +869,7 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     constexpr static float EPS = 1e-5f;
     if (pixelStretch->x_ > EPS || pixelStretch->y_ > EPS || pixelStretch->z_ > EPS || pixelStretch->w_ > EPS) {
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
-            *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, inverseMat));
+            *image, pixelStretchTileMode, pixelStretchTileMode, samplingOptions, inverseMat));
         canvas->AttachBrush(brush);
         canvas->DrawRect(Drawing::Rect(-pixelStretch->x_, -pixelStretch->y_,
             -pixelStretch->x_ + scaledBounds.GetWidth(), -pixelStretch->y_ + scaledBounds.GetHeight()));
@@ -878,7 +878,7 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
         inverseMat.PostScale(
             scaledBounds.GetWidth() / bounds.GetWidth(), scaledBounds.GetHeight() / bounds.GetHeight());
         brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
-            *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, inverseMat));
+            *image, pixelStretchTileMode, pixelStretchTileMode, samplingOptions, inverseMat));
 
         canvas->Translate(-pixelStretch->x_, -pixelStretch->y_);
         canvas->AttachBrush(brush);
