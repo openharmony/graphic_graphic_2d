@@ -698,12 +698,8 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
         RS_LOGE("ancestorParam return nullptr");
         return targetColorGamut;
     }
-    auto renderParams = static_cast<RSDisplayRenderParams*>(ancestorParam.get());
-    if (!renderParams) {
-        RS_LOGE("renderParams return nullptr");
-        return targetColorGamut;
-    }
 
+    auto renderParams = static_cast<RSDisplayRenderParams*>(ancestorParam.get());
     targetColorGamut = renderParams->GetNewColorSpace();
     RS_LOGD("params.targetColorGamut is %{public}d in DealWithSelfDrawingNodeBuffer", targetColorGamut);
     return targetColorGamut;
