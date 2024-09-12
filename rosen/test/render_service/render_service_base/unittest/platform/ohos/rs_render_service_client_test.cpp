@@ -424,58 +424,6 @@ HWTEST_F(RSClientTest, SetScreenChangeCallback001, TestSize.Level1)
     EXPECT_EQ(status, StatusCode::SUCCESS);
 }
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-/**
- * @tc.name: SetPointerColorInversionConfig Test
- * @tc.desc: SetPointerColorInversionConfig Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSClientTest, SetPointerColorInversionConfig001, TestSize.Level1)
-{
-    float darkBuffer = 0.5f;
-    float brightBuffer = 0.5f;
-    int64_t interval = 50;
-    int32_t rangeSize = 20;
-    EXPECT_EQ(rsClient->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize),
-        StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: SetPointerColorInversionEnabled Test
- * @tc.desc: SetPointerColorInversionEnabled Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSClientTest, SetPointerColorInversionEnabled001, TestSize.Level1)
-{
-    EXPECT_EQ(rsClient->SetPointerColorInversionEnabled(false), StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: RegisterPointerLuminanceChangeCallback Test
- * @tc.desc: RegisterPointerLuminanceChangeCallback Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSClientTest, RegisterPointerLuminanceChangeCallback001, TestSize.Level1)
-{
-    EXPECT_EQ(rsClient->RegisterPointerLuminanceChangeCallback([](int32_t brightness) -> void {}),
-        StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: UnRegisterPointerLuminanceChangeCallback Test
- * @tc.desc: UnRegisterPointerLuminanceChangeCallback Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSClientTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Level1)
-{
-    EXPECT_EQ(rsClient->UnRegisterPointerLuminanceChangeCallback(), StatusCode::SUCCESS);
-}
-#endif
-
 /**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
