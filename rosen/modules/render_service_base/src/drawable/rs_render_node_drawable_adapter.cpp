@@ -404,7 +404,7 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 int RSRenderNodeDrawableAdapter::GetCountOfClipHoleForCache(const RSRenderParams& params) const
 {
     int count = drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty() ? 1 : 0;
-    count += intdrawCmdIndex_.shadowIndex_ != -1 ? 1 : 0;
+    count += drawCmdIndex_.shadowIndex_ != -1 ? 1 : 0;
     count += drawCmdIndex_.useEffectIndex_ != -1 ? 1 : 0;
     return count;
 }
@@ -445,4 +445,10 @@ void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
     hasSkipCacheLayer_ = hasSkipCacheLayer;
 }
 
+void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
+    }
+}
 } // namespace OHOS::Rosen::DrawableV2

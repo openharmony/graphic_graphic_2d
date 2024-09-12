@@ -2496,6 +2496,8 @@ void RSRenderNode::UpdateDisplayList()
         // If the end drawable exist, return its index, otherwise return -1
         return drawableVec_[endIndex] != nullptr ? stagingDrawCmdList_.size() - 1 : -1;
     };
+    // Update index of ENV_FOREGROUND_COLOR
+    stagingDrawCmdIndex_.envForeGroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::ENV_FOREGROUND_COLOR);
 
     // Update index of SHADOW
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SHADOW);
