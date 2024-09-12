@@ -438,7 +438,7 @@ void RSPixelMapMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterC
 RSPropertyDrawable::DrawablePtr RSShadowBaseDrawable::Generate(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
-    if (properties.IsSpherizeValid() || properties.IsAttractionValid() || !properties.IsShadowValid()) {
+    if (properties.IsSpherizeValid() || !properties.IsShadowValid()) {
         return nullptr;
     }
     if (properties.GetShadowMask()) {
