@@ -1,4 +1,5 @@
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#include 'rs_hardware_thread.h'
 #include "rs_surface_buffer_callback_manager.h"
 
 namespace OHOS {
