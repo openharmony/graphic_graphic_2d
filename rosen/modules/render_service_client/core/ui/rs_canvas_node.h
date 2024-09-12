@@ -47,7 +47,6 @@ public:
 
     void SetHDRPresent(bool hdrPresent);
     
-    using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
     void CheckThread();
