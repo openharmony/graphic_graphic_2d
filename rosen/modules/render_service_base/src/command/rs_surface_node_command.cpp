@@ -308,11 +308,5 @@ void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId no
     }
 }
 
-void SurfaceNodeCommandHelper::SetWindowMode(RSContext& context, NodeId nodeId, RSWindowMode mode)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetRSWindowMode(mode);
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

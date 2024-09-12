@@ -63,7 +63,6 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_SKIP_DRAW,
     SURFACE_NODE_SET_WATERMARK,
     SURFACE_NODE_SET_WATERMARK_ENABLED,
-    SURFACE_NODE_SET_WINDOW_MODE,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -107,7 +106,6 @@ public:
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
     static void SetWatermarkEnabled(RSContext& context, NodeId nodeId, const std::string& name, bool isEnabled);
-    static void SetWindowMode(RSContext& context, NodeId nodeId, RSWindowMode mode);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -188,8 +186,6 @@ ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
 ADD_COMMAND(RSSurfaceNodeSetWatermarkEnabled,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED, SurfaceNodeCommandHelper::SetWatermarkEnabled,
     NodeId, std::string, bool))
-ADD_COMMAND(RSSurfaceNodeSetWindowMode,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_WINDOW_MODE, SurfaceNodeCommandHelper::SetWindowMode, NodeId, RSWindowMode))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

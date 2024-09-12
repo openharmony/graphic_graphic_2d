@@ -144,7 +144,6 @@ public:
     bool GetSkipDraw() const;
 
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
-    void SetRSWindowMode(RSWindowMode mode);
 
 protected:
     bool NeedForcedSendToRemote() const override;

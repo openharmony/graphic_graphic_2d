@@ -907,10 +907,6 @@ public:
     {
         grContext_ = grContext;
     }
-
-    void SetRSWindowMode(RSWindowMode mode);
-    RSWindowMode GetRSWindowMode() const;
-
     // UIFirst
     void UpdateUIFirstFrameGravity();
 
@@ -1416,7 +1412,6 @@ private:
     };
 
     ContainerConfig containerConfig_;
-    ContainerConfig GetContainerConfigWithWindowMode() const;
 
     bool startAnimationFinished_ = false;
 
@@ -1511,8 +1506,6 @@ private:
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
 
     bool arsrTag_ = true;
-
-    RSWindowMode windowMode_ = RSWindowMode::RS_WINDOW_MODE_UNDEFINED;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

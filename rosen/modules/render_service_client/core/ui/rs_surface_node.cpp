@@ -842,15 +842,5 @@ void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
         transactionProxy->AddCommand(command, true);
     }
 }
-
-void RSSurfaceNode::SetRSWindowMode(RSWindowMode mode)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetWindowMode>(GetId(), mode);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
-}
 } // namespace Rosen
 } // namespace OHOS
