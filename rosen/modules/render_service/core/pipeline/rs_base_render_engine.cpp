@@ -224,7 +224,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
         }
         externalTextureInfo.SetFormat(glType);
         if (!image->BuildFromTexture(*canvas.GetGPUContext(), externalTextureInfo,
-            surfaceOrigin, bitmapFormat, nullptr)) {
+            surfaceOrigin, bitmapFormat, drawingColorSpace)) {
             RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer image BuildFromTexture failed");
             return nullptr;
         }
@@ -234,7 +234,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
 #if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan() &&
         !image->BuildFromTexture(*renderContext_->GetDrGPUContext(), externalTextureInfo,
-        surfaceOrigin, bitmapFormat, nullptr)) {
+        surfaceOrigin, bitmapFormat, drawingColorSpace)) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer image BuildFromTexture failed");
         return nullptr;
     }
@@ -634,7 +634,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
-    RS_TRACE_NAME("RSBaseRenderEngine::DrawImage(GPU)");
+    RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
     auto image = std::make_shared<Drawing::Image>();
     if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
         RS_LOGE("RSBaseRenderEngine::DrawImage invalid buffer!");
@@ -662,7 +662,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         }
         auto& backendTexture = imageCache->GetBackendTexture();
         if (!image->BuildFromTexture(*contextDrawingVk, backendTexture.GetTextureInfo(),
-            surfaceOrigin, bitmapFormat, nullptr,
+            surfaceOrigin, bitmapFormat, drawingColorSpace,
             NativeBufferUtils::DeleteVkImage, imageCache->RefCleanupHelper())) {
             ROSEN_LOGE("RSBaseRenderEngine::DrawImage: backendTexture is not valid!!!");
             return;
@@ -717,8 +717,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 
     if (ret != GSERROR_OK) {
         RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.", ret);
-        DrawImageRect(canvas, image, params, samplingOptions);
-        return;
+        MetadataHelper::ConvertColorSpaceTypeToInfo(HDI::Display::Graphic::Common::V1_0::CM_BT709_LIMIT,
+            parameter.inputColorSpace.colorSpaceInfo);
     }
     
     if (!ConvertColorGamutToSpaceInfo(params.targetColorGamut, parameter.outputColorSpace.colorSpaceInfo)) {
