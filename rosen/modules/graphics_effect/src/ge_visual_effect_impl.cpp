@@ -48,16 +48,16 @@ std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> GEVisualEf
             impl->MakeLinearGradientBlurParams();
         }
     },
-    { GE_FILTER_WATER_RIPPLE,
-        [](GEVisualEffectImpl* impl) {
-            impl->SetFilterType(GEVisualEffectImpl::FilterType::WATER_RIPPLE);
-            impl->MakeWaterRippleParams();
-        }
-    },
     { GE_FILTER_MAGNIFIER,
         [](GEVisualEffectImpl* impl) {
             impl->SetFilterType(GEVisualEffectImpl::FilterType::MAGNIFIER);
             impl->MakeMagnifierParams();
+        }
+    },
+    { GE_FILTER_WATER_RIPPLE,
+        [](GEVisualEffectImpl* impl) {
+            impl->SetFilterType(GEVisualEffectImpl::FilterType::WATER_RIPPLE);
+            impl->MakeWaterRippleParams();
         }
     }
 };
