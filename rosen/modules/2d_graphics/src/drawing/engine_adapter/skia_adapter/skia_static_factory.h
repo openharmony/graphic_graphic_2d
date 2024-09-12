@@ -44,6 +44,7 @@ public:
         const RSXform xform[], const Font& font, TextEncoding encoding);
     static std::shared_ptr<Typeface> MakeDefault();
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index);
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[], const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
 #ifdef ACE_ENABLE_GPU
