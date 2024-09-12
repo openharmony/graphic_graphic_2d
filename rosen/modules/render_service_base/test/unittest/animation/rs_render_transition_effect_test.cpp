@@ -213,8 +213,10 @@ HWTEST_F(RSRenderTransitionEffectTest, RSTransitionCustomTest001, TestSize.Level
 {
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest RSTransitionCustomTest001 start";
 
-    RSTransitionCustom custom;
     auto property = std::make_shared<RSRenderPropertyBase>();
+    auto startProp = std::make_shared<RSRenderPropertyBase>();
+    auto endProp = std::make_shared<RSRenderPropertyBase>();
+    RSTransitionCustom custom(property, startProp, endProp);
     custom.property_ = property;
     custom.InitValueEstimator();
     EXPECT_TRUE(custom.valueEstimator_ == nullptr);
