@@ -840,6 +840,14 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             // When the isSync flag in captureConfig is true, UI capture processes commands before capture.
             // When the isSync flag in captureConfig is false, UI capture will check null node independently.
             // Therefore, a null node is valid for UI capture.
+            auto uiCaptureHasPermission = selfCapture || isSystemCalling;
+            if (!uiCaptureHasPermission) {
+                RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture uicapture failed, nodeId:[%{public}" PRIu64
+                        "], isSystemCalling: %{public}u, selfCapture: %{public}u",
+                    id, isSystemCalling, selfCapture);
+                callback->OnSurfaceCapture(id, nullptr);
+                return;
+            }
             if (RSUniRenderJudgement::IsUniRender()) {
                 TakeSurfaceCaptureForUiParallel(id, callback, captureConfig);
             } else {
