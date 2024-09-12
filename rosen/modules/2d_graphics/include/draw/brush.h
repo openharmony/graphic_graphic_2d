@@ -212,7 +212,7 @@ public:
      * @brief Returns true if pixels on the active edges of Path may be drawn with partial transparency.
      * @return antialiasing state
      */
-    bool IsAntiAlias() const;
+    bool IsAntiAlias() const { return antiAlias_; }
 
     /**
      * @brief Requests, but does not require, that edge pixels draw opaque or with

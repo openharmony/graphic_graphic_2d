@@ -694,7 +694,7 @@ void DrawShadowStyleOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawShadowStyleOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (path_ == nullptr) {
-        LOGD("DrawShadowOpItem path is null!");
+        LOGD("DrawShadowStyleOpItem path is null!");
         return;
     }
     canvas->DrawShadowStyle(
@@ -1192,7 +1192,9 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         canvas->Save();
         canvas->SetMatrix(m);
         auto bounds = textBlob_->Bounds();
-        canvas->ClipRect(*bounds, ClipOp::INTERSECT, true);
+        if (bounds && bounds->IsValid()) {
+            canvas->ClipRect(*bounds, ClipOp::INTERSECT, true);
+        }
         saveFlag = true;
     }
     if (canvas->isHighContrastEnabled()) {
