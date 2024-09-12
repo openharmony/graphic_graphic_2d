@@ -536,4 +536,10 @@ void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
     hasSkipCacheLayer_ = hasSkipCacheLayer;
 }
 
+void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
+    }
+}
 } // namespace OHOS::Rosen::DrawableV2
