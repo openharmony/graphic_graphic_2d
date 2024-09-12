@@ -42,6 +42,7 @@ class Canvas;
 }
 
 struct DrawCmdIndex {
+    int8_t envForeGroundColorIndex_    = -1;
     int8_t shadowIndex_                = -1;
     int8_t renderGroupBeginIndex_      = -1;
     int8_t foregroundFilterBeginIndex_ = -1;
@@ -153,6 +154,7 @@ protected:
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     // used for foreground filter
     void DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
