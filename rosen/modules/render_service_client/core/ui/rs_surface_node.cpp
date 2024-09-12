@@ -831,24 +831,6 @@ bool RSSurfaceNode::GetSkipDraw() const
     return isSkipDraw_;
 }
 
-void RSSurfaceNode::SetLayerTop(const std::string& targetName, bool isTop)
-{
-    isLayerTop_ = isTop;
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetLayerTop>(GetId(), targetName, isTop);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        ROSEN_LOGD("SetLayerTop  RSSurfaceNode");
-        transactionProxy->AddCommand(command, true);
-    }
-}
-
-bool RSSurfaceNode::IsLayerTop() const
-{
-    return isLayerTop_;
-}
-
-
 void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
     std::unique_ptr<RSCommand> command =

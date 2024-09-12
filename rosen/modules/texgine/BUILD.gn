@@ -64,8 +64,6 @@ ohos_source_set("libtexgine_source") {
   if (is_ok) {
     sources = [
       "src/font_config.cpp",
-      "src/font_descriptor_cache.cpp",
-      "src/font_descriptor_mgr.cpp",
       "src/font_parser.cpp",
       "src/opentype_parser/cmap_table_parser.cpp",
       "src/opentype_parser/name_table_parser.cpp",

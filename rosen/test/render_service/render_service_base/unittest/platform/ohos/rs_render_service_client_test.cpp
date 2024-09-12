@@ -862,5 +862,19 @@ HWTEST_F(RSClientTest, SetFreeMultiWindowStatus, TestSize.Level1)
     ASSERT_NE(rsClient, nullptr);
     rsClient->SetFreeMultiWindowStatus(true);
 }
+
+/**
+ * @tc.name: SetLayerTop001 Test
+ * @tc.desc: SetLayerTop001, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSClientTest, SetLayerTop001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    const std::string nodeIdStr = "123456";
+    rsClient->SetLayerTop(nodeIdStr, true);
+    ASSERT_TRUE(true);
+}
 } // namespace Rosen
 } // namespace OHOS

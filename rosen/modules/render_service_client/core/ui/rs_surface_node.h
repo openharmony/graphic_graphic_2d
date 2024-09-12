@@ -108,8 +108,6 @@ public:
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
     void SetTextureExport(bool isTextureExportNode) override;
-    void SetLayerTop(const std::string& targetName, bool isTop);
-    bool IsLayerTop() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
@@ -186,7 +184,6 @@ private:
     bool isChildOperationDisallowed_ { false };
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
-    bool isLayerTop_ = false;
     bool abilityState_ = true;
 
     uint32_t windowId_ = 0;

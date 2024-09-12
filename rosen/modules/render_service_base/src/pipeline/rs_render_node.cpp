@@ -716,7 +716,12 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 
     out += "\n";
 
-    for (auto& child : *GetSortedChildren()) {
+    for (auto& child : children_) {
+        if (auto c = child.lock()) {
+            c->DumpTree(depth + 1, out);
+        }
+    }
+    for (auto& [child, pos] : disappearingChildren_) {
         child->DumpTree(depth + 1, out);
     }
 }
@@ -1120,6 +1125,7 @@ RSRenderNode::~RSRenderNode()
         clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
             completedSurfaceThreadIndex_);
     }
+    DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(GetId());
     ClearCacheSurface();
     auto context = GetContext().lock();
     if (!context) {
@@ -1756,8 +1762,8 @@ void RSRenderNode::MapAndUpdateChildrenRect()
         auto invertAbsParentMatrix = Drawing::Matrix();
         if (sandbox.has_value() && sharedTransitionParam_ &&
             parentGeoPtr->GetAbsMatrix().Invert(invertAbsParentMatrix)) {
-            childRelativeToParentMatrix = geoPtr->GetAbsMatrix();
-            childRelativeToParentMatrix.PostConcat(invertAbsParentMatrix);
+            auto absChildMatrix = geoPtr->GetAbsMatrix();
+            childRelativeToParentMatrix = absChildMatrix * invertAbsParentMatrix;
         } else {
             childRelativeToParentMatrix = geoPtr->GetMatrix();
         }

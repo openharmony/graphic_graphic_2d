@@ -95,6 +95,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         params.targetColorGamut = colorGamut;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager != nullptr) {
+            params.sdrNits = layer->GetSdrNit();
             params.tmoNits = layer->GetDisplayNit();
             params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
         }

@@ -165,13 +165,13 @@ constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
-constexpr float DEFAULT_SCALER = 4.5f;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
 constexpr float REFERENCE_WHITE = 203.0f;
 constexpr float CAMERA_WHITE_MIN = 500.0f;
 constexpr float CAMERA_WHITE_MAX = 510.0f;
 constexpr float CAMERA_HDR_RATIO = 2.5f;
 constexpr float HDR_WHITE = 1000.0f;
+constexpr float DEFAULT_SCALER = HDR_WHITE / REFERENCE_WHITE;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -272,8 +272,7 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
     using namespace HDI::Display::Graphic::Common::V1_0;
     std::vector<uint8_t> hdrStaticMetadataVec;
     if (MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadataVec) != GSERROR_OK) {
-        RS_LOGE("MetadataHelper GetHDRStaticMetadata failed");
-        return;
+        RS_LOGD("MetadataHelper GetHDRStaticMetadata failed");
     }
     float scaler = DEFAULT_SCALER;
     if (hdrStaticMetadataVec.size() != sizeof(hdrStaticMetadataVec) || hdrStaticMetadataVec.data() == nullptr) {
@@ -295,6 +294,8 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
     } else {
         surfaceNode.SetBrightnessRatio(std::pow(layerNits / displayNits, 1.0f / GAMMA2_2)); // gamma 2.2
     }
+    RS_LOGD("RSMainThread UpdateSurfaceNodeNit layerNits: %{public}f, displayNits: %{public}f, sdrNits: %{public}f,"
+        " scaler: %{public}f", layerNits, displayNits, sdrNits, scaler);
 }
 
 std::string g_dumpStr = "";
@@ -462,10 +463,12 @@ void RSMainThread::Init()
         SKResourceManager::Instance().ReleaseResource();
         // release node memory
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
-        static std::function<void ()> task = []() -> void {
-            RSImageCache::Instance().ReleaseUniqueIdList();
-        };
-        RSBackgroundThread::Instance().PostTask(task);
+        if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
+            static std::function<void()> task = []() -> void {
+                RSImageCache::Instance().ReleaseUniqueIdList();
+            };
+            RSBackgroundThread::Instance().PostTask(task);
+        }
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
         RSUploadResourceThread::Instance().OnRenderEnd();
 #endif
@@ -1388,8 +1391,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         UpdateSurfaceNodeNit((*surfaceNode).GetRSSurfaceHandler()->GetBuffer(),
             *surfaceNode, CheckIsHdrSurface(*surfaceNode));
-        RSLuminanceControl::Get().SetHdrStatus(0, hasHdrVideo, HDR_TYPE::VIDEO);
     });
+    RSLuminanceControl::Get().SetHdrStatus(0, hasHdrVideo, HDR_TYPE::VIDEO);
     if (needRequestNextVsync) {
         RequestNextVSync();
     }
@@ -2119,7 +2122,7 @@ void RSMainThread::Render()
                 surfaceNodeWatermarksChanged_ = false;
             }
         }
-        
+
         renderThreadParams_->SetCurtainScreenUsingStatus(isCurtainScreenOn_);
         UniRender(rootNode);
         frameCount_++;

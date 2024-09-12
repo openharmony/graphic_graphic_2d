@@ -1,4 +1,5 @@
 /*
+
  * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +117,7 @@ ColorSpace::ColorSpace(const ColorSpacePrimaries &primaries, const TransferFunc 
       toXYZ(ComputeXYZD50(primaries)),
       transferFunc(transferFunc)
 {
-    std::array<float, 2> whiteP = {primaries.wX, primaries.wY}; // 2 means two dimension x, y
+    std::array<float, 2> whiteP = {primaries.wX, primaries.wY};  // 2 means two dimension x, y
     whitePoint = whiteP;
 }
 
@@ -124,7 +125,7 @@ ColorSpace::ColorSpace(const ColorSpacePrimaries &primaries, float gamma)
     : colorSpaceName(ColorSpaceName::CUSTOM),
       toXYZ(ComputeXYZD50(primaries))
 {
-    std::array<float, 2> whiteP = {primaries.wX, primaries.wY}; // 2 means two dimension x, y
+    std::array<float, 2> whiteP = {primaries.wX, primaries.wY};  // 2 means two dimension x, y
     whitePoint = whiteP;
     transferFunc = {};
     transferFunc.g = gamma;

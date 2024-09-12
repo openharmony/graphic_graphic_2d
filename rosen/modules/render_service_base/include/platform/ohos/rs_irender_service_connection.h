@@ -300,6 +300,7 @@ public:
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
+    virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
 #endif
