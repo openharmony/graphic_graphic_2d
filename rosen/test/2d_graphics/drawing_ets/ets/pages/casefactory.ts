@@ -15,7 +15,7 @@
 
 import {TestBase, StyleType} from './testbase';
 import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, CanvasDrawImage, CanvasDrawCircle, CanvasDrawTextBlob,
-  CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetColor, CanvasSetMatrix, CanvasResetMatrix, CanvasClipRoundRect, CanvasIsClipEmpty,
+  CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetMatrix, CanvasResetMatrix, CanvasClipRoundRect, CanvasIsClipEmpty,
   FontIsSubpixel, FontIsLinearMetrics, FontIsEmbolden, FontGetSkewX, FontGetScaleX, FontGetHinting, FontGetEdging,
   BrushGetColorFilter, BrushSetImageFilter, PenGetColorFilter, PenSetImageFilter,
   CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasDrawImageRectWithSrc, CanvasClipRegion } from '../testcase/interface/canvastest';
@@ -43,7 +43,6 @@ export class CaseFactory {
       ['canvasdrawline', () => { return new CanvasDrawLine(); }],
       ['canvasdrawtextblob', () => { return new CanvasDrawTextBlob(); }],
       ['canvasdrawimage', () => { return new CanvasDrawImage(); }],
-      ['canvassetcolor', () => { return new CanvasSetColor(); }],
       ['canvasdrawimagerect', () => { return new CanvasDrawImageRect(); }],
       ['canvasdrawimagerectwithsrc', () => { return new CanvasDrawImageRectWithSrc(); }],
       ['canvasdrawsubpixelfont', () => { return new FontIsSubpixel(); }],

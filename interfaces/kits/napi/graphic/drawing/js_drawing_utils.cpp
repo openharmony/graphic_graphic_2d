@@ -30,7 +30,6 @@ bool JsDrawingTestUtils::closeDrawingTest_ =
 bool JsDrawingTestUtils::closeDrawingTest_ = true;
 #endif
 namespace Drawing {
-const char* const JSPROPERTY[4] = {"alpha", "red", "green", "blue"};
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
 {
     std::string fullName;
