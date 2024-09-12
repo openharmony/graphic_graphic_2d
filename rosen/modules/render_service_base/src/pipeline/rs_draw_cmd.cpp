@@ -172,6 +172,12 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (!pixelMap || !rsImage_) {
         return;
     }
+    auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMap);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (pixelMap->IsHdr()) {
+        colorSpace = Drawing::ColorSpace::CreateSRGB();
+    }
+#endif
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -182,8 +188,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()),
-                RSPixelMapUtil::GetPixelmapColorSpace(pixelMap))) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }
