@@ -222,63 +222,40 @@ bool RSPixelMapUtil::IsYUVFormat(std::shared_ptr<Media::PixelMap> pixelMap)
 #endif
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
-    return imageInfo.pixelFormat == PixelFormat::NV21 || imageInfo.pixelFormat == PixelFormat::NV12
-        || imageInfo.pixelFormat == PixelFormat::YCBCR_P010
-        || imageInfo.pixelFormat == PixelFormat::YCRCB_P010;
+    return imageInfo.pixelFormat == Media::PixelFormat::NV21 || imageInfo.pixelFormat == Media::PixelFormat::NV12;
 }
 
-static Drawing::YUVInfo::PlaneConfig YUVPixelFormatToPlaneConfig(PixelFormat pixelFormat)
+static Drawing::YUVInfo::PlaneConfig YUVPixelFormatToPlaneConfig(Media::PixelFormat pixelFormat)
 {
     switch (pixelFormat) {
-        case PixelFormat::NV12:
-        case PixelFormat::YCBCR_P010:
+        case Media::PixelFormat::NV12:
             return Drawing::YUVInfo::PlaneConfig::Y_UV;
-        case PixelFormat::NV21:
-        case PixelFormat::YCRCB_P010:
+        case Media::PixelFormat::NV21:
             return Drawing::YUVInfo::PlaneConfig::Y_VU;
         default:
             return Drawing::YUVInfo::PlaneConfig::UNKNOWN;
     }
 }
 
-static Drawing::YUVInfo::SubSampling YUVPixelFormatToSubSampling(PixelFormat pixelFormat)
+static Drawing::YUVInfo::SubSampling YUVPixelFormatToSubSampling(Media::PixelFormat pixelFormat)
 {
     switch (pixelFormat) {
-        case PixelFormat::NV12:
-        case PixelFormat::NV21:
-        case PixelFormat::YCBCR_P010:
-        case PixelFormat::YCRCB_P010:
+        case Media::PixelFormat::NV12:
+        case Media::PixelFormat::NV21:
             return Drawing::YUVInfo::SubSampling::K420;
         default:
             return Drawing::YUVInfo::SubSampling::UNKNOWN;
     }
 }
 
-static Drawing::YUVInfo::YUVColorSpace YUVPixelFormatToYUVColorSpace(PixelFormat pixelFormat)
+static Drawing::YUVInfo::YUVColorSpace YUVPixelFormatToYUVColorSpace(Media::PixelFormat pixelFormat)
 {
     switch (pixelFormat) {
-        case PixelFormat::NV12:
-        case PixelFormat::NV21:
+        case Media::PixelFormat::NV12:
+        case Media::PixelFormat::NV21:
             return Drawing::YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE;
-        case PixelFormat::YCBCR_P010:
-        case PixelFormat::YCRCB_P010:
-            return Drawing::YUVInfo::YUVColorSpace::BT2020_10BIT_LIMITED_YUVCOLORSPACE;
         default:
             return Drawing::YUVInfo::YUVColorSpace::IDENTITY_YUVCOLORSPACE;
-    }
-}
-
-static Drawing::YUVInfo::YUVDataType YUVPixelFormatToYUVDataType(PixelFormat pixelFormat)
-{
-    switch (pixelFormat) {
-        case PixelFormat::NV12:
-        case PixelFormat::NV21:
-            return Drawing::YUVInfo::YUVDataType::UNORM_8;
-        case PixelFormat::YCBCR_P010:
-        case PixelFormat::YCRCB_P010:
-            return Drawing::YUVInfo::YUVDataType::UNORM_16;
-        default:
-            return Drawing::YUVInfo::YUVDataType::UNORM_8;
     }
 }
 
@@ -291,8 +268,7 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage
         Drawing::YUVInfo info(pixelMap->GetWidth(), pixelMap->GetHeight(),
             YUVPixelFormatToPlaneConfig(imageInfo.pixelFormat),
             YUVPixelFormatToSubSampling(imageInfo.pixelFormat),
-            YUVPixelFormatToYUVColorSpace(imageInfo.pixelFormat),
-            YUVPixelFormatToYUVDataType(imageInfo.pixelFormat));
+            YUVPixelFormatToYUVColorSpace(imageInfo.pixelFormat));
         return Drawing::Image::MakeFromYUVAPixmaps(*gpuContext, info,
             const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
     }

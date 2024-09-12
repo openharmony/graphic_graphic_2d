@@ -270,8 +270,7 @@ HWTEST_F(SkiaImageTest, MakeFromYUVAPixmaps, TestSize.Level1)
     Bitmap bitmap;
     GPUContext gpuContext;
     YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
-        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE,
-        YUVInfo::YUVDataType::UNORM_8);
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
     std::shared_ptr<Image> image = skiaImage->MakeFromYUVAPixmaps(gpuContext, info, nullptr);
     ASSERT_TRUE(image == nullptr);

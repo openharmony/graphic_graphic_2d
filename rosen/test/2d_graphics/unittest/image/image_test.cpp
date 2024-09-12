@@ -563,8 +563,7 @@ HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest001, TestSize.Level1)
 {
     GPUContext gpuContext;
     YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
-        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE,
-        YUVInfo::YUVDataType::UNORM_8);
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
     auto image = Image::MakeFromYUVAPixmaps(gpuContext, info, nullptr);
     EXPECT_TRUE(image == nullptr);
 }
@@ -584,8 +583,7 @@ HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest002, TestSize.Level1)
     ASSERT_NE(gpuContext, nullptr);
 
     YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
-        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE,
-        YUVInfo::YUVDataType::UNORM_8);
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
     auto image = Image::MakeFromYUVAPixmaps(*gpuContext, info, nullptr);
     EXPECT_TRUE(image == nullptr);
     gpuContext = nullptr;
@@ -619,8 +617,7 @@ HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest003, TestSize.Level1)
     ASSERT_NE(pixelMap.get(), nullptr);
 
     YUVInfo info(300, 300, YUVInfo::PlaneConfig::Y_VU, YUVInfo::SubSampling::K420,
-        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE,
-        YUVInfo::YUVDataType::UNORM_8);
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
     auto image = Image::MakeFromYUVAPixmaps(*gpuContext, info,
         const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
     EXPECT_TRUE(image != nullptr);
@@ -655,80 +652,7 @@ HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest004, TestSize.Level1)
     ASSERT_NE(pixelMap.get(), nullptr);
 
     YUVInfo info(300, 300, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
-        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE,
-        YUVInfo::YUVDataType::UNORM_8);
-    auto image = Image::MakeFromYUVAPixmaps(*gpuContext, info,
-        const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
-    EXPECT_TRUE(image != nullptr);
-    gpuContext = nullptr;
-}
-
-/**
- * @tc.name: MakeFromYUVAPixmapsTest005
- * @tc.desc: test for MakeFromYUVAPixmapsTest success for YUV YCBCR_P010.
- * @tc.type: FUNC
- * @tc.require: I782P9
- */
-HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest005, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    renderContext->InitializeEglContext();
-    renderContext->SetUpGpuContext();
-    auto gpuContext = renderContext->GetSharedDrGPUContext();
-    ASSERT_NE(gpuContext, nullptr);
-
-    size_t bufferSize = g_testJpgLength;
-    uint8_t *buffer = g_testJpgBuffer;
-    uint32_t errorCode = 0;
-    Media::SourceOptions opts;
-    opts.formatHint = "image/jpeg";
-    std::unique_ptr<Media::ImageSource> imageSource = Media::ImageSource::CreateImageSource(buffer,
-        bufferSize, opts, errorCode);
-    ASSERT_NE(imageSource.get(), nullptr);
-    Media::DecodeOptions decodeOpts;
-    decodeOpts.desiredPixelFormat = Media::PixelFormat::YCBCR_P010;
-    std::unique_ptr<Media::PixelMap> pixelMap = imageSource->CreatePixelMap(decodeOpts, errorCode);
-    ASSERT_NE(pixelMap.get(), nullptr);
-
-    YUVInfo info(300, 300, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
-        YUVInfo::YUVColorSpace::BT2020_10BIT_LIMITED_YUVCOLORSPACE,
-        YUVInfo::YUVDataType::UNORM_16);
-    auto image = Image::MakeFromYUVAPixmaps(*gpuContext, info,
-        const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
-    EXPECT_TRUE(image != nullptr);
-    gpuContext = nullptr;
-}
-
-/**
- * @tc.name: MakeFromYUVAPixmapsTest006
- * @tc.desc: test for MakeFromYUVAPixmapsTest success for YUV YCRCB_P010.
- * @tc.type: FUNC
- * @tc.require: I782P9
- */
-HWTEST_F(ImageTest, MakeFromYUVAPixmapsTest006, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    renderContext->InitializeEglContext();
-    renderContext->SetUpGpuContext();
-    auto gpuContext = renderContext->GetSharedDrGPUContext();
-    ASSERT_NE(gpuContext, nullptr);
-
-    size_t bufferSize = g_testJpgLength;
-    uint8_t *buffer = g_testJpgBuffer;
-    uint32_t errorCode = 0;
-    Media::SourceOptions opts;
-    opts.formatHint = "image/jpeg";
-    std::unique_ptr<Media::ImageSource> imageSource = Media::ImageSource::CreateImageSource(buffer,
-        bufferSize, opts, errorCode);
-    ASSERT_NE(imageSource.get(), nullptr);
-    Media::DecodeOptions decodeOpts;
-    decodeOpts.desiredPixelFormat = Media::PixelFormat::YCRCB_P010;
-    std::unique_ptr<Media::PixelMap> pixelMap = imageSource->CreatePixelMap(decodeOpts, errorCode);
-    ASSERT_NE(pixelMap.get(), nullptr);
-
-    YUVInfo info(300, 300, YUVInfo::PlaneConfig::Y_VU, YUVInfo::SubSampling::K420,
-        YUVInfo::YUVColorSpace::BT2020_10BIT_LIMITED_YUVCOLORSPACE,
-        YUVInfo::YUVDataType::UNORM_16);
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE);
     auto image = Image::MakeFromYUVAPixmaps(*gpuContext, info,
         const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
     EXPECT_TRUE(image != nullptr);
