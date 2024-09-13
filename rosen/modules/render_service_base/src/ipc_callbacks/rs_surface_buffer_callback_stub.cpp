@@ -34,23 +34,18 @@ int RSSurfaceBufferCallbackStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH): {
-            auto uid = data.ReadUint64();
-            size_t bufSize {};
+            uint64_t uid = {};
+            auto ret = data.ReadUint64(uid);
             std::vector<uint32_t> surfaceBufferIds;
-            if constexpr (std::is_same_v<decltype(surfaceBufferIds.size()), uint64_t>) {
-                bufSize = data.ReadUint64();
-            } else if constexpr (std::is_same_v<decltype(surfaceBufferIds.size()), uint32_t>) {
-                bufSize = data.ReadUint32();
-            }
-            surfaceBufferIds.reserve(bufSize);
-            for (size_t idx = 0; idx < bufSize; ++idx) {
-                auto surfaceBufferId = data.ReadUint32();
-                surfaceBufferIds.push_back(surfaceBufferId);
+            ret = ret && data.ReadUInt32Vector(&surfaceBufferIds);
+            if (!ret) {
+                ROSEN_LOGE("RSSurfaceBufferCallbackStub Read Remote Data ERROR");
             }
             OnFinish(uid, surfaceBufferIds);
             break;
         }
         default: {
+            ROSEN_LOGE("RSSurfaceBufferCallbackStub: Unhandled enumeration value");
             ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
         }

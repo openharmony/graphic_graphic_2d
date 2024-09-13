@@ -185,6 +185,15 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("UnRegisterCallback For SurfaceBuffer %d", connection->remotePid_);
+            connection->mainThread_->UnregisterSurfaceBufferCallback(connection->remotePid_);
+        }).wait();
     HgmTaskHandleThread::Instance().ScheduleTask([pid = remotePid_] () {
         RS_TRACE_NAME_FMT("CleanHgmEvent %d", pid);
         HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(pid);

@@ -378,8 +378,9 @@ public:
     }
 
     void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid, sptr<RSISurfaceBufferCallback> callback);
-    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
     void RunSurfaceBufferCallback();
+    void UnregisterSurfaceBufferCallback(pid_t pid);
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,

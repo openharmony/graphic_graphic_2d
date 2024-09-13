@@ -33,6 +33,14 @@ void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, ui
     }
 }
 
+void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
+{
+    std::unique_lock<std::shared_mutex> lock { registerSurfaceBufferCallbackMutex_ };
+    EraseIf(surfaceBufferCallbacks_, [pid](auto& pair) {
+        return pair.first.first == pid;
+    });
+}
+
 void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
     std::unique_lock<std::shared_mutex> lock { registerSurfaceBufferCallbackMutex_ };
@@ -45,10 +53,11 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, 
     }
 }
 
-std::function<void(pid_t, uint64_t, uint32_t)> RSSurfaceBufferCallbackManager::GetSurfaceBufferOpItemCallback()
+std::function<void(pid_t, uint64_t, uint32_t)> RSSurfaceBufferCallbackManager::GetSurfaceBufferOpItemCallback() const
 {
-    return [this](pid_t pid, uint64_t uid, uint32_t surfaceBufferId) {
-        OnSurfaceBufferOpItemDestruct(pid, uid, surfaceBufferId);
+    auto mutablePtr = const_cast<RSSurfaceBufferCallbackManager*>(this);
+    return [mutablePtr](pid_t pid, uint64_t uid, uint32_t surfaceBufferId) {
+        mutablePtr->OnSurfaceBufferOpItemDestruct(pid, uid, surfaceBufferId);
     };
 }
 

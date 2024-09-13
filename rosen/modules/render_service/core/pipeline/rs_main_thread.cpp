@@ -4189,6 +4189,11 @@ void RSMainThread::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     surfaceBufferCallbackMgr_.RegisterSurfaceBufferCallback(pid, uid, callback);
 }
 
+void RSMainThread::UnregisterSurfaceBufferCallback(pid_t pid)
+{
+    surfaceBufferCallbackMgr_.UnregisterSurfaceBufferCallback(pid);
+}
+
 void RSMainThread::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
     surfaceBufferCallbackMgr_.UnregisterSurfaceBufferCallback(pid, uid);

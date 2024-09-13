@@ -38,24 +38,9 @@ void RSSurfaceBufferCallbackProxy::OnFinish(uint64_t uid, const std::vector<uint
         ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write uid error");
         return;
     }
-    bool writeBufSizeRet = false;
-    if constexpr (std::is_same_v<decltype(surfaceBufferIds.size()), uint64_t>) {
-        writeBufSizeRet = data.WriteUint64(surfaceBufferIds.size());
-    } else if constexpr (std::is_same_v<decltype(surfaceBufferIds.size()), uint32_t>) {
-        writeBufSizeRet = data.WriteUint32(surfaceBufferIds.size());
-    } else {
-        ROSEN_LOGE("size_t is not a common unsigned integer type on this platform.");
+    if (!data.WriteUInt32Vector(surfaceBufferIds)) {
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write surfaceBufferIds error");
         return;
-    }
-    if (!writeBufSizeRet) {
-        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write bufSize error");
-        return;
-    }
-    for (auto surfaceBufferId : surfaceBufferIds) {
-        if (!data.WriteUint32(surfaceBufferId)) {
-            ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write surfaceBufferId error");
-            return;
-        }
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH);

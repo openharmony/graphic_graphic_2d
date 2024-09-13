@@ -37,9 +37,10 @@ public:
 
     void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback);
+    void UnregisterSurfaceBufferCallback(pid_t pid);
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
-    std::function<void(pid_t, uint64_t, uint32_t)> GetSurfaceBufferOpItemCallback();
+    std::function<void(pid_t, uint64_t, uint32_t)> GetSurfaceBufferOpItemCallback() const;
     
 private:
     sptr<RSISurfaceBufferCallback> GetSurfaceBufferCallback(pid_t pid, uint64_t uid) const;
