@@ -1569,11 +1569,6 @@ void RSUniRenderVisitor::ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& h
         return;
     }
 
-    if (hwcNodePtr->GetVisibleRegion().IsEmpty()) {
-        RS_LOGD("rs debug: name:%{public}s id:%{public}" PRIu64 " not visible, skip",
-            hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
-        return;
-    }
     if (!hwcNodePtr->GetRSSurfaceHandler() || !hwcNodePtr->GetRSSurfaceHandler()->GetBuffer()) {
         RS_LOGD("rs debug: name:%{public}s id:%{public}" PRIu64 " handler or buffer is null, skip",
             hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
