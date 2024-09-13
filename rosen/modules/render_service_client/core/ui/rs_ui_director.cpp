@@ -352,12 +352,11 @@ void RSUIDirector::RecvMessages()
         return;
     }
     static const uint32_t pid = static_cast<uint32_t>(GetRealPid());
-    static std::mutex recvMessagesMutex;
-    std::unique_lock<std::mutex> lock(recvMessagesMutex);
-    if (RSMessageProcessor::Instance().HasTransaction(pid)) {
-        auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
-        RecvMessages(transactionDataPtr);
+    if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
+        return;
     }
+    auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
+    RecvMessages(transactionDataPtr);
 }
 
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
