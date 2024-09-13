@@ -1452,14 +1452,5 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     sptr<CustomUIExtensionCallback> cb = new CustomUIExtensionCallback(callback);
     return renderService->RegisterUIExtensionCallback(userId, cb);
 }
-
-bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        return renderService->SetVirtualScreenStatus(id, screenStatus);
-    }
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS
