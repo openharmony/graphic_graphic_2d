@@ -695,6 +695,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
     // draw content + children
     auto bounds = params.GetBounds();
+    ApplyForegroundColorIfNeed(*cacheCanvas, bounds);
     if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
         DrawContent(*cacheCanvas, params.GetFrameRect());
         DrawChildren(*cacheCanvas, bounds);
