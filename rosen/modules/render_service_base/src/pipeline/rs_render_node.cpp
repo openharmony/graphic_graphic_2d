@@ -2076,7 +2076,8 @@ void RSRenderNode::SetOccludedStatus(bool occluded)
 void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
-        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(), GetRenderProperties());
+        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(),
+            std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry()));
         RSPropertyTrace::GetInstance().TracePropertiesByNodeName(GetId(), GetNodeName(), GetRenderProperties());
     }
 }

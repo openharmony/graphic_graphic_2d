@@ -318,7 +318,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     calculateAnimationValue_ = true;
 
     if (!IsRunning()) {
-        ROSEN_LOGD("RSRenderAnimation::Animate, IsRunning is false");
+        ROSEN_LOGD("RSRenderAnimation::Animate, IsRunning is false!");
         return state_ == AnimationState::FINISHED;
     }
 
