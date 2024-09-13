@@ -29,6 +29,7 @@
 #include "rs_profiler_cache.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_utils.h"
+#include "rs_profiler_log.h"
 
 #include "transaction/rs_marshalling_helper.h"
 #include "platform/common/rs_system_properties.h"
@@ -573,7 +574,11 @@ using PixelMapHelper = Media::ImageSource;
 
 Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
 {
-    bool isClientEnabled = parcel.ReadBool();
+    bool isClientEnabled = false;
+    if (!parcel.ReadBool(isClientEnabled)) {
+        HRPE("Unable to read is_client_enabled for image");
+        return nullptr;
+    }
     if (!isClientEnabled) {
         return Media::PixelMap::Unmarshalling(parcel);
     }
@@ -588,8 +593,11 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
     }
 
     bool isClientEnabled = RSSystemProperties::GetProfilerEnabled();
-    parcel.WriteBool(isClientEnabled);
-    
+    if (!parcel.WriteBool(isClientEnabled)) {
+        HRPE("Unable to write is_client_enabled for image");
+        return false;
+    }
+
     if (!isClientEnabled) {
         return map->Marshalling(parcel);
     }
