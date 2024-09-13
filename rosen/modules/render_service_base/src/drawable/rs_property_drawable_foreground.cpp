@@ -333,7 +333,7 @@ bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
     }
     needSync_ = true;
     stagingPixelStretch_ = pixelStretch;
-    stagingPixelStretchTileMode_ = node.GetRenderProperties().GetPixelStretchTileMode();
+    stagePixelStretchTileMode_ = node.GetRenderProperties().GetPixelStretchTileMode();
     const auto& boundsGeo = node.GetRenderProperties().GetBoundsGeometry();
     stagingBoundsGeoValid_ = boundsGeo && !boundsGeo->IsEmpty();
     stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();
@@ -346,7 +346,7 @@ void RSPixelStretchDrawable::OnSync()
         return;
     }
     pixelStretch_ = std::move(stagingPixelStretch_);
-    pixelStretchTileMode_ = stagingPixelStretchTileMode_;
+    pixelStretchTileMode_ = stagePixelStretchTileMode_;
     boundsGeoValid_ = stagingBoundsGeoValid_;
     stagingBoundsGeoValid_ = false;
     boundsRect_ = stagingBoundsRect_;

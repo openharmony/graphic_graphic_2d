@@ -463,7 +463,7 @@ public:
         return instanceId_;
     }
 
-    const std::string& GetNodeName() const
+    const std::string GetNodeName() const
     {
         return nodeName_;
     }
