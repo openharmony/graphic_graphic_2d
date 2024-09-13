@@ -279,8 +279,6 @@ public:
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 
-    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
-
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;
