@@ -118,17 +118,17 @@ export class Matrix4 {
             if (x < 0) {
                 s = -s;
             }
-            this.rotateX(e, s, c)
+            this.rotateX(e, s, c);
         } else if (0 === x && 0 !== y && 0 === z) {
             if (y < 0) {
                 s = -s;
             }
-            this.rotateY(e, s, c)
+            this.rotateY(e, s, c);
         } else if (0 === x && 0 === y && 0 !== z) {
             if (z < 0) {
                 s = -s;
             }
-            this.rotateZ(e, s, c)
+            this.rotateZ(e, s, c);
         } else {
             len = Math.sqrt(x * x + y * y + z * z);
             if (len !== 1) {
@@ -205,7 +205,7 @@ export class Matrix4 {
         let B4 = a[9] * a[15] - a[11] * a[13];
         let B5 = a[10] * a[15] - a[11] * a[14];
         let det = A0 * B5 - A1 * B4 + A2 * B3 + A3 * B2 - A4 * B1 + A5 * B0;
-        if (det == 0) {
+        if (det === 0) {
             return null;
         }
         let invDet = 1 / det;
@@ -364,7 +364,7 @@ export class Matrix4 {
         let cosB = Math.cos(radian);
         let sinB = Math.sin(radian);
         let len = Math.sqrt(x * x + y * y + z * z);
-        if (len != 1) {
+        if (len !== 1) {
             let rlen = 1 / len;
             x *= rlen;
             y *= rlen;
@@ -430,7 +430,7 @@ export class Matrix4 {
         arr[11] = -s[0] * s[5] * s[11] + s[0] * s[7] * s[9] + s[4] * s[1] * s[11] - s[4] * s[3] * s[9] - s[8] * s[1] * s[7] + s[8] * s[3] * s[5];
         arr[15] = s[0] * s[5] * s[10] - s[0] * s[6] * s[9] - s[4] * s[1] * s[10] + s[4] * s[2] * s[9] + s[8] * s[1] * s[6] - s[8] * s[2] * s[5];
         det = s[0] * arr[0] + s[1] * arr[4] + s[2] * arr[8] + s[3] * arr[12];
-        if (det == 0) {
+        if (det === 0) {
             return false;
         }
         det = 1 / det;
@@ -449,11 +449,11 @@ export class Matrix4 {
         let cosB = Math.cos(radian);
         let sinB = Math.sin(radian);
         let cosA = 1, sinA = 0;
-        if (ry != 0) {
+        if (ry !== 0) {
             cosA = this.elements[5];
             sinA = this.elements[6];
         }
-        if (rz != 0) {
+        if (rz !== 0) {
             cosA = this.elements[0];
             sinA = this.elements[1];
         }
@@ -481,11 +481,11 @@ export class Matrix4 {
         let cosB = Math.cos(radian);
         let sinB = Math.sin(radian);
         let cosA = 1, sinA = 0;
-        if (ry != 0) {
+        if (ry !== 0) {
             cosA = this.elements[5];
             sinA = this.elements[6];
         }
-        if (rz != 0) {
+        if (rz !== 0) {
             cosA = this.elements[0];
             sinA = this.elements[1];
         }
