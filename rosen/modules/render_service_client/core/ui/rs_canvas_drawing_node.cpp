@@ -125,7 +125,7 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         }
         bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
         if (!ret || !pixelmap) {
-            ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
+            ROSEN_LOGD("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
             return false;
         }
     } else {
