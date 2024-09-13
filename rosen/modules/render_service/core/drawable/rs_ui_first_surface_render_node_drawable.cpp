@@ -159,6 +159,9 @@ CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus()
 void RSSurfaceRenderNodeDrawable::SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
 {
     uiFirstParams.cacheProcessStatus_.store(cacheProcessStatus);
+    if (cacheProcessStatus == CacheProcessStatus::DONE) {
+        RSUiFirstProcessStateCheckerHelper::NotifyAll();
+    }
 }
 
 std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(uint32_t threadIndex,
@@ -610,5 +613,14 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
         drawable->Draw(rscanvas);
     }
     return ret;
+}
+
+void RSSurfaceRenderNodeDrawable::SetSubThreadSkip(bool isSubThreadSkip)
+{
+    isSubThreadSkip_ = isSubThreadSkip;
+    if (isSubThreadSkip) {
+        RSUiFirstProcessStateCheckerHelper::NotifyAll();
+        RSSubThreadManager::Instance()->NodeTaskNotify(nodeId_);
+    }
 }
 } // namespace OHOS::Rosen

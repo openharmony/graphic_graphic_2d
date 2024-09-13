@@ -182,6 +182,11 @@ public:
         return startingWindowFlag_;
     }
 
+    bool SetFirstLevelNode(NodeId firstLevelNodeId);
+    NodeId GetFirstLevelNodeId() const;
+    bool SetUiFirstRootNode(NodeId uifirstRootNodeId);
+    NodeId GetUifirstRootNodeId() const;
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -314,6 +319,8 @@ private:
     bool needFilter_ = false;
     SurfaceParam surfaceParams_;
     bool freezeFlag_ = false;
+    NodeId firstLevelNodeId_ = INVALID_NODEID;
+    NodeId uifirstRootNodeId_ = INVALID_NODEID;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
