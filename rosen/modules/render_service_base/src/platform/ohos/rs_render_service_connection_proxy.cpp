@@ -179,23 +179,23 @@ bool RSRenderServiceConnectionProxy::CreateNode(const RSDisplayNodeConfig& displ
 
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteInterfaceToken err.");
-        return WRITE_PARCEL_ERR;
+        return false;
     }
     if (!data.WriteUint64(nodeId)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint64 NodeId err.");
-        return WRITE_PARCEL_ERR;
+        return false;
     }
     if (!data.WriteUint64(displayNodeConfig.mirrorNodeId)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint64 Config.MirrorNodeId err.");
-        return WRITE_PARCEL_ERR;
+        return false;
     }
     if (!data.WriteUint64(displayNodeConfig.screenId)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint64 Config.ScreenId err.");
-        return WRITE_PARCEL_ERR;
+        return false;
     }
     if (!data.WriteBool(displayNodeConfig.isMirrored)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteBool Config.IsMirrored err.");
-        return WRITE_PARCEL_ERR;
+        return false;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE);
