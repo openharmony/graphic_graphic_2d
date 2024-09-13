@@ -14,10 +14,10 @@
  */
 #include "color_space_object_convertor.h"
 
-#include "native_engine/native_reference.h"
-
 #include "js_color_space.h"
 #include "js_color_space_utils.h"
+
+#include "napi/native_api.h"
 
 namespace {
 constexpr int SENDABLE_PROPERTIES_NUM = 3;

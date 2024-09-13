@@ -19,8 +19,8 @@
 #include <memory>
 
 #include "color_space.h"
-#include "napi/native_api.h"
-#include "napi/native_node_api.h"
+#include "native_engine/native_engine.h"
+#include "native_engine/native_value.h"
 
 namespace OHOS {
 namespace ColorManager {
