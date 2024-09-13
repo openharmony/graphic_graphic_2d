@@ -287,6 +287,7 @@ ohos_shared_library("librender_service") {
 
   external_deps = [
     "ability_runtime:app_manager",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",

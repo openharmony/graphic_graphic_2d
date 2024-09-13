@@ -278,7 +278,7 @@ public:
     }
 
     static int GetRSNodeLimit();
-    static bool GetMemoryOverTreminateEnabled();
+    static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
 private:
     RSSystemProperties() = default;
