@@ -299,20 +299,6 @@ private:
      */
     void CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNode& node);
 
-    inline void RegScreenCallback(RSDisplayRenderNode& node)
-    {
-        std::call_once(regScreenCallbackFlag, [&node]() {
-            node.SetReleaseTask([](uint64_t screenId) {
-                auto screenManager = CreateOrGetScreenManager();
-                if (screenManager == nullptr) {
-                    RS_LOGE("RealeaseScreenDmaBuffer RSScreenManager is nullptr!");
-                    return;
-                }
-                screenManager->RealeaseScreenDmaBuffer(screenId);
-            });
-        });
-    }
-
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     uint32_t appWindowNum_ = 0;
     bool isSurfaceRotationChanged_ = false;
@@ -367,7 +353,6 @@ private:
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
     Vector4f curCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     Drawing::Matrix parentSurfaceNodeMatrix_;
-    std::once_flag regScreenCallbackFlag;
     // visible filter in transparent surface or display must prepare
     bool filterInGlobal_ = true;
     // opinc feature

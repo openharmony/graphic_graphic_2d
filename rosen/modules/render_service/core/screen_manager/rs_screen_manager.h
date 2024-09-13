@@ -228,8 +228,6 @@ public:
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
-
-    virtual void RealeaseScreenDmaBuffer(uint64_t screenId) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -440,7 +438,8 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
 
-    void RealeaseScreenDmaBuffer(uint64_t screenId) override;
+    static void ReleaseScreenDmaBuffer(uint64_t screenId);
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;

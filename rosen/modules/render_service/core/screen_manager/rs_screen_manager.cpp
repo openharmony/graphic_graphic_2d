@@ -1331,11 +1331,16 @@ void RSScreenManager::GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInf
     GetScreenActiveModeLocked(defaultScreenId_, screenModeInfo);
 }
 
-void RSScreenManager::RealeaseScreenDmaBuffer(uint64_t screenId)
+void RSScreenManager::ReleaseScreenDmaBuffer(uint64_t screenId)
 {
-    auto output = GetOutput(screenId);
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer RSScreenManager is nullptr!");
+        return;
+    }
+    auto output = screenManager->GetOutput(screenId);
     if (output == nullptr) {
-        RS_LOGE("RSScreenManager::RealeaseScreenDmaBuffer HdiOutput is nullptr!");
+        RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer HdiOutput is nullptr!");
         return;
     }
     std::vector<LayerInfoPtr> layer;
