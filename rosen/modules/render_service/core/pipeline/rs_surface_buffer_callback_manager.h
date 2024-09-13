@@ -62,7 +62,7 @@ private:
     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
 
-    friend class RSMainThread;
+    friend class RSDrawFrame;
 };
 } // namespace Rosen
 } // namespace OHOS
