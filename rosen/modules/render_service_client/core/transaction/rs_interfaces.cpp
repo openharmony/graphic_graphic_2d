@@ -109,6 +109,14 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
+bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    if (renderServiceClient_ == nullptr) {
+        return false;
+    }
+    return renderServiceClient_->SetWatermark(name, watermark);
+}
+
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
     int64_t interval, int32_t rangeSize)
@@ -125,14 +133,6 @@ int32_t RSInterfaces::SetPointerColorInversionEnabled(bool enable)
         return StatusCode::RENDER_SERVICE_NULL;
     }
     return renderServiceClient_->SetPointerColorInversionEnabled(enable);
-}
-
-bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
-{
-    if (renderServiceClient_ == nullptr) {
-        return false;
-    }
-    return renderServiceClient_->SetWatermark(name, watermark);
 }
  
 int32_t RSInterfaces::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
