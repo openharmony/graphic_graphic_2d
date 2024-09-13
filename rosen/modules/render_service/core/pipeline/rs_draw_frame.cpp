@@ -23,6 +23,7 @@
 #include "memory/rs_memory_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "property/rs_filter_cache_manager.h"
@@ -57,7 +58,7 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
-    RSMainThread::Instance()->RunSurfaceBufferCallback();
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     const bool doJankStats = IsUniRenderAndOnVsync();
     JankStatsRenderFrameAfterSync(doJankStats);
     RSMainThread::Instance()->ProcessUiCaptureTasks();

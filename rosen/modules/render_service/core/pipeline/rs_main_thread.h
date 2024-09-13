@@ -45,7 +45,6 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_draw_frame.h"
 #include "pipeline/rs_graphic_config.h"
-#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
