@@ -1306,6 +1306,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
             uint64_t uniqueId = data.ReadUint64();
             uint32_t hash = data.ReadUint32();
+            RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
             bool ret = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
             reply.WriteBool(ret);
             break;
@@ -1316,13 +1317,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool result = false;
             uint64_t uniqueId = data.ReadUint64();
             uint32_t hash = data.ReadUint32();
-            RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             // safe check
             if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
                 std::shared_ptr<Drawing::Typeface> typeface;
                 result = RSMarshallingHelper::Unmarshalling(data, typeface);
                 if (result && typeface) {
                     typeface->SetHash(hash);
+                    RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
                     RegisterTypeface(uniqueId, typeface);
                 }
             } else {
@@ -1336,9 +1337,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
             uint64_t uniqueId = data.ReadUint64();
-            RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
             // safe check
             if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
+                RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
                 UnRegisterTypeface(uniqueId);
             } else {
                 RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
