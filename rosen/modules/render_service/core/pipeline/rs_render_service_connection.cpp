@@ -467,15 +467,9 @@ int32_t RSRenderServiceConnection::SetFocusAppInfo(
         return INVALID_ARGUMENTS;
     }
     mainThread_->ScheduleTask(
-        [=, weakThis = wptr<RSRenderServiceConnection>(this)]() {
-            sptr<RSRenderServiceConnection> connection = weakThis.promote();
-            if (connection == nullptr) {
-                return;
-            }
-            if (connection->mainThread_ == nullptr) {
-                return;
-            }
-            connection->mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+        [pid, uid, bundleName, abilityName, focusNodeId, mainThread = mainThread_]() {
+            // don't use 'this' to get mainThread poninter
+            mainThread->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
         }
     );
     return SUCCESS;
