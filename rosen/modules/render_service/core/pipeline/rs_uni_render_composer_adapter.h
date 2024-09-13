@@ -25,7 +25,6 @@
 #include "rs_base_render_util.h"
 #include "rs_hardware_thread.h"
 #include "rs_main_thread.h"
-#include "surface_buffer.h"
 
 namespace OHOS {
 namespace Rosen {
