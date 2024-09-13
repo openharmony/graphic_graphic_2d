@@ -685,7 +685,7 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     node->GenerateFullChildrenList();
-    EXPECT_TRUE(node->isChildrenSorted_ && node->children_.empty() && node->disappearingChildren_.empty());
+    EXPECT_TRUE(node->isFullChildrenListValid_ && node->children_.empty() && node->disappearingChildren_.empty());
 
     // children_ isn't empty
     std::weak_ptr<RSRenderNode> wNode1;
@@ -713,27 +713,6 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest, TestSize.Level1)
     node->isContainBootAnimation_ = true;
     node->GenerateFullChildrenList();
     EXPECT_TRUE(node->isContainBootAnimation_);
-}
-
-/**
- * @tc.name: ResortChildrenTest
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require: issueI9T3XY
- */
-HWTEST_F(RSRenderNodeTest, ResortChildrenTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(id, context);
-    auto node1 = std::make_shared<RSRenderNode>(id + 1, context);
-    auto node2 = std::make_shared<RSRenderNode>(id + 2, context);
-    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
-    fullChildrenList->emplace_back(std::move(node1));
-    fullChildrenList->emplace_back(std::move(node2));
-    node->fullChildrenList_ = fullChildrenList;
-    node->isChildrenSorted_ = false;
-    EXPECT_TRUE(!node->fullChildrenList_->empty());
-    node->ResortChildren();
-    EXPECT_TRUE(node->isChildrenSorted_);
 }
 
 /**
@@ -1886,14 +1865,14 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest016, TestSize.Level1)
     modifier1->SetType(RSModifierType::POSITION_Z);
     disappearingChildrenTest2->modifiers_.emplace(0, modifier1);
 
-    nodeTest->isChildrenSorted_ = false;
+    nodeTest->isFullChildrenListValid_ = false;
     nodeTest->GenerateFullChildrenList();
-    EXPECT_TRUE(nodeTest->isChildrenSorted_);
+    EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
 
     disappearingChildrenTest2->dirtyTypes_.set(static_cast<size_t>(RSModifierType::POSITION_Z), true);
-    nodeTest->isChildrenSorted_ = false;
+    nodeTest->isFullChildrenListValid_ = false;
     nodeTest->GenerateFullChildrenList();
-    EXPECT_TRUE(nodeTest->isChildrenSorted_);
+    EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
 }
 
 /**
@@ -1927,10 +1906,10 @@ HWTEST_F(RSRenderNodeTest, ApplyModifiersTest017, TestSize.Level1)
     EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
 
     nodeTest->modifiers_.clear();
-    nodeTest->isChildrenSorted_ = false;
+    nodeTest->isFullChildrenListValid_ = false;
     nodeTest->GenerateFullChildrenList();
 
-    nodeTest->isChildrenSorted_ = true;
+    nodeTest->isFullChildrenListValid_ = true;
     nodeTest->childrenHasSharedTransition_ = true;
     nodeTest->GenerateFullChildrenList();
 
@@ -1958,7 +1937,7 @@ HWTEST_F(RSRenderNodeTest, InvalidateHierarchyTest018, TestSize.Level1)
     EXPECT_NE(parentTest2, nullptr);
     nodeTest1->parent_ = parentTest2;
     nodeTest1->MarkParentNeedRegenerateChildren();
-    EXPECT_FALSE(parentTest2->isChildrenSorted_);
+    EXPECT_FALSE(parentTest2->isFullChildrenListValid_);
 
     nodeTest1->SetIsUsedBySubThread(false);
     nodeTest1->renderContent_->renderProperties_.pixelStretch_ = 1.0f;

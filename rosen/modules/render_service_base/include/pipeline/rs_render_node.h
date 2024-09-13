@@ -830,7 +830,6 @@ private:
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;
-    bool isChildrenSorted_ = true;
     bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
     bool shouldPaint_ = true;
