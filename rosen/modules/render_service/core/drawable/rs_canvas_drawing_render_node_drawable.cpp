@@ -700,7 +700,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
 {
     if (width > EDGE_WIDTH_LIMIT) {
         RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture id:%{public}" PRIu64 " "
-             "width:%{public}d height:%{public}d ", nodeId_, width, height);
+            "width:%{public}d height:%{public}d ", nodeId_, width, height);
     }
     auto preMatrix = canvas_->GetTotalMatrix();
     auto preDeviceClipBounds = canvas_->GetDeviceClipBounds();
