@@ -354,6 +354,14 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         uifirstRootNodeId_ = uifirstRootNodeId;
     }
 
+    if (stagingRenderParams_) {
+        bool ret = stagingRenderParams_->SetFirstLevelNode(firstLevelNodeId_);
+        ret |= stagingRenderParams_->SetUiFirstRootNode(uifirstRootNodeId_);
+        if (ret) {
+            AddToPendingSyncList();
+        }
+    }
+
     for (auto& weakChild : children_) {
         auto child = weakChild.lock();
         if (child == nullptr) {
@@ -3509,6 +3517,9 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetInstanceRootNode() const
 void RSRenderNode::UpdateTreeUifirstRootNodeId(NodeId id)
 {
     uifirstRootNodeId_ = id;
+    if (stagingRenderParams_ && stagingRenderParams_->SetUiFirstRootNode(uifirstRootNodeId_)) {
+        AddToPendingSyncList();
+    }
     for (auto& child : *GetChildren()) {
         if (child) {
             child->UpdateTreeUifirstRootNodeId(id);

@@ -223,11 +223,7 @@ public:
         targetColorGamut_ = colorGamut;
     }
 
-    void SetSubThreadSkip(bool isSubThreadSkip)
-    {
-        isSubThreadSkip_ = isSubThreadSkip;
-    }
-
+    void SetSubThreadSkip(bool isSubThreadSkip);
     bool IsSubThreadSkip() const
     {
         return isSubThreadSkip_;
