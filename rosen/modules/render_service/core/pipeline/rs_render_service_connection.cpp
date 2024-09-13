@@ -41,6 +41,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_ui_capture_task_parallel.h"
