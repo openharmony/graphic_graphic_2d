@@ -351,7 +351,7 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
 
 void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
 {
-    if (surface_ && surface_->GetImageInfo().GetWidth() > 1000) {
+    if (surface_ && surface_->GetImageInfo().GetWidth() > EDGE_WIDTH_LIMIT) {
         RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurface id:%{public}" PRIu64 "", nodeId_);
     }
     if (preThreadInfo_.second && surface_) {
@@ -673,9 +673,9 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage(std::shared_pt
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas)
 {
-    if (width > 1000) {
+    if (width > EDGE_WIDTH_LIMIT) {
         RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture id:%{public}" PRIu64 " "
-             "width:%{public}d height:%{public}d ", nodeId_, width, height);
+            "width:%{public}d height:%{public}d ", nodeId_, width, height);
     }
     auto preMatrix = canvas_->GetTotalMatrix();
     auto preDeviceClipBounds = canvas_->GetDeviceClipBounds();
