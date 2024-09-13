@@ -3931,11 +3931,9 @@ void RSMainThread::UpdateUIFirstSwitch()
         return;
     }
     isUiFirstOn_ = false;
-    if (IsSingleDisplay() || HasMirrorDisplay()) {
-        uint32_t LeashWindowCount = 0;
-        displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
-        isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
-    }
+    uint32_t LeashWindowCount = 0;
+    displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
+    isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
     RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
 }
 
