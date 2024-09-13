@@ -58,6 +58,8 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     scaleMode_ = screenManager->GetScaleMode(virtualScreenId_);
     virtualScreenWidth_ = static_cast<float>(virtualScreenInfo.width);
     virtualScreenHeight_ = static_cast<float>(virtualScreenInfo.height);
+    originalVirtualScreenWidth_ = virtualScreenWidth_;
+    originalVirtualScreenHeight_ = virtualScreenHeight_;
     auto mirroredDisplayDrawable =
         std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
     if (mirroredDisplayDrawable) {
@@ -224,7 +226,7 @@ GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(std::vector<RectI>& dam
     }
 
     RoiRegions roiRegions;
-    const RectI screenRect{0, 0, virtualScreenWidth_, virtualScreenHeight_};
+    const RectI screenRect{0, 0, originalVirtualScreenWidth_, originalVirtualScreenHeight_};
     if (damageRegion.size() <= ROI_REGIONS_MAX_CNT) {
         for (auto rect : damageRegion) {
             rect = rect.IntersectRect(screenRect);
