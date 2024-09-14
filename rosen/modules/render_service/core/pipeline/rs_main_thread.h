@@ -447,6 +447,7 @@ private:
 
     bool IsResidentProcess(pid_t pid) const;
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
+    void UpdateAceDebugBoundaryEnabled();
 
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
@@ -588,6 +589,9 @@ private:
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
+
+    bool isAceDebugBoundaryEnabledOfLastFrame_ = false;
+    bool hasPostUpdateAceDebugBoundaryTask_ = false;
 
     std::atomic_bool noNeedToPostTask_ = false;
 
