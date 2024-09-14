@@ -97,7 +97,17 @@ inline std::string GSErrorStr(GSError err)
     return it->second + LowErrorStr(diff);
 }
 
+inline std::string WMErrorStr(GSError err)
+{
+    return GSErrorStr(err);
+}
+
 inline std::string SurfaceErrorStr(GSError err)
+{
+    return GSErrorStr(err);
+}
+
+inline std::string VsyncErrorStr(GSError err)
 {
     return GSErrorStr(err);
 }
