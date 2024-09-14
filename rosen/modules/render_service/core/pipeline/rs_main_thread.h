@@ -619,7 +619,6 @@ private:
     std::condition_variable nodeTreeDumpCondVar_;
     std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
-    bool surfaceNodeWatermarksChanged_ = false;
     std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
 
     // used for watermark

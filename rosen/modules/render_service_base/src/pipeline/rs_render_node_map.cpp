@@ -177,18 +177,12 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
 
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
-    // temp solution to address the dma leak
+    renderNodeMap_.erase(id);
     auto it = surfaceNodeMap_.find(id);
     if (it != surfaceNodeMap_.end()) {
-        if (it->second->GetName().find("ShellAssistantAnco") == std::string::npos) {
-            renderNodeMap_.erase(id);
-        }
         RemoveUIExtensionSurfaceNode(it->second);
-    } else {
-        renderNodeMap_.erase(id);
+        surfaceNodeMap_.erase(id);
     }
-    renderNodeMap_.erase(id);
-    surfaceNodeMap_.erase(id);
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);

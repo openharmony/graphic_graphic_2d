@@ -2157,10 +2157,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetWatermark(watermarkFlag_, watermarkImg_);
         {
             std::lock_guard<std::mutex> lock(watermarkMutex_);
-            if (surfaceNodeWatermarksChanged_) {
-                renderThreadParams_->SetWatermarks(surfaceNodeWatermarks_);
-                surfaceNodeWatermarksChanged_ = false;
-            }
+            renderThreadParams_->SetWatermarks(surfaceNodeWatermarks_);
         }
 
         renderThreadParams_->SetCurtainScreenUsingStatus(isCurtainScreenOn_);
@@ -3794,7 +3791,6 @@ void RSMainThread::SetWatermark(const std::string& name, std::shared_ptr<Media::
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
     surfaceNodeWatermarks_[name] = watermark;
-    surfaceNodeWatermarksChanged_ = true;
 }
 
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
