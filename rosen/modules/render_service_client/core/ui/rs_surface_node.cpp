@@ -569,10 +569,10 @@ void RSSurfaceNode::ResetContextAlpha() const
     transactionProxy->AddCommand(commandRS, true);
 }
 
-void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, float density)
+void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, RRect rrect)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow, density);
+        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow, rrect);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);

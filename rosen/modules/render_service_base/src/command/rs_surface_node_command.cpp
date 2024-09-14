@@ -184,10 +184,10 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
 }
 
 void SurfaceNodeCommandHelper::SetContainerWindow(
-    RSContext& context, NodeId nodeId, bool hasContainerWindow, float density)
+    RSContext& context, NodeId nodeId, bool hasContainerWindow, RRect rrect)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetContainerWindow(hasContainerWindow, density);
+        node->SetContainerWindow(hasContainerWindow, rrect);
     }
 }
 

@@ -1638,11 +1638,12 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     if (IsTransparent()) {
         opaqueRegion_ = Occlusion::Region();
     } else {
+        auto maxRadius = std::max({ cornerRadius.x_, cornerRadius.y_, cornerRadius.z_, cornerRadius.w_ });
         if (IsAppWindow() && HasContainerWindow()) {
+            containerConfig_.outR = maxRadius;
             opaqueRegion_ = ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
         } else {
             if (!cornerRadius.IsZero()) {
-                auto maxRadius = std::max({ cornerRadius.x_, cornerRadius.y_, cornerRadius.z_, cornerRadius.w_ });
                 Vector4<int> dstCornerRadius((cornerRadius.x_ > 0 ? maxRadius : 0),
                                              (cornerRadius.y_ > 0 ? maxRadius : 0),
                                              (cornerRadius.z_ > 0 ? maxRadius : 0),
@@ -1824,22 +1825,19 @@ Occlusion::Region RSSurfaceRenderNode::ResetOpaqueRegion(const RectI& absRect,
     }
 }
 
-void RSSurfaceRenderNode::ContainerConfig::Update(bool hasContainer, float density)
+void RSSurfaceRenderNode::ContainerConfig::Update(bool hasContainer, RRect rrect)
 {
     this->hasContainerWindow_ = hasContainer;
-    this->density = density;
+    this->inR = RoundFloor(rrect.radius_[0].x_);
+    this->bp = RoundFloor(rrect.rect_.left_);
+    this->bt = RoundFloor(rrect.rect_.top_);
+}
 
-    // px = vp * density
-    float containerTitleHeight_ = CONTAINER_TITLE_HEIGHT * density;
-    float containerContentPadding_ = CONTENT_PADDING * density;
-    float containerBorderWidth_ = CONTAINER_BORDER_WIDTH * density;
-    float containerOutRadius_ = CONTAINER_OUTER_RADIUS * density;
-    float containerInnerRadius_ = CONTAINER_INNER_RADIUS * density;
-
-    this->outR = RoundFloor(containerOutRadius_);
-    this->inR = RoundFloor(containerInnerRadius_);
-    this->bp = RoundFloor(containerBorderWidth_ + containerContentPadding_);
-    this->bt = RoundFloor(containerBorderWidth_ + containerTitleHeight_);
+void RSSurfaceRenderNode::SetContainerWindow(bool hasContainerWindow, RRect rrect)
+{
+    RS_LOGD("RSSurfaceRenderNode::SetContainerWindow %{public}s %{public}" PRIu64 ", rrect: %{public}s",
+        GetName().c_str(), GetId(), rrect.ToString().c_str());
+    containerConfig_.Update(hasContainerWindow, rrect);
 }
 
 /*
@@ -1863,49 +1861,51 @@ Occlusion::Region RSSurfaceRenderNode::SetUnfocusedWindowOpaqueRegion(const Rect
     Occlusion::Region r1{opaqueRect1};
     Occlusion::Region r2{opaqueRect2};
     Occlusion::Region opaqueRegion = r1.Or(r2);
+    auto bt = std::max(containerConfig_.bt, containerConfig_.outR);
+    auto bp = std::max(containerConfig_.bp, containerConfig_.outR);
 
     switch (screenRotation) {
         case ScreenRotation::ROTATION_0: {
-            Occlusion::Rect opaqueRect3{ absRect.left_ + containerConfig_.bp,
-                absRect.top_ + containerConfig_.bt,
-                absRect.GetRight() - containerConfig_.bp,
-                absRect.GetBottom() - containerConfig_.bp};
+            Occlusion::Rect opaqueRect3{ absRect.left_ + bp,
+                absRect.top_ + bt,
+                absRect.GetRight() - bp,
+                absRect.GetBottom() - bp};
             Occlusion::Region r3{opaqueRect3};
             opaqueRegion.OrSelf(r3);
             break;
         }
         case ScreenRotation::ROTATION_90: {
-            Occlusion::Rect opaqueRect3{ absRect.left_ + containerConfig_.bt,
-                absRect.top_ + containerConfig_.bp,
-                absRect.GetRight() - containerConfig_.bp,
-                absRect.GetBottom() - containerConfig_.bp};
+            Occlusion::Rect opaqueRect3{ absRect.left_ + bt,
+                absRect.top_ + bp,
+                absRect.GetRight() - bp,
+                absRect.GetBottom() - bp};
             Occlusion::Region r3{opaqueRect3};
             opaqueRegion.OrSelf(r3);
             break;
         }
         case ScreenRotation::ROTATION_180: {
-            Occlusion::Rect opaqueRect3{ absRect.left_ + containerConfig_.bp,
-                absRect.top_ + containerConfig_.bp,
-                absRect.GetRight() - containerConfig_.bp,
-                absRect.GetBottom() - containerConfig_.bt};
+            Occlusion::Rect opaqueRect3{ absRect.left_ + bp,
+                absRect.top_ + bp,
+                absRect.GetRight() - bp,
+                absRect.GetBottom() - bt};
             Occlusion::Region r3{opaqueRect3};
             opaqueRegion.OrSelf(r3);
             break;
         }
         case ScreenRotation::ROTATION_270: {
-            Occlusion::Rect opaqueRect3{ absRect.left_ + containerConfig_.bp,
-                absRect.top_ + containerConfig_.bp,
-                absRect.GetRight() - containerConfig_.bt,
-                absRect.GetBottom() - containerConfig_.bp};
+            Occlusion::Rect opaqueRect3{ absRect.left_ + bp,
+                absRect.top_ + bp,
+                absRect.GetRight() - bt,
+                absRect.GetBottom() - bp};
             Occlusion::Region r3{opaqueRect3};
             opaqueRegion.OrSelf(r3);
             break;
         }
         default: {
-            Occlusion::Rect opaqueRect3{ absRect.left_ + containerConfig_.bp,
-                absRect.top_ + containerConfig_.bt,
-                absRect.GetRight() - containerConfig_.bp,
-                absRect.GetBottom() - containerConfig_.bp};
+            Occlusion::Rect opaqueRect3{ absRect.left_ + bp,
+                absRect.top_ + bt,
+                absRect.GetRight() - bp,
+                absRect.GetBottom() - bp};
             Occlusion::Region r3{opaqueRect3};
             opaqueRegion.OrSelf(r3);
             break;

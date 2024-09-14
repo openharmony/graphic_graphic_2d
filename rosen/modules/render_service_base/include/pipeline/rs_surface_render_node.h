@@ -801,9 +801,14 @@ public:
         return containerConfig_.hasContainerWindow_;
     }
 
-    void SetContainerWindow(bool hasContainerWindow, float density)
+    void SetContainerWindow(bool hasContainerWindow, RRect rrect);
+
+    std::string GetContainerConfigDump() const
     {
-        containerConfig_.Update(hasContainerWindow, density);
+        return "[outR: " + std::to_string(containerConfig_.outR) +
+               " inR: " + std::to_string(containerConfig_.inR) +
+               " bt: " + std::to_string(containerConfig_.bt) +
+               " bp: " + std::to_string(containerConfig_.bp) + "]";
     }
 
     bool IsOpaqueRegionChanged() const
@@ -1388,7 +1393,8 @@ private:
     */
     class ContainerConfig {
     public:
-        void Update(bool hasContainer, float density);
+        // rrect means content region, including padding to left and top, inner radius;
+        void Update(bool hasContainer, RRect rrect);
     private:
         inline int RoundFloor(float length)
         {
@@ -1396,15 +1402,7 @@ private:
             return std::abs(length - std::round(length)) < 0.05f ? std::round(length) : std::floor(length);
         }
     public:
-        // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface
-        const static int CONTAINER_TITLE_HEIGHT = 37;   // container title height = 37 vp
-        const static int CONTENT_PADDING = 4;           // container <--> content distance 4 vp
-        const static int CONTAINER_BORDER_WIDTH = 1;    // container border width 2 vp
-        const static int CONTAINER_OUTER_RADIUS = 16;   // container outer radius 16 vp
-        const static int CONTAINER_INNER_RADIUS = 14;   // container inner radius 14 vp
-
         bool hasContainerWindow_ = false;               // set to false as default, set by arkui
-        float density = 2.0f;                           // The density default value is 2
         int outR = 32;                                  // outer radius (int value)
         int inR = 28;                                   // inner radius (int value)
         int bp = 10;                                    // border width + padding (int value)

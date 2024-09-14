@@ -29,6 +29,8 @@ public:
         0.0f, 485.44f, -34.4f,
         std::numeric_limits<float>::max(), std::numeric_limits<float>::min(),
         };
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -1081,7 +1083,7 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindow001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    surfaceNode->SetContainerWindow(true, 1.f);
+    surfaceNode->SetContainerWindow(true, rrect);
 }
 
 /**
@@ -1154,7 +1156,7 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindow_True, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->SetContainerWindow(true, 1.0f);
+    surfaceNode->SetContainerWindow(true, rrect);
 }
 
 /**
@@ -1168,7 +1170,7 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindow_False, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->SetContainerWindow(false, 1.0f);
+    surfaceNode->SetContainerWindow(false, rrect);
 }
 
 /**

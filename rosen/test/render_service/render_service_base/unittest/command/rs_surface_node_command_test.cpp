@@ -28,6 +28,8 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceNodeCommandTest::SetUpTestCase() {}
@@ -267,12 +269,11 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetContainerWindow001, TestSize.Level1)
     RSContext context;
     NodeId id = -10;
     bool hasContainerWindow = false;
-    float density = 0.1;
-    SurfaceNodeCommandHelper::SetContainerWindow(context, id, hasContainerWindow, density);
+    SurfaceNodeCommandHelper::SetContainerWindow(context, id, hasContainerWindow, rrect);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::SetContainerWindow(*context2, id2, hasContainerWindow, density);
+    SurfaceNodeCommandHelper::SetContainerWindow(*context2, id2, hasContainerWindow, rrect);
 }
 
 /**

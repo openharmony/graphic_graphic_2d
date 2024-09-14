@@ -801,6 +801,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
             out += ", snapshotSkipLayer: " + std::to_string(surfaceNode->GetSnapshotSkipLayer());
         }
         out += ", surfaceType: " + std::to_string((int)surfaceNode->GetSurfaceNodeType());
+        out += ", ContainerConfig: " + surfaceNode->GetContainerConfigDump();
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
