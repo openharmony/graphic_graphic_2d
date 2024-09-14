@@ -137,13 +137,15 @@ public:
     VSyncReceiver &operator=(const VSyncReceiver &) = delete;
 
     virtual VsyncError Init();
-    void ThreadCreateNotify();
     virtual VsyncError RequestNextVSync(FrameCallback callback);
     virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
     virtual VsyncError GetVSyncPeriod(int64_t &period);
     virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp,
                                                         bool isThreadShared = false);
-    int32_t GetFd() { return fd_; }
+    int32_t GetFd()
+    {
+        return fd_;
+    }
 
     /* transfer the FD to other process(want to use the FD),
       the current process does not use the FD, so close FD, but not close vsync connection
@@ -152,8 +154,8 @@ public:
     virtual VsyncError RequestNextVSync(FrameCallback callback, const std::string &fromWhom,
                                         int64_t lastVSyncTS);
     virtual bool IsRequestedNextVSync();
-    virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
+    virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount);
     virtual VsyncError RequestNextVSyncWithMultiCallback(FrameCallback callback);
 private:
