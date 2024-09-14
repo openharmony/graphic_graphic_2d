@@ -2646,7 +2646,7 @@ bool RSRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
-bool RSRenderNode::NeedInitCacheSurface()
+bool RSRenderNode::NeedInitCacheSurface() const
 {
     auto cacheType = GetCacheType();
     int width = 0;
@@ -2675,7 +2675,7 @@ bool RSRenderNode::NeedInitCacheSurface()
     return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
 }
 
-bool RSRenderNode::NeedInitCacheCompletedSurface()
+bool RSRenderNode::NeedInitCacheCompletedSurface() const
 {
     Vector2f size = GetOptionalBufferSize();
     int width = static_cast<int>(size.x_);
