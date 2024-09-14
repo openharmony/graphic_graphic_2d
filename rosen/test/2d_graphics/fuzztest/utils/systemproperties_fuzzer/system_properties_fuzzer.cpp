@@ -34,7 +34,6 @@ void SystemPropertiesFuzzTest000(const uint8_t* data, size_t size)
     g_pos = 0;
 
     SystemProperties::GetGpuApiType();
-    SystemProperties::IsUseVulkan();
     SystemProperties::GetHMSymbolEnable();
     SystemProperties::GetSystemGraphicGpuType();
 }

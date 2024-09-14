@@ -261,11 +261,6 @@ public:
         return RSSystemProperties::systemGpuApiType_;
     }
 
-    static inline bool IsUseVulkan()
-    {
-        return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
-    }
-
     static int GetRSNodeLimit();
     static bool GetMemoryOverTreminateEnabled();
 
