@@ -1631,7 +1631,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK) : {
             sptr<RSIHgmConfigChangeCallback> callback = nullptr;
-            auto remoteObject = data.ReadRemoteObject();
+            sptr<IRemoteObject> remoteObject = nullptr;
+            if (data.ReadBool()) {
+                remoteObject = data.ReadRemoteObject();
+            }
             if (remoteObject != nullptr) {
                 callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
             }

@@ -2350,9 +2350,16 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (callback) {
-        data.WriteRemoteObject(callback->AsObject());
+        if (!data.WriteBool(true)) {
+            return WRITE_PARCEL_ERR;
+        }
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            return WRITE_PARCEL_ERR;
+        }
     } else {
-        data.WriteRemoteObject(nullptr);
+        if (!data.WriteBool(false)) {
+            return WRITE_PARCEL_ERR;
+        }
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
