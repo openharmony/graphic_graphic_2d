@@ -565,7 +565,7 @@ private:
     void GenerateForegroundMaterialBlurFilter();
     void GenerateBackgroundMaterialFuzedBlurFilter();
     void GenerateCompositingMaterialFuzedBlurFilter();
-    std::shared_ptr<Drawing::ColorFilter> GetMaterialColorFilter(float sat, float brightness, Color maskColor);
+    std::shared_ptr<Drawing::ColorFilter> GetMaterialColorFilter(float sat, float brightness);
     void GenerateAIBarFilter();
     void GenerateWaterRippleFilter();
     void GenerateLinearGradientBlurFilter();

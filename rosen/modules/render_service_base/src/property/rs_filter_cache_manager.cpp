@@ -145,6 +145,7 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     Drawing::Rect dstRect = clipIBounds;
     bool discardCanvas = CanDiscardCanvas(canvas, dst);
     filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, discardCanvas);
+    filter->PostProcess(canvas);
     cachedFilterHash_ = filter->Hash();
     return true;
 }
@@ -265,6 +266,7 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
     filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst);
+    filter->PostProcess(offscreenCanvas);
 
     // Update the cache state with the filtered snapshot.
     auto filteredSnapshot = offscreenSurface->GetImageSnapshot();

@@ -293,6 +293,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         Drawing::Brush brush = filter->GetBrush();
         Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
         canvas->SaveLayer(slr);
+        filter->PostProcess(*canvas);
         return;
     }
 
@@ -356,6 +357,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
     filter->DrawImageRect(*canvas, imageSnapshot, srcRect, dstRect);
+    filter->PostProcess(*canvas);
 }
 
 void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds)
@@ -471,6 +473,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     auto clipBounds = Drawing::Rect(0, 0, imageRect.GetWidth(), imageRect.GetHeight());
     auto imageSnapshotBounds = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     filter->DrawImageRect(offscreenCanvas, imageSnapshot, imageSnapshotBounds, clipBounds);
+    filter->PostProcess(offscreenCanvas);
 
     auto imageCache = offscreenSurface->GetImageSnapshot();
     if (imageCache == nullptr) {

@@ -317,7 +317,8 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         }
         auto hpsParam = Drawing::HpsBlurParameter(src, dst, radius, saturationForHPS_, brightnessForHPS_);
         if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
-            HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam, brush)) {
+            HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam, brush.GetColor().GetAlphaF(),
+                brush.GetFilter().GetColorFilter())) {
             RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
         } else {
             auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
