@@ -196,8 +196,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, !RSSystemProperties::IsPcType());
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
-        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, !RSSystemProperties::IsPcType());
         auto copytask =
             RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(surface, std::move(pixelMap_), nodeId_, callback);
         if (!copytask) {
