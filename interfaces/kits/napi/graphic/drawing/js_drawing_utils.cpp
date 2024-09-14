@@ -29,6 +29,7 @@ bool JsDrawingTestUtils::closeDrawingTest_ =
 #else
 bool JsDrawingTestUtils::closeDrawingTest_ = true;
 #endif
+
 namespace Drawing {
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
 {
@@ -167,20 +168,6 @@ bool ConvertFromJsPoint3d(napi_env env, napi_value src, Point3& point3d)
     return true;
 }
 
-bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count)
-{
-    for (uint32_t i = 0; i < count; i++)  {
-        napi_value tempPoint = nullptr;
-        if (napi_get_element(env, array, i, &tempPoint) != napi_ok) {
-            return false;
-        }
-        if (!GetPointFromJsValue(env, tempPoint, points[i])) {
-            return false;
-        }
-    }
-    return true;
-}
-
 bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t size)
 {
     napi_value tempValue = nullptr;
@@ -188,6 +175,20 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t 
         double* curEdge = point + idx;
         napi_get_named_property(env, jsValue, g_pointString[idx], &tempValue);
         if (napi_get_value_double(env, tempValue, curEdge) != napi_ok) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count)
+{
+    for (uint32_t i = 0; i < count; i++)  {
+        napi_value tempPoint = nullptr;
+        if (napi_get_element(env, array, i, &tempPoint) != napi_ok) {
+            return false;
+        }
+        if (!GetDrawingPointFromJsValue(env, tempPoint, points[i])) {
             return false;
         }
     }
