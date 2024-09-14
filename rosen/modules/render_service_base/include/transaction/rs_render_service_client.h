@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <refbase.h>
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
@@ -31,6 +32,7 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
 #endif
+#include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -100,6 +102,13 @@ public:
     SurfaceCaptureCallback() {}
     virtual ~SurfaceCaptureCallback() {}
     virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
+};
+
+class SurfaceBufferCallback {
+public:
+    SurfaceBufferCallback() = default;
+    virtual ~SurfaceBufferCallback() noexcept = default;
+    virtual void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) = 0;
 };
 
 class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
@@ -348,8 +357,14 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
     void SetFreeMultiWindowStatus(bool enable);
+
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
+    void TriggerSurfaceBufferCallback(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) const;
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
@@ -358,7 +373,12 @@ private:
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;
     std::map<NodeId, std::vector<std::shared_ptr<SurfaceCaptureCallback>>> surfaceCaptureCbMap_;
 
+    sptr<RSISurfaceBufferCallback> surfaceBufferCbDirector_;
+    std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;
+    mutable std::shared_mutex surfaceBufferCallbackMutex_;
+
     friend class SurfaceCaptureCallbackDirector;
+    friend class SurfaceBufferCallbackDirector;
 };
 } // namespace Rosen
 } // namespace OHOS

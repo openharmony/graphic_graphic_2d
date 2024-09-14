@@ -69,6 +69,7 @@
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_ui_capture_task_parallel.h"
@@ -498,6 +499,8 @@ void RSMainThread::Init()
         RSNodeCommandHelper::SetDumpNodeTreeProcessor(
             std::bind(&RSMainThread::OnDumpClientNodeTree, this, _1, _2, _3, _4));
     }
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
+        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 
     if (RSGraphicConfig::LoadConfigXml()) {
         if (RSGraphicConfig::GetConfig().IsMap()) {

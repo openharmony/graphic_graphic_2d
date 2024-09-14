@@ -609,5 +609,16 @@ void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
 }
+
+bool RSRenderServiceClient::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

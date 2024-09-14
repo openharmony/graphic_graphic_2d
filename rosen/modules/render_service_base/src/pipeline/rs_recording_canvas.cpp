@@ -121,7 +121,7 @@ void ExtendRecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& su
     AddDrawOpImmediate<Drawing::DrawSurfaceBufferOpItem::ConstructorHandle>(
         Drawing::CmdListHelper::AddSurfaceBufferToCmdList(*cmdList_, surfaceBufferInfo.surfaceBuffer_),
         surfaceBufferInfo.offSetX_, surfaceBufferInfo.offSetY_,
-        surfaceBufferInfo.width_, surfaceBufferInfo.height_);
+        surfaceBufferInfo.width_, surfaceBufferInfo.height_, surfaceBufferInfo.pid_, surfaceBufferInfo.uid_);
 }
 #endif
 

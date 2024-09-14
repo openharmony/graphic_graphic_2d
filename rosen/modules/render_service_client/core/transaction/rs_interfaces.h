@@ -290,6 +290,11 @@ public:
 
     void SetFreeMultiWindowStatus(bool enable);
 
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 private:
     RSInterfaces();

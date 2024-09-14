@@ -301,6 +301,10 @@ private:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
