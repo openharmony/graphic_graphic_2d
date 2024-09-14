@@ -611,7 +611,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         RS_OPTIONAL_TRACE_END();
         return;
     }
-    if (params.isHdrRedraw) {
+    if (params.isHdrRedraw || RSUniRenderThread::GetCaptureParam().isSnapshot_) {
         parameter.disableHeadRoom = true;
     }
 
