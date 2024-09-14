@@ -3017,7 +3017,6 @@ void RSMainThread::SendCommands()
     // dispatch messages to corresponding application
     auto transactionMapPtr = std::make_shared<std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>>(
         RSMessageProcessor::Instance().GetAllTransactions());
-    RSMessageProcessor::Instance().ReInitializeMovedMap();
     PostTask([this, transactionMapPtr]() {
         std::string dfxString;
         for (const auto& transactionIter : *transactionMapPtr) {
