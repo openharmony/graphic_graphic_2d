@@ -2739,7 +2739,7 @@ std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float
     float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
     cm.GetArray(cmArray);
     std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO);
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO_ENUM);
     if (auto maskColorAlpha = maskColor.GetAlpha()) {
         auto oneMinusAlpha = 1.f - maskColor.GetAlpha() / 255.f;
         auto premulCoeff = maskColorAlpha / 255.f / 255.f;

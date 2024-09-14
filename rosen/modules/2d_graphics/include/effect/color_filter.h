@@ -48,10 +48,10 @@ public:
     static std::shared_ptr<ColorFilter> CreateBlendModeColorFilter(ColorQuad c, BlendMode mode);
     static std::shared_ptr<ColorFilter> CreateComposeColorFilter(ColorFilter& f1, ColorFilter& f2);
     static std::shared_ptr<ColorFilter> CreateComposeColorFilter(
-        const float (&f1)[MATRIX_SIZE], const float (&f2)[MATRIX_SIZE], Clamp clamp = Clamp::YES);
-    static std::shared_ptr<ColorFilter> CreateMatrixColorFilter(const ColorMatrix& m, Clamp clamp = Clamp::YES);
+        const float (&f1)[MATRIX_SIZE], const float (&f2)[MATRIX_SIZE], Clamp clamp = Clamp::YES_ENUM);
+    static std::shared_ptr<ColorFilter> CreateMatrixColorFilter(const ColorMatrix& m, Clamp clamp = Clamp::YES_ENUM);
     static std::shared_ptr<ColorFilter> CreateFloatColorFilter(const float (&f)[MATRIX_SIZE],
-        Clamp clamp = Clamp::YES);
+        Clamp clamp = Clamp::YES_ENUM);
     static std::shared_ptr<ColorFilter> CreateLinearToSrgbGamma();
     static std::shared_ptr<ColorFilter> CreateSrgbGammaToLinear();
     static std::shared_ptr<ColorFilter> CreateOverDrawColorFilter(const ColorQuad colors[OVER_DRAW_COLOR_NUM]);
@@ -81,18 +81,18 @@ public:
     }
 
     ColorFilter(FilterType t, ColorQuad c, BlendMode mode) noexcept;
-    ColorFilter(FilterType t, const ColorMatrix& m, Clamp clamp = Clamp::YES) noexcept;
-    ColorFilter(FilterType t, const float f[MATRIX_SIZE], Clamp clamp = Clamp::YES) noexcept;
+    ColorFilter(FilterType t, const ColorMatrix& m, Clamp clamp = Clamp::YES_ENUM) noexcept;
+    ColorFilter(FilterType t, const float f[MATRIX_SIZE], Clamp clamp = Clamp::YES_ENUM) noexcept;
     ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept;
     ColorFilter(FilterType t, const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE],
-        Clamp clamp = Clamp::YES) noexcept;
+        Clamp clamp = Clamp::YES_ENUM) noexcept;
     ColorFilter(FilterType t) noexcept;
     ColorFilter(FilterType t, const ColorQuad colors[OVER_DRAW_COLOR_NUM]) noexcept;
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
     bool AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const;
 
-    void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp = Clamp::YES);
+    void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp = Clamp::YES_ENUM);
 
 protected:
     ColorFilter() noexcept;

@@ -31,7 +31,7 @@ SkiaColorFilter::SkiaColorFilter() noexcept : filter_(nullptr) {}
 
 static SkColorFilters::Clamp ConverToSkClamp(Drawing::Clamp clamp)
 {
-    return (clamp == Drawing::Clamp::YES ? SkColorFilters::Clamp::kYes : SkColorFilters::Clamp::kNo);
+    return (clamp == Drawing::Clamp::YES_ENUM ? SkColorFilters::Clamp::kYes : SkColorFilters::Clamp::kNo);
 }
 
 void SkiaColorFilter::InitWithBlendMode(ColorQuad c, BlendMode mode)
