@@ -243,16 +243,6 @@ std::optional<float> RSShowingPropertiesFreezer::GetSpherizeDegree() const
     return GetPropertyImpl<float, RSModifierType::SPHERIZE>();
 }
 
-std::optional<float> RSShowingPropertiesFreezer::GetAttractionFractionValue() const
-{
-    return GetPropertyImpl<float, RSModifierType::ATTRACTION_FRACTION>();
-}
-
-std::optional<Vector2f> RSShowingPropertiesFreezer::GetAttractionDstPointValue() const
-{
-    return GetPropertyImpl<Vector2f, RSModifierType::ATTRACTION_DSTPOINT>();
-}
-
 std::optional<float> RSShowingPropertiesFreezer::GetLightUpEffectDegree() const
 {
     return GetPropertyImpl<float, RSModifierType::LIGHT_UP_EFFECT>();
