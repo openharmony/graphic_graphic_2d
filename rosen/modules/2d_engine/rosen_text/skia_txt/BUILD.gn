@@ -70,16 +70,25 @@ template("skia_libtxt") {
       "$txt_root/txt/paragraph_style.cpp",
       "$txt_root/txt/placeholder_run.cpp",
       "$txt_root/txt/platform.cpp",
+      "$txt_root/txt/text_bundle_config_parser.cpp",
       "$txt_root/txt/text_style.cpp",
       "$txt_root/txt/typeface_font_asset_provider.cpp",
     ]
 
     external_deps = []
     if (platform == "ohos" || platform == "ohos_ng") {
-      external_deps += [ "init:libbegetutil" ]
+      external_deps += [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "samgr:samgr_proxy",
+      ]
       defines += [ "HM_SYMBOL_TXT_ENABLE" ]
-      defines += [ "HM_TXT_ENABLE" ]
+      defines += [ "OHOS_TEXT_ENABLE" ]
     }
+
+    defines += [ "OHOS_SUPPORT" ]
 
     is_cross_platform =
         current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
