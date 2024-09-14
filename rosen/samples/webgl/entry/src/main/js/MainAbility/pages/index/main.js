@@ -36,7 +36,7 @@ export class Demo {
 }
 
 export async function main(gl, type) {
-    if(!type) {
+    if (!type) {
         type = Demo.WEBGL1_CUBE_DEMO;
     }
     switch (type) {
