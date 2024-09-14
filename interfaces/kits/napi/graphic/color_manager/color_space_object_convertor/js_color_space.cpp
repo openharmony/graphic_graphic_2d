@@ -18,7 +18,6 @@
 
 #include "color_space.h"
 #include "js_color_space_utils.h"
-#include "napi/native_api.h"
 
 namespace OHOS {
 namespace ColorManager {
