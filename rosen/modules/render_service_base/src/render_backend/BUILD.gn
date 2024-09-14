@@ -53,11 +53,13 @@ ohos_static_library("librender_backend") {
     "rs_surface_factory.cpp",
   ]
 
+  public_external_deps = [
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
+  ]
+
   if (rs_enable_gpu) {
-    include_dirs += [
-      "//third_party/openssl/include",
-      "$graphic_2d_root/interfaces/inner_api/common",
-    ]
+    include_dirs += [ "$graphic_2d_root/interfaces/inner_api/common" ]
 
     sources += [
       "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
@@ -74,6 +76,7 @@ ohos_static_library("librender_backend") {
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
   }
 
   external_deps = [
