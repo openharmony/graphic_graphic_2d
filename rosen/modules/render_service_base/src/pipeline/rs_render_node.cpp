@@ -3643,7 +3643,7 @@ void RSRenderNode::SetStaticCached(bool isStaticCached)
 }
 bool RSRenderNode::IsStaticCached() const
 {
-    return false;
+    return isStaticCached_;
 }
 void RSRenderNode::SetNodeName(const std::string& nodeName)
 {

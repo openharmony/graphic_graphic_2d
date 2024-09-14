@@ -1479,13 +1479,19 @@ void RSUniRenderVisitor::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNo
     float alpha = hwcNode->GetRenderProperties().GetAlpha();
     Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
+    bool isNodeRenderByDrawingCache = false;
     RSUniRenderUtil::TraverseParentNodeAndReduce(hwcNode,
+        [&isNodeRenderByDrawingCache](std::shared_ptr<RSRenderNode> parent) {
+            if (isNodeRenderByDrawingCache) {
+                return;
+            }
+            // if the parent node of hwcNode is marked freeze or nodegroup, RS closes hardware composer of hwcNode.
+            isNodeRenderByDrawingCache = isNodeRenderByDrawingCache || parent->IsStaticCached() ||
+                (parent->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+        },
         [&alpha](std::shared_ptr<RSRenderNode> parent) {
             auto& parentProperty = parent->GetRenderProperties();
             alpha *= parentProperty.GetAlpha();
-            if (ROSEN_EQ(alpha, 1.f) && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
-                parent->DisableDrawingCacheByHwcNode();
-            }
         },
         [&totalMatrix](std::shared_ptr<RSRenderNode> parent) {
             auto& parentProperty = parent->GetRenderProperties();
@@ -1527,6 +1533,11 @@ void RSUniRenderVisitor::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNo
             }
         }
     );
+    if (isNodeRenderByDrawingCache) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache",
+            hwcNode->GetName().c_str(), hwcNode->GetId());
+        hwcNode->SetHardwareForcedDisabledState(isNodeRenderByDrawingCache);
+    }
     hwcNode->SetTotalMatrix(totalMatrix);
     hwcNode->SetGlobalAlpha(alpha);
     hwcNode->SetIsIntersectWithRoundCorner(isIntersectWithRoundCorner);
