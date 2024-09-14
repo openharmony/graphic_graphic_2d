@@ -257,7 +257,6 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
             Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix()));
         m_canvas->GetMutableBrush().SetShaderEffect(shader);
     }
-
     JS_CALL_DRAWING_FUNC(
         m_canvas->DrawVertices(*builder.Detach(), Drawing::BlendMode::MODULATE));
 }
@@ -711,6 +710,12 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
+    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
+    if (image == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawImage image is nullptr");
+        return nullptr;
+    }
+
     if (argc == ARGC_THREE) {
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
         if (m_canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
@@ -718,11 +723,6 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
             Drawing::Rect src(0, 0, pixel->GetWidth(), pixel->GetHeight());
             Drawing::Rect dst(px, py, px + pixel->GetWidth(), py + pixel->GetHeight());
             canvas_->DrawPixelMapRect(pixel, src, dst, Drawing::SamplingOptions());
-            return nullptr;
-        }
-        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
-        if (image == nullptr) {
-            ROSEN_LOGE("JsCanvas::OnDrawImage image is nullptr");
             return nullptr;
         }
         m_canvas->DrawImage(*image, px, py, Drawing::SamplingOptions());
@@ -743,11 +743,6 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
             return nullptr;
         }
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
-        if (image == nullptr) {
-            ROSEN_LOGE("JsCanvas::OnDrawImage image is nullptr");
-            return nullptr;
-        }
         m_canvas->DrawImage(*image, px, py, *samplingOptions.get());
     }
 
