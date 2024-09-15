@@ -49,7 +49,6 @@ static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
     { DirtyRegionType::RENDER_PROPERTIES_RECT, "RENDER_PROPERTIES_RECT" },
     { DirtyRegionType::CANVAS_NODE_SKIP_RECT, "CANVAS_NODE_SKIP_RECT" },
     { DirtyRegionType::OUTLINE_RECT, "OUTLINE_RECT" },
-    { DirtyRegionType::SUBTREE_SKIP_RECT, "SUBTREE_SKIP_RECT" },
 };
 
 void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
