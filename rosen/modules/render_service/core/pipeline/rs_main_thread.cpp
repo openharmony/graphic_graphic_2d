@@ -684,11 +684,10 @@ void RSMainThread::UpdateGpuContextCacheSize()
     gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
     constexpr size_t baseResourceSize = 500;    // 500 M memory is baseline
-    constexpr int32_t baseResolutionWidth = 1260;   // 1260 base resolution width
-    constexpr int32_t baseResolutionHeight = 2720; // 2720 base resolution height
-    cacheLimitsResourceSize = baseResourceSize * maxScreenInfo.phyWidth / baseResolutionWidth
-        * maxScreenInfo.phyHeight / baseResolutionHeight
-        * MEMUNIT_RATE * MEMUNIT_RATE; // 500M memory is resolution: (1260 x 2720), adjust by actual Resolution
+    constexpr int32_t baseResolution = 3427200; // 3427200 is base resolution
+    float actualScale = maxScreenInfo.phyWidth * maxScreenInfo.phyHeight * 1.0f / baseResolution;
+    cacheLimitsResourceSize = baseResourceSize * actualScale
+        * MEMUNIT_RATE * MEMUNIT_RATE; // adjust by actual Resolution
     cacheLimitsResourceSize = cacheLimitsResourceSize > MAX_GPU_CONTEXT_CACHE_SIZE ?
         MAX_GPU_CONTEXT_CACHE_SIZE : cacheLimitsResourceSize;
     if (cacheLimitsResourceSize > maxResourcesSize) {

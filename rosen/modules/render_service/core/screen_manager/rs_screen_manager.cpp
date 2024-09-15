@@ -1921,7 +1921,7 @@ ScreenInfo RSScreenManager::GetActualScreenMaxResolution() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     uint32_t maxResolution = 0;
-    ScreenId maxScreenId = 0;
+    ScreenId maxScreenId = INVALID_SCREEN_ID;
     for (const auto &[id, screen] : screens_) {
         if (!screen || screen->IsVirtual()) {
             continue;
