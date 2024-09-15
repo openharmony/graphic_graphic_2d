@@ -192,6 +192,8 @@ public:
 
     virtual uint32_t GetActualScreensNum() const = 0;
 
+    virtual ScreenInfo GetActualScreenMaxResolution() const = 0;
+
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual ScreenId GetActiveScreenId() = 0;
@@ -364,6 +366,8 @@ public:
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const override;
 
     uint32_t GetActualScreensNum() const override;
+
+    ScreenInfo GetActualScreenMaxResolution() const override;
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
