@@ -1319,6 +1319,7 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
 {
     // only for virtual screen
     if (!(node.IsMirrorDisplay())) {
+        node.ClearSecurityLayerList();
         return;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
@@ -1330,7 +1331,6 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:false",
             node.GetId());
         node.SetSecurityExemption(false);
-        mirrorNode->ClearSecurityLayerList();
         return;
     }
     auto securityLayerList = mirrorNode->GetSecurityLayerList();
@@ -1356,7 +1356,6 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
     RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:%{public}d",
         node.GetId(), isSecurityExemption);
     node.SetSecurityExemption(isSecurityExemption);
-    mirrorNode->ClearSecurityLayerList();
 }
 
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)
