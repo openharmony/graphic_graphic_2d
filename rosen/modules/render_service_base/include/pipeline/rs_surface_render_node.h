@@ -1475,10 +1475,10 @@ private:
 
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;
+    bool hasTransparentSurface_ = false;
+    bool forceUIFirst_ = false;
     bool forceUIFirstChanged_ = false;
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
-    bool forceUIFirst_ = false;
-    bool hasTransparentSurface_ = false;
 
     bool ancoForceDoDirect_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;

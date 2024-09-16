@@ -194,7 +194,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface002, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = true;
     surfaceDrawable_->MergeDirtyRegionBelowCurSurface(*uniParams, region);
     ASSERT_TRUE(surfaceParams->IsMainWindowType());
 }
@@ -213,7 +213,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface003, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = true;
     Occlusion::Rect rect(1, 2, 3, 4);
     Occlusion::Rect bound(1, 2, 3, 4);
     surfaceParams->visibleRegion_.rects_.push_back(rect);
@@ -236,8 +236,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface004, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = false;
+    surfaceParams->windowInfo_.isLeashWindow_ = true;
     surfaceDrawable_->MergeDirtyRegionBelowCurSurface(*uniParams, region);
     ASSERT_TRUE(surfaceParams->GetVisibleRegion().IsEmpty());
 }
@@ -256,8 +256,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface005, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = true;
+    surfaceParams->windowInfo_.isLeashWindow_ = true;
     surfaceParams->isParentScaling_ = true;
     surfaceParams->isSubSurfaceNode_ = true;
     Occlusion::Rect rect(1, 2, 3, 4);
@@ -284,8 +284,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface006, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = true;
+    surfaceParams->windowInfo_.isLeashWindow_ = true;
     surfaceParams->isParentScaling_ = false;
     surfaceParams->isSubSurfaceNode_ = true;
     uniParams->accumulatedDirtyRegion_ = Occlusion::Rect { 0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
@@ -313,8 +313,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface007, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = false;
+    surfaceParams->windowInfo_.isLeashWindow_ = true;
     surfaceParams->isParentScaling_ = true;
     surfaceParams->isSubSurfaceNode_ = false;
     uniParams->accumulatedDirtyRegion_ = Occlusion::Rect { 0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
@@ -337,8 +337,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface008, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = false;
+    surfaceParams->windowInfo_.isLeashWindow_ = true;
     surfaceParams->isParentScaling_ = false;
     surfaceParams->isSubSurfaceNode_ = true;
     uniParams->accumulatedDirtyRegion_ = Occlusion::Rect { 0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE };
@@ -367,8 +367,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeDirtyRegionBelowCurSurface009, Te
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     Drawing::Region region;
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = true;
+    surfaceParams->windowInfo_.isMainWindowType_ = false;
+    surfaceParams->windowInfo_.isLeashWindow_ = true;
     surfaceParams->isParentScaling_ = false;
     surfaceParams->isSubSurfaceNode_ = false;
     uniParams->accumulatedDirtyRegion_ = Occlusion::Rect{0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE};
@@ -530,16 +530,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleRegion, TestSize.Level
     ASSERT_NE(surfaceParams, nullptr);
     auto uniParams = std::make_shared<RSRenderThreadParams>();
 
-    surfaceParams->isMainWindowType_ = false;
-    surfaceParams->isLeashWindow_ = true;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(false, true, false);
     Drawing::Region result = surfaceDrawable_->CalculateVisibleRegion(*uniParams,
         *surfaceParams, *surfaceDrawable_, true);
     ASSERT_TRUE(result.IsEmpty());
 
-    surfaceParams->isMainWindowType_ = true;
-    surfaceParams->isLeashWindow_ = false;
-    surfaceParams->isAppWindow_ = false;
+    surfaceParams->SetWindowInfo(true, false, false);
     result = surfaceDrawable_->CalculateVisibleRegion(*uniParams, *surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
