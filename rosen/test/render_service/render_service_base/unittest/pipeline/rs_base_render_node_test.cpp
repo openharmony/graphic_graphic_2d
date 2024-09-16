@@ -1481,7 +1481,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode01, TestSize.Level1)
     node->SetContentDirty();
     bool unchangeMarkInApp = true;
     bool unchangeMarkEnable = true;
-    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
 }
 
@@ -1498,7 +1498,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode02, TestSize.Level1)
     node->SetSubTreeDirty(true);
     bool unchangeMarkInApp = true;
     bool unchangeMarkEnable = true;
-    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
 }
 
@@ -1514,9 +1514,10 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode03, TestSize.Level1)
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     bool unchangeMarkInApp = true;
     bool unchangeMarkEnable = true;
-    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_INIT);
 }
+
 
 /**
  * @tc.name: OpincUpdateRootFlag
