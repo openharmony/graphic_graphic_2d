@@ -32,6 +32,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
@@ -287,8 +288,9 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetVisibleRegions(visibleRegions);
     std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
-        const auto& dirtyRect = params.GetBufferDamage();
-        dirtyRegions.emplace_back(GraphicIRect { dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h });
+        const auto& bufferDamage = params.GetBufferDamage();
+        GraphicIRect dirtyRect = GraphicIRect { bufferDamage.x, bufferDamage.y, bufferDamage.w, bufferDamage.h };
+        dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect));
     } else {
         dirtyRegions.emplace_back(layerInfo.srcRect);
     }
