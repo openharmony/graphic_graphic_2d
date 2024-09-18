@@ -1511,7 +1511,8 @@ void RSUniRenderVisitor::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNo
                 UIPoint offset { parentRect.GetWidth() - maxCornerRadius, parentRect.GetHeight() - maxCornerRadius };
                 UIPoint anchorPoint { parentRect.GetLeft(), parentRect.GetTop() };
                 std::for_each(std::begin(offsetVecs), std::end(offsetVecs),
-                    [&currIntersectedRoundCornerAABBs, hwcNodeRect, offset, maxCornerRadius, anchorPoint](auto offsetVec) {
+                    [&currIntersectedRoundCornerAABBs, hwcNodeRect, offset,
+                        maxCornerRadius, anchorPoint](auto offsetVec) {
                         auto res = anchorPoint + offset * offsetVec;
                         auto roundCornerAABB = RectI(res.x_, res.y_, maxCornerRadius, maxCornerRadius);
                         auto intersectedAABB = roundCornerAABB.IntersectRect(hwcNodeRect);
