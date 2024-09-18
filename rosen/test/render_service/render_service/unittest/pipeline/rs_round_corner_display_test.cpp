@@ -23,6 +23,7 @@
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/round_corner_display/rs_rcd_render_visitor.h"
 #include "pipeline/rs_display_render_node.h"
+#include "surface_buffer_impl.h"
 #include "rs_test_util.h"
 
 using namespace testing;
@@ -192,9 +193,9 @@ HWTEST_F(RSRoundCornerDisplayTest, RSLoadImgTest, TestSize.Level1)
     }
     rcdInstance.DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait);
 
-    std::shared_ptr<Drawing::Image> imgNoneImageLoaded = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Image> imgNoneImageLoaded = nullptr;
     res = rcdInstance.DecodeBitmap(imgNoneImageLoaded, bitmapBottomPortrait);
-    EXPECT_TRUE(res == true);
+    EXPECT_TRUE(res == false);
 }
 
 /*
@@ -954,6 +955,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseTopResourceTypeTest, TestSize.Level1
     ScreenRotation curOrientation = ScreenRotation::INVALID_SCREEN_ROTATION;
     rcdInstance.UpdateOrientationStatus(curOrientation);
     rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.curOrientation_ == ScreenRotation::INVALID_SCREEN_ROTATION);
     EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
 
     // test ScreenRotation::ROTATION_180, notchStatus is WINDOW_NOTCH_HIDDEN
@@ -969,12 +971,73 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseTopResourceTypeTest, TestSize.Level1
     rcdInstance.UpdateNotchStatus(notchStatus);
     rcdInstance.UpdateOrientationStatus(curOrientation);
     rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.curOrientation_ == ScreenRotation::ROTATION_180);
     EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
 
     // test ScreenRotation::ROTATION_270, notchStatus is WINDOW_NOTCH_DEFAULT
     curOrientation = ScreenRotation::ROTATION_270;
     rcdInstance.UpdateOrientationStatus(curOrientation);
     rcdInstance.RcdChooseTopResourceType();
+    EXPECT_TRUE(rcdInstance.curOrientation_ == ScreenRotation::ROTATION_270);
     EXPECT_TRUE(rcdInstance.showResourceType_ == TOP_PORTRAIT);
+}
+
+/*
+ * @tc.name: ProcessFillHardwareResource
+ * @tc.desc: Test RSRcdSurfaceRenderNode.FillHardwareResource
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ProcessFillHardwareResource, TestSize.Level1)
+{
+    // prepare test
+    std::shared_ptr<RSRcdSurfaceRenderNode> bottomSurfaceNode =
+        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+    if (bottomSurfaceNode == nullptr) {
+        std::cout << "RSRoundCornerDisplayTest: current os less bottomSurfaceNode source" << std::endl;
+        return;
+    }
+
+    HardwareLayerInfo info{};
+    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
+    bottomSurfaceNode->buffer_.buffer = nullptr;
+    bool flag1 = bottomSurfaceNode->FillHardwareResource(info, 2, 2);
+    bottomSurfaceNode->buffer_.buffer = surfaceBufferImpl;
+    EXPECT_TRUE(flag1 == false);
+
+    BufferHandle* bufferHandle = AllocateBufferHandle(64, 128);
+    EXPECT_TRUE(bufferHandle != nullptr);
+    surfaceBufferImpl->SetBufferHandle(bufferHandle);
+    surfaceBufferImpl->handle_->stride = 1;
+    surfaceBufferImpl->handle_->size = 64 + 128 + sizeof(BufferHandle);
+
+    bool flag2 = true;
+    info.bufferSize = -1;
+    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
+    info.bufferSize = 10000;
+    info.cldWidth = -1;
+    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
+    info.cldWidth = 2;
+    info.cldHeight = -1;
+    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
+    info.cldHeight = 2;
+    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, -1, 2);
+    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, -1);
+    info.pathBin = "";
+    EXPECT_TRUE(flag2);
+
+    bool flag3 = true;
+    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
+    std::shared_ptr<uint8_t> buffer = std::make_shared<uint8_t>(10000);
+    surfaceBufferImpl->handle_->virAddr = static_cast<void*>(buffer.get());
+    surfaceBufferImpl->handle_->stride = -1;
+    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
+    surfaceBufferImpl->handle_->stride = 1;
+    surfaceBufferImpl->handle_->size = 0;
+    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
+    EXPECT_TRUE(flag3);
+
+    surfaceBufferImpl->handle_= nullptr;
+    FreeBufferHandle(bufferHandle);
 }
 }
