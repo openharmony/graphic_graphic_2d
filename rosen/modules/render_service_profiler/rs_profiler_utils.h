@@ -173,7 +173,7 @@ public:
     static uint64_t ComposeDataId(pid_t pid, uint32_t id)
     {
         constexpr uint32_t bits = 31u;
-        return ComposeNodeId(static_cast<uint32_t>(pid) | (1 << bits), id);
+        return ComposeNodeId(static_cast<uint32_t>(pid) | (1u << bits), id);
     }
 
     static constexpr uint64_t GetRootNodeId(uint64_t id)

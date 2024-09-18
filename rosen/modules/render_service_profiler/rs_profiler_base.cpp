@@ -1101,7 +1101,7 @@ std::string RSProfiler::SendMessageBase()
     return value;
 }
 
-void RSProfiler::SendMessageBase(const std::string msg)
+void RSProfiler::SendMessageBase(const std::string& msg)
 {
     const std::lock_guard<std::mutex> guard(g_msgBaseMutex);
     g_msgBaseList.push(msg);
