@@ -274,7 +274,7 @@ public:
     void UpdateRotation();
     bool IsRotationChanged() const;
     bool IsLastRotationChanged() const {
-        return lastRotationChanged_;
+        return lastRotationChanged;
     }
     bool GetPreRotationStatus() const {
         return preRotationStatus_;
@@ -440,7 +440,7 @@ private:
     float lastRotation_ = 0.f;
     bool preRotationStatus_ = false;
     bool curRotationStatus_ = false;
-    bool lastRotationChanged_ = false;
+    bool lastRotationChanged = false;
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
