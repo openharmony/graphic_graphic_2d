@@ -2798,15 +2798,5 @@ const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtension
 {
     return secUIExtensionNodes_;
 }
-
-void RSSurfaceRenderNode::SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
-{
-    rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
-    if (stagingRenderParams_ == nullptr) {
-        RS_LOGE("%{public}s displayParams is nullptr", __func__);
-        return;
-    }
-    stagingRenderParams_->SetRootIdOfCaptureWindow(rootIdOfCaptureWindow);
-}
 } // namespace Rosen
 } // namespace OHOS

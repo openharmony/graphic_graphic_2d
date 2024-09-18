@@ -214,17 +214,6 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid, const Drawing::GPUCon
     log.AppendFormat("Total Mem(MB):%f\n", mem.GetTotalMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
 }
 
-MemoryGraphic MemoryManager::CountSubMemory(int pid, const Drawing::GPUContext* gpuContext)
-{
-    MemoryGraphic memoryGraphic;
-    auto subThreadManager = RSSubThreadManager::Instance();
-    std::vector<MemoryGraphic> subMems = subThreadManager->CountSubMem(pid);
-    for (const auto& mem : subMems) {
-        memoryGraphic += mem;
-    }
-    return memoryGraphic;
-}
-
 MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* gpuContext)
 {
     MemoryGraphic totalMemGraphic;
