@@ -167,7 +167,7 @@ NodeId RSRenderAnimation::GetTargetId() const
     return targetId_;
 }
 
-const std::string& RSRenderAnimation::GetTargetName() const
+const std::string RSRenderAnimation::GetTargetName() const
 {
     return targetName_;
 }
@@ -318,6 +318,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     calculateAnimationValue_ = true;
 
     if (!IsRunning()) {
+        ROSEN_LOGD("RSRenderAnimation::Animate, IsRunning is false!");
         return state_ == AnimationState::FINISHED;
     }
 

@@ -119,14 +119,6 @@ protected:
     void StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     virtual void SetInitialVelocity(const std::shared_ptr<RSPropertyBase>& velocity) {};
 
-    virtual void SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue) {};
-    virtual void InitInterpolationValue() {};
-
-    virtual const std::shared_ptr<RSPropertyBase> GetPropertyValue() const
-    {
-        return nullptr;
-    }
-
 private:
     static AnimationId GenerateId();
     const AnimationId id_;
