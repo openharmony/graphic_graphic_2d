@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#include "platform/common/rs_log.h"
 #include "ui/rs_texture_export.h"
+
+#include "platform/common/rs_log.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 
