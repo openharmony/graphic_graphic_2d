@@ -479,7 +479,6 @@ ohos_source_set("render_service_base_src") {
   ]
 
   external_deps = [
-    "drivers_interface_display:display_commontype_idl_headers",
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
@@ -541,7 +540,10 @@ ohos_source_set("render_service_base_src") {
       "$rosen_root/modules/platform:image_native_config",
     ]
   } else {
-    external_deps += [ "hitrace:hitrace_meter" ]
+    external_deps += [
+      "drivers_interface_display:display_commontype_idl_headers",
+      "hitrace:hitrace_meter",
+    ]
   }
 
   if (rosen_is_win) {
