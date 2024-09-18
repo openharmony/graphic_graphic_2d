@@ -43,6 +43,7 @@
 #include "xcollie/watchdog.h"
 
 #include "animation/rs_animation_fraction.h"
+#include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
@@ -3045,6 +3046,16 @@ void RSMainThread::SendCommands()
     if (fr.GetEnable()) {
         fr.SendCommandsStart();
         fr.RenderEnd();
+    }
+    if (!context_->needSyncFinishAnimationList_.empty()) {
+        for (const auto [nodeId, animationId] : context_->needSyncFinishAnimationList_) {
+            RS_LOGI("RSMainThread::SendCommands sync finish animation node is %{public}" PRIu64 ","
+                " animation is %{public}" PRIu64, nodeId, animationId);
+            std::unique_ptr<RSCommand> command =
+                std::make_unique<RSAnimationCallback>(nodeId, animationId, FINISHED);
+            RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
+        }
+        context_->needSyncFinishAnimationList_.clear();
     }
     if (!RSMessageProcessor::Instance().HasTransaction()) {
         return;
