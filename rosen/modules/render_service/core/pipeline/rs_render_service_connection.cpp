@@ -40,6 +40,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_ui_capture_task_parallel.h"
@@ -192,6 +193,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -1875,6 +1877,17 @@ bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScree
     RS_LOGD("RSRenderServiceConnection::SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",
         id, screenStatus);
     return screenManager_->SetVirtualScreenStatus(id, screenStatus);
+}
+
+void RSRenderServiceConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    sptr<RSISurfaceBufferCallback> callback)
+{
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+void RSRenderServiceConnection::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
 }
 } // namespace Rosen
 } // namespace OHOS

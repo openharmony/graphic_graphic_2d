@@ -705,5 +705,19 @@ bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus scree
     return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);
 }
 
+bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
+        return false;
+    }
+    return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
+}
 } // namespace Rosen
 } // namespace OHOS

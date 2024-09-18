@@ -41,15 +41,18 @@ namespace Rosen {
 #ifdef ROSEN_OHOS
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
-    DrawingSurfaceBufferInfo(
-        const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height)
-        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height)
+    DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
+        pid_t pid = {}, uint64_t uid = {})
+        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
+          pid_(pid), uid_(uid)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     int offSetX_ = 0;
     int offSetY_ = 0;
     int width_ = 0;
     int height_ = 0;
+    pid_t pid_ = {};
+    uint64_t uid_ = {};
 };
 #endif
 
@@ -224,9 +227,10 @@ class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
-            const PaintHandle& paintHandle)
+            pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height), paintHandle(paintHandle) {}
+            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid),
+            paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;
         DrawingSurfaceBufferInfo surfaceBufferInfo;
@@ -241,13 +245,15 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    RSB_EXPORT static void RegisterSurfaceBufferCallback(std::function<void(pid_t, uint64_t, uint32_t)> callback);
 private:
-    mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
+    void OnDestruct();
     void Clear();
     void Draw(Canvas* canvas);
     void DrawWithVulkan(Canvas* canvas);
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
+    mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
