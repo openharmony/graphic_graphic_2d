@@ -63,7 +63,6 @@ public:
         MOTION_BLUR,
         SPHERIZE_EFFECT,
         COLORFUL_SHADOW,
-        ATTRACTION_EFFECT,
         WATER_RIPPLE,
         COMPOUND_EFFECT,
         MAGNIFIER,

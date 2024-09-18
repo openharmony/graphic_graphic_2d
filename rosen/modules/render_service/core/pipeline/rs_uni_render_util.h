@@ -85,7 +85,7 @@ public:
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
     static void DealWithRotationAndGravityForRotationFixed(GraphicTransformType transform, Gravity gravity,
-        RectF localBounds, BufferDrawParam& params);
+        RectF& localBounds, BufferDrawParam& params);
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);
     static void DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
         float alpha, const std::string& extraInfo = "");
@@ -115,6 +115,7 @@ public:
 #endif
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
     static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void DealWithScalingMode(RSSurfaceRenderNode& node);
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);

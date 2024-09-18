@@ -31,36 +31,36 @@ typedef RectF Rect;
 #define DRAWING_MAX_S32_FITS_IN_FLOAT    2147483520
 #define DRAWING_MIN_S32_FITS_IN_FLOAT    (-DRAWING_MAX_S32_FITS_IN_FLOAT)
 
-static inline int DrawingFloatSaturate2Int(float x)
+static inline int32_t DrawingFloatSaturate2Int(float x)
 {
     x = x < DRAWING_MAX_S32_FITS_IN_FLOAT ? x : DRAWING_MAX_S32_FITS_IN_FLOAT;
     x = x > DRAWING_MIN_S32_FITS_IN_FLOAT ? x : DRAWING_MIN_S32_FITS_IN_FLOAT;
-    return (int)x;
+    return (int32_t)x;
 }
 
 class DRAWING_API RectI {
 public:
     inline RectI() noexcept;
     inline RectI(const RectI& r) noexcept;
-    inline RectI(const int l, const int t, const int r, const int b) noexcept;
+    inline RectI(const int32_t l, const int32_t t, const int32_t r, const int32_t b) noexcept;
 
     ~RectI() {}
 
     inline bool IsValid() const;
     inline bool IsEmpty() const;
 
-    inline int GetLeft() const;
-    inline int GetTop() const;
-    inline int GetRight() const;
-    inline int GetBottom() const;
+    inline int32_t GetLeft() const;
+    inline int32_t GetTop() const;
+    inline int32_t GetRight() const;
+    inline int32_t GetBottom() const;
 
-    inline int GetWidth() const;
-    inline int GetHeight() const;
+    inline int32_t GetWidth() const;
+    inline int32_t GetHeight() const;
 
-    inline void SetLeft(int pos);
-    inline void SetTop(int pos);
-    inline void SetRight(int pos);
-    inline void SetBottom(int pos);
+    inline void SetLeft(int32_t pos);
+    inline void SetTop(int32_t pos);
+    inline void SetRight(int32_t pos);
+    inline void SetBottom(int32_t pos);
 
     /**
      * @brief Offsets RectI by adding dx to left, right; and by adding dy to top, bottom.
@@ -71,7 +71,7 @@ public:
      * @param dx  offset added to left and right
      * @param dy  offset added to top and bottom
      */
-    inline void Offset(int dx, int dy);
+    inline void Offset(int32_t dx, int32_t dy);
 
     /**
      * @brief outset by (dx, dy).
@@ -82,7 +82,7 @@ public:
      * @param dx offset subtracted to left and added from right
      * @param dy offset subtracted to top and added from bottom
      */
-    inline void MakeOutset(int dx, int dy);
+    inline void MakeOutset(int32_t dx, int32_t dy);
 
     /**
      * @brief Returns true if RectI contains other.
@@ -137,62 +137,65 @@ inline bool RectI::IsEmpty() const
 {
     int64_t w = (int64_t)right_ - (int64_t)left_;
     int64_t h = (int64_t)bottom_ - (int64_t)top_;
-    int64_t r = w | h;
-    // return true if either under 0 or either exceed int32_t
-    return r <= 0 || (r & 0xffffffff) < 0;
+    if (w <= 0 || h <= 0) {
+        return true;
+    }
+    // Return true if either exceeds int32_t
+    int32_t int32test = (w | h) & 0xFFFFFFFF;
+    return int32test < 0;
 }
 
-inline int RectI::GetLeft() const
+inline int32_t RectI::GetLeft() const
 {
     return left_;
 }
 
-inline int RectI::GetTop() const
+inline int32_t RectI::GetTop() const
 {
     return top_;
 }
 
-inline int RectI::GetRight() const
+inline int32_t RectI::GetRight() const
 {
     return right_;
 }
 
-inline int RectI::GetBottom() const
+inline int32_t RectI::GetBottom() const
 {
     return bottom_;
 }
 
-inline int RectI::GetWidth() const
+inline int32_t RectI::GetWidth() const
 {
     return right_ - left_;
 }
 
-inline int RectI::GetHeight() const
+inline int32_t RectI::GetHeight() const
 {
     return bottom_ - top_;
 }
 
-inline void RectI::SetLeft(int pos)
+inline void RectI::SetLeft(int32_t pos)
 {
     left_ = pos;
 }
 
-inline void RectI::SetTop(int pos)
+inline void RectI::SetTop(int32_t pos)
 {
     top_ = pos;
 }
 
-inline void RectI::SetRight(int pos)
+inline void RectI::SetRight(int32_t pos)
 {
     right_ = pos;
 }
 
-inline void RectI::SetBottom(int pos)
+inline void RectI::SetBottom(int32_t pos)
 {
     bottom_ = pos;
 }
 
-inline void RectI::Offset(int dx, int dy)
+inline void RectI::Offset(int32_t dx, int32_t dy)
 {
     left_ += dx;
     right_ += dx;
@@ -200,7 +203,7 @@ inline void RectI::Offset(int dx, int dy)
     bottom_ += dy;
 }
 
-inline void RectI::MakeOutset(int dx, int dy)
+inline void RectI::MakeOutset(int32_t dx, int32_t dy)
 {
     left_ -= dx;
     right_ += dx;

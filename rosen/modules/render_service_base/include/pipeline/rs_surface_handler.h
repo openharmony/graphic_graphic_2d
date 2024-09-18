@@ -120,6 +120,7 @@ public:
         const Rect& damage,
         const int64_t timestamp)
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         preBuffer_.Reset();
         preBuffer_ = buffer_;
         buffer_.buffer = buffer;
@@ -130,6 +131,7 @@ public:
 
     const sptr<SurfaceBuffer> GetBuffer() const
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.buffer;
     }
 
@@ -144,11 +146,13 @@ public:
 
     const sptr<SyncFence>& GetAcquireFence() const
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.acquireFence;
     }
 
     const Rect& GetDamageRegion() const
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.damageRect;
     }
 
@@ -165,6 +169,7 @@ public:
 
     void SetBufferSizeChanged(const sptr<SurfaceBuffer>& buffer)
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         if (preBuffer_.buffer == nullptr) {
             return;
         }
@@ -204,11 +209,13 @@ public:
 
     int64_t GetTimestamp() const
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         return buffer_.timestamp;
     }
 
     void CleanCache()
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         buffer_.Reset();
         preBuffer_.Reset();
     }
@@ -260,6 +267,7 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
     {
+        std::lock_guard<std::mutex> lock(bufMutex_);
         if (bufferDeleteCb != nullptr) {
             buffer_.RegisterDeleteBufferListener(bufferDeleteCb);
             preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
@@ -285,8 +293,8 @@ private:
 #endif
     NodeId id_ = 0;
     mutable std::mutex bufMutex_;
-    SurfaceBufferEntry buffer_;
-    SurfaceBufferEntry preBuffer_;
+    SurfaceBufferEntry buffer_;    // GUARDED BY bufMutex_
+    SurfaceBufferEntry preBuffer_; // GUARDED BY bufMutex_
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;

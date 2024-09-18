@@ -700,11 +700,6 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
 }
 
-bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);
-}
-
 bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     std::shared_ptr<SurfaceBufferCallback> callback)
 {

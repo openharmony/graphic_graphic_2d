@@ -670,6 +670,12 @@ public:
 
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const;
+
+    // Only call this if the node is self-drawing surface node.
+    void UpdateColorSpaceToIntanceRootNode();
+    GraphicColorGamut GetSubSurfaceColorSpace() const;
+    void ResetSubSurfaceColorSpace();
+
 #ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
     void SetBlendType(GraphicBlendType blendType);
@@ -1082,6 +1088,8 @@ public:
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
     bool GetHasTransparentSurface() const;
     void UpdatePartialRenderParams();
+    // This function is used for extending visibleRegion by dirty blurfilter node half-obscured
+    void UpdateExtendVisibleRegion(Occlusion::Region& region);
     void UpdateAncestorDisplayNodeInRenderParams();
 
     void SetNeedDrawFocusChange(bool needDrawFocusChange)
@@ -1288,6 +1296,7 @@ private:
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    std::optional<GraphicColorGamut> subColorSpace_ = std::nullopt;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif
@@ -1310,6 +1319,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region extendVisibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
     bool isLeashWindowVisibleRegionEmpty_ = false;
@@ -1472,10 +1482,10 @@ private:
 
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     RectI historyUnSubmittedOccludedDirtyRegion_;
+    bool hasTransparentSurface_ = false;
+    bool forceUIFirst_ = false;
     bool forceUIFirstChanged_ = false;
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
-    bool forceUIFirst_ = false;
-    bool hasTransparentSurface_ = false;
 
     bool ancoForceDoDirect_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;

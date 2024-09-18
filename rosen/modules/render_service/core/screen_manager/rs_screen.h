@@ -38,7 +38,6 @@ struct VirtualScreenConfigs {
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     int32_t flags = 0; // reserve flag.
     std::unordered_set<uint64_t> whiteList = {};
-    std::unordered_set<uint64_t> blackListSet = {};
 };
 
 class RSScreen {
@@ -108,8 +107,6 @@ public:
     virtual const std::unordered_set<uint64_t>& GetBlackList() const = 0;
     virtual bool GetCastScreenEnableSkipWindow() = 0;
     virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
-    virtual bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) = 0;
-    virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
 };
@@ -192,8 +189,6 @@ public:
     const std::unordered_set<uint64_t>& GetBlackList() const override;
     bool GetCastScreenEnableSkipWindow() override;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
-    bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) override;
-    VirtualScreenStatus GetVirtualScreenStatus() const override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
 
@@ -222,7 +217,6 @@ private:
     uint32_t phyWidth_ = 0;
     uint32_t phyHeight_ = 0;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
-    VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
 
     bool isVirtual_ = true;
     bool isVirtualSurfaceUpdateFlag_ = false;

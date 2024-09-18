@@ -46,7 +46,8 @@ std::shared_ptr<Surface> Surface::MakeFromBackendRenderTarget(GPUContext* gpuCon
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
     void (*deleteFunc)(void*), void* cleanupHelper)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
     return StaticFactory::MakeFromBackendRenderTarget(gpuContext, info, origin,
@@ -138,7 +139,8 @@ void Surface::Flush(FlushInfo *drawingflushInfo)
 #ifdef RS_ENABLE_VK
 void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     if (!impl_) {
@@ -149,7 +151,8 @@ void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
 
 void Surface::SetDrawingArea(const std::vector<RectI>& rects)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     if (!impl_) {
@@ -161,7 +164,8 @@ void Surface::SetDrawingArea(const std::vector<RectI>& rects)
 
 void Surface::ClearDrawingArea()
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     if (!impl_) {

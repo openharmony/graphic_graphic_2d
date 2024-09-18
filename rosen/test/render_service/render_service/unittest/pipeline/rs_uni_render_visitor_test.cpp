@@ -1467,6 +1467,56 @@ HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateColorSpaceToIntanceRootNode
+ * @tc.desc: test results of UpdateColorSpaceToIntanceRootNode, if node has no buffer
+ * @tc.type: FUNC
+ * @tc.require: issueIAOTNY
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceToIntanceRootNode001, TestSize.Level1)
+{
+    // register instance root node
+    auto instanceRootNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(instanceRootNode, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.renderNodeMap_[instanceRootNode->GetId()] = instanceRootNode;
+    // create subsurface node
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->context_ = rsContext;
+    surfaceNode->instanceRootNodeId_ = instanceRootNode->GetId();
+
+    ASSERT_NE(surfaceNode->GetInstanceRootNode(), nullptr);
+    surfaceNode->UpdateColorSpaceToIntanceRootNode();
+    ASSERT_EQ(surfaceNode->GetSubSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: UpdateColorSpaceToIntanceRootNode
+ * @tc.desc: test results of UpdateColorSpaceToIntanceRootNode, if node has buffer
+ * @tc.type: FUNC
+ * @tc.require: issueIAOTNY
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceToIntanceRootNode002, TestSize.Level1)
+{
+    // register instance root node
+    auto instanceRootNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(instanceRootNode, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.renderNodeMap_[instanceRootNode->GetId()] = instanceRootNode;
+    // create subsurface node
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->context_ = rsContext;
+    surfaceNode->instanceRootNodeId_ = instanceRootNode->GetId();
+
+    ASSERT_NE(surfaceNode->GetInstanceRootNode(), nullptr);
+    surfaceNode->UpdateColorSpaceToIntanceRootNode();
+    ASSERT_EQ(surfaceNode->GetSubSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
  * @tc.name: DoDirectComposition001
  * @tc.desc: Test RSUniRenderVisitorTest.DoDirectComposition while the render visitor is hardware disabled
  * @tc.type: FUNC
@@ -3705,6 +3755,53 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeSurfaceDirtysForDisplay001, TestSize.
 
     rsUniRenderVisitor->CheckMergeSurfaceDirtysForDisplay(rsSurfaceRenderNode);
     ASSERT_EQ(rsUniRenderVisitor->curDisplayDirtyManager_->dirtyRegion_.left_, 0);
+}
+
+
+/*
+ * @tc.name: UpdateDisplayDirtyAndExtendVisibleRegion
+ * @tc.desc: Test UpdateDisplayDirtyAndExtendVisibleRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIAN75I
+*/
+HWTEST_F(RSUniRenderVisitorTest, UpdateDisplayDirtyAndExtendVisibleRegion, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->UpdateDisplayDirtyAndExtendVisibleRegion();
+
+    RSDisplayNodeConfig displayConfig;
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(5, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    ASSERT_NE(rsDisplayRenderNode->GetDirtyManager(), nullptr);
+    rsDisplayRenderNode->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareDisplayRenderNode(*rsDisplayRenderNode);
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    rsDisplayRenderNode->RecordMainAndLeashSurfaces(surfaceNode);
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(canvasNode, nullptr);
+    auto& property = canvasNode->GetMutableRenderProperties();
+    property.SetLightUpEffect(0.2f);
+    property.UpdateFilter();
+    surfaceNode->UpdateVisibleFilterChild(*canvasNode);
+    auto visibleFilterChildren = surfaceNode->GetVisibleFilterChild();
+    ASSERT_NE(visibleFilterChildren.size(), 0);
+    rsUniRenderVisitor->UpdateDisplayDirtyAndExtendVisibleRegion();
+
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(canvasNode);
+    auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(canvasNode->GetId());
+    ASSERT_NE(filterNode, nullptr);
+    rsUniRenderVisitor->UpdateDisplayDirtyAndExtendVisibleRegion();
+
+    Occlusion::Region region{ Occlusion::Rect{ 0, 0, 100, 100 } };
+    surfaceNode->SetVisibleRegion(region);
+    canvasNode->SetOldDirtyInSurface({ 50, 50, 70, 70 });
+    rsUniRenderVisitor->UpdateDisplayDirtyAndExtendVisibleRegion();
 }
 
 /*

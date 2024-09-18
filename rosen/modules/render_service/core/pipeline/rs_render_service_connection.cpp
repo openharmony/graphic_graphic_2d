@@ -842,6 +842,14 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             // When the isSync flag in captureConfig is true, UI capture processes commands before capture.
             // When the isSync flag in captureConfig is false, UI capture will check null node independently.
             // Therefore, a null node is valid for UI capture.
+            auto uiCaptureHasPermission = selfCapture || isSystemCalling;
+            if (!uiCaptureHasPermission) {
+                RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture uicapture failed, nodeId:[%{public}" PRIu64
+                        "], isSystemCalling: %{public}u, selfCapture: %{public}u",
+                    id, isSystemCalling, selfCapture);
+                callback->OnSurfaceCapture(id, nullptr);
+                return;
+            }
             if (RSUniRenderJudgement::IsUniRender()) {
                 TakeSurfaceCaptureForUiParallel(id, callback, captureConfig);
             } else {
@@ -1870,13 +1878,6 @@ int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, 
     }
     mainThread_->RegisterUIExtensionCallback(remotePid_, userId, callback);
     return StatusCode::SUCCESS;
-}
-
-bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    RS_LOGD("RSRenderServiceConnection::SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",
-        id, screenStatus);
-    return screenManager_->SetVirtualScreenStatus(id, screenStatus);
 }
 
 void RSRenderServiceConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,

@@ -714,44 +714,6 @@ bool DoGetSpherizeDegree(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetAttractionFractionValue(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    NodeId id = GetData<NodeId>();
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
-    showingPropertiesFreezer.GetAttractionFractionValue();
-
-    return true;
-}
-
-bool DoGetAttractionDstPointValue(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    NodeId id = GetData<NodeId>();
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
-    showingPropertiesFreezer.GetAttractionDstPointValue();
-
-    return true;
-}
-
 bool DoGetLightUpEffectDegree(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -831,8 +793,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetShadowElevation(data, size);
     OHOS::Rosen::DoGetShadowRadius(data, size);
     OHOS::Rosen::DoGetSpherizeDegree(data, size);
-    OHOS::Rosen::DoGetAttractionFractionValue(data, size);
-    OHOS::Rosen::DoGetAttractionDstPointValue(data, size);
     OHOS::Rosen::DoGetLightUpEffectDegree(data, size);
     OHOS::Rosen::DoGetDynamicDimDegree(data, size);
     return 0;

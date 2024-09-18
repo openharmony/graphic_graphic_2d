@@ -534,17 +534,6 @@ float OH_Drawing_PathGetLength(OH_Drawing_Path* cPath, bool forceClosed)
     return path->GetLength(forceClosed);
 }
 
-void OH_Drawing_PathGetBounds(OH_Drawing_Path* cPath, OH_Drawing_Rect* cRect)
-{
-    Path* path = CastToPath(cPath);
-    Rect* rect = CastToRect(cRect);
-    if (path == nullptr || rect == nullptr) {
-        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
-        return;
-    }
-    *rect = path->GetBounds();
-}
-
 bool OH_Drawing_PathIsClosed(OH_Drawing_Path* cPath, bool forceClosed)
 {
     Path* path = CastToPath(cPath);
@@ -597,4 +586,15 @@ bool OH_Drawing_PathGetMatrix(OH_Drawing_Path* cPath, bool forceClosed,
         return false;
     }
     return path->GetMatrix(forceClosed, distance, matrix, static_cast<PathMeasureMatrixFlags>(flag));
+}
+
+void OH_Drawing_PathGetBounds(OH_Drawing_Path* cPath, OH_Drawing_Rect* cRect)
+{
+    Path* path = CastToPath(cPath);
+    Rect* rect = CastToRect(cRect);
+    if (path == nullptr || rect == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    *rect = path->GetBounds();
 }

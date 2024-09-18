@@ -119,7 +119,7 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
 
-    if (width * height > VKIMAGE_LIMIT_SIZE) {
+    if (width * height > OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) {
         ROSEN_LOGE("NativeBufferUtils: vkCreateImag failed, image is too large, width:%{public}u, height::%{public}u",
             width, height);
         return {};
@@ -308,11 +308,14 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
+    // When a child node is deleted, if the parent node has already been removed from the tree,
+    // then clear fullChildrenList_ and RSChildrenDrawable of the parent node; otherwise, it may cause a memory leak.
     if (!isOnTheTree_) {
         std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
         drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
         stagingDrawCmdList_.clear();
         drawCmdListNeedSync_ = true;
+        uifirstNeedSync_ = true;
         AddToPendingSyncList();
     }
     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node remove child", GetId());
@@ -2073,7 +2076,8 @@ void RSRenderNode::SetOccludedStatus(bool occluded)
 void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
-        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(), GetRenderProperties());
+        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(),
+            std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry()));
         RSPropertyTrace::GetInstance().TracePropertiesByNodeName(GetId(), GetNodeName(), GetRenderProperties());
     }
 }
@@ -2652,13 +2656,13 @@ bool RSRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
-bool RSRenderNode::NeedInitCacheSurface()
+bool RSRenderNode::NeedInitCacheSurface() const
 {
     auto cacheType = GetCacheType();
     int width = 0;
     int height = 0;
     if (cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid() &&
-        !GetRenderProperties().IsSpherizeValid() && !GetRenderProperties().IsAttractionValid()) {
+        !GetRenderProperties().IsSpherizeValid()) {
         const RectF boundsRect = GetRenderProperties().GetBoundsRect();
         RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
         RectI shadowRect;
@@ -2681,7 +2685,7 @@ bool RSRenderNode::NeedInitCacheSurface()
     return cacheCanvas->GetWidth() != width || cacheCanvas->GetHeight() != height;
 }
 
-bool RSRenderNode::NeedInitCacheCompletedSurface()
+bool RSRenderNode::NeedInitCacheCompletedSurface() const
 {
     Vector2f size = GetOptionalBufferSize();
     int width = static_cast<int>(size.x_);
@@ -2727,7 +2731,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
     boundsWidth_ = size.x_;
     boundsHeight_ = size.y_;
     if (cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid() &&
-        !GetRenderProperties().IsSpherizeValid() && !GetRenderProperties().IsAttractionValid()) {
+        !GetRenderProperties().IsSpherizeValid()) {
         const RectF boundsRect = GetRenderProperties().GetBoundsRect();
         RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
         RectI shadowRect;

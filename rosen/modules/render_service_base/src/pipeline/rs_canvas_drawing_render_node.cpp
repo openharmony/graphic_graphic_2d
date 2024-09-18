@@ -242,8 +242,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
-        RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr, imagesize:[%{public}d, %{public}d],"
-                "id: %{public}" PRIu64"", width, height, GetId());
+        RS_LOGD("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
@@ -445,13 +444,13 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::InitRenderParams failed");
         return;
     }
 }
 
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 {
-    ClearResource();
     dirtyTypes_.set(static_cast<int>(modifierType), true);
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
     for (auto& [type, list]: GetDrawCmdModifiers()) {
@@ -470,15 +469,16 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
             if (cmd == nullptr) {
                 continue;
             }
-            drawCmdLists_[type].emplace_back(cmd);
-            if (cmd->GetOpItemSize() > 0) {
-                SetNeedProcess(true);
+            //only content_style allowed multi-drawcmdlist, others modifier same as canvas_node
+            if (type != RSModifierType::CONTENT_STYLE) {
+                drawCmdLists_[type].clear();
             }
+            drawCmdLists_[type].emplace_back(cmd);
+            SetNeedProcess(true);
         }
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
-        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() ||
-            ((renderDrawable_ && !renderDrawable_->IsDrawCmdListsVisited()))) &&
+        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&
             drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
             RS_LOGD("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
                 type, drawCmdLists_[type].size());

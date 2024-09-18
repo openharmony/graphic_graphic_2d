@@ -250,7 +250,6 @@ ohos_source_set("render_service_base_src") {
     #render
     "src/render/rs_aibar_filter.cpp",
     "src/render/rs_aibar_shader_filter.cpp",
-    "src/render/rs_attraction_effect_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_color_extract.cpp",
@@ -477,6 +476,7 @@ ohos_source_set("render_service_base_src") {
   ]
 
   external_deps = [
+    "drivers_interface_display:display_commontype_idl_headers",
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
@@ -500,8 +500,6 @@ ohos_source_set("render_service_base_src") {
   }
 
   if (use_video_processing_engine) {
-    external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]

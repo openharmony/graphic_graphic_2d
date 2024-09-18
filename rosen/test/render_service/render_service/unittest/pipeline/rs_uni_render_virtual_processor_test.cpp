@@ -268,4 +268,22 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Le
     processor->ProcessDisplaySurface(*rsDisplayRenderNode);
     EXPECT_FALSE(processor->forceCPU_);
 }
+
+/**
+ * @tc.name: CanvasClipRegion_001
+ * @tc.desc: Canvas do clipRegion
+ * @tc.type:FUNC
+ * @tc.require:issuesIAOEPL
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegion_001, TestSize.Level2)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_NE(nullptr, virtualProcessor);
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(nullptr, drawingCanvas);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    virtualProcessor->CanvasClipRegion(*canvas, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+}
 } // namespace OHOS::Rosen

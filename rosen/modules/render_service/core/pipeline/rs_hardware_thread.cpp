@@ -96,7 +96,8 @@ void RSHardwareThread::Start()
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
 #ifdef RS_ENABLE_VK
-                if (RSSystemProperties::IsUseVulkan()) {
+                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
                     RsVulkanContext::GetSingleton().SetIsProtected(true);
                 }
 #endif
@@ -425,7 +426,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
                     break;
                 }
             }
-            if (RSSystemProperties::IsUseVulkan()) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
                 RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
             }
         } else {
@@ -474,7 +476,8 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
         return;
     }
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
 #endif

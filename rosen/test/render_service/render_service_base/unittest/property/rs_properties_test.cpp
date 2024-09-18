@@ -2618,20 +2618,6 @@ HWTEST_F(RSPropertiesTest, SetNGetSpherize001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetNGetAttractionDstPoint001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesTest, SetNGetAttractionDstPoint001, TestSize.Level1)
-{
-    RSProperties properties;
-    Vector2f attractionDstPoint = Vector2f(1.f, 1.f);
-    properties.SetAttractionDstPoint(attractionDstPoint);
-    EXPECT_EQ(properties.GetAttractionDstPoint(), attractionDstPoint);
-}
-
-/**
  * @tc.name: SetLightUpEffect001
  * @tc.desc: test results of SetLightUpEffect
  * @tc.type:FUNC

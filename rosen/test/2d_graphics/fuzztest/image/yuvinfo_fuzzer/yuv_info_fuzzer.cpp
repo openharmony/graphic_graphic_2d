@@ -41,18 +41,17 @@ void YuvInfoFuzzTest000(const uint8_t* data, size_t size)
     uint32_t config = GetObject<uint32_t>();
     uint32_t sampling = GetObject<uint32_t>();
     uint32_t colorSpace = GetObject<uint32_t>();
-    uint32_t dataType = GetObject<uint32_t>();
 
-    YUVInfo yuv = YUVInfo(width, height, static_cast<YUVInfo::PlaneConfig>(config % MATH_THREE),
+    YUVInfo yuv;
+    YUVInfo yuv1 = YUVInfo(width, height, static_cast<YUVInfo::PlaneConfig>(config % MATH_THREE),
         static_cast<YUVInfo::SubSampling>(sampling % MATH_TWO),
-        static_cast<YUVInfo::YUVColorSpace>(colorSpace % MATH_THREE),
-        static_cast<YUVInfo::YUVDataType>(dataType % MATH_TWO));
+        static_cast<YUVInfo::YUVColorSpace>(colorSpace % MATH_TWO));
+    yuv1.GetWidth();
+    yuv1.GetHeight();
+    yuv1.GetConfig();
+    yuv1.GetSampling();
+    yuv1.GetColorSpace();
     yuv.GetWidth();
-    yuv.GetHeight();
-    yuv.GetConfig();
-    yuv.GetSampling();
-    yuv.GetColorSpace();
-    yuv.GetDataType();
 }
 } // namespace Drawing
 } // namespace Rosen

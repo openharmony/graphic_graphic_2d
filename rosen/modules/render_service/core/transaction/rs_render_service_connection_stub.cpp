@@ -138,7 +138,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
@@ -723,7 +722,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
                 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SURFACE_CAPTURE");
-            permissions.selfCapture = ExtractPid(id) == callingPid;
+            // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
+            // we temporarily add a white list to avoid abnormal functionality or abnormal display.
+            // The white list will be removed after GetCallingPid interface can return real PID.
+            permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
             TakeSurfaceCapture(id, cb, captureConfig, permissions);
             break;
         }
@@ -1668,15 +1670,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             int32_t status = RegisterUIExtensionCallback(userId, callback);
             if (!reply.WriteInt32(status)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS) : {
-            ScreenId id = data.ReadUint64();
-            VirtualScreenStatus screenStatus = static_cast<VirtualScreenStatus>(data.ReadUint8());
-            bool result = SetVirtualScreenStatus(id, screenStatus);
-            if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
