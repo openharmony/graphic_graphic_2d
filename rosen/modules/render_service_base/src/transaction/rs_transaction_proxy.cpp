@@ -138,14 +138,8 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     if (renderServiceClient_ != nullptr && !implicitRemoteTransactionData_->IsEmpty()) {
         implicitRemoteTransactionData_->timestamp_ = timestamp_;
         renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
-        transactionDataIndex_ = implicitRemoteTransactionData_->GetIndex();
         implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
     }
-}
-
-uint32_t RSTransactionProxy::GetTransactionDataIndex()
-{
-    return transactionDataIndex_;
 }
 
 void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)

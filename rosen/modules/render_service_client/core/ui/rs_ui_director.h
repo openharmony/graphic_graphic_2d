@@ -72,8 +72,6 @@ public:
     int32_t GetCurrentRefreshRateMode();
     int32_t GetAnimateExpectedRate() const;
 
-    uint32_t GetIndex();
-
 private:
     void AttachSurface();
     static void RecvMessages();
@@ -98,7 +96,6 @@ private:
     bool isUniRenderEnabled_ = false;
     uint64_t refreshPeriod_ = 16666667;
     uint64_t timeStamp_ = 0;
-    uint32_t index_ = 0;
     std::string abilityName_;
     std::weak_ptr<RSSurfaceNode> surfaceNode_;
     int surfaceWidth_ = 0;
