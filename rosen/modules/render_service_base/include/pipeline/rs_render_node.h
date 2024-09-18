@@ -174,6 +174,11 @@ public:
         return isTextureExportNode_;
     }
 
+    inline RectI GetFilterRegion() const
+    {
+        return filterRegion_;
+    }
+
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
     // return children and disappeared children, not guaranteed to be sorted by z-index
     ChildrenListSharedPtr GetChildren() const;
@@ -740,7 +745,7 @@ public:
     {
         return renderDrawable_;
     }
-
+    void MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark);
     // DFX
     void DumpDrawableTree(int32_t depth, std::string& out) const;
 
@@ -826,6 +831,7 @@ protected:
     mutable bool isFullChildrenListValid_ = true;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
+    bool flagIntersectWithDRM_ = false;
 private:
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;

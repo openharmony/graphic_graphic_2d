@@ -737,6 +737,17 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualMirrorScreenScaleMode, Te
 }
 
 /**
+ * @tc.name: SetGlobalDarkColorMode Test
+ * @tc.desc: SetGlobalDarkColorMode Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetGlobalDarkColorMode, TestSize.Level1)
+{
+    ASSERT_TRUE(proxy->SetGlobalDarkColorMode(true));
+}
+
+/**
  * @tc.name: GetPixelmap Test
  * @tc.desc: GetPixelmap Test
  * @tc.type:FUNC

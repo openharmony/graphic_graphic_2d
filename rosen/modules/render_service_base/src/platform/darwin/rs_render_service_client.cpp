@@ -334,6 +334,11 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenS
     return {};
 }
 
+bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     return {};

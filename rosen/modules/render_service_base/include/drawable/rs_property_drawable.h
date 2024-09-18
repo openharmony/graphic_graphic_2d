@@ -129,6 +129,7 @@ public:
     void MarkRotationChanged();
     void MarkNodeIsOccluded(bool isOccluded);
     void ClearCacheIfNeeded();
+    void MarkBlurIntersectWithDRM(bool IsIntersectWithDRM, bool isDark);
 
     bool IsFilterCacheValid() const;
     bool IsForceClearFilterCache() const;
@@ -164,13 +165,17 @@ protected:
     bool isAIBarInteractWithHWC_ = false;
     bool isEffectNode_ = false;
     bool renderIsSkipFrame_ = false;
+    bool stagingIntersectWithDRM_ = false;
+    bool stagingIsDarkColorMode_ = false;
  
     // clear one of snapshot cache and filtered cache after drawing
     bool renderClearFilteredCacheAfterDrawing_ = false;
     bool renderFilterHashChanged_ = false;
     bool renderForceClearCacheForLastFrame_ = false;
     bool renderIsEffectNode_ = false;
- 
+    bool renderIntersectWithDRM_  = false;
+    bool renderIsDarkColorMode_  = false;
+
     // the type cache needed clear before drawing
     FilterCacheType clearType_ = FilterCacheType::NONE;
     FilterCacheType lastCacheType_ = FilterCacheType::NONE;

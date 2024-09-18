@@ -161,6 +161,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
     EXPECT_EQ(paintFilterCanvasTest2.surface_->Width(), 0);
     EXPECT_EQ(paintFilterCanvasTest2.surface_->Height(), 0);
+
+    // third: DrawFilterWithDRM test
+    Drawing::Canvas canvasTest3;
+    RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
+    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);
+    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, false);
 }
 
 /**
