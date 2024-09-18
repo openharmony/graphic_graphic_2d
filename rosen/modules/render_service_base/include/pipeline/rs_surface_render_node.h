@@ -499,6 +499,7 @@ public:
     bool GetForceUIFirstChanged();
 
     static void SetAncoForceDoDirect(bool direct);
+    static bool GetOriAncoForceDoDirect(bool direct) const;
     bool GetAncoForceDoDirect() const;
     void SetAncoFlags(uint32_t flags);
     uint32_t GetAncoFlags() const;

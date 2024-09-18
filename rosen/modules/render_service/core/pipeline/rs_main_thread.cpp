@@ -2042,6 +2042,92 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     idleTimerExpiredFlag_ = false;
 }
 
+AncoHebcStatus RSMainThread::GetAncoHebcStatus()
+{
+    return static_cast<AncoHebcStatus>(ancoHebcStatus_.load());
+}
+
+void RSMainThread::SetAncoHebcStatus(AncoHebcStatus hebcStatus)
+{
+    ancoHebcStatus_.store(static_cast<int32_t>(hebcStatus));
+}
+
+bool RSMainThread::AncoOptimizeDisplayNode(std::shared_ptr<RSDisplayRenderNode>& displayNode, ScreenInfo screenInfo)
+{
+    if (!RSSurfaceRenderNode::GetOriAncoForceDoDirect()) {
+        return false;
+    }
+    if (!RSSystemProperties::IsTabletType() || displayNode->GetRotation() != ScreenRotation::ROTATION_0) {
+        return false;
+    }
+
+    auto drawable = displayNode->GetRenderDrawable();
+    if (!drawable) {
+        return false;
+    }
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+    if (surfaceHandler == nullptr) {
+        return false;
+    }
+    auto surfaceBuffer = surfaceHandler->GetBuffer();
+    if (surfaceBuffer == nullptr) {
+        return false;
+    }
+    bool isHebc = true;
+    if ((surfaceBuffer->GetUsage() & BUFFER_USAGE_CPU_READ) ||
+        (surfaceBuffer->GetUsage() & BUFFER_USAGE_CPU_WRITE)) {
+        isHebc = false;
+    }
+
+    // process displayNode rect
+    int minDisplayW = static_cast<int32_t>(screenInfo.GetRotatedPhyWidth() / 2);
+    int minDisplayH = static_cast<int32_t>(screenInfo.GetRotatedPhyHeight() / 2); 
+    if (minDisplayW <= 0 && minDisplayH <= 0) {
+        return false;
+    }
+
+    int nodesCnt = 0;
+    int sfvNodesCnt = 0;
+    constexpr int MIN_OPTIMIZE_ANCO_NUMS = 3;
+    constexpr int MIN_OPTIMIZE_ANCO_SFV_NUMS = 2;
+    for (auto& surfaceNode : hardwareEnabledNodes_) {
+        if ((surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) == 0) {
+            continue;
+        }
+        auto alpha = surfaceNode_>GetGlobalAlpha();
+        if (ROSEN_EQ(alpha, 0.0f) || !surfaceNode->GetRSSurfaceHandler() ||
+            !surfaceNode->GetRSSurfaceHandler()->GetBuffer()) {
+            continue;
+        }
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+        if (params == nullptr) {
+            continue;
+        }
+        auto& layerInfo = params->GetLayerInfo().dstRect;
+        if (layerInfo.w >= minDisplayW && layerInfo.h >= minDisplayH) {
+            nodesCnt++;
+            if (surfaceNode->GetAncoFlags() == static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) {
+                sfvNodesCnt++;
+            }
+        }
+    }
+
+    bool numsMatch = nodesCnt == MIN_OPTIMIZE_ANCO_NUMS && sfvNodesCnt == MIN_OPTIMIZE_ANCO_SFV_NUMS;
+    if (numsMatch && isHebc) {
+        RS_LOGD("doDirect anco disable hebc");
+        SetAncoHebcStatus(AncoHebcStatus::NOT_USE_HEBC);
+        return true;
+    }
+    if (!numsMatch && !isHebc) {
+        RS_LOGD("doDirect anco enable hebc");
+        SetAncoHebcStatus(AncoHebcStatus::USE_HEBC);
+        return true;
+    }
+    SetAncoHebcStatus(AncoHebcStatus::INITIAL);
+    return false;
+}
+
 bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT)
 {
     auto children = rootNode->GetChildren();
@@ -2075,6 +2161,10 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     if (!processor->Init(*displayNode, displayNode->GetDisplayOffsetX(), displayNode->GetDisplayOffsetY(),
         INVALID_SCREEN_ID, renderEngine)) {
         RS_LOGE("RSMainThread::DoDirectComposition: processor init failed!");
+        return false;
+    }
+
+    if (AncoOptimizeDisplayNode(displayNode, screenInfo)) {
         return false;
     }
 

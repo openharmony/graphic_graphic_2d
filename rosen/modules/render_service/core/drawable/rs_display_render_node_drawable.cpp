@@ -300,7 +300,16 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         params.GetNewColorSpace(), params.GetNewPixelFormat());
     RS_LOGD("RequestFrame colorspace is %{public}d, pixelformat is %{public}d", params.GetNewColorSpace(),
         params.GetNewPixelFormat());
-    auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface), bufferConfig);
+
+    bool isHebc = true;
+    if (RSMainThread::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC) {
+        isHebc = false;
+        RS_LOGD("anco request frame not use hebc");
+    }
+    RSMainThread::Instance()->SetAncoHebcStatus(AncoHebcStatus::INITIAL);
+
+    auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
+        bufferConfig, false, isHebc);
     if (!renderFrame) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame renderEngine requestFrame is null");
         return nullptr;
