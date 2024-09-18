@@ -679,17 +679,31 @@ void RSUniRenderVisitor::SetNodeCacheChangeStatus(RSRenderNode& node)
 
 void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 {
-    // currently, P3 is the only supported wide color gamut, this may be modified later.
-    if (node.IsAppWindow() && node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
-        newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-        RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorgamut %{public}d",
-            node.GetName().c_str(), newColorSpace_);
-    } else if (node.GetSubSurfaceColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB && !IsHardwareComposerEnabled()) {
-        newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-        RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) subsurface set new colorgamut %{public}d",
-            node.GetName().c_str(), newColorSpace_);
+    if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
+        const sptr<SurfaceBuffer>& buffer = node.GetRSSurfaceHandler()->GetBuffer();
+        using namespace HDI::Display::Graphic::Common::V1_0;
+        CM_ColorSpaceInfo colorSpaceInfo;
+        if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: get color space info failed.");
+            return;
+        }
+
+        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB && !IsHardwareComposerEnabled()) {
+            newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorspace primaries %{public}d",
+                    node.GetName().c_str(), colorSpaceInfo.primaries);
+        }
+        return;
     }
-    node.ResetSubSurfaceColorSpace();
+
+    if (node.IsAppWindow()) {
+        auto colorspace = node.GetColorSpace();
+        if (colorspace != GRAPHIC_COLOR_GAMUT_SRGB) {
+            newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorgamut %{public}d",
+                    node.GetName().c_str(), colorspace);
+        }
+    }
 }
 
 void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
