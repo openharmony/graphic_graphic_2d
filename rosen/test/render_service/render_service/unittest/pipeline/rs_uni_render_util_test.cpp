@@ -109,7 +109,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual002, Function | SmallTes
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    drawableParam->SetWindowInfo(false, false, true);
+    drawableParam->isMainWindowType_ = false;
+    drawableParam->isLeashWindow_ = false;
+    drawableParam->isAppWindow_ = true;
     drawable->renderParams_ = std::move(drawableParam);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(nullptr);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
@@ -133,7 +135,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual003, Function | SmallTes
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId++);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto drawableParam = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    drawableParam->SetWindowInfo(false, false, false);
+    drawableParam->isMainWindowType_ = false;
+    drawableParam->isLeashWindow_ = false;
+    drawableParam->isAppWindow_ = false;
     drawable->renderParams_ = std::move(drawableParam);
     displayNodeDrawableParam->allMainAndLeashSurfaceDrawables_.push_back(drawable);
     displayNodeDrawable.renderParams_ = std::move(displayNodeDrawableParam);
@@ -154,7 +158,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionInVirtualTest001, Function 
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->SetWindowInfo(false, false, true);
+    param->isMainWindowType_ = false;
+    param->isLeashWindow_ = false;
+    param->isAppWindow_ = true;
     drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(nullptr);
     allSurfaceNodeDrawables.push_back(drawable);
@@ -176,7 +182,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionInVirtualTest002, Function 
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->SetWindowInfo(false, false, false);
+    param->isMainWindowType_ = false;
+    param->isLeashWindow_ = false;
+    param->isAppWindow_ = false;
     drawable->renderParams_ = std::move(param);
     allSurfaceNodeDrawables.push_back(drawable);
     RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(allSurfaceNodeDrawables);
@@ -216,7 +224,9 @@ HWTEST_F(RSUniRenderUtilTest, SetAllSurfaceDrawableGlobalDityRegionTest001, Func
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->SetWindowInfo(false, false, false);
+    param->isMainWindowType_ = false;
+    param->isLeashWindow_ = false;
+    param->isAppWindow_ = false;
     drawable->renderParams_ = std::move(param);
     allSurfaceDrawables.push_back(drawable);
     RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(allSurfaceDrawables, globalDirtyRegion);
@@ -237,7 +247,9 @@ HWTEST_F(RSUniRenderUtilTest, SetAllSurfaceDrawableGlobalDityRegionTest002, Func
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->SetWindowInfo(true, false, true);
+    param->isMainWindowType_ = true;
+    param->isLeashWindow_ = false;
+    param->isAppWindow_ = false;
     drawable->renderParams_ = std::move(param);
     allSurfaceDrawables.push_back(nullptr);
     allSurfaceDrawables.push_back(drawable);
@@ -786,7 +798,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest001, Function | SmallTe
     ASSERT_NE(drawable, nullptr);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->SetWindowInfo(false, false, true);
+    param->isMainWindowType_ = false;
+    param->isLeashWindow_ = false;
+    param->isAppWindow_ = true;
     drawable->renderParams_ = std::move(param);
 
     auto surfaceDrawable =
@@ -840,7 +854,9 @@ HWTEST_F(RSUniRenderUtilTest, MergeVisibleDirtyRegionTest003, Function | SmallTe
     ASSERT_NE(drawable, nullptr);
     auto param = std::make_unique<RSSurfaceRenderParams>(id);
     ASSERT_NE(param, nullptr);
-    param->SetWindowInfo(false, false, false);
+    param->isMainWindowType_ = false;
+    param->isLeashWindow_ = false;
+    param->isAppWindow_ = false;
     drawable->renderParams_ = std::move(param);
 
     auto surfaceDrawable =

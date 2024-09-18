@@ -2690,7 +2690,9 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->rrect_ = properties.GetRRect();
     surfaceParams->selfDrawingType_ = GetSelfDrawingNodeType();
     surfaceParams->needBilinearInterpolation_ = NeedBilinearInterpolation();
-    surfaceParams->SetWindowInfo(IsMainWindowType(), IsLeashWindow(), IsAppWindow());
+    surfaceParams->isMainWindowType_ = IsMainWindowType();
+    surfaceParams->isLeashWindow_ = IsLeashWindow();
+    surfaceParams->isAppWindow_ = IsAppWindow();
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
