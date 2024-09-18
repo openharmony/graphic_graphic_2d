@@ -153,7 +153,8 @@ sk_sp<SkSurface> DrawingContext::AcquireSurfaceInRaster(const std::shared_ptr<RS
 sk_sp<SkSurface> DrawingContext::AcquireSurfaceInVulkan(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
 #ifdef RS_ENABLE_VK
-    if (!RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
     VulkanState* vulkanState = frame->vulkanState;

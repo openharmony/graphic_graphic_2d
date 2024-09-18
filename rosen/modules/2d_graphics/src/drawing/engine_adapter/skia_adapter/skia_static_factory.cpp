@@ -73,7 +73,8 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUConte
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,
     void (*deleteVkImage)(void *), void* cleanHelper)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
     }
     return SkiaSurface::MakeFromBackendRenderTarget(gpuContext, info, origin,

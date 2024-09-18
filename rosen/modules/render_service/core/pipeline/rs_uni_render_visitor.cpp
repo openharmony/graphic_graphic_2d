@@ -4388,7 +4388,8 @@ void RSUniRenderVisitor::ClipRegion(std::shared_ptr<Drawing::Canvas> canvas, con
     } else {
         RS_TRACE_NAME("RSUniRenderVisitor: clipPath");
 #ifdef RS_ENABLE_VK
-        if (RSSystemProperties::IsUseVulkan()) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             canvas->ClipRegion(region);
         } else {
             Drawing::Path dirtyPath;

@@ -238,7 +238,8 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     }
 
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         const auto& backendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
         if (!backendTexture.isValid()) {
             LOGE("SkiaImage BuildFromTexture backend texture is not valid!!!!");
@@ -328,7 +329,8 @@ BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Textur
     auto backendTexture = BackendTexture(true);
     SetGrBackendTexture(skBackendTexture);
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         TextureInfo info;
         SkiaTextureInfo::ConvertToVKTexture(skBackendTexture, info);
         backendTexture.SetTextureInfo(info);

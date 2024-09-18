@@ -24,7 +24,8 @@ namespace Drawing {
 GrBackendTexture SkiaTextureInfo::ConvertToGrBackendVKTexture(const TextureInfo& info)
 {
     GrVkImageInfo imageInfo;
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         GrBackendTexture backendTexture(0, 0, imageInfo);
         return backendTexture;
     }
@@ -72,7 +73,8 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendVKTexture(const TextureInfo&
 
 void SkiaTextureInfo::ConvertToVKTexture(const GrBackendTexture& backendTexture, TextureInfo& info)
 {
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     std::shared_ptr<VKTextureInfo> vkInfo = std::make_shared<VKTextureInfo>();
@@ -118,7 +120,8 @@ void SkiaTextureInfo::ConvertToVKTexture(const GrBackendTexture& backendTexture,
 GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& info)
 {
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::IsUseVulkan()) {
+    if (GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
+        GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         return ConvertToGrBackendVKTexture(info);
     } else {
         GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };

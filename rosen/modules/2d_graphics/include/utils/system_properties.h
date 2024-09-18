@@ -31,11 +31,6 @@ public:
         return SystemProperties::systemGpuApiType_;
     }
 
-    static inline bool IsUseVulkan()
-    {
-        return SystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
-    }
-
     static bool GetHMSymbolEnable();
     static GpuApiType GetSystemGraphicGpuType();
 
