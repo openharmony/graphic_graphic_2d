@@ -58,7 +58,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -224,22 +224,21 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 #endif
 }
 
-void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
     const ScreenInfo& screenInfo)
 {
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [&processor, &rcdInfo]() {
-                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
+            [id, &processor, &rcdInfo](void) {
+                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
                 rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
                     hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(rcdInfo->processInfo);
-            }
-        );
+                RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(id, rcdInfo->processInfo);
+            });
     }
 }
 
@@ -2093,7 +2092,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     auto rcdInfo = std::make_unique<RcdInfo>();
-    DoScreenRcdTask(processor, rcdInfo, screenInfo);
+    DoScreenRcdTask(displayNode->GetId(), processor, rcdInfo, screenInfo);
     if (waitForRT) {
         RSUniRenderThread::Instance().PostSyncTask([processor, displayNode]() {
             RS_TRACE_NAME("DoDirectComposition PostProcess");
