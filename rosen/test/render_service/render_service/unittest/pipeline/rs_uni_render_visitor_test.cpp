@@ -1926,6 +1926,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareTypesOfSurfaceRenderNodeBeforeUpdate002,
     ASSERT_FALSE(rsUniRenderVisitor->curSurfaceNode_->GetChildHardwareEnabledNodes().empty());
 }
 
+#ifndef ROSEN_CROSS_PLATFORM
 /**
  * @tc.name: UpdateColorSpaceToIntanceRootNode
  * @tc.desc: test results of UpdateColorSpaceToIntanceRootNode, if node has no buffer
@@ -1975,6 +1976,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceToIntanceRootNode002, TestSize.
     surfaceNode->UpdateColorSpaceToIntanceRootNode();
     ASSERT_EQ(surfaceNode->GetSubSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
+#endif
 
 /*
  * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent001
