@@ -45,7 +45,8 @@ HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
     RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string &componentName) {
         HgmTaskHandleThread::Instance().PostTask([this, componentName]() { StartNewAnimation(componentName); });
     });
-    RsCommonHook::Instance().SetComponentPowerFpsFunc(std::bind(&HgmEnergyConsumptionPolicy::GetComponentFps, this, std::placeholders::_1));
+    RsCommonHook::Instance().SetComponentPowerFpsFunc(
+        std::bind(&HgmEnergyConsumptionPolicy::GetCompnentFps, this, std::placeholders::_1));
 }
 
 HgmEnergyConsumptionPolicy& HgmEnergyConsumptionPolicy::Instance()
@@ -157,10 +158,10 @@ void HgmEnergyConsumptionPolicy::SetTouchState(TouchState touchState)
 
     HgmTaskHandleThread::Instance().RemoveEvent(RS_ENERGY_ASSURANCE_TASK_ID);
     // touch
-    if (state == TouchState::DOWN_STATE) {
+    if (touchState == TouchState::DOWN_STATE) {
         isTouchIdle_ = false;
         SetAnimationEnergyConsumptionAssuranceMode(false);
-    } else if (state == TouchState::UP_STATE) {
+    } else if (touchState == TouchState::UP_STATE) {
         HgmTaskHandleThread::Instance().PostEvent(
             RS_ENERGY_ASSURANCE_TASK_ID, [this]() { SetAnimationEnergyConsumptionAssuranceMode(true); },
             rsAnimationTouchIdleTime_);
@@ -193,7 +194,7 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 
 void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
 {
-    if (!isTouchState_) {
+    if (!isTouchIdle_) {
         return;
     }
     auto it = uiEnergyAssuranceMap_.find(rsRange.type_);
@@ -243,8 +244,8 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
             return;
         }
         lastAssuranceLog_ = lastAssuranceLog;
-        RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s, maxFps:%d", lastAssuranceLog_.c_str(), idleFps);
-        HGM_LOGI("change power policy is %{public}s, maxFps = %{public}d", lastAssuranceLog.c_str(), idleFps);
+        RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
+        HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
         return;
     }
 
@@ -252,9 +253,8 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
     if (lastAssuranceLog == "" || lastAssuranceLog_ == lastAssuranceLog) {
         return;
     }
-    RS_TRACE_NAME_FMT(
-        "SetEnergyConsumptionRateRange rateType:%s, maxFps:%d", lastAssuranceLog.c_str(), rsRange.preferred_);
-    HGM_LOGI("change power policy is %{public}s, maxFps = %{public}d", lastAssuranceLog.c_str(), rsRange.preferred_);
+    RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
+    HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
 }
 
 int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const std::string &componentName)
@@ -264,17 +264,17 @@ int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const st
         return UNKNOWN_IDLE_FPS;
     }
     const auto settingMode = std::to_string(currentRefreshMode_);
-    const auto curScreenStrategyId_ = curScreenStrategyId;
+    const auto curScreenStrategyId = curScreenStrategyId_;
     if (configData->screenConfigs_.count(curScreenStrategyId_) &&
         configData->screenConfigs_[curScreenStrategyId_].count(settingMode)) {
         auto& screenConfig = configData->screenConfigs_[curScreenStrategyId_][settingMode];
         auto idleFps = UNKNOWN_IDLE_FPS;
         if (screenConfig.componentPowerConfig.count(componentName)) {
-            idleFps = creenConfig.componentPowerConfig[componentName];
+            idleFps = screenConfig.componentPowerConfig[componentName];
         }
         return idleFps;
     }
-    return UNKNOWN_IDLE_FPS
+    return UNKNOWN_IDLE_FPS;
 }
 
 } // namespace OHOS::Rosen
