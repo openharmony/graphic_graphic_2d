@@ -27,9 +27,8 @@
 #include "common/rs_common_hook.h"
 
 namespace OHOS::Rosen {
-static const std::string IS_ANIMATION_ENERGY_ASSURANCE_ENABLE = "animation_energy_assurance_enable";
-static const std::string ANIMATION_IDLE_FPS = "animation_idle_fps";
-static const std::string ANIMATION_IDLE_DURATION = "animation_idle_duration";
+
+const static std::string RS_ENERGY_ASSURANCE_TASK_ID = "RS_ENERGY_ASSURANCE_TASK_ID";
 static const std::unordered_map<std::string, int32_t> UI_RATE_TYPE_NAME_MAP = {
     {"ui_animation", UI_ANIMATION_FRAME_RATE_TYPE },
     {"display_sync", DISPLAY_SYNC_FRAME_RATE_TYPE },
@@ -38,14 +37,15 @@ static const std::unordered_map<std::string, int32_t> UI_RATE_TYPE_NAME_MAP = {
 };
 constexpr int DEFAULT_ENERGY_ASSURANCE_IDLE_FPS = 60;
 constexpr int DEFAULT_ANIMATION_IDLE_DURATION = 2000;
-constexpr int64_t ENERGY_ASSURANCE_LOG_DELAY_TIME = 50;
-static const std::string ENERGY_ASSURANCE_LOG_TASK_ID = "ENERGY_ASSURANCE_LOG_TASK_ID";
+constexpr int64_t DEFAULT_RS_ANIMATION_TOUCH_UP_TIME = 1000;
+constexpr int32_t UNKNOWN_IDLE_FPS = -1;
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
-    RsCommonHook::Instance().RegisterStartNewAnimationListener([this] () {
-        HgmTaskHandleThread::Instance().PostTask([this] () { StartNewAnimation(); });
+    RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string &componentName) {
+        HgmTaskHandleThread::Instance().PostTask([this, componentName]() { StartNewAnimation(componentName); });
     });
+    RsCommonHook::Instance().SetComponentPowerFpsFunc(std::bind(&HgmEnergyConsumptionPolicy::GetComponentFps, this, std::placeholders::_1));
 }
 
 HgmEnergyConsumptionPolicy& HgmEnergyConsumptionPolicy::Instance()
@@ -66,28 +66,35 @@ void HgmEnergyConsumptionPolicy::ConverStrToInt(int& targetNum, std::string sour
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig(
     std::unordered_map<std::string, std::string> animationPowerConfig)
 {
-    if (animationPowerConfig.count(IS_ANIMATION_ENERGY_ASSURANCE_ENABLE) == 0) {
-        isAnimationEnergyAssuranceEnable_ = false;
-    } else {
-        isAnimationEnergyAssuranceEnable_ =
-            animationPowerConfig[IS_ANIMATION_ENERGY_ASSURANCE_ENABLE] == "true" ? true : false;
+    auto isEnable = animationPowerConfig.find("animation_energy_assurance_enable");
+    isAnimationEnergyAssuranceEnable_ = false;
+    if (isEnable != animationPowerConfig.end() && isEnable->second == "true") {
+        isAnimationEnergyAssuranceEnable_ = true;
     }
+
     if (!isAnimationEnergyAssuranceEnable_) {
         HGM_LOGD("HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig isAnimationLtpoPowerEnable is false");
         return;
     }
 
-    if (animationPowerConfig.count(ANIMATION_IDLE_FPS) == 0) {
-        animationIdleFps_ = DEFAULT_ENERGY_ASSURANCE_IDLE_FPS;
-    } else {
-        ConverStrToInt(animationIdleFps_, animationPowerConfig[ANIMATION_IDLE_FPS], DEFAULT_ENERGY_ASSURANCE_IDLE_FPS);
+    auto idleFps = animationPowerConfig.find("animation_idle_fps");
+    animationIdleFps_ = DEFAULT_ENERGY_ASSURANCE_IDLE_FPS;
+    if (idleFps != animationPowerConfig.end()) {
+        ConverStrToInt(animationIdleFps_, idleFps->second, DEFAULT_ENERGY_ASSURANCE_IDLE_FPS);
     }
 
-    if (animationPowerConfig.count(ANIMATION_IDLE_DURATION) == 0) {
-        animationIdleDuration_ = DEFAULT_ANIMATION_IDLE_DURATION;
-    } else {
-        ConverStrToInt(
-            animationIdleDuration_, animationPowerConfig[ANIMATION_IDLE_DURATION], DEFAULT_ANIMATION_IDLE_DURATION);
+    auto idleDuration = animationPowerConfig.find("animation_idle_duration");
+    animationIdleDuration_ = DEFAULT_ANIMATION_IDLE_DURATION;
+    if (idleDuration != animationPowerConfig.end()) {
+        ConverStrToInt(animationIdleDuration_, idleDuration->second, DEFAULT_ANIMATION_IDLE_DURATION);
+    }
+
+    auto touchUpTime = animationPowerConfig.find("animation_touch_up_duration");
+    rsAnimationTouchIdleTime_ = DEFAULT_RS_ANIMATION_TOUCH_UP_TIME;
+    if (touchUpTime != animationPowerConfig.end()) {
+        int delayTime = 0;
+        ConverStrToInt(delayTime, touchUpTime->second, DEFAULT_RS_ANIMATION_TOUCH_UP_TIME);
+        rsAnimationTouchIdleTime_ = delayTime;
     }
     HGM_LOGD("HgmEnergyConsumptionPolicy::SetEnergyConsumptionConfig update config success");
 }
@@ -120,11 +127,6 @@ void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool
     lastAnimationTimestamp_ = firstAnimationTimestamp_;
 }
 
-void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode)
-{
-    isUiEnergyConsumptionAssuranceMode_ = isEnergyConsumptionAssuranceMode;
-}
-
 void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
 {
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
@@ -133,8 +135,12 @@ void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
     lastAnimationTimestamp_ = timestamp;
 }
 
-void HgmEnergyConsumptionPolicy::StartNewAnimation()
+void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::string &componentName)
 {
+    auto idleFps = GetComponentEnergyConsumptionConfig(componentName);
+    if (idleFps != UNKNOWN_IDLE_FPS) {
+        return;
+    }
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
         return;
     }
@@ -142,16 +148,44 @@ void HgmEnergyConsumptionPolicy::StartNewAnimation()
     lastAnimationTimestamp_ = firstAnimationTimestamp_;
 }
 
-void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
+void HgmEnergyConsumptionPolicy::SetTouchState(TouchState touchState)
 {
-    rsRange.isEnergyAssurance_ = false;
-    if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
-        PrintLog(rsRange, false, 0);
+    if (touchState == TouchState::IDLE_STATE) {
+        isTouchIdle_ = true;
         return;
     }
-    if (lastAnimationTimestamp_ > firstAnimationTimestamp_ &&
+
+    HgmTaskHandleThread::Instance().RemoveEvent(RS_ENERGY_ASSURANCE_TASK_ID);
+    // touch
+    if (state == TouchState::DOWN_STATE) {
+        isTouchIdle_ = false;
+        SetAnimationEnergyConsumptionAssuranceMode(false);
+    } else if (state == TouchState::UP_STATE) {
+        HgmTaskHandleThread::Instance().PostEvent(
+            RS_ENERGY_ASSURANCE_TASK_ID, [this]() { SetAnimationEnergyConsumptionAssuranceMode(true); },
+            rsAnimationTouchIdleTime_);
+    }
+}
+
+void HgmEnergyConsumptionPolicy::GetComponentFps(FrameRateRange& range)
+{
+    if (!isTouchIdle_) {
+        return;
+    }
+    auto idleFps = GetComponentEnergyConsumptionConfig(range.GetComponentName());
+    if (idleFps != UNKNOWN_IDLE_FPS) {
+        SetEnergyConsumptionRateRange(range, idleFps);
+    }
+}
+
+void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
+{
+    if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
+        return;
+    }
+    // The animation takes effect after a certain period of time
+    if (lastAnimationTimestamp_ <= firstAnimationTimestamp_ ||
         (lastAnimationTimestamp_ - firstAnimationTimestamp_) < static_cast<uint64_t>(animationIdleDuration_)) {
-        PrintLog(rsRange, false, 0);
         return;
     }
     SetEnergyConsumptionRateRange(rsRange, animationIdleFps_);
@@ -159,9 +193,7 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 
 void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
 {
-    rsRange.isEnergyAssurance_ = false;
-    if (!isUiEnergyConsumptionAssuranceMode_) {
-        PrintLog(rsRange, false, 0);
+    if (!isTouchState_) {
         return;
     }
     auto it = uiEnergyAssuranceMap_.find(rsRange.type_);
@@ -173,16 +205,18 @@ void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
     int idleFps = it->second.second;
     if (isEnergyAssuranceEnable) {
         SetEnergyConsumptionRateRange(rsRange, idleFps);
-    } else {
-        PrintLog(rsRange, false, 0);
     }
+}
+
+void HgmEnergyConsumptionPolicy::SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId)
+{
+    currentRefreshMode_ = currentRefreshMode;
+    curScreenStrategyId_ = curScreenStrategyId;
 }
 
 void HgmEnergyConsumptionPolicy::SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps)
 {
-    RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s, maxFps:%d", rsRange.GetExtInfo().c_str(), idleFps);
     if (rsRange.preferred_ > idleFps) {
-        PrintLog(rsRange, true, idleFps);
         rsRange.isEnergyAssurance_ = true;
     }
     rsRange.max_ = std::min(rsRange.max_, idleFps);
@@ -190,36 +224,57 @@ void HgmEnergyConsumptionPolicy::SetEnergyConsumptionRateRange(FrameRateRange& r
     rsRange.preferred_ = std::min(rsRange.preferred_, idleFps);
 }
 
-void HgmEnergyConsumptionPolicy::PrintLog(FrameRateRange &rsRange, bool state, int idleFps)
+void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange& rsRange)
 {
-    const auto it = energyAssuranceState_.find(rsRange.type_);
-    const auto taskId = ENERGY_ASSURANCE_LOG_TASK_ID + std::to_string(rsRange.type_);
-    // Enter assurance solution
-    if (state) {
-        HgmTaskHandleThread::Instance().RemoveEvent(taskId);
-        if (it == energyAssuranceState_.end() || !it->second) {
-            energyAssuranceState_[rsRange.type_] = state;
-            HGM_LOGI("HgmEnergyConsumptionPolicy enter the energy consumption assurance mode, rateType:%{public}s, "
-                "maxFps:%{public}d", rsRange.GetExtInfo().c_str(), idleFps);
+    std::string lastAssuranceLog = "NO_CONSUMPTION_ASSURANCE";
+    if (!rsRange.isEnergyAssurance_) {
+        if (lastAssuranceLog_ == lastAssuranceLog) {
+            return;
         }
-
-        // Continued assurance status
-        auto task = [this, rsRange]() {
-            energyAssuranceState_[rsRange.type_] = false;
-            HGM_LOGI("HgmEnergyConsumptionPolicy exit the energy consumption assurance mode, rateType:%{public}s",
-                rsRange.GetExtInfo().c_str());
-        };
-        HgmTaskHandleThread::Instance().PostEvent(taskId, task, ENERGY_ASSURANCE_LOG_DELAY_TIME);
+        lastAssuranceLog_ = lastAssuranceLog;
+        RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
+        HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
         return;
     }
 
-    // Exit assurance solution
-    if (it != energyAssuranceState_.end() && it->second && !state) {
-        HgmTaskHandleThread::Instance().RemoveEvent(taskId);
-        energyAssuranceState_[rsRange.type_] = state;
-        HGM_LOGI("HgmEnergyConsumptionPolicy exit the energy consumption assurance mode, rateType:%{public}s",
-            rsRange.GetExtInfo().c_str());
+    if (rsRange.componentScene_ != ComponentScene::UNKNOWN_SCENE) {
+        lastAssuranceLog = std::string("COMPONENT_ASSURANCE[ ") + rsRange.GetComponentName() + "]";
+        if (lastAssuranceLog_ == lastAssuranceLog) {
+            return;
+        }
+        lastAssuranceLog_ = lastAssuranceLog;
+        RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s, maxFps:%d", lastAssuranceLog_.c_str(), idleFps);
+        HGM_LOGI("change power policy is %{public}s, maxFps = %{public}d", lastAssuranceLog.c_str(), idleFps);
+        return;
     }
+
+    lastAssuranceLog = rsRange.GetExtInfo();
+    if (lastAssuranceLog == "" || lastAssuranceLog_ == lastAssuranceLog) {
+        return;
+    }
+    RS_TRACE_NAME_FMT(
+        "SetEnergyConsumptionRateRange rateType:%s, maxFps:%d", lastAssuranceLog.c_str(), rsRange.preferred_);
+    HGM_LOGI("change power policy is %{public}s, maxFps = %{public}d", lastAssuranceLog.c_str(), rsRange.preferred_);
+}
+
+int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const std::string &componentName)
+{
+    const auto& configData = HgmCore::Instance().GetPolicyConfigData();
+    if (!configData) {
+        return UNKNOWN_IDLE_FPS;
+    }
+    const auto settingMode = std::to_string(currentRefreshMode_);
+    const auto curScreenStrategyId_ = curScreenStrategyId;
+    if (configData->screenConfigs_.count(curScreenStrategyId_) &&
+        configData->screenConfigs_[curScreenStrategyId_].count(settingMode)) {
+        auto& screenConfig = configData->screenConfigs_[curScreenStrategyId_][settingMode];
+        auto idleFps = UNKNOWN_IDLE_FPS;
+        if (screenConfig.componentPowerConfig.count(componentName)) {
+            idleFps = creenConfig.componentPowerConfig[componentName];
+        }
+        return idleFps;
+    }
+    return UNKNOWN_IDLE_FPS
 }
 
 } // namespace OHOS::Rosen

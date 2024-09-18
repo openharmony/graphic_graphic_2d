@@ -58,7 +58,7 @@ void AnimationCommandHelper::CreateAnimation(
         RS_LOGE("AnimationCommandHelper::CreateAnimation, node[%{public}" PRIu64 "] is nullptr", targetId);
         return;
     }
-    RsCommonHook::Instance().OnStartNewAnimation();
+    RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
     node->GetAnimationManager().AddAnimation(animation);
     auto modifier = node->GetModifier(animation->GetPropertyId());
     if (modifier != nullptr) {
@@ -82,7 +82,7 @@ void AnimationCommandHelper::CreateParticleAnimation(
     if (node == nullptr) {
         return;
     }
-    RsCommonHook::Instance().OnStartNewAnimation();
+    RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
     auto propertyId = animation->GetPropertyId();
     node->GetAnimationManager().AddAnimation(animation);
     auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(

@@ -48,7 +48,8 @@ void RSImplicitAnimationParam::ApplyTimingProtocol(const std::shared_ptr<RSAnima
     animation->SetRepeatCount(timingProtocol_.GetRepeatCount());
     animation->SetFillMode(timingProtocol_.GetFillMode());
     auto range = timingProtocol_.GetFrameRateRange();
-    if (range.IsValid()) {
+    // Transfer frame rate and component informations
+    if (range.IsValid() || range.componentScene_ != ComponentScene::UNKNOWN_SCENE) {
         animation->SetFrameRateRange(range);
     }
 }

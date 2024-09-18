@@ -21,12 +21,13 @@
 #include <unordered_map>
 #include <atomic>
 
+#include "animation/rs_frame_rate_range.h"
 namespace OHOS::Rosen {
 class RsCommonHook {
 public:
     static RsCommonHook& Instance();
-    void RegisterStartNewAnimationListener(std::function<void()> listener);
-    void OnStartNewAnimation();
+    void RegisterStartNewAnimationListener(std::function<void(const std::string&)> listener);
+    void OnStartNewAnimation(const std::string &componentName);
     // source crop tuning
     void SetVideoSurfaceFlag(bool videoSurfaceFlag);
     bool GetVideoSurfaceFlag() const;
@@ -36,15 +37,18 @@ public:
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
     bool GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() const;
     bool GetHardwareEnabledByBackgroundAlphaFlag() const;
+    void SetComponentPowerFpsFunc(std::function<void(FrameRateRange& range)> func);
+    void GetComponentPowerFps(FrameRateRange& range);
 
 private:
-    std::function<void()> startNewAniamtionFunc_ = nullptr;
+    std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
     // source crop tuning
     std::atomic<bool> videoSurfaceFlag_{false};
 
     // use in updating hwcnode hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
+    std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif
