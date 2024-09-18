@@ -554,18 +554,13 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
     if (cleanUpHelper == nullptr) {
         return nullptr;
     }
-
+    // attention: cleanUpHelper will be delete by NativeBufferUtils::DeleteVkImage, don't delete again
     auto drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         gpuContext.get(),
         backendTextureTmp.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT,
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
         NativeBufferUtils::DeleteVkImage, cleanUpHelper);
-    if (!drawingSurface) {
-        delete cleanUpHelper;
-        cleanUpHelper = nullptr;
-        RS_LOGE("DmaMem::GetSurfaceFromSurfaceBuffer: MakeFromBackendTexture fail.");
-    }
     return drawingSurface;
 }
 #endif
