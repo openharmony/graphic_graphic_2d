@@ -121,7 +121,6 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 {
     int width = 0;
     int height = 0;
-    RS_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::ProcessRenderContents %llu", GetId());
     std::lock_guard<std::mutex> lockTask(taskMutex_);
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
@@ -326,6 +325,10 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!image_) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ is nullptr");
+        return bitmap;
+    }
+    if (GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ used by multi threads");
         return bitmap;
     }
     if (!image_->AsLegacyBitmap(bitmap)) {
