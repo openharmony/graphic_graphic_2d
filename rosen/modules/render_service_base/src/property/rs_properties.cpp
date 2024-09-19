@@ -1339,7 +1339,7 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
             return;
         }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-        if (particleAnimation) {
+        if (particleAnimation != nullptr) {
             particleAnimation->UpdateNoiseField(particleNoiseFields_);
         }
     }
@@ -1969,6 +1969,7 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     contentDirty_ = true;
 }
 
+
 const Color& RSProperties::GetShadowColor() const
 {
     static const auto DEFAULT_SPOT_COLOR_VALUE = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
@@ -2141,11 +2142,11 @@ RectF RSProperties::GetBoundsRect() const
     auto rect = RectF();
     if (boundsGeo_->IsEmpty()) {
         if (!std::isinf(GetFrameWidth()) && !std::isinf(GetFrameHeight())) {
-            return {0, 0, GetFrameWidth(), GetFrameHeight()};
+            rect = {0, 0, GetFrameWidth(), GetFrameHeight()};
         }
     } else {
         if (!std::isinf(GetBoundsWidth()) && !std::isinf(GetBoundsHeight())) {
-            return {0, 0, GetBoundsWidth(), GetBoundsHeight()};
+            rect = {0, 0, GetBoundsWidth(), GetBoundsHeight()};
         }
     }
     return rect;

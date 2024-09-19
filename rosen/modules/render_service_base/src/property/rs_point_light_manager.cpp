@@ -20,7 +20,6 @@
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties_def.h"
 #include "screen_manager/screen_types.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -139,9 +138,8 @@ void RSPointLightManager::CheckIlluminated(
     auto illuminatedRootNodeId = illuminatedNode->GetInstanceRootNodeId();
     auto lightSourceRootNodeId = lightSourceNode->GetInstanceRootNodeId();
     if (inIlluminatedRange && illuminatedRootNodeId == lightSourceRootNodeId) {
-        auto lightPos = CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedAbsRect);
+        auto lightPos = CalculateLightPosForIlluminated(*lightSourcePtr, geoPtr->GetAbsRect());
         illuminatedNode->GetRenderProperties().GetIlluminated()->AddLightSourcesAndPos(lightSourcePtr, lightPos);
-        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, node be Illuminated", illuminatedNode->GetId());
         illuminatedNode->SetDirty();
     }
 }

@@ -27,7 +27,6 @@ namespace Rosen {
 void RSRenderPropertyBase::OnChange() const
 {
     if (auto node = node_.lock()) {
-        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, property changed", node->GetId());
         node->SetDirty();
         node->AddDirtyType(modifierType_);
         if (modifierType_ < RSModifierType::BOUNDS || modifierType_ > RSModifierType::TRANSLATE_Z ||
@@ -498,8 +497,8 @@ void RSRenderProperty<RRect>::Dump(std::string& out) const
     out += " radius:[[";
     out += std::to_string(rrect.radius_[0][0]) + " " + std::to_string(rrect.radius_[0][1]) + "] [";
     out += std::to_string(rrect.radius_[1][0]) + " " + std::to_string(rrect.radius_[1][1]) + "] [";
-    out += std::to_string(rrect.radius_[2][0]) + " " + std::to_string(rrect.radius_[2][1]) + "] [";
-    out += std::to_string(rrect.radius_[3][0]) + " " + std::to_string(rrect.radius_[3][1]) + "]";
+    out += std::to_string(rrect.radius_[2][0]) + " " + std::to_string(rrect.radius_[2][1]) + "] ["; // 2 is vector index
+    out += std::to_string(rrect.radius_[3][0]) + " " + std::to_string(rrect.radius_[3][1]) + "]"; // 3 is vector index
     out += "]";
 }
 
