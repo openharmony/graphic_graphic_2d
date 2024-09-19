@@ -381,8 +381,8 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     }
 
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
-    int32_t maxLines = 0;
-    if (tempValue != nullptr && napi_get_value_int32(env, tempValue, &maxLines) == napi_ok) {
+    int64_t maxLines = 0;
+    if (tempValue != nullptr && napi_get_value_int64(env, tempValue, &maxLines) == napi_ok) {
         pographyStyle.maxLines = maxLines < 0 ? 0 : maxLines;
     }
 
