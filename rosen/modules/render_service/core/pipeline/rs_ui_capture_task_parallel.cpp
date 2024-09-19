@@ -153,12 +153,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     auto grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
-    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_));
     std::string nodeName("RSUiCaptureTaskParallel");
-    if (surfaceNode != nullptr) {
-        nodeName = surfaceNode->GetName();
-    }
     RSTagTracker tagTracker(grContext, nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelMap_);
