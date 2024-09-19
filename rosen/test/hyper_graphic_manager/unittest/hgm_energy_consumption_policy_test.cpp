@@ -358,7 +358,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetRefreshRateTest, TestSize.Level1)
     std::string curScreenStragyId = "LTPO-DEFAULT";
     auto &hgmEnergyConsumptionPolicy = HgmEnergyConsumptionPolicy::Instance();
     hgmEnergyConsumptionPolicy.SetRefreshRateMode(curRefreshRateMode, curScreenStragyId);
-    ASSERT_EQ(hgmEnergyConsumptionPolicy.curScreenStrategyId_, curScreenStrategyId);
+    ASSERT_EQ(hgmEnergyConsumptionPolicy.curScreenStrategyId_, curScreenStragyId);
 }
 
 /**
@@ -385,7 +385,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, PrintEnergyConsumptionLogTest, TestSize
 HWTEST_F(HgmEnergyConsumptionPolicyTest, SetTouchStateTest, TestSize.Level1)
 {
     HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::DOWN_STATE);
-    ASSERT_EQ(hgmEnergyConsumptionPolicy.isTouchIdle_, false);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, false);
 }
 
 } // namespace Rosen
