@@ -240,6 +240,8 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
     void RunOnRemoteDiedCallback() override;
