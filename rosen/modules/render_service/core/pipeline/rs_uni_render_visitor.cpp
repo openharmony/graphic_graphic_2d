@@ -1619,6 +1619,9 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
                 continue;
             }
+            if (hwcNodePtr->GetProtectedLayer()) {
+                drmNodes_.emplace_back(hwcNode);
+            }
             UpdateHwcNodeProperty(hwcNodePtr);
             UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
@@ -2192,6 +2195,7 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
         if (filterNode == nullptr || !filterNode->HasBlurFilter()) {
             continue;
         }
+        MarkBlurIntersectWithDRM(filterNode);
         auto filterRect = filterNode->GetOldDirtyInSurface();
         auto visibleRects = visibleRegion.GetRegionRectIs();
         auto iter = std::find_if(visibleRects.begin(), visibleRects.end(), [&filterRect](const auto& rect) {
@@ -2339,6 +2343,30 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 
     // add if node is dirty
     node.AddToPendingSyncList();
+}
+
+void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const
+{
+    if (!RSSystemProperties::GetDrmMarkedFilterEnabled()) {
+        return;
+    }
+    static std::vector<std::string> drmKeyWins = { "SCBVolumePanel", "SCBBannerNotification" };
+    auto appWindowNodeId = node->GetInstanceRootNodeId();
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto appWindowNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
+    if (appWindowNode == nullptr) {
+        return;
+    }
+    for (const auto& win : drmKeyWins) {
+        if (appWindowNode->GetName().find(win) != std::string::npos) {
+            for (auto& drmNode : drmNodes_) {
+                auto drmNodePtr = drmNode.lock();
+                if (drmNodePtr && drmNodePtr->GetDstRect().Intersect(node->GetFilterRegion())) {
+                    node->MarkBlurIntersectWithDRM(true, RSMainThread::Instance()->GetGlobalDarkColorMode());
+                }
+            }
+        }
+    }
 }
 
 void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(

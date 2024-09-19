@@ -119,6 +119,9 @@ public:
 
     // set scale mode for virtual screen
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
+
+    // WMS set dark color display mode to RS
+    bool SetGlobalDarkColorMode(bool isDark);
 #ifndef ROSEN_ARKUI_X
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 

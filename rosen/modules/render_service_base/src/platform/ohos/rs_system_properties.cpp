@@ -1143,5 +1143,13 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;
 }
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.markedFilter.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

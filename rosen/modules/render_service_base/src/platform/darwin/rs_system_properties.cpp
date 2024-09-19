@@ -503,6 +503,11 @@ bool RSSystemProperties::IsForceClient()
     return false;
 }
 
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetTextBlobAsPixelMap()
 {
     return false;

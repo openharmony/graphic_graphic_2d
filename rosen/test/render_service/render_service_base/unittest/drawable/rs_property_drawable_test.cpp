@@ -424,4 +424,16 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest011, TestSize.Level1)
     EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
 }
 
+/*
+ * @tc.name: MarkBlurIntersectWithDRM001
+ * @tc.desc: class RSFilterDrawable MarkBlurIntersectWithDRM test
+ * @tc.type: FUNC
+ * @tc.require: issuesIAQZ4I
+ */
+HWTEST_F(RSPropertyDrawableTest, MarkBlurIntersectWithDRM001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    EXPECT_NE(filterDrawable, nullptr);
+    filterDrawable->MarkBlurIntersectWithDRM(true, true);
+}
 } // namespace OHOS::Rosen
