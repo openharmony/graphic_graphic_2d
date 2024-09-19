@@ -333,8 +333,7 @@ private:
     static void TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion);
 
     // Network interface
-    using Command = void (*)(const ArgList&);
-    static Command GetCommand(const std::string& command);
+    static void Invoke(const std::vector<std::string>& line);
     static void ProcessPauseMessage();
     static void ProcessCommands();
     static void Respond(const std::string& message);
@@ -393,6 +392,9 @@ private:
     static void OnWorkModeChanged();
     static void ProcessSignalFlag();
 
+private:
+    using CommandRegistry = std::map<std::string, void (*)(const ArgList&)>;
+    static const CommandRegistry COMMANDS;
     // set to true in DT only
     RSB_EXPORT static bool testing_;
 
