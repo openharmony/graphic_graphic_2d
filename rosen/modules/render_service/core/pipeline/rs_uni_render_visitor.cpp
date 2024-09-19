@@ -3255,7 +3255,7 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(
         return;
     }
     auto dstRect = node->GetDstRect();
-    bool isIntersect = dstRect.Intersect(filterRect);
+    bool isIntersect = !dstRect.IntersectRect(filterRect).IsEmpty();
     if (isIntersect) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by filter rect",
             node->GetName().c_str(), node->GetId());
