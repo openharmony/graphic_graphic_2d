@@ -16,6 +16,7 @@
 #ifndef RS_CORE_PIPELINE_UNI_RENDER_PROCESSOR_H
 #define RS_CORE_PIPELINE_UNI_RENDER_PROCESSOR_H
 
+#include "rs_base_render_util.h"
 #include "rs_processor.h"
 #include "rs_composer_adapter.h"
 #include "rs_uni_render_composer_adapter.h"
@@ -36,6 +37,7 @@ public:
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) override;
+    void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable, RSSurfaceRenderParams& params) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
@@ -47,7 +49,6 @@ public:
     // called by render thread
     bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& node, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
-    void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable, RSSurfaceRenderParams& params) override;
     void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
     void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
     void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;

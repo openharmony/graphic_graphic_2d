@@ -309,7 +309,8 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
     }
 #endif
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (drawingContext == nullptr) {
             drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         }
@@ -324,7 +325,8 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
 #ifdef RS_ENABLE_VK
 void RenderContext::AbandonContext()
 {
-    if (!RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     if (drGPUContext_ == nullptr) {
@@ -510,7 +512,8 @@ sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorG
 std::string RenderContext::GetShaderCacheSize() const
 {
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
             return RsVulkanContext::GetSingleton().GetMemoryHandler()->QuerryShader();
         }
@@ -529,7 +532,8 @@ std::string RenderContext::GetShaderCacheSize() const
 std::string RenderContext::CleanAllShaderCache() const
 {
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
             return RsVulkanContext::GetSingleton().GetMemoryHandler()->ClearShader();
         }

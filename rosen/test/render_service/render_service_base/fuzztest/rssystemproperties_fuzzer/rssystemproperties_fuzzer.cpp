@@ -171,7 +171,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetDumpImgEnabled();
     RSSystemProperties::GetVirtualScreenScaleModeDFX();
     RSSystemProperties::GetGpuApiType();
-    RSSystemProperties::IsUseVulkan();
     RSSystemProperties::GetRSNodeLimit();
     return true;
 }

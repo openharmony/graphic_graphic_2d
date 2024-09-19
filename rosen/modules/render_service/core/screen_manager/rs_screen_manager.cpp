@@ -1874,6 +1874,24 @@ uint32_t RSScreenManager::GetActualScreensNum() const
     return num;
 }
 
+ScreenInfo RSScreenManager::GetActualScreenMaxResolution() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    uint32_t maxResolution = 0;
+    ScreenId maxScreenId = INVALID_SCREEN_ID;
+    for (const auto &[id, screen] : screens_) {
+        if (!screen || screen->IsVirtual()) {
+            continue;
+        }
+        uint32_t resolution = screen->PhyWidth() * screen->PhyHeight();
+        if (resolution > maxResolution) {
+            maxScreenId = id;
+            maxResolution = resolution;
+        }
+    }
+    return QueryScreenInfoLocked(maxScreenId);
+}
+
 int32_t RSScreenManager::GetScreenColorGamut(ScreenId id, ScreenColorGamut &mode) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -2007,28 +2025,6 @@ int RSScreenManager::GetDisableRenderControlScreensCount() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     return disableRenderControlScreens_.size();
-}
-
-bool RSScreenManager::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return false;
-    }
-    return screensIt->second->SetVirtualScreenStatus(screenStatus);
-}
-
-VirtualScreenStatus RSScreenManager::GetVirtualScreenStatus(ScreenId id) const
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return VirtualScreenStatus::VIRTUAL_SCREEN_INVALID_STATUS;
-    }
-    return screensIt->second->GetVirtualScreenStatus();
 }
 } // namespace impl
 

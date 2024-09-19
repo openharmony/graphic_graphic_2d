@@ -19,16 +19,10 @@
 #include "wrapper_log.h"
 
 namespace OHOS {
-NativeWindowType EglWrapperSurface::window_ = nullptr;
-EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf)
-    : EglWrapperObject(disp), surf_(surf)
+EglWrapperSurface::EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf, NativeWindowType window)
+    : EglWrapperObject(disp), surf_(surf), window_(window)
 {
     WLOGD("");
-}
-
-void EglWrapperSurface::Init(NativeWindowType window)
-{
-    window_ = window;
     if (window_) {
         OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(window_);
         ref->IncStrongRef(ref);
@@ -52,9 +46,8 @@ EglWrapperSurface *EglWrapperSurface::GetWrapperSurface(EGLSurface surf)
     return reinterpret_cast<EglWrapperSurface *>(surf);
 }
 
-void EglWrapperSurface::Disconnect()
+void EglWrapperSurface::Disconnect(OHNativeWindow *window)
 {
-    OHNativeWindow *window = reinterpret_cast<OHNativeWindow*>(window_);
     if (window != nullptr) {
         NativeWindowDisconnect(window);
     }

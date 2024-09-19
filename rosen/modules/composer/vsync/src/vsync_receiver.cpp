@@ -22,8 +22,6 @@
 #include <hitrace_meter.h>
 #include "event_handler.h"
 #include "graphic_common.h"
-#include "res_sched_client.h"
-#include "res_type.h"
 #include "rs_frame_report_ext.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
@@ -182,30 +180,14 @@ VsyncError VSyncReceiver::Init()
         std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
         looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         runner->Run();
-        looper_->PostTask([this] {
+        looper_->PostTask([] {
             SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
-            this->ThreadCreateNotify();
         });
     }
 
     looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
     return VSYNC_ERROR_OK;
-}
-
-void VSyncReceiver::ThreadCreateNotify()
-{
-    int32_t pid = getprocpid();
-    int32_t uid = getuid();
-    int32_t tid = static_cast<int32_t>(getproctid());
-    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}d.", pid, tid, uid);
-
-    std::unordered_map<std::string, std::string> mapPayload;
-    mapPayload["pid"] = std::to_string(pid);
-    mapPayload["uid"] = std::to_string(uid);
-    mapPayload["tid"] = std::to_string(tid);
-    OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
-        ResourceSchedule::ResType::RES_TYPE_REPORT_VSYNC_TID, tid, mapPayload);
 }
 
 VSyncReceiver::~VSyncReceiver()

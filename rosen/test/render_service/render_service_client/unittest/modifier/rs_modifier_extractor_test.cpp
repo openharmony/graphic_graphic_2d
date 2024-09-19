@@ -238,19 +238,6 @@ HWTEST_F(RSModifierExtractorTest, GetSpherizeDegree001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetAttractionDstPointValue001
- * @tc.desc: test results of GetAttractionDstPointValue
- * @tc.type: FUNC
- * @tc.require: issueI9VXLH
- */
-HWTEST_F(RSModifierExtractorTest, GetAttractionDstPointValue001, TestSize.Level1)
-{
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector2f attractionDstPoint = extractor->GetAttractionDstPointValue();
-    EXPECT_TRUE(attractionDstPoint.x_ == 0.f);
-}
-
-/**
  * @tc.name: GetLightUpEffectDegree001
  * @tc.desc: test results of GetLightUpEffectDegree
  * @tc.type: FUNC

@@ -103,6 +103,9 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         if (!command) {
             parcel.WriteUint8(0);
             RS_LOGW("failed RSTransactionData::Marshalling, command is nullptr");
+        } else if (command->indexVerifier_ != marshallingIndex_) {
+            parcel.WriteUint8(0);
+            RS_LOGW("failed RSTransactionData::Marshalling, indexVerifier is wrong, SIGSEGV may have occurred");
         } else {
             parcel.WriteUint8(1);
             success = success && command->Marshalling(parcel);
@@ -166,6 +169,7 @@ void RSTransactionData::Clear()
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     payload_.clear();
+    payload_.shrink_to_fit();
     timestamp_ = 0;
 }
 
@@ -173,6 +177,7 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>& command, NodeId n
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     if (command) {
+        command->indexVerifier_ = payload_.size();
         payload_.emplace_back(nodeId, followType, std::move(command));
     }
 }
@@ -181,6 +186,7 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId 
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     if (command) {
+        command->indexVerifier_ = payload_.size();
         payload_.emplace_back(nodeId, followType, std::move(command));
     }
 }

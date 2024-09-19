@@ -19,6 +19,7 @@
 #include "hdi_log.h"
 #include "vsync_sampler.h"
 #include <hdf_base.h>
+#include <rs_trace.h>
 #include <mutex>
 
 #define CHECK_DEVICE_NULL(sptrDevice)                                \
@@ -184,7 +185,13 @@ int32_t HdiScreen::SetScreenBacklight(uint32_t level) const
 int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const
 {
     CHECK_DEVICE_NULL(device_);
-    return device_->SetScreenVsyncEnabled(screenId_, enabled);
+    int32_t ret = device_->SetScreenVsyncEnabled(screenId_, enabled);
+    if (ret != HDF_SUCCESS) {
+        HLOGE("SetScreenVsyncEnabled Failed, screenId:%{public}u, enabled:%{public}d, ret:%{public}d",
+            screenId_, enabled, ret);
+        RS_TRACE_NAME_FMT("SetScreenVsyncEnabled Failed, screenId:%u, enabled:%d, ret:%d", screenId_, enabled, ret);
+    }
+    return ret;
 }
 
 int32_t HdiScreen::GetScreenSupportedColorGamuts(std::vector<GraphicColorGamut> &gamuts) const

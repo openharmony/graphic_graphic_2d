@@ -102,6 +102,14 @@ public:
         return isRcdEnable_;
     }
 
+    bool IsNotchNeedUpdate(bool notchStatus)
+    {
+        std::lock_guard<std::mutex> lock(resourceMut_);
+        bool result = notchStatus != lastNotchStatus_;
+        lastNotchStatus_ = notchStatus;
+        return result;
+    }
+
 private:
     // load config
     rs_rcd::LCDModel* lcdModel_ = nullptr;
@@ -133,6 +141,7 @@ private:
     int notchStatus_ = WINDOW_NOTCH_DEFAULT;
 
     int showResourceType_ = (notchStatus_ == WINDOW_NOTCH_DEFAULT) ? TOP_PORTRAIT : TOP_HIDDEN;
+    bool lastNotchStatus_ = false;
 
     // status of the rotation
     ScreenRotation curOrientation_ = ScreenRotation::ROTATION_0;

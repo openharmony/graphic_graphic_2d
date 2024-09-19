@@ -189,7 +189,6 @@ constexpr size_t ARGC_SEVEN = 7;
 constexpr size_t ARGC_EIGHT = 8;
 constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
-extern const char* const JSPROPERTY[4];
 
 enum class DrawingErrorCode : int32_t {
     OK = 0,
@@ -360,15 +359,15 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t 
 
 bool ConvertFromJsPoint3d(napi_env env, napi_value src, Point3& point3d);
 
-bool ConvertFromJsShadowFlag(napi_env env, napi_value src, ShadowFlags& shadowFlag,
-    ShadowFlags defaultFlag = ShadowFlags::NONE);
+bool ConvertFromJsShadowFlag(
+    napi_env env, napi_value src, ShadowFlags& shadowFlag, ShadowFlags defaultFlag = ShadowFlags::NONE);
 
 inline bool ConvertFromJsNumber(napi_env env, napi_value jsValue, int32_t& value, int32_t lo, int32_t hi)
 {
     return napi_get_value_int32(env, jsValue, &value) == napi_ok && value >= lo && value <= hi;
 }
 
-inline bool GetPointXFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
+inline bool GetDrawingPointXFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
 {
     napi_value objValue = nullptr;
     double targetX = 0;
@@ -380,7 +379,7 @@ inline bool GetPointXFromJsNumber(napi_env env, napi_value argValue, Drawing::Po
     return true;
 }
 
-inline bool GetPointYFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
+inline bool GetDrawingPointYFromJsNumber(napi_env env, napi_value argValue, Drawing::Point& point)
 {
     napi_value objValue = nullptr;
     double targetY = 0;
@@ -392,10 +391,10 @@ inline bool GetPointYFromJsNumber(napi_env env, napi_value argValue, Drawing::Po
     return true;
 }
 
-inline bool GetPointFromJsValue(napi_env env, napi_value argValue, Drawing::Point& point)
+inline bool GetDrawingPointFromJsValue(napi_env env, napi_value argValue, Drawing::Point& point)
 {
-    return GetPointXFromJsNumber(env, argValue, point) &&
-           GetPointYFromJsNumber(env, argValue, point);
+    return GetDrawingPointXFromJsNumber(env, argValue, point) &&
+           GetDrawingPointYFromJsNumber(env, argValue, point);
 }
 
 bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count);

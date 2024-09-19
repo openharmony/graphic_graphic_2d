@@ -157,8 +157,6 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y
-    RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_FRACTION
-    RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_DSTPOINT
     RSDrawableSlot::INVALID,                       // CUSTOM
     RSDrawableSlot::INVALID,                       // EXTENDED
     RSDrawableSlot::TRANSITION,                    // TRANSITION
@@ -564,6 +562,12 @@ bool RSDrawable::UpdateDirtySlots(
                 drawableAddedOrRemoved = true;
             }
         }
+    }
+    // If at this point the child node happens to be null, and the scenario involves deleting the child node
+    // when the parent node is not on the tree, it is necessary to manually mark drawableAddedOrRemoved as true.
+    if (!drawableAddedOrRemoved && dirtySlots.count(RSDrawableSlot::CHILDREN) &&
+        drawableVec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] == nullptr) {
+        drawableAddedOrRemoved = true;
     }
 
     return drawableAddedOrRemoved;

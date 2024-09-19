@@ -1070,20 +1070,6 @@ int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, Scre
     return StatusCode::HDI_ERROR;
 }
 
-bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
-{
-    if (IsVirtual()) {
-        screenStatus_ = screenStatus;
-        return true;
-    }
-    return false;
-}
-
-VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
-{
-    return screenStatus_;
-}
-
 void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList)
 {
     securityExemptionList_ = securityExemptionList;

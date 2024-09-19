@@ -48,6 +48,7 @@ namespace OHOS {
 namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
+using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -336,10 +337,6 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
-    void SetAttractionEffect(float fraction, const Vector2f& destinationPoint);
-    void SetAttractionEffectFraction(float fraction);
-    void SetAttractionEffectDstPoint(Vector2f destinationPoint);
-
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
@@ -385,6 +382,7 @@ public:
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
+    // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
 
     // Mark uifirst node
@@ -440,7 +438,6 @@ public:
 
     std::string GetFrameNodeTag();
 
-    using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
     virtual void SetBoundsChangedCallback(BoundsChangedCallback callback){};
     bool IsTextureExportNode() const
     {
@@ -462,7 +459,7 @@ public:
         return instanceId_;
     }
 
-    const std::string& GetNodeName() const
+    const std::string GetNodeName() const
     {
         return nodeName_;
     }

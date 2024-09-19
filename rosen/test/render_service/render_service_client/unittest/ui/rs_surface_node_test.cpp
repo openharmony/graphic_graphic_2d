@@ -1174,7 +1174,7 @@ HWTEST_F(RSSurfaceNodeTest, SetBoundsChangedCallbackTest, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    RSSurfaceNode::BoundsChangedCallback callback = [](const Rosen::Vector4f& bounds) {};
+    BoundsChangedCallback callback = [](const Rosen::Vector4f& bounds) {};
     surfaceNode->SetBoundsChangedCallback(callback);
     ASSERT_NE(surfaceNode->boundsChangedCallback_, nullptr);
 }

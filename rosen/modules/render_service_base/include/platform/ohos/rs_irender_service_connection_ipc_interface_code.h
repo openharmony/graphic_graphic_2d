@@ -118,7 +118,6 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     GET_LAYER_COMPOSE_INFO,
     GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO,
     REGISTER_UIEXTENSION_CALLBACK,
-    SET_VIRTUAL_SCREEN_STATUS,
     SET_VMA_CACHE_STATUS,
     NEED_REGISTER_TYPEFACE,
 // Special invocation. Do not change it.

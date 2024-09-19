@@ -183,19 +183,11 @@ static const std::vector<struct JsEnumInt> g_srcRectConstraint = {
     { "FAST", static_cast<int32_t>(Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT) },
 };
 
-static const std::vector<struct JsEnumInt> g_shadowFlag = {
-    { "NONE", static_cast<int32_t>(ShadowFlags::NONE) },
-    { "TRANSPARENT_OCCLUDER", static_cast<int32_t>(ShadowFlags::TRANSPARENT_OCCLUDER) },
-    { "GEOMETRIC_ONLY", static_cast<int32_t>(ShadowFlags::GEOMETRIC_ONLY) },
-    { "ALL", static_cast<int32_t>(ShadowFlags::ALL) },
-};
-
-static const std::vector<struct JsEnumInt> g_pathOp = {
-    { "DIFFERENCE", static_cast<int32_t>(PathOp::DIFFERENCE) },
-    { "INTERSECT", static_cast<int32_t>(PathOp::INTERSECT) },
-    { "UNION", static_cast<int32_t>(PathOp::UNION) },
-    { "XOR", static_cast<int32_t>(PathOp::XOR) },
-    { "REVERSE_DIFFERENCE", static_cast<int32_t>(PathOp::REVERSE_DIFFERENCE) },
+static const std::vector<struct JsEnumInt> g_scaleToFit = {
+    { "FILL_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::FILL_SCALETOFIT) },
+    { "START_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::START_SCALETOFIT) },
+    { "CENTER_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::CENTER_SCALETOFIT) },
+    { "END_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::END_SCALETOFIT) },
 };
 
 static const std::vector<struct JsEnumInt> g_cornerPos = {
@@ -209,18 +201,26 @@ static const std::vector<struct JsEnumInt> g_cornerPos = {
         Drawing::RoundRect::CornerPos::BOTTOM_LEFT_POS) },
 };
 
-static const std::vector<struct JsEnumInt> g_scaleToFit = {
-    { "FILL_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::FILL_SCALETOFIT) },
-    { "START_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::START_SCALETOFIT) },
-    { "CENTER_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::CENTER_SCALETOFIT) },
-    { "END_SCALE_TO_FIT", static_cast<int32_t>(ScaleToFit::END_SCALETOFIT) },
-};
-
 static const std::vector<struct JsEnumInt> g_tileMode = {
     { "CLAMP", static_cast<int32_t>(TileMode::CLAMP) },
     { "REPEAT", static_cast<int32_t>(TileMode::REPEAT) },
     { "MIRROR", static_cast<int32_t>(TileMode::MIRROR) },
     { "DECAL", static_cast<int32_t>(TileMode::DECAL) },
+};
+
+static const std::vector<struct JsEnumInt> g_shadowFlag = {
+    { "NONE", static_cast<int32_t>(ShadowFlags::NONE) },
+    { "TRANSPARENT_OCCLUDER", static_cast<int32_t>(ShadowFlags::TRANSPARENT_OCCLUDER) },
+    { "GEOMETRIC_ONLY", static_cast<int32_t>(ShadowFlags::GEOMETRIC_ONLY) },
+    { "ALL", static_cast<int32_t>(ShadowFlags::ALL) },
+};
+
+static const std::vector<struct JsEnumInt> g_pathOp = {
+    { "DIFFERENCE", static_cast<int32_t>(PathOp::DIFFERENCE) },
+    { "INTERSECT", static_cast<int32_t>(PathOp::INTERSECT) },
+    { "UNION", static_cast<int32_t>(PathOp::UNION) },
+    { "XOR", static_cast<int32_t>(PathOp::XOR) },
+    { "REVERSE_DIFFERENCE", static_cast<int32_t>(PathOp::REVERSE_DIFFERENCE) },
 };
 
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {

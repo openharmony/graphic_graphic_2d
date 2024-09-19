@@ -50,11 +50,6 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
         return false;
     }
     virtualScreenId_ = params->GetScreenId();
-    VirtualScreenStatus screenStatus = screenManager->GetVirtualScreenStatus(virtualScreenId_);
-    if (screenStatus == VIRTUAL_SCREEN_PAUSE) {
-        RS_LOGD("RSUniRenderVirtualProcessor::Init screenStatus is pause");
-        return false;
-    }
     auto virtualScreenInfo = screenManager->QueryScreenInfo(virtualScreenId_);
     canvasRotation_ = screenManager->GetCanvasRotation(virtualScreenId_);
     scaleMode_ = screenManager->GetScaleMode(virtualScreenId_);
@@ -469,7 +464,18 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
         }
         canvas.Translate(startX, startY);
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
+        CanvasClipRegion(canvas, mainWidth, mainHeight);
     }
+}
+
+void RSUniRenderVirtualProcessor::CanvasClipRegion(RSPaintFilterCanvas& canvas, float mainWidth, float mainHeight)
+{
+    Drawing::Rect rect(0, 0, mainWidth, mainHeight);
+    canvas.GetTotalMatrix().MapRect(rect, rect);
+    Drawing::RectI rectI = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
+    Drawing::Region clipRegion;
+    clipRegion.SetRect(rectI);
+    canvas.ClipRegion(clipRegion);
 }
 
 void RSUniRenderVirtualProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
