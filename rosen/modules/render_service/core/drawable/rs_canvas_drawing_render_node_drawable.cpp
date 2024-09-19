@@ -107,10 +107,8 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
 #ifdef RS_PROFILER_ENABLED
-        // used for saving .skp for this node
-        const auto width = static_cast<float>(canvas_->GetWidth());
-        const auto height = static_cast<float>(canvas_->GetHeight());
-        if (auto canvas = RSCaptureRecorder::GetInstance().TryDrawingCanvasCapture(width, height, nodeId_)) {
+        if (auto canvas = RSCaptureRecorder::GetInstance().TryDrawingCanvasCapture(
+            static_cast<float>(canvas_->GetWidth()), static_cast<float>(canvas_->GetHeight()), nodeId_)) {
             DrawContent(*canvas, bounds);
             RSCaptureRecorder::GetInstance().EndDrawingCanvasCapture();
         }
