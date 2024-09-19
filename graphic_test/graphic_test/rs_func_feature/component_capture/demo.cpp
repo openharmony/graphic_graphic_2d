@@ -43,7 +43,7 @@ public:
         isCallbackCalled_ = true;
         const ::testing::TestInfo* const testInfo =
         ::testing::UnitTest::GetInstance()->current_test_info();
-        std::string filename = "data/local/graphic_test/component_capture/";
+        std::string filename = "/data/local/graphic_test/component_capture/";
         namespace fs = std::filesystem;
         if (!fs::exists(filename)) {
             if (!fs::create_directories(filename)) {

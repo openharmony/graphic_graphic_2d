@@ -156,6 +156,11 @@ void RSGraphicTest::SetSurfaceBounds(const Vector4f& bounds)
     RSGraphicTestDirector::Instance().SetSurfaceBounds(bounds);
 }
 
+void RSGraphicTest::SetScreenSurfaceBounds(const Vector4f& bounds)
+{
+    RSGraphicTestDirector::Instance().SetScreenSurfaceBounds(bounds);
+}
+
 void RSGraphicTest::SetSurfaceColor(const RSColor& color)
 {
     RSGraphicTestDirector::Instance().SetSurfaceColor(color);
