@@ -195,3 +195,22 @@ int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
     }
     return image->consumer->ReleaseNativeWindowBuffer(nativeWindowBuffer, fenceFd);
 }
+
+
+int32_t OH_ConsumerSurface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage)
+{
+    if (image == nullptr || image->consumer == nullptr) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->SetDefaultUsage(usage);
+}
+
+int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, int32_t height)
+{
+    if (image == nullptr || image->consumer == nullptr || width <= 0 || height <= 0) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->SetDefaultSize(width, height);
+}

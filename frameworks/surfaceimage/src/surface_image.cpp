@@ -22,6 +22,7 @@
 #include "sandbox_utils.h"
 #include "surface_utils.h"
 
+#include <cinttypes>
 #include <atomic>
 #include <sync_fence.h>
 #include <unistd.h>
@@ -84,15 +85,9 @@ void SurfaceImage::InitSurfaceImage()
     std::string name = "SurfaceImage-" + std::to_string(GetRealPid()) + "-" + std::to_string(GetProcessUniqueId());
     auto ret = ConsumerSurface::Init();
     BLOGI("surfaceimage init");
-    if (ret != SURFACE_ERROR_OK) {
-        BLOGE("init surfaceimage failed");
-    }
+    uniqueId_ = GetUniqueId();
+    BLOGI("InitSurfaceImage Init ret: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
     surfaceImageName_ = name;
-}
-
-SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
-{
-    return ConsumerSurface::SetDefaultWidthAndHeight(width, height);
 }
 
 void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
@@ -448,5 +443,25 @@ SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativ
     }
     NativeObjectUnreference(nativeWindowBuffer);
     return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::SetDefaultUsage(uint64_t usage)
+{
+    SurfaceError ret = ConsumerSurface::SetDefaultUsage(usage);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("SetDefaultUsage failed: %{public}d, uniqueId: %{public}" PRIu64 ", usage: %{public}" PRIu64 ".", ret,
+            uniqueId_, usage);
+    }
+    return ret;
+}
+
+SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
+{
+    SurfaceError ret = SetDefaultWidthAndHeight(width, height);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("SetDefaultWidthAndHeight failed: %{public}d, uniqueId: %{public}" PRIu64 ", width: %{public}d, "
+            "height: %{public}d", ret, uniqueId_, width, height);
+    }
+    return ret;
 }
 } // namespace OHOS

@@ -52,8 +52,6 @@ public:
         return surfaceImageName_;
     }
 
-    SurfaceError SetDefaultSize(int32_t width, int32_t height);
-
     SurfaceError UpdateSurfaceImage();
     int64_t GetTimeStamp();
 
@@ -81,6 +79,8 @@ public:
     SurfaceError AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd);
     SurfaceError ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd);
 
+    SurfaceError SetDefaultUsage(uint64_t usage);
+    SurfaceError SetDefaultSize(int32_t width, int32_t height);
 private:
     SurfaceError ValidateEglState();
     EGLImageKHR CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer);
@@ -107,6 +107,7 @@ private:
     GraphicTransformType currentTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     float currentTransformMatrixV2_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
+    uint64_t uniqueId_ = 0;
 };
 
 class SurfaceImageListener : public IBufferConsumerListener {
