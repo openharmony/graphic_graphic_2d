@@ -81,7 +81,6 @@ HWTEST_F(RSSurfaceOcclusionChangeCallbackStubTest, OnRemoteRequest002, TestSize.
 
     uint32_t code =
         static_cast<uint32_t>(RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
-    EXPECT_TRUE(RSSurfaceOcclusionChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
@@ -121,7 +120,6 @@ HWTEST_F(RSSurfaceOcclusionChangeCallbackStubTest, OnRemoteRequest004, TestSize.
     uint32_t code =
         static_cast<uint32_t>(RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
     data.WriteInterfaceToken(RSISurfaceOcclusionChangeCallback::GetDescriptor());
-    EXPECT_TRUE(RSSurfaceOcclusionChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);

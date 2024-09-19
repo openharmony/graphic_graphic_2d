@@ -57,7 +57,6 @@ HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
     int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
     code = static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED);
-    EXPECT_TRUE(RSOcclusionChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
@@ -77,7 +76,6 @@ HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
     auto rsOcclusionChangeCallbackStub = std::make_shared<RSOcclusionChangeCallbackStubMock>();
     auto code = static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED);
     data.WriteInterfaceToken(RSIOcclusionChangeCallback::GetDescriptor());
-    EXPECT_TRUE(RSOcclusionChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE);
@@ -96,7 +94,6 @@ HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
     auto rsOcclusionChangeCallbackStub = std::make_shared<RSOcclusionChangeCallbackStubMock>();
     uint32_t code = 1;
     data.WriteInterfaceToken(RSIOcclusionChangeCallback::GetDescriptor());
-    EXPECT_TRUE(RSOcclusionChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
     int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res != ERR_NONE);
 }

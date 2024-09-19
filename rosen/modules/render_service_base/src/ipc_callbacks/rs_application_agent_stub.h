@@ -20,8 +20,7 @@
 #include <iremote_stub.h>
 
 #include "ipc_callbacks/iapplication_agent.h"
-#include "ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.h"
-#include "ipc_security/rs_ipc_interface_code_security_manager.h"
+#include "ipc_callbacks/iapplication_agent_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,9 +30,6 @@ public:
     ~RSApplicationAgentStub() = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-
-private:
-    static const RSInterfaceCodeSecurityManager securityManager_;
 };
 } // namespace Rosen
 } // namespace OHOS
