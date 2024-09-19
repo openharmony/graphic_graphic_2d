@@ -3983,16 +3983,6 @@ void RSRenderNode::OnSync()
         stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
     }
 
-    // copy newest for uifirst root node, now force sync done nodes
-    if (uifirstNeedSync_) {
-        RS_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
-        renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
-                                                    renderDrawable_->drawCmdList_.end());
-        renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
-        renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
-        uifirstNeedSync_ = false;
-    }
-
     if (!uifirstSkipPartialSync_) {
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
@@ -4001,6 +3991,16 @@ void RSRenderNode::OnSync()
                 }
             }
             dirtySlots_.clear();
+        }
+
+        // copy newest for uifirst root node, now force sync done nodes
+        if (uifirstNeedSync_) {
+            RS_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
+            renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
+                                                        renderDrawable_->drawCmdList_.end());
+            renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
+            renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
+            uifirstNeedSync_ = false;
         }
     } else {
         RS_TRACE_NAME_FMT("partial_sync %lld", GetId());

@@ -42,7 +42,7 @@ namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
-    std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
+    std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::UNKNOWN;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
