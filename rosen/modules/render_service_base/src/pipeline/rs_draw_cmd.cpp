@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "common/rs_common_tools.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
@@ -25,6 +24,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
+#include "common/rs_common_tools.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
@@ -57,6 +57,8 @@ Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
             return Drawing::COLORTYPE_RGBA_F16;
         case VK_FORMAT_R5G6B5_UNORM_PACK16:
             return Drawing::COLORTYPE_RGB_565;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return Drawing::COLORTYPE_RGBA_1010102;
         default:
             return Drawing::COLORTYPE_RGBA_8888;
     }
@@ -81,9 +83,11 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
     const Drawing::AdaptiveImageInfo& imageInfo)
 {
     if (pixelMap) {
+#ifdef ROSEN_OHOS
         if (RSSystemProperties::GetDumpUIPixelmapEnabled()) {
             CommonTools::SavePixelmapToFile(pixelMap, "/data/storage/el1/base/imageObject_");
         }
+#endif
         rsImage_ = std::make_shared<RSImage>();
         rsImage_->SetPixelMap(pixelMap);
         rsImage_->SetImageFit(imageInfo.fitNum);

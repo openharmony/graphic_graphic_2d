@@ -19,6 +19,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -42,6 +43,7 @@ class Canvas;
 }
 
 struct DrawCmdIndex {
+    int8_t envForeGroundColorIndex_    = -1;
     int8_t shadowIndex_                = -1;
     int8_t renderGroupBeginIndex_      = -1;
     int8_t foregroundFilterBeginIndex_ = -1;
@@ -86,6 +88,11 @@ public:
     static SharedPtr OnGenerateShadowDrawable(
         const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
+    static void ClearResource();
+    using DrawableVec = std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>>;
+    static void AddToClearDrawables(DrawableVec &vec);
+    using CmdListVec = std::vector<std::shared_ptr<Drawing::DrawCmdList>>;
+    static void AddToClearCmdList(CmdListVec &vec);
     inline const std::unique_ptr<RSRenderParams>& GetRenderParams() const
     {
         return renderParams_;
@@ -127,11 +134,24 @@ public:
     SkipType GetSkipType() { return skipType_; }
 
     void SetSkipCacheLayer(bool hasSkipCacheLayer);
+    void SetFilterRectSize(int size)
+    {
+        filterRectSize_ = size;
+    }
+    int GetFilterRectSize() const
+    {
+        return filterRectSize_;
+    }
+    void ReduceFilterRectSize(int size)
+    {
+        filterRectSize_ -= size;
+    }
 
 protected:
     // Util functions
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect() const;
+    int GetCountOfClipHoleForCache(const RSRenderParams& params) const;
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -140,6 +160,7 @@ protected:
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     // used for foreground filter
     void DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -148,6 +169,7 @@ protected:
 
     // used for render group
     void DrawBackgroundWithoutFilterAndEffect(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void CheckShadowRectAndDrawBackground(Drawing::Canvas& canvas, const RSRenderParams& params);
     void DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -167,7 +189,7 @@ protected:
         }
     };
 
-    const RSRenderNodeType nodeType_;
+    RSRenderNodeType nodeType_;
     // deprecated
     std::weak_ptr<const RSRenderNode> renderNode_;
     NodeId nodeId_;
@@ -193,8 +215,11 @@ private:
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
+    static DrawableVec toClearDrawableVec_;
+    static CmdListVec toClearCmdListVec_;
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
+    int filterRectSize_ = 0;
     static void RemoveDrawableFromCache(const NodeId nodeId);
 
     friend class OHOS::Rosen::RSRenderNode;

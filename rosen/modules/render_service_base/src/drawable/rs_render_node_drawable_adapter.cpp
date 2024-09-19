@@ -341,6 +341,21 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     }
 }
 
+void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
+    Drawing::Canvas& canvas, const RSRenderParams& params)
+{
+    // The shadow without shadowRect has drawn in Nodegroup's cache, so we can't draw it again
+    if (!params.GetShadowRect().IsEmpty()) {
+        DrawBackground(canvas, params.GetBounds());
+    } else {
+        DrawRangeImpl(
+            canvas, params.GetBounds(), drawCmdIndex_.foregroundFilterBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
+    }
+    if (curDrawingCacheRoot_) {
+        curDrawingCacheRoot_->ReduceFilterRectSize(GetCountOfClipHoleForCache(params));
+    }
+}
+
 void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas,
     const Drawing::Rect& rect) const
 {
@@ -383,6 +398,15 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
 }
+
+int RSRenderNodeDrawableAdapter::GetCountOfClipHoleForCache(const RSRenderParams& params) const
+{
+    int count = drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty() ? 1 : 0;
+    count += drawCmdIndex_.shadowIndex_ != -1 ? 1 : 0;
+    count += drawCmdIndex_.useEffectIndex_ != -1 ? 1 : 0;
+    return count;
+}
+
 int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
 {
     switch (skipType_) {
@@ -425,4 +449,10 @@ void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
     hasSkipCacheLayer_ = hasSkipCacheLayer;
 }
 
+void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
+    }
+}
 } // namespace OHOS::Rosen::DrawableV2
