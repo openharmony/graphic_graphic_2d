@@ -388,6 +388,10 @@ void RSRenderSpringAnimation::InitValueEstimator()
     if (springValueEstimator_ == nullptr) {
         springValueEstimator_ = property_->CreateRSSpringValueEstimator();
     }
+    if (springValueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderSpringAnimation::InitValueEstimator, springValueEstimator_ is nullptr.");
+        return;
+    }
     springValueEstimator_->InitRSSpringValueEstimator(property_, startValue_, endValue_, lastValue_);
     springValueEstimator_->SetResponse(response_);
     springValueEstimator_->SetDampingRatio(dampingRatio_);
