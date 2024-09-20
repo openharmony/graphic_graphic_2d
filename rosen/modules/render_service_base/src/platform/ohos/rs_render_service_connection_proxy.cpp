@@ -487,18 +487,25 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     if (!data.WriteUint32(height)) {
         return WRITE_PARCEL_ERR;
     }
-    
-    bool hasSurface = surface == nullptr ? false : true;
-    if (!data.WriteBool(hasSurface)) {
-        return WRITE_PARCEL_ERR;
-    }
-    if (hasSurface) {
+    if (surface != nullptr) {
         auto producer = surface->GetProducer();
         if (producer != nullptr) {
-            data.WriteRemoteObject(producer->AsObject());
+            if (!data.WriteBool(true)) {
+                return WRITE_PARCEL_ERR;
+            }
+            if (!data.WriteRemoteObject(producer->AsObject())) {
+                return WRITE_PARCEL_ERR;
+            }
+        } else {
+            if (!data.WriteBool(false)) {
+                return WRITE_PARCEL_ERR;
+            }
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            return WRITE_PARCEL_ERR;
         }
     }
-    
     if (!data.WriteUint64(mirrorId)) {
         return WRITE_PARCEL_ERR;
     }

@@ -460,9 +460,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t width = data.ReadUint32();
             uint32_t height = data.ReadUint32();
             sptr<Surface> surface = nullptr;
-            bool hasSurface = data.ReadBool();
-            RS_LOGD("RSRenderServiceConnectionStub::CREATE_VIRTUAL_SCREEN, hasSurface:%{public}d", hasSurface);
-            if (hasSurface) {
+            if (data.ReadBool()) {
                 auto remoteObject = data.ReadRemoteObject();
                 if (remoteObject != nullptr) {
                     auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
