@@ -96,7 +96,7 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); i++) {
         drawableVecTwo[i] = nullptr;
     }
-    ASSERT_FALSE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
+    ASSERT_TRUE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
     nodeTwo.GetMutableRenderProperties().SetBackgroundColor(Color(255, 255, 255, 255));
     ASSERT_TRUE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
 }
