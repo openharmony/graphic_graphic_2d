@@ -1737,7 +1737,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
     }
-    node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_);
+    node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_,
+        RSMainThread::Instance()->IsAccessibilityConfigChanged());
 
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
