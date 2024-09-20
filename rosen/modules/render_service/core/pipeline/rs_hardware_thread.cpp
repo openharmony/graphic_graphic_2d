@@ -312,7 +312,6 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 
     static ScreenId lastScreenId = 12345; // init value diff with any real screen id
-    auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (hgmCore.GetFrameRateMgr() == nullptr) {
         RS_LOGD("FrameRateMgr is null");

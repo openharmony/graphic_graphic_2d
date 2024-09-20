@@ -237,29 +237,29 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
     }
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
-    static uint64_t lastPendingConstraintRelativeTime = 0;
-    static uint32_t lastPendingRefreshRate = 0;
-    if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
-        dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
-        hgmCore.SetPendingScreenRefreshRate(rsRate);
-    } else if (pendingRefreshRate_ != nullptr) {
+    if (pendingRefreshRate_ != nullptr) {
         hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
-        lastPendingConstraintRelativeTime = pendingConstraintRelativeTime_;
+        lastPendingConstraintRelativeTime_ = pendingConstraintRelativeTime_;
         pendingConstraintRelativeTime_ = 0;
 
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
-        lastPendingRefreshRate = *pendingRefreshRate_;
+        lastPendingRefreshRate_ = *pendingRefreshRate_;
         pendingRefreshRate_.reset();
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
     } else {
-        if (lastPendingConstraintRelativeTime != 0) {
-            hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime);
+        if (lastPendingConstraintRelativeTime_ != 0) {
+            hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime_);
         }
-        if (lastPendingRefreshRate != 0) {
-            hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate);
-            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate);
+        if (lastPendingRefreshRate_ != 0) {
+            hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate_);
+            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
         }
+    }
+
+    if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
+        dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+        hgmCore.SetPendingScreenRefreshRate(rsRate);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
     }
     changeGeneratorRateValid_.store(true);
 }
@@ -821,6 +821,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    UpdateAppSupportedState();  // sync app state config when RefreshRateMode changed
 }
 
 void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
