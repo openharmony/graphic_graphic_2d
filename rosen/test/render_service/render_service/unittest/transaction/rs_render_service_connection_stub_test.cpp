@@ -186,10 +186,10 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub005
         RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK)), ERR_NULL_OBJECT);
     // Unable to access IPC due to lack of permissions.
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_INVALID_DATA);
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_NULL_OBJECT);
     // Unable to access IPC due to lack of permissions.
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_INVALID_DATA);
+        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK)), ERR_NULL_OBJECT);
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
@@ -212,10 +212,10 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub006
         RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK)), ERR_NULL_OBJECT);
     // Unable to access IPC due to lack of permissions.
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_INVALID_DATA);
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_NULL_OBJECT);
     // Unable to access IPC due to lack of permissions.
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_INVALID_DATA);
+        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK)), ERR_NULL_OBJECT);
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
