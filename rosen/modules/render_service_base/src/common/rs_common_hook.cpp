@@ -22,15 +22,15 @@ RsCommonHook& RsCommonHook::Instance()
     return rch;
 }
 
-void RsCommonHook::RegisterStartNewAnimationListener(std::function<void()> listener)
+void RsCommonHook::RegisterStartNewAnimationListener(std::function<void(const std::string &)> listener)
 {
     startNewAniamtionFunc_ = listener;
 }
 
-void RsCommonHook::OnStartNewAnimation()
+void RsCommonHook::OnStartNewAnimation(const std::string &componentName)
 {
     if (startNewAniamtionFunc_) {
-        startNewAniamtionFunc_();
+        startNewAniamtionFunc_(componentName);
     }
 }
 
@@ -63,6 +63,18 @@ bool RsCommonHook::GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() const
 bool RsCommonHook::GetHardwareEnabledByBackgroundAlphaFlag() const
 {
     return hardwareEnabledByBackgroundAlphaSkippedFlag_;
+}
+
+void RsCommonHook::SetComponentPowerFpsFunc(std::function<void(FrameRateRange& range)> func)
+{
+    componentPowerFpsFunc_ = func;
+}
+
+void RsCommonHook::GetComponentPowerFps(FrameRateRange& range)
+{
+    if (componentPowerFpsFunc_) {
+        componentPowerFpsFunc_(range);
+    }
 }
 
 } // namespace OHOS::Rosen

@@ -518,7 +518,8 @@ void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAni
     // only process FrameRateRange(rs) here
     if (uiAnimation_ == nullptr) {
         auto range = GetFrameRateRange();
-        if (range.IsValid()) {
+        // Transfer frame rate and component informations
+        if (range.IsValid() || range.componentScene_ != ComponentScene::UNKNOWN_SCENE) {
             animation->SetFrameRateRange(range);
         }
     }

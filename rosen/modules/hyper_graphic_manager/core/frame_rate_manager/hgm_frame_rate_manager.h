@@ -204,8 +204,6 @@ private:
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
     void UpdateEnergyConsumptionConfig();
-    static void EnterEnergyConsumptionAssuranceMode();
-    static void ExitEnergyConsumptionAssuranceMode();
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
