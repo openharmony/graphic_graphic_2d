@@ -18,8 +18,13 @@
 #include <memory>
 
 #include "include/core/SkCanvas.h"
-#include "rs_trace.h"
 #include "src/image/SkImage_Base.h"
+#ifdef NEW_SKIA
+#include "include/gpu/GrBackendSurface.h"
+#include "include/gpu/GrDirectContext.h"
+#endif
+
+#include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
@@ -34,10 +39,6 @@
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
 
-#ifdef NEW_SKIA
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrDirectContext.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
