@@ -1157,19 +1157,28 @@ void OH_Drawing_TextStyleGetBackgroundPen(OH_Drawing_TextStyle* style, OH_Drawin
 
 OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 {
-    auto fontDescriptor = new (std::nothrow) TextEngine::FontParser::FontDescriptor;
-    if (fontDescriptor == nullptr) {
+    OH_Drawing_FontDescriptor* desc = new (std::nothrow) OH_Drawing_FontDescriptor;
+    if (desc == nullptr) {
         return nullptr;
     }
-    return (OH_Drawing_FontDescriptor*)fontDescriptor;
+    desc->path = nullptr;
+    desc->postScriptName = nullptr;
+    desc->fullName = nullptr;
+    desc->fontFamily = nullptr;
+    desc->fontSubfamily = nullptr;
+    desc->weight = 0;
+    desc->width = 0;
+    desc->italic = 0;
+    desc->monoSpace = false;
+    desc->symbolic = false;
+    desc->size = 0;
+    desc->typeStyle = 0;
+    return desc;
 }
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 {
-    if (descriptor) {
-        delete ConvertToOriginalText<TextEngine::FontParser::FontDescriptor>(descriptor);
-        descriptor = nullptr;
-    }
+    delete descriptor;
 }
 
 OH_Drawing_FontParser* OH_Drawing_CreateFontParser(void)
@@ -1280,17 +1289,29 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
     }
     std::vector<TextEngine::FontParser::FontDescriptor> systemFontList =
         ConvertToOriginalText<TextEngine::FontParser>(fontParser)->GetVisibilityFonts();
-    TextEngine::FontParser::FontDescriptor* descriptor = new (std::nothrow) TextEngine::FontParser::FontDescriptor;
-    if (descriptor == nullptr) {
-        return nullptr;
-    }
     for (size_t i = 0; i < systemFontList.size(); ++i) {
-        if (strcmp(name, systemFontList[i].fullName.c_str()) == 0) {
-            *descriptor = systemFontList[i];
-            return (OH_Drawing_FontDescriptor*)descriptor;
+        if (strcmp(name, systemFontList[i].fullName.c_str()) != 0) {
+            continue;
         }
+
+        OH_Drawing_FontDescriptor* descriptor = new (std::nothrow) OH_Drawing_FontDescriptor();
+        if (descriptor == nullptr) {
+            return nullptr;
+        }
+        descriptor->path = strdup(systemFontList[i].path.c_str());
+        descriptor->postScriptName = strdup(systemFontList[i].postScriptName.c_str());
+        descriptor->fullName = strdup(systemFontList[i].fullName.c_str());
+        descriptor->fontFamily = strdup(systemFontList[i].fontFamily.c_str());
+        descriptor->fontSubfamily = strdup(systemFontList[i].fontSubfamily.c_str());
+        descriptor->weight = systemFontList[i].weight;
+        descriptor->width = systemFontList[i].width;
+        descriptor->italic = systemFontList[i].italic;
+        descriptor->monoSpace = systemFontList[i].monoSpace;
+        descriptor->symbolic = systemFontList[i].symbolic;
+        descriptor->size = systemFontList[i].size;
+        descriptor->typeStyle = systemFontList[i].typeStyle;
+        return descriptor;
     }
-    delete descriptor;
     return nullptr;
 }
 
