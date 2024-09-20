@@ -1071,8 +1071,8 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScr
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen mirroredNode is null");
         return damageRegionRects;
     }
-    auto& mirroredParams = mirroredDrawable->GetRenderParams();
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
+    const auto& mirroredParams = mirroredDrawable->GetRenderParams();
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (uniParam == nullptr || !uniParam->IsVirtualDirtyEnabled()) {
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen invalid uniparam");
         return damageRegionRects;
@@ -1097,9 +1097,11 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScr
 
     auto syncDirtyManager = GetSyncDirtyManager();
     // reset dirty rect as mirrored wired screen size when first time connection or matrix changed
-    if (!(lastMatrix_ == canvasMatrix)) {
-        syncDirtyManager->ResetDirtyAsSurfaceSize();
+    if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirroredParams->GetMatrix()) ||
+        uniParam->GetForceMirrorScreenDirty()) {
+        GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         lastMatrix_ = canvasMatrix;
+        lastMirrorMatrix_ = mirroredParams->GetMatrix();
     }
     UpdateDisplayDirtyManager(bufferAge, false);
     auto extraDirty = syncDirtyManager->GetDirtyRegion();
