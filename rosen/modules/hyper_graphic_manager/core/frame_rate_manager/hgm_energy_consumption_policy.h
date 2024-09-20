@@ -35,7 +35,7 @@ public:
     void StartNewAnimation(const std::string &componentName);
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
-    void GetComponentFps(FrameRateRange &rsRange);
+    
     void GetUiIdleFps(FrameRateRange& rsRange);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
     void PrintEnergyConsumptionLog(const FrameRateRange &rsRange);
@@ -65,6 +65,8 @@ private:
     static void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
     void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
     int32_t GetComponentEnergyConsumptionConfig(const std::string &componentName);
+    // Invoked by the render_service thread
+    void GetComponentFps(FrameRateRange &rsRange);
 };
 } // namespace OHOS::Rosen
 
