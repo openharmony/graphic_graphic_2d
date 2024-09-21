@@ -144,7 +144,7 @@ public:
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
         const FrameContextConfig& frameContextConfig = {false, false});
     std::shared_ptr<RSSurfaceOhos> MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU);
-    void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
+    static void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
         std::shared_ptr<RSSurfaceOhos> surfaceOhos);
 
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
@@ -218,7 +218,7 @@ public:
 #endif
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
-    static bool CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceNode);
+    static bool CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
 
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
