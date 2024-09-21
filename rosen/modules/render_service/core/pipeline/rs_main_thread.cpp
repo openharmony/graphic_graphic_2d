@@ -43,6 +43,7 @@
 #include "xcollie/watchdog.h"
 
 #include "animation/rs_animation_fraction.h"
+#include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "command/rs_node_command.h"
 #include "common/rs_background_thread.h"
@@ -164,6 +165,7 @@ constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
+constexpr uint32_t DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE = 100; // ms
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
@@ -688,11 +690,10 @@ void RSMainThread::UpdateGpuContextCacheSize()
     gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
     auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
     constexpr size_t baseResourceSize = 500;    // 500 M memory is baseline
-    constexpr int32_t baseResolutionWidth = 1260;   // 1260 base resolution width
-    constexpr int32_t baseResolutionHeight = 2720; // 2720 base resolution height
-    cacheLimitsResourceSize = baseResourceSize * maxScreenInfo.phyWidth / baseResolutionWidth
-        * maxScreenInfo.phyHeight / baseResolutionHeight
-        * MEMUNIT_RATE * MEMUNIT_RATE; // 500M memory is resolution: (1260 x 2720), adjust by actual Resolution
+    constexpr int32_t baseResolution = 3427200; // 3427200 is base resolution
+    float actualScale = maxScreenInfo.phyWidth * maxScreenInfo.phyHeight * 1.0f / baseResolution;
+    cacheLimitsResourceSize = baseResourceSize * actualScale
+        * MEMUNIT_RATE * MEMUNIT_RATE; // adjust by actual Resolution
     cacheLimitsResourceSize = cacheLimitsResourceSize > MAX_GPU_CONTEXT_CACHE_SIZE ?
         MAX_GPU_CONTEXT_CACHE_SIZE : cacheLimitsResourceSize;
     if (cacheLimitsResourceSize > maxResourcesSize) {
@@ -1347,8 +1348,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             });
         }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
-        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(
-            surfaceHandler, surfaceNode->GetName(), false, timestamp_)) {
+        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, timestamp_)) {
             if (!isUniRender_) {
                 this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                     static_cast<uint64_t>(surfaceHandler.GetTimestamp());
@@ -1419,7 +1419,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
 #endif
         // still have buffer(s) to consume.
-        if (surfaceHandler.GetAvailableBufferCount() > 0 || surfaceHandler.HasBufferCache()) {
+        if (surfaceHandler.GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
         }
         if (!hasHdrVideo) {
@@ -1950,6 +1950,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     UpdateUIFirstSwitch();
     UpdateRogSizeIfNeeded();
+    UpdateAceDebugBoundaryEnabled();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
@@ -3074,6 +3075,16 @@ void RSMainThread::SendCommands()
         fr.SendCommandsStart();
         fr.RenderEnd();
     }
+    if (!context_->needSyncFinishAnimationList_.empty()) {
+        for (const auto [nodeId, animationId] : context_->needSyncFinishAnimationList_) {
+            RS_LOGI("RSMainThread::SendCommands sync finish animation node is %{public}" PRIu64 ","
+                " animation is %{public}" PRIu64, nodeId, animationId);
+            std::unique_ptr<RSCommand> command =
+                std::make_unique<RSAnimationCallback>(nodeId, animationId, FINISHED);
+            RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
+        }
+        context_->needSyncFinishAnimationList_.clear();
+    }
     if (!RSMessageProcessor::Instance().HasTransaction()) {
         return;
     }
@@ -3128,6 +3139,35 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
     } else {
         dumpString += g_dumpStr;
         g_dumpStr = "";
+    }
+}
+
+void RSMainThread::UpdateAceDebugBoundaryEnabled()
+{
+    if (!isOverDrawEnabledOfCurFrame_) {
+        return;
+    }
+    bool isAceDebugBoundaryEnabled = RSSystemProperties::GetAceDebugBoundaryEnabled();
+    if (isAceDebugBoundaryEnabledOfLastFrame_ && !isAceDebugBoundaryEnabled) {
+        if (!hasPostUpdateAceDebugBoundaryTask_) {
+            PostTask(
+                [isAceDebugBoundaryEnabled, this]() {
+                    SetDirtyFlag();
+                    RequestNextVSync();
+                    isAceDebugBoundaryEnabledOfLastFrame_ = isAceDebugBoundaryEnabled;
+                    hasPostUpdateAceDebugBoundaryTask_ = false;
+                },
+                "UpdateAceBoundaryEnabledTask", DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE);
+            hasPostUpdateAceDebugBoundaryTask_ = true;
+        }
+        renderThreadParams_->isAceDebugBoundaryEnabled_ = true;
+    } else {
+        if (hasPostUpdateAceDebugBoundaryTask_) {
+            handler_->RemoveTask("UpdateAceBoundaryEnabledTask");
+            hasPostUpdateAceDebugBoundaryTask_ = false;
+        }
+        renderThreadParams_->isAceDebugBoundaryEnabled_ = isAceDebugBoundaryEnabled;
+        isAceDebugBoundaryEnabledOfLastFrame_ = isAceDebugBoundaryEnabled;
     }
 }
 
@@ -3931,11 +3971,9 @@ void RSMainThread::UpdateUIFirstSwitch()
         return;
     }
     isUiFirstOn_ = false;
-    if (IsSingleDisplay() || HasMirrorDisplay()) {
-        uint32_t LeashWindowCount = 0;
-        displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
-        isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
-    }
+    uint32_t LeashWindowCount = 0;
+    displayNode->CollectSurfaceForUIFirstSwitch(LeashWindowCount, UIFIRST_MINIMUM_NODE_NUMBER);
+    isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled() && LeashWindowCount >=  UIFIRST_MINIMUM_NODE_NUMBER;
     RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
 }
 

@@ -724,7 +724,7 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, Node
         node->GetMutableRenderProperties().SetPositionZ(positionZ);
         node->GetMutableRenderProperties().SetPivotZ(pivotZ);
         node->SetPriority(priority);
-        node->SetIsOnTheTree(isOnTree);
+        node->RSRenderNode::SetIsOnTheTree(isOnTree);
         node->nodeGroupType_ = nodeGroupType;
         UnmarshalNodeModifiers(*node, data, fileVersion);
     }
@@ -1101,7 +1101,7 @@ std::string RSProfiler::SendMessageBase()
     return value;
 }
 
-void RSProfiler::SendMessageBase(const std::string msg)
+void RSProfiler::SendMessageBase(const std::string& msg)
 {
     const std::lock_guard<std::mutex> guard(g_msgBaseMutex);
     g_msgBaseList.push(msg);

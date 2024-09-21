@@ -20,6 +20,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "hgm_touch_manager.h"
+
 #include "animation/rs_frame_rate_range.h"
 
 namespace OHOS::Rosen {
@@ -29,24 +31,30 @@ public:
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
     void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
-    void SetUiEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     void StatisticAnimationTime(uint64_t timestamp);
-    void StartNewAnimation();
+    void StartNewAnimation(const std::string &componentName);
     void GetAnimationIdleFps(FrameRateRange& rsRange);
+    void SetTouchState(TouchState touchState);
+    
     void GetUiIdleFps(FrameRateRange& rsRange);
+    void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
+    void PrintEnergyConsumptionLog(const FrameRateRange &rsRange);
 
 private:
     // <rateType, <isEnable, idleFps>>
     std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     bool isAnimationEnergyAssuranceEnable_ = false;
     bool isAnimationEnergyConsumptionAssuranceMode_ = false;
-    bool isUiEnergyConsumptionAssuranceMode_ = false;
+    bool isTouchIdle_ = false;
+    int64_t rsAnimationTouchIdleTime_ = 1000;
     uint64_t firstAnimationTimestamp_ = 0;
     uint64_t lastAnimationTimestamp_ = 0;
     // Unit: ms
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;
-    std::unordered_map<int32_t, bool> energyAssuranceState_;
+    std::string lastAssuranceLog_ = "";
+    int32_t currentRefreshMode_ = -1;
+    std::string curScreenStrategyId_ = "LTPO-DEFAULT";
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;
@@ -56,7 +64,9 @@ private:
     HgmEnergyConsumptionPolicy& operator=(const HgmEnergyConsumptionPolicy&&) = delete;
     static void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
     void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
-    void PrintLog(FrameRateRange &rsRange, bool state, int idleFps);
+    int32_t GetComponentEnergyConsumptionConfig(const std::string &componentName);
+    // Invoked by the render_service thread
+    void GetComponentFps(FrameRateRange &rsRange);
 };
 } // namespace OHOS::Rosen
 

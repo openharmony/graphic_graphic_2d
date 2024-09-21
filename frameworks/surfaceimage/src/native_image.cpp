@@ -179,7 +179,7 @@ void OH_NativeImage_Destroy(OH_NativeImage** image)
 int32_t OH_NativeImage_AcquireNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
 {
-    if (image == nullptr || image->consumer == nullptr || nativeWindowBuffer == nullptr || fenceFd == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -189,7 +189,7 @@ int32_t OH_NativeImage_AcquireNativeWindowBuffer(OH_NativeImage* image,
 int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
-    if (image == nullptr || image->consumer == nullptr || nativeWindowBuffer == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }

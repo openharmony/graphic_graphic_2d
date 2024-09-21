@@ -1445,11 +1445,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         return false;
     }
-    MemoryInfo info = { val->GetByteCount(), 0, 0, MEMORY_TYPE::MEM_PIXELMAP }; // pid is set to 0 temporarily.
+    MemoryInfo info = {
+        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType()
+    };
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
 }
+
 bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)
 {
     auto size = parcel.ReadInt32();

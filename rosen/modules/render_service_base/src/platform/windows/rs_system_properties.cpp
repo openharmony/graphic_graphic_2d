@@ -122,6 +122,11 @@ bool RSSystemProperties::GetVkQueuePriorityEnable()
     return false;
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return {};
@@ -528,6 +533,11 @@ bool RSSystemProperties::GetMemoryOverTreminateEnabled()
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
 }

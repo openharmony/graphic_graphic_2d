@@ -450,12 +450,14 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
         return nullptr;
     }
 
+#ifndef RENDER_PROFILER_APPLICATION
     if (ShouldFileBeCreated(options) && !FileExists(realPath)) {
         auto file = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
         if (file != -1) {
             close(file);
         }
     }
+#endif
 
     auto file = fopen(realPath.data(), options.data());
     if (!IsFileValid(file)) {

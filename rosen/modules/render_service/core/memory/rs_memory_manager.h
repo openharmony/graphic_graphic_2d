@@ -63,6 +63,7 @@ private:
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
+    static void DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext);
     static void DumpMallocStat(std::string& log);
     static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
         const std::string& reportName);

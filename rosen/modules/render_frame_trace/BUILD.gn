@@ -37,6 +37,9 @@ ohos_source_set("render_frame_trace") {
   } else {
     external_deps += [ "jsoncpp:jsoncpp" ]
   }
+  if (!defined(defines)) {
+    defines = []
+  }
   if (!build_ohos_sdk) {
     external_deps += [
       "ipc:ipc_single",

@@ -122,6 +122,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return {};
@@ -494,6 +499,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 }
 
 bool RSSystemProperties::IsForceClient()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
 }

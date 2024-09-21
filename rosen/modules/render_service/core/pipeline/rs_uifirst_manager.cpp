@@ -779,7 +779,7 @@ bool RSUifirstManager::IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> no
     auto& preFirstLevelNodeIdSet = node->GetMutablePreFirstLevelNodeIdSet();
     for (auto it = preFirstLevelNodeIdSet.begin(); it != preFirstLevelNodeIdSet.end();
          it = preFirstLevelNodeIdSet.erase(it)) {
-        auto& curRootIdState = GetUifirstCachedState(*it);
+        const auto& curRootIdState = GetUifirstCachedState(*it);
         if (curRootIdState == CacheProcessStatus::DOING) {
             return true;
         }

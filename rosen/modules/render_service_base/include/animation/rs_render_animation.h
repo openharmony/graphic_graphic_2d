@@ -170,7 +170,7 @@ public:
     RSRenderNode* GetTarget() const;
 
     NodeId GetTargetId() const;
-    const std::string& GetTargetName() const;
+    const std::string GetTargetName() const;
 
     virtual PropertyId GetPropertyId() const;
 

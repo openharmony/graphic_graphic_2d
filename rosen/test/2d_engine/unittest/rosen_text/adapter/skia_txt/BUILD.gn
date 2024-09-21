@@ -71,7 +71,10 @@ ohos_unittest("rosen_text_adapt_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

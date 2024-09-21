@@ -432,6 +432,8 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         GRAPHIC_PIXEL_FMT_UYVY_422_PKG,
         GRAPHIC_PIXEL_FMT_YVYU_422_PKG,
         GRAPHIC_PIXEL_FMT_VYUY_422_PKG,
+        GRAPHIC_PIXEL_FMT_YCBCR_P010,
+        GRAPHIC_PIXEL_FMT_YCRCB_P010,
     };
 
     static const std::unordered_set<std::string> videoLayers {

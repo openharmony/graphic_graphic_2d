@@ -1305,8 +1305,8 @@ GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfa
     auto transformType = RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(
         node.GetRSSurfaceHandler()->GetConsumer(), node.GetRSSurfaceHandler()->GetBuffer()));
     int extraRotation = 0;
-    int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
-        node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
+    auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
+    int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(geoPtr ? geoPtr->GetAbsMatrix() : Drawing::Matrix());
     int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
     extraRotation = degree - rotationDegree;
     transformType = static_cast<GraphicTransformType>(

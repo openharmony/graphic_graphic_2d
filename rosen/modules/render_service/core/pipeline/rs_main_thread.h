@@ -152,6 +152,16 @@ public:
         return isHardwareEnabledBufferUpdated_;
     }
 
+    void SetGlobalDarkColorMode(bool isDark)
+    {
+        isGlobalDarkColorMode_ = isDark;
+    }
+
+    bool GetGlobalDarkColorMode() const
+    {
+        return isGlobalDarkColorMode_;
+    }
+
     /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */
@@ -447,6 +457,7 @@ private:
 
     bool IsResidentProcess(pid_t pid) const;
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
+    void UpdateAceDebugBoundaryEnabled();
 
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
@@ -588,6 +599,10 @@ private:
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
+    std::atomic<bool> isGlobalDarkColorMode_ = false;
+
+    bool isAceDebugBoundaryEnabledOfLastFrame_ = false;
+    bool hasPostUpdateAceDebugBoundaryTask_ = false;
 
     std::atomic_bool noNeedToPostTask_ = false;
 

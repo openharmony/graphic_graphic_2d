@@ -312,7 +312,6 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 
     static ScreenId lastScreenId = 12345; // init value diff with any real screen id
-    auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (hgmCore.GetFrameRateMgr() == nullptr) {
         RS_LOGD("FrameRateMgr is null");
@@ -327,8 +326,9 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
+        int32_t sceneId = (lastScreenId != id) ? SWITCH_SCREEN_SCENE : 0;
         lastScreenId = id;
-        int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
+        int32_t status = hgmCore.SetScreenRefreshRate(id, sceneId, refreshRate);
         if (status < EXEC_SUCCESS) {
             RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "", refreshRate,
                 id);

@@ -1573,6 +1573,10 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     if (RsCommonHook::Instance().GetVideoSurfaceFlag() && IsYUVBufferFormat()) {
         surfaceParams->SetLayerSourceTuning(1);
     }
+    // set tuning for anco node
+    if (GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) {
+        surfaceParams->SetLayerSourceTuning(1);
+    }
     AddToPendingSyncList();
 #endif
 }

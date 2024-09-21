@@ -44,6 +44,9 @@ static std::shared_ptr<Drawing::RuntimeEffect> g_simpleFilter;
 static std::shared_ptr<Drawing::RuntimeEffect> g_greyAdjustEffect;
 
 static const std::vector<std::vector<float>> offsetTableFourPasses = {
+    /*
+        sampling offsets and weights for different blur radius in 4-pass algorithm
+    */
     {{1.421365322425756, 1.421365322425756, 2.52888420687976, 1.6983888474288191,
       0.5060327516701945, 2.477687296510791, 2.645538868459866, 0.4675865935441517}},
     {{1.5532466535764577, 1.5532466535764577, 3.260647277662576, 2.6149639458271343,
@@ -51,6 +54,9 @@ static const std::vector<std::vector<float>> offsetTableFourPasses = {
 };
 
 static const std::vector<std::vector<float>> offsetTableFivePasses = {
+    /*
+        sampling offsets and weights for different blur radius in 5-pass algorithm
+    */
     {{1.29351593, 1.29351593, 0.53793921, 1.5822416, 1.58224067,
       0.53794761, 1.58223699, 0.5379565, 0.53795194, 1.58223997}},
     {{1.4925693309454728, 1.4925693309454728, 1.248431515423821, 2.1609475057344536, 2.3006446212434306,
@@ -145,9 +151,9 @@ void GEMESABlurShaderFilter::SetBlurParamsFivePassSmall(NewBlurParams& bParam)
         float w2 = 1 - w1;
         for (int i = 0; i < numberOfPasses; i++) {
             bParam.offsets[stride * i] = w2 * offsetTableFivePasses[index][stride * i] +
-                                            w1 * offsetTableFivePasses[index + 1][stride * i];
+                w1 * offsetTableFivePasses[index + 1][stride * i];
             bParam.offsets[stride * i + 1] = w2 * offsetTableFivePasses[index][stride * i + 1] +
-                                                w1 * offsetTableFivePasses[index + 1][stride * i + 1];
+                w1 * offsetTableFivePasses[index + 1][stride * i + 1];
         }
     }
     bParam.numberOfPasses = numberOfPasses;
@@ -182,7 +188,7 @@ void GEMESABlurShaderFilter::SetBlurParams(NewBlurParams& bParam)
     int numberOfPasses;
     if (blurRadius_ < BLUR_RADIUS_1) {
         // 2: min number of pass, 4: fixed four passes
-        numberOfPasses = std::max(2, std::min(4, static_cast<int>(blurRadius_)));
+        numberOfPasses = std::clamp(static_cast<int>(blurRadius_), 2, 4);
         float mys = blurRadius_ * 0.125;    // 0.125: scaling rate
         for (int i = 0; i < numberOfPasses; i++) {
             bParam.offsets[stride * i] = offsetTableFourPasses[0][stride * i] * mys;
@@ -212,14 +218,13 @@ void GEMESABlurShaderFilter::SetBlurParams(NewBlurParams& bParam)
         }
 
         int newStride = 3;
+        static constexpr float BLUR_PARAM_A = 0.4;
+        static constexpr float BLUR_PARAM_B = 0.35;
         if (blurRadius_ >= BLUR_RADIUS_1P5 - newStride) {
             // 4: pre-filtering when the radius is larger than the calculated value
-            // 0.4, 0.35: blur param
-            float blurParamA = 0.4;
-            float blurParamB = 0.35;
             float perf = (blurRadius_ - BLUR_RADIUS_1P5 + newStride + 1);
-            bParam.offsets[stride * numberOfPasses] = blurParamA * perf + blurParamB;
-            bParam.offsets[stride * numberOfPasses + 1] = blurParamA * perf + blurParamB;
+            bParam.offsets[stride * numberOfPasses] = BLUR_PARAM_A * perf + BLUR_PARAM_B;
+            bParam.offsets[stride * numberOfPasses + 1] = BLUR_PARAM_A * perf + BLUR_PARAM_B;
             numberOfPasses++;
         }
         bParam.numberOfPasses = numberOfPasses;
@@ -426,8 +431,8 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ProcessImage(Drawing::Ca
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
     Drawing::RuntimeShaderBuilder blurBuilder(g_blurEffect);
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    LOGD("GEMESABlurShaderFilter:: sigma = %{public}f, numberOfPasses = %{public}f",
-        blurRadius_, 1.0 * blur.numberOfPasses);
+    LOGD("GEMESABlurShaderFilter:: sigma = %{public}f, numberOfPasses = %{public}d",
+        blurRadius_, blur.numberOfPasses);
 
     std::shared_ptr<Drawing::Image> tmpBlur = DownSampling(canvas, input, src, scaledInfo,
         width, height, linear, blur);

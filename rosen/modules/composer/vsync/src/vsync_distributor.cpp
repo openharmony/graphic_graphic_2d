@@ -142,12 +142,12 @@ VsyncError VSyncConnection::RequestNextVSync(const std::string &fromWhom, int64_
 VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
 {
     std::unique_lock<std::mutex> locker(mutex_);
-    if (isDead_) {
+    if (isDead_ || socketPair_ == nullptr) {
         VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
         return VSYNC_ERROR_API_FAILED;
     }
     fd = socketPair_->GetReceiveDataFd();
-    if (fd <= 0) {
+    if (fd < 0) {
         VLOGE("%{public}s socketPair invalid fd:%{public}d.", __func__, fd);
         return VSYNC_ERROR_API_FAILED;
     }
@@ -751,7 +751,7 @@ void VSyncDistributor::SubScribeSystemAbility(const std::string& threadName)
     std::string strPid = std::to_string(getpid());
     std::string strTid = std::to_string(gettid());
 
-    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    saStatusChangeListener_ = new VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
     int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
     if (ret != ERR_OK) {
         VLOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
@@ -834,6 +834,9 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
             break;
         }
         int64_t vsyncPulseFreq = static_cast<int64_t>(connections_[i]->vsyncPulseFreq_);
+        if (vsyncPulseFreq == 0) {
+            continue;
+        }
         if ((vsyncCount - connections_[i]->referencePulseCount_) % vsyncPulseFreq == 0) {
             connections_[i]->triggerThisTime_ = false;
             if (connections_[i]->rate_ == 0) {
@@ -1001,14 +1004,15 @@ VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& 
     if (name.find("WM") == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    if ((name.find("NWeb") != std::string::npos) && (name.find("ArkWebCore") != std::string::npos)) {
+    // exclude names like NWeb_WM or ArkWebCore_WM
+    if ((name.find("NWeb") != std::string::npos) || (name.find("ArkWebCore") != std::string::npos)) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::string::size_type pos = name.find("_");
-    if (pos == std::string::npos) {
+    if (pos == std::string::npos || (pos + 1) >= name.size()) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-    pid = (uint32_t)stoi(name.substr(pos + 1));
+    pid = static_cast<uint32_t>(stoi(name.substr(pos + 1)));
     return VSYNC_ERROR_OK;
 }
 
@@ -1068,7 +1072,7 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
     }
     bool isNeedNotify = false;
     for (auto& connection : iter->second) {
-        if (connection && connection->highPriorityRate_ != rate) {
+        if (connection != nullptr && connection->highPriorityRate_ != rate) {
             connection->highPriorityRate_ = rate;
             connection->highPriorityState_ = true;
             VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),

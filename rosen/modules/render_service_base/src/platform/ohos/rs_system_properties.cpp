@@ -270,6 +270,14 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
+}
+
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     static bool hardwareComposerEnabled = system::GetParameter(
@@ -1134,6 +1142,14 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.markedFilter.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

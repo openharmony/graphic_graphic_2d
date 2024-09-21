@@ -92,12 +92,13 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
+    auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
     if (LIKELY(!rscanvas.IsCapture())) {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), dynamicRangeMode_);
+            targetColorSpace, rscanvas.GetScreenId(), dynamicRangeMode_);
     } else {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
+            targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
     }
     canvas.AttachPaint(paint_);
     return true;

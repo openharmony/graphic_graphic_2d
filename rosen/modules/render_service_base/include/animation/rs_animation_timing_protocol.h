@@ -85,11 +85,6 @@ public:
         finishCallbackType_ = finishCallbackType;
     }
 
-    void SetInstanceId(int32_t instanceId)
-    {
-        instanceId_ = instanceId;
-    }
-
     int GetDuration() const
     {
         return duration_;
@@ -135,11 +130,6 @@ public:
         return finishCallbackType_;
     }
 
-    int32_t GetInstanceId() const
-    {
-        return instanceId_;
-    }
-
     static const RSAnimationTimingProtocol DEFAULT;
     static const RSAnimationTimingProtocol IMMEDIATE;
 
@@ -153,7 +143,6 @@ protected:
     bool isForward_ { true };
     FrameRateRange range_ = {0, 0, 0};
     FinishCallbackType finishCallbackType_ { FinishCallbackType::TIME_SENSITIVE };
-    int32_t instanceId_ { INSTANCE_ID_UNDEFINED };
 };
 } // namespace Rosen
 } // namespace OHOS

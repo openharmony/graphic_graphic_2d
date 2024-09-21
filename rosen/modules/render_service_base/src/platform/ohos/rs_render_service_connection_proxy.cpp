@@ -487,18 +487,25 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     if (!data.WriteUint32(height)) {
         return WRITE_PARCEL_ERR;
     }
-    
-    bool hasSurface = surface == nullptr ? false : true;
-    if (!data.WriteBool(hasSurface)) {
-        return WRITE_PARCEL_ERR;
-    }
-    if (hasSurface) {
+    if (surface != nullptr) {
         auto producer = surface->GetProducer();
         if (producer != nullptr) {
-            data.WriteRemoteObject(producer->AsObject());
+            if (!data.WriteBool(true)) {
+                return WRITE_PARCEL_ERR;
+            }
+            if (!data.WriteRemoteObject(producer->AsObject())) {
+                return WRITE_PARCEL_ERR;
+            }
+        } else {
+            if (!data.WriteBool(false)) {
+                return WRITE_PARCEL_ERR;
+            }
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            return WRITE_PARCEL_ERR;
         }
     }
-    
     if (!data.WriteUint64(mirrorId)) {
         return WRITE_PARCEL_ERR;
     }
@@ -2089,6 +2096,27 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId id
     }
     bool result = reply.ReadBool();
     return result;
+}
+
+bool RSRenderServiceConnectionProxy::SetGlobalDarkColorMode(bool isDark)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteBool(isDark)) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    return true;
 }
 
 bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,

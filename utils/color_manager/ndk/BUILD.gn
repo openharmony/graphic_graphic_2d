@@ -19,14 +19,6 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 config("native_color_space_manager_config") {
   visibility = [ ":*" ]
 
-  include_dirs = [
-    "$graphic_2d_root/interfaces/inner_api/common",
-    "$graphic_2d_root/interfaces/inner_api/color_manager",
-    "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/utils/color_manager/export",
-  ]
-
   cflags = [
     "-Wall",
     "-Werror",
@@ -34,17 +26,26 @@ config("native_color_space_manager_config") {
   ]
 }
 
+config("native_color_space_manager_public_config") {
+  include_dirs = [ "$graphic_2d_root/interfaces/inner_api/color_manager" ]
+}
+
 ohos_shared_library("libnative_color_space_manager") {
   sources = [ "native_color_space_manager.cpp" ]
 
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
-  }
+  include_dirs = []
 
-  public_configs = [ ":native_color_space_manager_config" ]
+  configs = [ ":native_color_space_manager_config" ]
+
+  public_configs = [ ":native_color_space_manager_public_config" ]
+
+  include_dirs = [
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/interfaces/inner_api/color_manager",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/utils/color_manager/export",
+  ]
 
   output_extension = "so"
 

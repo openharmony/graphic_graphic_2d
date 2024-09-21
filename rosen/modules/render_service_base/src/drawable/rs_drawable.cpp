@@ -482,6 +482,12 @@ constexpr std::array borderDirtyTypes = {
     RSDrawableSlot::BACKGROUND_SHADER,
     RSDrawableSlot::BACKGROUND_IMAGE,
 };
+constexpr std::array bgfilterDirtyTypes = {
+    RSDrawableSlot::PIXEL_STRETCH,
+};
+constexpr std::array stretchDirtyTypes = {
+    RSDrawableSlot::BACKGROUND_FILTER,
+};
 const std::unordered_set<RSDrawableSlot> fuzeStretchBlurSafeList = {
     RSDrawableSlot::BG_RESTORE_BOUNDS,
     RSDrawableSlot::SAVE_FRAME,
@@ -549,13 +555,13 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
         dirtySlots.emplace(RSDrawableSlot::RESTORE_FOREGROUND_FILTER);
     }
 
-    // fuse pixel stretch with background filter
-    if (dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH) &&
-        drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)]) {
-        dirtySlots.emplace(RSDrawableSlot::BACKGROUND_FILTER);
+    // if pixel stretch changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH)) {
+        MarkAffectedSlots(stretchDirtyTypes, drawableVec, dirtySlots);
     }
+    // if background filter changed, mark affected drawables as dirty
     if (dirtySlots.count(RSDrawableSlot::BACKGROUND_FILTER)) {
-        dirtySlots.emplace(RSDrawableSlot::PIXEL_STRETCH);
+        MarkAffectedSlots(bgfilterDirtyTypes, drawableVec, dirtySlots);
     }
 
     return dirtySlots;

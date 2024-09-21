@@ -804,7 +804,7 @@ napi_value JsParagraph::OnLayoutAsync(napi_env env, napi_callback_info info)
     struct ConcreteContext : public ContextBase {
         double width = 0.0;
     };
-    auto context = std::make_shared<ConcreteContext>();
+    sptr<ConcreteContext> context = sptr<ConcreteContext>::MakeSptr();
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
         TEXT_ERROR_CHECK(argv, return, "Argv is null");
         NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,

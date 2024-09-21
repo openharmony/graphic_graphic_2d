@@ -178,10 +178,8 @@ void RSVsyncRateReduceManager::ResetFrameValues()
     }
     vSyncRatesChanged_ = false;
     focusedNodeId_ = 0;
-    std::vector<NodeId> curAllMainAndLeashWindowNodesIds;
-    std::map<NodeId, RSVisibleLevel> visMapForVSyncRate;
-    visMapForVSyncRate.swap(visMapForVSyncRate_);
-    curAllMainAndLeashWindowNodesIds.swap(curAllMainAndLeashWindowNodesIds_);
+    visMapForVSyncRate_.clear();
+    curAllMainAndLeashWindowNodesIds_.clear();
 }
 
 } // namespace Rosen

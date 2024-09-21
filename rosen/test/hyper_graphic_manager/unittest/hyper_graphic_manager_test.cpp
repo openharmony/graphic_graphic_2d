@@ -405,6 +405,8 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level
             STEP_ASSERT_NE(screen1->GetModeIdViaRate(0), -2);
             screen1->activeModeId_ = invalidValue; // invalid active mode
             STEP_ASSERT_EQ(screen1->IfSwitchToRate(screen1->GetActiveMode(), OLED_30_HZ), false);
+            int32_t switchScreenSceneId = 1;
+            STEP_ASSERT_EQ(screen1->IfSwitchToRate(switchScreenSceneId, OLED_30_HZ), true);
             STEP_ASSERT_EQ(screen1->GetModeIdViaRate(0), -1);
             screen1->activeModeId_ = savedActiveMode;
 

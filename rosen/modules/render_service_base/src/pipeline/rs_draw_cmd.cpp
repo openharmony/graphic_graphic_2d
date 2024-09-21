@@ -15,7 +15,6 @@
 
 #include <sstream>
 
-#include "common/rs_common_tools.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
@@ -27,6 +26,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
+#include "common/rs_common_tools.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
@@ -84,9 +84,11 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
     const Drawing::AdaptiveImageInfo& imageInfo)
 {
     if (pixelMap) {
+#ifdef ROSEN_OHOS
         if (RSSystemProperties::GetDumpUIPixelmapEnabled()) {
             CommonTools::SavePixelmapToFile(pixelMap, "/data/storage/el1/base/imageObject_");
         }
+#endif
         rsImage_ = std::make_shared<RSImage>();
         rsImage_->SetPixelMap(pixelMap);
         rsImage_->SetImageFit(imageInfo.fitNum);
@@ -172,6 +174,12 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (!pixelMap || !rsImage_) {
         return;
     }
+    auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMap);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (pixelMap->IsHdr()) {
+        colorSpace = Drawing::ColorSpace::CreateSRGB();
+    }
+#endif
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -182,8 +190,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()),
-                RSPixelMapUtil::GetPixelmapColorSpace(pixelMap))) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }

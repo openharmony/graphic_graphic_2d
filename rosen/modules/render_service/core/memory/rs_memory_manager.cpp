@@ -56,6 +56,7 @@ constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
+constexpr int DUPM_STRING_BUF_SIZE = 4000;
 }
 
 std::mutex MemoryManager::mutex_;
@@ -455,12 +456,30 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
     // gpu stat
+    DumpGpuStats(log, gpuContext);
+#endif
+}
+
+void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext)
+{
     log.AppendFormat("\n---------------\ndumpGpuStats:\n");
     std::string stat;
     gpuContext->DumpGpuStats(stat);
 
-    log.AppendFormat("%s\n", stat.c_str());
-#endif
+    int statIndex = 0;
+    int statLength = stat.length();
+    while (statIndex < statLength) {
+        std::string statSubStr;
+        if (statLength - statIndex > DUPM_STRING_BUF_SIZE) {
+            statSubStr = stat.substr(statIndex, DUPM_STRING_BUF_SIZE);
+            statIndex += DUPM_STRING_BUF_SIZE;
+        } else {
+            statSubStr = stat.substr(statIndex, statLength - statIndex);
+            statIndex = statLength;
+        }
+        log.AppendFormat("%s", statSubStr.c_str());
+    }
+    log.AppendFormat("\ndumpGpuStats end\n---------------\n");
 }
 
 void MemoryManager::DumpMallocStat(std::string& log)

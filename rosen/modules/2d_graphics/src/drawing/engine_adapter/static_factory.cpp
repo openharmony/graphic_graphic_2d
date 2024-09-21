@@ -89,6 +89,16 @@ std::shared_ptr<Typeface> StaticFactory::MakeFromFile(const char path[], const F
     return EngineStaticFactory::MakeFromFile(path, fontArguments);
 }
 
+std::vector<std::shared_ptr<Typeface>> StaticFactory::GetSystemFonts()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetSystemFonts();
+    }
+#endif
+    return EngineStaticFactory::GetSystemFonts();
+}
+
 std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -371,7 +381,7 @@ void StaticFactory::SetVmaCacheStatus(bool flag)
 {
 #ifdef RS_ENABLE_VK
     if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
-        SkSetVmaCacheFlag(flag);
+        EngineStaticFactory::SetVmaCacheStatus(flag);
     }
 #endif
 }

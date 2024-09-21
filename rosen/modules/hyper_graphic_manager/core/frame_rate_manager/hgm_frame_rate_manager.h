@@ -204,8 +204,6 @@ private:
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
     void UpdateEnergyConsumptionConfig();
-    static void EnterEnergyConsumptionAssuranceMode();
-    static void ExitEnergyConsumptionAssuranceMode();
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
@@ -218,6 +216,8 @@ private:
     std::mutex pendingMutex_;
     std::shared_ptr<uint32_t> pendingRefreshRate_ = nullptr;
     uint64_t pendingConstraintRelativeTime_ = 0;
+    uint64_t lastPendingConstraintRelativeTime_ = 0;
+    uint32_t lastPendingRefreshRate_ = 0;
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
     // concurrency protection <<<

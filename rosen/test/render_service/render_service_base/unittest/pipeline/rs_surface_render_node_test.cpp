@@ -2124,5 +2124,18 @@ HWTEST_F(RSSurfaceRenderNodeTest, BufferClearCallbackProxy, TestSize.Level1)
     testNode->SetNotifyRTBufferAvailable(true);
     ASSERT_TRUE(testNode->isNotifyRTBufferAvailable_);
 }
+
+/**
+ * @tc.name: MarkBlurIntersectDRMTest
+ * @tc.desc: test if node could be marked BlurIntersectWithDRM correctly
+ * @tc.type: FUNC
+ * @tc.require: issuesIAQZ4I
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, MarkBlurIntersectDRMTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->MarkBlurIntersectWithDRM(true, true);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -31,7 +31,7 @@ struct FontArgumentsConcreteContext : public ContextBase {
     ResourceInfo info;
 };
 
-bool ParseContextFilePath(napi_env env, napi_value* argv, std::shared_ptr<FontArgumentsConcreteContext> context)
+bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontArgumentsConcreteContext> context)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valueType);
@@ -439,8 +439,7 @@ napi_value JsFontCollection::LoadFontAsync(napi_env env, napi_callback_info info
 
 napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<FontArgumentsConcreteContext>();
-
+    sptr<FontArgumentsConcreteContext> context = sptr<FontArgumentsConcreteContext>::MakeSptr();
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
         TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is null");
         NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,

@@ -134,22 +134,20 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         return;
     }
     typefaceHashMap_[hash_value] = std::make_tuple(typeface, 1);
-    bool result = false;
+    if (pid) {
+        MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
+    }
     // register queued entries
     std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash_value);
     if (iterator != typefaceHashQueue_.end()) {
         while (iterator->second.size()) {
             uint64_t back = iterator->second.back();
             if (back != uniqueId) {
-                result = AddIfFound(back, hash_value);
+                AddIfFound(back, hash_value);
             }
             iterator->second.pop_back();
         }
         typefaceHashQueue_.erase(iterator);
-    }
-    // if not found, add it to memory
-    if (!result && pid) {
-        MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
     }
 }
 
