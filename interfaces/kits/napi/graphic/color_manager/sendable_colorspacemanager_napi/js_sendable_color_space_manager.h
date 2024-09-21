@@ -17,8 +17,8 @@
 #define OHOS_JS_SENDABLE_COLOR_SPACE_MANAGER_H
 
 #include "color_space.h"
-#include "native_engine/native_engine.h"
-#include "native_engine/native_value.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
 namespace OHOS {
 namespace ColorManager {
@@ -36,4 +36,4 @@ private:
 } // namespace ColorManager
 } // namespace OHOS
 
-#endif // OHOS_JS_SENDABLE_COLOR_SPACE_MANAGER_H
+#endif // OHOS_JS_COLOR_SPACE_MANAGER_H

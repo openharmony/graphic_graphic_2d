@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 #include "js_color_space_manager.h"
-#include "native_engine/native_engine.h"
+#include "napi/native_api.h"
+#include "napi/native_node_api.h"
 
 static napi_module _module = {
     .nm_version = 0,
