@@ -356,9 +356,7 @@ ohos_unittest("RSKawaseBlurShaderFilterTest") {
 ohos_unittest("RSHpsBlurTest") {
   module_out_path = module_output_path
 
-  sources = [
-    "rs_hps_blur_test.cpp",
-  ]
+  sources = [ "rs_hps_blur_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",
