@@ -254,6 +254,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
 {
     auto nodeNum = symbolAnimationConfig->numNodes;
     if (symbolAnimationConfig->symbolNodes.empty()) {
+        ROSEN_LOGD("[%{public}s] symbol nodes is empty \n", __func__);
         return false;
     }
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
@@ -377,6 +378,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
 {
     uint32_t nodeNum = symbolAnimationConfig->numNodes;
     if (symbolAnimationConfig->symbolNodes.empty()) {
+        ROSEN_LOGD("[%{public}s] symbol nodes is empty \n", __func__);
         return false;
     }
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
