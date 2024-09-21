@@ -19,8 +19,6 @@
 #include "image/bitmap.h"
 #include "render/rs_hps_blur.h"
 
-
-
 using namespace testing;
 using namespace testing::ext;
 
@@ -48,7 +46,6 @@ void RSHpsBlurTest::TearDownTestCase() {}
 void RSHpsBlurTest::SetUp() 
 {
     canvas_.Restore();
-
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
     bmp.Build(50, 50, format); // 50, 50  bitmap size
@@ -86,7 +83,7 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest001, TestSize.Level1)
     Drawing::Canvas canvas;
     auto image = std::make_shared<Drawing::Image>();
     float radius = 10;
-    float saturationForHPS =1.1;
+    float saturationForHPS = 1.1;
     float brightnessForHPS = 1.0;
     auto param = Drawing::HpsBlurParameter(src_, dst_, radius, saturationForHPS, brightnessForHPS);
     float alpha = 0.8;
