@@ -374,4 +374,60 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
     std::string str = instance.GetRefreshInfo(info.pid);
     EXPECT_TRUE(str == "");
 }
+
+/**
+ * @tc.name: SetWatermark001
+ * @tc.desc: test results of SetWatermark
+ * @tc.type: FUNC
+ * @tc.require: issueIASMZG
+ */
+HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
+    instance.renderServiceClient_ = nullptr;
+    bool res = instance.SetWatermark("test", pixelmap);
+    EXPECT_FALSE(res);
+
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    res = instance.SetWatermark("test", pixelmap);
+    EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.name: RegisterSurfaceBufferCallback001
+ * @tc.desc: test results of RegisterSurfaceBufferCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIASMZG
+ */
+HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
+{
+    class TestSurfaceBufferCallback : public SurfaceBufferCallback {
+    public:
+        void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override {}
+    };
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+
+    bool res = instance.RegisterSurfaceBufferCallback(1, 1, nullptr);
+    EXPECT_FALSE(res);
+
+    auto callback = std::make_shared<TestSurfaceBufferCallback>();
+    res = instance.RegisterSurfaceBufferCallback(1, 1, callback);
+    EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.name: UnregisterSurfaceBufferCallback001
+ * @tc.desc: test results of UnregisterSurfaceBufferCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIASMZG
+ */
+HWTEST_F(RSInterfacesTest, UnregisterSurfaceBufferCallback001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    bool res = instance.UnregisterSurfaceBufferCallback(1, 1);
+    EXPECT_FALSE(res);
+}
 } // namespace OHOS::Rosen
