@@ -668,6 +668,9 @@ void RSMainThread::Init()
     PrintCurrentStatus();
     UpdateGpuContextCacheSize();
     RSLuminanceControl::Get().Init();
+    if (deviceType_ == DeviceType::PHONE) {
+        MemoryManager::InitMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    }
 }
 
 
