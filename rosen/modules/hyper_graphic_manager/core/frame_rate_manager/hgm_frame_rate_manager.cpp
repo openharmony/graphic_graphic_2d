@@ -914,11 +914,11 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     if (gameSceneList.find(sceneName) != gameSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
             if (gameScenes_.insert(sceneName).second) {
-                MarkVoteChange("VOTER_SCENE");
+                MarkVoteChange();
             }
         } else {
             if (gameScenes_.erase(sceneName)) {
-                MarkVoteChange("VOTER_SCENE");
+                MarkVoteChange();
             }
         }
     }
