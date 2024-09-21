@@ -20,6 +20,7 @@
 #include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_path.h"
 #include "text/font.h"
 
 using namespace OHOS;
@@ -421,5 +422,16 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetPathForGlyph(const OH_Drawing_Font* cFont
     if (!font->GetPathForGlyph(glyph, reinterpret_cast<Path*>(path))) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetTextPath(const OH_Drawing_Font* cFont, const void* text, size_t byteLength,
+    OH_Drawing_TextEncoding encoding, float x, float y, OH_Drawing_Path* path)
+{
+    const Font* font = CastToFont(cFont);
+    if (font == nullptr || text == nullptr || byteLength == 0 || path == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    font->GetTextPath(text, byteLength, static_cast<TextEncoding>(encoding), x, y, reinterpret_cast<Path*>(path));
     return OH_DRAWING_SUCCESS;
 }

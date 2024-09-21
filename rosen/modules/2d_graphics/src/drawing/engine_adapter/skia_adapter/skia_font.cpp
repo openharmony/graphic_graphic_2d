@@ -18,6 +18,8 @@
 
 #include "include/core/SkFontTypes.h"
 #include "include/core/SkPath.h"
+#include "include/utils/SkTextUtils.h"
+#include "src/core/SkFontPriv.h"
 
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_typeface.h"
@@ -272,6 +274,18 @@ bool SkiaFont::GetPathForGlyph(uint16_t glyph, Path* path) const
     LOGD("glyph:%{public}hu path = %s", glyph, path->ConvertToSVGString().c_str());
     
     return true;
+}
+
+void SkiaFont::GetTextPath(const void* text, size_t length, TextEncoding encoding,
+    float x, float y, Path* path) const
+{
+    if (!path || !text) {
+        LOGE("param is invalid, fatal error");
+        return;
+    }
+    auto skPathImpl = path->GetImpl<SkiaPath>();
+    SkPath& skpath = skPathImpl->GetMutablePath();
+    SkTextUtils::GetPath(text, length, static_cast<SkTextEncoding>(encoding), x, y, skFont_, &skpath);
 }
 
 const SkFont& SkiaFont::GetFont() const
