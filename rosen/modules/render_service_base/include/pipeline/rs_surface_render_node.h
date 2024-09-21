@@ -1228,7 +1228,7 @@ public:
         std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
 
-    std::vector<RectI> GetIntersectedRoundCornerAABBs() const {
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const {
         return intersectedRoundCornerAABBs_;
     }
 
