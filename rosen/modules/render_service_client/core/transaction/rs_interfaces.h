@@ -281,6 +281,11 @@ public:
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
 
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

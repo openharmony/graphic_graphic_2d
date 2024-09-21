@@ -577,5 +577,16 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
 {
     return {};
 }
+
+bool RSRenderServiceClient::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

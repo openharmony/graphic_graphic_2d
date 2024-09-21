@@ -705,5 +705,19 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
 }
 
+bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
+        return false;
+    }
+    return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
+}
 } // namespace Rosen
 } // namespace OHOS
