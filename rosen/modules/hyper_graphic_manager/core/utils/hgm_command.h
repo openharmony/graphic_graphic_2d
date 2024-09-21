@@ -142,7 +142,7 @@ public:
         // <rateTypeName, idleFps>
         std::unordered_map<std::string, std::string> uiPowerConfig;
         // <SCENE_APP_START_ANIMATION, placeholder>
-        std::unordered_map<std::string, std::string> ancoSceneList;
+        SceneConfigMap ancoSceneList;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;

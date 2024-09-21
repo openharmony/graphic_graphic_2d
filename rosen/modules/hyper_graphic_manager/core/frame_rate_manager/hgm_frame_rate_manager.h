@@ -206,6 +206,7 @@ private:
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
+    void ProcessAncoRefreshRateVote(const std::string& voter, VoteInfo& curVoteInfo);
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
