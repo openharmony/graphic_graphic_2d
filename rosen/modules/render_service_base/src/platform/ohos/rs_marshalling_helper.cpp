@@ -41,6 +41,7 @@
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
+#include "recording/record_cmd.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
@@ -55,6 +56,7 @@
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "rs_trace.h"
 
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
@@ -101,6 +103,57 @@ MARSHALLING_AND_UNMARSHALLING(double, Double)
 #undef MARSHALLING_AND_UNMARSHALLING
 
 namespace {
+static bool MarshallingRecordCmdFromDrawCmdList(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
+{
+    if (!val) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::MarshallingRecordCmdFromDrawCmdList failed with null CmdList");
+        return false;
+    }
+    std::vector<std::shared_ptr<Drawing::RecordCmd>> recordCmdVec;
+    uint32_t recordCmdSize = val->GetAllRecordCmd(recordCmdVec);
+    if (!parcel.WriteUint32(recordCmdSize)) {
+        return false;
+    }
+    if (recordCmdSize == 0) {
+        return true;
+    }
+    if (recordCmdSize > USHRT_MAX) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::MarshallingRecordCmdFromDrawCmdList failed with max limit");
+        return false;
+    }
+    for (const auto& recordCmd : recordCmdVec) {
+        if (!RSMarshallingHelper::Marshalling(parcel, recordCmd)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool UnmarshallingRecordCmdToDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+{
+    if (!val) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed with null CmdList");
+        return false;
+    }
+    uint32_t recordCmdSize = parcel.ReadUint32();
+    if (recordCmdSize == 0) {
+        return true;
+    }
+    if (recordCmdSize > USHRT_MAX) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed with max limit");
+        return false;
+    }
+    std::vector<std::shared_ptr<Drawing::RecordCmd>> recordCmdVec;
+    for (uint32_t i = 0; i < recordCmdSize; i++) {
+        std::shared_ptr<Drawing::RecordCmd> recordCmd = nullptr;
+        if (!RSMarshallingHelper::Unmarshalling(parcel, recordCmd)) {
+            return false;
+        }
+        recordCmdVec.emplace_back(recordCmd);
+    }
+    return val->SetupRecordCmd(recordCmdVec);
+}
+
 bool MarshallingExtendObjectFromDrawCmdList(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
 {
     if (!val) {
@@ -1392,11 +1445,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         return false;
     }
-    MemoryInfo info = { val->GetByteCount(), 0, 0, MEMORY_TYPE::MEM_PIXELMAP }; // pid is set to 0 temporarily.
+    MemoryInfo info = {
+        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType()
+    };
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
 }
+
 bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)
 {
     auto size = parcel.ReadInt32();
@@ -1507,6 +1563,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             ret &= RSMarshallingHelper::Marshalling(parcel, rsObject);
             if (!ret) {
                 ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageObject");
+                RS_TRACE_NAME("RSMarshallingHelper pixelmap marshalling failed");
                 return ret;
             }
         }
@@ -1533,6 +1590,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     ret &= MarshallingExtendObjectFromDrawCmdList(parcel, val);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
+        return ret;
+    }
+    ret &= MarshallingRecordCmdFromDrawCmdList(parcel, val);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList RecordCmd");
         return ret;
     }
 #ifdef ROSEN_OHOS
@@ -1643,6 +1705,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     bool ret = true;
     uint32_t objectSize = parcel.ReadUint32();
     if (objectSize > 0) {
+        if (objectSize > PARTICLE_UPPER_LIMIT) {
+            return false;
+        }
         std::vector<std::shared_ptr<Drawing::ExtendImageObject>> imageObjectVec;
         for (uint32_t i = 0; i < objectSize; i++) {
             std::shared_ptr<RSExtendImageObject> object;
@@ -1659,6 +1724,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     uint32_t objectBaseSize = parcel.ReadUint32();
     if (objectBaseSize > 0) {
+        if (objectBaseSize > PARTICLE_UPPER_LIMIT) {
+            return false;
+        }
         std::vector<std::shared_ptr<Drawing::ExtendImageBaseObj>> ObjectBaseVec;
         for (uint32_t i = 0; i < objectBaseSize; i++) {
             std::shared_ptr<RSExtendImageBaseObj> objectBase;
@@ -1678,9 +1746,18 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
         return ret;
     }
+
+    ret &= UnmarshallingRecordCmdToDrawCmdList(parcel, val);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList RecordCmd");
+        return ret;
+    }
 #ifdef ROSEN_OHOS
     uint32_t surfaceBufferSize = parcel.ReadUint32();
     if (surfaceBufferSize > 0) {
+        if (surfaceBufferSize > PARTICLE_UPPER_LIMIT) {
+            return false;
+        }
         std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
         for (uint32_t i = 0; i < surfaceBufferSize; ++i) {
             sptr<SurfaceBuffer> surfaceBuffer;
@@ -1700,6 +1777,42 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val);
     val->UnmarshallingDrawOps();
     return ret;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::RecordCmd>& val)
+{
+    if (!val) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling failed, RecordCmd is nullptr");
+        return false;
+    }
+    const auto& rect = val->GetCullRect();
+    return parcel.WriteFloat(rect.GetLeft()) && parcel.WriteFloat(rect.GetTop()) &&
+        parcel.WriteFloat(rect.GetRight()) && parcel.WriteFloat(rect.GetBottom()) &&
+        RSMarshallingHelper::Marshalling(parcel, val->GetDrawCmdList());
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::RecordCmd>& val)
+{
+    val = nullptr;
+    float left = 0;
+    float top = 0;
+    float right = 0;
+    float bottom = 0;
+    bool success = parcel.ReadFloat(left) && parcel.ReadFloat(top) &&
+        parcel.ReadFloat(right) && parcel.ReadFloat(bottom);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RecordCmd, read float failed.");
+        return false;
+    }
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
+    success = RSMarshallingHelper::Unmarshalling(parcel, drawCmdList);
+    if (!success) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RecordCmd, drawCmdList unmarshalling failed.");
+        return false;
+    }
+    Drawing::Rect rect(left, top, right, bottom);
+    val = std::make_shared<Drawing::RecordCmd>(drawCmdList, rect);
+    return true;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageObject>& val)
@@ -1983,6 +2096,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)              \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::RecordCmd>)                \
     EXPLICIT_INSTANTIATION(TEMPLATE, Drawing::Matrix)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)

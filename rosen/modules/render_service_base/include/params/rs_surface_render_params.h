@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "common/rs_occlusion_region.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -44,13 +45,15 @@ struct RSLayerInfo {
     GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     GraphicLayerType layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     int32_t layerSource;
+    bool arsrTag = true;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
             (boundRect == layerInfo.boundRect) && (matrix == layerInfo.matrix) && (gravity == layerInfo.gravity) &&
             (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
-            (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType);
+            (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
+            (arsrTag == layerInfo.arsrTag);
     }
 #endif
 };
@@ -84,7 +87,7 @@ public:
         auto node = ancestorDisplayNode.lock();
         ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
     }
-  
+
     RSRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
         return ancestorDisplayNode_;
@@ -131,6 +134,10 @@ public:
     {
         return isSkipLayer_;
     }
+    bool GetIsSnapshotSkipLayer() const
+    {
+        return isSnapshotSkipLayer_;
+    }
     bool GetIsProtectedLayer() const
     {
         return isProtectedLayer_;
@@ -138,6 +145,10 @@ public:
     bool GetAnimateState() const
     {
         return animateState_;
+    }
+    bool GetIsRotating() const
+    {
+        return isRotating_;
     }
     bool GetForceClientForDRMOnly() const
     {
@@ -151,6 +162,10 @@ public:
     {
         return skipLayerIds_;
     }
+    const std::set<NodeId>& GetSnapshotSkipLayerIds() const
+    {
+        return snapshotSkipLayerIds_;
+    }
     bool HasSecurityLayer()
     {
         return securityLayerIds_.size() != 0;
@@ -158,6 +173,10 @@ public:
     bool HasSkipLayer()
     {
         return skipLayerIds_.size() != 0;
+    }
+    bool HasSnapshotSkipLayer()
+    {
+        return snapshotSkipLayerIds_.size() != 0;
     }
     bool HasProtectedLayer()
     {
@@ -296,6 +315,14 @@ public:
     void SetOccludedByFilterCache(bool val);
     bool GetOccludedByFilterCache() const;
 
+    void SetFilterCacheFullyCovered(bool val);
+    bool GetFilterCacheFullyCovered() const;
+
+    const std::vector<NodeId>& GetVisibleFilterChild() const;
+    bool IsTransparent() const;
+    void CheckValidFilterCacheFullyCoverTarget(
+        bool isFilterCacheValidForOcclusion, const RectI& filterCachedRect, const RectI& targetRect);
+
     void SetLayerInfo(const RSLayerInfo& layerInfo);
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
@@ -324,7 +351,14 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
 
+    void SetLayerTop(bool isTop);
+    bool IsLayerTop() const;
+
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
+    
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
+    const std::unordered_map<std::string, bool>& GetWatermarksEnabled() const;
+    bool IsWatermarkEmpty() const;
 
     void SetPreScalingMode(ScalingMode scalingMode) override
     {
@@ -392,18 +426,6 @@ public:
     {
         return totalMatrix_;
     }
-    void SetGlobalAlpha(float alpha) override
-    {
-        if (globalAlpha_ == alpha) {
-            return;
-        }
-        globalAlpha_ = alpha;
-        needSync_ = true;
-    }
-    float GetGlobalAlpha() override
-    {
-        return globalAlpha_;
-    }
     void SetFingerprint(bool hasFingerprint) override
     {
         if (hasFingerprint_ == hasFingerprint) {
@@ -414,6 +436,48 @@ public:
     }
     bool GetFingerprint() override {
         return false;
+    }
+
+    void SetSdrNit(int32_t sdrNit)
+    {
+        if (ROSEN_EQ(sdrNit_, sdrNit)) {
+            return;
+        }
+        sdrNit_ = sdrNit;
+        needSync_ = true;
+    }
+
+    int32_t GetSdrNit() const
+    {
+        return sdrNit_;
+    }
+
+    void SetDisplayNit(int32_t displayNit)
+    {
+        if (ROSEN_EQ(displayNit_, displayNit)) {
+            return;
+        }
+        displayNit_ = displayNit;
+        needSync_ = true;
+    }
+
+    int32_t GetDisplayNit() const
+    {
+        return displayNit_;
+    }
+
+    void SetBrightnessRatio(float brightnessRatio)
+    {
+        if (ROSEN_EQ(brightnessRatio_, brightnessRatio)) {
+            return;
+        }
+        brightnessRatio_ = brightnessRatio;
+        needSync_ = true;
+    }
+
+    float GetBrightnessRatio() const
+    {
+        return brightnessRatio_;
     }
 
 protected:
@@ -454,11 +518,13 @@ private:
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
+    // if current surfaceNode has filter cache to occlude the back surfaceNode
+    bool isFilterCacheFullyCovered_ = false;
+    std::vector<NodeId> visibleFilterChild_;
     RSLayerInfo layerInfo_;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
-    sptr<SurfaceBuffer> preBufferFence_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
     Rect damageRect_ = {0, 0, 0, 0};
 #endif
@@ -469,13 +535,16 @@ private:
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     bool animateState_ = false;
+    bool isRotating_ = false;
     bool forceClientForDRMOnly_ = false;
     bool isSubSurfaceNode_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
     std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
     std::set<int32_t> bufferCacheSet_ = {};
@@ -483,14 +552,20 @@ private:
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
+    bool isLayerTop_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    std::unordered_map<std::string, bool> watermarkHandles_ = {};
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
+    // hdr
+    int32_t sdrNit_ = 500; // default sdrNit
+    int32_t displayNit_ = 500; // default displayNit_
+    float brightnessRatio_ = 1.0; // 1.0f means no discount.
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

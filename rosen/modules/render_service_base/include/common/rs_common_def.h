@@ -208,6 +208,12 @@ struct RSSurfaceCaptureConfig {
     bool isSync = false;
 };
 
+struct RSSurfaceCapturePermissions {
+    bool screenCapturePermission = false;
+    bool isSystemCalling = false;
+    bool selfCapture = false;
+};
+
 enum class DeviceType : uint8_t {
     PHONE,
     PC,
@@ -265,6 +271,11 @@ enum class MultiThreadCacheType : uint8_t {
     NONFOCUS_WINDOW,
 };
 
+enum class UiFirstModeType : uint8_t {
+    SINGLE_WINDOW_MODE,
+    MULTI_WINDOW_MODE,
+};
+
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
@@ -278,7 +289,6 @@ enum class SurfaceWindowType : uint8_t {
 struct RSSurfaceRenderNodeConfig {
     NodeId id = 0;
     std::string name = "SurfaceNode";
-    std::string bundleName = "";
     RSSurfaceNodeType nodeType = RSSurfaceNodeType::DEFAULT;
     void* additionalData = nullptr;
     bool isTextureExportNode = false;
@@ -305,6 +315,7 @@ struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
     bool isMirrored = false;
     NodeId mirrorNodeId = 0;
+    bool isSync = false;
 };
 
 constexpr int64_t NS_TO_S = 1000000000;
@@ -401,7 +412,7 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
     return oldSize - container.size();
 }
 
-enum class AncoFlags : int32_t {
+enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001
 };
 

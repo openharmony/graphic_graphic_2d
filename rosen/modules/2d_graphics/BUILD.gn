@@ -134,6 +134,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_texture_info.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_trace_memory_dump.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_typeface.cpp",
+      "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_utils.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_vertices.cpp",
       "$drawing_core_src_dir/engine_adapter/static_factory.cpp",
       "$drawing_core_src_dir/image/bitmap.cpp",
@@ -147,6 +148,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/recording/draw_cmd_list.cpp",
       "$drawing_core_src_dir/recording/mask_cmd_list.cpp",
       "$drawing_core_src_dir/recording/mem_allocator.cpp",
+      "$drawing_core_src_dir/recording/record_cmd.cpp",
       "$drawing_core_src_dir/recording/recording_canvas.cpp",
       "$drawing_core_src_dir/text/font.cpp",
       "$drawing_core_src_dir/text/font_mgr.cpp",
@@ -205,8 +207,6 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir",
       "$drawing_core_src_dir/engine_adapter",
       "$rosen_root/modules/render_service_base/include",
-      "//third_party/skia/include/core",
-      "//third_party/skia/src/core",
       "$rosen_root/modules/texgine/src",
       "$rosen_root/modules/texgine/texgine_drawing/src",
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
@@ -276,13 +276,7 @@ template("graphics2d_source_set") {
         "ROSEN_OHOS",
       ]
 
-      if (defined(use_new_skia) && use_new_skia) {
-        remove_configs = [ "//build/config/compiler:default_include_dirs" ]
-        include_dirs += [
-          "//",
-          root_gen_dir,
-        ]
-      } else {
+      if (!defined(use_new_skia) || !use_new_skia) {
         include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
       }
     } else {

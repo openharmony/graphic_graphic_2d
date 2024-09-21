@@ -20,6 +20,7 @@
 #include "command/rs_display_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 namespace OHOS {
 namespace Rosen {
@@ -29,13 +30,26 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(const RSDisplayNodeConfig& displa
     SharedPtr node(new RSDisplayNode(displayNodeConfig));
     RSNodeMap::MutableInstance().RegisterNode(node);
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
+    if (LIKELY(!displayNodeConfig.isSync)) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, true);
+        }
+    } else {
+        if (!node->CreateNode(displayNodeConfig, node->GetId())) {
+            ROSEN_LOGE("RSDisplayNode::Create: CreateNode Failed.");
+            return nullptr;
+        }
     }
     ROSEN_LOGI("RSDisplayNode::Create, id:%{public}" PRIu64, node->GetId());
     return node;
+}
+
+bool RSDisplayNode::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+{
+    return std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())->
+        CreateNode(displayNodeConfig, nodeId);
 }
 
 void RSDisplayNode::AddDisplayNodeToTree()
@@ -82,6 +96,9 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
 
     SharedPtr displayNode(new RSDisplayNode(config, id));
     RSNodeMap::MutableInstance().RegisterNode(displayNode);
+
+    // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
+    displayNode->skipDestroyCommandInDestructor_ = true;
 
     return displayNode;
 }
@@ -234,6 +251,7 @@ void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_
     for (auto iter = oldScbPids.begin(); iter != oldScbPids.end(); ++iter) {
         oldPidsStr << *iter << ",";
     }
+    DoFlushModifier();
     ROSEN_LOGI("SetScbNodePid %{public}s", oldPidsStr.str().c_str());
 }
 

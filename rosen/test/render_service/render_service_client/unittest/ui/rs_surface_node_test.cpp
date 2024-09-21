@@ -325,6 +325,20 @@ HWTEST_F(RSSurfaceNodeTest, SetandGetBoundsHeight005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetWatermarkEnabled
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetWatermarkEnabled001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    std::string waterMark = "watermark";
+    surfaceNode->SetWatermarkEnabled(waterMark, true);
+    surfaceNode->SetWatermarkEnabled(waterMark, false);
+}
+
+/**
  * @tc.name: SetSecurityLayer001
  * @tc.desc:
  * @tc.type:FUNC
@@ -376,6 +390,19 @@ HWTEST_F(RSSurfaceNodeTest, SetSkipLayer001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSnapshotSKipLayer001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetSnapshotSkipLayer001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetSnapshotSkipLayer(true);
+    EXPECT_TRUE(surfaceNode->GetSnapshotSkipLayer());
+}
+
+/**
  * @tc.name: SetSkipLayer002
  * @tc.desc:
  * @tc.type:FUNC
@@ -389,6 +416,19 @@ HWTEST_F(RSSurfaceNodeTest, SetSkipLayer002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSnapshotSkipLayer002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetSnapshotSkipLayer002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetSnapshotSkipLayer(false);
+    EXPECT_FALSE(surfaceNode->GetSnapshotSkipLayer());
+}
+
+/**
  * @tc.name: GetSkipLayer001
  * @tc.desc:
  * @tc.type:FUNC
@@ -398,6 +438,18 @@ HWTEST_F(RSSurfaceNodeTest, GetSkipLayer001, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     EXPECT_FALSE(surfaceNode->GetSkipLayer());
+}
+
+/**
+ * @tc.name: GetSnapshotSkipLayer001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, GetSnapshotSkipLayer001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    EXPECT_FALSE(surfaceNode->GetSnapshotSkipLayer());
 }
 
 /**
@@ -1174,7 +1226,7 @@ HWTEST_F(RSSurfaceNodeTest, SetBoundsChangedCallbackTest, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    RSSurfaceNode::BoundsChangedCallback callback = [](const Rosen::Vector4f& bounds) {};
+    BoundsChangedCallback callback = [](const Rosen::Vector4f& bounds) {};
     surfaceNode->SetBoundsChangedCallback(callback);
     ASSERT_NE(surfaceNode->boundsChangedCallback_, nullptr);
 }
@@ -1312,7 +1364,6 @@ HWTEST_F(RSSurfaceNodeTest, ResetContextAlpha, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_EQ(surfaceNode->GetBundleName(), std::string(""));
     surfaceNode->ResetContextAlpha();
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
 }
@@ -1442,7 +1493,7 @@ HWTEST_F(RSSurfaceNodeTest, CreateNode, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    const RSSurfaceRenderNodeConfig& config = {0, "SurfaceNode", "", RSSurfaceNodeType::DEFAULT, nullptr, false, false};
+    const RSSurfaceRenderNodeConfig& config = {0, "SurfaceNode", RSSurfaceNodeType::DEFAULT, nullptr, false, false};
     bool res = surfaceNode->CreateNode(config);
     ASSERT_EQ(true, res);
 }
@@ -1457,7 +1508,7 @@ HWTEST_F(RSSurfaceNodeTest, CreateNodeAndSurface, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    const RSSurfaceRenderNodeConfig& config = {0, "SurfaceNode", "", RSSurfaceNodeType::DEFAULT, nullptr, false, false};
+    const RSSurfaceRenderNodeConfig& config = {0, "SurfaceNode", RSSurfaceNodeType::DEFAULT, nullptr, false, false};
     SurfaceId surfaceId = 0;
     bool res = surfaceNode->CreateNodeAndSurface(config, surfaceId);
     ASSERT_EQ(true, res);

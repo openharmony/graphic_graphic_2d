@@ -28,8 +28,8 @@ napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info
     napi_value jsThis = nullptr;
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argCount, argv, &jsThis, nullptr);
-    if (status != napi_ok || argCount < ARGC_ONE || argCount > ARGC_TWO) {
-        TEXT_LOGE("JsParagraphBuilder::Constructor Argc is invalid: %{public}zu", argCount);
+    if (status != napi_ok || argCount != ARGC_TWO) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argCount, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     TypographyStyle typographyStyle;
@@ -46,14 +46,14 @@ napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info
 
     std::shared_ptr<FontCollection> fontCollection = jsFontCollection->GetFontCollection();
     std::unique_ptr<TypographyCreate> typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
-
     if (!typographyCreate) {
-        TEXT_LOGE("JsParagraphBuilder::Constructor TypographyCreate Create error");
+        TEXT_LOGE("Failed to create typography creator");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "TypographyCreate Create error.");
     }
+
     JsParagraphBuilder* jsParagraphBuilder = new(std::nothrow) JsParagraphBuilder();
     if (!jsParagraphBuilder) {
-        TEXT_LOGE("JsParagraphBuilder::Constructor jsParagraphBuilder Create error");
+        TEXT_LOGE("Failed to create paragraph builder");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsParagraphBuilder Create error.");
     }
     jsParagraphBuilder->SetTypographyCreate(std::move(typographyCreate));
@@ -61,8 +61,8 @@ napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info
     status = napi_wrap(env, jsThis, jsParagraphBuilder,
         JsParagraphBuilder::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
+        TEXT_LOGE("Failed to wrap paragraphy builder, ret %{public}d", status);
         delete jsParagraphBuilder;
-        TEXT_LOGE("JsParagraphBuilder::Constructor Failed to wrap native instance");
         return nullptr;
     }
 
@@ -89,19 +89,19 @@ napi_value JsParagraphBuilder::Init(napi_env env, napi_value exportObj)
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("JsParagraphBuilder::Init Failed to define FontCollection class");
+        TEXT_LOGE("Failed to define class, ret %{public}d", status);
         return nullptr;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
-        TEXT_LOGE("JsParagraphBuilder::Init Failed to create reference of constructor");
+        TEXT_LOGE("Failed to create reference");
         return nullptr;
     }
 
     status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
     if (status != napi_ok) {
-        TEXT_LOGE("JsParagraphBuilder::Init Failed to set constructor");
+        TEXT_LOGE("Failed to set named property, ret %{public}d", status);
         return nullptr;
     }
     return exportObj;
@@ -195,24 +195,25 @@ napi_value JsParagraphBuilder::AddPlaceholder(napi_env env, napi_callback_info i
 napi_value JsParagraphBuilder::OnAddPlaceholder(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
-        TEXT_LOGE("OnAddPlaceholder typographyCreate_ is null");
+        TEXT_LOGE("Typography creator is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("JsParagraphBuilder::AddPlaceholder Argc is invalid: %{public}zu", argc);
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     napi_valuetype valueType = napi_undefined;
     if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
-        TEXT_LOGE("JsParagraphBuilder::AddPlaceholder Argv[0] is invalid");
+        TEXT_LOGE("Invalid argv[0]");
         return NapiGetUndefined(env);
     }
     PlaceholderSpan placeholderSpan;
     bool res = GetPlaceholderSpanFromJS(env, argv[0], placeholderSpan);
     if (!res) {
+        TEXT_LOGE("Failed to get placeholder from js");
         return NapiGetUndefined(env);
     }
     typographyCreate_->AppendPlaceholder(placeholderSpan);
@@ -228,7 +229,7 @@ napi_value JsParagraphBuilder::Build(napi_env env, napi_callback_info info)
 napi_value JsParagraphBuilder::OnBuild(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
-        TEXT_LOGE("JsParagraphBuilder::OnAddPlaceholder typographyCreate_ is null");
+        TEXT_LOGE("Typography builder is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
@@ -245,17 +246,20 @@ napi_value JsParagraphBuilder::AppendSymbol(napi_env env, napi_callback_info inf
 napi_value JsParagraphBuilder::OnAppendSymbol(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
+        TEXT_LOGE("Typography creator is null");
         return nullptr;
     }
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
-    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok ||
-        argc < ARGC_ONE) {
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if ((status != napi_ok) || (argc < ARGC_ONE)) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return nullptr;
     }
 
     uint32_t symbolId = 0;
     if (!ConvertFromJsNumber(env, argv[0], symbolId)) {
+        TEXT_LOGE("Failed to convert symbol id");
         return nullptr;
     }
     typographyCreate_->AppendSymbol(symbolId);

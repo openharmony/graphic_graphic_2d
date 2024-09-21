@@ -28,6 +28,7 @@
 #include "pipeline/rs_unmarshal_thread.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
 #include "rs_profiler.h"
 
@@ -54,6 +55,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES),
@@ -86,6 +88,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY),
@@ -102,6 +105,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC),
@@ -125,6 +129,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),
@@ -139,7 +144,13 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT)
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -163,6 +174,7 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
             int32_t val = dup(flat->handle);
             if (val < 0) {
                 ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%{public}d", val);
+                return;
             }
             copiedFlat->handle = static_cast<uint32_t>(val);
         }
@@ -180,6 +192,9 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
         return nullptr;
     }
     if (dataSize > MAX_DATA_SIZE) {
+        return nullptr;
+    }
+    if (dataSize == 0) {
         return nullptr;
     }
     RS_TRACE_NAME("CopyParcelForUnmarsh: size:" + std::to_string(dataSize));
@@ -212,6 +227,49 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     }
     return parcelCopied;
 }
+
+bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWindowType windowType)
+{
+    constexpr int nodeTypeMin = static_cast<int>(RSSurfaceNodeType::DEFAULT);
+    constexpr int nodeTypeMax = static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+
+    int typeNum = static_cast<int>(nodeType);
+    if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
+        RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
+        return false;
+    }
+    if (windowType != SurfaceWindowType::DEFAULT_WINDOW && windowType != SurfaceWindowType::SYSTEM_SCB_WINDOW) {
+        RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
+        return false;
+    }
+
+    bool isTokenTypeValid = true;
+    bool isNonSystemAppCalling = false;
+    RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+    if (isNonSystemAppCalling) {
+        if (nodeType != RSSurfaceNodeType::DEFAULT &&
+            nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
+            nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE &&
+            nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
+            RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
+                typeNum, pid);
+            return false;
+        }
+        if (windowType != SurfaceWindowType::DEFAULT_WINDOW) {
+            RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid SurfaceWindowType %{public}d, pid %d",
+                static_cast<int>(windowType), pid);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool IsValidCallingPid(pid_t pid, pid_t callingPid)
+{
+    return (callingPid == getpid()) || (callingPid == pid);
+}
+
 }
 
 int RSRenderServiceConnectionStub::OnRemoteRequest(
@@ -316,8 +374,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto nodeId = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             auto surfaceName = data.ReadString();
-            auto bundleName = data.ReadString();
-            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName, .bundleName = bundleName};
+            RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName};
             if (!reply.WriteBool(CreateNode(config))) {
                 ret = ERR_INVALID_REPLY;
             }
@@ -325,15 +382,23 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
             auto nodeId = data.ReadUint64();
+            if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
+                RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             auto surfaceName = data.ReadString();
             auto type = static_cast<RSSurfaceNodeType>(data.ReadUint8());
-            auto bundleName = data.ReadString();
             bool isTextureExportNode = data.ReadBool();
             bool isSync = data.ReadBool();
             auto surfaceWindowType = static_cast<SurfaceWindowType>(data.ReadUint8());
+            if (!CheckCreateNodeAndSurface(callingPid, type, surfaceWindowType)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RSSurfaceRenderNodeConfig config = {
-                .id = nodeId, .name = surfaceName, .bundleName = bundleName, .nodeType = type,
+                .id = nodeId, .name = surfaceName, .nodeType = type,
                 .isTextureExportNode = isTextureExportNode, .isSync = isSync,
                 .surfaceWindowType = surfaceWindowType};
             sptr<Surface> surface = CreateNodeAndSurface(config);
@@ -395,12 +460,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t width = data.ReadUint32();
             uint32_t height = data.ReadUint32();
             sptr<Surface> surface = nullptr;
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject != nullptr) {
-                auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-                surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+            if (data.ReadBool()) {
+                auto remoteObject = data.ReadRemoteObject();
+                if (remoteObject != nullptr) {
+                    auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+                    surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+                }
             }
-
             ScreenId mirrorId = data.ReadUint64();
             int32_t flags = data.ReadInt32();
             std::vector<NodeId> whiteList;
@@ -559,12 +625,29 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE): {
             FrameRateLinkerId id = data.ReadUint64();
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGW("The SyncFrameRateRange isn't legal, frameRateLinkerId: %{public}" PRIu64
+                    ", callingPid:%{public}d", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             uint32_t min = data.ReadUint32();
             uint32_t max = data.ReadUint32();
             uint32_t preferred = data.ReadUint32();
             uint32_t type = data.ReadUint32();
             int32_t animatorExpectedFrameRate = data.ReadInt32();
             SyncFrameRateRange(id, {min, max, preferred, type}, animatorExpectedFrameRate);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER): {
+            FrameRateLinkerId id = data.ReadUint64();
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGW("The UnregisterFrameRateLinker isn't legal, frameRateLinkerId: %{public}" PRIu64
+                    ", callingPid:%{public}d", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            UnregisterFrameRateLinker(id);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {
@@ -672,8 +755,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             captureConfig.useCurWindow = data.ReadBool();
             captureConfig.captureType = static_cast<SurfaceCaptureType>(data.ReadUint8());
             captureConfig.isSync = data.ReadBool();
-
-            TakeSurfaceCapture(id, cb, captureConfig, accessible);
+            RSSurfaceCapturePermissions permissions;
+            permissions.screenCapturePermission = accessible;
+            permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SURFACE_CAPTURE");
+            // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
+            // we temporarily add a white list to avoid abnormal functionality or abnormal display.
+            // The white list will be removed after GetCallingPid interface can return real PID.
+            permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
+            TakeSurfaceCapture(id, cb, captureConfig, permissions);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
@@ -836,6 +926,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
+                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             std::copy(mode.begin(), mode.end(), std::back_inserter(modeSend));
@@ -854,6 +945,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
+                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             for (auto i : keys) {
@@ -873,6 +965,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
+                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             if (!reply.WriteUint32(mode)) {
@@ -927,6 +1020,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE): {
+            bool isDark = data.ReadBool();
+            bool result = SetGlobalDarkColorMode(isDark);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP): {
             ScreenId id = data.ReadUint64();
             ScreenGamutMap mode;
@@ -936,6 +1038,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
+                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             if (!reply.WriteUint32(mode)) {
@@ -1012,6 +1115,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 }
                 if (!pixelMap->Marshalling(reply)) {
                     RS_LOGE("pixelMap Marshalling fail");
+                    ret = ERR_INVALID_REPLY;
                 }
             } else {
                 if (!reply.WriteBool(false)) {
@@ -1030,6 +1134,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
+                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             if (!reply.WriteParcelable(&screenHDRCapability)) {
@@ -1157,6 +1262,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (result != StatusCode::SUCCESS) {
+                ret = ERR_UNKNOWN_REASON;
                 break;
             }
             if (!reply.WriteUint32(type)) {
@@ -1166,7 +1272,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP): {
             NodeId id = data.ReadUint64();
-            if (ExtractPid(id) != callingPid) {
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetBitmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
                 break;
@@ -1185,7 +1291,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP): {
             NodeId id = data.ReadUint64();
-            if (ExtractPid(id) != callingPid) {
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetPixelmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
                 break;
@@ -1207,16 +1313,32 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
+            uint64_t uniqueId = data.ReadUint64();
+            uint32_t hash = data.ReadUint32();
+            RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
+            bool ret = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
+            reply.WriteBool(ret);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
             // timer: 3s
             OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + std::to_string(callingPid), 3);
-            uint64_t uniqueId = data.ReadUint64();
-            RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
-            std::shared_ptr<Drawing::Typeface> typeface;
             bool result = false;
-            result = RSMarshallingHelper::Unmarshalling(data, typeface);
-            if (result) {
-                RegisterTypeface(uniqueId, typeface);
+            uint64_t uniqueId = data.ReadUint64();
+            uint32_t hash = data.ReadUint32();
+            // safe check
+            if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
+                std::shared_ptr<Drawing::Typeface> typeface;
+                result = RSMarshallingHelper::Unmarshalling(data, typeface);
+                if (result && typeface) {
+                    typeface->SetHash(hash);
+                    RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
+                    RegisterTypeface(uniqueId, typeface);
+                }
+            } else {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                    "no permission REGISTER_TYPEFACE", callingPid);
             }
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
@@ -1225,8 +1347,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
             uint64_t uniqueId = data.ReadUint64();
-            RS_PROFILER_PATCH_NODE_ID(data, uniqueId);
-            UnRegisterTypeface(uniqueId);
+            // safe check
+            if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
+                RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
+                UnRegisterTypeface(uniqueId);
+            } else {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                    "no permission UNREGISTER_TYPEFACE", callingPid);
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL): {
@@ -1264,6 +1392,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
             NodeId id = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, id);
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
+                RS_LOGW("The RegisterSurfaceOcclusionChangeCallback isn't legal, nodeId:%{public}" PRIu64 ", "
+                    "callingPid:%{public}d", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -1290,6 +1424,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
             NodeId id = data.ReadUint64();
             RS_PROFILER_PATCH_NODE_ID(data, id);
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
+                RS_LOGW("The UnRegisterSurfaceOcclusionChangeCallback isn't legal, nodeId:%{public}" PRIu64 ", "
+                    "callingPid:%{public}d", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t status = UnRegisterSurfaceOcclusionChangeCallback(id);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
@@ -1308,6 +1448,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK): {
+            if (!RSSystemProperties::GetSurfaceNodeWatermarkEnabled()) {
+                RS_LOGI("Current disenable water mark");
+                break;
+            }
+            std::string name = data.ReadString();
+            auto watermark = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+            SetWatermark(name, watermark);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK): {
@@ -1381,7 +1531,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED) : {
             auto id = data.ReadUint64();
-            if (ExtractPid(id) != callingPid) {
+            if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The SetHardwareEnabled isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
                 break;
@@ -1490,7 +1640,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK) : {
             sptr<RSIHgmConfigChangeCallback> callback = nullptr;
-            auto remoteObject = data.ReadRemoteObject();
+            sptr<IRemoteObject> remoteObject = nullptr;
+            if (data.ReadBool()) {
+                remoteObject = data.ReadRemoteObject();
+            }
             if (remoteObject != nullptr) {
                 callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
             }
@@ -1501,10 +1654,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED) : {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission SET_ROTATION_CACHE_ENABLED");
-                return ERR_INVALID_STATE;
-            }
             bool isEnabled = false;
             if (!data.ReadBool(isEnabled)) {
                 ret = IPC_STUB_INVALID_DATA_ERR;
@@ -1513,12 +1662,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetCacheEnabledForRotation(isEnabled);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET) : {
+            uint32_t offset = data.ReadUint32();
+            SetDefaultDeviceRotationOffset(offset);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {
-            uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
-            if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId)) {
-                ret = ERR_TRANSACTION_FAILED;
-                break;
-            }
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {
                 ret = ERR_INVALID_REPLY;
@@ -1555,11 +1704,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::
             GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO) : {
-            uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
-            if (Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId)) {
-                ret = ERR_TRANSACTION_FAILED;
-                break;
-            }
             const auto& hwcDisabledReasonInfos = GetHwcDisabledReasonInfo();
             if (!reply.WriteInt32(hwcDisabledReasonInfos.size())) {
                 ret = ERR_INVALID_REPLY;
@@ -1642,6 +1786,55 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool direct = data.ReadBool();
             bool result = SetAncoForceDoDirect(direct);
             reply.WriteBool(result);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {
+            auto id = data.ReadUint64();
+            auto mirrorId = data.ReadUint64();
+            auto screenId = data.ReadUint64();
+            auto isMirrored = data.ReadBool();
+            RSDisplayNodeConfig config = {
+                .screenId = screenId,
+                .isMirrored = isMirrored,
+                .mirrorNodeId = mirrorId,
+                .isSync = true,
+            };
+            reply.WriteBool(CreateNode(config, id));
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS) : {
+            bool enable = data.ReadBool();
+            SetFreeMultiWindowStatus(enable);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK) : {
+            auto pid = data.ReadInt32();
+            auto uid = data.ReadUint64();
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest remoteObject == nullptr");
+                break;
+            }
+            sptr<RSISurfaceBufferCallback> callback = iface_cast<RSISurfaceBufferCallback>(remoteObject);
+            if (callback == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest remoteObject cast error");
+                break;
+            }
+            RegisterSurfaceBufferCallback(pid, uid, callback);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK) : {
+            auto pid = data.ReadInt32();
+            auto uid = data.ReadUint64();
+            UnregisterSurfaceBufferCallback(pid, uid);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP) : {
+            std::string nodeIdStr = data.ReadString();
+            bool isTop = data.ReadBool();
+            SetLayerTop(nodeIdStr, isTop);
             break;
         }
         default: {

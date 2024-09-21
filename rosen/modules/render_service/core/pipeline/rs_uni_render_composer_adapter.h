@@ -25,7 +25,6 @@
 #include "rs_base_render_util.h"
 #include "rs_hardware_thread.h"
 #include "rs_main_thread.h"
-#include "surface_buffer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,7 +53,8 @@ private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node);
     static RectI SrcRectRotateTransform(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
 
-    ComposeInfo BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    ComposeInfo BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+        const std::vector<RectI>& dirtyRegion);
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
@@ -65,7 +65,7 @@ private:
         const sptr<IConsumerSurface>& surface) const;
     static void SetBufferColorSpace(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void LayerRotate(const LayerInfoPtr& layer, RSSurfaceRenderNode& node) const;
-    void LayerRotate(const LayerInfoPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& node) const;
+    void LayerRotate(const LayerInfoPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
     void DealWithNodeGravity(const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, ComposeInfo& info) const;
     LayerInfoPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;

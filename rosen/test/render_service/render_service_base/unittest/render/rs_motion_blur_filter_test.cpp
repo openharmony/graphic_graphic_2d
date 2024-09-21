@@ -75,18 +75,18 @@ HWTEST_F(MotionBlurFilterTest, ComposeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetGeometryTest
+ * @tc.name: DisableMotionBlurTest
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(MotionBlurFilterTest, SetGeometryTest, TestSize.Level1)
+HWTEST_F(MotionBlurFilterTest, DisableMotionBlurTest, TestSize.Level1)
 {
     Vector2f anchor = {0.f, 0.f};
     std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(10.f, anchor); // 10.f radius
     auto filter = std::make_shared<RSMotionBlurFilter>(para);
 
-    Drawing::Canvas canvas;
-    filter->SetGeometry(canvas, 0.f, 0.f);
+    bool isDisableMotionBlur = true;
+    filter->DisableMotionBlur(isDisableMotionBlur);
 }
 
 /**

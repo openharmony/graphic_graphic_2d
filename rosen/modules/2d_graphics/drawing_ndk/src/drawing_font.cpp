@@ -14,6 +14,8 @@
  */
 
 #include "drawing_font.h"
+#include "drawing_path.h"
+#include "drawing_rect.h"
 
 #include "src/utils/SkUTF.h"
 
@@ -360,6 +362,9 @@ bool OH_Drawing_FontIsEmbeddedBitmaps(const OH_Drawing_Font* cFont)
 
 void OH_Drawing_FontDestroy(OH_Drawing_Font* cFont)
 {
+    if (!cFont) {
+        return;
+    }
     delete CastToFont(cFont);
 }
 
@@ -380,4 +385,41 @@ float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics*
     cFontMetrics->leading = metrics.fLeading;
     cFontMetrics->bottom = metrics.fBottom;
     return ret;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetBounds(const OH_Drawing_Font* cFont, const uint16_t* glyphs, uint32_t count,
+    OH_Drawing_Array* bounds)
+{
+    if (cFont == nullptr || glyphs == nullptr || bounds == nullptr || count <= 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    size_t size = 0;
+    if (OH_Drawing_RectGetArraySize(bounds, &size) != OH_DRAWING_SUCCESS) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    if (size < count) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    OH_Drawing_Rect* rectArr = nullptr;
+    if (OH_Drawing_RectGetArrayElement(bounds, 0, &rectArr) != OH_DRAWING_SUCCESS) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    if (rectArr == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    CastToFont(*cFont).GetWidths(glyphs, count, nullptr, reinterpret_cast<Drawing::Rect*>(rectArr));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetPathForGlyph(const OH_Drawing_Font* cFont, uint16_t glyph,
+    OH_Drawing_Path* path)
+{
+    const Font* font = CastToFont(cFont);
+    if (font == nullptr || path == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    if (!font->GetPathForGlyph(glyph, reinterpret_cast<Path*>(path))) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    return OH_DRAWING_SUCCESS;
 }

@@ -38,6 +38,7 @@ class RSExtendImageObject;
 class RSExtendImageBaseObj;
 namespace Drawing {
 class DrawCmdList;
+class RecordCmd;
 class MaskCmdList;
 class Data;
 class Image;
@@ -252,6 +253,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRenderParams>)
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<ParticleRenderParams>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::DrawCmdList>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::RecordCmd>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseObj>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)

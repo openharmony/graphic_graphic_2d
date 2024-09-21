@@ -170,6 +170,8 @@ HWTEST_F(RSImplicitAnimatorTest, CancelImplicitAnimation001, TestSize.Level1)
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
     RSAnimationTimingProtocol timingProtocol3;
     implicitAnimator->OpenImplicitAnimation(timingProtocol3, timingCurve);
+    implicitAnimator->CreateImplicitAnimation(canvasNode3, property3, nullptr, endProperty);
+    implicitAnimator->CreateImplicitAnimation(canvasNode3, property3, startProperty, nullptr);
     implicitAnimator->CreateImplicitAnimation(canvasNode3, property3, startProperty, endProperty);
     implicitAnimator->CancelImplicitAnimation(canvasNode3, property3);
 
@@ -361,11 +363,6 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     implicitAnimator->CreateImplicitAnimation(node, prop, prop_start, prop_end);
 
     para = std::make_shared<RSImplicitInterpolatingSpringAnimationParam>(timingProtocol, timingCurve);
-    implicitAnimator->implicitAnimationParams_.push(para);
-    implicitAnimator->CreateImplicitAnimation(node, prop, prop_start, prop_end);
-
-    auto pathOpt = std::make_shared<RSMotionPathOption>("");
-    para = std::make_shared<RSImplicitPathAnimationParam>(timingProtocol, timingCurve, pathOpt);
     implicitAnimator->implicitAnimationParams_.push(para);
     implicitAnimator->CreateImplicitAnimation(node, prop, prop_start, prop_end);
 

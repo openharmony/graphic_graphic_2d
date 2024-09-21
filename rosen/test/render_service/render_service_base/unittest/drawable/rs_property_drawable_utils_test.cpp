@@ -175,6 +175,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Width(), 0);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Height(), 0);
+
+    // third: DrawFilterWithDRM test
+    Drawing::Canvas canvasTest3;
+    RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
+    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);
+    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, false);
 }
 
 /**
@@ -231,6 +237,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     auto surfaceTwo = Drawing::Surface::MakeRasterN32Premul(10, 10);
     paintFilterCanvas.surface_ = surfaceTwo.get();
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    int lastBlurCnt = rsPropertyDrawableUtils->g_blurCnt;
+    ASSERT_NE(lastBlurCnt, 0);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, false);
+    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
 /**
@@ -363,13 +373,16 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest013, testing::ext::Tes
     RSPaintFilterCanvas paintFilterCanvasTest(&canvasTest);
     RectF boundsRect = RectF(0.0f, 0.0f, 1.0f, 1.0f);
     std::optional<Vector4f> pixelStretch = std::nullopt;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
     pixelStretch = 1.0f;
     paintFilterCanvasTest.surface_ = nullptr;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
     Drawing::Surface surface;
     paintFilterCanvasTest.surface_ = &surface;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
 }
 
 /**
@@ -535,7 +548,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     Drawing::Canvas canvasTest;
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
-    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, Color(255, 255, 255, 255));
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, false,
+        Color(255, 255, 255, 255));
     ASSERT_TRUE(true);
 }
 
@@ -591,5 +605,64 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetGravityMatrixTest020, testing::ext::Tes
     ASSERT_TRUE(
         rsPropertyDrawableUtilsTest->GetGravityMatrix(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT, rect, 20, 20, matrix));
     ASSERT_FALSE(rsPropertyDrawableUtilsTest->GetGravityMatrix(static_cast<Gravity>(22), rect, 20, 20, matrix));
+}
+
+/**
+ * @tc.name: RSFilterSetPixelStretchTest021
+ * @tc.desc: RSFilterSetPixelStretch test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+
+    RSProperties properties;
+    std::shared_ptr<RSFilter> rsFilter = nullptr;
+    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, rsFilter));
+
+    std::shared_ptr<RSShaderFilter> rsFilterTest = std::make_shared<RSShaderFilter>();
+    std::shared_ptr<RSDrawingFilter> filter = std::make_shared<RSDrawingFilter>(rsFilterTest);
+    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter));
+
+    std::shared_ptr<RSShaderFilter> rsFilterTest2 = std::make_shared<RSShaderFilter>();
+    rsFilterTest2->type_ = RSShaderFilter::MESA;
+    std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(rsFilterTest2);
+    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
+
+    // -1.0f: stretch offset param
+    Vector4f pixelStretchTest(-1.0f, -1.0f, -1.0f, -1.0f);
+    properties.pixelStretch_ = pixelStretchTest;
+    EXPECT_TRUE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
+
+    // 1.0f: stretch offset param
+    Vector4f pixelStretchTest2(1.0f, 1.0f, 1.0f, 1.0f);
+    properties.pixelStretch_ = pixelStretchTest2;
+    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
+}
+
+/**
+ * @tc.name: RSFilterRemovePixelStretchTest022
+ * @tc.desc: RSFilterRemovePixelStretch test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterRemovePixelStretchTest022, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+
+    std::shared_ptr<RSFilter> rsFilter = nullptr;
+    rsPropertyDrawableUtils->RSFilterRemovePixelStretch(rsFilter);
+
+    std::shared_ptr<RSShaderFilter> rsFilterTest = std::make_shared<RSShaderFilter>();
+    std::shared_ptr<RSDrawingFilter> filter = std::make_shared<RSDrawingFilter>(rsFilterTest);
+    rsPropertyDrawableUtils->RSFilterRemovePixelStretch(filter);
+
+    std::shared_ptr<RSShaderFilter> rsFilterTest2 = std::make_shared<RSShaderFilter>();
+    rsFilterTest2->type_ = RSShaderFilter::MESA;
+    std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(rsFilterTest2);
+    rsPropertyDrawableUtils->RSFilterRemovePixelStretch(filter2);
 }
 } // namespace OHOS::Rosen

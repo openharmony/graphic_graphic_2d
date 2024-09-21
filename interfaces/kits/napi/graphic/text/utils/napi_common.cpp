@@ -132,6 +132,11 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     uint32_t fontStyle = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
         textStyle.fontStyle = FontStyle(fontStyle);
+
+        // Let OBLIQUE be equal to ITALIC, it's a temp modify.
+        if (textStyle.fontStyle == FontStyle::OBLIQUE) {
+            textStyle.fontStyle = FontStyle::ITALIC;
+        }
     }
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
@@ -260,6 +265,8 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
     SetDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
     SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
     SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
+
+    textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
 }
 
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
@@ -322,6 +329,27 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     return true;
 }
 
+void SetParagraphStyleEllipsis(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
+{
+    napi_value tempValue = nullptr;
+    if (napi_get_named_property(env, argValue, "ellipsis", &tempValue) != napi_ok) {
+        return;
+    }
+    std::string text = "";
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
+        pographyStyle.ellipsis = Str8ToStr16(text);
+    }
+
+    if (napi_get_named_property(env, argValue, "ellipsisMode", &tempValue) != napi_ok) {
+        return;
+    }
+    uint32_t ellipsisModal = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &ellipsisModal) == napi_ok) {
+        pographyStyle.ellipsisModal = EllipsisModal(ellipsisModal);
+    }
+    return;
+}
+
 bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
 {
     if (argValue == nullptr) {
@@ -353,9 +381,9 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     }
 
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
-    uint32_t maxLines = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &maxLines) == napi_ok) {
-        pographyStyle.maxLines = maxLines;
+    int64_t maxLines = 0;
+    if (tempValue != nullptr && napi_get_value_int64(env, tempValue, &maxLines) == napi_ok) {
+        pographyStyle.maxLines = maxLines < 0 ? 0 : maxLines;
     }
 
     napi_get_named_property(env, argValue, "breakStrategy", &tempValue);
@@ -369,8 +397,12 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
         SetStrutStyleFromJS(env, strutStyleValue, pographyStyle);
     }
 
-    pographyStyle.ellipsis = textStyle.ellipsis;
-    pographyStyle.ellipsisModal = textStyle.ellipsisModal;
+    if (!textStyle.ellipsis.empty()) {
+        pographyStyle.ellipsis = textStyle.ellipsis;
+        pographyStyle.ellipsisModal = textStyle.ellipsisModal;
+    } else {
+        SetParagraphStyleEllipsis(env, argValue, pographyStyle);
+    }
 
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
 
@@ -461,26 +493,6 @@ bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetric
     SetFontMetricsFloatValueFromJS(env, argValue, "underlinePosition", fontMetrics.fUnderlinePosition);
     SetFontMetricsFloatValueFromJS(env, argValue, "strikethroughThickness", fontMetrics.fStrikeoutThickness);
     SetFontMetricsFloatValueFromJS(env, argValue, "strikethroughPosition", fontMetrics.fStrikeoutPosition);
-    return true;
-}
-
-bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetrics)
-{
-    if (argValue == nullptr) {
-        return false;
-    }
-    napi_value tempValue = nullptr;
-    napi_get_named_property(env, argValue, "textStyle", &tempValue);
-    OHOS::Rosen::TextStyle tempTextStyle;
-    if (tempValue != nullptr && GetTextStyleFromJS(env, tempValue, tempTextStyle)) {
-        runMetrics.textStyle = &tempTextStyle;
-    }
-
-    napi_get_named_property(env, argValue, "fontMetrics", &tempValue);
-    Drawing::FontMetrics tempFontMetrics;
-    if (tempValue != nullptr && GetFontMetricsFromJS(env, tempValue, tempFontMetrics)) {
-        runMetrics.fontMetrics = tempFontMetrics;
-    }
     return true;
 }
 

@@ -279,6 +279,34 @@ int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
  */
 OH_NativeImage* OH_ConsumerSurface_Create();
 
+/**
+ * @brief Set the default usage of the <b>OH_NativeImage</b>.\n
+ * This interface dose not support concurrency.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param usage Indicates the usage of the <b>OH_NativeImage</b>.Refer to the enum <b>OH_NativeBuffer_Usage</b>.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL.
+ * @since 13
+ * @version 1.0
+ */
+int32_t OH_ConsumerSurface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage);
+
+/**
+ * @brief Set the default size of the <b>OH_NativeImage</b>.\n
+ * This interface dose not support concurrency.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param width Indicates the width of the <b>OH_NativeImage</b>, and it should be greater than 0.
+ * @param height Indicates the height of the <b>OH_NativeImage</b>, and it should be greater than 0.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL or width, height less than or equal to 0.
+ * @since 13
+ * @version 1.0
+ */
+int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, int32_t height);
 #ifdef __cplusplus
 }
 #endif

@@ -143,11 +143,6 @@ template("render_service_client_source_set") {
       defines += [ "CROSS_PLATFORM" ]
     }
 
-    if (defined(graphic_2d_ext_configs.vendor_root)) {
-      sources += graphic_2d_ext_configs.librender_service_client_ext_sources
-      sources -= graphic_2d_ext_configs.librender_service_client_ext_sources_del
-    }
-
     if (rosen_is_ohos) {
       sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
     } else if (!is_arkui_x) {
@@ -210,7 +205,10 @@ template("render_service_client_source_set") {
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
         "image_framework:image_native",
+        "qos_manager:qos",
       ]
+
+      defines += [ "RES_CLINET_SCHED_ENABLE" ]
 
       if (accessibility_enable) {
         external_deps += [ "accessibility:accessibilityconfig" ]
@@ -262,10 +260,6 @@ template("render_service_client_source_set") {
 
     if (tp_feature_enable) {
       defines += tp_defines
-    }
-
-    if (defined(use_new_render_context) && use_new_render_context) {
-      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base/src/render_backend:librender_backend" ]
     }
 
     public_configs = [ ":render_service_client_config" ]

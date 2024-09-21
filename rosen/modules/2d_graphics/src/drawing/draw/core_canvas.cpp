@@ -109,6 +109,12 @@ CoreCanvas::CoreCanvas() : impl_(ImplFactory::CreateCoreCanvasImpl())
     defaultPaint_.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
 }
 
+CoreCanvas::CoreCanvas(DrawingType type) : impl_(ImplFactory::CreateCoreCanvasImpl(type))
+{
+    defaultPaint_.SetAntiAlias(true);
+    defaultPaint_.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
+}
+
 CoreCanvas::CoreCanvas(void* rawCanvas) : impl_(ImplFactory::CreateCoreCanvasImpl(rawCanvas))
 {
     defaultPaint_.SetAntiAlias(true);

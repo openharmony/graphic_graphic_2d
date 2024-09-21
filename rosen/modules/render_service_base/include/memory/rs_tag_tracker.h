@@ -36,7 +36,8 @@ public:
         TAG_CAPTURE,
     };
     RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId, RSTagTracker::TAGTYPE tagType);
+    RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
+        RSTagTracker::TAGTYPE tagType, const std::string& name);
     RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
     void SetTagEnd();
     ~RSTagTracker();

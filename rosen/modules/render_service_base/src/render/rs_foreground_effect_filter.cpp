@@ -16,6 +16,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "draw/surface.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #include "src/core/SkOpts.h"
@@ -134,6 +135,22 @@ float RSForegroundEffectFilter::GetDirtyExtension() const
     return std::ceil(EXPAND_UNIT_NUM * unit_ * numberOfPasses_ * 1 / blurScale_);
 }
 
+std::shared_ptr<Drawing::Image> RSForegroundEffectFilter::MakeImage(std::shared_ptr<Drawing::Surface> surface,
+    Drawing::Matrix* matrix, std::shared_ptr<Drawing::RuntimeShaderBuilder> blurBuilder)
+{
+    std::shared_ptr<Drawing::ShaderEffect> shader = blurBuilder->MakeShader(matrix, false);
+    if (!shader) {
+        ROSEN_LOGE("RSForegroundEffectFilter MakeImage shader error");
+        return nullptr;
+    }
+    Drawing::Brush brush;
+    brush.SetShaderEffect(shader);
+    brush.SetBlendMode(Drawing::BlendMode::SRC);
+    auto canvas = surface->GetCanvas();
+    canvas->DrawBackground(brush);
+    return surface->GetImageSnapshot();
+}
+
 void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image>& image, const ForegroundEffectParam& param) const
 {
@@ -172,16 +189,28 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
     Drawing::Matrix blurMatrixGeo;
     blurMatrixGeo.Translate(halfExtension, halfExtension);
 
-    std::shared_ptr<Drawing::Image> tmpBlur(blurBuilder->MakeImage(
-        canvas.GetGPUContext().get(), &blurMatrixGeo, scaledInfoGeo, false));
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRenderTarget(canvas.GetGPUContext().get(),
+        false, scaledInfoGeo);
+    if (!surface) {
+        ROSEN_LOGE("RSForegroundEffectFilter surface is null");
+        return;
+    }
+    std::shared_ptr<Drawing::Image> tmpBlur = MakeImage(surface, &blurMatrixGeo, blurBuilder);
+    std::shared_ptr<Drawing::Surface> tmpSurface = surface->MakeSurface(scaledInfoGeo.GetWidth(),
+        scaledInfoGeo.GetHeight());
+    if (!tmpSurface) {
+        ROSEN_LOGE("RSForegroundEffectFilter tmpSurface is null");
+        return;
+    }
+
     // And now we'll build our chain of scaled blur stages
     for (auto i = 1; i < numberOfPasses_; i++) {
         const float stepScale = static_cast<float>(i) * blurScale_;
         blurBuilder->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
             Drawing::TileMode::DECAL, Drawing::TileMode::DECAL, linear, Drawing::Matrix()));
         blurBuilder->SetUniform("in_blurOffset", radiusByPasses_ * stepScale, radiusByPasses_ * stepScale);
-
-        tmpBlur = blurBuilder->MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfoGeo, false);
+        tmpBlur = MakeImage(tmpSurface, nullptr, blurBuilder);
+        std::swap(surface, tmpSurface);
     }
 
     Drawing::Matrix blurMatrixInv;
@@ -194,13 +223,6 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
     const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*tmpBlur, Drawing::TileMode::DECAL,
         Drawing::TileMode::DECAL, linear, blurMatrixInv);
     Drawing::Brush brush;
-
-    if (canvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-        if (paintFilterCanvas && paintFilterCanvas->GetHDRPresent()) {
-            paintFilterCanvas->PaintFilter(brush);
-        }
-    }
 
     brush.SetShaderEffect(blurShader);
     canvas.DrawBackground(brush);

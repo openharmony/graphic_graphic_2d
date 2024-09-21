@@ -123,8 +123,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     // case 2.2.1: can GetGravityMatrix, recordingCanvas_ is false
     rsCanvasDrawingRenderNode.isGpuSurface_ = false;
     rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
-    rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_->SetHeight(3048.0f);
-    rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_->SetWidth(2048.0f);
+    rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_.SetHeight(3048.0f);
+    rsCanvasDrawingRenderNode.GetMutableRenderProperties().frameGeo_.SetWidth(2048.0f);
     rsCanvasDrawingRenderNode.ProcessRenderContents(*canvas_);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
     EXPECT_TRUE(rsCanvasDrawingRenderNode.recordingCanvas_ == nullptr);
@@ -296,27 +296,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, PlaybackInCorrespondThread, TestSize.Lev
     rsCanvasDrawingRenderNode->isNeedProcess_.store(true);
     rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
     EXPECT_FALSE(rsCanvasDrawingRenderNode->isNeedProcess_);
-}
-
-/**
- * @tc.name: ProcessCPURenderInBackgroundThread
- * @tc.desc: test results of ProcessCPURenderInBackgroundThread
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessCPURenderInBackgroundThread, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    std::weak_ptr<RSContext> context;
-    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-    int32_t width = 1;
-    int32_t height = 1;
-    std::shared_ptr<Drawing::DrawCmdList> cmds = std::make_shared<Drawing::DrawCmdList>(width, height);
-    rsCanvasDrawingRenderNode.ProcessCPURenderInBackgroundThread(cmds);
-
-    rsCanvasDrawingRenderNode.surface_ = std::make_shared<Drawing::Surface>();
-    rsCanvasDrawingRenderNode.ProcessCPURenderInBackgroundThread(cmds);
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -591,7 +570,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SetNeedProcessTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
     bool needProcess = true;
     rsCanvasDrawingRenderNode->SetNeedProcess(needProcess);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
+    EXPECT_FALSE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
     EXPECT_TRUE(rsCanvasDrawingRenderNode->isNeedProcess_);
 }
 

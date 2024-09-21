@@ -25,6 +25,7 @@
 #include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -121,6 +122,9 @@ bool ParagraphImpl::DidExceedMaxLines()
 size_t ParagraphImpl::GetLineCount() const
 {
     RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr || paragraph_->GetMaxLines() == 0) {
+        return 0;
+    }
     return paragraph_->lineNumber();
 }
 
@@ -165,6 +169,7 @@ float ParagraphImpl::DetectIndents(size_t index)
 
 void ParagraphImpl::Layout(double width)
 {
+    TEXT_TRACE_FUNC();
     RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
@@ -266,6 +271,13 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
+Range<size_t> ParagraphImpl::GetEllipsisTextRange()
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
+    return Range<size_t>(range.start, range.end);
+}
+
 std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()
 {
     RecordDifferentPthreadCall(__FUNCTION__);
@@ -285,7 +297,7 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    
+
     TextStyle txt;
     txt.color = skStyle.getColor();
     txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
@@ -309,11 +321,19 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
     txt.locale = skStyle.getLocale().c_str();
     if (skStyle.hasBackground()) {
         PaintID backgroundId = std::get<PaintID>(skStyle.getBackgroundPaintOrID());
-        txt.background = paints_[backgroundId];
+        if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints_.size()))) {
+            txt.background = paints_[backgroundId];
+        } else {
+            TEXT_LOGW("Invalid background Id:%{public}d", backgroundId);
+        }
     }
     if (skStyle.hasForeground()) {
         PaintID foregroundId = std::get<PaintID>(skStyle.getForegroundPaintOrID());
-        txt.foreground = paints_[foregroundId];
+        if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
+            txt.foreground = paints_[foregroundId];
+        } else {
+            TEXT_LOGW("Invalid foreground Id:%{public}d", foregroundId);
+        }
     }
 
     txt.textShadows.clear();

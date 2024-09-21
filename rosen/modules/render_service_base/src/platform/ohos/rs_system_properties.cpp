@@ -270,6 +270,14 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
+}
+
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     static bool hardwareComposerEnabled = system::GetParameter(
@@ -280,7 +288,7 @@ bool RSSystemProperties::GetHardwareComposerEnabled()
 bool RSSystemProperties::GetHardwareComposerEnabledForMirrorMode()
 {
     static bool hardwareComposerMirrorEnabled =
-        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "0") != "0";
+        system::GetParameter("persist.rosen.hardwarecomposer.mirror.enabled", "1") != "0";
     return hardwareComposerMirrorEnabled;
 }
 
@@ -294,6 +302,14 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
 bool RSSystemProperties::GetDrawMirrorCacheImageEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheimage.mirror.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.pixelmapdfx.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
@@ -431,6 +447,16 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    defaultDeviceRotationOffset_ = offset;
+}
+
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+{
+    return defaultDeviceRotationOffset_;
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
@@ -443,6 +469,13 @@ ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
     static ParallelRenderingType systemPropertieType = static_cast<ParallelRenderingType>(
         std::atoi((system::GetParameter("persist.rosen.parallelrender.enabled", "0")).c_str()));
     return systemPropertieType;
+}
+
+bool RSSystemProperties::GetSurfaceNodeWatermarkEnabled()
+{
+    static bool watermark =
+        std::atoi((system::GetParameter("persist.rosen.watermark.enabled", "1")).c_str()) != 0;
+    return watermark;
 }
 
 HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
@@ -579,6 +612,13 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return hpsBlurEnabled && !forceHpsBlurDisabled_;
 }
 
+bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    static bool blurPixelStretchEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.mesaBlurFuzedEnable", "1")).c_str()) != 0;
+    return blurPixelStretchEnabled;
+}
+
 float RSSystemProperties::GetKawaseRandomColorFactor()
 {
     static float randomFactor =
@@ -682,6 +722,20 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
     return debugEnable;
 }
 
+bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.UIFirstdebug.surfacenames", "0");
+    int changed = 0;
+    const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
+    if (strcmp(targetSurfacesStr, "0") == 0) {
+        SurfaceNames.clear();
+        return false;
+    }
+    SurfaceNames.clear();
+    ParseDfxSurfaceNamesString(targetSurfacesStr, SurfaceNames, ",");
+    return true;
+}
+
 bool RSSystemProperties::GetDebugTraceEnabled()
 {
     static bool openDebugTrace = system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0;
@@ -707,6 +761,13 @@ bool RSSystemProperties::GetDumpImgEnabled()
     static bool dumpImgEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0")).c_str()) != 0;
     return dumpImgEnabled;
+}
+
+bool RSSystemProperties::GetTransactionTerminateEnabled()
+{
+    static bool terminateEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.transactionTerminateEnabled", "0")).c_str()) != 0;
+    return terminateEnabled;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
@@ -874,9 +935,9 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
 
 bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
 {
-    static bool drawFilterWithoutSnahpshotEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.drawFilterWithoutSnahpshot", "0").c_str()) != 0);
-        return drawFilterWithoutSnahpshotEnabled;
+    static bool drawFilterWithoutSnapshotEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.drawFilterWithoutSnapshot", "0").c_str()) != 0);
+    return drawFilterWithoutSnapshotEnabled;
 }
 
 bool RSSystemProperties::GetBlurExtraFilterEnabled()
@@ -886,6 +947,13 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     return blurExtraFilterEnabled;
 }
 
+bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
+{
+    static bool discardCanvasBeforeFilterEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.discardCanvasBeforeFilter", "1").c_str()) != 0);
+    return discardCanvasBeforeFilterEnabled;
+}
+
 bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
 {
     static bool purgeResourcesEveryEnabled =
@@ -893,20 +961,22 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
+bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 {
-    static bool PreAllocateTextureBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.pre_allocate_texture_between_frames_enabled", "1")
-                       .c_str()) != 0);
-    return PreAllocateTextureBetweenFramesEnabled;
+    static bool gpuMemoryAsyncReclaimerEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
+            0);
+    return gpuMemoryAsyncReclaimerEnabled;
 }
 
-bool RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()
+bool RSSystemProperties::GetGpuCacheSuppressWindowEnabled()
 {
-    static bool AsyncFreeVMAMemoryBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.async_free_between_frames_enabled", "1").c_str()) !=
+    static bool gpuCacheSuppressWindowEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
             0);
-    return AsyncFreeVMAMemoryBetweenFramesEnabled;
+    return gpuCacheSuppressWindowEnabled;
 }
 
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
@@ -1057,6 +1127,29 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;
+}
+
+bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+{
+    static bool flag =
+        std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
+    return flag;
+}
+
+bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.hwcdirtyregion.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 1) != 0;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.markedFilter.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

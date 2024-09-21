@@ -30,7 +30,7 @@
 #include "recording/cmd_list.h"
 
 #define REGISTER_UNMARSHALLING_FUNC(name, type, func) \
-    bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingPlayer::RegisterUnmarshallingFunc(type, func)
+    bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingHelper::Instance().RegisterFunc(type, func)
 
 namespace OHOS {
 namespace Rosen {
@@ -96,6 +96,7 @@ public:
         IMAGE_SNAPSHOT_OPITEM,
         SURFACEBUFFER_OPITEM,
         DRAW_FUNC_OPITEM,
+        RECORD_CMD_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);
@@ -120,21 +121,34 @@ public:
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 };
 
-static std::mutex UnmarshallingFuncMapMutex_;
+class DRAWING_API UnmarshallingHelper {
+    using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const DrawCmdList& cmdList, void* handle);
+public:
+    static UnmarshallingHelper& Instance();
+
+    bool RegisterFunc(uint32_t type, UnmarshallingFunc func);
+    UnmarshallingFunc GetFunc(uint32_t type);
+
+private:
+    UnmarshallingHelper() = default;
+    ~UnmarshallingHelper() = default;
+    UnmarshallingHelper(const UnmarshallingHelper& other) = delete;
+    UnmarshallingHelper(const UnmarshallingHelper&& other) = delete;
+    UnmarshallingHelper& operator=(const UnmarshallingHelper& other) = delete;
+    UnmarshallingHelper& operator=(const UnmarshallingHelper&& other) = delete;
+
+    std::mutex UnmarshallingFuncMapMutex_;
+    std::unordered_map<uint32_t, UnmarshallingFunc> opUnmarshallingFuncLUT_;
+};
+
 class UnmarshallingPlayer {
 public:
-    using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const DrawCmdList& cmdList, void* handle);
-    DRAWING_API static bool RegisterUnmarshallingFunc(uint32_t type, UnmarshallingFunc func);
-
     UnmarshallingPlayer(const DrawCmdList& cmdList);
     ~UnmarshallingPlayer() = default;
 
     std::shared_ptr<DrawOpItem> Unmarshalling(uint32_t type, void* handle);
-
-    const DrawCmdList& cmdList_;
-
 private:
-    static std::unordered_map<uint32_t, UnmarshallingFunc>* opUnmarshallingFuncLUT_;
+    const DrawCmdList& cmdList_;
 };
 
 class GenerateCachedOpItemPlayer {
@@ -815,6 +829,34 @@ private:
     SrcRectConstraint constraint_;
     std::shared_ptr<Image> image_;
     bool isForeground_ = false;
+};
+
+class DrawRecordCmdOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& recordCmdHandle, const Matrix::Buffer& matrixBuffer,
+            bool hasBrush, const BrushHandle& brushHandle)
+            : OpItem(DrawOpItem::RECORD_CMD_OPITEM), recordCmdHandle(recordCmdHandle),
+            matrixBuffer(matrixBuffer), hasBrush(hasBrush), brushHandle(brushHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle recordCmdHandle;
+        Matrix::Buffer matrixBuffer;
+        bool hasBrush = false;
+        BrushHandle brushHandle;
+    };
+    DrawRecordCmdOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    explicit DrawRecordCmdOpItem(const std::shared_ptr<RecordCmd>& recordCmd,
+        const Matrix* matrix, const Brush* brush);
+    ~DrawRecordCmdOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+private:
+    std::shared_ptr<RecordCmd> recordCmd_ = nullptr;
+    Matrix matrix_;
+    bool hasBrush_ = false;
+    Brush brush_;
 };
 
 class DrawPictureOpItem : public DrawOpItem {

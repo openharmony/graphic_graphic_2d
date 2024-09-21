@@ -17,7 +17,6 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "modifier/rs_render_property.h"
-#include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "rs_profiler.h"
@@ -121,7 +120,11 @@ const std::shared_ptr<RSRenderPropertyBase> RSRenderPropertyAnimation::GetProper
         return property_->Clone();
     }
 
-    return lastValue_->Clone();
+    if (lastValue_ != nullptr) {
+        return lastValue_->Clone();
+    }
+
+    return nullptr;
 }
 
 const std::shared_ptr<RSRenderPropertyBase>& RSRenderPropertyAnimation::GetOriginValue() const

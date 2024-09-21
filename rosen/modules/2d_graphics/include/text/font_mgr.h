@@ -110,7 +110,10 @@ public:
     template<typename T>
     T* GetImpl() const
     {
-        return fontMgrImpl_->DowncastingTo<T>();
+        if (fontMgrImpl_) {
+            return fontMgrImpl_->DowncastingTo<T>();
+        }
+        return nullptr;
     }
 
     /**

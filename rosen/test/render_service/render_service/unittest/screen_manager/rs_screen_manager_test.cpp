@@ -2466,4 +2466,26 @@ HWTEST_F(RSScreenManagerTest, ReuseVirtualScreenIdLocked_001, TestSize.Level1)
     screenManagerImpl.ReuseVirtualScreenIdLocked(screenId);
     ASSERT_EQ(screenManagerImpl.freeVirtualScreenIds_.back(), screenId);
 }
+
+/*
+ * @tc.name: ReleaseScreenDmaBufferTest_001
+ * @tc.desc: Test ReleaseScreenDmaBuffer.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
+
+    screenManagerImpl.screens_[SCREEN_ID] = std::make_unique<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
+    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    ASSERT_NE(screenManagerImpl.GetOutput(screenId), nullptr);
+}
 } // namespace OHOS::Rosen

@@ -33,9 +33,9 @@ public:
     enum class FilterType {
         NONE,
         KAWASE_BLUR,
+        MESA_BLUR,
         GREY, AIBAR,
         LINEAR_GRADIENT_BLUR,
-        HPS_BLUR,
         WATER_RIPPLE,
         MAGNIFIER,
         MAX
@@ -66,6 +66,16 @@ public:
     const FilterType& GetFilterType() const
     {
         return filterType_;
+    }
+
+    void MakeMESAParams()
+    {
+        mesaParams_ = std::make_shared<GEMESABlurShaderFilterParams>();
+    }
+
+    const std::shared_ptr<GEMESABlurShaderFilterParams>& GetMESAParams() const
+    {
+        return mesaParams_;
     }
 
     void MakeKawaseParams()
@@ -118,16 +128,6 @@ public:
         return linearGradientBlurParams_;
     }
 
-    void MakeHpsBlurParams()
-    {
-        hpsBlurParams_ = std::make_shared<HpsBlurFilterParams>();
-    }
-
-    const std::shared_ptr<HpsBlurFilterParams>& GetHpsBlurParams() const
-    {
-        return hpsBlurParams_;
-    }
-
     void MakeMagnifierParams()
     {
         magnifierParams_ = std::make_shared<GEMagnifierShaderFilterParams>();
@@ -141,23 +141,23 @@ public:
 private:
     static std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> g_initialMap;
 
+    void SetMESABlurParams(const std::string& tag, float param);
     void SetAIBarParams(const std::string& tag, float param);
     void SetGreyParams(const std::string& tag, float param);
     void SetLinearGradientBlurParams(const std::string& tag, float param);
     void SetMagnifierParamsFloat(const std::string& tag, float param);
     void SetMagnifierParamsUint32(const std::string& tag, uint32_t param);
     void SetWaterRippleParams(const std::string& tag, float param);
-    void SetHpsBlurParams(const std::string& tag, float param);
 
     FilterType filterType_ = GEVisualEffectImpl::FilterType::NONE;
 
     std::shared_ptr<GEKawaseBlurShaderFilterParams> kawaseParams_ = nullptr;
+    std::shared_ptr<GEMESABlurShaderFilterParams> mesaParams_ = nullptr;
     std::shared_ptr<GEAIBarShaderFilterParams> aiBarParams_ = nullptr;
     std::shared_ptr<GEGreyShaderFilterParams> greyParams_ = nullptr;
     std::shared_ptr<GELinearGradientBlurShaderFilterParams> linearGradientBlurParams_ = nullptr;
     std::shared_ptr<GEMagnifierShaderFilterParams> magnifierParams_ = nullptr;
     std::shared_ptr<GEWaterRippleFilterParams> waterRippleParams_ = nullptr;
-    std::shared_ptr<HpsBlurFilterParams> hpsBlurParams_ = nullptr;
 };
 
 } // namespace Drawing

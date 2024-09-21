@@ -351,6 +351,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSceneList(*thresholdNode, screenSetting.sceneList);
     } else if (name == "game_scene_list") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.gameSceneList);
+    } else if (name == "anco_scene_list") {
+        setResult = ParseSceneList(*thresholdNode, screenSetting.ancoSceneList);
     } else if (name == "app_list") {
         ParseMultiAppStrategy(*thresholdNode, screenSetting);
     } else if (name == "app_types") {
@@ -359,6 +361,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSimplex(*thresholdNode, screenSetting.animationPowerConfig);
     } else if (name == "ui_power_config") {
         setResult = ParseSimplex(*thresholdNode, screenSetting.uiPowerConfig);
+    } else if (name == "component_power_config") {
+        setResult = ParsePowerStrategy(*thresholdNode, screenSetting.componentPowerConfig);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -398,6 +402,24 @@ int32_t XMLParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, s
                  keyName.c_str(), key.c_str(), valueName.c_str(), config[key].c_str());
     }
 
+    return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::string, int32_t> &powerConfig)
+{
+    std::unordered_map<std::string, std::string> configs;
+    auto result = ParseSimplex(node, configs);
+    powerConfig.clear();
+    if (result != EXEC_SUCCESS) {
+        HGM_LOGI("XMLParser failed to powerConfig component_power_config");
+        return result;
+    }
+    for (const auto &item: configs) {
+        if (!IsNumber(item.second)) {
+            continue;
+        }
+        powerConfig[item.first] = std::stoi(item.second.c_str());
+    }
     return EXEC_SUCCESS;
 }
 

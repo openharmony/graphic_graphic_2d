@@ -22,16 +22,17 @@
 #include <regex>
 #include <sstream>
 #include <string>
-#ifndef REPLAY_TOOL_CLIENT
+#ifndef RENDER_PROFILER_APPLICATION
 #include <dirent.h>
 #include <sched.h>
 #include <securec.h>
 #include <unistd.h>
+
 #include "directory_ex.h"
-#include "platform/common/rs_log.h"
+#include "rs_profiler_log.h"
 #else
 #include "rs_adapt.h"
-#endif // REPLAY_TOOL_CLIENT
+#endif
 
 namespace OHOS::Rosen {
 
@@ -54,7 +55,7 @@ uint64_t Utils::ToNanoseconds(double seconds)
     return seconds * secondsToNano;
 }
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
 // Cpu routines
 int32_t Utils::GetCpuId()
 {
@@ -99,7 +100,7 @@ pid_t Utils::GetPid()
 {
     return getpid();
 }
-#endif // REPLAY_TOOL_CLIENT
+#endif
 
 // String routines
 std::vector<std::string> Utils::Split(const std::string& string)
@@ -126,17 +127,17 @@ std::string Utils::ExtractNumber(const std::string& string)
 
 int8_t Utils::ToInt8(const std::string& string)
 {
-    return ToInt32(string);
+    return static_cast<int8_t>(ToInt32(string));
 }
 
 int16_t Utils::ToInt16(const std::string& string)
 {
-    return ToInt32(string);
+    return static_cast<int16_t>(ToInt32(string));
 }
 
 int32_t Utils::ToInt32(const std::string& string)
 {
-    return std::atol(string.data());
+    return static_cast<int32_t>(std::atol(string.data()));
 }
 
 int64_t Utils::ToInt64(const std::string& string)
@@ -168,7 +169,7 @@ uint64_t Utils::ToUint64(const std::string& string)
 
 float Utils::ToFp32(const std::string& string)
 {
-    return ToFp64(string);
+    return static_cast<float>(ToFp64(string));
 }
 
 double Utils::ToFp64(const std::string& string)
@@ -243,7 +244,7 @@ std::string Utils::GetRealPath(const std::string& path)
 {
     std::string realPath;
     if (!PathToRealPath(path, realPath)) {
-        RS_LOGE("PathToRealPath fails on %s !", path.data()); // NOLINT
+        HRPE("PathToRealPath fails on %s !", path.data());
         realPath.clear();
     }
     return realPath;
@@ -261,7 +262,7 @@ std::string Utils::NormalizePath(const std::string& path)
 
 std::string Utils::GetFileName(const std::string& path)
 {
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
     return std::filesystem::path(path).filename().string();
 #else
     std::string filename;
@@ -275,7 +276,7 @@ std::string Utils::GetFileName(const std::string& path)
 
 std::string Utils::GetDirectory(const std::string& path)
 {
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
     return std::filesystem::path(path).parent_path().string();
 #else
     std::string directory;
@@ -289,7 +290,7 @@ std::string Utils::GetDirectory(const std::string& path)
 
 bool Utils::IsDirectory(const std::string& path)
 {
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
     return std::filesystem::is_directory(path);
 #else
     struct stat st {};
@@ -304,7 +305,7 @@ void Utils::IterateDirectory(const std::string& path, std::vector<std::string>& 
         return;
     }
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
     for (auto const& entry : std::filesystem::recursive_directory_iterator(path)) {
         if (entry.is_directory()) {
             IterateDirectory(entry.path().string(), files);
@@ -331,7 +332,7 @@ void Utils::IterateDirectory(const std::string& path, std::vector<std::string>& 
         }
     }
     closedir(directory);
-#endif // REPLAY_TOOL_CLIENT
+#endif
 }
 
 void Utils::LoadLine(const std::string& path, std::string& line)
@@ -387,14 +388,19 @@ void Utils::LoadContent(const std::string& path, std::string& content)
 static std::stringstream g_recordInMemory(std::ios::in | std::ios::out | std::ios::binary);
 static FILE* g_recordInMemoryFile = reinterpret_cast<FILE*>(1);
 
+static bool IsRecordInMemoryFile(const std::string& path)
+{
+    return path == "RECORD_IN_MEMORY";
+}
+
 static bool HasWriteFlag(const std::string& options)
 {
-    return options.find('w');
+    return options.find('w') != std::string::npos;
 }
 
 static bool HasAppendFlag(const std::string& options)
 {
-    return options.find('a');
+    return options.find('a') != std::string::npos;
 }
 
 static bool ShouldFileBeCreated(const std::string& options)
@@ -404,7 +410,10 @@ static bool ShouldFileBeCreated(const std::string& options)
 
 bool Utils::FileExists(const std::string& path)
 {
-#ifdef REPLAY_TOOL_CLIENT
+    if (IsRecordInMemoryFile(path)) {
+        return true;
+    }
+#ifdef RENDER_PROFILER_APPLICATION
     return std::filesystem::exists(path);
 #else
     struct stat st {};
@@ -412,13 +421,24 @@ bool Utils::FileExists(const std::string& path)
 #endif
 }
 
+bool Utils::FileDelete(const std::string& path)
+{
+    if (IsRecordInMemoryFile(path)) {
+        g_recordInMemory = std::stringstream(std::ios::in | std::ios::out | std::ios::binary);
+        return true;
+    }
+
+    const std::string realPath = GetRealPath(path);
+    if (!FileExists(realPath)) {
+        return false;
+    }
+
+    return std::filesystem::remove(realPath);
+}
+
 FILE* Utils::FileOpen(const std::string& path, const std::string& options)
 {
-    if (path == "RECORD_IN_MEMORY") {
-        if (options == "wbe") {
-            g_recordInMemory.str("");
-            g_recordInMemory.clear();
-        }
+    if (IsRecordInMemoryFile(path)) {
         g_recordInMemory.seekg(0, std::ios_base::beg);
         g_recordInMemory.seekp(0, std::ios_base::beg);
         return g_recordInMemoryFile;
@@ -426,22 +446,22 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
 
     const std::string realPath = GetRealPath(path);
     if (realPath.empty()) {
-        RS_LOGE("FileOpen: '%s' is invalid!", path.data()); // NOLINT
+        HRPE("FileOpen: '%s' is invalid!", path.data()); // NOLINT
         return nullptr;
     }
 
-    if (ShouldFileBeCreated(options)) {
+#ifndef RENDER_PROFILER_APPLICATION
+    if (ShouldFileBeCreated(options) && !FileExists(realPath)) {
         auto file = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-        if (file == -1) {
-            RS_LOGE("FileOpen: Cannot create '%s'!", realPath.data()); // NOLINT
-            return nullptr;
+        if (file != -1) {
+            close(file);
         }
-        close(file);
     }
+#endif
 
     auto file = fopen(realPath.data(), options.data());
     if (!IsFileValid(file)) {
-        RS_LOGE("FileOpen: Cannot open '%s'!", realPath.data()); // NOLINT
+        HRPE("FileOpen: Cannot open '%s' with options '%s'!", realPath.data(), options.data()); // NOLINT
     }
     return file;
 }
@@ -449,15 +469,15 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
 void Utils::FileClose(FILE* file)
 {
     if (file == g_recordInMemoryFile) {
-        g_recordInMemory.str("");
-        g_recordInMemory.clear();
+        g_recordInMemory.seekg(0, std::ios_base::beg);
+        g_recordInMemory.seekp(0, std::ios_base::beg);
         return;
     }
     if (fflush(file) != 0) {
-        RS_LOGE("File flush failed"); // NOLINT
+        HRPE("File flush failed"); // NOLINT
     }
     if (fclose(file) != 0) {
-        RS_LOGE("File close failed"); // NOLINT
+        HRPE("File close failed"); // NOLINT
     }
 }
 
@@ -469,26 +489,26 @@ bool Utils::IsFileValid(FILE* file)
 size_t Utils::FileSize(FILE* file)
 {
     if (file == g_recordInMemoryFile) {
-        const int64_t position = g_recordInMemory.tellg();
+        const auto position = g_recordInMemory.tellg();
         g_recordInMemory.seekg(0, std::ios_base::end);
-        const int64_t size = g_recordInMemory.tellg();
+        const auto size = g_recordInMemory.tellg();
         if (size == -1) {
             g_recordInMemory.seekg(0, std::ios_base::beg);
             return 0;
         }
         g_recordInMemory.seekg(position, std::ios_base::beg);
-        return size;
+        return static_cast<size_t>(size);
     }
     if (!IsFileValid(file)) {
         return 0;
     }
 
-    const int64_t position = ftell(file);
+    const auto position = ftell(file);
     if (position == -1) {
         return 0;
     }
     FileSeek(file, 0, SEEK_END);
-    const ssize_t size = ftell(file);
+    const auto size = ftell(file);
     FileSeek(file, position, SEEK_SET);
     return static_cast<size_t>(size);
 }
@@ -521,14 +541,14 @@ void Utils::FileSeek(FILE* file, int64_t offset, int origin)
         return;
     }
     if (fseek(file, offset, origin) != 0) {
-        RS_LOGE("Failed fseek in file"); // NOLINT
+        HRPE("Failed fseek in file"); // NOLINT
     }
 }
 
 void Utils::FileRead(FILE* file, void* data, size_t size)
 {
-    if (!data || (size == 0)) {
-        RS_LOGE("FileRead: data or size is invalid"); // NOLINT
+    if (!data) {
+        HRPE("FileRead: Data is null"); // NOLINT
         return;
     }
 
@@ -538,16 +558,15 @@ void Utils::FileRead(FILE* file, void* data, size_t size)
         return;
     }
     if (fread(data, size, 1, file) < 1) {
-        RS_LOGE("FileRead: Error while reading from file"); // NOLINT
+        HRPE("FileRead: Error while reading from file"); // NOLINT
     }
 }
 
 void Utils::FileWrite(FILE* file, const void* data, size_t size)
 {
-    const size_t maxDataSize = 300'000'000; // To make sure size is a valid value
+    const size_t maxDataSize = 2'000'000'000; // To make sure size is a valid value
     if (!data || (size == 0) || (size > maxDataSize)) {
-        RS_LOGE("FileWrite: data or size is invalid, size %s",
-                std::to_string(size).c_str()); // NOLINT
+        HRPE("FileWrite: data or size is invalid, size %zu", size); // NOLINT
         return;
     }
 
@@ -557,7 +576,7 @@ void Utils::FileWrite(FILE* file, const void* data, size_t size)
         return;
     }
     if (fwrite(data, size, 1, file) < 1) {
-        RS_LOGE("FileWrite: Error while writing to file"); // NOLINT
+        HRPE("FileWrite: Error while writing to file"); // NOLINT
     }
 }
 

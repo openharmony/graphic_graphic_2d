@@ -67,14 +67,28 @@ struct GEKawaseBlurShaderFilterParams {
     int radius;
 };
 
-constexpr char GE_FILTER_HPS_BLUR[] = "HPS_BLUR";
-constexpr char GE_FILTER_HPS_BLUR_RADIUS[] = "HPS_BLUR_RADIUS";
-constexpr char GE_FILTER_HPS_BLUR_SATURATION[] = "HPS_BLUR_SATURATION";
-constexpr char GE_FILTER_HPS_BLUR_BRIGHTNESS[] = "HPS_BLUR_BRIGHTNESS";
-struct HpsBlurFilterParams {
-    float radius;
-    float saturation;
-    float brightness;
+constexpr char GE_FILTER_MESA_BLUR[] = "MESA_BLUR";
+constexpr char GE_FILTER_MESA_BLUR_RADIUS[] = "MESA_BLUR_RADIUS";
+constexpr char GE_FILTER_MESA_BLUR_GREY_COEF_1[] = "MESA_BLUR_GREY_COEF_1";
+constexpr char GE_FILTER_MESA_BLUR_GREY_COEF_2[] = "MESA_BLUR_GREY_COEF_2";
+constexpr char GE_FILTER_MESA_BLUR_STRETCH_OFFSET_X[] = "OFFSET_X";
+constexpr char GE_FILTER_MESA_BLUR_STRETCH_OFFSET_Y[] = "OFFSET_Y";
+constexpr char GE_FILTER_MESA_BLUR_STRETCH_OFFSET_Z[] = "OFFSET_Z";
+constexpr char GE_FILTER_MESA_BLUR_STRETCH_OFFSET_W[] = "OFFSET_W";
+constexpr char GE_FILTER_MESA_BLUR_STRETCH_TILE_MODE[] = "TILE_MODE";
+constexpr char GE_FILTER_MESA_BLUR_STRETCH_WIDTH[] = "WIDTH";
+constexpr char GE_FILTER_MESA_BLUR_STRETCH_HEIGHT[] = "HEIGHT";
+struct GEMESABlurShaderFilterParams {
+    int radius;
+    float greyCoef1;
+    float greyCoef2;
+    float offsetX;
+    float offsetY;
+    float offsetZ;
+    float offsetW;
+    int tileMode;
+    float width;
+    float height;
 };
 
 constexpr char GE_FILTER_LINEAR_GRADIENT_BLUR[] = "LINEAR_GRADIENT_BLUR";

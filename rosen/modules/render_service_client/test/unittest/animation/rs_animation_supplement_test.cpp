@@ -1234,5 +1234,34 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest024 end";
 }
+
+/**
+ * @tc.name: AnimationSupplementTest025
+ * @tc.desc: Verify the CloseImplicitCancelAnimation of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, AnimationSupplementTest025, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest025 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    bool success = false;
+    auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    success = implicitAnimator->CloseImplicitCancelAnimation();
+    EXPECT_TRUE(!success);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(100);
+    implicitAnimator->OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, nullptr);
+    success = implicitAnimator->CloseImplicitCancelAnimation();
+    EXPECT_TRUE(!success);
+
+    protocol.SetDuration(0);
+    implicitAnimator->OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, nullptr);
+    success = implicitAnimator->CloseImplicitCancelAnimation();
+    EXPECT_TRUE(!success);
+    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest025 end";
+}
 } // namespace Rosen
 } // namespace OHOS

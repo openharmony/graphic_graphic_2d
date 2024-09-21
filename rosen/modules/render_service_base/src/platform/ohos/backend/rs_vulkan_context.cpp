@@ -268,7 +268,13 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
         ROSEN_LOGE("vkCreateDevice failed");
         return false;
     }
-
+#ifdef RS_ENABLE_VKQUEUE_PRIORITY
+    if (createInfo.pQueueCreateInfos != nullptr) {
+        RS_LOGI("%{public}s queue priority[%{public}f], hardware queue priority[%{public}f]",
+            __func__, createInfo.pQueueCreateInfos->pQueuePriorities[0],
+            createInfo.pQueueCreateInfos->pQueuePriorities[1]);
+    }
+#endif
     if (!SetupDeviceProcAddresses(device_)) {
         return false;
     }
@@ -468,6 +474,7 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(boo
 void RsVulkanInterface::DestroyAllSemaphoreFence()
 {
     std::lock_guard<std::mutex> lock(semaphoreLock_);
+    RS_LOGE("Device lost clear all semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
     for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
         vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
     }
@@ -476,23 +483,31 @@ void RsVulkanInterface::DestroyAllSemaphoreFence()
 
 VkSemaphore RsVulkanInterface::RequireSemaphore()
 {
-    std::unique_lock<std::mutex> lock(semaphoreLock_);
-    // 32 means too many used semaphore fences
-    if (usedSemaphoreFenceList_.size() >= 32) {
-        RS_LOGE("Too many used semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
-    }
-    for (auto it = usedSemaphoreFenceList_.begin(); it != usedSemaphoreFenceList_.end();) {
-        auto& fence = it->fence;
-        if (fence == nullptr || fence->GetStatus() == FenceStatus::SIGNALED) {
-            vkDestroySemaphore(device_, it->semaphore, nullptr);
-            it->semaphore = VK_NULL_HANDLE;
-            it = usedSemaphoreFenceList_.erase(it);
-        } else {
-            break;
+    {
+        std::lock_guard<std::mutex> lock(semaphoreLock_);
+        // 3000 means too many used semaphore fences
+        if (usedSemaphoreFenceList_.size() >= 3000) {
+            RS_LOGE("Too many used semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
+            for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
+                if (semaphoreFence.fence != nullptr) {
+                    semaphoreFence.fence->Wait(-1);
+                }
+                vkDestroySemaphore(device_, semaphoreFence.semaphore, nullptr);
+            }
+            usedSemaphoreFenceList_.clear();
+        }
+        for (auto it = usedSemaphoreFenceList_.begin(); it != usedSemaphoreFenceList_.end();) {
+            auto& fence = it->fence;
+            if (fence == nullptr || fence->GetStatus() == FenceStatus::SIGNALED) {
+                vkDestroySemaphore(device_, it->semaphore, nullptr);
+                it->semaphore = VK_NULL_HANDLE;
+                it = usedSemaphoreFenceList_.erase(it);
+            } else {
+                it++;
+            }
         }
     }
 
-    lock.unlock();
     VkSemaphoreCreateInfo semaphoreInfo;
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.pNext = nullptr;

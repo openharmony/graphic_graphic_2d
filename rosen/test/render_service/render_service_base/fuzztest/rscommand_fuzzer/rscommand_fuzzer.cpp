@@ -77,7 +77,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     bool hasContainerWindow = GetData<bool>();
     float density = GetData<float>();
     bool flag = GetData<bool>();
-    int32_t ancoFlags = GetData<int32_t>();
+    uint32_t ancoFlags = GetData<uint32_t>();
 
     // test
     RSContext context;

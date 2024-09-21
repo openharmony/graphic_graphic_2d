@@ -26,6 +26,7 @@
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
+#include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -59,6 +60,7 @@ public:
     virtual bool GetUniRenderEnabled() = 0;
 
     virtual bool CreateNode(const RSSurfaceRenderNodeConfig& config) = 0;
+    virtual bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId) = 0;
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
@@ -91,6 +93,8 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
+    virtual bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark) = 0;
+
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
@@ -122,6 +126,8 @@ public:
     virtual void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate) = 0;
 
+    virtual void UnregisterFrameRateLinker(FrameRateLinkerId id) = 0;
+
     virtual uint32_t GetScreenCurrentRefreshRate(ScreenId id) = 0;
 
     virtual int32_t GetCurrentRefreshRateMode() = 0;
@@ -143,7 +149,8 @@ public:
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, bool accessible = true) = 0;
+        const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
@@ -190,6 +197,8 @@ public:
     virtual bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) = 0;
 
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) = 0;
+
+    virtual bool SetGlobalDarkColorMode(bool isDark) = 0;
 
     virtual int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) = 0;
 
@@ -266,6 +275,8 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
+    virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;
+
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 
     virtual void RunOnRemoteDiedCallback() = 0;
@@ -290,9 +301,17 @@ public:
 
     virtual bool SetAncoForceDoDirect(bool direct) = 0;
 
+    virtual void SetFreeMultiWindowStatus(bool enable) = 0;
+
+    virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
 #endif
+
+    virtual void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) = 0;
+
+    virtual void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

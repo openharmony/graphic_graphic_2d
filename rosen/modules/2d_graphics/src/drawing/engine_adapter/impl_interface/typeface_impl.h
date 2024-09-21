@@ -32,6 +32,7 @@ class TypefaceImpl : public BaseImpl {
 public:
     ~TypefaceImpl() override = default;
     virtual std::string GetFamilyName() const = 0;
+    virtual std::string GetFontPath() const = 0;
     virtual FontStyle GetFontStyle() const = 0;
     virtual size_t GetTableSize(uint32_t tag) const = 0;
     virtual size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const = 0;
@@ -41,6 +42,9 @@ public:
     virtual std::shared_ptr<Typeface> MakeClone(const FontArguments& args) const = 0;
     virtual bool IsCustomTypeface() const = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
+    // provide default implementation for hashes
+    virtual uint32_t GetHash() const = 0;
+    virtual void SetHash(uint32_t) = 0;
 
 protected:
     TypefaceImpl() noexcept = default;

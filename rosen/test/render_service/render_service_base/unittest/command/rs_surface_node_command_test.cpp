@@ -310,6 +310,22 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipLayerTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSnapshotSkipLayerTest001
+ * @tc.desc: SetSnapshotSkipLayer test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetSnapshotSkipLayerTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(-1);
+    bool isSnapshotSkipLayer = false;
+    SurfaceNodeCommandHelper::SetSnapshotSkipLayer(context, id, isSnapshotSkipLayer);
+    NodeId id2 = 10;
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetSnapshotSkipLayer(context, id2, isSnapshotSkipLayer);
+}
+
+/**
  * @tc.name: SetBootAnimation001
  * @tc.desc: SetBootAnimation test.
  * @tc.type: FUNC
@@ -466,9 +482,8 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
 {
     RSContext context;
     std::string name = "name";             // for test
-    std::string bundleName = "bundleName"; // for test
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
-    SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, bundleName, windowType);
+    SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, windowType);
 }
 
 /**

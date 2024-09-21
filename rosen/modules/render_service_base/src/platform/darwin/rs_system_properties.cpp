@@ -122,6 +122,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return {};
@@ -166,6 +171,15 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 }
 
 bool RSSystemProperties::GetCacheEnabledForRotation()
+{
+    return {};
+}
+
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+}
+
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
 {
     return {};
 }
@@ -297,6 +311,11 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    return false;
+}
+
 float RSSystemProperties::GetKawaseRandomColorFactor()
 {
     return 0.f;
@@ -409,10 +428,21 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSubSurfaceEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
 {
     return false;
@@ -433,6 +463,11 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetTransactionTerminateEnabled()
+{
+    return false;
+}
+
 int RSSystemProperties::GetVirtualScreenScaleModeDFX()
 {
     return {};
@@ -448,6 +483,11 @@ bool RSSystemProperties::GetDrawMirrorCacheImageEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    return false;
+}
+
 SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     return SubTreePrepareCheckType::ENABLED;
@@ -459,6 +499,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 }
 
 bool RSSystemProperties::IsForceClient()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
 }
@@ -488,5 +533,14 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

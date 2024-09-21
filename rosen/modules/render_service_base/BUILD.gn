@@ -167,6 +167,9 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
+    "src/ipc_callbacks/rs_surface_buffer_callback_ipc_interface_code_access_verifier.cpp",
+    "src/ipc_callbacks/rs_surface_buffer_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_surface_buffer_callback_stub.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_uiextension_callback_proxy.cpp",
@@ -183,6 +186,7 @@ ohos_source_set("render_service_base_src") {
 
     #memory
     "src/memory/rs_memory_graphic.cpp",
+    "src/memory/rs_memory_snapshot.cpp",
     "src/memory/rs_memory_track.cpp",
     "src/memory/rs_tag_tracker.cpp",
 
@@ -206,6 +210,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_occlusion_config.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
     "src/pipeline/rs_proxy_render_node.cpp",
+    "src/pipeline/rs_record_cmd_utils.cpp",
     "src/pipeline/rs_recording_canvas.cpp",
     "src/pipeline/rs_render_content.cpp",
     "src/pipeline/rs_render_display_sync.cpp",
@@ -258,7 +263,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_grey_shader_filter.cpp",
     "src/render/rs_hps_blur.cpp",
-    "src/render/rs_hps_blur_shader_filter.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
     "src/render/rs_image_cache.cpp",
@@ -270,6 +274,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_mask.cpp",
     "src/render/rs_maskcolor_shader_filter.cpp",
     "src/render/rs_material_filter.cpp",
+    "src/render/rs_mesa_blur_shader_filter.cpp",
     "src/render/rs_motion_blur_filter.cpp",
     "src/render/rs_particles_drawable.cpp",
     "src/render/rs_path.cpp",
@@ -500,8 +505,6 @@ ohos_source_set("render_service_base_src") {
   }
 
   if (use_video_processing_engine) {
-    external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
@@ -537,7 +540,10 @@ ohos_source_set("render_service_base_src") {
       "$rosen_root/modules/platform:image_native_config",
     ]
   } else {
-    external_deps += [ "hitrace:hitrace_meter" ]
+    external_deps += [
+      "drivers_interface_display:display_commontype_idl_headers",
+      "hitrace:hitrace_meter",
+    ]
   }
 
   if (rosen_is_win) {
@@ -564,13 +570,13 @@ ohos_source_set("render_service_base_src") {
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_settings.cpp",
       "$graphic_2d_root/rosen/modules/render_service_profiler/rs_profiler_utils.cpp",
     ]
+
+    if (defined(global_parts_info) &&
+        defined(global_parts_info.open_source_libyuv)) {
+      defines += [ "RS_PROFILER_SUPPORTS_PIXELMAP_YUV_EXT" ]
+    }
   }
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
-
-  if (defined(graphic_2d_ext_configs.vendor_root)) {
-    sources -= graphic_2d_ext_configs.librender_service_base_ext_sources_del
-    sources += graphic_2d_ext_configs.librender_service_base_ext_sources
-  }
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
@@ -632,10 +638,6 @@ ohos_shared_library("librender_service_base") {
 
   external_deps = [ "hilog:libhilog" ]
 
-  if (defined(use_new_render_context) && use_new_render_context) {
-    public_deps += [ "src/render_backend:librender_backend" ]
-  }
-
   public_external_deps = []
   if (rosen_is_ohos) {
     public_external_deps += [
@@ -673,10 +675,6 @@ ohos_source_set("librender_service_base_static") {
     ":render_service_base_src",
     "src/platform:platform",
   ]
-
-  if (defined(use_new_render_context) && use_new_render_context) {
-    public_deps += [ "src/render_backend:librender_backend" ]
-  }
 
   public_external_deps = []
   if (rosen_is_ohos) {

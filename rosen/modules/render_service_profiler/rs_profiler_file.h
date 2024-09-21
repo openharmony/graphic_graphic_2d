@@ -21,7 +21,7 @@
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_utils.h"
 
-#ifdef REPLAY_TOOL_CLIENT // adapt to windows on client side
+#ifdef RENDER_PROFILER_APPLICATION
 #include <memory>
 
 #include "rs_adapt.h"
@@ -73,7 +73,7 @@ public:
     void AddHeaderFirstFrame(const std::string& dataFirstFrame);
 
     const std::vector<std::pair<uint64_t, int64_t>>& GetAnimeStartTimes() const;
-    void AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& dataFirstFrame);
+    void AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& startTimes);
 
     void AddHeaderPid(pid_t pid);
     const std::vector<pid_t>& GetHeaderPids() const;
@@ -121,6 +121,10 @@ public:
     void SetVersion(uint32_t version);
 
     static const std::string& GetDefaultPath();
+
+    void CacheVsyncId2Time(uint32_t layer);
+    double ConvertVsyncId2Time(int64_t vsyncId);
+    int64_t ConvertTime2VsyncId(double time);
 
 private:
     void WriteHeaders();
@@ -181,6 +185,7 @@ private:
     bool wasChanged_ = false;
     std::vector<uint8_t> preparedHeader_;
     bool preparedHeaderMode_ = false;
+    std::map<int64_t, double> mapVsyncId2Time_;
 };
 
 } // namespace OHOS::Rosen

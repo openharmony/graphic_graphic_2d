@@ -44,8 +44,10 @@ public:
         const RSXform xform[], const Font& font, TextEncoding encoding);
     static std::shared_ptr<Typeface> MakeDefault();
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index);
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[], const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
+    static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
 #ifdef ACE_ENABLE_GPU
 #ifdef RS_ENABLE_VK
     static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
@@ -83,6 +85,7 @@ public:
         DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
         DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
+    static void SetVmaCacheStatus(bool flag);
 };
 } // namespace Drawing
 } // namespace Rosen

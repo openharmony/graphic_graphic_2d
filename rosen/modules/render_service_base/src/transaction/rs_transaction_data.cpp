@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-static constexpr size_t PARCEL_MAX_CPACITY = 2000 * 1024; // upper bound of parcel capacity
+static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
 static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CPACITY
 }
 
@@ -103,6 +103,9 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         if (!command) {
             parcel.WriteUint8(0);
             RS_LOGW("failed RSTransactionData::Marshalling, command is nullptr");
+        } else if (command->indexVerifier_ != marshallingIndex_) {
+            parcel.WriteUint8(0);
+            RS_LOGW("failed RSTransactionData::Marshalling, indexVerifier is wrong, SIGSEGV may have occurred");
         } else {
             parcel.WriteUint8(1);
             success = success && command->Marshalling(parcel);
@@ -166,6 +169,7 @@ void RSTransactionData::Clear()
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     payload_.clear();
+    payload_.shrink_to_fit();
     timestamp_ = 0;
 }
 
@@ -173,6 +177,7 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>& command, NodeId n
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     if (command) {
+        command->indexVerifier_ = payload_.size();
         payload_.emplace_back(nodeId, followType, std::move(command));
     }
 }
@@ -181,6 +186,7 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId 
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     if (command) {
+        command->indexVerifier_ = payload_.size();
         payload_.emplace_back(nodeId, followType, std::move(command));
     }
 }
@@ -276,6 +282,13 @@ void RSTransactionData::InsertCommandToMap(NodeId nodeId, std::pair<uint16_t, ui
 bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
     std::string& commandMapDesc) const
 {
+    // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
+    // we temporarily add a white list to avoid abnormal functionality or abnormal display.
+    // The white list will be removed after GetCallingPid interface can return real PID.
+    if (callingPid == 0) {
+        return true;
+    }
+
     std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
     for (const auto& [commandPid, commandTypeMap] : pidToCommandMap_) {
         if (callingPid == commandPid) {

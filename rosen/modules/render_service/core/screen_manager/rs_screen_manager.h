@@ -55,7 +55,7 @@ public:
     // get default/primary screen id.
     virtual ScreenId GetDefaultScreenId() const = 0;
 
-    virtual std::vector<ScreenId> GetAllScreenIds() = 0;
+    virtual std::vector<ScreenId> GetAllScreenIds() const = 0;
 
     virtual void SetDefaultScreenId(ScreenId id) = 0;
 
@@ -75,15 +75,15 @@ public:
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList) = 0;
 
-    virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) = 0;
+    virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const = 0;
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     
-    virtual std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
+    virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
 
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
-    virtual bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) = 0;
+    virtual bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
@@ -149,7 +149,7 @@ public:
 
     virtual int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) = 0;
 
-    virtual int32_t GetScreenBacklight(ScreenId id) = 0;
+    virtual int32_t GetScreenBacklight(ScreenId id) const = 0;
 
     virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
 
@@ -188,6 +188,8 @@ public:
 
     virtual uint32_t GetActualScreensNum() const = 0;
 
+    virtual ScreenInfo GetActualScreenMaxResolution() const = 0;
+
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual ScreenId GetActiveScreenId() = 0;
@@ -210,7 +212,7 @@ public:
     virtual int GetDisableRenderControlScreensCount() const = 0;
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    virtual float GetScreenBrightnessNits(ScreenId id) = 0;
+    virtual float GetScreenBrightnessNits(ScreenId id) const = 0;
 #endif
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
@@ -222,9 +224,10 @@ public:
 
     virtual int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) = 0;
 
+    virtual void GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInfo) const = 0;
+
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
-    virtual uint32_t GetDefaultScreenRefreshRate() const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -256,7 +259,7 @@ public:
         return defaultScreenId_;
     }
 
-    std::vector<ScreenId> GetAllScreenIds() override;
+    std::vector<ScreenId> GetAllScreenIds() const override;
 
     void SetDefaultScreenId(ScreenId id) override;
 
@@ -276,15 +279,15 @@ public:
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList) override;
 
-    const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) override;
+    const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     
-    std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
+    const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
-    bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) override;
+    bool GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const override;
 
     void RemoveVirtualScreen(ScreenId id) override;
 
@@ -346,7 +349,7 @@ public:
 
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
-    int32_t GetScreenBacklight(ScreenId id) override;
+    int32_t GetScreenBacklight(ScreenId id) const override;
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
 
@@ -357,6 +360,8 @@ public:
     int32_t GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode) const override;
 
     uint32_t GetActualScreensNum() const override;
+
+    ScreenInfo GetActualScreenMaxResolution() const override;
 
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
@@ -416,7 +421,7 @@ public:
     int GetDisableRenderControlScreensCount() const override;
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    float GetScreenBrightnessNits(ScreenId id) override;
+    float GetScreenBrightnessNits(ScreenId id) const override;
 #endif
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
@@ -428,9 +433,12 @@ public:
 
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) override;
 
+    void GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInfo) const override;
+
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
-    uint32_t GetDefaultScreenRefreshRate() const override;
+
+    static void ReleaseScreenDmaBuffer(uint64_t screenId);
 
 private:
     RSScreenManager();
@@ -492,6 +500,9 @@ private:
     void HandleSensorData(float angle);
     FoldState TransferAngleToScreenState(float angle);
 #endif
+
+    void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
+    void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
 
     mutable std::mutex mutex_;
     mutable std::mutex blackListMutex_;

@@ -20,6 +20,7 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "command/rs_message_processor.h"
+#include "command/rs_node_command.h"
 #include "hyper_graphic_manager/core/utils/hgm_command.h"
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
@@ -35,9 +36,6 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "render_context/memory_handler.h"
-#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -60,6 +58,7 @@ static std::unordered_map<RSUIDirector*, TaskRunner> g_uiTaskRunners;
 static std::mutex g_uiTaskRunnersVisitorMutex;
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
+static std::once_flag g_initDumpNodeTreeProcessorFlag;
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create()
 {
@@ -74,6 +73,9 @@ RSUIDirector::~RSUIDirector()
 void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
     AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
+    std::call_once(g_initDumpNodeTreeProcessorFlag, [] () {
+        RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor);
+    });
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
     if (shouldCreateRenderThread && !isUniRenderEnabled_) {
@@ -160,11 +162,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         // clean bufferQueue cache
         RSRenderThread::Instance().PostTask([surfaceNode]() {
             if (surfaceNode != nullptr) {
-#ifdef NEW_RENDER_CONTEXT
-                std::shared_ptr<RSRenderSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
-#else
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
-#endif
                 if (rsSurface == nullptr) {
                     ROSEN_LOGE("rsSurface is nullptr");
                     return;
@@ -177,12 +175,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             auto renderContext = RSRenderThread::Instance().GetRenderContext();
             if (renderContext != nullptr) {
 #ifndef ROSEN_CROSS_PLATFORM
-#if defined(NEW_RENDER_CONTEXT)
-                auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
-                MemoryHandler::ClearRedundantResources(drawingContext->GetDrawingContext());
-#else
                 renderContext->ClearRedundantResources();
-#endif
 #endif
             }
         });
@@ -359,12 +352,11 @@ void RSUIDirector::RecvMessages()
         return;
     }
     static const uint32_t pid = static_cast<uint32_t>(GetRealPid());
-    static std::mutex recvMessagesMutex;
-    std::unique_lock<std::mutex> lock(recvMessagesMutex);
-    if (RSMessageProcessor::Instance().HasTransaction(pid)) {
-        auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
-        RecvMessages(transactionDataPtr);
+    if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
+        return;
     }
+    auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
+    RecvMessages(transactionDataPtr);
 }
 
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
@@ -440,6 +432,25 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     } else {
         ROSEN_LOGE("RSUIDirector::AnimationCallbackProcessor, could not find animation %{public}" PRIu64 " on"
             " fallback node.", animId);
+    }
+}
+
+void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
+{
+    RS_TRACE_NAME_FMT("DumpClientNodeTree dump task[%u] node[%" PRIu64 "]", taskId, nodeId);
+    ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
+
+    std::string out;
+    if (auto node = RSNodeMap::Instance().GetNode(nodeId)) {
+        constexpr int TOP_LEVEL_DEPTH = 1;
+        node->DumpTree(TOP_LEVEL_DEPTH, out);
+    }
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSDumpClientNodeTree>(nodeId, getpid(), taskId, out);
+        transactionProxy->AddCommand(command, true);
+        RSTransaction::FlushImplicitTransaction();
     }
 }
 

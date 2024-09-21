@@ -140,11 +140,6 @@ void Brush::SetBlenderEnabled(bool blenderEnabled)
     blenderEnabled_ = blenderEnabled;
 }
 
-bool Brush::IsAntiAlias() const
-{
-    return antiAlias_;
-}
-
 void Brush::SetAntiAlias(bool aa)
 {
     antiAlias_ = aa;
@@ -170,32 +165,11 @@ bool Brush::AsBlendMode()
     return StaticFactory::AsBlendMode(*this);
 }
 
-/**
- * In these cases, disable HDR paintfilter by setting forceBrightnessDisable_ as true:
- * 1. Filter(effect): HDR paintfilter is already applied when take snapshot.
- * 2. UIFirst: Disable main thread since sub thread is already applied.
-*/
-void Brush::SetForceBrightnessDisable(bool forceBrightnessDisable)
-{
-    forceBrightnessDisable_ = forceBrightnessDisable;
-}
-
-bool Brush::IsHdr() const
-{
-    return isHdr_;
-}
-
-void Brush::SetHdr(bool isHdr)
-{
-    isHdr_ = isHdr;
-}
-
 bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
         b1.blender_ == b2.blender_ && b1.blenderEnabled_ == b2.blenderEnabled_ && b1.colorSpace_ == b2.colorSpace_ &&
-        b1.filter_ == b2.filter_ && b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_ &&
-        b1.isHdr_ == b2.isHdr_;
+        b1.filter_ == b2.filter_ && b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_;
 }
 
 bool operator!=(const Brush& b1, const Brush& b2)
@@ -219,8 +193,6 @@ void Brush::Dump(std::string& out) const
     out += " isAntiAlias:" + std::string(antiAlias_ ? "true" : "false");
     out += " blenderEnabled:" + std::string(blenderEnabled_ ? "true" : "false");
     out += " hasFilter:" + std::string(hasFilter_ ? "true" : "false");
-    out += " forceBrightnessDisable:" + std::string(forceBrightnessDisable_ ? "true" : "false");
-    out += " isHDR:" + std::string(isHdr_ ? "true" : "false");
     out += ']';
 }
 } // namespace Drawing

@@ -129,6 +129,8 @@ private:
 
     // DISPLAYENGINE
     bool arsrPreEnabled_ = false;
+    bool arsrPreEnabledForVm_ = false;
+    std::string vmArsrWhiteList_ = "";
 
     int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayersLocked();
@@ -139,10 +141,11 @@ private:
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);
-    static void SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers);
 
     // DISPLAY ENGINE
     bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
+    bool CheckIfDoArsrPreForVm(const LayerInfoPtr &layerInfo);
+    bool CheckSupportArsrPreMetadata();
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();

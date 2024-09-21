@@ -48,7 +48,9 @@ HWTEST_F(RSCommonDefTest, New001, TestSize.Level1)
      * @tc.steps: step1. MemObject::operator new
      */
     MemObject* memObject = new (std::nothrow) MemObject(1);
-    delete memObject;
+    if (memObject) {
+        delete memObject;
+    }
 }
 
 

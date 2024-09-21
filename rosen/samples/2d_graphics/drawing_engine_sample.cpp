@@ -44,9 +44,11 @@ DrawingEngineSample::~DrawingEngineSample()
 {
     if (benchMark_ != nullptr) {
         delete benchMark_;
+        benchMark_ = nullptr;
     }
     if (drawingProxy != nullptr) {
         delete drawingProxy;
+        drawingProxy = nullptr;
     }
 }
 

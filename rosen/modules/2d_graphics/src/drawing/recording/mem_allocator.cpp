@@ -90,7 +90,7 @@ bool MemAllocator::Resize(size_t size)
     if (size > LARGE_MALLOC) {
         LOGW("MemAllocator::Resize this time malloc large memory, size:%{public}zu", size);
     }
-    char* newData = new char[size];
+    char* newData = new(std::nothrow) char[size];
     if (!newData) {
         return false;
     }

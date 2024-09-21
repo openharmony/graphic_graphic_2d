@@ -15,13 +15,15 @@
 
 #include "skia_typeface.h"
 
+#include "include/core/SkFontMgr.h"
+#include "include/core/SkFontStyle.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkString.h"
-#include "include/core/SkFontStyle.h"
-
+#include "include/private/SkTHash.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_memory_stream.h"
+
 #include "utils/log.h"
 
 namespace OHOS {
@@ -45,6 +47,19 @@ std::string SkiaTypeface::GetFamilyName() const
     skTypeface_->getFamilyName(&skName);
     SkiaConvertUtils::SkStringCastToStdString(skName, name);
     return name;
+}
+
+std::string SkiaTypeface::GetFontPath() const
+{
+    std::string path;
+    if (!skTypeface_) {
+        LOGE("skTypeface nullptr");
+        return path;
+    }
+    SkString skName;
+    skTypeface_->getFontPath(&skName);
+    SkiaConvertUtils::SkStringCastToStdString(skName, path);
+    return path;
 }
 
 FontStyle SkiaTypeface::GetFontStyle() const
@@ -112,22 +127,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeClone(const FontArguments& args) con
     }
 
     SkFontArguments skArgs;
-    skArgs.setCollectionIndex(args.GetCollectionIndex());
-
-    SkFontArguments::VariationPosition pos;
-    pos.coordinates = reinterpret_cast<const SkFontArguments::VariationPosition::Coordinate*>(
-        args.GetVariationDesignPosition().coordinates
-    );
-    pos.coordinateCount = args.GetVariationDesignPosition().coordinateCount;
-    skArgs.setVariationDesignPosition(pos);
-
-    SkFontArguments::Palette pal;
-    pal.overrides = reinterpret_cast<const SkFontArguments::Palette::Override*>(
-        args.GetPalette().overrides
-    );
-    pal.index = args.GetPalette().index;
-    pal.overrideCount = args.GetPalette().overrideCount;
-    skArgs.setPalette(pal);
+    SkiaConvertUtils::DrawingFontArgumentsCastToSkFontArguments(args, skArgs);
 
     auto cloned = skTypeface_->makeClone(skArgs);
     if (!cloned) {
@@ -179,8 +179,52 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int inde
     return std::make_shared<Typeface>(typefaceImpl);
 }
 
+std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], const FontArguments& fontArguments)
+{
+    std::unique_ptr<SkStreamAsset> skStream = SkStreamAsset::MakeFromFile(path);
+    if (skStream == nullptr) {
+        LOGD("SkiaTypeface::MakeFromFile, skStream nullptr.");
+        return nullptr;
+    }
+    auto skFontMgr = SkFontMgr::RefDefault();
+    if (skFontMgr == nullptr) {
+        LOGD("SkiaTypeface::MakeFromFile, skFontMgr nullptr.");
+        return nullptr;
+    }
+    SkFontArguments skFontArguments;
+    SkiaConvertUtils::DrawingFontArgumentsCastToSkFontArguments(fontArguments, skFontArguments);
+    sk_sp<SkTypeface> skTypeface = skFontMgr->makeFromStream(std::move(skStream), skFontArguments);
+    if (!skTypeface) {
+        LOGD("SkiaTypeface::MakeFromFile, skTypeface nullptr.");
+        return nullptr;
+    }
+    skTypeface->setIsCustomTypeface(true);
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
+std::vector<std::shared_ptr<Typeface>> SkiaTypeface::GetSystemFonts()
+{
+    std::vector<sk_sp<SkTypeface>> skTypefaces = SkTypeface::GetSystemFonts();
+    if (skTypefaces.empty()) {
+        return {};
+    }
+    std::vector<std::shared_ptr<Typeface>> typefaces;
+    typefaces.reserve(skTypefaces.size());
+    for (auto& item : skTypefaces) {
+        item->setIsCustomTypeface(false);
+        std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(item);
+        typefaces.emplace_back(std::make_shared<Typeface>(typefaceImpl));
+    }
+    return typefaces;
+}
+
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
+    if (!memoryStream) {
+        LOGD("SkiaTypeface::MakeFromStream, memoryStream nullptr");
+        return nullptr;
+    }
     std::unique_ptr<SkStreamAsset> skMemoryStream = memoryStream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream();
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromStream(std::move(skMemoryStream), index);
     if (!skTypeface) {
@@ -234,7 +278,16 @@ sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t len
         return SkTypeface::MakeDeserialize(&stream);
     }
     auto& typeface = textblobCtx->GetTypeface();
-    auto skTypeface = typeface->GetImpl<SkiaTypeface>()->GetSkTypeface();
+    if (typeface == nullptr) {
+        LOGD("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    auto skiaTypeface = typeface->GetImpl<SkiaTypeface>();
+    if (skiaTypeface == nullptr) {
+        LOGD("skiaTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return nullptr;
+    }
+    auto skTypeface = skiaTypeface->GetSkTypeface();
     return skTypeface;
 }
 
@@ -266,6 +319,27 @@ std::shared_ptr<Typeface> SkiaTypeface::Deserialize(const void* data, size_t siz
     auto typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }
+
+uint32_t SkiaTypeface::GetHash() const
+{
+    if (hash_ != 0) {
+        return hash_;
+    }
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return hash_;
+    }
+
+    auto skData = skTypeface_->serialize(SkTypeface::SerializeBehavior::kDontIncludeData);
+    hash_ = SkOpts::hash_fn(skData->data(), skData->size(), 0);
+    return hash_;
+}
+
+void SkiaTypeface::SetHash(uint32_t hash)
+{
+    hash_ = hash;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

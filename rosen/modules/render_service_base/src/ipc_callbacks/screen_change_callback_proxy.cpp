@@ -40,9 +40,16 @@ void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    
+    auto remote = Remote();
+    if (remote == nullptr) {
+        ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged: remote is null!");
+        return;
+    }
+
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        // [PLANNING]: Error log
+        ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged error = %{public}d", err);
     }
 }
 } // namespace Rosen

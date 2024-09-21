@@ -22,6 +22,8 @@
 #include <string>
 #include <thread>
 
+namespace OHOS {
+namespace Rosen {
 using WriteToPngParam = struct {
     uint32_t width;
     uint32_t height;
@@ -33,4 +35,6 @@ using WriteToPngParam = struct {
 bool WriteToPngWithPixelMap(const std::string& fileName, OHOS::Media::PixelMap& pixelMap);
 void WaitTimeout(int ms);
 
+}
+}
 #endif // RS_GRAPHIC_TEST_UTILS_H

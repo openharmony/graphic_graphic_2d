@@ -323,7 +323,7 @@ public:
     {
         std::unique_ptr<T> &object = *reinterpret_cast<std::unique_ptr<T> *>(smartPtr_);
         if (CalculateSmartPtrTypeId(object) == smartPtrTypeId_) {
-            return std::move(object);
+            return object;
         }
 
         WarnSmartPtrCastMismatch();
@@ -340,7 +340,7 @@ public:
     {
         std::unique_ptr<T, D> &object = *reinterpret_cast<std::unique_ptr<T, D> *>(smartPtr_);
         if (CalculateSmartPtrTypeId(object) == smartPtrTypeId_) {
-            return std::move(object);
+            return object;
         }
 
         WarnSmartPtrCastMismatch();

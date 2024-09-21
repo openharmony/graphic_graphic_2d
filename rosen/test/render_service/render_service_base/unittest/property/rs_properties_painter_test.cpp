@@ -1175,6 +1175,20 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightUpEffect001, TestSize.Level1)
     EXPECT_TRUE(properties.clipPath_ != nullptr);
 }
 
+
+/**
+ * @tc.name: DynamicBrightnessBlenderTest001
+ * @tc.desc: MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DynamicBrightnessBlenderTest001, TestSize.Level1)
+{
+    EXPECT_NE(RSPropertiesPainter::MakeDynamicBrightnessBuilder(), nullptr);
+    RSDynamicBrightnessPara params;
+    EXPECT_NE(RSPropertiesPainter::MakeDynamicBrightnessBlender(params), nullptr);
+}
+
 /**
  * @tc.name: DrawDynamicDim001
  * @tc.desc: test results of DrawDynamicDim

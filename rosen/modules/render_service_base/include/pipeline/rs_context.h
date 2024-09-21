@@ -50,8 +50,9 @@ public:
 
 #ifndef ROSEN_CROSS_PLATFORM
     struct BufferInfo {
-        const sptr<SurfaceBuffer> buffer;
-        const sptr<IConsumerSurface> consumer;
+        NodeId id = INVALID_NODEID;
+        sptr<SurfaceBuffer> buffer;
+        sptr<IConsumerSurface> consumer;
         bool useFence = false;
     };
 #endif
@@ -126,7 +127,9 @@ public:
 
     void RequestVsync() const
     {
-        vsyncRequestFunc_();
+        if (vsyncRequestFunc_) {
+            vsyncRequestFunc_();
+        }
     }
 
     void SetTaskRunner(const std::function<void(const std::function<void()>&, bool)>& taskRunner)
@@ -155,6 +158,8 @@ public:
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
 
+    // For LTPO: Transmit data in uiFrameworkTypeTable and uiFrameworkDirtyNodes
+    // between RSRenderNode and HGM model by RSContext.
     void SetUiFrameworkTypeTable(const std::vector<std::string>& table)
     {
         uiFrameworkTypeTable_ = table;
@@ -175,6 +180,18 @@ public:
         return uiFrameworkDirtyNodes_;
     }
 
+    void SetNeedRequestNextVsync(bool needRequestNextVsync)
+    {
+        needRequestNextVsync_ = needRequestNextVsync;
+    }
+
+    bool IsNeedRequestNextVsync() const
+    {
+        return needRequestNextVsync_;
+    }
+
+    // save some need sync finish to client animations in list
+    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId);
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -188,6 +205,8 @@ private:
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
+    std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
+    bool needRequestNextVsync_ = false;
     PurgeType purgeType_ = PurgeType::NONE;
     ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
 

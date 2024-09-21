@@ -40,8 +40,7 @@ public:
     static void Run();
     static void Stop();
     static void ForceShutdown();
-
-    static std::vector<NetworkStats> GetStats(const std::string& interface);
+    static bool IsRunning();
 
     static void SendRdcPath(const std::string& path);
     static void SendDclPath(const std::string& path);
@@ -61,20 +60,24 @@ public:
 
     static bool PopCommand(std::vector<std::string>& args);
 
+    static void SetBlockBinary(bool blockFlag);
+
 private:
-    static void ReportStats();
     static void PushCommand(const std::vector<std::string>& args);
+    static void ResetCommandQueue();
     static void ProcessCommand(const char* data, size_t size);
     static void ProcessBinary(const std::vector<char>& data);
     static void ProcessIncoming(Socket& socket);
     static void ProcessOutgoing(Socket& socket);
     static void SendPath(const std::string& path, PackageID id);
     static void SendPacket(const Packet& packet);
+    static void ResetSendQueue();
     static void Shutdown(Socket*& socket);
 
 private:
-    static bool isRunning_;
+    static std::atomic<bool> isRunning_;
     static std::atomic<bool> forceShutdown_;
+    static std::atomic<bool> blockBinary_;
 
     static std::mutex incomingMutex_;
     static std::queue<std::vector<std::string>> incoming_;

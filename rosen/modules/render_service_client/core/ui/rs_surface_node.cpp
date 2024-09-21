@@ -29,11 +29,7 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include "platform/drawing/rs_surface_converter.h"
 #endif
-#ifdef NEW_RENDER_CONTEXT
-#include "render_context_base.h"
-#else
 #include "render_context/render_context.h"
-#endif
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_hdr_manager.h"
@@ -73,7 +69,6 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     RSSurfaceRenderNodeConfig config = {
         .id = node->GetId(),
         .name = node->name_,
-        .bundleName = node->bundleName_,
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
         .isSync = isWindow && surfaceNodeConfig.isSync,
@@ -81,14 +76,13 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     };
     config.nodeType = type;
 
-    RS_LOGD("RSSurfaceNode::Create name:%{public}s bundleName: %{public}s type: %{public}hhu "
-        "isWindow %{public}d %{public}d ", config.name.c_str(), config.bundleName.c_str(),
+    RS_LOGD("RSSurfaceNode::Create name:%{public}s type: %{public}hhu "
+        "isWindow %{public}d %{public}d ", config.name.c_str(),
         config.nodeType, isWindow, node->IsRenderServiceNode());
 
     if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && node->IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
-            config.id, config.name, static_cast<uint8_t>(config.nodeType),
-            config.bundleName, config.surfaceWindowType);
+            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.surfaceWindowType);
         transactionProxy->AddCommand(command, isWindow);
     } else {
         if (!node->CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId)) {
@@ -279,6 +273,24 @@ void RSSurfaceNode::SetSkipLayer(bool isSkipLayer)
 bool RSSurfaceNode::GetSkipLayer() const
 {
     return isSkipLayer_;
+}
+
+void RSSurfaceNode::SetSnapshotSkipLayer(bool isSnapshotSkipLayer)
+{
+    isSnapshotSkipLayer_ = isSnapshotSkipLayer;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSnapshotSkipLayer>(GetId(), isSnapshotSkipLayer);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetSnapshotSkipLayer, surfaceNodeId:[%" PRIu64 "] isSnapshotSkipLayer:%s", GetId(),
+        isSnapshotSkipLayer ? "true" : "false");
+}
+
+bool RSSurfaceNode::GetSnapshotSkipLayer() const
+{
+    return isSnapshotSkipLayer_;
 }
 
 void RSSurfaceNode::SetFingerprint(bool hasFingerprint)
@@ -594,20 +606,10 @@ std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::str
 }
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode)
-    : RSNode(isRenderServiceNode, config.isTextureExportNode)
-{
-    auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
-    bundleName_ = result.first;
-    name_ = result.second;
-}
+    : RSNode(isRenderServiceNode, config.isTextureExportNode), name_(config.SurfaceNodeName) {}
 
 RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode, NodeId id)
-    : RSNode(isRenderServiceNode, id, config.isTextureExportNode)
-{
-    auto result = SplitSurfaceNodeName(config.SurfaceNodeName);
-    bundleName_ = result.first;
-    name_ = result.second;
-}
+    : RSNode(isRenderServiceNode, id, config.isTextureExportNode), name_(config.SurfaceNodeName) {}
 
 RSSurfaceNode::~RSSurfaceNode()
 {
@@ -791,7 +793,7 @@ void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
     }
 }
 
-void RSSurfaceNode::SetAncoFlags(int32_t flags)
+void RSSurfaceNode::SetAncoFlags(uint32_t flags)
 {
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetAncoFlags>(GetId(), flags);
@@ -827,6 +829,18 @@ void RSSurfaceNode::SetSkipDraw(bool skip)
 bool RSSurfaceNode::GetSkipDraw() const
 {
     return isSkipDraw_;
+}
+
+void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetWatermarkEnabled>(GetId(), name, isEnabled);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        ROSEN_LOGI("SetWatermarkEnabled[%{public}s, %{public}" PRIu64 " watermark:%{public}s]",
+            GetName().c_str(), GetId(), name.c_str());
+        transactionProxy->AddCommand(command, true);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

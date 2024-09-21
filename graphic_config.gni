@@ -48,13 +48,12 @@ declare_args() {
   graphic_2d_feature_use_aps_igameservice_func = false
   graphic_2d_feature_enable_chipset_vsync = false
   graphic_2d_feature_enable_rspipeline = true
+  graphic_2d_feature_enable_prefetch = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
-    use_new_render_context = false
     is_cross_platform = true
   } else {
     is_cross_platform = false
-    use_new_render_context = false
   }
 }
 
@@ -179,10 +178,6 @@ if (graphic_2d_feature_parallel_render_enable) {
   rs_enable_parallel_render = true
   gpu_defines += [ "RS_ENABLE_PARALLEL_RENDER" ]
 }
-if (defined(use_new_render_context) && use_new_render_context) {
-  rs_enable_parallel_render = false
-  gpu_defines -= [ "RS_ENABLE_PARALLEL_RENDER" ]
-}
 
 if (graphic_2d_feature_enable_dvsync) {
   gpu_defines += [ "RS_ENABLE_DVSYNC" ]
@@ -198,13 +193,7 @@ if (graphic_2d_feature_tp_switch_enbale) {
   tp_defines = [ "TP_FEATURE_ENABLE" ]
 }
 
-graphic_2d_ext_configs = {
-}
 check_graphic_ext_file_script = "//build/ohos/file_exists.py"
-check_graphic_ext_file_args = [
-  "--filename",
-  rebase_path("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni"),
-]
 
 check_ddgr_ext_file_args = [
   "--filename",
@@ -233,14 +222,11 @@ check_broker_ext_file_args = [
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
 ]
-
-if (exec_script(check_graphic_ext_file_script,
-                check_graphic_ext_file_args,
-                "string") == "True" && "${product_name}" == "ohcore") {
-  graphic_2d_ext_configs = {
-    import("//foundation/graphic/graphic_2d_ext/ohcore/build/config.gni")
-  }
-}
+check_hgm_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni"),
+]
 
 if (exec_script(check_graphic_ext_file_script,
                 check_ddgr_ext_file_args,
@@ -284,6 +270,17 @@ if (exec_script(check_graphic_ext_file_script,
                 "string") == "True") {
   graphic_2d_broker_configs = {
     import("//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni")
+  }
+}
+
+graphic_2d_hgm_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_hgm_ext_file_args,
+                "string") == "True") {
+  graphic_2d_hgm_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni")
   }
 }
 
@@ -373,4 +370,8 @@ if (defined(use_clang_coverage) && use_clang_coverage) {
 
 if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
   gpu_defines += [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+}
+
+if (defined(graphic_2d_feature_enable_prefetch)) {
+  gpu_defines += [ "RS_ENABLE_PREFETCH" ]
 }

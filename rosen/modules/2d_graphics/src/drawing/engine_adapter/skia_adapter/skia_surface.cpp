@@ -105,6 +105,10 @@ bool SkiaSurface::Bind(const Bitmap& bitmap)
 bool SkiaSurface::Bind(const Image& image)
 {
     auto skiaImageImpl = image.GetImpl<SkiaImage>();
+    if (skiaImageImpl == nullptr) {
+        LOGD("SkiaSurface bind Image failed: skiaImageImpl is nullptr");
+        return false;
+    }
     auto skImage = skiaImageImpl->GetImage();
     auto grContext = skiaImageImpl->GetGrContext();
     if (skImage == nullptr || grContext == nullptr) {
@@ -153,7 +157,10 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
     SkColorType colorType = SkiaImageInfo::ConvertToSkColorType(frameBuffer.colorType);
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (frameBuffer.colorSpace != nullptr) {
-        skColorSpace = frameBuffer.colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+        auto colorSpaceImpl = frameBuffer.colorSpace->GetImpl<SkiaColorSpace>();
+        if (colorSpaceImpl != nullptr) {
+            skColorSpace = colorSpaceImpl->GetColorSpace();
+        }
     }
 
     SkSurfaceProps surfaceProps(SURFACE_PROPS_FLAGS, kRGB_H_SkPixelGeometry);
@@ -189,7 +196,8 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
-        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     } else {
         skColorSpace = SkColorSpace::MakeSRGB();
     }
@@ -221,7 +229,8 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     }
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
-        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetColorSpace();
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     } else {
         skColorSpace = SkColorSpace::MakeSRGB();
     }
@@ -408,6 +417,24 @@ std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
     return drawingSurface;
 }
 
+std::shared_ptr<Surface> SkiaSurface::MakeSurface(const ImageInfo& imageInfo) const
+{
+    if (skSurface_ == nullptr) {
+        LOGD("skSurface is nullptr");
+        return nullptr;
+    }
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    auto surface = skSurface_->makeSurface(skImageInfo);
+    if (surface == nullptr) {
+        LOGD("SkiaSurface::MakeSurface failed");
+        return nullptr;
+    }
+
+    auto drawingSurface = std::make_shared<Surface>();
+    drawingSurface->GetImpl<SkiaSurface>()->SetSkSurface(surface);
+    return drawingSurface;
+}
+
 void SkiaSurface::SetSkSurface(const sk_sp<SkSurface>& skSurface)
 {
     skSurface_ = skSurface;
@@ -448,6 +475,35 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
     }
     skSurface_->flush();
 }
+
+#ifdef RS_ENABLE_GL
+void SkiaSurface::Wait(const std::vector<GrGLsync>& syncs)
+{
+    if (!SystemProperties::IsUseGl()) {
+        return;
+    }
+
+    if (skSurface_ == nullptr) {
+        LOGD("skSurface is nullptr");
+        return;
+    }
+
+    uint32_t count = syncs.size();
+    if (count == 0) {
+        LOGD("GrGLsync count is zero");
+        return;
+    } else {
+        std::vector<GrBackendSemaphore> semaphores;
+        semaphores.reserve(count);
+        for (auto& sync : syncs) {
+            GrBackendSemaphore backendSemaphore;
+            backendSemaphore.initGL(sync);
+            semaphores.emplace_back(backendSemaphore);
+        }
+        skSurface_->wait(count, semaphores.data());
+    }
+}
+#endif
 
 #ifdef RS_ENABLE_VK
 void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)

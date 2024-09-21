@@ -45,7 +45,7 @@ public:
 #endif
 
     // called by render thread
-    bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& node, ScreenId mirroredId,
+    bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable, RSSurfaceRenderParams& params) override;
     void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
@@ -53,11 +53,9 @@ public:
     void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
 
 private:
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    void DealWithHdr(RSSurfaceRenderNode& node, LayerInfoPtr& layer, sptr<SurfaceBuffer> buffer);
-#endif
     LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
+    void ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, RSLayerInfo& layerInfo, sptr<SurfaceBuffer> buffer);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
     size_t layerNum_ = 0;

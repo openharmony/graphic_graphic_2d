@@ -394,6 +394,11 @@ public:
         presentTimestamp_ = timestamp;
     }
 
+    int32_t GetSdrNit() const
+    {
+        return sdrNit_;
+    }
+
     int32_t GetDisplayNit() const
     {
         return displayNit_;
@@ -402,6 +407,11 @@ public:
     float GetBrightnessRatio() const
     {
         return brightnessRatio_;
+    }
+
+    int32_t SetSdrNit(int32_t sdrNit)
+    {
+        return sdrNit_ = sdrNit;
     }
 
     int32_t SetDisplayNit(int32_t displayNit)
@@ -454,6 +464,16 @@ public:
         return rotationFixed_;
     }
 
+    void SetLayerArsr(bool arsrTag)
+    {
+        arsrTag_ = arsrTag;
+    }
+
+    bool GetLayerArsr() const
+    {
+        return arsrTag_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -486,6 +506,7 @@ public:
         layerSource_ = layerInfo->GetLayerSourceTuning();
         clearCacheSet_ = layerInfo->GetClearCacheSet();
         rotationFixed_ = layerInfo->GetRotationFixed();
+        arsrTag_ = layerInfo->GetLayerArsr();
     }
 
     void Dump(std::string &result) const
@@ -599,6 +620,7 @@ private:
     bool preMulti_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
     mutable std::mutex mutex_;
+    int32_t sdrNit_ = 500; // default sdr nit
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
     uint64_t nodeId_ = 0;
@@ -606,6 +628,7 @@ private:
     int32_t layerSource_ = 0; // default layer source tag
     std::set<int32_t> clearCacheSet_;
     bool rotationFixed_ = false;
+    bool arsrTag_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

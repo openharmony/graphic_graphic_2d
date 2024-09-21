@@ -277,6 +277,23 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectPixelMap002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OH_Filter_GetEffectPixelMap003
+ * @tc.desc: Get a pixelmap created by the filter.
+ * @tc.type: FUNC
+ * @tc.require: I9CSQ0
+ * @tc.author:
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectPixelMap003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectPixelMap003 start";
+    ASSERT_TRUE(OH_Filter_GetEffectPixelMap(nullptr, nullptr) == EFFECT_BAD_PARAMETER);
+
+    OH_PixelmapNative *pixelMap1 = nullptr;
+    ASSERT_TRUE(OH_Filter_GetEffectPixelMap(nullptr, &pixelMap1) == EFFECT_BAD_PARAMETER);
+    OH_PixelmapNative_Release(pixelMap1);
+}
+
+/**
  * @tc.name: OH_Filter_Release
  * @tc.desc: Get a pixelmap created by the filter.
  * @tc.type: FUNC

@@ -41,6 +41,7 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSDisplayRenderParams& params);
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
+    void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
@@ -88,22 +89,6 @@ public:
     {
         return surfaceCreated_;
     }
-
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> GetRSSurface() const
-    {
-        return surface_;
-    }
-    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
-    {
-        virtualSurface_ = virtualSurface;
-        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
-    }
-    std::shared_ptr<RSRenderSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
-    {
-        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
-    }
-#else
     std::shared_ptr<RSSurface> GetRSSurface() const
     {
         return surface_;
@@ -117,7 +102,6 @@ public:
     {
         return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
     }
-#endif
 
     bool IsFirstTimeToProcessor() const
     {
@@ -166,13 +150,16 @@ private:
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
-    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable);
-    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
+    void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
+    void FinishOffscreenRender(const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio = 1.0f);
+    void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
+    void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
     bool SkipDisplayIfScreenOff() const;
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
-    void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const;
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
+    static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
+    static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -204,18 +191,14 @@ private:
     // surface create in render thread
     static constexpr uint32_t BUFFER_SIZE = 4;
     bool surfaceCreated_ = false;
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
-    std::shared_ptr<RSRenderSurface> virtualSurface_ = nullptr;
-#else
     std::shared_ptr<RSSurface> surface_ = nullptr;
     std::shared_ptr<RSSurface> virtualSurface_ = nullptr;
-#endif
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
     int64_t lastRefreshTime_ = 0;
+    bool virtualDirtyRefresh_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

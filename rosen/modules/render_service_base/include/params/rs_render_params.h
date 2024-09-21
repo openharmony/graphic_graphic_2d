@@ -56,6 +56,7 @@ public:
         int width = 0;
         int height = 0;
     };
+
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
     void SetAlpha(float alpha);
@@ -111,6 +112,36 @@ public:
         return needFilter_;
     }
 
+    void SetNodeType(RSRenderNodeType type);
+    inline RSRenderNodeType GetType() const
+    {
+        return renderNodeType_;
+    }
+
+    void SetEffectNodeShouldPaint(bool effectNodeShouldPaint);
+    inline bool GetEffectNodeShouldPaint() const
+    {
+        return effectNodeShouldPaint_;
+    }
+
+    void SetHasGlobalCorner(bool hasGlobalCorner);
+    inline bool HasGlobalCorner() const
+    {
+        return hasGlobalCorner_;
+    }
+
+    void SetHasBlurFilter(bool hasBlurFilter);
+    inline bool HasBlurFilter() const
+    {
+        return hasBlurFilter_;
+    }
+
+    void SetGlobalAlpha(float alpha);
+    inline float GetGlobalAlpha() const
+    {
+        return globalAlpha_;
+    }
+
     inline bool IsSecurityLayer() const
     {
         return isSecurityLayer_;
@@ -119,6 +150,11 @@ public:
     inline bool IsSkipLayer() const
     {
         return isSkipLayer_;
+    }
+
+    inline bool IsSnapshotSkipLayer() const
+    {
+        return isSnapshotSkipLayer_;
     }
 
     inline bool IsLayerDirty() const
@@ -144,6 +180,9 @@ public:
 
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const;
+
+    void SetNeedUpdateCache(bool needUpdateCache);
+    bool GetNeedUpdateCache() const;
 
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
     RSDrawingCacheType GetDrawingCacheType() const;
@@ -182,6 +221,11 @@ public:
         return startingWindowFlag_;
     }
 
+    bool SetFirstLevelNode(NodeId firstLevelNodeId);
+    NodeId GetFirstLevelNodeId() const;
+    bool SetUiFirstRootNode(NodeId uifirstRootNodeId);
+    NodeId GetUifirstRootNodeId() const;
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -213,8 +257,11 @@ public:
     virtual const RSLayerInfo& GetLayerInfo() const;
     virtual const RectI& GetAbsDrawRect() const
     {
-        static const RectI defaultRect = {};
-        return defaultRect;
+        return absDrawRect_;
+    }
+    void SetAbsDrawRect(RectI& absRect)
+    {
+        absDrawRect_ = absRect;
     }
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
@@ -256,11 +303,6 @@ public:
     }
     virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
     virtual const Drawing::Matrix& GetTotalMatrix();
-    virtual void SetGlobalAlpha(float alpha) {}
-    virtual float GetGlobalAlpha()
-    {
-        return 0;
-    }
     virtual void SetPreScalingMode(ScalingMode scalingMode) {}
     virtual ScalingMode GetPreScalingMode() const
     {
@@ -282,12 +324,15 @@ protected:
 
 private:
     NodeId id_;
+    RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
     Drawing::RectF frameRect_;
     float alpha_ = 1.0f;
+    float globalAlpha_ = 1.0f;
     // this rect should map display coordination
     RectF localDrawRect_;
+    RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
 
@@ -295,9 +340,11 @@ private:
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
+    std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
@@ -310,8 +357,13 @@ private:
     bool isOpincStateChanged_ = false;
     bool startingWindowFlag_ = false;
     bool needFilter_ = false;
+    bool effectNodeShouldPaint_ = false;
+    bool hasGlobalCorner_ = false;
+    bool hasBlurFilter_ = false;
     SurfaceParam surfaceParams_;
     bool freezeFlag_ = false;
+    NodeId firstLevelNodeId_ = INVALID_NODEID;
+    NodeId uifirstRootNodeId_ = INVALID_NODEID;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

@@ -41,6 +41,7 @@ public:
     sk_sp<SkTypeface> GetTypeface() const;
 
     std::string GetFamilyName() const override;
+    std::string GetFontPath() const override;
     FontStyle GetFontStyle() const override;
     size_t GetTableSize(uint32_t tag) const override;
     size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const override;
@@ -53,18 +54,25 @@ public:
 
     static std::shared_ptr<Typeface> MakeDefault();
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index);
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[], const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
+    static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
 
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);
     std::shared_ptr<Data> Serialize() const override;
     static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);
+    /** return stored hash, calculates the hash if no value is stored */
+    uint32_t GetHash() const override;
+    /** store hash, storing a zero causes recalculating a hash when asked */
+    void SetHash(uint32_t hash) override;
 
 private:
     SkiaTypeface() = default;
 
     sk_sp<SkTypeface> skTypeface_;
+    mutable uint32_t hash_ { 0 };
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -12,11 +12,11 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic_2d/utils/wmlayout/wmlayout.gni")
 import("graphic_config.gni")
 
 group("default") {
   public_deps = [ ":graphic.rc" ]
+  public_deps += [ "etc:graphic_config" ]
 
   if (graphic_2d_feature_bootanimation_enable) {
     public_deps += [ "frameworks/bootanimation:bootanimation" ]
@@ -60,10 +60,6 @@ ohos_prebuilt_etc("graphic.rc") {
 }
 
 ## Install graphic.rc to /system/etc/init/graphic.rc }}}
-
-group("libfence") {
-  public_deps = [ "frameworks/fence:libfence" ]
-}
 
 group("libvulkan") {
   public_deps = libvulkan

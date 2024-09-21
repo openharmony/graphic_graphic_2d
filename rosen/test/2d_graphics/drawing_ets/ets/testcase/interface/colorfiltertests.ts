@@ -18,7 +18,7 @@ import common2D from "@ohos.graphics.common2D";
 import {TestBase} from '../../pages/testbase';
 
 export class ColorFilterCreateMatrix extends TestBase {
-  matrix_: Array<Number> = [
+  matrix_: Array<number> = [
     1, 0, 0, 0, 0,
     0, 1, 0, 0, 0,
     0, 0, 100, 0, 0,

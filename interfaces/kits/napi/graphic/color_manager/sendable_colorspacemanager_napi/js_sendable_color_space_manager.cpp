@@ -21,10 +21,12 @@
 #include "js_color_space.h"
 #include "js_color_space_utils.h"
 
-namespace OHOS {
-namespace ColorManager {
+namespace {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t PRIMARIES_PARAMS_NUM = 8;
+}
+namespace OHOS {
+namespace ColorManager {
 
 void JsSendableColorSpaceManager::Finalizer(napi_env env, void* data, void* hint)
 {
@@ -63,14 +65,14 @@ napi_value JsSendableColorSpaceManager::OnCreateColorSpace(napi_env env, napi_ca
 {
     size_t argvSize = 2;
     std::vector<napi_value> argvArr(argvSize);
-    napi_get_cb_info(env, info, &argvSize, argvArr.data(), nullptr, nullptr);
+    NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_cb_info(env, info, &argvSize, argvArr.data(), nullptr, nullptr));
     if (!CheckParamMinimumValid(env, argvSize, 0)) {
         return nullptr;
     }
     std::shared_ptr<ColorSpace> colorSpace;
     ApiColorSpaceType csType = ApiColorSpaceType::UNKNOWN;
     napi_value object = nullptr;
-    napi_get_undefined(env, &object);
+    NAPI_CALL_WITH_ERRCODE_DEFAULT(env, napi_get_undefined(env, &object));
     
     if (ConvertFromJsValue(env, argvArr[0], csType)) {
         if (!CheckColorSpaceTypeRange(env, csType)) {
@@ -161,7 +163,12 @@ napi_value JsSendableColorSpaceManagerInit(napi_env env, napi_value exportObj)
     }
 
     std::unique_ptr<JsSendableColorSpaceManager> jsColorSpaceManager = std::make_unique<JsSendableColorSpaceManager>();
-    napi_wrap(env, exportObj, jsColorSpaceManager.release(), JsSendableColorSpaceManager::Finalizer, nullptr, nullptr);
+    NAPI_CALL_DEFAULT(napi_wrap(env, exportObj, jsColorSpaceManager.release(),
+        JsSendableColorSpaceManager::Finalizer, nullptr, nullptr));
+    if (BindNativeFunction(env, exportObj, "create", nullptr,
+        JsSendableColorSpaceManager::CreateSendableColorSpace) != napi_ok) {
+        return nullptr;
+    }
     return exportObj;
 }
 }  // namespace ColorManager

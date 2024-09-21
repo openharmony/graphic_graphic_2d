@@ -163,6 +163,17 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation()
     return implicitAnimator->CloseImplicitAnimation();
 }
 
+bool RSNode::CloseImplicitCancelAnimation()
+{
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to close implicit animation for cancel, implicit animator is null!");
+        return false;
+    }
+
+    return implicitAnimator->CloseImplicitCancelAnimation();
+}
+
 void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;
@@ -529,12 +540,22 @@ void RSNode::MarkDirty(NodeDirtyType type, bool isDirty)
     }
 }
 
-std::shared_ptr<RSObjAbsGeometry> RSNode::GetLocalGeometry()
+float RSNode::GetGlobalPositionX() const
+{
+    return globalPositionX_;
+}
+
+float RSNode::GetGlobalPositionY() const
+{
+    return globalPositionY_;
+}
+
+std::shared_ptr<RSObjAbsGeometry> RSNode::GetLocalGeometry() const
 {
     return localGeometry_;
 }
 
-std::shared_ptr<RSObjAbsGeometry> RSNode::GetGlobalGeometry()
+std::shared_ptr<RSObjAbsGeometry> RSNode::GetGlobalGeometry() const
 {
     return globalGeometry_;
 }
@@ -562,6 +583,16 @@ void RSNode::UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& paren
     }
     *globalGeometry_ = *localGeometry_;
     globalGeometry_->UpdateMatrix(&parentGlobalGeometry->GetAbsMatrix(), std::nullopt);
+
+    float parentGlobalPositionX = 0.f;
+    float parentGlobalPositionY = 0.f;
+    auto parent = GetParent();
+    if (parent) {
+        parentGlobalPositionX = parent->globalPositionX_;
+        parentGlobalPositionY = parent->globalPositionY_;
+    }
+    globalPositionX_ = parentGlobalPositionX + localGeometry_->GetX();
+    globalPositionY_ = parentGlobalPositionY + localGeometry_->GetY();
 }
 
 template<typename ModifierName, typename PropertyName, typename T>
@@ -1500,7 +1531,6 @@ void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilt
         SetBackgroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT);
         SetBackgroundBlurRadiusX(0.f);
         SetBackgroundBlurRadiusY(0.f);
-        bgFilterDescription_ = "";
     } else if (backgroundFilter->GetFilterType() == RSFilter::MATERIAL) {
         auto materialFilter = std::static_pointer_cast<RSMaterialFilter>(backgroundFilter);
         float Radius = materialFilter->GetRadius();
@@ -1513,27 +1543,13 @@ void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilt
         SetBackgroundBlurBrightness(Brightness);
         SetBackgroundBlurMaskColor(MaskColor);
         SetBackgroundBlurColorMode(ColorMode);
-
-        const uint8_t MaskColorBytes = 16; // 16 bytes
-        char maskColorStr[MaskColorBytes] = { 0 };
-        if (sprintf_s(maskColorStr, MaskColorBytes, "%08X", MaskColor.AsArgbInt()) != -1) {
-            bgFilterDescription_ = "materialFilter, radius: " + std::to_string(Radius) + " sigma" +
-            ", saturation: " + std::to_string(Saturation) + ", brightness: " + std::to_string(Brightness) +
-            ", color: " + maskColorStr + ", colorMode: " + std::to_string(ColorMode) + "Id: " + std::to_string(id_);
-        }
     } else if (backgroundFilter->GetFilterType() == RSFilter::BLUR) {
         auto blurFilter = std::static_pointer_cast<RSBlurFilter>(backgroundFilter);
         float blurRadiusX = blurFilter->GetBlurRadiusX();
         float blurRadiusY = blurFilter->GetBlurRadiusY();
         SetBackgroundBlurRadiusX(blurRadiusX);
         SetBackgroundBlurRadiusY(blurRadiusY);
-        bgFilterDescription_ = "blurFilter, radius: " + std::to_string(blurRadiusX) + " sigma";
     }
-}
-
-std::string RSNode::GetBackgroundFilterDescription()
-{
-    return bgFilterDescription_;
 }
 
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
@@ -2106,7 +2122,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
                 std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
         }
-        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+        ROSEN_LOGD("RSNode::add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), modifier->GetModifierTypeString().c_str());
     }
 }
@@ -2126,7 +2142,7 @@ void RSNode::DoFlushModifier()
     for (const auto& [_, modifier] : modifiers_) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
         transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::flush modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+        ROSEN_LOGD("RSNode::flush modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), modifier->GetModifierTypeString().c_str());
     }
 }
@@ -2166,7 +2182,7 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
                 std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
         }
-        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+        ROSEN_LOGD("RSNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), modifier->GetModifierTypeString().c_str());
     }
 }
@@ -2767,6 +2783,67 @@ void RSNode::SetParent(NodeId parentId)
 RSNode::SharedPtr RSNode::GetParent()
 {
     return RSNodeMap::Instance().GetNode(parent_);
+}
+
+void RSNode::DumpTree(int depth, std::string& out) const
+{
+    for (int i = 0; i < depth; i++) {
+        out += "  ";
+    }
+    out += "| ";
+    Dump(out);
+    for (auto childId : children_) {
+        if (auto child = RSNodeMap::Instance().GetNode(childId)) {
+            out += "\n";
+            child->DumpTree(depth + 1, out);
+        }
+    }
+}
+
+void RSNode::Dump(std::string& out) const
+{
+    auto iter = RSUINodeTypeStrs.find(GetType());
+    out += (iter != RSUINodeTypeStrs.end() ? iter->second : "RSNode");
+    out += "[" + std::to_string(id_);
+    out += "], parent[" + std::to_string(parent_);
+    out += "], instanceId[" + std::to_string(instanceId_);
+    if (auto node = ReinterpretCastTo<RSSurfaceNode>()) {
+        out += "], name[" + node->GetName();
+    } else if (!nodeName_.empty()) {
+        out += "], nodeName[" + nodeName_;
+    }
+    out += "], frameNodeId[" + std::to_string(frameNodeId_);
+    out += "], frameNodeTag[" + frameNodeTag_;
+    out += "], extendModifierIsDirty[";
+    out += extendModifierIsDirty_ ? "true" : "false";
+    out += "], isNodeGroup[";
+    out += isNodeGroup_ ? "true" : "false";
+    out += "], isSingleFrameComposer[";
+    out += isNodeSingleFrameComposer_ ? "true" : "false";
+    out += "], isSuggestOpincNode[";
+    out += isSuggestOpincNode_ ? "true" : "false";
+    out += "], isUifirstNode[";
+    out += isUifirstNode_ ? "true" : "false";
+    out += "], drawRegion[";
+    if (drawRegion_) {
+        out += "x:" + std::to_string(drawRegion_->GetLeft());
+        out += " y:" + std::to_string(drawRegion_->GetTop());
+        out += " width:" + std::to_string(drawRegion_->GetWidth());
+        out += " height:" + std::to_string(drawRegion_->GetHeight());
+    } else {
+        out += "null";
+    }
+    out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
+    out += "], animations[";
+    for (const auto& [id, anim] : animations_) {
+        out += "{id:" + std::to_string(id);
+        out += " propId:" + std::to_string(anim->GetPropertyId());
+        out += "} ";
+    }
+    if (!animations_.empty()) {
+        out.pop_back();
+    }
+    out += "]";
 }
 
 std::string RSNode::DumpNode(int depth) const

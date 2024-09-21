@@ -240,6 +240,10 @@ void RSCanvasDrawingRenderNodeDrawable::FlushForGL(float width, float height, st
                 RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush backendTexture_ is nullptr");
                 return;
             }
+            if (rscanvas.GetGPUContext() == nullptr) {
+                RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush GPU context is nullptr");
+                return;
+            }
             Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
             Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
             SharedTextureContext* sharedContext = new SharedTextureContext(image_); // last image
@@ -394,6 +398,9 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext
 static bool WriteSkImageToPixelmap(std::shared_ptr<Drawing::Image> image, Drawing::ImageInfo info,
     std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect)
 {
+    if (image == nullptr || pixelmap == nullptr || rect == nullptr) {
+        return false;
+    }
     return image->ReadPixels(
         info, pixelmap->GetWritablePixels(), pixelmap->GetRowStride(),
         rect->GetLeft(), rect->GetTop());
@@ -498,6 +505,10 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
     }
 
     if (!backendTexture_.IsValid()) {
+        return;
+    }
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage canvas.GetGPUContext is nullptr");
         return;
     }
     if (captureImage_ && captureImage_->IsValid(canvas.GetGPUContext().get())) {
@@ -702,6 +713,11 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
     }
     if (!backendTexture_.IsValid()) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture backendTexture_ is nullptr");
+        ClearPreSurface(preSurface);
+        return false;
+    }
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture GPU context is nullptr");
         ClearPreSurface(preSurface);
         return false;
     }

@@ -59,10 +59,14 @@ public:
     std::shared_ptr<Image> GetImageSnapshot() const override;
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const override;
     std::shared_ptr<Surface> MakeSurface(int width, int height) const override;
+    std::shared_ptr<Surface> MakeSurface(const ImageInfo& imageInfo) const override;
     BackendTexture GetBackendTexture(BackendAccess access) const override;
     void SetSkSurface(const sk_sp<SkSurface>& skSurface);
     void FlushAndSubmit(bool syncCpu) override;
     void Flush(FlushInfo *drawingflushInfo = nullptr) override;
+#ifdef RS_ENABLE_GL
+    void Wait(const std::vector<GrGLsync>& syncs) override;
+#endif
 #ifdef RS_ENABLE_VK
     void Wait(int32_t time, const VkSemaphore& semaphore) override;
     void SetDrawingArea(const std::vector<RectI>& rects) override;

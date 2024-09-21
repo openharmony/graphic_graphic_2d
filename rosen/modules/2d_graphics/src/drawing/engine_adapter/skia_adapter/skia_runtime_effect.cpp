@@ -103,19 +103,21 @@ std::shared_ptr<ShaderEffect> SkiaRuntimeEffect::MakeShader(std::shared_ptr<Data
     std::shared_ptr<ShaderEffect> children[], size_t childCount, const Matrix* localMatrix,
     bool isOpaque)
 {
-    auto data = uniforms ? uniforms->GetImpl<SkiaData>()->GetSkData() : SkData::MakeEmpty();
-    sk_sp<SkShader> skChildren[childCount];
-    for (size_t i = 0; i < childCount; ++i) {
-        auto skShaderImpl = children[i]->GetImpl<SkiaShaderEffect>();
-        if (skShaderImpl) {
-            skChildren[i] = sk_sp<SkShader>(skShaderImpl->GetShader());
-        }
-    }
-    sk_sp<SkShader> skShader = skRuntimeEffect_->makeShader(data, skChildren,
-        childCount, localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr,
-        isOpaque);
     std::shared_ptr<ShaderEffect> shader = std::make_shared<ShaderEffect>();
-    shader->GetImpl<SkiaShaderEffect>()->SetSkShader(skShader);
+    if (skRuntimeEffect_ != nullptr) {
+        auto data = uniforms ? uniforms->GetImpl<SkiaData>()->GetSkData() : SkData::MakeEmpty();
+        sk_sp<SkShader> skChildren[childCount];
+        for (size_t i = 0; i < childCount; ++i) {
+            auto skShaderImpl = children[i]->GetImpl<SkiaShaderEffect>();
+            if (skShaderImpl) {
+                skChildren[i] = sk_sp<SkShader>(skShaderImpl->GetShader());
+            }
+        }
+        sk_sp<SkShader> skShader = skRuntimeEffect_->makeShader(data, skChildren,
+            childCount, localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr,
+            isOpaque);
+        shader->GetImpl<SkiaShaderEffect>()->SetSkShader(skShader);
+    }
     return shader;
 }
 

@@ -57,6 +57,11 @@ std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas()
     return std::make_unique<SkiaCanvas>();
 }
 
+std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(DrawingType type)
+{
+    return std::make_unique<SkiaCanvas>(type);
+}
+
 std::unique_ptr<CoreCanvasImpl> SkiaImplFactory::CreateCoreCanvas(void* rawCanvas)
 {
     auto skCanvasPtr = reinterpret_cast<std::shared_ptr<SkCanvas>*>(rawCanvas);

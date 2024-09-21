@@ -35,8 +35,20 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
             return;
         }
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(node);
+        if (displayNode == nullptr) {
+            RS_LOGE("DisplayNodeCommandHelper::Create displayNode is nullptr");
+            return;
+        }
         displayNode->SetMirrorSource(mirrorSourceNode);
     }
+}
+
+std::shared_ptr<RSDisplayRenderNode> DisplayNodeCommandHelper::CreateWithConfigInRS(
+    RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
+{
+    auto node = std::shared_ptr<RSDisplayRenderNode>(new RSDisplayRenderNode(id, config,
+        context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    return node;
 }
 
 void DisplayNodeCommandHelper::AddDisplayNodeToTree(RSContext& context, NodeId id)

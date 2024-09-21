@@ -30,6 +30,7 @@
 #include "rs_profiler_network.h"
 #include "rs_profiler_utils.h"
 #include "rs_profiler_file.h"
+#include "rs_profiler_log.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -83,6 +84,9 @@ static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
 static std::unordered_map<AnimationId, std::vector<int64_t>> g_animeStartMap;
 
 bool RSProfiler::testing_ = false;
+bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
+bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
+int8_t RSProfiler::signalFlagChanged_ = 0;
 
 constexpr size_t GetParcelMaxCapacity()
 {
@@ -91,8 +95,12 @@ constexpr size_t GetParcelMaxCapacity()
 
 bool RSProfiler::IsEnabled()
 {
-    static const bool ENABLED = RSSystemProperties::GetProfilerEnabled();
-    return ENABLED || testing_;
+    return enabled_ || testing_;
+}
+
+bool RSProfiler::IsBetaRecordEnabled()
+{
+    return betaRecordingEnabled_;
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -299,6 +307,11 @@ void RSProfiler::TimePauseClear()
     g_pauseAfterTime = 0;
 }
 
+uint64_t RSProfiler::TimePauseGet()
+{
+    return g_pauseAfterTime;
+}
+
 std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(const RSContext& context)
 {
     const std::shared_ptr<RSBaseRenderNode>& root = context.GetGlobalRootRenderNode();
@@ -431,15 +444,20 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
     const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
     const uint32_t count = map.renderNodeMap_.size();
     data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    const auto& rootRenderNode = context.GetGlobalRootRenderNode();
+    if (rootRenderNode == nullptr) {
+        RS_LOGE("RSProfiler::MarshalNodes rootRenderNode is nullptr");
+        return;
+    }
 
     std::vector<std::shared_ptr<RSRenderNode>> nodes;
-    nodes.emplace_back(context.GetGlobalRootRenderNode());
+    nodes.emplace_back(rootRenderNode);
 
     for (const auto& item : map.renderNodeMap_) {
         if (const auto& node = item.second) {
             MarshalNode(*node, data, fileVersion);
             std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
-            if (!parent && (node != context.GetGlobalRootRenderNode())) {
+            if (!parent && (node != rootRenderNode)) {
                 nodes.emplace_back(node);
             }
         }
@@ -487,7 +505,7 @@ void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, 
         data.write(reinterpret_cast<const char*>(&size), sizeof(size));
         data.write(reinterpret_cast<const char*>(name.c_str()), size);
 
-        const std::string bundleName = surfaceNode.GetBundleName();
+        const std::string bundleName = "";
         size = bundleName.size();
         data.write(reinterpret_cast<const char*>(&size), sizeof(size));
         data.write(reinterpret_cast<const char*>(bundleName.c_str()), size);
@@ -614,7 +632,6 @@ static void CreateRenderSurfaceNode(RSContext& context, NodeId id, bool isTextur
 
     const RSSurfaceRenderNodeConfig config = { .id = id,
         .name = name + "_",
-        .bundleName = bundleName,
         .nodeType = nodeType,
         .additionalData = nullptr,
         .isTextureExportNode = isTextureExportNode,
@@ -707,7 +724,7 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, Node
         node->GetMutableRenderProperties().SetPositionZ(positionZ);
         node->GetMutableRenderProperties().SetPivotZ(pivotZ);
         node->SetPriority(priority);
-        node->SetIsOnTheTree(isOnTree);
+        node->RSRenderNode::SetIsOnTheTree(isOnTree);
         node->nodeGroupType_ = nodeGroupType;
         UnmarshalNodeModifiers(*node, data, fileVersion);
     }
@@ -769,6 +786,9 @@ void RSProfiler::UnmarshalTree(RSContext& context, std::stringstream& data, uint
     data.read(reinterpret_cast<char*>(&count), sizeof(count));
 
     auto node = map.GetRenderNode(nodeId);
+    if (!node) {
+        return;
+    }
     for (uint32_t i = 0; i < count; i++) {
         NodeId nodeId = 0;
         data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId));
@@ -985,11 +1005,6 @@ void RSProfiler::EnableBetaRecord()
     RSSystemProperties::SetBetaRecordingMode(1);
 }
 
-bool RSProfiler::IsBetaRecordEnabled()
-{
-    return RSSystemProperties::GetBetaRecordingMode() != 0;
-}
-
 bool RSProfiler::IsBetaRecordSavingTriggered()
 {
     constexpr uint32_t savingMode = 2u;
@@ -1029,7 +1044,13 @@ static const uint8_t* GetCachedAshmemData(uint64_t id)
 
 void RSProfiler::WriteParcelData(Parcel& parcel)
 {
-    if (!IsEnabled()) {
+    bool isClientEnabled = RSSystemProperties::GetProfilerEnabled();
+    if (!parcel.WriteBool(isClientEnabled)) {
+        HRPE("Unable to write is_client_enabled");
+        return;
+    }
+
+    if (!isClientEnabled) {
         return;
     }
 
@@ -1038,7 +1059,12 @@ void RSProfiler::WriteParcelData(Parcel& parcel)
 
 const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc)
 {
-    if (!IsEnabled()) {
+    bool isClientEnabled = false;
+    if (!parcel.ReadBool(isClientEnabled)) {
+        HRPE("Unable to read is_client_enabled");
+        return nullptr;
+    }
+    if (!isClientEnabled) {
         return RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
     }
 
@@ -1075,7 +1101,7 @@ std::string RSProfiler::SendMessageBase()
     return value;
 }
 
-void RSProfiler::SendMessageBase(const std::string msg)
+void RSProfiler::SendMessageBase(const std::string& msg)
 {
     const std::lock_guard<std::mutex> guard(g_msgBaseMutex);
     g_msgBaseList.push(msg);

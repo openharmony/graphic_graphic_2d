@@ -23,6 +23,7 @@
 #include "rs_profiler_cache.h"
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_file.h"
+#include "rs_profiler_log.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_socket.h"
 #include "rs_profiler_utils.h"
@@ -31,8 +32,9 @@
 
 namespace OHOS::Rosen {
 
-bool Network::isRunning_ = false;
+std::atomic<bool> Network::isRunning_ = false;
 std::atomic<bool> Network::forceShutdown_ = false;
+std::atomic<bool> Network::blockBinary_ = false;
 
 std::mutex Network::incomingMutex_ {};
 std::queue<std::vector<std::string>> Network::incoming_ {};
@@ -48,6 +50,11 @@ static void AwakeRenderServiceThread()
         RSMainThread::Instance()->SetAccessibilityConfigChanged();
         RSMainThread::Instance()->RequestNextVSync();
     });
+}
+
+bool Network::IsRunning()
+{
+    return isRunning_;
 }
 
 void Network::Run()
@@ -98,45 +105,6 @@ void Network::Stop()
     isRunning_ = false;
 }
 
-std::vector<NetworkStats> Network::GetStats(const std::string& interface)
-{
-    static const uint32_t INTERFACE_COLUMN = 0u;
-    static const uint32_t RECV_BYTES_COLUMN = 1u;
-    static const uint32_t SENT_BYTES_COLUMN = 9u;
-
-    std::ifstream netdev("/proc/net/dev");
-    if (!netdev.good()) {
-        return {};
-    }
-
-    std::vector<NetworkStats> results;
-
-    std::string data;
-    // skip the first two lines (headers)
-    std::getline(netdev, data);
-    std::getline(netdev, data);
-
-    while (netdev.good()) {
-        std::getline(netdev, data);
-        std::vector<std::string> parts = Utils::Split(data);
-        if (parts.empty()) {
-            continue;
-        }
-
-        std::string candidate = parts[INTERFACE_COLUMN];
-        // remove the trailing ':' so we can compare against the provided interface
-        candidate.pop_back();
-
-        if (("*" == interface) || (candidate == interface)) {
-            const uint64_t recvBytes = std::stoull(parts[RECV_BYTES_COLUMN]);
-            const uint64_t sentBytes = std::stoull(parts[SENT_BYTES_COLUMN]);
-
-            results.push_back({ .interface = candidate, .receivedBytes = recvBytes, .transmittedBytes = sentBytes });
-        }
-    };
-
-    return results;
-}
 
 void Network::SendPacket(const Packet& packet)
 {
@@ -227,8 +195,16 @@ void Network::SendRSTreeSingleNodePerf(uint64_t id, uint64_t nanosec)
     SendPacket(packet);
 }
 
+void Network::SetBlockBinary(bool blockFlag)
+{
+    blockBinary_ = blockFlag;
+}
+
 void Network::SendBinary(const void* data, size_t size)
 {
+    if (blockBinary_) {
+        return;
+    }
     if (data && (size > 0)) {
         Packet packet { Packet::BINARY };
         packet.Write(data, size);
@@ -255,12 +231,24 @@ void Network::SendMessage(const std::string& message)
     }
 }
 
+void Network::ResetSendQueue()
+{
+    const std::lock_guard<std::mutex> guard(outgoingMutex_);
+    outgoing_ = {};
+}
+
 void Network::PushCommand(const std::vector<std::string>& args)
 {
     if (!args.empty()) {
         const std::lock_guard<std::mutex> guard(incomingMutex_);
         incoming_.emplace(args);
     }
+}
+
+void Network::ResetCommandQueue()
+{
+    const std::lock_guard<std::mutex> guard(incomingMutex_);
+    incoming_ = {};
 }
 
 bool Network::PopCommand(std::vector<std::string>& args)
@@ -321,12 +309,18 @@ void Network::ProcessBinary(const std::vector<char>& data)
     const auto offset = std::min(path.size() + 1, data.size());
     const auto size = data.size() - offset;
     if (size == 0) {
+        HRPE("Network: Receive file: Invalid file size");
         return;
     }
 
+    constexpr size_t megabytes = 1024 * 1024;
+    HRPI("Receive file: %s %zuMB (%zu)", path.data(), size / megabytes, size);
     if (auto file = Utils::FileOpen(path, "wb")) {
         Utils::FileWrite(file, data.data() + offset, size);
         Utils::FileClose(file);
+        HRPI("Network: Receive file: Done");
+    } else {
+        HRPE("Network: Receive file: Cannot open file: %s", path.data());
     }
 }
 
@@ -340,11 +334,13 @@ void Network::Shutdown(Socket*& socket)
     delete socket;
     socket = nullptr;
 
-    std::string command = "rsrecord_stop";
-    ProcessCommand(command.c_str(), command.size());
-    command = "rsrecord_replay_stop";
-    ProcessCommand(command.c_str(), command.size());
+    ResetSendQueue();
+    ResetCommandQueue();
+
+    PushCommand({ "reset" });
     AwakeRenderServiceThread();
+
+    HRPE("Network: Shutdown");
 }
 
 void Network::ProcessIncoming(Socket& socket)
@@ -366,13 +362,6 @@ void Network::ProcessIncoming(Socket& socket)
         return;
     }
 
-    constexpr size_t maxPayloadSize = 1024 * 1024 * 1024;
-    if (size > maxPayloadSize) {
-        socket.SetState(SocketState::SHUTDOWN);
-        usleep(sleepTimeout);
-        return;
-    }
-
     std::vector<char> data;
     data.resize(size);
     socket.ReceiveWhenReady(data.data(), data.size());
@@ -382,21 +371,6 @@ void Network::ProcessIncoming(Socket& socket)
     } else if (packet.IsCommand()) {
         ProcessCommand(data.data(), data.size());
     }
-}
-
-void Network::ReportStats()
-{
-    constexpr uint32_t bytesToBits = 8u;
-    const std::string interface("wlan0");
-    const std::vector<NetworkStats> stats = Network::GetStats(interface);
-
-    std::string out = "Interface: " + interface;
-    for (const NetworkStats& stat : stats) {
-        out += "Transmitted: " + std::to_string(stat.transmittedBytes * bytesToBits);
-        out += "Received: " + std::to_string(stat.transmittedBytes * bytesToBits);
-    }
-
-    SendMessage(out);
 }
 
 } // namespace OHOS::Rosen

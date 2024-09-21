@@ -42,24 +42,12 @@ std::shared_ptr<Drawing::Image> GEAIBarShaderFilter::ProcessImage(Drawing::Canva
         return image;
     }
 
-    auto shader = GEShaderStore::GetInstance()->GetShader(SHADER_AIBAR);
-    if (shader == nullptr) {
-        return image;
-    }
-
-    auto builder = std::make_shared<Drawing::RuntimeShaderBuilder>(shader->GetShader());
- 
     Drawing::Matrix matrix;
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), matrix);
-		
-    builder->SetChild("imageShader", imageShader);
-    builder->SetUniform("low", aiBarLow_);               // aiInvertCoef[0] is low
-    builder->SetUniform("high", aiBarHigh_);             // aiInvertCoef[1] is high
-    builder->SetUniform("threshold", aiBarThreshold_);   // aiInvertCoef[2] is threshold
-    builder->SetUniform("opacity", aiBarOpacity_);       // aiInvertCoef[3] is opacity
-    builder->SetUniform("saturation", aiBarSaturation_); // aiInvertCoef[4] is saturation
-	
+    float imageWidth = image->GetWidth();
+    float imageHeight = image->GetHeight();
+    auto builder = MakeBinarizationShader(imageWidth, imageHeight, imageShader);
     auto invertedImage = builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
     if (invertedImage == nullptr) {
         LOGE("GEAIBarShaderFilter::ProcessImage invertedImage is null");
@@ -67,6 +55,53 @@ std::shared_ptr<Drawing::Image> GEAIBarShaderFilter::ProcessImage(Drawing::Canva
     }
 
     return invertedImage;
+}
+
+std::shared_ptr<Drawing::RuntimeShaderBuilder> GEAIBarShaderFilter::MakeBinarizationShader(
+    float imageWidth, float imageHeight, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+{
+    static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
+
+    // coefficient of saturation borrowed from
+    // the saturate filter in RSProperties::GenerateColorFilter()
+    static constexpr char prog[] = R"(
+        uniform half low;
+        uniform half high;
+        uniform half threshold;
+        uniform half opacity;
+        uniform half saturation;
+        uniform shader imageShader;
+
+        const vec3 toLuminance = vec3(0.3086, 0.6094, 0.0820);
+
+        half4 main(float2 coord) {
+            half3 c = imageShader.eval(coord).rgb;
+            float gray = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+            float bin = mix(high, low, step(threshold, gray));
+            float luminance = dot(c, toLuminance);
+            half3 satAdjust = mix(vec3(luminance), c, saturation);
+            half3 res = satAdjust - (opacity + 1.0) * gray + bin;
+            return half4(mix(c, res, 0.42857), 1.0);
+        }
+    )";
+
+    if (binarizationShaderEffect_ == nullptr) {
+        binarizationShaderEffect_ = Drawing::RuntimeEffect::CreateForShader(prog);
+        if (binarizationShaderEffect_ == nullptr) {
+            LOGE("MakeBinarizationShader::RuntimeShader effect error\n");
+            return nullptr;
+        }
+    }
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder =
+        std::make_shared<Drawing::RuntimeShaderBuilder>(binarizationShaderEffect_);
+    builder->SetChild("imageShader", imageShader);
+    builder->SetUniform("low", aiBarLow_);               // aiInvertCoef[0] is low
+    builder->SetUniform("high", aiBarHigh_);             // aiInvertCoef[1] is high
+    builder->SetUniform("threshold", aiBarThreshold_);   // aiInvertCoef[2] is threshold
+    builder->SetUniform("opacity", aiBarOpacity_);       // aiInvertCoef[3] is opacity
+    builder->SetUniform("saturation", aiBarSaturation_); // aiInvertCoef[4] is saturation
+
+    return builder;
 }
 
 } // namespace Rosen

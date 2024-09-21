@@ -19,6 +19,7 @@
 
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_graphic.h"
+#include "memory/rs_memory_snapshot.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -46,8 +47,13 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
     static float GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext);
+    static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
-
+    static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
+    static void SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled);
+    static void FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext);
+    static void SuppressGpuCacheBelowCertainRatio(
+        Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log);
@@ -57,6 +63,15 @@ private:
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
+    static void DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext);
     static void DumpMallocStat(std::string& log);
+    static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
+        const std::string& reportName);
+    static bool KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName);
+    static void ErasePidInfo(const std::set<pid_t>& exitedPidSet);
+
+    static std::mutex mutex_;
+    static std::unordered_map<pid_t, std::pair<std::string, uint64_t>> pidInfo_;
+    static uint32_t frameCount_;
 };
 } // namespace OHOS::Rosen

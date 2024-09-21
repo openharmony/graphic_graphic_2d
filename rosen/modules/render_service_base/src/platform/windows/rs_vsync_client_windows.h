@@ -44,6 +44,13 @@ public:
     void Push(const T &t)
     {
         std::unique_lock lock(mutex_);
+        queue_.push(t);
+        cv_.notify_all();
+    }
+
+    void Push(T &&t)
+    {
+        std::unique_lock lock(mutex_);
         queue_.push(std::move(t));
         cv_.notify_all();
     }

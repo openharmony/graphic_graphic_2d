@@ -21,6 +21,7 @@
 
 #include "common/rs_common_def.h"
 #include "pipeline/rs_context.h"
+#include "recording/draw_cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -70,6 +71,11 @@ public:
         return 0;
     }
 
+    virtual std::shared_ptr<Drawing::DrawCmdList> GetDrawCmdList() const
+    {
+        return nullptr;
+    }
+
     std::pair<uint16_t, uint16_t> GetUniqueType() const
     {
         return std::make_pair(GetType(), GetSubType());
@@ -84,6 +90,9 @@ public:
     {
         return "commandType:[" + std::to_string(GetType()) + ", " + std::to_string(GetSubType()) + "], ";
     }
+private:
+    size_t indexVerifier_ = 0;
+    friend class RSTransactionData;
 #ifdef RS_PROFILER_ENABLED
 protected:
     using PatchFunction = NodeId (*)(NodeId);

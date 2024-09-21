@@ -78,6 +78,20 @@ public:
         return pendingScreenRefreshRate_.load();
     }
 
+    // called by HgmThread
+    // the rate takes effect at the latest hardware timing
+    void SetScreenRefreshRateImme(uint32_t rate)
+    {
+        screenRefreshRateImme_.store(rate);
+    }
+
+    // called by HardwareThread
+    uint32_t GetScreenRefreshRateImme()
+    {
+        // 0 means disenable
+        return screenRefreshRateImme_.exchange(0);
+    }
+
     // called by RSMainThread
     void SetPendingConstraintRelativeTime(uint64_t relativeTime)
     {
@@ -105,7 +119,7 @@ public:
     bool GetLtpoEnabled() const
     {
         return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
-            (maxTE_ == VSYNC_MAX_REFRESHRATE);
+            (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
     }
 
     bool GetAdaptiveSyncEnabled() const
@@ -178,7 +192,6 @@ public:
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize);
     int32_t RemoveScreen(ScreenId id);
     int32_t AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint32_t rate, int32_t mode);
-    int32_t RefreshBundleName(const std::string& name);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     int32_t GetCurrentRefreshRateMode() const;
     int32_t GetCurrentRefreshRateModeName() const;
@@ -243,13 +256,12 @@ private:
     mutable std::mutex modeListMutex_;
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeListToApply_ = nullptr;
 
-    std::string currentBundleName_;
     std::atomic<ScreenId> activeScreenId_{ INVALID_SCREEN_ID };
-    std::unordered_set<SceneType> screenSceneSet_;
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
 
     // for LTPO
     std::atomic<uint32_t> pendingScreenRefreshRate_{ 0 };
+    std::atomic<uint32_t> screenRefreshRateImme_{ 0 };
     std::atomic<uint64_t> pendingConstraintRelativeTime_{ 0 };
     std::atomic<uint64_t> timestamp_{ 0 };
     bool ltpoEnabled_ = false;

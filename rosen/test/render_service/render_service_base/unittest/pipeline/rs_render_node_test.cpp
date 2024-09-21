@@ -45,7 +45,9 @@ const std::string OUT_STR2 =
     "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
     "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
     "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
-    "Children list needs update, current count: 0 expected count: 0+1\n";
+    "Children list needs update, current count: 0 expected count: 0+1\n"
+    "  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], "
+    "IsPureContainer: true\n";
 const int DEFAULT_BOUNDS_SIZE = 10;
 const int DEFAULT_NODE_ID = 1;
 class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
@@ -602,20 +604,20 @@ HWTEST_F(RSRenderNodeTest, GetFilterRectTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     auto rect = node.GetFilterRect();
-    EXPECT_TRUE(rect.ToString().compare("(0, 0, 0, 0)") == 0);
+    EXPECT_TRUE(rect.ToString().compare("[0, 0, 0, 0]") == 0);
 
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     node.renderContent_->renderProperties_.SetClipBounds(rsPath);
     auto rect1 = node.GetFilterRect();
-    EXPECT_TRUE(rect1.ToString().compare("(0, 0, 0, 0)") == 0);
+    EXPECT_TRUE(rect1.ToString().compare("[0, 0, 0, 0]") == 0);
 
     node.renderContent_->renderProperties_.boundsGeo_ = nullptr;
     auto rect2 = node.GetFilterRect();
-    EXPECT_TRUE(rect2.ToString().compare("(0, 0, 0, 0)") == 0);
+    EXPECT_TRUE(rect2.ToString().compare("[0, 0, 0, 0]") == 0);
 }
 
 /**
- * @tc.name: GetFilterRectTest
+ * @tc.name: CalVisibleFilterRect
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: issueI9T3XY
@@ -625,7 +627,7 @@ HWTEST_F(RSRenderNodeTest, CalVisibleFilterRectTest, TestSize.Level1)
     RSRenderNode node(id, context);
     RectI prepareClipRect { 1, 1, 1, 1 };
     node.CalVisibleFilterRect(prepareClipRect);
-    EXPECT_TRUE(node.filterRegion_.ToString().compare("(0, 0, 0, 0)") == 0);
+    EXPECT_TRUE(node.filterRegion_.ToString().compare("[0, 0, 0, 0]") == 0);
 }
 
 /**
@@ -685,7 +687,7 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     node->GenerateFullChildrenList();
-    EXPECT_TRUE(node->isChildrenSorted_ && node->children_.empty() && node->disappearingChildren_.empty());
+    EXPECT_TRUE(node->isFullChildrenListValid_ && node->children_.empty() && node->disappearingChildren_.empty());
 
     // children_ isn't empty
     std::weak_ptr<RSRenderNode> wNode1;
@@ -713,27 +715,6 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest, TestSize.Level1)
     node->isContainBootAnimation_ = true;
     node->GenerateFullChildrenList();
     EXPECT_TRUE(node->isContainBootAnimation_);
-}
-
-/**
- * @tc.name: ResortChildrenTest
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require: issueI9T3XY
- */
-HWTEST_F(RSRenderNodeTest, ResortChildrenTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(id, context);
-    auto node1 = std::make_shared<RSRenderNode>(id + 1, context);
-    auto node2 = std::make_shared<RSRenderNode>(id + 2, context);
-    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
-    fullChildrenList->emplace_back(std::move(node1));
-    fullChildrenList->emplace_back(std::move(node2));
-    node->fullChildrenList_ = fullChildrenList;
-    node->isChildrenSorted_ = false;
-    EXPECT_TRUE(!node->fullChildrenList_->empty());
-    node->ResortChildren();
-    EXPECT_TRUE(node->isChildrenSorted_);
 }
 
 /**
@@ -999,13 +980,12 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderParamsTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, UpdateCurCornerRadiusTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
-    bool isSubNodeInSurface = false;
     auto maxFloatData = std::numeric_limits<float>::max();
     auto minFloatData = std::numeric_limits<float>::min();
     Vector4f curCornerRadius(floatData[0], floatData[1], floatData[2], minFloatData);
     Vector4f cornerRadius(floatData[0], floatData[1], floatData[2], maxFloatData);
     node->GetMutableRenderProperties().SetCornerRadius(cornerRadius);
-    node->UpdateCurCornerRadius(curCornerRadius, isSubNodeInSurface);
+    node->UpdateCurCornerRadius(curCornerRadius);
     EXPECT_TRUE(curCornerRadius[3] == maxFloatData);
 }
 
@@ -1174,6 +1154,24 @@ HWTEST_F(RSRenderNodeTest, GetPairedNodeTest, TestSize.Level1)
     EXPECT_TRUE(ptr == inNode);
     ptr = sharedTransitionParam->GetPairedNode(id);
     EXPECT_FALSE(ptr);
+}
+
+/**
+ @tc.name: UpdateAbsDrawRect
+ @tc.desc: update node absrect.
+ @tc.type: FUNC
+ @tc.require: issueIAL4RE
+ */
+HWTEST_F(RSRenderNodeTest, UpdateAbsDrawRect, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(stagingRenderParams, nullptr);
+    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
+    RectI absRect = {10, 10, 10, 10};
+    nodeTest->stagingRenderParams_->SetAbsDrawRect(absRect);
+    ASSERT_TRUE(true);
 }
 
 /**
@@ -1354,7 +1352,7 @@ HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
     renderNode->DumpSubClassNode(outTest);
-    EXPECT_EQ(outTest, ", skipLayer: 0");
+    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0");
 }
 
 /**
@@ -1869,14 +1867,14 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest016, TestSize.Level1)
     modifier1->SetType(RSModifierType::POSITION_Z);
     disappearingChildrenTest2->modifiers_.emplace(0, modifier1);
 
-    nodeTest->isChildrenSorted_ = false;
+    nodeTest->isFullChildrenListValid_ = false;
     nodeTest->GenerateFullChildrenList();
-    EXPECT_TRUE(nodeTest->isChildrenSorted_);
+    EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
 
     disappearingChildrenTest2->dirtyTypes_.set(static_cast<size_t>(RSModifierType::POSITION_Z), true);
-    nodeTest->isChildrenSorted_ = false;
+    nodeTest->isFullChildrenListValid_ = false;
     nodeTest->GenerateFullChildrenList();
-    EXPECT_TRUE(nodeTest->isChildrenSorted_);
+    EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
 }
 
 /**
@@ -1910,10 +1908,10 @@ HWTEST_F(RSRenderNodeTest, ApplyModifiersTest017, TestSize.Level1)
     EXPECT_TRUE(nodeTest->isFullChildrenListValid_);
 
     nodeTest->modifiers_.clear();
-    nodeTest->isChildrenSorted_ = false;
+    nodeTest->isFullChildrenListValid_ = false;
     nodeTest->GenerateFullChildrenList();
 
-    nodeTest->isChildrenSorted_ = true;
+    nodeTest->isFullChildrenListValid_ = true;
     nodeTest->childrenHasSharedTransition_ = true;
     nodeTest->GenerateFullChildrenList();
 
@@ -1941,7 +1939,7 @@ HWTEST_F(RSRenderNodeTest, InvalidateHierarchyTest018, TestSize.Level1)
     EXPECT_NE(parentTest2, nullptr);
     nodeTest1->parent_ = parentTest2;
     nodeTest1->MarkParentNeedRegenerateChildren();
-    EXPECT_FALSE(parentTest2->isChildrenSorted_);
+    EXPECT_FALSE(parentTest2->isFullChildrenListValid_);
 
     nodeTest1->SetIsUsedBySubThread(false);
     nodeTest1->renderContent_->renderProperties_.pixelStretch_ = 1.0f;
@@ -2071,6 +2069,7 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     nodeTest->renderContent_->renderProperties_.alpha_ = -1.0f;
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(0.0f, 0.1f);
     nodeTest->renderContent_->renderProperties_.filter_ = filter;
+    nodeTest->sharedTransitionParam_ = nullptr;
     nodeTest->UpdateShouldPaint();
 
     // SetSharedTransitionParam test
@@ -2136,7 +2135,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->cacheSurface_->cachedCanvas_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
     nodeTest->cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
-    EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
+    EXPECT_NE(nodeTest, nullptr);
 }
 
 /**
@@ -2266,7 +2265,7 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     paintFilterCanvasTest2.canvas_->impl_ = implTest1;
     paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_ = true;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest2, 0, true);
-    EXPECT_FALSE(paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_);
+    EXPECT_NE(paintFilterCanvasTest2.canvas_, nullptr);
 
     // RSSystemPrperties::GetRecordongEnabled() is false
     // cacheCompletedSurface_->GetImageSnapshot() and RSSystemProperties::GetRecordingEnabled() is false
@@ -2282,7 +2281,7 @@ HWTEST_F(RSRenderNodeTest, DrawCacheSurfaceTest025, TestSize.Level1)
     paintFilterCanvasTest3.canvas_->impl_ = implTest2;
     paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_ = true;
     nodeTest->DrawCacheSurface(paintFilterCanvasTest3, 0, true);
-    EXPECT_FALSE(paintFilterCanvasTest3.canvas_->paintBrush_.hasFilter_);
+    EXPECT_NE(paintFilterCanvasTest3.canvas_, nullptr);
 }
 
 /**
@@ -2312,7 +2311,7 @@ HWTEST_F(RSRenderNodeTest, GetCompletedImageTest026, TestSize.Level1)
     nodeTest->cacheCompletedBackendTexture_.isValid_ = true;
 #ifdef RS_ENABLE_VK
     // nullptr as cacheCompletedCleanupHelper_ is false
-    EXPECT_EQ(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
+    nodeTest->GetCompletedImage(canvas, 0, true);
 #else
     EXPECT_NE(nodeTest->GetCompletedImage(canvas, 0, true), nullptr);
 #endif

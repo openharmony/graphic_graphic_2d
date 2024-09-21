@@ -30,33 +30,6 @@ namespace OHOS {
 #include "graphic_common_c.h"
 
 #ifdef __cplusplus
-namespace {
-const std::map<GSError, std::string> GSErrorStrs = {
-    {GSERROR_OK,                    "<200 ok>"},
-    {GSERROR_INVALID_ARGUMENTS,     "<400 invalid arguments>"},
-    {GSERROR_NO_PERMISSION,         "<403 no permission>"},
-    {GSERROR_CONNOT_CONNECT_SAMGR,  "<404 connot connect to samgr>"},
-    {GSERROR_CONNOT_CONNECT_SERVER, "<404 connot connect to server>"},
-    {GSERROR_CONNOT_CONNECT_WESTON, "<404 connot connect to weston>"},
-    {GSERROR_NO_BUFFER,             "<406 no buffer>"},
-    {GSERROR_NO_ENTRY,              "<406 no entry>"},
-    {GSERROR_OUT_OF_RANGE,          "<406 out of range>"},
-    {GSERROR_NO_SCREEN,             "<406 no screen>"},
-    {GSERROR_INVALID_OPERATING,     "<412 invalid operating>"},
-    {GSERROR_NO_CONSUMER,           "<412 no consumer>"},
-    {GSERROR_NOT_INIT,              "<412 not init>"},
-    {GSERROR_TYPE_ERROR,            "<412 type error>"},
-    {GSERROR_API_FAILED,            "<500 api call failed>"},
-    {GSERROR_INTERNAL,              "<500 internal error>"},
-    {GSERROR_NO_MEM,                "<500 no memory>"},
-    {GSERROR_PROXY_NOT_INCLUDE,     "<500 proxy not include>"},
-    {GSERROR_SERVER_ERROR,          "<500 server occur error>"},
-    {GSERROR_ANIMATION_RUNNING,     "<500 animation is running>"},
-    {GSERROR_NOT_IMPLEMENT,         "<501 not implement>"},
-    {GSERROR_NOT_SUPPORT,           "<501 not support>"},
-    {GSERROR_BINDER,                "<504 binder occur error>"},
-};
-}
 
 inline std::string LowErrorStrSpecial(GSError err)
 {
@@ -90,11 +63,34 @@ inline std::string LowErrorStr(GSError lowerr)
 inline std::string GSErrorStr(GSError err)
 {
     GSError diff = static_cast<GSError>(err % LOWERROR_MAX);
-    auto it = GSErrorStrs.find(static_cast<GSError>(err - diff));
-    if (it == GSErrorStrs.end()) {
-        return "<GSError error index out of range>";
+    std::string lowError = LowErrorStr(diff);
+    switch (static_cast<GSError>(err - diff)) {
+        case GSERROR_OK: return "<200 ok>" + lowError;
+        case GSERROR_INVALID_ARGUMENTS: return "<400 invalid arguments>" + lowError;
+        case GSERROR_NO_PERMISSION: return "<403 no permission>" + lowError;
+        case GSERROR_CONNOT_CONNECT_SAMGR: return "<404 connot connect to samgr>" + lowError;
+        case GSERROR_CONNOT_CONNECT_SERVER: return "<404 connot connect to server>" + lowError;
+        case GSERROR_CONNOT_CONNECT_WESTON: return "<404 connot connect to weston>" + lowError;
+        case GSERROR_NO_BUFFER: return "<406 no buffer>" + lowError;
+        case GSERROR_NO_ENTRY: return "<406 no entry>" + lowError;
+        case GSERROR_OUT_OF_RANGE: return "<406 out of range>" + lowError;
+        case GSERROR_NO_SCREEN: return "<406 no screen>" + lowError;
+        case GSERROR_INVALID_OPERATING: return "<412 invalid operating>" + lowError;
+        case GSERROR_NO_CONSUMER: return "<412 no consumer>" + lowError;
+        case GSERROR_NOT_INIT: return "<412 not init>" + lowError;
+        case GSERROR_TYPE_ERROR: return "<412 type error>" + lowError;
+        case GSERROR_API_FAILED: return "<500 api call failed>" + lowError;
+        case GSERROR_INTERNAL: return "<500 internal error>" + lowError;
+        case GSERROR_NO_MEM: return "<500 no memory>" + lowError;
+        case GSERROR_PROXY_NOT_INCLUDE: return "<500 proxy not include>" + lowError;
+        case GSERROR_SERVER_ERROR: return "<500 server occur error>" + lowError;
+        case GSERROR_ANIMATION_RUNNING: return "<500 animation is running>" + lowError;
+        case GSERROR_NOT_IMPLEMENT: return "<501 not implement>" + lowError;
+        case GSERROR_NOT_SUPPORT: return "<501 not support>" + lowError;
+        case GSERROR_BINDER: return "<504 binder error>" + lowError;
+        default: return "<GSError error index out of range>";
     }
-    return it->second + LowErrorStr(diff);
+    return "<GSError error index out of range>";
 }
 
 inline std::string SurfaceErrorStr(GSError err)

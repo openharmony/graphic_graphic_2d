@@ -516,8 +516,6 @@ size_t GetParamLen(napi_env env, napi_value param);
 
 bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetrics& fontMetrics);
 
-bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetrics);
-
 bool GetNamePropertyFromJS(napi_env env, napi_value argValue, const std::string& str, napi_value& propertyValue);
 
 template<class Type>

@@ -73,6 +73,7 @@ public:
     uint16_t UnicharToGlyph(int32_t uni) const override;
     int TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
         uint16_t glyphs[], int maxGlyphCount) const override;
+    bool GetPathForGlyph(uint16_t glyph, Path* path) const override;
 
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const override;
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const override;

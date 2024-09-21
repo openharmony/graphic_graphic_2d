@@ -40,7 +40,6 @@ void RSSubThreadManager::Start(RenderContext *context)
     if (!threadList_.empty()) {
         return;
     }
-    renderContext_ = context;
     if (context) {
         for (uint32_t i = 0; i < SUB_THREAD_NUM; ++i) {
             auto curThread = std::make_shared<RSSubThread>(context, i);
@@ -48,8 +47,8 @@ void RSSubThreadManager::Start(RenderContext *context)
             threadIndexMap_.emplace(tid, i);
             reThreadIndexMap_.emplace(i, tid);
             threadList_.push_back(curThread);
-            auto taskDispatchFunc = [tid, this](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
-                RSSubThreadManager::Instance()->PostTask(task, threadIndexMap_[tid], isSyncTask);
+            auto taskDispatchFunc = [i](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
+                RSSubThreadManager::Instance()->PostTask(task, i, isSyncTask);
             };
             RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid, taskDispatchFunc);
         }
@@ -200,8 +199,8 @@ void RSSubThreadManager::SubmitSubThreadTask(const std::shared_ptr<RSDisplayRend
 
     for (uint32_t i = 0; i < SUB_THREAD_NUM; i++) {
         auto subThread = threadList_[i];
-        subThread->PostTask([subThread, superRenderTaskList, i]() {
-            subThread->RenderCache(superRenderTaskList[i]);
+        subThread->PostTask([subThread, renderTask = superRenderTaskList[i]]() {
+            subThread->RenderCache(renderTask);
         });
     }
     needResetContext_ = true;
@@ -395,7 +394,15 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     auto submittedFrameCount = RSUniRenderThread::Instance().GetFrameCount();
     subThread->DoingCacheProcessNumInc();
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
-    subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount]() {
+
+    auto& rtUniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount,
+                            uniParam = new RSRenderThreadParams(*rtUniParam)]() mutable {
+        if (!uniParam) {
+            return;
+        }
+        std::unique_ptr<RSRenderThreadParams> uniParamUnique(uniParam);
+        RSUniRenderThread::Instance().Sync(std::move(uniParamUnique));
         nodeDrawable->SetLastFrameUsedThreadIndex(tid);
         nodeDrawable->SetTaskFrameCount(submittedFrameCount);
         subThread->DrawableCache(nodeDrawable);
@@ -421,7 +428,6 @@ void RSSubThreadManager::ScheduleReleaseCacheSurfaceOnly(
     auto nowIdx = threadIndexMap_[bindThreadIdx];
 
     auto subThread = threadList_[nowIdx];
-    auto tid = reThreadIndexMap_[nowIdx];
     subThread->PostTask([subThread, nodeDrawable]() { subThread->ReleaseCacheSurfaceOnly(nodeDrawable); });
 }
 } // namespace OHOS::Rosen

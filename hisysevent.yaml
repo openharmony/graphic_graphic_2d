@@ -170,3 +170,26 @@ GPU_SUBHEALTH_MONITORING:
   __BASE: {type: STATISTIC, level: MINOR, desc: GPU subhealth monitoring statistics}
   WAIT_ACQUIRE_FENCE_TIME: {type: UINT64, desc: wait acquire fence time}
   FRAME_RATE: {type: INT32, desc: real frame rate}
+
+IPC_DATA_OVER_ERROR:
+  __BASE: {type: STATISTIC, level: MINOR, desc: receive large commit transaction data}
+  PID: {type: INT32, desc: application pid}
+  UID: {type: INT32, desc: application uid}
+  BUNDLE_NAME: {type: STRING, desc: application package name}
+  TRANSACTION_DATA_SIZE: {type: UINT64, desc: total received transaction data size}
+
+RENDER_MEMORY_OVER_WARNING:
+  __BASE: {type: STATISTIC, level: MINOR, desc: warning of the memory applied by an application exceeds the threshold}
+  PID: {type: INT32, desc: application pid}
+  BUNDLE_NAME: {type: STRING, desc: application package name}
+  CPU_MEMORY: {type: UINT64, desc: cpu memory of the application}
+  GPU_MEMORY: {type: UINT64, desc: gpu memory of the application}
+  TOTAL_MEMORY: {type: UINT64, desc: total memory of the application}
+
+RENDER_MEMORY_OVER_ERROR:
+  __BASE: {type: STATISTIC, level: MINOR, desc: error of the memory applied by an application exceeds the threshold}
+  PID: {type: INT32, desc: application pid}
+  BUNDLE_NAME: {type: STRING, desc: application package name}
+  CPU_MEMORY: {type: UINT64, desc: cpu memory of the application}
+  GPU_MEMORY: {type: UINT64, desc: gpu memory of the application}
+  TOTAL_MEMORY: {type: UINT64, desc: total memory of the application}

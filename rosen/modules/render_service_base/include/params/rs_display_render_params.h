@@ -81,6 +81,10 @@ public:
     {
         return displayHasSkipSurface_;
     }
+    const std::map<ScreenId, bool>& GetDisplayHasSnapshotSkipSurface() const
+    {
+        return displayHasSnapshotSkipSurface_;
+    }
     const std::map<ScreenId, bool>& GetDisplayHasProtectedSurface() const
     {
         return displayHasProtectedSurface_;
@@ -111,6 +115,7 @@ public:
     bool GetMainAndLeashSurfaceDirty() const;
     bool HasSecurityLayer() const;
     bool HasSkipLayer() const;
+    bool HasSnapshotSkipLayer() const;
     bool HasProtectedLayer() const;
     bool HasCaptureWindow() const;
     void SetNeedOffscreen(bool needOffscreen);
@@ -130,6 +135,9 @@ public:
     void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
     GraphicPixelFormat GetNewPixelFormat() const;
 
+    void SetZoomed(bool isZoomed);
+    bool GetZoomed() const;
+
     bool IsSpecialLayerChanged() const
     {
         auto iter = displaySpecailSurfaceChanged_.find(screenId_);
@@ -148,6 +156,7 @@ public:
 private:
     std::map<ScreenId, bool> displayHasSecSurface_;
     std::map<ScreenId, bool> displayHasSkipSurface_;
+    std::map<ScreenId, bool> displayHasSnapshotSkipSurface_;
     std::map<ScreenId, bool> displayHasProtectedSurface_;
     std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
@@ -172,6 +181,7 @@ private:
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
+    bool isZoomed_ = false;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
     

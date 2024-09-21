@@ -150,7 +150,7 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemApp()
     return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
 }
 
-bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& callingCode) const
+bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& callingCode)
 {
     bool isSystemCalling = false;
     auto tokenType = GetTokenType();
@@ -175,6 +175,16 @@ bool RSInterfaceCodeAccessVerifierBase::IsAncoCalling(const std::string& calling
         RS_LOGE("%{public}s ipc interface code access denied: not anco calling", callingCode.c_str());
     }
     return isAncoCalling;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsFoundationCalling(const std::string& callingCode) const
+{
+    static constexpr uint32_t FOUNDATION_UID = 5523;
+    bool isFoundationCalling = (OHOS::IPCSkeleton::GetCallingUid() == FOUNDATION_UID);
+    if (!isFoundationCalling) {
+        RS_LOGE("%{public}s ipc interface code access denied: not foundation calling", callingCode.c_str());
+    }
+    return isFoundationCalling;
 }
 
 void RSInterfaceCodeAccessVerifierBase::GetAccessType(bool& isTokenTypeValid, bool& isNonSystemAppCalling)
@@ -202,8 +212,29 @@ void RSInterfaceCodeAccessVerifierBase::GetAccessType(bool& isTokenTypeValid, bo
         }
     }
 }
+
+bool RSInterfaceCodeAccessVerifierBase::IsStylusServiceCalling(const std::string& callingCode) const
+{
+    // Stylus service calls only
+    static constexpr uint32_t STYLUS_SERVICE_UID = 7555;
+    static const std::string STYLUS_SERVICE_PROCESS_NAME = "stylus_service";
+    Security::AccessToken::NativeTokenInfo tokenInfo;
+    int32_t ret = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(GetTokenID(), tokenInfo);
+    if (ret == ERR_OK) {
+        bool isStylusServiceProcessName = (tokenInfo.processName == STYLUS_SERVICE_PROCESS_NAME);
+        bool isNativeCalling = (GetTokenType() == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE);
+        bool isStylusServiceUid = (OHOS::IPCSkeleton::GetCallingUid() == STYLUS_SERVICE_UID);
+        bool isStylusServiceCalling = isNativeCalling && isStylusServiceUid && isStylusServiceProcessName;
+        if (!isStylusServiceCalling) {
+            RS_LOGE("%{public}s ipc interface code access denied: not stylus service calling", callingCode.c_str());
+        }
+        return isStylusServiceCalling;
+    }
+    RS_LOGE("%{public}s ipc interface code access denied: GetNativeTokenInfo error", callingCode.c_str());
+    return false;
+}
 #else
-bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */) const
+bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */)
 {
     return true;
 }
@@ -222,6 +253,11 @@ void RSInterfaceCodeAccessVerifierBase::GetAccessType(bool& isTokenTypeValid, bo
 {
     isTokenTypeValid = true;
     isNonSystemAppCalling = false;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsStylusServiceCalling(const std::string& callingCode) const
+{
+    return true;
 }
 #endif
 

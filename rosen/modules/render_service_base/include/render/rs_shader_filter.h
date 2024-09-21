@@ -35,11 +35,11 @@ public:
     enum ShaderFilterType {
         NONE = 0,
         KAWASE,
+        MESA,
         GREY,
         AIBAR,
         LINEAR_GRADIENT_BLUR,
         MASK_COLOR,
-        HPS,
         WATER_RIPPLE,
         MAGNIFIER,
     };

@@ -94,6 +94,7 @@ if (current_os != "ohos") {
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
       "c_utils:utils",
+      "config_policy:configpolicy_util",
       "graphic_surface:surface",
       "hilog:libhilog",
       "init:libbeget_proxy",
@@ -107,9 +108,6 @@ if (current_os != "ohos") {
       external_deps += gameservice_render_slice_report_external_deps
     }
 
-    if (defined(graphic_2d_ext_configs.vendor_root)) {
-      install_enable = false
-    }
     if (is_emulator) {
       defines += [ "IS_EMULATOR" ]
     }
@@ -238,10 +236,6 @@ if (current_os != "ohos") {
     ]
 
     external_deps = [ "hilog:libhilog" ]
-
-    if (defined(graphic_2d_ext_configs.vendor_root)) {
-      install_enable = false
-    }
 
     output_name = "GLESv3"
     output_extension = "so"

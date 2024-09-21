@@ -31,6 +31,10 @@ SkiaFontStyleSet::SkiaFontStyleSet(sk_sp<SkFontStyleSet> skFontStyleSet) : skFon
 
 Typeface* SkiaFontStyleSet::CreateTypeface(int index)
 {
+    if (!skFontStyleSet_) {
+        LOGD("SkiaFontStyleSet::CreateTypeface, skFontStyleSet_ nullptr");
+        return nullptr;
+    }
     SkTypeface* skTypeface = skFontStyleSet_->createTypeface(index);
     if (!skTypeface) {
         return nullptr;
@@ -80,6 +84,10 @@ Typeface* SkiaFontStyleSet::MatchStyle(const FontStyle& pattern)
 
 int SkiaFontStyleSet::Count()
 {
+    if (!skFontStyleSet_) {
+        LOGD("SkiaFontStyleSet::Count, skFontStyleSet_ nullptr");
+        return 0;
+    }
     return skFontStyleSet_->count();
 }
 } // namespace Drawing

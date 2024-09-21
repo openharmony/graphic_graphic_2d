@@ -42,7 +42,7 @@ public:
     virtual ~Vertices() {};
 
     /**
-     * @brief Make a copy from vertices data.
+     * @brief Make a copy from vertices data with index.
      * @param mode         vertex mode.
      * @param vertexCount  Vertex count.
      * @param positions    Positions data pointer.

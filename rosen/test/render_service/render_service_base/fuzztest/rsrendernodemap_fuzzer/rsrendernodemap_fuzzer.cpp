@@ -83,7 +83,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderNodeMap.TraversalNodes(func);
     rsRenderNodeMap.GetResidentSurfaceNodeMap();
     rsRenderNodeMap.IsResidentProcessNode(id);
-    rsRenderNodeMap.CalCulateAbilityComponentNumsInProcess(id);
     rsRenderNodeMap.GetEntryViewNodeId();
     rsRenderNodeMap.GetWallPaperViewNodeId();
     rsRenderNodeMap.GetScreenLockWindowNodeId();
@@ -91,7 +90,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderNodeMap.ObtainScreenLockWindowNodeId(surfaceNode);
     rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
     rsRenderNodeMap.GetVisibleLeashWindowCount();
-    rsRenderNodeMap.EraseAbilityComponentNumsInProcess(id);
     return true;
 }
 } // namespace Rosen

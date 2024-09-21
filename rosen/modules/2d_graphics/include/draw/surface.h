@@ -156,6 +156,13 @@ public:
     std::shared_ptr<Surface> MakeSurface(int width, int height) const;
 
     /**
+     * @brief         Returns a compatible Surface, with the specified width and height.
+     * @param imageinfo   surface imageinfo
+     * @return        A shared pointer to Surface
+     */
+    std::shared_ptr<Surface> MakeSurface(const ImageInfo& imageinfo) const;
+
+    /**
      * @brief   Gets ImageInfo of Surface.
      * @return  ImageInfo
      */
@@ -186,6 +193,10 @@ public:
     {
         return impl_->DowncastingTo<T>();
     }
+
+#ifdef RS_ENABLE_GL
+    void Wait(const std::vector<GrGLsync>& syncs);
+#endif
 
 #ifdef RS_ENABLE_VK
     void Wait(int32_t time, const VkSemaphore& semaphore);

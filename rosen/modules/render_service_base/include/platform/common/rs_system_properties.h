@@ -161,14 +161,18 @@ public:
     static bool GetHardwareComposerEnabledForMirrorMode();
     static bool GetHwcRegionDfxEnabled();
     static bool GetDrawMirrorCacheImageEnabled();
+    static bool GetPixelmapDfxEnabled();
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
     static bool GetRSScreenRoundCornerEnable();
+    static bool GetAceDebugBoundaryEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
+    static void SetDefaultDeviceRotationOffset(uint32_t offset);
+    static uint32_t GetDefaultDeviceRotationOffset();
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
@@ -187,6 +191,7 @@ public:
     static bool GetKawaseEnabled();
     static void SetForceHpsBlurDisabled(bool flag);
     static bool GetHpsBlurEnabled();
+    static bool GetMESABlurFuzedEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
     static bool GetImageReleaseUsingPostTask();
@@ -201,9 +206,10 @@ public:
 
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
+    static bool GetDiscardCanvasBeforeFilterEnabled();
     static bool GetPurgeBetweenFramesEnabled();
-    static bool GetPreAllocateTextureBetweenFramesEnabled();
-    static bool GetAsyncFreeVMAMemoryBetweenFramesEnabled();
+    static bool GetGpuMemoryAsyncReclaimerEnabled();
+    static bool GetGpuCacheSuppressWindowEnabled();
 
     static bool GetAnimationCacheEnabled();
 
@@ -211,6 +217,7 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
+    static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
@@ -222,6 +229,7 @@ public:
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSnapshotWithDMAEnabled();
     static bool GetDrmEnabled();
+    static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsPhoneType();
     static bool IsTabletType();
     static bool IsPcType();
@@ -237,6 +245,7 @@ public:
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool GetHDRImageEnable();
     static bool IsForceClient();
+    static bool GetDrmMarkedFilterEnabled();
     static bool GetUnmarshParallelFlag();
     static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
@@ -256,6 +265,8 @@ public:
     static bool GetDumpUIPixelmapEnabled();
     static bool GetDumpImgEnabled();
 
+    static bool GetTransactionTerminateEnabled();
+
     static int GetVirtualScreenScaleModeDFX();
     static bool GetTextBlobAsPixelMap();
     static inline GpuApiType GetGpuApiType()
@@ -269,13 +280,15 @@ public:
     }
 
     static int GetRSNodeLimit();
-
+    static bool GetMemoryOverTreminateEnabled();
+    static bool GetHwcDirtyRegionEnabled();
 private:
     RSSystemProperties() = default;
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
+    inline static std::atomic<uint32_t> defaultDeviceRotationOffset_ = 0;
     static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;

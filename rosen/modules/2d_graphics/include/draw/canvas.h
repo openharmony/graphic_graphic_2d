@@ -25,9 +25,30 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class RecordCmd;
+
+class AutoCanvasMatrixBrush {
+public:
+    AutoCanvasMatrixBrush(Canvas* canvas,
+        const Matrix* matrix, const Brush* brush, const Rect& bounds);
+    ~AutoCanvasMatrixBrush();
+
+    AutoCanvasMatrixBrush(AutoCanvasMatrixBrush&&) = delete;
+    AutoCanvasMatrixBrush(const AutoCanvasMatrixBrush&) = delete;
+    AutoCanvasMatrixBrush& operator=(AutoCanvasMatrixBrush&&) = delete;
+    AutoCanvasMatrixBrush& operator=(const AutoCanvasMatrixBrush&) = delete;
+
+private:
+    Canvas* canvas_;
+    uint32_t saveCount_;
+    Paint paintPen_;
+    Paint paintBrush_;
+};
+
 class DRAWING_API Canvas : public CoreCanvas {
 public:
     Canvas() {}
+    Canvas(DrawingType type) : CoreCanvas(type) {}
     Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}
 
     virtual Canvas* GetRecordingCanvas() const;
@@ -44,6 +65,15 @@ public:
      * @param count  Depth of state stack to restore.
      */
     void RestoreToCount(uint32_t count);
+
+    /*
+     * @brief  Draw recordcmd.
+     * @param recordCmd  Record command.
+     * @param matrix  Matrix to rotate, scale, translate, and so on; may be nullptr.
+     * @param brush Brush to apply transparency, filtering, and so on; must be nullptr now.
+     */
+    virtual void DrawRecordCmd(const std::shared_ptr<RecordCmd> recordCmd,
+        const Matrix* matrix = nullptr, const Brush* brush = nullptr);
 
     virtual bool GetRecordingState() const;
 
@@ -65,7 +95,7 @@ protected:
 
 class DRAWING_API OverDrawCanvas : public Canvas {
 public:
-    OverDrawCanvas(std::shared_ptr<Drawing::Canvas> canvas)
+    OverDrawCanvas(std::shared_ptr<Drawing::Canvas> canvas) : Canvas(DrawingType::OVER_DRAW)
     {
         BuildOverDraw(canvas);
     }
@@ -78,7 +108,7 @@ public:
 
 class DRAWING_API NoDrawCanvas : public Canvas {
 public:
-    NoDrawCanvas(int32_t width, int32_t height)
+    NoDrawCanvas(int32_t width, int32_t height) : Canvas(DrawingType::NO_DRAW)
     {
         BuildNoDraw(width, height);
     }

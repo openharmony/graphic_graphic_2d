@@ -14,6 +14,9 @@
  */
 #include <parameter.h>
 #include <parameters.h>
+#include <if_system_ability_manager.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
@@ -21,6 +24,7 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -49,6 +53,19 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void* CreateParallelSyncSignal(uint32_t count);
+
+private:
+    static inline BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_YCRCB_420_SP,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    static inline BufferFlushConfig flushConfig = {
+        .damage = { .w = 0x100, .h = 0x100, },
+    };
 };
 
 void RSMainThreadTest::SetUpTestCase()
@@ -63,6 +80,17 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
     (void)(count);
     return nullptr;
 }
+
+class ApplicationAgentImpl : public IRemoteStub<IApplicationAgent> {
+public:
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override
+    {
+        return 0;
+    }
+    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override
+    {
+    }
+};
 
 /**
  * @tc.name: Start001
@@ -1072,40 +1100,6 @@ HWTEST_F(RSMainThreadTest, CacheCommands, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckIfNodeIsBundle
- * @tc.desc: Test RSMainThreadTest.CheckIfNodeIsBundle
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSMainThreadTest, CheckIfNodeIsBundle, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    RSSurfaceRenderNodeConfig config;
-    auto node = std::make_shared<RSSurfaceRenderNode>(config);
-    node->name_ = "WallpaperView";
-    mainThread->CheckIfNodeIsBundle(node);
-    ASSERT_TRUE(mainThread->noBundle_);
-}
-
-/**
- * @tc.name: InformHgmNodeInfo
- * @tc.desc: Test RSMainThreadTest.InformHgmNodeInfo
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSMainThreadTest, InformHgmNodeInfo, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->currentBundleName_ = "test";
-    mainThread->InformHgmNodeInfo();
-    mainThread->currentBundleName_ = "";
-    mainThread->noBundle_ = true;
-    mainThread->InformHgmNodeInfo();
-}
-
-/**
  * @tc.name: CheckParallelSubThreadNodesStatus
  * @tc.desc: Test RSMainThreadTest.CheckParallelSubThreadNodesStatus
  * @tc.type: FUNC
@@ -1475,6 +1469,20 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsFirstFrameOfOverdrawSwitch
+ * @tc.desc: test IsFirstFrameOfOverdrawSwitch
+ * @tc.type: FUNC
+ * @tc.require: issueIAKQC3
+ */
+HWTEST_F(RSMainThreadTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isOverDrawEnabledOfCurFrame_ = true;
+    ASSERT_TRUE(mainThread->IsFirstFrameOfOverdrawSwitch());
+}
+
+/**
  * @tc.name: Render
  * @tc.desc: Render test
  * @tc.type: FUNC
@@ -1822,6 +1830,53 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ConsumeAndUpdateAllNodes004
+ * @tc.desc: ConsumeAndUpdateAllNodes004 Test
+ * @tc.type: FUNC
+ * @tc.require: issueIANQPF
+ */
+HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->timestamp_ = 1000;
+    // prepare nodemap
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    rsSurfaceRenderNode->isHardwareEnabledNode_ = true;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(rsSurfaceRenderNode);
+    auto rsSurfaceHandlerPtr_ = rsSurfaceRenderNode->GetRSSurfaceHandler();
+    ASSERT_NE(rsSurfaceHandlerPtr_, nullptr);
+    auto surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    sptr<Surface> psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(5);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    RSSurfaceHandler::SurfaceBufferEntry bufferEntry;
+    bufferEntry.timestamp = 0;
+    ret = psurf->RequestBuffer(bufferEntry.buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    rsSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
+    ASSERT_TRUE(rsSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
+    mainThread->ConsumeAndUpdateAllNodes();
+    mainThread->isUniRender_ = isUniRender;
+#endif
+}
+
+/**
  * @tc.name: CollectInfoForHardwareComposer003
  * @tc.desc: CollectInfoForHardwareComposer003 Test
  * @tc.type: FUNC
@@ -2087,6 +2142,21 @@ HWTEST_F(RSMainThreadTest, SendCommands, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    mainThread->SendCommands();
+}
+
+/**
+ * @tc.name: SendCommands001
+ * @tc.desc: SendCommands Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SendCommands001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    AnimationId animationId = 1;
+    mainThread->context_->AddSyncFinishAnimationList(id, animationId);
     mainThread->SendCommands();
 }
 
@@ -2435,8 +2505,8 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel001, TestSize.Level1)
         std::map<NodeId, RSVisibleLevel> pidVisMap;
         pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->lastVisMapForVsyncRate_.clear();
-        mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
         ASSERT_NE(connection->highPriorityRate_, (int32_t)SIMI_VISIBLE_RATE);
     }
 }
@@ -2466,8 +2536,8 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel002, TestSize.Level1)
         std::map<NodeId, RSVisibleLevel> pidVisMap;
         pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE;
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->lastVisMapForVsyncRate_.clear();
-        mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
         ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
     }
 }
@@ -2497,8 +2567,8 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel003, TestSize.Level1)
         std::map<NodeId, RSVisibleLevel> pidVisMap;
         pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_INVISIBLE;
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->lastVisMapForVsyncRate_.clear();
-        mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
         ASSERT_NE(connection->highPriorityRate_, (int32_t)INVISBLE_WINDOW_RATE);
     }
 }
@@ -2528,8 +2598,8 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel004, TestSize.Level1)
         std::map<NodeId, RSVisibleLevel> pidVisMap;
         pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->lastVisMapForVsyncRate_.clear();
-        mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
         ASSERT_NE(connection->highPriorityRate_, (int32_t)DEFAULT_RATE);
     }
 }
@@ -2561,8 +2631,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes004, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2593,8 +2663,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes005, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2625,8 +2695,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes006, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2657,8 +2727,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes007, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2689,8 +2759,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes008, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2721,8 +2791,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes009, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2853,23 +2923,6 @@ HWTEST_F(RSMainThreadTest, ReleaseSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCurtainScreenUsingStatus
- * @tc.desc: SetCurtainScreenUsingStatus Test
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetCurtainScreenUsingStatus(true);
-    ASSERT_EQ(mainThread->IsCurtainScreenOn(), true);
-
-    // restore curtain screen status
-    mainThread->SetCurtainScreenUsingStatus(false);
-}
-
-/**
  * @tc.name: SetLuminanceChangingStatus
  * @tc.desc: SetLuminanceChangingStatus Test
  * @tc.type: FUNC
@@ -2879,9 +2932,24 @@ HWTEST_F(RSMainThreadTest, SetLuminanceChangingStatus, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    ASSERT_EQ(mainThread->IsLuminanceChanged(), false);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), false);
     mainThread->SetLuminanceChangingStatus(true);
-    ASSERT_EQ(mainThread->IsLuminanceChanged(), true);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), true);
+}
+
+/**
+ * @tc.name: ExchangeLuminanceChangingStatus
+ * @tc.desc: ExchangeLuminanceChangingStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSMainThreadTest, ExchangeLuminanceChangingStatus, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetLuminanceChangingStatus(true);
+    ASSERT_EQ(mainThread->ExchangeLuminanceChangingStatus(), true);
+    ASSERT_EQ(mainThread->isLuminanceChanged_.load(), false);
 }
 
 /**
@@ -3406,6 +3474,50 @@ HWTEST_F(RSMainThreadTest, CheckUIExtensionCallbackDataChanged002, TestSize.Leve
 }
 
 /**
+ * @tc.name: CheckOnUIExtensionCallback001
+ * @tc.desc: test CheckOnUIExtensionCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, CheckOnUIExtensionCallback001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastFrameUIExtensionDataEmpty_ = false;
+    mainThread->uiExtensionCallbackData_.clear();
+    ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObj = samgr->GetSystemAbility(RENDER_SERVICE);
+    ASSERT_NE(remoteObj, nullptr);
+    auto callback = iface_cast<RSIUIExtensionCallback>(remoteObj);
+    uint64_t userId = 0;
+    pid_t pid = 0;
+    mainThread->RegisterUIExtensionCallback(pid, userId, callback);
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    mainThread->UnRegisterUIExtensionCallback(pid);
+}
+
+/**
+ * @tc.name: CheckOnUIExtensionCallback002
+ * @tc.desc: test RegisterUIExtensionCallback when callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, CheckOnUIExtensionCallback002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t userId = 0;
+    pid_t pid = 0;
+    sptr<RSIUIExtensionCallback> callback = nullptr;
+    mainThread->RegisterUIExtensionCallback(pid, userId, callback);
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    mainThread->UnRegisterUIExtensionCallback(pid);
+}
+
+/**
  * @tc.name: GetDynamicRefreshRate002
  * @tc.desc: test GetDynamicRefreshRate, refreshRate = 0
  * @tc.type: FUNC
@@ -3627,9 +3739,127 @@ HWTEST_F(RSMainThreadTest, ResetAnimateNodeFlag, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->context_ = std::make_shared<RSContext>();
+    auto context = mainThread->context_;
     mainThread->ResetAnimateNodeFlag();
     mainThread->context_ = nullptr;
     mainThread->ResetAnimateNodeFlag();
+    mainThread->context_ = context;
+}
+
+/**
+ * @tc.name: ConfigureRenderService
+ * @tc.desc: test ConfigureRenderService before and after LoadConfigXml
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ConfigureRenderService, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ConfigureRenderService();
+    ASSERT_TRUE(RSGraphicConfig::LoadConfigXml());
+    mainThread->ConfigureRenderService();
+}
+
+/**
+ * @tc.name: SendClientDumpNodeTreeCommands
+ * @tc.desc: test SendClientDumpNodeTreeCommands
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, SendClientDumpNodeTreeCommands, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    NodeId testId = 1;
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(testId++, RSDisplayNodeConfig {});
+    rootNode->AddChild(displayNode);
+    auto node1 = std::make_shared<RSRenderNode>(testId++);
+    displayNode->AddChild(node1);
+    rootNode->GenerateFullChildrenList();
+    displayNode->GenerateFullChildrenList();
+
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(testId++, mainThread->context_);
+    node1->AddChild(node2);
+    auto node3 = std::make_shared<RSRootRenderNode>(testId++, mainThread->context_);
+    node2->AddChild(node3);
+    node3->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().FilterNodeByPid(0);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+
+    uint32_t taskId = 0;
+    sptr<ApplicationAgentImpl> agent = new ApplicationAgentImpl();
+    mainThread->RegisterApplicationAgent(0, agent);
+    mainThread->SendClientDumpNodeTreeCommands(taskId);
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_[taskId].count > 0);
+
+    mainThread->SendClientDumpNodeTreeCommands(taskId);
+    rootNode->RemoveChild(displayNode);
+}
+
+/**
+ * @tc.name: CollectClientNodeTreeResult
+ * @tc.desc: test CollectClientNodeTreeResult
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, CollectClientNodeTreeResult, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    uint32_t taskId = 0;
+    auto& task = mainThread->nodeTreeDumpTasks_[taskId];
+    task.data[0] = "testData";
+    task.count++;
+
+    std::string out;
+    mainThread->CollectClientNodeTreeResult(taskId, out, 1);
+    ASSERT_TRUE(!out.empty());
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
+}
+
+/**
+ * @tc.name: OnDrawingCacheDfxSwitchCallback
+ * @tc.desc: test OnDrawingCacheDfxSwitchCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIALU2Y
+ */
+HWTEST_F(RSMainThreadTest, OnDrawingCacheDfxSwitchCallback, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSMainThread::OnDrawingCacheDfxSwitchCallback("persist", "1", nullptr);
+    RSMainThread::OnDrawingCacheDfxSwitchCallback("rosen.drawingCache.enabledDfx", "1", nullptr);
+}
+
+/**
+ * @tc.name: OnDumpClientNodeTree
+ * @tc.desc: test OnDumpClientNodeTree
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, OnDumpClientNodeTree, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    uint32_t taskId = 0;
+    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
+
+    auto& task = mainThread->nodeTreeDumpTasks_[taskId];
+    task.count++;
+
+    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
+    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_[taskId].data.empty());
 }
 } // namespace OHOS::Rosen

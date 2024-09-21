@@ -633,8 +633,6 @@ void HdiLayer::SelectHitchsInfo(std::string windowName, std::string &result)
     int sixtySixTimes = 0;
     int thirtyThreeTimes = 0;
     int sixteenTimes = 0;
-    int64_t lastFlushTimestamp = 0;
-    int64_t nowFlushTimestamp = 0;
     {
         std::unique_lock<std::mutex> lock(mutex_);
         const uint32_t offset = count_;
@@ -642,6 +640,8 @@ void HdiLayer::SelectHitchsInfo(std::string windowName, std::string &result)
             uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
             auto windowsName = presentTimeRecords_[order].windowsName;
             auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
+            int64_t lastFlushTimestamp = 0;
+            int64_t nowFlushTimestamp = 0;
             if (iter != windowsName.end()) {
                 nowFlushTimestamp = presentTimeRecords_[order].presentTime;
                 if (lastFlushTimestamp != 0) {

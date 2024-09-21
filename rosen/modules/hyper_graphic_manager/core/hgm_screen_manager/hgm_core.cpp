@@ -192,6 +192,7 @@ void HgmCore::SetLtpoConfig()
 
     if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end()) {
         maxTE_ = std::stoul(curScreenSetting.ltpoConfig["maxTE"]);
+        CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
     } else {
         maxTE_ = 0;
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
@@ -287,7 +288,6 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
         HGM_LOGW("HgmCore refuse an illegal framerate: %{public}d", rate);
         return HGM_ERROR;
     }
-    sceneId = static_cast<int32_t>(screenSceneSet_.size());
     int32_t modeToSwitch = screen->SetActiveRefreshRate(sceneId, static_cast<uint32_t>(rate));
     if (modeToSwitch < 0) {
         return modeToSwitch;
@@ -331,7 +331,7 @@ int32_t HgmCore::SetRefreshRateMode(int32_t refreshRateMode)
     }
 
     hgmFrameRateMgr_->HandleRefreshRateMode(refreshRateMode);
-
+    // sync vsync mode after refreshRate mode switching
     auto refreshRateModeName = GetCurrentRefreshRateModeName();
     if (refreshRateModeChangeCallback_ != nullptr) {
         refreshRateModeChangeCallback_(refreshRateModeName);
@@ -411,26 +411,6 @@ int32_t HgmCore::AddScreenInfo(ScreenId id, int32_t width, int32_t height, uint3
 
     HGM_LOGW("HgmCore failed to add screen mode info of screen : " PUBU64 "", id);
     return HGM_SCREEN_PARAM_ERROR;
-}
-
-int32_t HgmCore::RefreshBundleName(const std::string& name)
-{
-    if (name == currentBundleName_) {
-        return EXEC_SUCCESS;
-    }
-
-    currentBundleName_ = name;
-
-    if (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
-        return EXEC_SUCCESS;
-    }
-
-    int resetResult = SetRefreshRateMode(customFrameRateMode_);
-    if (resetResult == EXEC_SUCCESS) {
-        HGM_LOGI("HgmCore reset current refreshrate mode: %{public}d due to bundlename: %{public}s",
-            customFrameRateMode_, currentBundleName_.c_str());
-    }
-    return EXEC_SUCCESS;
 }
 
 uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const

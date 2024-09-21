@@ -92,14 +92,14 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
+    auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
     if (LIKELY(!rscanvas.IsCapture())) {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), dynamicRangeMode_);
+            targetColorSpace, rscanvas.GetScreenId(), dynamicRangeMode_);
     } else {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
+            targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
     }
-    paint_.SetHDRImage(true);
     canvas.AttachPaint(paint_);
     return true;
 #else
@@ -583,11 +583,13 @@ bool RSImage::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
     RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
+    uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.height_)) &&
                    RSMarshallingHelper::Marshalling(parcel, nodeId_) &&
                    parcel.WriteBool(pixelMap_ == nullptr) &&
+                   RSMarshallingHelper::Marshalling(parcel, versionId) &&
                    RSMarshallingHelper::Marshalling(parcel, image) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_) &&
                    RSMarshallingHelper::Marshalling(parcel, compressData) &&

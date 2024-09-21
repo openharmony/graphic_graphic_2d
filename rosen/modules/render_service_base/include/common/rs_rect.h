@@ -198,8 +198,8 @@ public:
     }
     std::string ToString() const
     {
-        return std::string("(") + std::to_string(left_) + ", " + std::to_string(top_) + ", " +
-            std::to_string(width_) + ", " + std::to_string(height_) + ")";
+        return std::string("[") + std::to_string(left_) + ", " + std::to_string(top_) + ", " +
+            std::to_string(width_) + ", " + std::to_string(height_) + "]";
     }
 
     // outset: left, top, right, bottom

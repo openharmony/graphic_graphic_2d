@@ -83,31 +83,6 @@ void RSUniRenderProcessor::PostProcess()
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-void RSUniRenderProcessor::DealWithHdr(RSSurfaceRenderNode& node, LayerInfoPtr& layer, sptr<SurfaceBuffer> buffer)
-{
-    auto ancestorNode = node.GetAncestorDisplayNode().lock();
-    auto ancestorDisplayNode = ancestorNode ? ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>() : nullptr;
-    if (!ancestorDisplayNode) {
-        RS_LOGE("ancestorDisplayNode return nullptr");
-        return;
-    }
-    auto screenId = ancestorDisplayNode->GetScreenId();
-    if (!RSLuminanceControl::Get().IsHdrOn(screenId)) {
-        return;
-    }
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo colorSpaceInfo;
-    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-        return;
-    }
-    bool isHdrBuffer = colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
-        colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG;
-
-    node.SetDisplayNit(RSLuminanceControl::Get().GetHdrDisplayNits(screenId));
-    node.SetBrightnessRatio(isHdrBuffer ? 1.0f : RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
-}
-#endif
-
 void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
@@ -116,17 +91,23 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         return;
     }
     auto& layerInfo = params.GetLayerInfo();
+    const Rect& dirtyRect = params.GetBufferDamage();
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d]",
+        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] dirty:[%d, %d, %d, %d] "
+        "buffer:[%d, %d] alpha:[%f] type:[%d]",
         node.GetName().c_str(), layerInfo.zOrder,
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
     RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
+            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
         node.GetName().c_str(), layerInfo.zOrder,
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
     ScalingMode scalingMode = params.GetPreScalingMode();
@@ -135,11 +116,9 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    DealWithHdr(node, layer, buffer);
-#endif
-    layer->SetDisplayNit(node.GetDisplayNit());
-    layer->SetBrightnessRatio(node.GetBrightnessRatio());
+    layer->SetSdrNit(params.GetSdrNit());
+    layer->SetDisplayNit(params.GetDisplayNit());
+    layer->SetBrightnessRatio(params.GetBrightnessRatio());
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     layers_.emplace_back(layer);
@@ -158,25 +137,32 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         return;
     }
     auto& layerInfo = params.GetLayerInfo();
+    const Rect& dirtyRect = params.GetBufferDamage();
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d]",
+        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] dirty:[%d, %d, %d, %d] "
+        "buffer:[%d, %d] alpha:[%f] type:[%d]",
         surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
-    RS_LOGI("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] buffer:[%{public}d, %{public}d] alpha:[%{public}f] "
-            "type:%{public}d]",
+    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "buffer:[%{public}d, %{public}d] alpha:[%{public}f] type:%{public}d]",
         surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
     auto preBuffer = params.GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,
         surfaceDrawable.GetConsumerOnDraw(), params.GetAcquireFence());
     layer->SetNodeId(surfaceDrawable.GetId());
-    layer->SetDisplayNit(surfaceDrawable.GetDisplayNit());
-    layer->SetBrightnessRatio(surfaceDrawable.GetBrightnessRatio());
+    auto& renderParams = static_cast<RSSurfaceRenderParams&>(params);
+    layer->SetSdrNit(renderParams.GetSdrNit());
+    layer->SetDisplayNit(renderParams.GetDisplayNit());
+    layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
     layers_.emplace_back(layer);
     params.SetLayerCreated(true);
@@ -248,11 +234,16 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     visibleRegions.emplace_back(layerInfo.dstRect);
     layer->SetVisibleRegions(visibleRegions);
     std::vector<GraphicIRect> dirtyRegions;
-    dirtyRegions.emplace_back(layerInfo.srcRect);
+    if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
+        const auto& dirtyRect = params.GetBufferDamage();
+        dirtyRegions.emplace_back(GraphicIRect { dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h });
+    } else {
+        dirtyRegions.emplace_back(layerInfo.srcRect);
+    }
     layer->SetDirtyRegions(dirtyRegions);
 
     layer->SetBlendType(layerInfo.blendType);
-    layer->SetCropRect(layerInfo.srcRect);
+    ProcessLayerSetCropRect(layer, layerInfo, buffer);
     layer->SetGravity(layerInfo.gravity);
     layer->SetTransform(layerInfo.transformType);
     auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
@@ -264,7 +255,47 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetScalingMode(params.GetPreScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetClearCacheSet(params.GetBufferClearCacheSet());
+    layer->SetLayerArsr(layerInfo.arsrTag);
     return layer;
+}
+
+void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, RSLayerInfo& layerInfo,
+    sptr<SurfaceBuffer> buffer)
+{
+    auto adaptedSrcRect = layerInfo.srcRect;
+    // Because the buffer is mirrored in the horiziontal/vertical directions,
+    // srcRect need to be adjusted.
+    switch (layerInfo.transformType) {
+        case GraphicTransformType::GRAPHIC_FLIP_H: [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180: {
+            // 1. Intersect the left border of the screen.
+            // map_x = (buffer_width - buffer_right_x)
+            if (adaptedSrcRect.x > 0) {
+                adaptedSrcRect.x = 0;
+            } else if (layerInfo.dstRect.x + layerInfo.dstRect.w >= screenInfo_.width) {
+                // 2. Intersect the right border of the screen.
+                // map_x = (buffer_width - buffer_right_x)
+                // Only left side adjustment can be triggerred on the narrow screen.
+                adaptedSrcRect.x =
+                    buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferWidth()) - adaptedSrcRect.w) : 0;
+            }
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_V: [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180: {
+            // The processing in the vertical direction is similar to that in the horizontal direction.
+            if (adaptedSrcRect.y > 0) {
+                adaptedSrcRect.y = 0;
+            } else if (layerInfo.dstRect.y + layerInfo.dstRect.h >= screenInfo_.height) {
+                adaptedSrcRect.y =
+                    buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferHeight()) - adaptedSrcRect.h) : 0;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    layerInfoPtr->SetCropRect(adaptedSrcRect);
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)

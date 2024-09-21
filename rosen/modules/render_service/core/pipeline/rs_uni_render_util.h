@@ -76,7 +76,7 @@ public:
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceHandler& surfaceHandler, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, bool forceCPU, uint32_t threadIndex);
-    static BufferDrawParam CreateBufferDrawParam(
+    static BufferDrawParam CreateBufferDrawParamForRotationFixed(
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams);
     static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
     static void DealWithRotationAndGravityForRotationFixed(GraphicTransformType transform, Gravity gravity,
@@ -110,6 +110,7 @@ public:
 #endif
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
     static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void DealWithScalingMode(RSSurfaceRenderNode& node);
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
@@ -128,6 +129,23 @@ public:
     static void TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRenderNode> node,
         Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData);
     static void ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed);
+    static void FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap);
+    template<typename... Callbacks>
+    static void TraverseParentNodeAndReduce(std::shared_ptr<RSSurfaceRenderNode> hwcNode, Callbacks&&... callbacks)
+    {
+        static_assert((std::is_invocable<Callbacks, std::shared_ptr<RSRenderNode>>::value && ...),
+                    "uninvocable callback");
+        if (!hwcNode) {
+            return;
+        }
+        auto parent = std::static_pointer_cast<RSRenderNode>(hwcNode);
+        while (static_cast<bool>(parent = parent->GetParent().lock())) {
+            (std::invoke(callbacks, parent), ...);
+            if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+                break;
+            }
+        }
+    }
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

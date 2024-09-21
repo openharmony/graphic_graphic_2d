@@ -85,6 +85,9 @@ public:
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
+    // if return true, the setting is successful. otherwise failed. The function is setted watermark for SurfaceNode
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
@@ -116,6 +119,9 @@ public:
 
     // set scale mode for virtual screen
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
+
+    // WMS set dark color display mode to RS
+    bool SetGlobalDarkColorMode(bool isDark);
 #ifndef ROSEN_ARKUI_X
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
@@ -254,6 +260,8 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset);
+
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
@@ -283,6 +291,15 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
+    void SetFreeMultiWindowStatus(bool enable);
+
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
+    // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

@@ -40,6 +40,7 @@ public:
     bool GetUniRenderEnabled() override;
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config) override;
+    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId) override;
     sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) override;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
@@ -72,6 +73,8 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark) override;
+
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
@@ -101,6 +104,8 @@ public:
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate) override;
 
+    void UnregisterFrameRateLinker(FrameRateLinkerId id) override;
+
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
     int32_t GetCurrentRefreshRateMode() override;
@@ -124,7 +129,8 @@ public:
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, bool accessible = true) override;
+        const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
@@ -163,6 +169,8 @@ public:
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
+
+    bool SetGlobalDarkColorMode(bool isDark) override;
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
@@ -239,6 +247,8 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
     void RunOnRemoteDiedCallback() override;
@@ -262,6 +272,14 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
+
+    void SetFreeMultiWindowStatus(bool enable) override;
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -271,6 +289,8 @@ private:
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
 
     bool SetAncoForceDoDirect(bool direct) override;
+
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

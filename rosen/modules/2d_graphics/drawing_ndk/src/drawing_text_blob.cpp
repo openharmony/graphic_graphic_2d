@@ -103,7 +103,7 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromPosText(const void* text, size
     if (count <= 0) {
         return nullptr;
     }
-    Point* pts = new Point[count];
+    Point* pts = new (std::nothrow) Point[count];
     if (pts == nullptr) {
         return nullptr;
     }
@@ -217,5 +217,8 @@ void OH_Drawing_TextBlobDestroy(OH_Drawing_TextBlob* cTextBlob)
 
 void OH_Drawing_TextBlobBuilderDestroy(OH_Drawing_TextBlobBuilder* cTextBlobBuilder)
 {
+    if (!cTextBlobBuilder) {
+        return;
+    }
     delete CastToTextBlobBuilder(cTextBlobBuilder);
 }

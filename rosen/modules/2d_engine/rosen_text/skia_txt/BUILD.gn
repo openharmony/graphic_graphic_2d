@@ -71,24 +71,29 @@ template("skia_libtxt") {
       "$txt_root/txt/paragraph_style.cpp",
       "$txt_root/txt/placeholder_run.cpp",
       "$txt_root/txt/platform.cpp",
+      "$txt_root/txt/text_bundle_config_parser.cpp",
       "$txt_root/txt/text_style.cpp",
       "$txt_root/txt/typeface_font_asset_provider.cpp",
     ]
 
     external_deps = []
     if (platform == "ohos" || platform == "ohos_ng") {
-      external_deps += [ "init:libbegetutil" ]
+      external_deps += [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "samgr:samgr_proxy",
+      ]
       defines += [ "HM_SYMBOL_TXT_ENABLE" ]
       defines += [ "OHOS_TEXT_ENABLE" ]
     }
 
+    defines += [ "OHOS_SUPPORT" ]
+
     is_cross_platform =
         current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
         current_os == "android" || current_os == "ios"
-
-    if (is_cross_platform) {
-      defines += [ "TXT_TRACE_DISABLE" ]
-    }
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [
@@ -162,10 +167,6 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph",
   ]
 
-  if (is_arkui_x) {
-    include_dirs +=
-        [ "//foundation/multimedia/image_framework/mock/native/include/log" ]
-  }
   defines = [ "OHOS_SUPPORT" ]
 
   sources = [
@@ -209,6 +210,7 @@ ohos_source_set("skia_paragraph") {
 
   if (is_arkui_x) {
     deps += [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/skia:skia_$platform",
     ]
@@ -225,7 +227,7 @@ ohos_source_set("skia_paragraph") {
       current_os == "android" || current_os == "ios"
 
   if (!is_cross_platform) {
-    defines += [ "TXT_AUTO_SPACING" ]
+    defines += [ "TXT_USE_PARAMETER" ]
     external_deps += [ "init:libbegetutil" ]
   }
 }

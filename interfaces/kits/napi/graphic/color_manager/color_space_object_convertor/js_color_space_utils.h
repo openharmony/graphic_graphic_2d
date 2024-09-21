@@ -183,9 +183,9 @@ T* CheckParamsAndGetThis(const napi_env env, napi_callback_info info, const char
     napi_value object = nullptr;
     napi_value propertyNameValue = nullptr;
     napi_value pointerValue = nullptr;
-    napi_get_cb_info(env, info, nullptr, nullptr, &object, nullptr);
+    NAPI_CALL_DEFAULT(napi_get_cb_info(env, info, nullptr, nullptr, &object, nullptr));
     if (object != nullptr && name != nullptr) {
-        napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &propertyNameValue);
+        NAPI_CALL_DEFAULT(napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &propertyNameValue));
     }
     napi_value& resObject = propertyNameValue ? propertyNameValue : object;
     if (resObject) {
@@ -204,9 +204,9 @@ T* CheckSendableParamsAndGetThis(const napi_env env, napi_callback_info info, co
     napi_value object = nullptr;
     napi_value propertyNameValue = nullptr;
     napi_value pointerValue = nullptr;
-    napi_get_cb_info(env, info, nullptr, nullptr, &object, nullptr);
+    NAPI_CALL_DEFAULT(napi_get_cb_info(env, info, nullptr, nullptr, &object, nullptr));
     if (object != nullptr && name != nullptr) {
-        napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &propertyNameValue);
+        NAPI_CALL_DEFAULT(napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &propertyNameValue));
     }
     napi_value& resObject = propertyNameValue ? propertyNameValue : object;
     if (resObject) {
@@ -225,42 +225,42 @@ inline constexpr size_t ArraySize(T (&)[N]) noexcept
 inline napi_value CreateJsUndefined(napi_env env)
 {
     napi_value result = nullptr;
-    napi_get_undefined(env, &result);
+    NAPI_CALL_DEFAULT(napi_get_undefined(env, &result));
     return result;
 }
 
 inline napi_value CreateJsNull(napi_env env)
 {
     napi_value result = nullptr;
-    napi_get_null(env, &result);
+    NAPI_CALL_DEFAULT(napi_get_null(env, &result));
     return result;
 }
 
 inline napi_value CreateJsNumber(napi_env env, int32_t value)
 {
     napi_value result = nullptr;
-    napi_create_int32(env, value, &result);
+    NAPI_CALL_DEFAULT(napi_create_int32(env, value, &result));
     return result;
 }
 
 inline napi_value CreateJsNumber(napi_env env, uint32_t value)
 {
     napi_value result = nullptr;
-    napi_create_uint32(env, value, &result);
+    NAPI_CALL_DEFAULT(napi_create_uint32(env, value, &result));
     return result;
 }
 
 inline napi_value CreateJsNumber(napi_env env, int64_t value)
 {
     napi_value result = nullptr;
-    napi_create_int64(env, value, &result);
+    NAPI_CALL_DEFAULT(napi_create_int64(env, value, &result));
     return result;
 }
 
 inline napi_value CreateJsNumber(napi_env env, double value)
 {
     napi_value result = nullptr;
-    napi_create_double(env, value, &result);
+    NAPI_CALL_DEFAULT(napi_create_double(env, value, &result));
     return result;
 }
 
@@ -270,19 +270,24 @@ napi_value CreateJsValue(napi_env env, const T& value)
     using ValueType = std::remove_cv_t<std::remove_reference_t<T>>;
     napi_value result = nullptr;
     if constexpr (std::is_same_v<ValueType, bool>) {
-        napi_get_boolean(env, value, &result);
+        NAPI_CALL_DEFAULT(napi_get_boolean(env, value, &result));
         return result;
     } else if constexpr (std::is_arithmetic_v<ValueType>) {
         return CreateJsNumber(env, value);
     } else if constexpr (std::is_same_v<ValueType, std::string>) {
-        napi_create_string_utf8(env, value.c_str(), value.length(), &result);
+        NAPI_CALL_DEFAULT(napi_create_string_utf8(env, value.c_str(), value.length(), &result));
         return result;
     } else if constexpr (std::is_enum_v<ValueType>) {
         return CreateJsNumber(env, static_cast<std::make_signed_t<ValueType>>(value));
     } else if constexpr (std::is_same_v<ValueType, const char*>) {
-        (value != nullptr) ? napi_create_string_utf8(env, value, strlen(value), &result) :
-            napi_get_undefined(env, &result);
+        if (value != nullptr) {
+            NAPI_CALL_DEFAULT(napi_create_string_utf8(env, value, strlen(value), &result));
+        } else {
+            NAPI_CALL_DEFAULT(napi_get_undefined(env, &result));
+        }
         return result;
+    } else {
+        return nullptr;
     }
 }
 
@@ -342,7 +347,8 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 }
 
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message = std::string());
-void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func);
+napi_status BindNativeFunction(napi_env env, napi_value object, const char* name,
+    const char* moduleName, napi_callback func);
 bool CheckParamMinimumValid(napi_env env, const size_t paramNum, const size_t minNum);
 
 napi_value ColorSpaceTypeInit(napi_env env);

@@ -20,6 +20,13 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+const RectI DEFAULT_RECT = {0, 0, 100, 100};
+constexpr NodeId DEFAULT_NODEID = 1;
+} // namespace
+
+constexpr int32_t SET_DISPLAY_NITS = 100;
+constexpr float_t SET_BRIGHTNESS_RATIO = 0.5f;
 class RSSurfaceRenderParamsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -46,6 +53,41 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetOccludedByFilterCache, TestSize.Level1)
 
     params.SetOccludedByFilterCache(true);
     EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: SetFilterCacheFullyCovered
+ * @tc.desc: test SetFilterCacheFullyCovered successfully
+ * @tc.type: FUNC
+ * @tc.require: issueIAL2EA
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetFilterCacheFullyCovered, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    params.SetFilterCacheFullyCovered(true);
+    EXPECT_EQ(params.GetFilterCacheFullyCovered(), true);
+}
+
+/**
+ * @tc.name: CheckValidFilterCacheFullyCoverTarget
+ * @tc.desc: test CheckValidFilterCacheFullyCoverTarget correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIAL2EA
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, CheckValidFilterCacheFullyCoverTarget, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    params.isFilterCacheFullyCovered_ = false;
+    params.CheckValidFilterCacheFullyCoverTarget(true, DEFAULT_RECT, DEFAULT_RECT);
+    EXPECT_EQ(params.isFilterCacheFullyCovered_, true);
+
+    params.isFilterCacheFullyCovered_ = false;
+    params.CheckValidFilterCacheFullyCoverTarget(false, DEFAULT_RECT, DEFAULT_RECT);
+    EXPECT_EQ(params.isFilterCacheFullyCovered_, false);
+
+    params.isFilterCacheFullyCovered_ = true;
+    params.CheckValidFilterCacheFullyCoverTarget(false, DEFAULT_RECT, DEFAULT_RECT);
+    EXPECT_EQ(params.isFilterCacheFullyCovered_, true);
 }
 
 /**
@@ -186,5 +228,31 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetOverDrawBufferNodeCornerRadius, TestSize.
 
     params.SetOverDrawBufferNodeCornerRadius(true);
     EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: DisplayNitTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, DisplayNitTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(110);
+    params.SetDisplayNit(SET_DISPLAY_NITS);
+    EXPECT_EQ(params.GetDisplayNit(), SET_DISPLAY_NITS);
+}
+
+/**
+ * @tc.name: BrightnessRatioTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, BrightnessRatioTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(111);
+    params.SetBrightnessRatio(SET_BRIGHTNESS_RATIO);
+    EXPECT_EQ(params.GetBrightnessRatio(), SET_BRIGHTNESS_RATIO);
 }
 }

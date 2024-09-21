@@ -17,9 +17,11 @@
 #include <memory>
 
 #include "include/core/SkFontTypes.h"
+#include "include/core/SkPath.h"
 
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_typeface.h"
+#include "skia_path.h"
 #include "skia_typeface.h"
 #include "text/font.h"
 #include "utils/log.h"
@@ -250,6 +252,26 @@ int SkiaFont::CountText(const void* text, size_t byteLength, TextEncoding encodi
 {
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
     return skFont_.countText(text, byteLength, skEncoding);
+}
+
+bool SkiaFont::GetPathForGlyph(uint16_t glyph, Path* path) const
+{
+    if (!path) {
+        LOGE("path param is nullptr, fatal error");
+        return false;
+    }
+    auto skPathImpl = path->GetImpl<SkiaPath>();
+    if (skPathImpl != nullptr) {
+        SkPath& skpath = skPathImpl->GetMutablePath();
+        bool ret = skFont_.getPath(glyph, &skpath);
+        if (!ret) {
+            LOGW("no path found for glyph:%{public}hu", glyph);
+            return false;
+        }
+    }
+    LOGD("glyph:%{public}hu path = %s", glyph, path->ConvertToSVGString().c_str());
+    
+    return true;
 }
 
 const SkFont& SkiaFont::GetFont() const

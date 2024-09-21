@@ -20,54 +20,55 @@
 #include "draw/pen.h"
 #include "effect/filter.h"
 #include "utils/scalar.h"
+#include "text/hm_symbol.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 struct ImageHandle {
-    uint32_t offset;
-    size_t size;
-    int32_t width;
-    int32_t height;
-    ColorType colorType;
-    AlphaType alphaType;
+    uint32_t offset = 0;
+    size_t size = 0;
+    int32_t width = 0;
+    int32_t height = 0;
+    ColorType colorType = COLORTYPE_UNKNOWN;
+    AlphaType alphaType = ALPHATYPE_UNKNOWN;
 };
 
 struct OpDataHandle {
-    uint32_t offset;
-    size_t size;
+    uint32_t offset = 0;
+    size_t size = 0;
 };
 
 struct FlattenableHandle {
-    uint32_t offset;
-    size_t size;
-    uint32_t type;
+    uint32_t offset = 0;
+    size_t size = 0;
+    uint32_t type = 0;
 };
 
 struct CmdListHandle {
-    uint32_t type;
-    uint32_t offset;
-    size_t size;
-    uint32_t imageOffset;
-    size_t imageSize;
-    uint32_t bitmapOffset;
-    size_t bitmapSize;
+    uint32_t type = 0;
+    uint32_t offset = 0;
+    size_t size = 0;
+    uint32_t imageOffset = 0;
+    size_t imageSize = 0;
+    uint32_t bitmapOffset = 0;
+    size_t bitmapSize = 0;
 };
 
 struct GroupInfoHandle {
-    std::pair<uint32_t, size_t> vec1;
-    std::pair<uint32_t, size_t> vec2;
+    std::pair<uint32_t, size_t> vec1 = {0, 0};
+    std::pair<uint32_t, size_t> vec2 = {0, 0};
 };
 
 struct RenderGroupHandle {
-    std::pair<uint32_t, size_t> infos;
+    std::pair<uint32_t, size_t> infos = {0, 0};
     DrawingSColor color;
 };
 
 struct SymbolLayersHandle {
-    uint32_t id;
-    std::pair<uint32_t, size_t> layers;
-    std::pair<uint32_t, size_t> groups;
+    uint32_t id = 0;
+    std::pair<uint32_t, size_t> layers = {0, 0};
+    std::pair<uint32_t, size_t> groups = {0, 0};
 };
 
 struct LatticeHandle {
@@ -87,16 +88,16 @@ struct SymbolOpHandle {
 };
 
 struct PaintHandle {
-    bool isAntiAlias;
-    bool blenderEnabled;
+    bool isAntiAlias = false;
+    bool blenderEnabled = false;
     Paint::PaintStyle style = Paint::PaintStyle::PAINT_NONE;
     Color color = Color::COLOR_BLACK;
     BlendMode mode = BlendMode::SRC_OVER;
-    scalar width;
-    scalar miterLimit;
-    Pen::CapStyle capStyle;
-    Pen::JoinStyle joinStyle;
-    Filter::FilterQuality filterQuality;
+    scalar width = 0.0f;
+    scalar miterLimit = 0.0f;
+    Pen::CapStyle capStyle = Pen::CapStyle::FLAT_CAP;
+    Pen::JoinStyle joinStyle = Pen::JoinStyle::MITER_JOIN;
+    Filter::FilterQuality filterQuality = Filter::FilterQuality::NONE;
     OpDataHandle colorSpaceHandle;
     FlattenableHandle shaderEffectHandle;
     FlattenableHandle colorFilterHandle;
@@ -107,11 +108,11 @@ struct PaintHandle {
 };
 
 struct BrushHandle {
-    Color color;
-    BlendMode mode;
-    bool isAntiAlias;
-    bool blenderEnabled;
-    Filter::FilterQuality filterQuality;
+    Color color = Color::COLOR_BLACK;
+    BlendMode mode = BlendMode::SRC_OVER;
+    bool isAntiAlias = false;
+    bool blenderEnabled = false;
+    Filter::FilterQuality filterQuality = Filter::FilterQuality::NONE;
     OpDataHandle colorSpaceHandle;
     FlattenableHandle shaderEffectHandle;
     FlattenableHandle colorFilterHandle;
@@ -120,12 +121,12 @@ struct BrushHandle {
 };
 
 struct PenHandle {
-    scalar width;
-    scalar miterLimit;
-    Pen::CapStyle capStyle;
-    Pen::JoinStyle joinStyle;
+    scalar width = 0.0f;
+    scalar miterLimit = 0.0f;
+    Pen::CapStyle capStyle = Pen::CapStyle::FLAT_CAP;
+    Pen::JoinStyle joinStyle = Pen::JoinStyle::MITER_JOIN;
     FlattenableHandle pathEffectHandle;
-    Color color;
+    Color color = Color::COLOR_BLACK;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -103,7 +103,7 @@ struct VoteInfo {
 
     bool operator==(const VoteInfo& other) const
     {
-        return this->max == other.max && this->voterName == other.voterName &&
+        return this->min == other.min && this->max == other.max && this->voterName == other.voterName &&
             this->extInfo == other.extInfo && this->pid == other.pid && this->bundleName == other.bundleName;
     }
 
@@ -167,6 +167,8 @@ public:
     }
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    static std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
+        std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -178,7 +180,7 @@ private:
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
     void FrameRateReport();
-    uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
+    uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     int32_t GetPreferredFps(const std::string& type, float velocity) const;
     static float PixelToMM(float velocity);
@@ -189,10 +191,9 @@ private:
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
-    static std::string GetScreenType(ScreenId screenId);
     void MarkVoteChange(const std::string& voter = "");
-    bool IsCurrentScreenSupportAS();
-    void ProcessAdaptiveSync(std::string voterName);
+    static bool IsCurrentScreenSupportAS();
+    void ProcessAdaptiveSync(const std::string& voterName);
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
@@ -203,8 +204,6 @@ private:
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
     void UpdateEnergyConsumptionConfig();
-    static void EnterEnergyConsumptionAssuranceMode();
-    static void ExitEnergyConsumptionAssuranceMode();
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
@@ -217,6 +216,8 @@ private:
     std::mutex pendingMutex_;
     std::shared_ptr<uint32_t> pendingRefreshRate_ = nullptr;
     uint64_t pendingConstraintRelativeTime_ = 0;
+    uint64_t lastPendingConstraintRelativeTime_ = 0;
+    uint32_t lastPendingRefreshRate_ = 0;
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
     // concurrency protection <<<
@@ -235,6 +236,7 @@ private:
     // Used to record your votes, and clear your votes after you die
     std::unordered_set<pid_t> pidRecord_;
     std::unordered_set<std::string> gameScenes_;
+    std::unordered_set<std::string> ancoScenes_;
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
     // FORMAT: <timestamp, VoteInfo>
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;

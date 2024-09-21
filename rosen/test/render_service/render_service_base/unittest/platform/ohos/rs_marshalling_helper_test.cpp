@@ -134,6 +134,8 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingWithCopyTest, TestSize.Level1)
     Parcel parcel;
     auto val = std::make_shared<Drawing::Data>();
     EXPECT_TRUE(RSMarshallingHelper::UnmarshallingWithCopy(parcel, val));
+    val = nullptr;
+    EXPECT_TRUE(RSMarshallingHelper::UnmarshallingWithCopy(parcel, val));
 }
 
 /**
@@ -598,9 +600,9 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest015, TestSize.Level1)
     std::shared_ptr<RSInterpolator> interpolator = RSInterpolator::Unmarshalling(parcel);
     auto changeInOverLife = std::make_shared<ChangeInOverLife<float>>(0.f, 0.f, 0, 0, interpolator);
     valChangeOverLife.push_back(changeInOverLife);
-    RenderParticleParaType<float> val(value, ParticleUpdator::RANDOM, random, std::move(valChangeOverLife));
+    RenderParticleParaType<float> val(value, ParticleUpdator::RANDOM, random, valChangeOverLife);
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
-    RenderParticleParaType<float> val2(value, ParticleUpdator::CURVE, random, std::move(valChangeOverLife));
+    RenderParticleParaType<float> val2(value, ParticleUpdator::CURVE, random, valChangeOverLife);
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val2));
 }
 

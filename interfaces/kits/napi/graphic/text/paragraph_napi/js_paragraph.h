@@ -35,6 +35,7 @@ public:
     static napi_value GetMaxWidth(napi_env env, napi_callback_info info);
     static napi_value GetHeight(napi_env env, napi_callback_info info);
     static napi_value GetLongestLine(napi_env env, napi_callback_info info);
+    static napi_value GetLongestLineWithIndent(napi_env env, napi_callback_info info);
     static napi_value GetMinIntrinsicWidth(napi_env env, napi_callback_info info);
     static napi_value GetMaxIntrinsicWidth(napi_env env, napi_callback_info info);
     static napi_value GetAlphabeticBaseline(napi_env env, napi_callback_info info);
@@ -66,6 +67,7 @@ private:
     napi_value OnGetMaxWidth(napi_env env, napi_callback_info info);
     napi_value OnGetHeight(napi_env env, napi_callback_info info);
     napi_value OnGetLongestLine(napi_env env, napi_callback_info info);
+    napi_value OnGetLongestLineWithIndent(napi_env env, napi_callback_info info);
     napi_value OnGetMinIntrinsicWidth(napi_env env, napi_callback_info info);
     napi_value OnGetMaxIntrinsicWidth(napi_env env, napi_callback_info info);
     napi_value OnGetAlphabeticBaseline(napi_env env, napi_callback_info info);

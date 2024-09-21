@@ -28,6 +28,20 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_hdr_manager.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
 namespace OHOS {
 namespace Rosen {
 RSCanvasNode::SharedPtr RSCanvasNode::Create(bool isRenderServiceNode, bool isTextureExportNode)
@@ -45,10 +59,14 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(bool isRenderServiceNode, bool isTe
 }
 
 RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode)
-    : RSNode(isRenderServiceNode, isTextureExportNode) {}
+    : RSNode(isRenderServiceNode, isTextureExportNode)
+{
+    tid_ = gettid();
+}
 
 RSCanvasNode::~RSCanvasNode()
 {
+    CheckThread();
     if (hdrPresent_) {
         RSHDRManager::Instance().ReduceHDRNum();
     }
@@ -56,6 +74,7 @@ RSCanvasNode::~RSCanvasNode()
 
 ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
+    CheckThread();
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
     recordingCanvas_->SetIsCustomTypeface(isCustomTypeface_);
@@ -79,6 +98,7 @@ bool RSCanvasNode::IsRecording() const
 
 void RSCanvasNode::CreateTextureExportRenderNodeInRT()
 {
+    CheckThread();
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), true);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -88,6 +108,7 @@ void RSCanvasNode::CreateTextureExportRenderNodeInRT()
 
 void RSCanvasNode::FinishRecording()
 {
+    CheckThread();
     if (!IsRecording()) {
         return;
     }
@@ -114,6 +135,7 @@ void RSCanvasNode::FinishRecording()
 
 void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
 {
+    CheckThread();
     auto recordingCanvas = std::make_shared<ExtendRecordingCanvas>(GetPaintWidth(), GetPaintHeight());
     recordingCanvas->SetIsCustomTextType(isCustomTextType_);
     recordingCanvas->SetIsCustomTypeface(isCustomTypeface_);
@@ -154,6 +176,7 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
         ROSEN_LOGE("SetFreeze is not supported in separate render");
         return;
     }
+    CheckThread();
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
@@ -187,5 +210,11 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
   boundsChangedCallback_ = callback;
 }
 
+void RSCanvasNode::CheckThread()
+{
+    if (tid_ != gettid()) {
+        ROSEN_LOGE("RSCanvasNode::CheckThread Must be called on same thread");
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

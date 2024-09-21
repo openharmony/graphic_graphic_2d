@@ -18,6 +18,8 @@ config("test_header_config") {
 }
 
 ohos_static_library("test_header") {
+  branch_protector_ret = "pac_ret"
+
   sources = [ "export/test_header.h" ]
 
   public_configs = [ ":test_header_config" ]

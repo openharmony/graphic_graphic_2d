@@ -123,7 +123,7 @@ RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
         return retCode;
     }
 
-    int32_t ret = device_->RegHwcDeadCallback(func, data);
+    bool ret = device_->RegHwcDeadCallback(func, data);
     if (!ret) {
         HLOGE("RegHwcDeadCallback failed, ret is %{public}d", ret);
         return ROSEN_ERROR_API_FAILED;

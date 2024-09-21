@@ -218,6 +218,10 @@ typedef struct OH_Drawing_FontDescriptor {
     bool monoSpace;
     /** whether symbolic fonts are supported */
     bool symbolic;
+    /** Font size */
+    size_t size;
+    /** Font style flag, from <b>OH_Drawing_FontTypeStyle</b> */
+    int typeStyle;
 } OH_Drawing_FontDescriptor;
 
 /**
@@ -732,6 +736,29 @@ void OH_Drawing_SetTextStyleBaseLine(OH_Drawing_TextStyle*, int /* OH_Drawing_Te
 void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_TextDecoration */);
 
 /**
+ * @brief Add the text decoration.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the text decoration to add. For details, see the enum <b>OH_Drawing_TextDecoration</b>.
+ * @since 14
+ * @version 1.0
+ */
+void OH_Drawing_AddTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_TextDecoration */);
+
+/**
+ * @brief Remove the text decoration.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_TextStyle Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param int Indicates the text decoration to remove, shoud be match existing text decorations.
+ * For details, see the enum <b>OH_Drawing_TextDecoration</b>.
+ * @since 14
+ * @version 1.0
+ */
+void OH_Drawing_RemoveTextStyleDecoration(OH_Drawing_TextStyle*, int /* OH_Drawing_TextDecoration */);
+
+/**
  * @brief Sets the color for the text decoration.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -1024,6 +1051,17 @@ double OH_Drawing_TypographyGetHeight(OH_Drawing_Typography*);
  * @version 1.1
  */
 double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography*);
+
+/**
+ * @brief Gets the width of the longest line, and this width contains the width of indent.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the length of the longest line with indent.
+ * @since 13
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetLongestLineWithIndent(OH_Drawing_Typography*);
 
 /**
  * @brief Gets the min intrinsic width.

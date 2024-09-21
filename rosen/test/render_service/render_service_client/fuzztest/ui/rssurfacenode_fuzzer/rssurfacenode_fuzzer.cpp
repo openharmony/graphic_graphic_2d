@@ -168,6 +168,9 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
     bool isSkipLayer = GetData<bool>();
     surfaceNode->SetSkipLayer(isSkipLayer);
     surfaceNode->GetSkipLayer();
+    bool isSnapshotSkipLayer = GetData<bool>();
+    surfaceNode->SetSnapshotSkipLayer(isSnapshotSkipLayer);
+    surfaceNode->GetSnapshotSkipLayer();
     bool hasFingerprint = GetData<bool>();
     surfaceNode->SetFingerprint(hasFingerprint);
     surfaceNode->GetFingerprint();
@@ -449,7 +452,6 @@ bool DoGetNameAndBundleName(const uint8_t* data, size_t size)
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     surfaceNode->GetName();
-    surfaceNode->GetBundleName();
     return true;
 }
 
@@ -605,8 +607,28 @@ bool DoSetAncoFlags(const uint8_t* data, size_t size)
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    int32_t flags = GetData<int32_t>();
+    uint32_t flags = GetData<uint32_t>();
     surfaceNode->SetAncoFlags(flags);
+    return true;
+}
+
+bool DoSetWatermark(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    std::string waterMark = GetData<std::string>();
+    bool waterMarkEnabled = GetData<bool>();
+    surfaceNode->SetWatermarkEnabled(waterMark, waterMarkEnabled);
     return true;
 }
 
@@ -801,6 +823,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetForeground(data, size);
     OHOS::Rosen::DoSetForceUIFirst(data, size);
     OHOS::Rosen::DoSetAncoFlags(data, size);
+    OHOS::Rosen::DoSetWatermark(data, size);
     OHOS::Rosen::DoSetHDRPresent(data, size);
     OHOS::Rosen::DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(data, size);
     OHOS::Rosen::DoRSSurfaceNode(data, size);

@@ -249,6 +249,14 @@ public:
 
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const;
 
+    /**
+     * @brief          Gets the path of specified glyph.
+     * @param glyph    The glyph index.
+     * @param path     The pointer of path object.
+     * @return         True if success, false if no path found.
+     */
+    bool GetPathForGlyph(uint16_t glyph, Path* path) const;
+
     template<typename T>
     T* GetImpl() const
     {

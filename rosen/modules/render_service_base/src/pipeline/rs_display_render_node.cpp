@@ -34,12 +34,14 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
 {
     RS_LOGI("RSDisplayRenderNode dtor id:%{public}" PRIu64 "", GetId());
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
 void RSDisplayRenderNode::CollectSurface(
@@ -171,6 +173,16 @@ void RSDisplayRenderNode::InitRenderParams()
     }
 }
 
+ReleaseDmaBufferTask RSDisplayRenderNode::releaseScreenDmaBufferTask_;
+void RSDisplayRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
+{
+    if (!releaseScreenDmaBufferTask_ && callback) {
+        releaseScreenDmaBufferTask_ = callback;
+    } else {
+        RS_LOGE("RreleaseScreenDmaBufferTask_ register failed!");
+    }
+}
+
 void RSDisplayRenderNode::OnSync()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSDisplayRenderNode::OnSync global dirty[%s]",
@@ -185,6 +197,7 @@ void RSDisplayRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
+    displayParams->SetZoomed(curZoomState_);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
     HandleCurMainAndLeashSurfaceNodes();
@@ -245,6 +258,7 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenRenderParams& screenRen
     displayParams->screenInfo_ = std::move(screenRenderParams.screenInfo);
     displayParams->displayHasSecSurface_ = std::move(screenRenderParams.displayHasSecSurface);
     displayParams->displayHasSkipSurface_ = std::move(screenRenderParams.displayHasSkipSurface);
+    displayParams->displayHasSnapshotSkipSurface_ = std::move(screenRenderParams.displayHasSnapshotSkipSurface);
     displayParams->displayHasProtectedSurface_ = std::move(screenRenderParams.displayHasProtectedSurface);
     displayParams->displaySpecailSurfaceChanged_ = std::move(screenRenderParams.displaySpecailSurfaceChanged);
     displayParams->hasCaptureWindow_ = std::move(screenRenderParams.hasCaptureWindow);

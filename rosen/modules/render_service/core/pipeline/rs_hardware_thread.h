@@ -80,11 +80,12 @@ private:
     void SubScribeSystemAbility();
     void ReportFrameToRSS();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-    uint64_t lastReportTime_ = 0;
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
     static GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers);
+    static bool ConvertColorGamutToSpaceType(const GraphicColorGamut& colorGamut,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceInfo);
 #endif
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -97,7 +98,7 @@ private:
     int hardwareTid_ = -1;
     std::shared_ptr<RSSurfaceOhos> frameBufferSurfaceOhos_;
 
-    HgmRefreshRates hgmRefreshRates_;
+    HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RSVBlankIdleCorrector vblankIdleCorrector_;
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;
@@ -105,6 +106,7 @@ private:
     int64_t delayTime_ = 0;
 
     friend class RSUniRenderThread;
+    friend class RSUifirstManager;
 };
 }
 #endif // RS_HARDWARE_THREAD_H

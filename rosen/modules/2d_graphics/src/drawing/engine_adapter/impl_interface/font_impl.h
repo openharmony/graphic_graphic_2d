@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include "draw/path.h"
 #include "impl_interface/base_impl.h"
 #include "text/font_metrics.h"
 #include "text/font_types.h"
@@ -67,6 +68,7 @@ public:
     virtual uint16_t UnicharToGlyph(int32_t uni) const = 0;
     virtual int TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
         uint16_t glyphs[], int maxGlyphCount) const = 0;
+    virtual bool GetPathForGlyph(uint16_t glyph, Path* path) const = 0;
 
     virtual scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding,
         Rect* bounds = nullptr) const = 0;

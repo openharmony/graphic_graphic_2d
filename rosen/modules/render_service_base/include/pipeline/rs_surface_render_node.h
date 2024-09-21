@@ -44,6 +44,7 @@
 #include "surface_buffer.h"
 #include "sync_fence.h"
 #endif
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -117,6 +118,13 @@ public:
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
     }
 
+    void SetLayerTop(bool isTop);
+
+    bool IsLayerTop() const
+    {
+        return isLayerTop_;
+    }
+
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
@@ -124,7 +132,7 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface();
+            IsHardwareEnabledTopSurface() || IsLayerTop();
     }
 
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
@@ -337,14 +345,7 @@ public:
         return nodeType_;
     }
 
-    void SetSurfaceNodeType(RSSurfaceNodeType nodeType)
-    {
-        if (nodeType_ != RSSurfaceNodeType::ABILITY_COMPONENT_NODE &&
-            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE &&
-            nodeType_ != RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
-            nodeType_ = nodeType;
-        }
-    }
+    void SetSurfaceNodeType(RSSurfaceNodeType nodeType);
 
     void MarkUIHidden(bool isHidden);
     bool IsUIHidden() const;
@@ -354,11 +355,6 @@ public:
     const std::string& GetName() const
     {
         return name_;
-    }
-
-    const std::string& GetBundleName() const
-    {
-        return bundleName_;
     }
 
     void SetOffSetX(int32_t offset)
@@ -390,6 +386,16 @@ public:
     {
         offsetX_ = offsetX;
         offsetY_ = offsetY;
+    }
+
+    bool GetArsrTag() const
+    {
+        return arsrTag_;
+    }
+
+    void SetArsrTag(bool arsrTag)
+    {
+        arsrTag_ = arsrTag;
     }
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
@@ -440,17 +446,20 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
+    void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetForceClientForDRMOnly(bool forceClient);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+    bool GetSnapshotSkipLayer() const;
     bool GetProtectedLayer() const;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
+    bool GetHasSnapshotSkipLayer() const;
     bool GetHasProtectedLayer() const;
 
     void ResetSpecialLayerChangedFlag()
@@ -465,6 +474,8 @@ public:
 
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
+    void SyncOnTheTreeInfoToFirstLevelNode();
+    void SyncSnapshotSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
@@ -489,8 +500,8 @@ public:
 
     static void SetAncoForceDoDirect(bool direct);
     bool GetAncoForceDoDirect() const;
-    void SetAncoFlags(int32_t flags);
-    int32_t GetAncoFlags() const;
+    void SetAncoFlags(uint32_t flags);
+    uint32_t GetAncoFlags() const;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -601,11 +612,6 @@ public:
         return abilityBgAlpha_;
     }
 
-    bool GetQosCal()
-    {
-        return qosPidCal_;
-    }
-
     void setQosCal(bool qosPidCal)
     {
         qosPidCal_ = qosPidCal;
@@ -670,6 +676,12 @@ public:
 
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const;
+
+    // Only call this if the node is self-drawing surface node.
+    void UpdateColorSpaceToIntanceRootNode();
+    GraphicColorGamut GetSubSurfaceColorSpace() const;
+    void ResetSubSurfaceColorSpace();
+
 #ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
     void SetBlendType(GraphicBlendType blendType);
@@ -724,12 +736,12 @@ public:
     bool CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNodesIds) const;
     bool CheckIfOcclusionChanged() const;
 
-    void SetVisibleRegion(Occlusion::Region region)
+    void SetVisibleRegion(const Occlusion::Region& region)
     {
         visibleRegion_ = region;
     }
 
-    void SetVisibleRegionInVirtual(Occlusion::Region region)
+    void SetVisibleRegionInVirtual(const Occlusion::Region& region)
     {
         visibleRegionInVirtual_ = region;
     }
@@ -810,7 +822,7 @@ public:
     // manage abilities' nodeid info
     void UpdateAbilityNodeIds(NodeId id, bool isAdded);
     const std::unordered_set<NodeId>& GetAbilityNodeIds() const;
-    void AddAbilityComponentNodeIds(std::unordered_set<NodeId> nodeIds);
+    void AddAbilityComponentNodeIds(std::unordered_set<NodeId>& nodeIds);
     void ResetAbilityNodeIds();
 
     // manage appWindowNode's child hardware enabled nodes info
@@ -1085,6 +1097,8 @@ public:
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
     bool GetHasTransparentSurface() const;
     void UpdatePartialRenderParams();
+    // This function is used for extending visibleRegion by dirty blurfilter node half-obscured
+    void UpdateExtendVisibleRegion(Occlusion::Region& region);
     void UpdateAncestorDisplayNodeInRenderParams();
 
     void SetNeedDrawFocusChange(bool needDrawFocusChange)
@@ -1103,7 +1117,7 @@ public:
         Vector4f::Max(GetWindowCornerRadius(), GetGlobalCornerRadius(), cornerRadius);
         return !cornerRadius.IsZero();
     }
-    void SetBufferRelMatrix(Drawing::Matrix matrix)
+    void SetBufferRelMatrix(const Drawing::Matrix& matrix)
     {
         bufferRelMatrix_ = matrix;
     }
@@ -1151,26 +1165,6 @@ public:
         return doDirectComposition_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
-    {
-        displayNit_ = displayNit;
-    }
-
-    int32_t GetDisplayNit() const
-    {
-        return displayNit_;
-    }
-
-    void SetBrightnessRatio(float brightnessRatio)
-    {
-        brightnessRatio_ = brightnessRatio;
-    }
-
-    float GetBrightnessRatio() const
-    {
-        return brightnessRatio_;
-    }
-
     void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
     {
         isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
@@ -1184,6 +1178,9 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
+    void SetSdrNit(int32_t sdrNit);
+    void SetDisplayNit(int32_t displayNit);
+    void SetBrightnessRatio(float brightnessRatio);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
     {
@@ -1214,6 +1211,18 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
+    void SetWatermarkEnabled(const std::string& name, bool isEnabled);
+    const std::unordered_map<std::string, bool>& GetWatermark() const;
+    bool IsWatermarkEmpty() const;
+    bool GetIsIntersectWithRoundCorner() const
+    {
+        return isIntersectWithRoundCorner_;
+    }
+
+    void SetIsIntersectWithRoundCorner(bool isIntersectWithRoundCorner)
+    {
+        isIntersectWithRoundCorner_ = isIntersectWithRoundCorner;
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1256,9 +1265,11 @@ private:
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     bool forceClientForDRMOnly_ = false;
     std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
     bool specialLayerChanged_ = false;
@@ -1267,6 +1278,7 @@ private:
     bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
+    bool isIntersectWithRoundCorner_ = false;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
@@ -1275,10 +1287,11 @@ private:
     SurfaceId surfaceId_ = 0;
 
     std::string name_;
-    std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    bool isLayerTop_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    std::optional<GraphicColorGamut> subColorSpace_ = std::nullopt;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif
@@ -1302,6 +1315,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region extendVisibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
     bool isLeashWindowVisibleRegionEmpty_ = false;
@@ -1452,6 +1466,7 @@ private:
     bool UIFirstIsPurge_ = false;
     // whether to wait uifirst first frame finished when buffer available callback invoked.
     std::atomic<bool> isWaitUifirstFirstFrame_ = false;
+    bool isTargetUIFirstDfxEnabled_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
@@ -1469,7 +1484,7 @@ private:
     bool forceUIFirst_ = false;
     bool hasTransparentSurface_ = false;
 
-    std::atomic<int32_t> ancoFlags_ = 0;
+    std::atomic<uint32_t> ancoFlags_ = 0;
     static inline std::atomic<bool> ancoForceDoDirect_ = false;
 
     bool isGpuOverDrawBufferOptimizeNode_ = false;
@@ -1483,6 +1498,9 @@ private:
     bool isSkipDraw_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
+    std::unordered_map<std::string, bool> watermarkHandles_ = {};
+
+    bool arsrTag_ = true;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

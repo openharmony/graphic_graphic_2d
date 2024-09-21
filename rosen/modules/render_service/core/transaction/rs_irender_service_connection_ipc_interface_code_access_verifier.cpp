@@ -109,10 +109,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_OCCLUSION_CHANGE_CALLBACK");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_UIEXTENSION_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_UIEXTENSION_CALLBACK");
             break;
@@ -157,6 +153,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_WATERMARK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_WATERMARK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_GAMUT_MAP): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_GAMUT_MAP");
             break;
@@ -177,6 +177,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_GLOBAL_DARK_COLOR_MODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_GLOBAL_DARK_COLOR_MODE");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_BLACKLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_BLACKLIST");
             break;
@@ -194,11 +198,8 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SHOW_WATERMARK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SHOW_WATERMARK");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK");
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SHOW_WATERMARK") &&
+                CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_REFRESH_RATE_MODE): {
@@ -210,7 +211,8 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
-            hasPermission = IsSystemApp();
+            hasPermission = IsSystemApp() ||
+                IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_REFRESH_RATES");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED): {
@@ -250,7 +252,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE): {
-            hasPermission = CheckPermission(code) && IsSystemCalling(codeEnumTypeName_ + "::TAKE_SURFACE_CAPTURE");
+            hasPermission = CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHICS): {
@@ -296,8 +298,7 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ +
-                "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROTATION_CACHE_ENABLED): {
@@ -306,6 +307,70 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SKIP_FRAME_INTERVAL): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SKIP_FRAME_INTERVAL");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_PIXEL_FORMAT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_PIXEL_FORMAT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PIXEL_FORMAT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PIXEL_FORMAT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_HDR_FORMATS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_HDR_FORMATS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_HDR_FORMAT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_HDR_FORMAT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_HDR_FORMAT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_HDR_FORMAT");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_SUPPORTED_COLORSPACES): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_SUPPORTED_COLORSPACES");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_COLORSPACE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_COLORSPACE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_COLORSPACE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_COLORSPACE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DEFAULT_DEVICE_ROTATION_OFFSET): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_DEFAULT_DEVICE_ROTATION_OFFSET");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ACTIVE_DIRTY_REGION_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_ACTIVE_DIRTY_REGION_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_GLOBAL_DIRTY_REGION_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_GLOBAL_DIRTY_REGION_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_LAYER_COMPOSE_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_LAYER_COMPOSE_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_DISPLAY_NODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CREATE_DISPLAY_NODE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_LAYER_TOP): {
+            hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_LAYER_TOP");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FREE_MULTI_WINDOW_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FREE_MULTI_WINDOW_STATUS");
             break;
         }
         default: {

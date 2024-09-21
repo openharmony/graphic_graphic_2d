@@ -58,6 +58,7 @@ using RequestCompositionType = enum class RequestComposition : int32_t {
     CLIENT = 1,
     DEVICE = 2,
     OFFLINE_DEVICE = 3,
+    DEVICE_VSCF = 4,
 };
 
 using PreValidateFunc = int32_t (*)(uint32_t,
@@ -90,6 +91,7 @@ private:
     void CopyCldInfo(CldInfo src, RequestLayerInfo& info);
     void LayerRotate(
         RequestLayerInfo& info, const sptr<IConsumerSurface>& surface, const ScreenInfo &screenInfo);
+    bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
 
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;

@@ -74,6 +74,8 @@ HWTEST_F(RSDrawingFilterTest, GetDescription001, TestSize.Level1)
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
     filterPtr->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
+    filterPtr->type_ = RSShaderFilter::MESA;
+    EXPECT_TRUE(!drawingFilter.GetDescription().empty());
     filterPtr->type_ = RSShaderFilter::NONE;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
 }
@@ -105,6 +107,9 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription001, TestSize.Level1)
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
     filterPtr->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
+    EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
+
+    filterPtr->type_ = RSShaderFilter::MESA;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
     filterPtr->type_ = RSShaderFilter::NONE;

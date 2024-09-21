@@ -414,6 +414,9 @@ void SurfaceImageListener::OnBufferAvailable()
 
 SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
 {
+    if (nativeWindowBuffer == nullptr || fenceFd == nullptr) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -446,6 +449,9 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
 
 SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
+    if (nativeWindowBuffer == nullptr) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
     SurfaceError ret = ReleaseBuffer(nativeWindowBuffer->sfbuffer, fenceFd);
@@ -455,5 +461,25 @@ SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativ
     }
     NativeObjectUnreference(nativeWindowBuffer);
     return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::SetDefaultUsage(uint64_t usage)
+{
+    SurfaceError ret = ConsumerSurface::SetDefaultUsage(usage);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("SetDefaultUsage failed: %{public}d, uniqueId: %{public}" PRIu64 ", usage: %{public}" PRIu64 ".", ret,
+            uniqueId_, usage);
+    }
+    return ret;
+}
+
+SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
+{
+    SurfaceError ret = SetDefaultWidthAndHeight(width, height);
+    if (ret != SURFACE_ERROR_OK) {
+        BLOGE("SetDefaultWidthAndHeight failed: %{public}d, uniqueId: %{public}" PRIu64 ", width: %{public}d, "
+            "height: %{public}d", ret, uniqueId_, width, height);
+    }
+    return ret;
 }
 } // namespace OHOS

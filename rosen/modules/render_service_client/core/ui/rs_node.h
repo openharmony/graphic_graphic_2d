@@ -48,6 +48,7 @@ namespace OHOS {
 namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
+using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -125,6 +126,9 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
     }
 
+    void DumpTree(int depth, std::string& out) const;
+    virtual void Dump(std::string& out) const;
+
     virtual std::string DumpNode(int depth) const;
     SharedPtr GetParent();
 
@@ -153,6 +157,7 @@ public:
     static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
+    static bool CloseImplicitCancelAnimation();
     static bool IsImplicitAnimationOpen();
 
     static void ExecuteWithoutAnimation(
@@ -291,7 +296,6 @@ public:
     void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
-    std::string GetBackgroundFilterDescription();
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
     void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
@@ -388,6 +392,7 @@ public:
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
+    // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
 
     // Mark uifirst node
@@ -443,7 +448,6 @@ public:
 
     std::string GetFrameNodeTag();
 
-    using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
     virtual void SetBoundsChangedCallback(BoundsChangedCallback callback){};
     bool IsTextureExportNode() const
     {
@@ -454,8 +458,11 @@ public:
     bool IsAppearanceDirty() const;
     void MarkDirty(NodeDirtyType type, bool isDirty);
 
-    std::shared_ptr<RSObjAbsGeometry> GetLocalGeometry();
-    std::shared_ptr<RSObjAbsGeometry> GetGlobalGeometry();
+    float GetGlobalPositionX() const;
+    float GetGlobalPositionY() const;
+
+    std::shared_ptr<RSObjAbsGeometry> GetLocalGeometry() const;
+    std::shared_ptr<RSObjAbsGeometry> GetGlobalGeometry() const;
     void UpdateLocalGeometry();
     void UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& parentGlobalGeometry);
 
@@ -474,7 +481,7 @@ public:
         return instanceId_;
     }
 
-    const std::string& GetNodeName() const
+    const std::string GetNodeName() const
     {
         return nodeName_;
     }
@@ -515,7 +522,6 @@ private:
     int32_t frameNodeId_ = -1;
     std::string frameNodeTag_;
     std::string nodeName_ = "";
-    std::string bgFilterDescription_ = "";
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
@@ -560,6 +566,9 @@ private:
 
     std::shared_ptr<RSObjAbsGeometry> localGeometry_;
     std::shared_ptr<RSObjAbsGeometry> globalGeometry_;
+
+    float globalPositionX_ = 0.f;
+    float globalPositionY_ = 0.f;
 
     pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };

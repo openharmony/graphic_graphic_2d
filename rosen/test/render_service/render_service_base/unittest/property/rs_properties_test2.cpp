@@ -191,12 +191,12 @@ HWTEST_F(PropertiesTest, OnApplyModifiersTest, TestSize.Level1)
     EXPECT_TRUE(properties.filter_ != nullptr);
 
     properties.geoDirty_ = true;
-    properties.frameGeo_->SetX(INFINITY);
+    properties.frameGeo_.SetX(INFINITY);
     properties.boundsGeo_->SetX(-INFINITY);
     properties.OnApplyModifiers();
     EXPECT_TRUE(properties.clipToFrame_);
 
-    properties.frameGeo_->SetY(INFINITY);
+    properties.frameGeo_.SetY(INFINITY);
     properties.boundsGeo_->SetY(-INFINITY);
     properties.OnApplyModifiers();
     EXPECT_TRUE(!properties.clipToFrame_);
@@ -753,25 +753,25 @@ HWTEST_F(PropertiesTest, SetNGetSpherizeTest, TestSize.Level1)
 HWTEST_F(PropertiesTest, CalculateFrameOffsetTest, TestSize.Level1)
 {
     RSProperties properties;
-    properties.frameGeo_->SetX(1.f);
-    properties.frameGeo_->SetY(1.f);
+    properties.frameGeo_.SetX(1.f);
+    properties.frameGeo_.SetY(1.f);
     properties.boundsGeo_->SetX(1.f);
     properties.boundsGeo_->SetY(1.f);
     properties.CalculateFrameOffset();
     EXPECT_NE(properties.isDrawn_, true);
 
-    properties.frameGeo_->SetX(-INFINITY);
+    properties.frameGeo_.SetX(-INFINITY);
     properties.boundsGeo_->SetX(-INFINITY);
     properties.CalculateFrameOffset();
     EXPECT_EQ(properties.isDrawn_, true);
 
-    properties.frameGeo_->SetY(-INFINITY);
+    properties.frameGeo_.SetY(-INFINITY);
     properties.boundsGeo_->SetY(-INFINITY);
     properties.CalculateFrameOffset();
     EXPECT_EQ(properties.isDrawn_, true);
 
-    properties.frameGeo_->SetX(0);
-    properties.frameGeo_->SetY(0);
+    properties.frameGeo_.SetX(0);
+    properties.frameGeo_.SetY(0);
     properties.CalculateFrameOffset();
     EXPECT_EQ(properties.isDrawn_, true);
 }

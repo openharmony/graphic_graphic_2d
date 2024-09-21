@@ -231,5 +231,8 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(co
 
 void OH_Drawing_ShaderEffectDestroy(OH_Drawing_ShaderEffect* cShaderEffect)
 {
+    if (!cShaderEffect) {
+        return;
+    }
     delete CastToShaderEffect(cShaderEffect);
 }

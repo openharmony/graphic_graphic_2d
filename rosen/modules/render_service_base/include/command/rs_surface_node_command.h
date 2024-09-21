@@ -36,6 +36,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
     SURFACE_NODE_SET_SECURITY_LAYER,
     SURFACE_NODE_SET_SKIP_LAYER,
+    SURFACE_NODE_SET_SNAPSHOT_SKIP_LAYER,
     SURFACE_NODE_SET_FINGERPRINT,
     SURFACE_NODE_SET_COLOR_SPACE,
     SURFACE_NODE_UPDATE_SURFACE_SIZE,
@@ -60,6 +61,8 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ANCO_FLAGS,
     SURFACE_NODE_SET_HDR_PRESENT,
     SURFACE_NODE_SET_SKIP_DRAW,
+    SURFACE_NODE_SET_WATERMARK,
+    SURFACE_NODE_SET_WATERMARK_ENABLED,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -67,8 +70,7 @@ public:
     static void Create(RSContext& context, NodeId nodeId,
         RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::DEFAULT, bool isTextureExportNode = false);
     static void CreateWithConfig(
-        RSContext& context, NodeId nodeId, std::string name, uint8_t type,
-        std::string bundleName, enum SurfaceWindowType surfaceWindowType);
+        RSContext& context, NodeId nodeId, std::string name, uint8_t type, enum SurfaceWindowType surfaceWindowType);
     static std::shared_ptr<RSSurfaceRenderNode> CreateWithConfigInRS(
         const RSSurfaceRenderNodeConfig& config, RSContext& context);
     static void SetContextMatrix(RSContext& context, NodeId nodeId, const std::optional<Drawing::Matrix>& matrix);
@@ -76,6 +78,7 @@ public:
     static void SetContextClipRegion(RSContext& context, NodeId nodeId, const std::optional<Drawing::Rect>& clipRect);
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
     static void SetSkipLayer(RSContext& context, NodeId nodeId, bool isSkipLayer);
+    static void SetSnapshotSkipLayer(RSContext& context, NodeId nodeId, bool isSnapshotSkipLayer);
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
     static void SetColorSpace(RSContext& context, NodeId nodeId, GraphicColorGamut colorSpace);
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
@@ -99,16 +102,17 @@ public:
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
-    static void SetAncoFlags(RSContext& context, NodeId nodeId, int32_t flags);
+    static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
+    static void SetWatermarkEnabled(RSContext& context, NodeId nodeId, const std::string& name, bool isEnabled);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
 ADD_COMMAND(RSSurfaceNodeCreateWithConfig,
     ARG(SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG, SurfaceNodeCommandHelper::CreateWithConfig, NodeId, std::string,
-        uint8_t, std::string, enum SurfaceWindowType))
+        uint8_t, enum SurfaceWindowType))
 ADD_COMMAND(RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
     SurfaceNodeCommandHelper::SetContextMatrix, NodeId, std::optional<Drawing::Matrix>))
 ADD_COMMAND(RSSurfaceNodeSetContextAlpha,
@@ -123,6 +127,8 @@ ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER, SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipLayer,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_LAYER, SurfaceNodeCommandHelper::SetSkipLayer, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetSnapshotSkipLayer, ARG(SURFACE_NODE, SURFACE_NODE_SET_SNAPSHOT_SKIP_LAYER,
+    SurfaceNodeCommandHelper::SetSnapshotSkipLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetFingerprint,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FINGERPRINT, SurfaceNodeCommandHelper::SetFingerprint, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize, ARG(SURFACE_NODE, SURFACE_NODE_UPDATE_SURFACE_SIZE,
@@ -172,11 +178,14 @@ ADD_COMMAND(RSSurfaceNodeSetForeground,
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST, SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetAncoFlags,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_FLAGS, SurfaceNodeCommandHelper::SetAncoFlags, NodeId, int32_t))
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_FLAGS, SurfaceNodeCommandHelper::SetAncoFlags, NodeId, uint32_t))
 ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT, SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW, SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetWatermarkEnabled,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED, SurfaceNodeCommandHelper::SetWatermarkEnabled,
+    NodeId, std::string, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

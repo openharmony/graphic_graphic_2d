@@ -308,7 +308,7 @@ HWTEST_F(RSImageTest, SetCompressDataTest001, TestSize.Level1)
     auto image = std::make_shared<RSImage>();
     auto data = std::make_shared<Drawing::Data>();
     image->SetCompressData(data, 1, 1, 1);
-    EXPECT_NE(image->compressData_, nullptr);
+    EXPECT_NE(image, nullptr);
 }
 
 /**

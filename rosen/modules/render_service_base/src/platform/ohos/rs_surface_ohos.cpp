@@ -39,6 +39,9 @@ GraphicColorGamut RSSurfaceOhos::GetColorSpace() const
 
 uint32_t RSSurfaceOhos::GetQueueSize() const
 {
+    if (producer_ == nullptr) {
+        return 0;
+    }
     return producer_->GetQueueSize();
 }
 

@@ -40,6 +40,7 @@ enum RSDisplayNodeCommandType : uint16_t {
 class RSB_EXPORT DisplayNodeCommandHelper {
 public:
     static void Create(RSContext&, NodeId, const RSDisplayNodeConfig&);
+    static std::shared_ptr<RSDisplayRenderNode> CreateWithConfigInRS(RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenId(RSContext&, NodeId, uint64_t);
     static void SetDisplayOffset(RSContext&, NodeId, int32_t, int32_t);
     static void SetSecurityDisplay(RSContext&, NodeId, bool);

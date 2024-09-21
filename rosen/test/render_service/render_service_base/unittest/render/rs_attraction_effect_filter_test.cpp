@@ -249,7 +249,7 @@ HWTEST_F(RSAttractionEffectFilterTest, CreateIndexSequence001, TestSize.Level1)
 HWTEST_F(RSAttractionEffectFilterTest, CreateIndexSequence002, TestSize.Level1)
 {
     RSAttractionEffectFilter firstEffectFilter(0.5f);
-    Vector2f destinationPoint(5.0f, 5.0f);
+    Vector2f destinationPoint(5.0f, 3.0f);
     float canvasWidth = 10.f;
     float canvasHeight = 10.f;
     firstEffectFilter.CalculateWindowStatus(canvasWidth, canvasHeight, destinationPoint);
@@ -271,7 +271,7 @@ HWTEST_F(RSAttractionEffectFilterTest, CreateIndexSequence002, TestSize.Level1)
 HWTEST_F(RSAttractionEffectFilterTest, CalculateVelocityCtrlPointUpper001, TestSize.Level1)
 {
     RSAttractionEffectFilter firstEffectFilter(0.5f);
-    Vector2f destinationPoint(5.0f, 5.0f);
+    Vector2f destinationPoint(5.0f, 3.0f);
     float canvasWidth = 10.f;
     float canvasHeight = 10.f;
     firstEffectFilter.CalculateWindowStatus(canvasWidth, canvasHeight, destinationPoint);
@@ -295,7 +295,7 @@ HWTEST_F(RSAttractionEffectFilterTest, CalculateVelocityCtrlPointUpper001, TestS
 HWTEST_F(RSAttractionEffectFilterTest, CalculateVelocityCtrlPointLower001, TestSize.Level1)
 {
     RSAttractionEffectFilter firstEffectFilter(0.5f);
-    Vector2f destinationPoint(5.0f, 5.0f);
+    Vector2f destinationPoint(5.0f, 3.0f);
     float canvasWidth = 10.f;
     float canvasHeight = 10.f;
     firstEffectFilter.CalculateWindowStatus(canvasWidth, canvasHeight, destinationPoint);
@@ -331,7 +331,7 @@ HWTEST_F(RSAttractionEffectFilterTest, CalculateUpperCtrlPointOfVertex001, TestS
     std::vector<Drawing::Point> upperControlPointOfVertex1 =
         firstEffectFilter.CalculateUpperCtrlPointOfVertex(deltaX, deltaY, width, height, direction);
 
-    Vector2f destinationPointBelow(-5.0f, 5.0f);
+    Vector2f destinationPointBelow(-5.0f, 3.0f);
     firstEffectFilter.CalculateWindowStatus(canvasWidth, canvasHeight, destinationPointBelow);
     std::vector<Drawing::Point> upperControlPointOfVertex2 =
         firstEffectFilter.CalculateUpperCtrlPointOfVertex(deltaX, deltaY, width, height, direction);
@@ -351,7 +351,7 @@ HWTEST_F(RSAttractionEffectFilterTest, CalculateUpperCtrlPointOfVertex001, TestS
 HWTEST_F(RSAttractionEffectFilterTest, CalculateLowerCtrlPointOfVertex001, TestSize.Level1)
 {
     RSAttractionEffectFilter firstEffectFilter(0.5f);
-    Vector2f destinationPoint(5.0f, 15.0f);
+    Vector2f destinationPoint(-5.0f, 15.0f);
     float canvasWidth = 10.f;
     float canvasHeight = 10.f;
     firstEffectFilter.CalculateWindowStatus(canvasWidth, canvasHeight, destinationPoint);
@@ -363,7 +363,7 @@ HWTEST_F(RSAttractionEffectFilterTest, CalculateLowerCtrlPointOfVertex001, TestS
     std::vector<Drawing::Point> upperControlPointOfVertex1 =
         firstEffectFilter.CalculateLowerCtrlPointOfVertex(deltaX, deltaY, width, height, direction);
 
-    Vector2f destinationPointBelow(-5.0f, 5.0f);
+    Vector2f destinationPointBelow(5.0f, 3.0f);
     firstEffectFilter.CalculateWindowStatus(canvasWidth, canvasHeight, destinationPointBelow);
     std::vector<Drawing::Point> upperControlPointOfVertex2 =
         firstEffectFilter.CalculateLowerCtrlPointOfVertex(deltaX, deltaY, width, height, direction);

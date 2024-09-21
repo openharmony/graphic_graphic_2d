@@ -30,6 +30,7 @@ constexpr int UNI_APP_PID = -1;
 constexpr int32_t HGM_REFRESHRATE_MODE_AUTO = -1;
 constexpr pid_t DEFAULT_PID = 0;
 constexpr int ADAPTIVE_SYNC_ENABLED = 1;
+constexpr int32_t SWITCH_SCREEN_SCENE = 1;
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -143,6 +144,10 @@ public:
         std::unordered_map<std::string, std::string> animationPowerConfig;
         // <rateTypeName, idleFps>
         std::unordered_map<std::string, std::string> uiPowerConfig;
+        // <SCENE_APP_START_ANIMATION, placeholder>
+        SceneConfigMap ancoSceneList;
+        // <componentCode, idleFps>
+        std::unordered_map<std::string, int32_t> componentPowerConfig;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;
@@ -160,7 +165,7 @@ public:
     bool virtualDisplaySwitch_;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
-    std::unordered_map<std::string, std::string> sourceTuningConfig_;;
+    std::unordered_map<std::string, std::string> sourceTuningConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     bool videoFrameRateVoteSwitch_ = false;

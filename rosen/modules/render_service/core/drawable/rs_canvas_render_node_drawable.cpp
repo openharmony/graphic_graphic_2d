@@ -47,11 +47,14 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     const auto& params = GetRenderParams();
     if (params == nullptr) {
+        RS_LOGE("RSCanvasRenderNodeDrawable::OnDraw params is null, id:%{public}" PRIu64 "", nodeId_);
         return;
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in sudthread
         if (paintFilterCanvas->GetIsParallelCanvas()) {
+            RS_LOGI("RSCanvasRenderNodeDrawable::OnDraw do not draw startingwindow"
+                " with parallel canvas, id:%{public}" PRIu64 "", nodeId_);
             return;
         }
     }
@@ -61,6 +64,9 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
         QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw) {
+        RS_LOGI("RSCanvasRenderNodeDrawable::OnDraw IsOpDropped = %{public}d, "
+        "GetOpDropped = %{public}d, isOpincDraw = %{public}d, id:%{public}" PRIu64 "",
+            uniParam->IsOpDropped(), GetOpDropped(), isOpincDraw, nodeId_);
         return;
     }
 
@@ -94,7 +100,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         if (canvas.GetUICapture() && !drawBlurForCache_) {
             GenerateCacheIfNeed(canvas, *params);
         }
-        CheckCacheTypeAndDraw(canvas, *params);
+        CheckCacheTypeAndDraw(canvas, *params, true);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }

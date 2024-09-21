@@ -227,6 +227,11 @@ int Font::CountText(const void* text, size_t byteLength, TextEncoding encoding) 
 {
     return fontImpl_->CountText(text, byteLength, encoding);
 }
+
+bool Font::GetPathForGlyph(uint16_t glyph, Path* path) const
+{
+    return fontImpl_->GetPathForGlyph(glyph, path);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

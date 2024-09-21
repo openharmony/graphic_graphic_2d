@@ -512,6 +512,19 @@ HWTEST_F(RSClientTest, SetScreenRefreshRate001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UnregisterFrameRateLinker Test
+ * @tc.desc: UnregisterFrameRateLinker Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, UnregisterFrameRateLinker001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    FrameRateLinkerId id = 0;
+    rsClient->UnregisterFrameRateLinker(id);
+}
+
+/**
  * @tc.name: SetRefreshRateMode Test
  * @tc.desc: SetRefreshRateMode Test
  * @tc.type:FUNC
@@ -810,6 +823,17 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenScaleMode001, TestSize.Level1)
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenScaleMode(virtualScreenId, ScreenScaleMode::UNISCALE_MODE), true);
 }
 
+/*
+ * @tc.name: SetGlobalDarkColorMode Test
+ * @tc.desc: SetGlobalDarkColorMode Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+*/
+HWTEST_F(RSClientTest, SetGlobalDarkColorMode001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->SetGlobalDarkColorMode(true), true);
+}
+
 /**
  * @tc.name: RegisterUIExtensionCallback Test
  * @tc.desc: RegisterUIExtensionCallback, expected success when callback non-empty.
@@ -836,6 +860,32 @@ HWTEST_F(RSClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
     uint64_t userId = 0;
     EXPECT_NE(rsClient->RegisterUIExtensionCallback(userId, callback),
         StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: SetFreeMultiWindowStatus Test
+ * @tc.desc: SetFreeMultiWindowStatus, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIANPC2
+ */
+HWTEST_F(RSClientTest, SetFreeMultiWindowStatus, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->SetFreeMultiWindowStatus(true);
+}
+
+/**
+ * @tc.name: SetLayerTop001 Test
+ * @tc.desc: SetLayerTop001, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSClientTest, SetLayerTop001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    const std::string nodeIdStr = "123456";
+    rsClient->SetLayerTop(nodeIdStr, true);
+    rsClient->SetLayerTop(nodeIdStr, false);
 }
 } // namespace Rosen
 } // namespace OHOS

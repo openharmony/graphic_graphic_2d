@@ -29,7 +29,8 @@ class VSyncController : public VSyncGenerator::Callback {
 public:
     class Callback {
     public:
-        virtual void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode) = 0;
+        virtual void OnVSyncEvent(int64_t now, int64_t period,
+            uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) = 0;
         virtual ~Callback() = default;
         /* std::pair<id, refresh rate> */
         virtual void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) = 0;
@@ -48,7 +49,8 @@ public:
 
 private:
 
-    void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode);
+    void OnVSyncEvent(int64_t now, int64_t period,
+        uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
     void OnPhaseOffsetChanged(int64_t phaseOffset);
     /* std::pair<id, refresh rate> */
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates);

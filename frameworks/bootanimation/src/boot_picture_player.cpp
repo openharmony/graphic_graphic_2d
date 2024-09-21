@@ -146,25 +146,12 @@ bool BootPicturePlayer::Draw()
         AppExecFwk::EventRunner::Current()->Stop();
         return false;
     }
-#ifdef NEW_RENDER_CONTEXT
-    if (rsSurface_ == nullptr) {
-        LOGE("rsSurface is nullptr");
-        AppExecFwk::EventRunner::Current()->Stop();
-        return false;
-    }
-    auto canvas = rsSurface_->GetCanvas();
-    OnDraw(canvas, picCurNo_);
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw FlushFrame");
-    rsSurface_->FlushFrame();
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-#else
     rsSurfaceFrame_ = std::move(frame);
     auto canvas = rsSurfaceFrame_->GetCanvas();
     OnDraw(canvas, picCurNo_);
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "BootAnimation::Draw FlushFrame");
     rsSurface_->FlushFrame(rsSurfaceFrame_);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-#endif
     return true;
 }
 

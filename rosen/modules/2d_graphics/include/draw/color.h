@@ -27,6 +27,11 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+enum class Clamp {
+    NO_CLAMP,
+    YES_CLAMP,
+};
+
 enum ColorType {
     COLORTYPE_UNKNOWN = 0,
     COLORTYPE_ALPHA_8,
@@ -38,6 +43,7 @@ enum ColorType {
     COLORTYPE_N32,
     COLORTYPE_RGBA_1010102,
     COLORTYPE_GRAY_8,
+    COLORTYPE_RGB_888X,
 };
 
 enum AlphaType {

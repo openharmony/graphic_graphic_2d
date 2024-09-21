@@ -27,11 +27,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
-#endif
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 
@@ -118,8 +114,8 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
     RS_TRACE_NAME("ProcessDisplayRenderNode[" + std::to_string(node.GetScreenId()) + "]");
     RSScreenModeInfo modeInfo = {};
-    ScreenId defaultScreenId = screenManager->GetDefaultScreenId();
-    uint32_t refreshRate = screenManager->GetDefaultScreenRefreshRate();
+    screenManager->GetDefaultScreenActiveMode(modeInfo);
+    uint32_t refreshRate = modeInfo.GetScreenRefreshRate();
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
     if (node.SkipFrame(refreshRate, curScreenInfo.skipFrameInterval)) {
         RS_TRACE_NAME("SkipFrame, screenId:" + std::to_string(node.GetScreenId()));

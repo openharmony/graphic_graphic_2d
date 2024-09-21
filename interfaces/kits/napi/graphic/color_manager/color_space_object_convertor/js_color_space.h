@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace ColorManager {
-void BindFunctions(napi_env env, napi_value object);
+napi_status BindFunctions(napi_env env, napi_value object);
 class JsColorSpace final {
 public:
     explicit JsColorSpace(const std::shared_ptr<ColorSpace>& colorSpace) : colorSpaceToken_(colorSpace) {};

@@ -89,5 +89,75 @@ HWTEST_F(FilterFactoryUnittest, GetFilter003, TestSize.Level1)
     bool testResult = gaussianBlur != nullptr;
     EXPECT_TRUE(testResult);
 }
+
+/**
+ * @tc.name: GetFilter004
+ * @tc.desc: Get the corresponding Filter according to the input string
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterFactoryUnittest, GetFilter004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterFactoryUnittest GetFilter004 start";
+    /**
+     * @tc.steps: step1. Create a FilterFactory instance
+     */
+
+    FilterFactory filterFactory;
+    /**
+     * @tc.steps: step2. Call GetFilter to get a Filter pointer
+     */
+    auto gaussianBlur = filterFactory.GetFilter("Test");
+    bool testResult = gaussianBlur == nullptr;
+    EXPECT_TRUE(testResult);
+}
+
+/**
+ * @tc.name: GetFilter005
+ * @tc.desc: Get the corresponding Filter according to the input string
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterFactoryUnittest, GetFilter005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterFactoryUnittest GetFilter005 start";
+    /**
+     * @tc.steps: step1. Create a FilterFactory instance
+     */
+
+    FilterFactory filterFactory;
+    /**
+     * @tc.steps: step2. Call GetFilter to get a Filter pointer
+     */
+    auto gaussianBlur = filterFactory.GetFilter("VerticalBlur");
+    bool testResult = gaussianBlur != nullptr;
+    EXPECT_TRUE(testResult);
+}
+
+/**
+ * @tc.name: GetFilter006
+ * @tc.desc: Get the corresponding Filter according to the input string
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(FilterFactoryUnittest, GetFilter006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterFactoryUnittest GetFilter006 start";
+    /**
+     * @tc.steps: step1. Create a FilterFactory instance
+     */
+
+    FilterFactory filterFactory;
+    /**
+     * @tc.steps: step2. Call GetFilter to get a Filter pointer
+     */
+    auto gaussianBlur = filterFactory.GetFilter("Scale");
+    bool testResult = gaussianBlur != nullptr;
+    EXPECT_TRUE(testResult);
+}
+
 } // namespace Rosen
 } // namespace OHOS

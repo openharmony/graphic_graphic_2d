@@ -78,12 +78,14 @@ void VSyncGeneratorTest::TearDownTestCase()
 
 class VSyncGeneratorTestCallback : public VSyncGenerator::Callback {
 public:
-    void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode) override;
+    void OnVSyncEvent(int64_t now, int64_t period,
+        uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) override;
     void OnPhaseOffsetChanged(int64_t phaseOffset) override;
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) override;
 };
 
-void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
+void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t now, int64_t period,
+    uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
 }
 
@@ -610,6 +612,30 @@ HWTEST_F(VSyncGeneratorTest, SetVSyncModeTest, Function | MediumTest| Level0)
     ASSERT_EQ(vsyncGenerator_->GetVSyncMode(), VSYNC_MODE_LTPS);
     ret = vsyncGenerator_->SetVSyncMode(VSYNC_MODE_LTPO);
     ASSERT_EQ(ret, VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetVSyncMaxRefreshRateTest
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. Test SetVSyncMaxRefreshRateTest and GetVSyncMaxRefreshRateTest
+ */
+HWTEST_F(VSyncGeneratorTest, SetVSyncMaxRefreshRateTest, Function | MediumTest| Level0)
+{
+    // set invalid value 30 smaller than VSYNC_MAX_REFRESHRATE_RANGE_MIN
+    VsyncError ret = vsyncGenerator_->SetVSyncMaxRefreshRate(30);
+    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+
+    // set invalid value 600 greater than VSYNC_MAX_REFRESHRATE_RANGE_MAX
+    ret = vsyncGenerator_->SetVSyncMaxRefreshRate(600);
+    ASSERT_EQ(ret, VSYNC_ERROR_INVALID_ARGUMENTS);
+
+    // set valid value
+    ret = vsyncGenerator_->SetVSyncMaxRefreshRate(240);
+    ASSERT_EQ(ret, VSYNC_ERROR_OK);
+    uint32_t vsyncMaxRefreshRate = vsyncGenerator_->GetVSyncMaxRefreshRate();
+    ASSERT_EQ(vsyncMaxRefreshRate, 240);
 }
 
 /*

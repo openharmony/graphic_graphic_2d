@@ -232,6 +232,16 @@ bool RSRenderParams::GetDrawingCacheChanged() const
     return isDrawingCacheChanged_;
 }
 
+void RSRenderParams::SetNeedUpdateCache(bool needUpdateCache)
+{
+    isNeedUpdateCache_ = needUpdateCache;
+}
+
+bool RSRenderParams::GetNeedUpdateCache() const
+{
+    return isNeedUpdateCache_;
+}
+
 void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
 {
     if (drawingCacheType_ == cacheType) {
@@ -344,6 +354,51 @@ void RSRenderParams::SetNeedFilter(bool needFilter)
     needSync_ = true;
 }
 
+void RSRenderParams::SetNodeType(RSRenderNodeType type)
+{
+    if (renderNodeType_ == type) {
+        return;
+    }
+    renderNodeType_ = type;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetEffectNodeShouldPaint(bool effectNodeShouldPaint)
+{
+    if (effectNodeShouldPaint_ == effectNodeShouldPaint) {
+        return;
+    }
+    effectNodeShouldPaint_ = effectNodeShouldPaint;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetHasGlobalCorner(bool hasGlobalCorner)
+{
+    if (hasGlobalCorner_ == hasGlobalCorner) {
+        return;
+    }
+    hasGlobalCorner_ = hasGlobalCorner;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetHasBlurFilter(bool hasBlurFilter)
+{
+    if (hasBlurFilter_ == hasBlurFilter) {
+        return;
+    }
+    hasBlurFilter_ = hasBlurFilter;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetGlobalAlpha(float alpha)
+{
+    if (ROSEN_EQ(globalAlpha_, alpha)) {
+        return;
+    }
+    globalAlpha_ = alpha;
+    needSync_ = true;
+}
+
 bool RSRenderParams::NeedSync() const
 {
     return needSync_;
@@ -415,6 +470,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->contentEmpty_ = contentEmpty_;
     target->hasSandBox_ = hasSandBox_;
     target->localDrawRect_ = localDrawRect_;
+    target->absDrawRect_ = absDrawRect_;
     target->id_ = id_;
     target->cacheSize_ = cacheSize_;
     target->frameGravity_ = frameGravity_;
@@ -428,12 +484,19 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
     target->needFilter_ = needFilter_;
+    target->renderNodeType_ = renderNodeType_;
+    target->globalAlpha_ = globalAlpha_;
+    target->effectNodeShouldPaint_ = effectNodeShouldPaint_;
+    target->hasGlobalCorner_ = hasGlobalCorner_;
+    target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
+    target->firstLevelNodeId_ = firstLevelNodeId_;
+    target->uifirstRootNodeId_ = uifirstRootNodeId_;
     needSync_ = false;
 }
 
@@ -463,6 +526,36 @@ void RSRenderParams::SetParentSurfaceMatrix(const Drawing::Matrix& parentSurface
 const Drawing::Matrix& RSRenderParams::GetParentSurfaceMatrix()
 {
     return parentSurfaceMatrix_;
+}
+
+bool RSRenderParams::SetFirstLevelNode(NodeId firstLevelNodeId)
+{
+    if (firstLevelNodeId_ == firstLevelNodeId) {
+        return false;
+    }
+    firstLevelNodeId_ = firstLevelNodeId;
+    needSync_ = true;
+    return true;
+}
+
+NodeId RSRenderParams::GetFirstLevelNodeId() const
+{
+    return firstLevelNodeId_;
+}
+
+bool RSRenderParams::SetUiFirstRootNode(NodeId uifirstRootNodeId)
+{
+    if (uifirstRootNodeId_ == uifirstRootNodeId) {
+        return false;
+    }
+    uifirstRootNodeId_ = uifirstRootNodeId;
+    needSync_ = true;
+    return true;
+}
+
+NodeId RSRenderParams::GetUifirstRootNodeId() const
+{
+    return uifirstRootNodeId_;
 }
 
 // overrided surface params

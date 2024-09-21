@@ -37,12 +37,12 @@ public:
     ~ColorFilterImpl() override {}
 
     virtual void InitWithBlendMode(ColorQuad c, BlendMode mode) = 0;
-    virtual void InitWithColorMatrix(const ColorMatrix& m) = 0;
-    virtual void InitWithColorFloat(const float f[20]) = 0;
+    virtual void InitWithColorMatrix(const ColorMatrix& m, Clamp clamp) = 0;
+    virtual void InitWithColorFloat(const float f[20], Clamp clamp) = 0;
     virtual void InitWithLinearToSrgbGamma() = 0;
     virtual void InitWithSrgbGammaToLinear() = 0;
     virtual void InitWithCompose(const ColorFilter& f1, const ColorFilter& f2) = 0;
-    virtual void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE]) = 0;
+    virtual void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp) = 0;
     virtual void InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COLOR_NUM]) = 0;
     virtual void Compose(const ColorFilter& f) = 0;
     virtual void InitWithLuma() = 0;

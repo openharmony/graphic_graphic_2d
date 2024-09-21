@@ -1779,11 +1779,11 @@ HWTEST_F(RSPropertiesTest, GetLocalBoundsAndFramesRect001, TestSize.Level1)
     properties.GetLocalBoundsAndFramesRect();
     EXPECT_TRUE(!properties.clipToBounds_);
 
-    properties.frameGeo_->width_ = 1.f;
+    properties.frameGeo_.width_ = 1.f;
     properties.GetLocalBoundsAndFramesRect();
     EXPECT_TRUE(!properties.clipToBounds_);
 
-    properties.frameGeo_->height_ = 1.f;
+    properties.frameGeo_.height_ = 1.f;
     properties.GetLocalBoundsAndFramesRect();
     EXPECT_TRUE(!properties.clipToBounds_);
 
@@ -1998,6 +1998,22 @@ HWTEST_F(RSPropertiesTest, NeedFilterNClip001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NeedBlurFuzed001
+ * @tc.desc: test results of NeedBlurFuzed
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, NeedBlurFuzed001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.NeedBlurFuzed(), false);
+    // 1.0f: valid mesa blur params
+    Vector2f vectorValue = { 1.0f, 1.0f };
+    properties.greyCoef_ = vectorValue;
+    EXPECT_EQ(properties.NeedBlurFuzed(), true);
+}
+
+/**
  * @tc.name: Dirty001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -2061,13 +2077,12 @@ HWTEST_F(RSPropertiesTest, GetDirtyRect001, TestSize.Level1)
 {
     RSProperties properties;
     properties.GetDirtyRect();
-    EXPECT_NE(properties.frameGeo_, nullptr);
 
-    properties.frameGeo_->SetWidth(1.f);
+    properties.frameGeo_.SetWidth(1.f);
     properties.GetDirtyRect();
     EXPECT_EQ(properties.clipToBounds_, false);
 
-    properties.frameGeo_->SetHeight(1.f);
+    properties.frameGeo_.SetHeight(1.f);
     properties.GetDirtyRect();
     EXPECT_EQ(properties.clipToBounds_, false);
 
@@ -2078,7 +2093,6 @@ HWTEST_F(RSPropertiesTest, GetDirtyRect001, TestSize.Level1)
     std::shared_ptr<RectF> rect = std::make_shared<RectF>(1.f, 1.f, 1.f, 1.f);
     properties.SetDrawRegion(rect);
     properties.GetDirtyRect();
-    EXPECT_NE(properties.frameGeo_, nullptr);
 }
 
 /**
@@ -2094,11 +2108,11 @@ HWTEST_F(RSPropertiesTest, GetDirtyRect002, TestSize.Level1)
     properties.GetDirtyRect(drawRegion);
     EXPECT_NE(properties.boundsGeo_, nullptr);
 
-    properties.frameGeo_->SetWidth(1.f);
+    properties.frameGeo_.SetWidth(1.f);
     properties.GetDirtyRect(drawRegion);
     EXPECT_EQ(properties.clipToBounds_, false);
 
-    properties.frameGeo_->SetHeight(1.f);
+    properties.frameGeo_.SetHeight(1.f);
     properties.GetDirtyRect(drawRegion);
     EXPECT_EQ(properties.clipToBounds_, false);
 
@@ -2349,6 +2363,12 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundBlurFilter001, TestSize.Level1)
     properties.GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
+    // 0.0f, 1.0f: valid mesa blur params
+    Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
+    properties.pixelStretch_ = pixelStretchTest;
+    properties.GenerateBackgroundBlurFilter();
+    EXPECT_EQ(vectorValue.x_, 1.f);
+
     properties.greyCoef_ = vectorValue;
     properties.GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
@@ -2364,6 +2384,12 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundMaterialBlurFilter001, TestSize.Lev
 {
     RSProperties properties;
     Vector2f vectorValue = { 1.f, 1.f };
+    properties.GenerateBackgroundMaterialBlurFilter();
+    EXPECT_EQ(vectorValue.x_, 1.f);
+
+    // 0.0f, 1.0f: valid mesa blur params
+    Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
+    properties.pixelStretch_ = pixelStretchTest;
     properties.GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
@@ -3037,15 +3063,15 @@ HWTEST_F(RSPropertiesTest, CalculatePixelStretch001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, CalculateFrameOffset001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.frameGeo_->SetX(1.f);
-    properties.frameGeo_->SetY(1.f);
+    properties.frameGeo_.SetX(1.f);
+    properties.frameGeo_.SetY(1.f);
     properties.boundsGeo_->SetX(1.f);
     properties.boundsGeo_->SetY(1.f);
     properties.CalculateFrameOffset();
     EXPECT_NE(properties.isDrawn_, true);
 
-    properties.frameGeo_->SetX(-INFINITY);
-    properties.frameGeo_->SetY(-INFINITY);
+    properties.frameGeo_.SetX(-INFINITY);
+    properties.frameGeo_.SetY(-INFINITY);
     properties.boundsGeo_->SetX(-INFINITY);
     properties.boundsGeo_->SetY(-INFINITY);
     properties.CalculateFrameOffset();

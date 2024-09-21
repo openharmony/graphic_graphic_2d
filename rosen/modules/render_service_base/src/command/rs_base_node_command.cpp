@@ -16,6 +16,7 @@
 #include "command/rs_base_node_command.h"
 
 #include "pipeline/rs_base_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,6 +44,8 @@ void BaseNodeCommandHelper::AddChild(RSContext& context, NodeId nodeId, NodeId c
     auto child = nodeMap.GetRenderNode(childNodeId);
     if (node && child) {
         node->AddChild(child, index);
+    } else if (child == nullptr) {
+        RS_LOGE("BaseNodeCommandHelper::AddChild child:%{public}" PRIu64 " not found in map", childNodeId);
     }
 }
 

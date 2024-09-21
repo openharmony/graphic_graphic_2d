@@ -78,7 +78,9 @@ public:
 
     SurfaceError AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd);
     SurfaceError ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd);
-
+    
+    SurfaceError SetDefaultUsage(uint64_t usage);
+    SurfaceError SetDefaultSize(int32_t width, int32_t height);
 private:
     SurfaceError ValidateEglState();
     EGLImageKHR CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer);
@@ -91,17 +93,17 @@ private:
     void NewBufferDestroyEGLImage(bool isNewBuffer, uint32_t seqNum);
     void DestroyEGLImageBySeq(uint32_t seqNum);
 
-    uint32_t textureId_;
-    uint32_t textureTarget_;
+    uint32_t textureId_ = 0;
+    uint32_t textureTarget_ = GL_TEXTURE_EXTERNAL_OES;
     std::string surfaceImageName_;
 
     std::mutex opMutex_;
     std::atomic<bool> updateSurfaceImage_;
 
-    EGLDisplay eglDisplay_;
-    EGLContext eglContext_;
+    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
+    EGLContext eglContext_ = EGL_NO_CONTEXT;
     std::map<uint32_t, ImageCacheSeq> imageCacheSeqs_;
-    uint32_t currentSurfaceImage_;
+    uint32_t currentSurfaceImage_ = UINT_MAX;
     sptr<SurfaceBuffer> currentSurfaceBuffer_;
     int64_t currentTimeStamp_;
     Rect currentCrop_ = {};

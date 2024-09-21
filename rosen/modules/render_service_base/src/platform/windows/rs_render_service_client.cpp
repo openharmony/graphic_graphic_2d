@@ -48,7 +48,17 @@ std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
     return {};
 }
 
+bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    return false;
+}
+
 bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
+{
+    return {};
+}
+
+bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return {};
 }
@@ -192,6 +202,10 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
 {
 }
 
+void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
+{
+}
+
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 {
     return {};
@@ -330,6 +344,11 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bo
 }
 
 bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
+{
+    return {};
+}
+
+bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
 {
     return {};
 }
@@ -527,6 +546,10 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
+void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+}
+
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
 }
@@ -580,6 +603,25 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
 }
 
 bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
+{
+    return false;
+}
+
+void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
+{
+}
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+}
+
+bool RSRenderServiceClient::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
     return false;
 }

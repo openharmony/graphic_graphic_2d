@@ -67,6 +67,10 @@ static inline void DrawCapturedImg(Drawing::Image& image,
 void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
+    if (callback == nullptr) {
+        RS_LOGE("RSUiCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
+        return;
+    }
     RS_LOGI("RSUiCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "]", id);
     captureCount_++;
     std::shared_ptr<RSUiCaptureTaskParallel> captureHandle =
@@ -149,7 +153,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     auto grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
-    RSTagTracker tagTracker(grContext, nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE);
+    std::string nodeName("RSUiCaptureTaskParallel");
+    RSTagTracker tagTracker(grContext, nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelMap_);
     if (surface == nullptr) {
@@ -314,6 +319,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         auto grContext = RSBackgroundThread::Instance().GetShareGPUContext();
         if (!grContext) {
             RS_LOGE("RSUiCaptureTaskParallel: SharedGPUContext get failed");
+            ProcessUiCaptureCallback(callback, id, nullptr);
             return;
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -371,6 +377,6 @@ void RSUiCaptureTaskParallel::ProcessUiCaptureCallback(
     callback->OnSurfaceCapture(id, pixelmap);
     RSUiCaptureTaskParallel::captureCount_--;
     RSMainThread::Instance()->RequestNextVSync();
-};
+}
 } // namespace Rosen
 } // namespace OHOS

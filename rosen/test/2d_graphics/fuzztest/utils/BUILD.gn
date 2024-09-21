@@ -16,9 +16,11 @@ group("fuzztest") {
 
   deps = [
     "camera3d_fuzzer:fuzztest",
+    "data_fuzzer:fuzztest",
     "matrix44_fuzzer:fuzztest",
     "matrix_fuzzer:fuzztest",
     "memorystream_fuzzer:fuzztest",
+    "objectmgr_fuzzer:fuzztest",
     "point3_fuzzer:fuzztest",
     "point_fuzzer:fuzztest",
     "rect_fuzzer:fuzztest",

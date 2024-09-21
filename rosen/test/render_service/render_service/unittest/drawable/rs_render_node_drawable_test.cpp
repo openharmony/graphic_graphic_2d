@@ -374,6 +374,27 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
 }
 
 /**
+ @tc.name: AfterDrawCacheWithScreen
+ @tc.desc: Test AfterDrawCacheWithScreen delay cache
+ @tc.type: FUNC
+ @tc.require: issueIAL4RE
+ */
+HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCacheWithScreen, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    bool isOpincDropNodeExt = true;
+    int opincRootTotalCount = 0;
+    drawable->rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
+    NodeStrategyType cacheStragy = NodeStrategyType::CACHE_NONE;
+    drawable->recordState_ = NodeRecordState::RECORD_CACHING;
+    RectI absRect = {10, 10, 10, 10};
+    params.SetAbsDrawRect(absRect);
+    drawable->AfterDrawCache(cacheStragy, canvas, params, isOpincDropNodeExt, opincRootTotalCount);
+}
+
+/**
  * @tc.name: DrawAutoCacheDfx
  * @tc.desc: Test DrawAutoCacheDfx
  * @tc.type: FUNC
@@ -483,9 +504,10 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest, TestSize.Level1)
     drawable->drawCmdIndex_.shadowIndex_ = 1;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(drawable->HasFilterOrEffect());
-    curCanvas->SetCacheType(RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    RSRenderNodeDrawable::isOffScreenWithClipHole_ = true;
     params.foregroundFilterCache_ = std::make_shared<RSFilter>();
     drawable->CheckCacheTypeAndDraw(canvas, params);
+    RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
     ASSERT_TRUE(params.GetForegroundFilterCache());
 
     drawable->SetCacheType(DrawableCacheType::NONE);

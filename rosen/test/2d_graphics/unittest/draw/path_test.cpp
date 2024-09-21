@@ -1085,6 +1085,23 @@ HWTEST_F(PathTest, Assignment002, TestSize.Level1)
     path2.LineTo(10.0f, 10.0f);
     ASSERT_TRUE(path1.GetBounds() != path2.GetBounds());
 }
+
+/**
+ * @tc.name: Dump001
+ * @tc.desc: Dump Path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PathTest, Dump001, TestSize.Level1)
+{
+    Path path;
+    path.MoveTo(1.0f, 2.0f);
+    path.LineTo(3.0f, 4.0f);
+    std::string out;
+    EXPECT_TRUE(out.empty());
+    path.Dump(out);
+    EXPECT_FALSE(out.empty());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

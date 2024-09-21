@@ -15,6 +15,7 @@
 
 #include "drawable/rs_misc_drawable.h"
 
+#include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -135,7 +136,14 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (const auto& drawable : ptr->childrenDrawableVec_) {
+        for (size_t i = 0; i < ptr->childrenDrawableVec_.size(); i++) {
+#ifdef RS_ENABLE_PREFETCH
+            size_t prefetchIndex = i + 2;
+            if (prefetchIndex < ptr->childrenDrawableVec_.size()) {
+                __builtin_prefetch(&(ptr->childrenDrawableVec_[prefetchIndex]), 0, 1);
+            }
+#endif
+            const auto& drawable = ptr->childrenDrawableVec_[i];
             drawable->Draw(*canvas);
         }
     };
@@ -206,7 +214,14 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
 {
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (const auto& drawCmdList : ptr->drawCmdListVec_) {
+        for (size_t i = 0; i < ptr->drawCmdListVec_.size(); i++) {
+#ifdef RS_ENABLE_PREFETCH
+            size_t prefetchIndex = i + 2;
+            if (prefetchIndex < ptr->drawCmdListVec_.size()) {
+                __builtin_prefetch(&(ptr->drawCmdListVec_[prefetchIndex]), 0, 1);
+            }
+#endif
+            const auto& drawCmdList = ptr->drawCmdListVec_[i];
             Drawing::Matrix mat;
             if (ptr->isCanvasNode_ &&
                 RSPropertyDrawableUtils::GetGravityMatrix(ptr->gravity_, *rect, drawCmdList->GetWidth(),
@@ -322,6 +337,9 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
     auto ptr = std::static_pointer_cast<const RSBeginBlenderDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        if (paintFilterCanvas == nullptr) {
+            return;
+        }
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
             ptr->propertyDescription_.c_str(), rect->ToString().c_str());
         RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, ptr->blender_, ptr->blendApplyType_,

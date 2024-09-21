@@ -99,6 +99,36 @@ bool RSSurfaceRenderParams::GetOccludedByFilterCache() const
     return isOccludedByFilterCache_;
 }
 
+void RSSurfaceRenderParams::SetFilterCacheFullyCovered(bool val)
+{
+    isFilterCacheFullyCovered_ = val;
+}
+
+bool RSSurfaceRenderParams::GetFilterCacheFullyCovered() const
+{
+    return isFilterCacheFullyCovered_;
+}
+
+const std::vector<NodeId>& RSSurfaceRenderParams::GetVisibleFilterChild() const
+{
+    return visibleFilterChild_;
+}
+
+bool RSSurfaceRenderParams::IsTransparent() const
+{
+    return isTransparent_;
+}
+
+void RSSurfaceRenderParams::CheckValidFilterCacheFullyCoverTarget(
+    bool isFilterCacheValidForOcclusion, const RectI& filterCachedRect, const RectI& targetRect)
+{
+    if (isFilterCacheFullyCovered_ || !isFilterCacheValidForOcclusion) {
+        return;
+    }
+    // AbsRect may not update here, so use filterCachedRegion to occlude
+    isFilterCacheFullyCovered_ = targetRect.IsInsideOf(filterCachedRect);
+}
+
 void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -328,6 +358,36 @@ bool RSSurfaceRenderParams::GetSkipDraw() const
     return isSkipDraw_;
 }
 
+void RSSurfaceRenderParams::SetLayerTop(bool isTop)
+{
+    if (isLayerTop_ == isTop) {
+        return;
+    }
+    isLayerTop_ = isTop;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsLayerTop() const
+{
+    return isLayerTop_;
+}
+
+void RSSurfaceRenderParams::SetWatermarkEnabled(const std::string& name, bool isEnabled)
+{
+    watermarkHandles_[name] = isEnabled;
+    needSync_ = true;
+}
+
+const std::unordered_map<std::string, bool>& RSSurfaceRenderParams::GetWatermarksEnabled() const
+{
+    return watermarkHandles_;
+}
+
+bool RSSurfaceRenderParams::IsWatermarkEmpty() const
+{
+    return watermarkHandles_.empty();
+}
+
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
@@ -382,10 +442,13 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
+    targetSurfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->animateState_ = animateState_;
+    targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
+    targetSurfaceParams->snapshotSkipLayerIds_= snapshotSkipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
     targetSurfaceParams->name_ = name_;
@@ -399,14 +462,22 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
     targetSurfaceParams->dstRect_ = dstRect_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
+    targetSurfaceParams->isLayerTop_ = isLayerTop_;
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->preScalingMode_ = preScalingMode_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
+    targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
+    targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
+    targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
+    targetSurfaceParams->sdrNit_ = sdrNit_;
+    targetSurfaceParams->displayNit_ = displayNit_;
+    targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
+    targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     RSRenderParams::OnSync(target);
 }
 

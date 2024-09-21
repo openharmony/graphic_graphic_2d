@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
+#include <fstream>
+#include <string>
+
 #include "drawing_bitmap.h"
 #include "drawing_brush.h"
 #include "drawing_canvas.h"
@@ -25,22 +27,11 @@
 #include "drawing_point.h"
 #include "drawing_text_declaration.h"
 #include "drawing_text_typography.h"
-#ifndef USE_GRAPHIC_TEXT_GINE
-#include "rosen_text/ui/typography.h"
-#include "rosen_text/ui/typography_create.h"
-#else
+#include "gtest/gtest.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
-#endif
 
-#include <string>
-#include <fstream>
-
-#ifndef USE_GRAPHIC_TEXT_GINE
-using namespace rosen;
-#else
 using namespace OHOS::Rosen;
-#endif
 using namespace testing;
 using namespace testing::ext;
 
@@ -87,23 +78,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest002, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextDirection(typoStyle, TEXT_DIRECTION_LTR);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::LTR);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection, TextDirection::LTR);
-#endif
     OH_Drawing_SetTypographyTextDirection(typoStyle, TEXT_DIRECTION_RTL);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::RTL);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection, TextDirection::RTL);
-#endif
     OH_Drawing_SetTypographyTextDirection(typoStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection_, TextDirection::LTR);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textDirection, TextDirection::LTR);
-#endif
 }
 
 /*
@@ -115,47 +94,19 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest003, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_LEFT);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign_, TextAlign::LEFT);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign, TextAlign::LEFT);
-#endif
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_RIGHT);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign_, TextAlign::RIGHT);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign, TextAlign::RIGHT);
-#endif
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_CENTER);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign_, TextAlign::CENTER);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign, TextAlign::CENTER);
-#endif
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_JUSTIFY);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign_, TextAlign::JUSTIFY);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign, TextAlign::JUSTIFY);
-#endif
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_START);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign_, TextAlign::START);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign, TextAlign::START);
-#endif
     OH_Drawing_SetTypographyTextAlign(typoStyle, TEXT_ALIGN_END);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign_, TextAlign::END);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign, TextAlign::END);
-#endif
     OH_Drawing_SetTypographyTextAlign(typoStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign_, TextAlign::LEFT);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->textAlign, TextAlign::LEFT);
-#endif
 }
 
 /*
@@ -167,17 +118,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest004, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextMaxLines(typoStyle, 100);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->maxLines_, 100);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->maxLines, 100);
-#endif
     OH_Drawing_SetTypographyTextMaxLines(typoStyle, 200);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->maxLines_, 200);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->maxLines, 200);
-#endif
 }
 
 /*
@@ -202,25 +145,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest006, TestSize.Level
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     // black
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->color_, 0xFF000000);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->color, 0xFF000000);
-#endif
     // red
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->color_, 0xFFFF0000);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->color, 0xFFFF0000);
-#endif
     // blue
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0xFF));
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->color_, 0xFF0000FF);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->color, 0xFF0000FF);
-#endif
 }
 
 /*
@@ -232,17 +163,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontSize(txtStyle, 80);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontSize_, 80);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontSize, 80);
-#endif
     OH_Drawing_SetTextStyleFontSize(txtStyle, 40);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontSize_, 40);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontSize, 40);
-#endif
 }
 
 /*
@@ -254,65 +177,25 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_100);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W100);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W100);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_200);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W200);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W200);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_300);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W300);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W300);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W400);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W400);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_500);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W500);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W500);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_600);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W600);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W600);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_700);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W700);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W700);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_800);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W800);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W800);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_900);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W900);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W900);
-#endif
     OH_Drawing_SetTextStyleFontWeight(txtStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight_, FontWeight::W400);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontWeight, FontWeight::W400);
-#endif
 }
 
 /*
@@ -324,23 +207,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->textBaseline_, TextBaseline::ALPHABETIC);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->baseline, TextBaseline::ALPHABETIC);
-#endif
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_IDEOGRAPHIC);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->textBaseline_, TextBaseline::IDEOGRAPHIC);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->baseline, TextBaseline::IDEOGRAPHIC);
-#endif
     OH_Drawing_SetTextStyleBaseLine(txtStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->textBaseline_, TextBaseline::ALPHABETIC);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->baseline, TextBaseline::ALPHABETIC);
-#endif
 }
 
 /*
@@ -352,41 +223,17 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration_, TextDecoration::NONE);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::NONE);
-#endif
     OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration_, TextDecoration::UNDERLINE);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE);
-#endif
     OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_OVERLINE);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration_, TextDecoration::OVERLINE);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
-#endif
     OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_LINE_THROUGH);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration_, TextDecoration::LINETHROUGH);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::LINE_THROUGH);
-#endif
     OH_Drawing_SetTextStyleDecoration(txtStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration_, TextDecoration::NONE);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::NONE);
-#endif
     OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration_, TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
-#endif
 }
 
 /*
@@ -398,17 +245,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleDecorationColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationColor_, 0xFF000000);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationColor, 0xFF000000);
-#endif
     OH_Drawing_SetTextStyleDecorationColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0x00, 0x00));
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationColor_, 0xFFFF0000);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationColor, 0xFFFF0000);
-#endif
 }
 
 /*
@@ -420,11 +259,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontHeight(txtStyle, 0.0);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->height_, 0.0);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->heightScale, 0.0);
-#endif
 }
 
 /*
@@ -435,14 +270,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest013, TestSize.Level1)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
-    std::vector<std::string> fontFamiliesResult = {"Roboto"};
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontFamilies_, fontFamiliesResult);
-#else
+    std::vector<std::string> fontFamiliesResult = { "Roboto" };
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontFamilies, fontFamiliesResult);
-#endif
 }
 
 /*
@@ -454,23 +285,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest014, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_NORMAL);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontStyle_, FontStyle::NORMAL);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontStyle, FontStyle::NORMAL);
-#endif
     OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_ITALIC);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontStyle_, FontStyle::ITALIC);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontStyle, FontStyle::ITALIC);
-#endif
     OH_Drawing_SetTextStyleFontStyle(txtStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontStyle_, FontStyle::NORMAL);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->fontStyle, FontStyle::NORMAL);
-#endif
 }
 
 /*
@@ -482,11 +301,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->locale_, "en");
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->locale, "en");
-#endif
 }
 
 /*
@@ -498,8 +313,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
 
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
@@ -507,7 +322,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
 
@@ -516,16 +331,16 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     OH_Drawing_TypographyHandlerPopTextStyle(handler);
 
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    const float indents[] = {1.2, 3.4};
+    const float indents[] = { 1.2, 3.4 };
     OH_Drawing_TypographySetIndents(typography, 2, indents);
     float indent = 3.4;
     EXPECT_EQ(indent, OH_Drawing_TypographyGetIndentsWithIndex(typography, 1));
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
     EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -539,8 +354,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest016, TestSize.Level
     EXPECT_EQ(OH_Drawing_TypographyGetHeight(typography) != 0.0, true);
     EXPECT_EQ(OH_Drawing_TypographyGetLongestLine(typography) != 0.0, true);
     EXPECT_EQ(OH_Drawing_TypographyGetLongestLine(typography) <= maxWidth, true);
-    EXPECT_EQ(OH_Drawing_TypographyGetMinIntrinsicWidth(typography) <=
-        OH_Drawing_TypographyGetMaxIntrinsicWidth(typography), true);
+    EXPECT_EQ(
+        OH_Drawing_TypographyGetMinIntrinsicWidth(typography) <= OH_Drawing_TypographyGetMaxIntrinsicWidth(typography),
+        true);
     EXPECT_EQ(OH_Drawing_TypographyGetAlphabeticBaseline(typography) != 0.0, true);
     EXPECT_EQ(OH_Drawing_TypographyGetIdeographicBaseline(typography) != 0.0, true);
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
@@ -557,29 +373,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest017, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, BREAK_STRATEGY_GREEDY);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->breakStrategy_, BreakStrategy::BreakStrategyGreedy);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->breakStrategy, BreakStrategy::GREEDY);
-#endif
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, BREAK_STRATEGY_HIGH_QUALITY);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->breakStrategy_, BreakStrategy::BreakStrategyHighQuality);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->breakStrategy, BreakStrategy::HIGH_QUALITY);
-#endif
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, BREAK_STRATEGY_BALANCED);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->breakStrategy_, BreakStrategy::BreakStrategyBalanced);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->breakStrategy, BreakStrategy::BALANCED);
-#endif
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->breakStrategy_, BreakStrategy::BreakStrategyGreedy);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->breakStrategy, BreakStrategy::GREEDY);
-#endif
 }
 
 /*
@@ -591,29 +391,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest018, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_NORMAL);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->wordBreakType_, WordBreakType::WordBreakTypeNormal);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->wordBreakType, WordBreakType::NORMAL);
-#endif
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_ALL);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->wordBreakType_, WordBreakType::WordBreakTypeBreakAll);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->wordBreakType, WordBreakType::BREAK_ALL);
-#endif
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_WORD);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->wordBreakType_, WordBreakType::WordBreakTypeBreakWord);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->wordBreakType, WordBreakType::BREAK_WORD);
-#endif
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->wordBreakType_, WordBreakType::WordBreakTypeBreakWord);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->wordBreakType, WordBreakType::BREAK_WORD);
-#endif
 }
 
 /*
@@ -625,29 +409,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest019, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextEllipsisModal(typoStyle, ELLIPSIS_MODAL_HEAD);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->ellipsisModal_, EllipsisModal::HEAD);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->ellipsisModal, EllipsisModal::HEAD);
-#endif
     OH_Drawing_SetTypographyTextEllipsisModal(typoStyle, ELLIPSIS_MODAL_MIDDLE);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->ellipsisModal_, EllipsisModal::MIDDLE);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->ellipsisModal, EllipsisModal::MIDDLE);
-#endif
     OH_Drawing_SetTypographyTextEllipsisModal(typoStyle, ELLIPSIS_MODAL_TAIL);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->ellipsisModal_, EllipsisModal::TAIL);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->ellipsisModal, EllipsisModal::TAIL);
-#endif
     OH_Drawing_SetTypographyTextEllipsisModal(typoStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->ellipsisModal_, EllipsisModal::TAIL);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->ellipsisModal, EllipsisModal::TAIL);
-#endif
 }
 
 /*
@@ -659,41 +427,17 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest020, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_SOLID);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle_, TextDecorationStyle::SOLID);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle, TextDecorationStyle::SOLID);
-#endif
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_DOUBLE);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle_, TextDecorationStyle::DOUBLE);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle, TextDecorationStyle::DOUBLE);
-#endif
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_DOTTED);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle_, TextDecorationStyle::DOTTED);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle, TextDecorationStyle::DOTTED);
-#endif
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_DASHED);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle_, TextDecorationStyle::DASHED);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle, TextDecorationStyle::DASHED);
-#endif
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_WAVY);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle_, TextDecorationStyle::WAVY);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle, TextDecorationStyle::WAVY);
-#endif
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle_, TextDecorationStyle::SOLID);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationStyle, TextDecorationStyle::SOLID);
-#endif
 }
 
 /*
@@ -705,17 +449,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, 10);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationThicknessMultiplier_, 10);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationThicknessScale, 10);
-#endif
     OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, 20);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationThicknessMultiplier_, 20);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decorationThicknessScale, 20);
-#endif
 }
 
 /*
@@ -727,17 +463,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest022, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleLetterSpacing(txtStyle, 10);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->letterSpacing_, 10);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->letterSpacing, 10);
-#endif
     OH_Drawing_SetTextStyleLetterSpacing(txtStyle, 20);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->letterSpacing_, 20);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->letterSpacing, 20);
-#endif
 }
 
 /*
@@ -749,17 +477,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest023, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleWordSpacing(txtStyle, 10);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->wordSpacing_, 10);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->wordSpacing, 10);
-#endif
     OH_Drawing_SetTextStyleWordSpacing(txtStyle, 20);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->wordSpacing_, 20);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->wordSpacing, 20);
-#endif
 }
 
 /*
@@ -771,29 +491,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleEllipsisModal(txtStyle, ELLIPSIS_MODAL_HEAD);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsisModal_, EllipsisModal::HEAD);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsisModal, EllipsisModal::HEAD);
-#endif
     OH_Drawing_SetTextStyleEllipsisModal(txtStyle, ELLIPSIS_MODAL_MIDDLE);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsisModal_, EllipsisModal::MIDDLE);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsisModal, EllipsisModal::MIDDLE);
-#endif
     OH_Drawing_SetTextStyleEllipsisModal(txtStyle, ELLIPSIS_MODAL_TAIL);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsisModal_, EllipsisModal::TAIL);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsisModal, EllipsisModal::TAIL);
-#endif
     OH_Drawing_SetTextStyleEllipsisModal(txtStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsisModal_, EllipsisModal::TAIL);
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsisModal, EllipsisModal::TAIL);
-#endif
 }
 
 /*
@@ -805,11 +509,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest025, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleEllipsis(txtStyle, "...");
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsis_, u"...");
-#else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->ellipsis, u"...");
-#endif
 }
 
 /*
@@ -821,8 +521,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest026, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
@@ -830,21 +530,20 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest026, TestSize.Level
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     bool halfLeading = true;
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
     OH_Drawing_TypographyHandlerAddText(handler, text);
-    OH_Drawing_PlaceholderSpan placeholderSpan = {20, 40,
-        ALIGNMENT_OFFSET_AT_BASELINE, TEXT_BASELINE_ALPHABETIC, 10};
+    OH_Drawing_PlaceholderSpan placeholderSpan = { 20, 40, ALIGNMENT_OFFSET_AT_BASELINE, TEXT_BASELINE_ALPHABETIC, 10 };
     OH_Drawing_TypographyHandlerAddPlaceholder(handler, &placeholderSpan);
     OH_Drawing_TypographyHandlerPopTextStyle(handler);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -875,8 +574,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest027, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
@@ -884,7 +583,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest027, TestSize.Level
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     bool halfLeading = true;
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
@@ -893,9 +592,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest027, TestSize.Level
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -936,29 +635,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest029, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_100);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W100);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W100);
-#endif
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_200);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W200);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W200);
-#endif
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_300);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W300);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W300);
-#endif
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_400);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W400);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W400);
-#endif
 }
 
 /*
@@ -970,23 +653,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest030, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextFontStyle(typoStyle, FONT_STYLE_NORMAL);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontStyle_, FontStyle::NORMAL);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontStyle, FontStyle::NORMAL);
-#endif
     OH_Drawing_SetTypographyTextFontStyle(typoStyle, FONT_STYLE_ITALIC);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontStyle_, FontStyle::ITALIC);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontStyle, FontStyle::ITALIC);
-#endif
     OH_Drawing_SetTypographyTextFontStyle(typoStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontStyle_, FontStyle::NORMAL);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontStyle, FontStyle::NORMAL);
-#endif
 }
 
 /*
@@ -998,11 +669,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest031, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextFontFamily(typoStyle, "monospace");
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)-> fontFamily_, "monospace");
-#else
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)-> fontFamily, "monospace");
-#endif
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontFamily, "monospace");
 }
 
 /*
@@ -1014,17 +681,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest032, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextFontSize(typoStyle, 80);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontSize_, 80);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontSize, 80);
-#endif
     OH_Drawing_SetTypographyTextFontSize(typoStyle, 40);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontSize_, 40);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontSize, 40);
-#endif
 }
 
 /*
@@ -1036,11 +695,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest033, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextFontHeight(typoStyle, 0.0);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->height_, 0.0);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, 0.0);
-#endif
 }
 
 /*
@@ -1052,25 +707,12 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest034, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextLineStyleFontStyle(typoStyle, FONT_STYLE_NORMAL);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontStyle_, FontStyle::NORMAL);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontStyle, FontStyle::NORMAL);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontStyle(typoStyle, FONT_STYLE_ITALIC);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontStyle_, FontStyle::ITALIC);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontStyle, FontStyle::ITALIC);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontStyle(typoStyle, -1);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontStyle_, FontStyle::NORMAL);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontStyle, FontStyle::NORMAL);
-#endif
 }
-
 
 /*
  * @tc.name: OH_Drawing_TypographyTest035
@@ -1081,35 +723,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest035, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_100);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W100);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W100);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_200);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W200);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W200);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_300);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W300);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W300);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_400);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W400);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W400);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_500);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W500);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W500);
-#endif
 }
 
 /*
@@ -1121,19 +743,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest036, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextLineStyleFontSize(typoStyle, 80);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontSize_, 80);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontSize, 80);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontSize(typoStyle, 40);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontSize_, 40);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontSize, 40);
-#endif
 }
-
 
 /*
  * @tc.name: OH_Drawing_TypographyTest037
@@ -1143,14 +756,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest036, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest037, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTypographyTextLineStyleFontFamilies(typoStyle, 1, fontFamilies);
-    std::vector<std::string> fontFamiliesResult = {"Roboto"};
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontFamilies_, fontFamiliesResult);
-#else
+    std::vector<std::string> fontFamiliesResult = { "Roboto" };
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontFamilies, fontFamiliesResult);
-#endif
 }
 
 /*
@@ -1162,19 +771,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest038, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextLineStyleSpacingScale(typoStyle, 1.0);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleSpacingScale_, 1.0);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleSpacingScale, 1.0);
-#endif
     OH_Drawing_SetTypographyTextLineStyleSpacingScale(typoStyle, 2.0);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleSpacingScale_, 2.0);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleSpacingScale, 2.0);
-#endif
 }
-
 
 /*
  * @tc.name: OH_Drawing_TypographyTest039
@@ -1185,11 +785,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest039, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextLineStyleFontHeight(typoStyle, 0.0);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->linestyleHeight_, 0.0);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleHeightScale, 0.0);
-#endif
 }
 
 /*
@@ -1201,15 +797,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest040, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
     OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
@@ -1219,9 +815,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest040, TestSize.Level
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
     EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -1229,7 +825,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest040, TestSize.Level
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
-    OH_Drawing_FontDescriptor *descriptor = OH_Drawing_CreateFontDescriptor();
+    OH_Drawing_FontDescriptor* descriptor = OH_Drawing_CreateFontDescriptor();
     OH_Drawing_FontParser* parser = OH_Drawing_CreateFontParser();
 
     static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
@@ -1238,7 +834,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest040, TestSize.Level
         size_t fontNum;
         char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
         EXPECT_EQ(list != nullptr, true);
-        const char *name = "OS Sans Digit";
+        const char* name = "OS Sans Digit";
         EXPECT_EQ(OH_Drawing_FontParserGetFontByName(parser, name) != nullptr, true);
         OH_Drawing_DestroySystemFontList(list, fontNum);
     }
@@ -1263,29 +859,13 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest041, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_600);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W600);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W600);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_700);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W700);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W700);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_800);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W800);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W800);
-#endif
     OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, FONT_WEIGHT_900);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight_, FontWeight::W900);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleFontWeight, FontWeight::W900);
-#endif
 }
 
 /*
@@ -1297,8 +877,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest042, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
@@ -1306,7 +886,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest042, TestSize.Level
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     bool halfLeading = true;
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
@@ -1315,9 +895,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest042, TestSize.Level
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -1350,8 +930,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest043, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
@@ -1359,7 +939,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest043, TestSize.Level
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     bool halfLeading = true;
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
@@ -1368,9 +948,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest043, TestSize.Level
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -1378,12 +958,12 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest043, TestSize.Level
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
-    OH_Drawing_Brush *foregroundBrush = OH_Drawing_BrushCreate();
+    OH_Drawing_Brush* foregroundBrush = OH_Drawing_BrushCreate();
     uint8_t alpha = 128;
     OH_Drawing_BrushSetAlpha(foregroundBrush, alpha);
     OH_Drawing_SetTextStyleForegroundBrush(txtStyle, nullptr);
     OH_Drawing_SetTextStyleForegroundBrush(txtStyle, foregroundBrush);
-    OH_Drawing_Brush *resForegroundBrush = OH_Drawing_BrushCreate();
+    OH_Drawing_Brush* resForegroundBrush = OH_Drawing_BrushCreate();
     OH_Drawing_TextStyleGetForegroundBrush(txtStyle, nullptr);
     OH_Drawing_TextStyleGetForegroundBrush(txtStyle, resForegroundBrush);
     EXPECT_EQ(OH_Drawing_BrushGetAlpha(resForegroundBrush), alpha);
@@ -1402,8 +982,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest044, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
 
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
@@ -1412,7 +992,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest044, TestSize.Level
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     bool halfLeading = true;
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
@@ -1421,9 +1001,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest044, TestSize.Level
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -1458,8 +1038,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest045, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
 
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
@@ -1468,7 +1048,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest045, TestSize.Level
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     bool halfLeading = true;
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
@@ -1477,9 +1057,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest045, TestSize.Level
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -1487,12 +1067,12 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest045, TestSize.Level
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
-    OH_Drawing_Brush *backgroundBrush = OH_Drawing_BrushCreate();
+    OH_Drawing_Brush* backgroundBrush = OH_Drawing_BrushCreate();
     uint8_t backgroundAlpha = 64;
     OH_Drawing_BrushSetAlpha(backgroundBrush, backgroundAlpha);
     OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, nullptr);
     OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, backgroundBrush);
-    OH_Drawing_Brush *resBackgroundBrush = OH_Drawing_BrushCreate();
+    OH_Drawing_Brush* resBackgroundBrush = OH_Drawing_BrushCreate();
     OH_Drawing_TextStyleGetBackgroundBrush(txtStyle, nullptr);
     OH_Drawing_TextStyleGetBackgroundBrush(txtStyle, resBackgroundBrush);
     EXPECT_EQ(OH_Drawing_BrushGetAlpha(resBackgroundBrush), backgroundAlpha);
@@ -1511,8 +1091,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest046, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
 
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
@@ -1521,7 +1101,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest046, TestSize.Level
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     bool halfLeading = true;
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
@@ -1530,9 +1110,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest046, TestSize.Level
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -1540,12 +1120,12 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest046, TestSize.Level
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
-    OH_Drawing_Pen *backgroundPen = OH_Drawing_PenCreate();
+    OH_Drawing_Pen* backgroundPen = OH_Drawing_PenCreate();
     float backgroundPenWidth = 10;
     OH_Drawing_PenSetWidth(backgroundPen, backgroundPenWidth);
     OH_Drawing_SetTextStyleBackgroundPen(txtStyle, nullptr);
     OH_Drawing_SetTextStyleBackgroundPen(txtStyle, backgroundPen);
-    OH_Drawing_Pen *resBackgroundPen = OH_Drawing_PenCreate();
+    OH_Drawing_Pen* resBackgroundPen = OH_Drawing_PenCreate();
     OH_Drawing_TextStyleGetBackgroundPen(txtStyle, nullptr);
     OH_Drawing_TextStyleGetBackgroundPen(txtStyle, resBackgroundPen);
     EXPECT_EQ(OH_Drawing_PenGetWidth(resBackgroundPen), backgroundPenWidth);
@@ -1564,8 +1144,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest047, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
     double fontSize = 30;
@@ -1573,7 +1153,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest047, TestSize.Level
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
     bool halfLeading = true;
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, halfLeading);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "OpenHarmony\n";
@@ -1582,9 +1162,9 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest047, TestSize.Level
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     double maxWidth = 800.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
-    double position[2] = {10.0, 15.0};
+    double position[2] = { 10.0, 15.0 };
     OH_Drawing_Bitmap* cBitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat cFormat {COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     uint32_t width = 20;
     uint32_t height = 40;
     OH_Drawing_BitmapBuild(cBitmap, width, height, &cFormat);
@@ -1592,12 +1172,12 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest047, TestSize.Level
     OH_Drawing_CanvasBind(cCanvas, cBitmap);
     OH_Drawing_CanvasClear(cCanvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
-    OH_Drawing_Pen *foregroundPen = OH_Drawing_PenCreate();
+    OH_Drawing_Pen* foregroundPen = OH_Drawing_PenCreate();
     float foregroundPenWidth = 20;
     OH_Drawing_PenSetWidth(foregroundPen, foregroundPenWidth);
     OH_Drawing_SetTextStyleForegroundPen(txtStyle, nullptr);
     OH_Drawing_SetTextStyleForegroundPen(txtStyle, foregroundPen);
-    OH_Drawing_Pen *resForegroundPen = OH_Drawing_PenCreate();
+    OH_Drawing_Pen* resForegroundPen = OH_Drawing_PenCreate();
     OH_Drawing_TextStyleGetForegroundPen(txtStyle, nullptr);
     OH_Drawing_TextStyleGetForegroundPen(txtStyle, resForegroundPen);
     EXPECT_EQ(OH_Drawing_PenGetWidth(resForegroundPen), foregroundPenWidth);
@@ -1616,35 +1196,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest048, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_500);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W500);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W500);
-#endif
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_600);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W600);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W600);
-#endif
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_700);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W700);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W700);
-#endif
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_800);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W800);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W800);
-#endif
     OH_Drawing_SetTypographyTextFontWeight(typoStyle, FONT_WEIGHT_900);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight_, FontWeight::W900);
-#else
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->fontWeight, FontWeight::W900);
-#endif
 }
 
 /*
@@ -1663,7 +1223,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest049, TestSize.Level
     bool linestyleOnly = false;
     OH_Drawing_SetTypographyTextLineStyleOnly(typoStyle, linestyleOnly);
 }
-
 
 /*
  * @tc.name: OH_Drawing_TypographyTest050
@@ -1688,7 +1247,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest050, TestSize.Level
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
     EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(txtStyle), 0);
     EXPECT_EQ(OH_Drawing_TextStyleGetBaseline(nullptr), TEXT_BASELINE_ALPHABETIC);
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
     size_t fontFamiliesNumber;
     char** fontFamiliesList = OH_Drawing_TextStyleGetFontFamilies(txtStyle, &fontFamiliesNumber);
@@ -1725,10 +1284,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest051, TestSize.Level
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
-    OH_Drawing_RectStyle_Info rectStyleInfo = {1, 1.5, 1.5, 1.5, 1.5}; // 1.5 means corner radius for test
-    int styleId = 1; // 1 means styleId for test
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    OH_Drawing_RectStyle_Info rectStyleInfo = { 1, 1.5, 1.5, 1.5, 1.5 }; // 1.5 means corner radius for test
+    int styleId = 1;                                                     // 1 means styleId for test
     OH_Drawing_TextStyleSetBackgroundRect(txtStyle, nullptr, styleId);
     OH_Drawing_TextStyleSetBackgroundRect(nullptr, &rectStyleInfo, styleId);
     OH_Drawing_TextStyleSetBackgroundRect(txtStyle, &rectStyleInfo, styleId);
@@ -1866,8 +1425,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest056, TestSize.Level
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fontCollection);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    size_t from = 10; // 10 means font size for test
-    size_t to = 11; // 11 means font size for test
+    size_t from = 10;     // 10 means font size for test
+    size_t to = 11;       // 11 means font size for test
     float fontSize = 1.0; // 1.0 means font size for test
     OH_Drawing_TypographyUpdateFontSize(typography, from, to, fontSize);
     OH_Drawing_TypographyUpdateFontSize(nullptr, from, to, fontSize);
@@ -1951,7 +1510,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest060, TestSize.Level
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     size_t fontNum = 1; // 1 means font number for test
-    const char* fontFamilies[] = {"Roboto"};
+    const char* fontFamilies[] = { "Roboto" };
     int fontFamiliesNumber = 1; // 1 means font families number for test
     OH_Drawing_SetTypographyTextLineStyleFontFamilies(typoStyle, fontFamiliesNumber, fontFamilies);
     char** result = OH_Drawing_TypographyTextlineStyleGetFontFamilies(typoStyle, &fontNum);
@@ -2163,7 +1722,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest071, TestSize.Level
     OH_Drawing_SetTypographyTextAlign(typoStyle, align);
     OH_Drawing_TextAlign result = OH_Drawing_TypographyGetTextAlign(typoStyle);
     EXPECT_TRUE(result == TEXT_ALIGN_RIGHT);
-    result= OH_Drawing_TypographyGetTextAlign(nullptr);
+    result = OH_Drawing_TypographyGetTextAlign(nullptr);
     EXPECT_TRUE(result == TEXT_ALIGN_LEFT);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     typoStyle = nullptr;
@@ -2199,8 +1758,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level
     EXPECT_TRUE(typoStyle != nullptr);
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_TRUE(txtStyle != nullptr);
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     size_t charNumber = 0;
     const char* text = "OpenHarmony\n";
@@ -2223,8 +1782,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest073, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level1)
 {
-    OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_StrutStyle *strutstyle = new OH_Drawing_StrutStyle();
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_StrutStyle* strutstyle = new OH_Drawing_StrutStyle();
     strutstyle->weight = FONT_WEIGHT_400;
     strutstyle->style = FONT_STYLE_ITALIC;
     // 17.0 For size
@@ -2238,11 +1797,11 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level
     strutstyle->forceStrutHeight = true;
     // 4 For families size
     strutstyle->familiesSize = 4;
-    strutstyle->families = (char**)malloc(strutstyle->familiesSize*sizeof(char*));
-    const char *temp[] = {"1", "2", "3", "4"};
+    strutstyle->families = (char**)malloc(strutstyle->familiesSize * sizeof(char*));
+    const char* temp[] = { "1", "2", "3", "4" };
     for (int i = 0; i < strutstyle->familiesSize; i++) {
         // 2 For families member size
-        strutstyle->families[i] = (char*)malloc(2*sizeof(char));
+        strutstyle->families[i] = (char*)malloc(2 * sizeof(char));
         strcpy_s(strutstyle->families[i], 2, temp[i]);
     }
     OH_Drawing_SetTypographyStyleTextStrutStyle(typoStyle, strutstyle);
@@ -2259,7 +1818,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest074, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level1)
 {
     EXPECT_EQ(OH_Drawing_TextStyleIsPlaceholder(nullptr), false);
-    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_EQ(OH_Drawing_TextStyleIsPlaceholder(txtStyle), false);
     OH_Drawing_TextStyleSetPlaceholder(nullptr);
     OH_Drawing_TextStyleSetPlaceholder(txtStyle);
@@ -2275,8 +1834,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest075, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest076, TestSize.Level1)
 {
-    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* txtStyleCompare = OH_Drawing_CreateTextStyle();
     bool result = OH_Drawing_TextStyleIsAttributeMatched(txtStyle, txtStyleCompare, TEXT_STYLE_ALL_ATTRIBUTES);
     EXPECT_TRUE(result == true);
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
@@ -2331,7 +1890,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest078, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest079, TestSize.Level1)
 {
-    OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TypographyStyleSetHintsEnabled(typoStyle, true);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->hintingIsOn, true);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -2344,8 +1903,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest079, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest080, TestSize.Level1)
 {
-    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* txtStyleCompare = OH_Drawing_CreateTextStyle();
     bool result = OH_Drawing_TextStyleIsEqual(txtStyle, txtStyleCompare);
     EXPECT_TRUE(result == true);
 
@@ -2413,8 +1972,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest082, TestSize.Level
  */
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest083, TestSize.Level1)
 {
-    OH_Drawing_TextStyle *txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_TextStyle *txtStyleCompare = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* txtStyleCompare = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
     OH_Drawing_SetTextStyleLocale(txtStyleCompare, "en");
     bool result = OH_Drawing_TextStyleIsEqualByFont(txtStyle, txtStyleCompare);
@@ -2439,15 +1998,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest084, TestSize.Level
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, BREAK_STRATEGY_GREEDY);
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "breakStrategyTest breakStrategy breakStrategyGreedyTest";
     OH_Drawing_TypographyHandlerAddText(handler, text);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     // {1.2, 3.4} for unit test
-    const float indents[] = {1.2, 3.4};
+    const float indents[] = { 1.2, 3.4 };
     OH_Drawing_TypographySetIndents(typography, 2, indents);
     // 300.0 for unit test
     double maxWidth = 300.0;
@@ -2465,15 +2024,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest085, TestSize.Level
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, BREAK_STRATEGY_BALANCED);
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "breakStrategyTest breakStrategy breakStrategyBALANCEDTest";
     OH_Drawing_TypographyHandlerAddText(handler, text);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     // {1.2, 3.4} for unit test
-    const float indents[] = {1.2, 3.4};
+    const float indents[] = { 1.2, 3.4 };
     OH_Drawing_TypographySetIndents(typography, 2, indents);
     // 300.0 for unit test
     double maxWidth = 300.0;
@@ -2491,15 +2050,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest086, TestSize.Level
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, BREAK_STRATEGY_HIGH_QUALITY);
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     EXPECT_TRUE(handler != nullptr);
     OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
     const char* text = "breakStrategyTest breakStrategy breakStrategyHighQualityTest";
     OH_Drawing_TypographyHandlerAddText(handler, text);
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     // {1.2, 3.4} for unit test
-    const float indents[] = {1.2, 3.4};
+    const float indents[] = { 1.2, 3.4 };
     OH_Drawing_TypographySetIndents(typography, 2, indents);
     // 300.0 for unit test
     double maxWidth = 300.0;
@@ -2526,7 +2085,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest087, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest088, TestSize.Level1)
 {
     // {1.2, 3.4} for unit test
-    const float indents[] = {1.2, 3.4};
+    const float indents[] = { 1.2, 3.4 };
     OH_Drawing_TypographySetIndents(nullptr, 0, indents);
 }
 
@@ -2567,8 +2126,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest091, TestSize.Level
     OH_Drawing_LineMetrics* metrics = nullptr;
     EXPECT_EQ(OH_Drawing_TypographyGetLineMetricsAt(typography, 0, metrics), false);
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     typography = OH_Drawing_CreateTypography(handler);
     metrics = new OH_Drawing_LineMetrics();
     EXPECT_EQ(OH_Drawing_TypographyGetLineMetricsAt(typography, -1, metrics), false);
@@ -2588,12 +2147,12 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest092, TestSize.Level
     OH_Drawing_Typography* typography = nullptr;
     EXPECT_EQ(0.0, OH_Drawing_TypographyGetIndentsWithIndex(typography, 1));
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     typography = OH_Drawing_CreateTypography(handler);
     EXPECT_EQ(0.0, OH_Drawing_TypographyGetIndentsWithIndex(typography, -1));
     // {1.2, 3.4} for unit test
-    const float indents[] = {1.2, 3.4};
+    const float indents[] = { 1.2, 3.4 };
     OH_Drawing_TypographySetIndents(typography, 2, indents);
     int indexOutOfBounds = 3;
     EXPECT_EQ(indents[1], OH_Drawing_TypographyGetIndentsWithIndex(typography, indexOutOfBounds));
@@ -2612,8 +2171,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest093, TestSize.Level
     size_t charNumber = 0;
     EXPECT_EQ(OH_Drawing_TypographyGetLineFontMetrics(nullptr, 1, &charNumber), nullptr);
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     EXPECT_EQ(OH_Drawing_TypographyGetLineFontMetrics(typography, 1, nullptr), nullptr);
     EXPECT_EQ(OH_Drawing_TypographyGetLineFontMetrics(typography, 0, &charNumber), nullptr);
@@ -2648,7 +2207,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest095, TestSize.Level
     // -1.2 for unit test
     OH_Drawing_SetTypographyTextFontHeight(typoStyle, -1.2);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightOnly, true);
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, -1.2);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, 0);
 }
 
 /*
@@ -2757,7 +2316,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest102, TestSize.Level
         char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
         EXPECT_EQ(list != nullptr, true);
         EXPECT_EQ(OH_Drawing_FontParserGetSystemFontList(nullptr, &fontNum) == nullptr, true);
-        const char *name = "HarmonyOS Sans Digit";
+        const char* name = "HarmonyOS Sans Digit";
         EXPECT_EQ(OH_Drawing_FontParserGetFontByName(parser, name) != nullptr, true);
         EXPECT_EQ(OH_Drawing_FontParserGetFontByName(nullptr, name) == nullptr, true);
         OH_Drawing_DestroySystemFontList(list, fontNum);
@@ -2860,8 +2419,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest103, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest105, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     OH_Drawing_TextBox* textBox = OH_Drawing_TypographyGetRectsForPlaceholders(typography);
     OH_Drawing_GetLeftFromTextBox(textBox, 0);
@@ -2891,8 +2450,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest105, TestSize.Level
 HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest106, TestSize.Level1)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
     OH_Drawing_TextBox* textBox = OH_Drawing_TypographyGetRectsForPlaceholders(typography);
     EXPECT_EQ(textBox == nullptr, false);
@@ -2918,4 +2477,72 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level
     OH_Drawing_PointDestroy(offset);
     EXPECT_TRUE(shadow != nullptr);
 }
+
+/*
+ * @tc.name: OH_Drawing_AddTextStyleDecorationTest
+ * @tc.desc: test for add multiple text decoration
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_AddTextStyleDecorationTest, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, -1);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_OVERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(nullptr, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration,
+        TextDecoration::UNDERLINE | TextDecoration::OVERLINE | TextDecoration::LINE_THROUGH);
+
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::NONE);
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
 }
+
+/*
+ * @tc.name: OH_Drawing_RemoveTextStyleDecorationTest
+ * @tc.desc: test for remove specific text decoration
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_RemoveTextStyleDecorationTest, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_OVERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, -1);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_RemoveTextStyleDecoration(nullptr, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle,
+        TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_OVERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration,
+        TextDecoration::UNDERLINE | TextDecoration::OVERLINE | TextDecoration::LINE_THROUGH);
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+} // namespace OHOS

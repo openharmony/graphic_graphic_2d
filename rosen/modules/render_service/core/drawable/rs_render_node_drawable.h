@@ -125,7 +125,7 @@ protected:
     float boundsHeight_ = 0.0f;
 
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
-    void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);
 
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
@@ -140,6 +140,7 @@ protected:
     static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
     thread_local static inline bool isOpincDropNodeExt_ = true;
     thread_local static inline int opincRootTotalCount_ = 0;
+    static inline RectI screenRectInfo_ = {0, 0, 0, 0};
 
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
@@ -147,7 +148,8 @@ protected:
     void UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id);
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
-    void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId);
+    void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId,
+        bool isHdrOn = false);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
     void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
@@ -164,7 +166,7 @@ protected:
     static thread_local bool drawBlurForCache_;
 
 private:
-    DrawableCacheType cacheType_ = DrawableCacheType::NONE;
+    std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
     std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
     std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
@@ -189,6 +191,9 @@ private:
     void NodeCacheStateDisable();
     bool BeforeDrawCacheProcessChildNode(NodeStrategyType& cacheStragy, RSRenderParams& params);
     void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params, bool& isOpincDropNodeExt);
+    void DrawWithoutNodeGroupCache(
+        Drawing::Canvas& canvas, const RSRenderParams& params, DrawableCacheType originalCacheType);
+    void DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params);
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;
@@ -204,6 +209,8 @@ private:
     {
         return isOpincMarkCached_;
     }
+    bool IsOpincNodeInScreenRect(RSRenderParams& params);
+    static thread_local bool isOffScreenWithClipHole_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -28,9 +28,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace skt = skia::textlayout;
-namespace {
-std::mutex g_layoutMutex;
-}
 
 TextRect::TextRect(Drawing::RectF rec, TextDirection dir)
 {
@@ -51,67 +48,79 @@ Typography::Typography(std::unique_ptr<SPText::Paragraph> paragraph): paragraph_
 
 double Typography::GetMaxWidth() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetMaxWidth();
 }
 
 double Typography::GetHeight() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetHeight();
 }
 
 double Typography::GetActualWidth() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetLongestLine();
 }
 
 double Typography::GetLongestLineWithIndent() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetLongestLineWithIndent();
 }
 
 double Typography::GetMinIntrinsicWidth()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetMinIntrinsicWidth();
 }
 
 double Typography::GetMaxIntrinsicWidth()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetMaxIntrinsicWidth();
 }
 
 double Typography::GetAlphabeticBaseline()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetAlphabeticBaseline();
 }
 
 double Typography::GetIdeographicBaseline()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetIdeographicBaseline();
 }
 
 bool Typography::DidExceedMaxLines() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->DidExceedMaxLines();
 }
 
 int Typography::GetLineCount() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetLineCount();
 }
 
 void Typography::SetIndents(const std::vector<float>& indents)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     paragraph_->SetIndents(indents);
 }
 
 float Typography::DetectIndents(size_t index)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->DetectIndents(index);
 }
 
 void Typography::Layout(double width)
 {
-    std::unique_lock lock(g_layoutMutex);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
     return paragraph_->Layout(width);
@@ -119,31 +128,37 @@ void Typography::Layout(double width)
 
 double Typography::GetGlyphsBoundsTop()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetGlyphsBoundsTop();
 }
 
 double Typography::GetGlyphsBoundsBottom()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetGlyphsBoundsBottom();
 }
 
 double Typography::GetGlyphsBoundsLeft()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetGlyphsBoundsLeft();
 }
 
 double Typography::GetGlyphsBoundsRight()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     return paragraph_->GetGlyphsBoundsRight();
 }
 
 Drawing::FontMetrics Typography::MeasureText()
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     return paragraph_->MeasureText();
 }
 
 void Typography::MarkDirty()
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (paragraph_ == nullptr) {
         return;
     }
@@ -152,6 +167,7 @@ void Typography::MarkDirty()
 
 int32_t Typography::GetUnresolvedGlyphsCount()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (paragraph_ == nullptr) {
         return 0;
     }
@@ -160,6 +176,7 @@ int32_t Typography::GetUnresolvedGlyphsCount()
 
 void Typography::UpdateFontSize(size_t from, size_t to, float fontSize)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (paragraph_ == nullptr) {
         return;
     }
@@ -168,22 +185,26 @@ void Typography::UpdateFontSize(size_t from, size_t to, float fontSize)
 
 void Typography::Paint(SkCanvas *canvas, double x, double y)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     return paragraph_->Paint(canvas, x, y);
 }
 
 void Typography::Paint(Drawing::Canvas *drawCanvas, double x, double y)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     paragraph_->Paint(drawCanvas, x, y);
 }
 
 void Typography::Paint(Drawing::Canvas* drawCanvas, Drawing::Path* path, double hOffset, double vOffset)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     paragraph_->Paint(drawCanvas, path, hOffset, vOffset);
 }
 
 std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t right,
     TextRectHeightStyle heightStyle, TextRectWidthStyle widthStyle)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     auto txtRectHeightStyle = Convert(heightStyle);
     auto txtRectWidthStyle = Convert(widthStyle);
     auto rects = paragraph_->GetRectsForRange(left, right, txtRectHeightStyle, txtRectWidthStyle);
@@ -197,6 +218,7 @@ std::vector<TextRect> Typography::GetTextRectsByBoundary(size_t left, size_t rig
 
 std::vector<TextRect> Typography::GetTextRectsOfPlaceholders()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     auto rects = paragraph_->GetRectsForPlaceholders();
 
     std::vector<TextRect> boxes;
@@ -208,26 +230,37 @@ std::vector<TextRect> Typography::GetTextRectsOfPlaceholders()
 
 IndexAndAffinity Typography::GetGlyphIndexByCoordinate(double x, double y)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     auto pos = paragraph_->GetGlyphPositionAtCoordinate(x, y);
     return Convert(pos);
 }
 
 Boundary Typography::GetWordBoundaryByIndex(size_t index)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     auto range = paragraph_->GetWordBoundary(index);
     return Convert(range);
 }
 
 Boundary Typography::GetActualTextRange(int lineNumber, bool includeSpaces)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     auto range = paragraph_->GetActualTextRange(lineNumber, includeSpaces);
+    return Convert(range);
+}
+
+Boundary Typography::GetEllipsisTextRange()
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    auto range = paragraph_->GetEllipsisTextRange();
     return Convert(range);
 }
 
 double Typography::GetLineHeight(int lineNumber)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     const auto &lines = paragraph_->GetLineMetrics();
-    if (lineNumber < static_cast<int>(lines.size())) {
+    if ((0 <= lineNumber) && (lineNumber < static_cast<int>(lines.size()))) {
         return lines[lineNumber].fHeight;
     }
     return 0.0;
@@ -235,8 +268,9 @@ double Typography::GetLineHeight(int lineNumber)
 
 double Typography::GetLineWidth(int lineNumber)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     const auto &lines = paragraph_->GetLineMetrics();
-    if (lineNumber < static_cast<int>(lines.size())) {
+    if ((0 <= lineNumber) && (lineNumber < static_cast<int>(lines.size()))) {
         return lines[lineNumber].fWidth;
     }
     return 0.0;
@@ -246,6 +280,7 @@ void Typography::SetAnimation(
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>& animationFunc
 )
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (animationFunc != nullptr && paragraph_ != nullptr) {
         paragraph_->SetAnimation(animationFunc);
     }
@@ -253,6 +288,7 @@ void Typography::SetAnimation(
 
 void Typography::SetParagraghId(uint32_t id)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (paragraph_ != nullptr) {
         paragraph_->SetParagraghId(id);
     }
@@ -260,6 +296,7 @@ void Typography::SetParagraghId(uint32_t id)
 
 bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespace, LineMetrics* lineMetrics)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (paragraph_ == nullptr) {
         return false;
     }
@@ -311,6 +348,7 @@ bool Typography::GetLineInfo(int lineNumber, bool oneLine, bool includeWhitespac
 
 std::vector<LineMetrics> Typography::GetLineMetrics()
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (lineMetrics_) {
         return lineMetrics_.value();
     }
@@ -374,6 +412,7 @@ bool Typography::GetLineMetricsAt(int lineNumber, LineMetrics* lineMetrics)
 
 Drawing::FontMetrics Typography::GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     auto spTextStyle = Convert(textStyle);
     return paragraph_->GetFontMetricsResult(spTextStyle);
 }
@@ -381,6 +420,7 @@ Drawing::FontMetrics Typography::GetFontMetrics(const OHOS::Rosen::TextStyle& te
 bool Typography::GetLineFontMetrics(const size_t lineNumber,
     size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics)
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (!paragraph_) {
         return false;
     }
@@ -389,6 +429,7 @@ bool Typography::GetLineFontMetrics(const size_t lineNumber,
 
 std::vector<std::unique_ptr<TextLineBase>> Typography::GetTextLines() const
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (!paragraph_) {
         return {};
     }
@@ -404,6 +445,7 @@ std::vector<std::unique_ptr<TextLineBase>> Typography::GetTextLines() const
 
 std::unique_ptr<OHOS::Rosen::Typography> Typography::CloneSelf()
 {
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (!paragraph_) {
         return nullptr;
     }
@@ -412,6 +454,7 @@ std::unique_ptr<OHOS::Rosen::Typography> Typography::CloneSelf()
 
 void Typography::UpdateColor(size_t from, size_t to, const Drawing::Color& color)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     if (!paragraph_) {
         return;
     }

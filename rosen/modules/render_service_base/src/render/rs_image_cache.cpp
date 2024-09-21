@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "memory/rs_memory_snapshot.h"
 #include "render/rs_image_cache.h"
 #include "pixel_map.h"
 
@@ -69,8 +70,13 @@ void RSImageCache::ReleaseDrawingImageCache(uint64_t uniqueId)
 void RSImageCache::CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (pixelMap && uniqueId > 0) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
+        }
+        if (pid_t pid = uniqueId >> 32) { // right shift 32 bit to restore pid
+            MemorySnapshot::Instance().AddCpuMemory(pid, pixelMap->GetCapacity());
+        }
     }
 }
 
@@ -111,6 +117,18 @@ void RSImageCache::ReleaseUniqueIdList()
     }
 }
 
+bool RSImageCache::CheckUniqueIdIsEmpty()
+{
+    if (uniqueIdListMutex_.try_lock()) {
+        if (uniqueIdList_.empty()) {
+            uniqueIdListMutex_.unlock();
+            return true;
+        }
+        uniqueIdListMutex_.unlock();
+    }
+    return false;
+}
+
 void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
 {
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
@@ -122,6 +140,9 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
             it->second.second--;
             if (it->second.first == nullptr || it->second.second == 0) {
                 pixelMap = it->second.first;
+                if (pid_t pid = uniqueId >> 32) { // right shift 32 bit to restore pid
+                    MemorySnapshot::Instance().RemoveCpuMemory(pid, pixelMap->GetCapacity());
+                }
                 pixelMapCache_.erase(it);
                 ReleaseDrawingImageCacheByPixelMapId(uniqueId);
             }

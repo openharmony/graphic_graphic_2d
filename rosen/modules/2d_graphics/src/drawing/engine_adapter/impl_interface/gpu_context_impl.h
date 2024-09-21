@@ -19,6 +19,7 @@
 #include <chrono>
 #include <set>
 #include <functional>
+#include <unordered_map>
 #include "base_impl.h"
 #include "image/trace_memory_dump.h"
 #ifdef RS_ENABLE_VK
@@ -80,6 +81,8 @@ public:
 
     virtual void SetCurrentGpuResourceTag(const GPUResourceTag &tag) = 0;
 
+    virtual void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) = 0;
+
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;
 #endif
@@ -87,6 +90,18 @@ public:
     virtual void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) = 0;
 
     virtual void VmaDefragment() = 0;
+
+    virtual void BeginFrame() = 0;
+
+    virtual void EndFrame() = 0;
+
+    virtual void SetGpuCacheSuppressWindowSwitch(bool enabled) = 0;
+
+    virtual void SetGpuMemoryAsyncReclaimerSwitch(bool enabled) = 0;
+
+    virtual void FlushGpuMemoryInWaitQueue() = 0;
+    
+    virtual void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

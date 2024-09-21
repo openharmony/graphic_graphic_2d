@@ -52,8 +52,8 @@ constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
-constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 constexpr int64_t REFRESH_PERIOD = 16666667; // 16666667ns == 16.666667ms
+constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 
 static void SetThreadHighPriority()
 {
@@ -127,6 +127,7 @@ VSyncGenerator::~VSyncGenerator()
         std::unique_lock<std::mutex> locker(mutex_);
         vsyncThreadRunning_ = false;
     }
+
     if (thread_.joinable()) {
         con_.notify_all();
         thread_.join();
@@ -138,8 +139,10 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
 {
     SCOPED_DEBUG_TRACE_FMT("occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
     std::vector<Listener> listeners;
+    uint32_t vsyncMaxRefreshRate = 360;
     {
         std::unique_lock<std::mutex> locker(mutex_);
+        vsyncMaxRefreshRate = vsyncMaxRefreshRate_;
         int64_t newOccurTimestamp = SystemTime();
         if (isWakeup) {
             UpdateWakeupDelay(newOccurTimestamp, nextTimeStamp);
@@ -156,7 +159,8 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
     for (uint32_t i = 0; i < listeners.size(); i++) {
         RS_TRACE_NAME_FMT("listener phase is %ld", listeners[i].phase_);
         if (listeners[i].callback_ != nullptr) {
-            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_, periodRecord_, currRefreshRate_, vsyncMode_);
+            listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_,
+                periodRecord_, currRefreshRate_, vsyncMode_, vsyncMaxRefreshRate);
         }
     }
 }
@@ -197,18 +201,20 @@ void VSyncGenerator::ThreadLoop()
                     con_.wait(locker);
                 }
                 continue;
-            } else if (vsyncMode_ == VSYNC_MODE_LTPO) {
-                bool modelChanged = UpdateChangeDataLocked(occurTimestamp, occurReferenceTime, nextTimeStamp);
-                if (modelChanged) {
-                    ScopedBytrace func("VSyncGenerator: LTPO mode change");
-                    bool clearAllSamplesFlag = clearAllSamplesFlag_;
-                    clearAllSamplesFlag_ = false;
-                    locker.unlock();
-                    ClearAllSamplesInternal(clearAllSamplesFlag);
+            } else if (vsyncMode_ == VSYNC_MODE_LTPO &&
+                UpdateChangeDataLocked(occurTimestamp, occurReferenceTime, nextTimeStamp)) {
+                ScopedBytrace func("VSyncGenerator: LTPO mode change");
+                bool clearAllSamplesFlag = clearAllSamplesFlag_;
+                clearAllSamplesFlag_ = false;
+                locker.unlock();
+                ClearAllSamplesInternal(clearAllSamplesFlag);
+                if (appVSyncDistributor_ != nullptr) {
                     appVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
-                    rsVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
-                    continue;
                 }
+                if (rsVSyncDistributor_ != nullptr) {
+                    rsVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
+                }
+                continue;
             }
         }
 
@@ -220,6 +226,9 @@ void VSyncGenerator::WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStam
 {
     bool isWakeup = false;
     if (occurTimestamp < nextTimeStamp) {
+        if (nextTimeStamp - occurTimestamp > periodRecord_ * 3 / 2) { // 3/2 means no more than 1.5 period
+            RS_TRACE_NAME_FMT("WaitForTimeout occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
+        }
         std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
         auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
         if (err == std::cv_status::timeout) {
@@ -341,7 +350,7 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
     // update generate refreshRate
     if (needChangeGeneratorRefreshRate_) {
         currRefreshRate_ = changingGeneratorRefreshRate_;
-        period_ = pulse_ * static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / currRefreshRate_);
+        period_ = pulse_ * static_cast<int64_t>(vsyncMaxRefreshRate_ / currRefreshRate_);
         referenceTime_ = nextVSyncTime;
         changingGeneratorRefreshRate_ = 0; // reset
         needChangeGeneratorRefreshRate_ = false;
@@ -507,7 +516,7 @@ void VSyncGenerator::SubScribeSystemAbility()
     std::string strPid = std::to_string(getpid());
     std::string strTid = std::to_string(gettid());
 
-    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    saStatusChangeListener_ = new VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
     int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
     if (ret != ERR_OK) {
         VLOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
@@ -571,11 +580,14 @@ uint32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
         return 0;
     }
     int32_t actualRefreshRate = round(1.0/((double)period/1000000000.0)); // 1.0s == 1000000000.0ns
+    if (actualRefreshRate == 0) {
+        return 0;
+    }
     int32_t refreshRate = actualRefreshRate;
     int32_t diff = 0;
-    // 在actualRefreshRate附近找一个能被VSYNC_MAX_REFRESHRATE整除的刷新率作为训练pulse的参考刷新率
+    // 在actualRefreshRate附近找一个能被vsyncMaxRefreshRate_整除的刷新率作为训练pulse的参考刷新率
     while ((abs(refreshRate - actualRefreshRate) < MAX_REFRESHRATE_DEVIATION) &&
-           (VSYNC_MAX_REFRESHRATE % refreshRate != 0)) {
+           (vsyncMaxRefreshRate_ % refreshRate != 0)) {
         if (diff < 0) {
             diff = -diff;
         } else {
@@ -583,11 +595,11 @@ uint32_t VSyncGenerator::JudgeRefreshRateLocked(int64_t period)
         }
         refreshRate = actualRefreshRate + diff;
     }
-    if (VSYNC_MAX_REFRESHRATE % refreshRate != 0) {
+    if (vsyncMaxRefreshRate_ % refreshRate != 0) {
         VLOGE("Not Support this refresh rate: %{public}d, update pulse failed.", actualRefreshRate);
         return 0;
     }
-    pulse_ = period / (VSYNC_MAX_REFRESHRATE / refreshRate);
+    pulse_ = period / (vsyncMaxRefreshRate_ / refreshRate);
     return static_cast<uint32_t>(refreshRate);
 }
 
@@ -625,15 +637,13 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     if (rsVSyncDistributor_ != nullptr) {
         rsVsyncCount = rsVSyncDistributor_->GetVsyncCount();
     }
-    std::string refreshrateStr = "refreshRates[";
+    RS_TRACE_NAME_FMT("ChangeGeneratorRefreshRateModel:%u, phaseByPulseNum:%d, expectNextVsyncTime:%ld",
+        generatorRefreshRate, listenerPhaseOffset.phaseByPulseNum, expectNextVsyncTime);
     for (std::pair<uint64_t, uint32_t> rateVec : listenerRefreshRates.refreshRates) {
         uint64_t linkerId = rateVec.first;
         uint32_t refreshrate = rateVec.second;
-        refreshrateStr += "(" + std::to_string(linkerId) + "," + std::to_string(refreshrate) + "),";
+        RS_TRACE_NAME_FMT("linkerId:%ld, refreshrate:%ld", linkerId, refreshrate);
     }
-    refreshrateStr += "]";
-    RS_TRACE_NAME_FMT("ChangeGeneratorRefreshRateModel:%u, phaseByPulseNum:%d, %s, expectNextVsyncTime:%ld",
-        generatorRefreshRate, listenerPhaseOffset.phaseByPulseNum, refreshrateStr.c_str(), expectNextVsyncTime);
     std::lock_guard<std::mutex> locker(mutex_);
     if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
         ScopedBytrace trace("it's not ltpo mode.");
@@ -647,7 +657,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
 
     VsyncError ret = SetExpectNextVsyncTimeInternal(expectNextVsyncTime);
 
-    if ((generatorRefreshRate <= 0 || (VSYNC_MAX_REFRESHRATE % generatorRefreshRate != 0))) {
+    if ((generatorRefreshRate <= 0 || (vsyncMaxRefreshRate_ % generatorRefreshRate != 0))) {
         RS_TRACE_NAME_FMT("Not support this refresh rate: %u", generatorRefreshRate);
         VLOGE("Not support this refresh rate: %{public}u", generatorRefreshRate);
         return VSYNC_ERROR_NOT_SUPPORT;
@@ -721,6 +731,23 @@ VsyncError VSyncGenerator::SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum)
     return VSYNC_ERROR_OK;
 }
 
+uint32_t VSyncGenerator::GetVSyncMaxRefreshRate()
+{
+    return vsyncMaxRefreshRate_;
+}
+
+VsyncError VSyncGenerator::SetVSyncMaxRefreshRate(uint32_t refreshRate)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    if (refreshRate < VSYNC_MAX_REFRESHRATE_RANGE_MIN ||
+        refreshRate > VSYNC_MAX_REFRESHRATE_RANGE_MAX) {
+        VLOGE("Not support max refresh rate: %{public}u", refreshRate);
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    vsyncMaxRefreshRate_ = refreshRate;
+    return VSYNC_ERROR_OK;
+}
+
 VsyncError VSyncGenerator::SetReferenceTimeOffset(int32_t offsetByPulseNum)
 {
     std::lock_guard<std::mutex> locker(mutex_);
@@ -739,12 +766,8 @@ VsyncError VSyncGenerator::StartRefresh()
 
 void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     rsVSyncDistributor_ = rsVSyncDistributor;
-}
-
-void VSyncGenerator::SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor)
-{
-    appVSyncDistributor_ = appVSyncDistributor;
 }
 
 void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
@@ -776,6 +799,12 @@ void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
         frameRateChanging_ = false;
         ScopedBytrace forceEnd("frameRateChanging_ = false, forceEnd");
     }
+}
+
+void VSyncGenerator::SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    appVSyncDistributor_ = appVSyncDistributor;
 }
 
 void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime)
@@ -907,7 +936,9 @@ void VSyncGenerator::SetPendingMode(int64_t period, int64_t timestamp)
     std::lock_guard<std::mutex> lock(mutex_);
     pendingPeriod_ = period;
     pendingReferenceTime_ = timestamp;
-    rsVSyncDistributor_->UpdatePendingReferenceTime(pendingReferenceTime_);
+    if (rsVSyncDistributor_ != nullptr) {
+        rsVSyncDistributor_->UpdatePendingReferenceTime(pendingReferenceTime_);
+    }
 }
 
 void VSyncGenerator::Dump(std::string &result)

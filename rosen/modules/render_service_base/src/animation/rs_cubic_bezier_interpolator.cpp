@@ -89,7 +89,7 @@ int RSCubicBezierInterpolator::BinarySearch(float key) const
     float approximation = 0.0;
     constexpr float epsilon = 1e-6f;
     while (low <= high) {
-        middle = ((unsigned int)(low + high)) >> 1;
+        middle = (static_cast<unsigned int>(low + high)) >> 1;
         approximation = GetCubicBezierValue(SEARCH_STEP * middle, controlX1_, controlX2_);
         if (ROSEN_EQ(approximation, key, epsilon)) {
             // Early exit if the key is found within an acceptable error range

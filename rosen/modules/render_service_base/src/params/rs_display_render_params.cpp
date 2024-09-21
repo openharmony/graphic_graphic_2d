@@ -137,6 +137,20 @@ GraphicPixelFormat RSDisplayRenderParams::GetNewPixelFormat() const
     return newPixelFormat_;
 }
 
+void RSDisplayRenderParams::SetZoomed(bool isZoomed)
+{
+    if (isZoomed_ == isZoomed) {
+        return;
+    }
+    needSync_ = true;
+    isZoomed_ = isZoomed;
+}
+
+bool RSDisplayRenderParams::GetZoomed() const
+{
+    return isZoomed_;
+}
+
 void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(target.get());
@@ -147,7 +161,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     allMainAndLeashSurfaceDrawables_.clear();
     for (auto& surfaceNode : allMainAndLeashSurfaces_) {
         auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(surfaceNode->GetId());
-        if (ptr == nullptr) {
+        if (ptr == nullptr || ptr->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
             continue;
         }
         allMainAndLeashSurfaceDrawables_.push_back(ptr);
@@ -155,6 +169,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->allMainAndLeashSurfaceDrawables_ = allMainAndLeashSurfaceDrawables_;
     targetDisplayParams->displayHasSecSurface_ = displayHasSecSurface_;
     targetDisplayParams->displayHasSkipSurface_ = displayHasSkipSurface_;
+    targetDisplayParams->displayHasSnapshotSkipSurface_ = displayHasSnapshotSkipSurface_;
     targetDisplayParams->displayHasProtectedSurface_ = displayHasProtectedSurface_;
     targetDisplayParams->displaySpecailSurfaceChanged_ = displaySpecailSurfaceChanged_;
     targetDisplayParams->hasCaptureWindow_ = hasCaptureWindow_;
@@ -178,6 +193,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
+    targetDisplayParams->isZoomed_ = isZoomed_;
     RSRenderParams::OnSync(target);
 }
 
@@ -221,6 +237,16 @@ bool RSDisplayRenderParams::HasSkipLayer() const
         hasSkipLayerFlag = iter->second;
     }
     return hasSkipLayerFlag;
+}
+
+bool RSDisplayRenderParams::HasSnapshotSkipLayer() const
+{
+    bool hasSnapshotSkipLayerFlag = false;
+    auto iter = displayHasSnapshotSkipSurface_.find(screenId_);
+    if (iter != displayHasSnapshotSkipSurface_.end()) {
+        hasSnapshotSkipLayerFlag = iter->second;
+    }
+    return hasSnapshotSkipLayerFlag;
 }
 
 bool RSDisplayRenderParams::HasProtectedLayer() const

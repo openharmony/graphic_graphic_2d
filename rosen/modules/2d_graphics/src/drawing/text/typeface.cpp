@@ -33,6 +33,16 @@ std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[], int index)
     return StaticFactory::MakeFromFile(path, index);
 }
 
+std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[], const FontArguments& fontArguments)
+{
+    return StaticFactory::MakeFromFile(path, fontArguments);
+}
+
+std::vector<std::shared_ptr<Typeface>> Typeface::GetSystemFonts()
+{
+    return StaticFactory::GetSystemFonts();
+}
+
 std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     return StaticFactory::MakeFromStream(std::move(memoryStream), index);
@@ -49,6 +59,11 @@ std::string Typeface::GetFamilyName() const
         return typefaceImpl_->GetFamilyName();
     }
     return std::string();
+}
+
+std::string Typeface::GetFontPath() const
+{
+    return (typefaceImpl_ == nullptr) ? "" : typefaceImpl_->GetFontPath();
 }
 
 FontStyle Typeface::GetFontStyle() const
@@ -125,7 +140,11 @@ std::shared_ptr<Data> Typeface::Serialize() const
 
 std::shared_ptr<Typeface> Typeface::Deserialize(const void* data, size_t size)
 {
-    return StaticFactory::DeserializeTypeface(data, size);
+    auto typeface = StaticFactory::DeserializeTypeface(data, size);
+    if (typeface != nullptr) {
+        typeface->SetSize(size);
+    }
+    return typeface;
 }
 
 std::function<bool(std::shared_ptr<Typeface>)> Typeface::registerTypefaceCallBack_ = nullptr;
@@ -148,6 +167,42 @@ void Typeface::UnRegisterCallBackFunc(std::function<bool(std::shared_ptr<Typefac
 std::function<bool(std::shared_ptr<Typeface>)>& Typeface::GetTypefaceUnRegisterCallBack()
 {
     return unregisterTypefaceCallBack_;
+}
+
+uint32_t Typeface::GetHash() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->GetHash();
+    }
+    return 0;
+}
+
+void Typeface::SetHash(uint32_t hash)
+{
+    if (typefaceImpl_) {
+        typefaceImpl_->SetHash(hash);
+    }
+}
+
+uint32_t Typeface::GetSize()
+{
+    if (size_ != 0) {
+        return size_;
+    }
+    if (!typefaceImpl_) {
+        return 0;
+    }
+    auto data = typefaceImpl_->Serialize();
+    if (!data) {
+        return 0;
+    }
+    size_ = data->GetSize();
+    return size_;
+}
+
+void Typeface::SetSize(uint32_t size)
+{
+    size_ = size;
 }
 } // namespace Drawing
 } // namespace Rosen

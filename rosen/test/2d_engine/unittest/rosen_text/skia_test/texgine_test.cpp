@@ -82,14 +82,14 @@ HWTEST_F(OHTexgineTxtTest, OHTexgineTxtTest001, TestSize.Level1)
  */
 HWTEST_F(OHTexgineTxtTest, OHTexgineTxtTest002, TestSize.Level1)
 {
-    Logger l("123", "func3", 1, Logger::LOG_LEVEL::FATAL, nullptr);
-    Logger::OutputByFileLog(l, Logger::LOG_PHASE::BEGIN);
-    Logger::OutputByFileLog(l, Logger::LOG_PHASE::END);
+    Logger logger("123", "func3", 1, Logger::LOG_LEVEL::FATAL, nullptr);
+    Logger::OutputByFileLog(logger, Logger::LOG_PHASE::BEGIN);
+    Logger::OutputByFileLog(logger, Logger::LOG_PHASE::END);
     Logger::SetScopeParam(1, 1);
-    l.AlignLine();
+    logger.AlignLine();
     Logger::SetScopeParam(1, 1);
-    l.AlignFunc();
-    ScopedLogger sl(std::move(l));
+    logger.AlignFunc();
+    ScopedLogger sl(std::move(logger));
     sl.Finish();
 }
 

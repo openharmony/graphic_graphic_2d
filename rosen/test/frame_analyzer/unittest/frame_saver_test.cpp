@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include <filesystem>
 #include <gtest/gtest.h>
-#include <test_header.h>
 
-#include "frame_saver.h"
 #include "frame_collector.h"
-#include "frame_painter.h"
+#include "frame_saver.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -38,16 +38,17 @@ void FrameSaverTest::SetUp() {}
 void FrameSaverTest::TearDown() {}
 
 /**
- * @tc.name: FramePainterTest
- * @tc.desc: Test RsNodeCostManagerTest.GenerateTimeBars
+ * @tc.name: FrameSaverTest
+ * @tc.desc: Test FrameSaverTest.FrameSaver::FrameSaver()
  * @tc.type: FUNC
  * @tc.require: I6R1BQ
  */
-HWTEST_F(FrameSaverTest, FrameSaverTest, TestSize.Level1)
+HWTEST_F(FrameSaverTest, FrameSaverTest1, TestSize.Level1)
 {
     FrameSaver* frameSaver = new FrameSaver();
-    delete frameSaver;
     ASSERT_FALSE(frameSaver->ofs_.is_open());
+    delete frameSaver;
+    frameSaver = nullptr;
 }
 
 /**
@@ -56,12 +57,13 @@ HWTEST_F(FrameSaverTest, FrameSaverTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I6R1BQ
  */
-HWTEST_F(FrameSaverTest, SaveFrameEventTest1, TestSize.Level1)
+HWTEST_F(FrameSaverTest, FrameSaverTest2, TestSize.Level1)
 {
     FrameSaver* frameSaver = new FrameSaver();
     frameSaver->SaveFrameEvent(FrameEventType::DrawStart, 6);
-    delete frameSaver;
     ASSERT_FALSE(frameSaver->ofs_.is_open());
+    delete frameSaver;
+    frameSaver = nullptr;
 }
 
 /**
@@ -70,14 +72,21 @@ HWTEST_F(FrameSaverTest, SaveFrameEventTest1, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: I6R1BQ
  */
-HWTEST_F(FrameSaverTest, SaveFrameEventTest2, TestSize.Level1)
+HWTEST_F(FrameSaverTest, FrameSaverTest3, TestSize.Level1)
 {
     FrameSaver* frameSaver = new FrameSaver();
-    frameSaver->ofs_.open("/data/frame_render/8888.log");
+    frameSaver->ofs_.open("/data/frame_render/8888.log", frameSaver->ofs_.out | frameSaver->ofs_.app);
     ASSERT_TRUE(frameSaver->ofs_.is_open());
-    frameSaver->SaveFrameEvent(FrameEventType::DrawStart, 6);
+    frameSaver->SaveFrameEvent(FrameEventType::DrawStart, 123456789);
+    std::ifstream ifs("/data/frame_render/8888.log");
+    ASSERT_TRUE(ifs.is_open());
+    std::string line;
+    std::getline(ifs, line);
+    ASSERT_EQ(line, "DrawStart 123456789");
+    std::filesystem::remove_all(saveDirectory);
+    ifs.close();
     delete frameSaver;
-    ASSERT_FALSE(frameSaver->ofs_.is_open());
+    frameSaver = nullptr;
 }
 
 } // namespace Rosen

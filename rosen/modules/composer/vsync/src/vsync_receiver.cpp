@@ -15,6 +15,7 @@
 
 #include "vsync_receiver.h"
 #include <memory>
+#include <mutex>
 #include <unistd.h>
 #include <scoped_bytrace.h>
 #include <fcntl.h>
@@ -42,13 +43,25 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     }
     // 3 is array size.
     int64_t data[3];
-    ssize_t ret = 0;
     ssize_t dataCount = 0;
+    if (ReadFdInternal(fileDescriptor, data, dataCount) != VSYNC_ERROR_OK) {
+        return;
+    }
+    HandleVsyncCallbacks(data, dataCount);
+}
+
+VsyncError VSyncCallBackListener::ReadFdInternal(int32_t fd, int64_t (&data)[3], ssize_t &dataCount)
+{
+    std::lock_guard<std::mutex> locker(fdMutex_);
+    if (fdClosed_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
+    ssize_t ret = 0;
     do {
         // only take the latest timestamp
-        ret = read(fileDescriptor, data, sizeof(data));
+        ret = read(fd, data, sizeof(data));
         if (ret == 0) {
-            return;
+            return VSYNC_ERROR_OK;
         }
         if (ret == -1) {
             if (errno == EINTR) {
@@ -60,7 +73,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
         }
     } while (ret != -1);
 
-    HandleVsyncCallbacks(data, dataCount);
+    return VSYNC_ERROR_OK;
 }
 
 void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCount)
@@ -113,13 +126,21 @@ int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
     if (now < period_ || now > INT64_MAX - period_) {
         RS_TRACE_NAME_FMT("invalid timestamps, now:%ld, period_:%ld", now, period_);
         VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
-        period_ = 0;
         return 0;
     }
     expectedEnd = now + period_;
-    // rs vsync offset is 5000000ns
-    expectedEnd = (name_ == "rs") ? (expectedEnd + period_ - 5000000) : expectedEnd;
+    if (name_ == "rs") {
+        // rs vsync offset is 5000000ns
+        expectedEnd = expectedEnd + period_ - 5000000;
+    }
     return expectedEnd;
+}
+
+void VSyncCallBackListener::CloseFd(int32_t fd)
+{
+    std::lock_guard<std::mutex> locker(fdMutex_);
+    close(fd);
+    fdClosed_ = true;
 }
 
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
@@ -144,6 +165,19 @@ VsyncError VSyncReceiver::Init()
         return VSYNC_ERROR_NULLPTR;
     }
 
+    if (looper_ == nullptr) {
+        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
+        if (runner == nullptr) {
+            return VSYNC_ERROR_API_FAILED;
+        }
+        looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+        runner->Run();
+        looper_->PostTask([this] {
+            SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
+            this->ThreadCreateNotify();
+        });
+    }
+
     VsyncError ret = connection_->GetReceiveFd(fd_);
     if (ret != VSYNC_ERROR_OK) {
         return ret;
@@ -157,16 +191,6 @@ VsyncError VSyncReceiver::Init()
 
     listener_->SetName(name_);
 
-    if (looper_ == nullptr) {
-        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
-        looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-        runner->Run();
-        looper_->PostTask([this] {
-            SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
-            this->ThreadCreateNotify();
-        });
-    }
-
     looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
     return VSYNC_ERROR_OK;
@@ -175,9 +199,9 @@ VsyncError VSyncReceiver::Init()
 void VSyncReceiver::ThreadCreateNotify()
 {
     int32_t pid = getprocpid();
-    int32_t uid = getuid();
+    uint32_t uid = getuid();
     int32_t tid = static_cast<int32_t>(getproctid());
-    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}d.", pid, tid, uid);
+    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}u.", pid, tid, uid);
 
     std::unordered_map<std::string, std::string> mapPayload;
     mapPayload["pid"] = std::to_string(pid);
@@ -191,7 +215,7 @@ VSyncReceiver::~VSyncReceiver()
 {
     if (fd_ != INVALID_FD) {
         looper_->RemoveFileDescriptorListener(fd_);
-        close(fd_);
+        listener_->CloseFd(fd_);
         fd_ = INVALID_FD;
         Destroy();
     }
@@ -298,7 +322,7 @@ void VSyncReceiver::CloseVsyncReceiverFd()
         VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
     }
 
-    if (fd_ > 0) {
+    if (fd_ >= 0) {
         close(fd_);
         fd_ = INVALID_FD;
     }

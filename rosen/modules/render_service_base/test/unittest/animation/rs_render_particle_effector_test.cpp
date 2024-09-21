@@ -140,6 +140,10 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateColor001, TestSize.Level1)
     ASSERT_TRUE(particle != nullptr);
     effector->UpdateColor(particle, deltaTime);
     EXPECT_TRUE(particle->GetColor() != Color::FromArgbInt(0x00000000));
+    particle->SetParticleType(ParticleType::IMAGES);
+    effector->UpdateColor(particle, deltaTime);
+    std::shared_ptr<RSRenderParticle> particle1 = nullptr;
+    effector->UpdateColor(particle1, deltaTime);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateColor001 end";
 }
 
@@ -153,9 +157,38 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateOpacity001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateOpacity001 start";
     ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
     effector->UpdateOpacity(particle, deltaTime);
+    ASSERT_TRUE(particle != nullptr);
     EXPECT_TRUE(particle->GetOpacity() != 0.f);
+
+    Range<float> opacityVal = Range<float>(0.0, 0.0);
+    ParticleUpdator opacityUpdator = ParticleUpdator::RANDOM;
+    Range<float> opacityRandom = Range<float>(0.0f, 0.0f);
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> opacityChangeOverLife;
+    auto opacity = RenderParticleParaType(opacityVal, opacityUpdator, opacityRandom, opacityChangeOverLife);
+
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity, scale_, spin_);
+    auto particle_opacity = std::make_shared<RSRenderParticle>(renderParams);
+    effector->UpdateOpacity(particle_opacity, deltaTime);
+
+    opacityRandom = Range<float>(1.0f, 1.0f);
+    opacity = RenderParticleParaType(opacityVal, opacityUpdator, opacityRandom, opacityChangeOverLife);
+    renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity, scale_, spin_);
+    particle_opacity = std::make_shared<RSRenderParticle>(renderParams);
+    effector->UpdateOpacity(particle_opacity, deltaTime);
+
+    opacityVal = Range<float>(1.0, 1.0);
+    opacityRandom = Range<float>(0.0f, 0.0f);
+    opacity = RenderParticleParaType(opacityVal, opacityUpdator, opacityRandom, opacityChangeOverLife);
+    renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity, scale_, spin_);
+    particle_opacity = std::make_shared<RSRenderParticle>(renderParams);
+    effector->UpdateOpacity(particle_opacity, deltaTime);
+
+    std::shared_ptr<RSRenderParticle> particle1 = nullptr;
+    effector->UpdateOpacity(particle1, deltaTime);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateOpacity001 end";
 }
 
@@ -169,9 +202,37 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateScale001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateScale001 start";
     ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
     effector->UpdateScale(particle, deltaTime);
+    ASSERT_TRUE(particle != nullptr);
     EXPECT_TRUE(particle->GetScale() != 0.f);
+
+    Range<float> scaleVal = Range<float>(0.0, 0.0);
+    ParticleUpdator scaleUpdator = ParticleUpdator::RANDOM;
+    Range<float> scaleRandom = Range<float>(0.0f, 0.0f);
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> scaleChangeOverLife;
+    auto scale = RenderParticleParaType(scaleVal, scaleUpdator, scaleRandom, scaleChangeOverLife);
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale, spin_);
+    auto particle_scale = std::make_shared<RSRenderParticle>(renderParams);
+    effector->UpdateScale(particle_scale, deltaTime);
+
+    scaleRandom = Range<float>(1.0f, 1.0f);
+    scale = RenderParticleParaType(scaleVal, scaleUpdator, scaleRandom, scaleChangeOverLife);
+    renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale, spin_);
+    particle_scale = std::make_shared<RSRenderParticle>(renderParams);
+    effector->UpdateScale(particle_scale, deltaTime);
+
+    scaleVal = Range<float>(1.0, 1.0);
+    scaleRandom = Range<float>(0.0f, 0.0f);
+    scale = RenderParticleParaType(scaleVal, scaleUpdator, scaleRandom, scaleChangeOverLife);
+    renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale, spin_);
+    particle_scale = std::make_shared<RSRenderParticle>(renderParams);
+    effector->UpdateScale(particle_scale, deltaTime);
+
+    std::shared_ptr<RSRenderParticle> particle1 = nullptr;
+    effector->UpdateScale(particle1, deltaTime);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateScale001 end";
 }
 
@@ -185,9 +246,11 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateSpin001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateSpin001 start";
     ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
     effector->UpdateSpin(particle, deltaTime);
+    ASSERT_TRUE(particle != nullptr);
     EXPECT_TRUE(particle->GetSpin() != 0.f);
+    std::shared_ptr<RSRenderParticle> particle1 = nullptr;
+    effector->UpdateSpin(particle1, deltaTime);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateSpin001 end";
 }
 
@@ -209,7 +272,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateEffect001, TestSize.Level1)
     Range<float> blueRandom = Range<float>(-1.0f, 0.f);
     Range<float> alphaRandom = Range<float>(-1.0f, 0.f);
     std::vector<std::shared_ptr<ChangeInOverLife<Color>>> colorChangeOverLife = {};
-    RenderParticleColorParaType color = RenderParticleColorParaType(colorVal, DistributionType::UNIFORM, randomUpdator,
+    RenderParticleColorParaType color = RenderParticleColorParaType(colorVal, DistributionType::GAUSSIAN, randomUpdator,
         redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
     Range<float> opacityVal = Range<float>(0.5f, 1.0f);
     Range<float> randomSpeed = Range<float>(0.1f, 1.f);
@@ -278,7 +341,7 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateColorCurve001, TestSize.Level1)
     Color start = RSColor(255, 255, 255, 255);
     Color end = RSColor(255, 255, 255, 255);
     Range<Color> colorVal = Range<Color>(start, end);
-    DistributionType distribution = DistributionType::UNIFORM;
+    DistributionType distribution = DistributionType::GAUSSIAN;
     ParticleUpdator curveUpdator = ParticleUpdator::CURVE;
     Range<float> redRandom = Range<float>(-1.0f, 0.f);
     Range<float> greenRandom = Range<float>(-1.0f, 0.f);
@@ -396,15 +459,22 @@ HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationCurve001, TestSize.Leve
     acceleration = RenderParticleAcceleration(accelerationValue, accelerationAngle);
     params =
         std::make_shared<ParticleRenderParams>(emitterConfig_, velocity, acceleration, color, opacity, scale, spin);
-    particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
-    particle->SetActiveTime(activeTime);
+    auto particle1 = std::make_shared<RSRenderParticle>(params);
+    ASSERT_TRUE(particle1 != nullptr);
+    particle1->SetActiveTime(activeTime);
     effector = std::make_shared<RSRenderParticleEffector>();
     ASSERT_TRUE(effector != nullptr);
-    effector->UpdateAccelerationValue(particle, deltaTime);
-    effector->UpdateAccelerationAngle(particle, deltaTime);
-    EXPECT_TRUE(particle->GetAccelerationValue() != 0.f);
-    EXPECT_TRUE(particle->GetAccelerationAngle() != 0.f);
+    effector->UpdateAccelerationValue(particle1, deltaTime);
+    effector->UpdateAccelerationAngle(particle1, deltaTime);
+    EXPECT_TRUE(particle1->GetAccelerationValue() != 0.f);
+    EXPECT_TRUE(particle1->GetAccelerationAngle() != 0.f);
+    particle1->particleParams_ = nullptr;
+    effector->UpdateAccelerationValue(particle1, deltaTime);
+    effector->UpdateAccelerationAngle(particle1, deltaTime);
+    effector->UpdateScale(particle1, deltaTime);
+    effector->UpdateSpin(particle1, deltaTime);
+    effector->UpdateOpacity(particle1, deltaTime);
+    effector->UpdateColor(particle1, deltaTime);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationCurve001 end";
 }
 
@@ -493,6 +563,128 @@ HWTEST_F(RSRenderParticleEffectorTest, Update003, TestSize.Level1)
     effector->Update(particle, noiseFields, 0);
     EXPECT_TRUE(particle->GetActiveTime() == 0);
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update003 end";
+}
+
+/**
+ * @tc.name: CalculateDistanceToRectangleEdge001
+ * @tc.desc: Verify the CalculateDistanceToRectangleEdge
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleEffectorTest, CalculateDistanceToRectangleEdge001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest CalculateDistanceToRectangleEdge001 start";
+    int fieldStrength = 10;
+    ShapeType fieldShape = ShapeType::CIRCLE;
+    Vector2f fieldSize = { 10.f, 10.f };
+    Vector2f fieldCenter = { 5.f, 5.f };
+    uint16_t fieldFeather = 50;
+    float noiseScale = 8.f;
+    float noiseFrequency = 2.f;
+    float noiseAmplitude = 4.f;
+    auto noiseField = std::make_shared<ParticleNoiseField>(
+        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
+
+    Vector2f position = { 5.f, 5.f };
+    Vector2f direction = { 0.f, 0.f };
+    float distance = noiseField->CalculateDistanceToRectangleEdge(position, direction, fieldCenter, fieldSize);
+    EXPECT_TRUE(ROSEN_EQ(distance, 0.f));
+    direction = { 1.f, 0.f };
+    distance = noiseField->CalculateDistanceToRectangleEdge(position, direction, fieldCenter, fieldSize);
+    EXPECT_TRUE(ROSEN_EQ(distance, 5.f));
+    direction = { 0.f, 1.f };
+    distance = noiseField->CalculateDistanceToRectangleEdge(position, direction, fieldCenter, fieldSize);
+    EXPECT_TRUE(ROSEN_EQ(distance, 5.f));
+    direction = { 1.f, 1.f };
+    distance = noiseField->CalculateDistanceToRectangleEdge(position, direction, fieldCenter, fieldSize);
+    EXPECT_TRUE(distance > 5.f);
+
+    float deltaTime = 10.f;
+    Vector2f force = noiseField->ApplyField(position, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
+
+    deltaTime = 0.f;
+    force = noiseField->ApplyField(position, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
+    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest CalculateDistanceToRectangleEdge001 end";
+}
+
+/**
+ * @tc.name: CalculateFeatherEffect001
+ * @tc.desc: Verify the CalculateFeatherEffect
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleEffectorTest, CalculateFeatherEffect001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest CalculateFeatherEffect001 start";
+    int fieldStrength = -10;
+    ShapeType fieldShape = ShapeType::CIRCLE;
+    Vector2f fieldSize = { 10.f, 10.f };
+    Vector2f fieldCenter = { 5.f, 5.f };
+    uint16_t fieldFeather = 50;
+    float noiseScale = 8.f;
+    float noiseFrequency = 2.f;
+    float noiseAmplitude = 4.f;
+    auto noiseField = std::make_shared<ParticleNoiseField>(
+        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
+
+    float distanceToEdge = 1.f;
+    float featherWidth = 1.f;
+    float distance = noiseField->CalculateFeatherEffect(distanceToEdge, featherWidth);
+    EXPECT_TRUE(ROSEN_EQ(distance, 1.f));
+
+    featherWidth = -1.f;
+    distance = noiseField->CalculateFeatherEffect(distanceToEdge, featherWidth);
+    EXPECT_TRUE(ROSEN_EQ(distance, 1.f));
+
+    featherWidth = 0.f;
+    distanceToEdge = -1.f;
+    distance = noiseField->CalculateFeatherEffect(distanceToEdge, featherWidth);
+    EXPECT_TRUE(ROSEN_EQ(distance, 1.f));
+
+    Vector2f position = { 5.f, 5.f };
+    float deltaTime = 10.f;
+    Vector2f force = noiseField->ApplyField(position, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
+
+    deltaTime = 0.f;
+    force = noiseField->ApplyField(position, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
+    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest CalculateFeatherEffect001 end";
+}
+
+/**
+ * @tc.name: ApplyField001
+ * @tc.desc: Verify the ApplyField
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleEffectorTest, ApplyField001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest ApplyField001 start";
+    int fieldStrength = 0;
+    ShapeType fieldShape = ShapeType::CIRCLE;
+    Vector2f fieldSize = { 10.f, 10.f };
+    Vector2f fieldCenter = { 5.f, 5.f };
+    uint16_t fieldFeather = 50;
+    float noiseScale = 8.f;
+    float noiseFrequency = 2.f;
+    float noiseAmplitude = 4.f;
+    auto noiseField = std::make_shared<ParticleNoiseField>(
+        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
+
+    Vector2f position = { 5.f, 5.f };
+    float deltaTime = 10.f;
+    Vector2f force = noiseField->ApplyField(position, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
+
+    position = { 15.f, 15.f };
+    deltaTime = 0.f;
+    force = noiseField->ApplyField(position, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
+
+    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest ApplyField001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

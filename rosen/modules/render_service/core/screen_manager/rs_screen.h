@@ -112,7 +112,6 @@ public:
     virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
-    virtual uint32_t GetActiveRefreshRate() const = 0;
 };
 
 namespace impl {
@@ -197,7 +196,6 @@ public:
     VirtualScreenStatus GetVirtualScreenStatus() const override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
-    uint32_t GetActiveRefreshRate() const override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -228,12 +226,12 @@ private:
 
     bool isVirtual_ = true;
     bool isVirtualSurfaceUpdateFlag_ = false;
-    std::shared_ptr<HdiOutput> hdiOutput_; // has value if the screen is physical
-    std::unique_ptr<HdiScreen> hdiScreen_; // has value if the screen is physical
+    std::shared_ptr<HdiOutput> hdiOutput_ = nullptr; // has value if the screen is physical
+    std::unique_ptr<HdiScreen> hdiScreen_ = nullptr; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
-    sptr<Surface> producerSurface_;  // has value if the screen is virtual
+    sptr<Surface> producerSurface_ = nullptr;  // has value if the screen is virtual
     GraphicDispPowerStatus powerStatus_ = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     GraphicPixelFormat pixelFormat_;
 

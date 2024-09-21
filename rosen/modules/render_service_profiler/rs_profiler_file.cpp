@@ -43,7 +43,7 @@ void RSFile::Create(const std::string& fname)
     }
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
     file_ = Utils::FileOpen(fname, "wb");
 #else
     file_ = Utils::FileOpen(fname, "wbe");
@@ -70,7 +70,7 @@ bool RSFile::Open(const std::string& fname)
         Close();
     }
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
     file_ = Utils::FileOpen(fname, "rb");
 #else
     file_ = Utils::FileOpen(fname, "rbe");
@@ -281,8 +281,6 @@ void RSFile::LayerAddHeaderProperty(uint32_t layer, const std::string& name, con
 
 void RSFile::LayerWriteHeader(uint32_t layer)
 {
-    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
-
     if (!file_ || !HasLayer(layer)) {
         return;
     }
@@ -507,6 +505,8 @@ bool RSFile::ReadGFXMetrics(double untilTime, uint32_t layer, std::vector<uint8_
 
 bool RSFile::GetDataCopy(std::vector<uint8_t>& data)
 {
+    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+
     WriteHeaders(); // Make sure the header is written
 
     size_t fileSize = Utils::FileSize(file_);
@@ -565,9 +565,9 @@ void RSFile::Close()
         return;
     }
 
-    WriteHeaders();
-
     const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+
+    WriteHeaders();
 
     Utils::FileClose(file_);
     file_ = nullptr;
@@ -628,7 +628,7 @@ bool RSFile::ReadTrackData(
 
 void RSFile::ReadTrackDataRestart(LayerTrackIndexPtr trackIndex, uint32_t layer)
 {
-    if (layerData_.empty()) {
+    if (!HasLayer(layer)) {
         return;
     }
 
@@ -662,10 +662,95 @@ const std::vector<std::pair<uint64_t, int64_t>>& RSFile::GetAnimeStartTimes() co
     return headerAnimeStartTimes_;
 }
 
-void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& value)
+void RSFile::AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& startTimes)
 {
-    headerAnimeStartTimes_ = value;
+    headerAnimeStartTimes_ = startTimes;
     wasChanged_ = true;
+}
+
+double RSFile::ConvertVsyncId2Time(int64_t vsyncId)
+{
+    if (mapVsyncId2Time_.count(vsyncId)) {
+        return mapVsyncId2Time_[vsyncId];
+    }
+    constexpr int64_t MAX_INT64T = 0x7FFFFFFFFFFFFFFF;
+    int64_t minVSync = MAX_INT64T;
+    int64_t maxVSync = -1;
+    for (const auto& item : mapVsyncId2Time_) {
+        if (minVSync > item.first) {
+            minVSync = item.first;
+        }
+        if (maxVSync < item.first) {
+            maxVSync = item.first;
+        }
+    }
+    if (vsyncId < minVSync) {
+        if (mapVsyncId2Time_.count(minVSync)) {
+            return mapVsyncId2Time_[minVSync];
+        }
+    }
+    if (vsyncId > maxVSync) {
+        if (mapVsyncId2Time_.count(maxVSync)) {
+            return mapVsyncId2Time_[maxVSync];
+        }
+    }
+    return 0.0;
+}
+
+int64_t RSFile::ConvertTime2VsyncId(double time)
+{
+    constexpr double numericError = 1e-5;
+    for (const auto& item : mapVsyncId2Time_) {
+        if (time <= item.second + numericError) {
+            return item.first;
+        }
+    }
+    return 0;
+}
+
+void RSFile::CacheVsyncId2Time(uint32_t layer)
+{
+    mapVsyncId2Time_.clear();
+
+    if (!file_ || !HasLayer(layer)) {
+        return;
+    }
+
+    LayerTrackPtr track = { &RSFileLayer::readindexRsMetrics, &RSFileLayer::rsMetrics };
+
+    RSFileLayer& layerData = layerData_[layer];
+    auto& trackData = layerData.*track.markup;
+
+    double readTime;
+    std::vector<char> data;
+
+    for (const auto& trackItem : trackData) {
+        Utils::FileSeek(file_, trackItem.first, SEEK_SET);
+        Utils::FileRead(&readTime, sizeof(readTime), 1, file_);
+
+        constexpr char packetTypeRsMetrics = 2;
+        char packetType;
+
+        Utils::FileRead(&packetType, sizeof(packetType), 1, file_);
+        if (packetType != packetTypeRsMetrics) {
+            continue;
+        }
+
+        const int32_t dataLen = trackItem.second - RSFileLayer::MARKUP_SIZE - 1;
+        constexpr int32_t dataLenMax = 100'000;
+        if (dataLen < 0 || dataLen > dataLenMax) {
+            continue;
+        }
+        data.resize(dataLen);
+        Utils::FileRead(data.data(), dataLen, 1, file_);
+
+        RSCaptureData captureData;
+        captureData.Deserialize(data);
+        int64_t readVsyncId = captureData.GetPropertyInt64(RSCaptureData::KEY_RS_VSYNC_ID);
+        if (readVsyncId > 0 && !mapVsyncId2Time_.count(readVsyncId)) {
+            mapVsyncId2Time_.insert({readVsyncId, readTime});
+        }
+    }
 }
 
 } // namespace OHOS::Rosen

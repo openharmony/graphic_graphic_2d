@@ -108,7 +108,7 @@ RSGraphicTestDirector::~RSGraphicTestDirector()
 {
     rootNode_->screenSurfaceNode_->RemoveFromTree();
     rsUiDirector_->SendMessages();
-    vsyncWaiter_ = nullptr;
+    sleep(1);
 }
 
 void RSGraphicTestDirector::Run()
@@ -122,7 +122,6 @@ void RSGraphicTestDirector::Run()
         [handler](const std::function<void()>& task, uint32_t delay) { handler->PostTask(task); });
     runner->Run();
 
-    vsyncWaiter_ = std::make_shared<VSyncWaiter>(handler_, RSParameterParse::Instance().vsyncRate);
     screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();
 
     auto defaultDisplay = DisplayManager::GetInstance().GetDefaultDisplay();
@@ -138,7 +137,7 @@ void RSGraphicTestDirector::Run()
 
     rsUiDirector_->SetRSSurfaceNode(rootNode_->screenSurfaceNode_);
     rsUiDirector_->SendMessages();
-    WaitForVSync();
+    sleep(1);
 
     ResetImagePath();
 }

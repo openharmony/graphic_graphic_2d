@@ -43,11 +43,12 @@ struct ComposeInfo {
     int32_t gravity { 0 };
     int32_t zOrder { 0 };
     GraphicLayerAlpha alpha;
-    sptr<SurfaceBuffer> buffer;
-    sptr<SurfaceBuffer> preBuffer;
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    GraphicBlendType blendType;
+    GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
+    int32_t sdrNit { 0 };
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };
 };
@@ -56,7 +57,9 @@ class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
+constexpr float DEFAULT_BRIGHTNESS_RATIO = 1.0f;
 #endif
+constexpr uint32_t CONSUME_DIRECTLY = 0;
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -84,7 +87,11 @@ struct BufferDrawParam {
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
     uint32_t threadIndex = UNI_MAIN_THREAD_INDEX; // use to decide eglimage unmap thread index
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float sdrNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float tmoNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float displayNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
+    bool isHdrRedraw = false;
 #endif
 };
 
@@ -94,12 +101,6 @@ using WriteToPngParam = struct {
     uint32_t stride;
     uint32_t bitDepth;
     const uint8_t *data;
-};
-
-using ControlBufferConsumeParam = struct ControlBufferConsumeParam {
-    std::string surfaceName = "";
-    bool isDisplaySurface = true;
-    uint64_t vsyncTimestamp = 0;
 };
 
 enum class ColorFilterMode {
@@ -125,16 +126,19 @@ public:
         GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
         GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 
-    static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds);
+    static GraphicTransformType GetSurfaceBufferTransformType(
+        const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer);
+    static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bounds,
+        const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
     static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
+
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler);
     static Rect MergeBufferDamages(const std::vector<Rect>& damages);
-    static bool ConsumeAndUpdateBuffer(
-        RSSurfaceHandler& surfaceHandler, const ControlBufferConsumeParam& param = { "", true, 0});
+    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);

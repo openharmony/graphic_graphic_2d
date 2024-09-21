@@ -226,6 +226,10 @@ void RSRenderInterpolatingSpringAnimation::InitValueEstimator()
 
 std::shared_ptr<RSRenderPropertyBase> RSRenderInterpolatingSpringAnimation::CalculateVelocity(float time) const
 {
+    if (valueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::CalculateVelocity, valueEstimator_ is nullptr.");
+        return nullptr;
+    }
     constexpr float TIME_INTERVAL = 1e-6f; // 1e-6f : 1 microsecond
     float currentDisplacement = 1.0f + CalculateDisplacement(time);
     float nextDisplacement = 1.0f + CalculateDisplacement(time + TIME_INTERVAL);

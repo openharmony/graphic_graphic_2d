@@ -482,6 +482,19 @@ constexpr std::array borderDirtyTypes = {
     RSDrawableSlot::BACKGROUND_SHADER,
     RSDrawableSlot::BACKGROUND_IMAGE,
 };
+constexpr std::array bgfilterDirtyTypes = {
+    RSDrawableSlot::PIXEL_STRETCH,
+};
+constexpr std::array stretchDirtyTypes = {
+    RSDrawableSlot::BACKGROUND_FILTER,
+};
+const std::unordered_set<RSDrawableSlot> fuzeStretchBlurSafeList = {
+    RSDrawableSlot::BG_RESTORE_BOUNDS,
+    RSDrawableSlot::SAVE_FRAME,
+    RSDrawableSlot::RESTORE_FRAME,
+    RSDrawableSlot::FG_SAVE_BOUNDS,
+    RSDrawableSlot::FG_RESTORE_BOUNDS,
+};
 template<std::size_t SIZE>
 inline void MarkAffectedSlots(const std::array<RSDrawableSlot, SIZE>& affectedSlots, const RSDrawable::Vec& drawableVec,
     std::unordered_set<RSDrawableSlot>& dirtySlots)
@@ -541,6 +554,16 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
     if (dirtySlots.count(RSDrawableSlot::FOREGROUND_FILTER)) {
         dirtySlots.emplace(RSDrawableSlot::RESTORE_FOREGROUND_FILTER);
     }
+
+    // if pixel stretch changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH)) {
+        MarkAffectedSlots(stretchDirtyTypes, drawableVec, dirtySlots);
+    }
+    // if background filter changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::BACKGROUND_FILTER)) {
+        MarkAffectedSlots(bgfilterDirtyTypes, drawableVec, dirtySlots);
+    }
+
     return dirtySlots;
 }
 
@@ -549,6 +572,7 @@ bool RSDrawable::UpdateDirtySlots(
 {
     // Step 2: Update or generate all dirty slots
     bool drawableAddedOrRemoved = false;
+
     for (const auto& slot : dirtySlots) {
         if (auto& drawable = drawableVec[static_cast<size_t>(slot)]) {
             // If the slot is already created, call OnUpdate
@@ -565,8 +589,47 @@ bool RSDrawable::UpdateDirtySlots(
             }
         }
     }
+    // If at this point the child node happens to be null, and the scenario involves deleting the child node
+    // when the parent node is not on the tree, it is necessary to manually mark drawableAddedOrRemoved as true.
+    if (!drawableAddedOrRemoved && dirtySlots.count(RSDrawableSlot::CHILDREN) &&
+        drawableVec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] == nullptr) {
+        drawableAddedOrRemoved = true;
+    }
 
     return drawableAddedOrRemoved;
+}
+
+bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
+{
+    // fuze the pixel stretch with MESA blur
+    if (!RSSystemProperties::GetMESABlurFuzedEnabled() ||
+        !drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] ||
+        !drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
+        return false;
+    }
+    
+    auto &filterDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)];
+    auto bgFilterDrawable = std::static_pointer_cast<RSBackgroundFilterDrawable>(filterDrawable);
+    bgFilterDrawable->RemovePixelStretch();
+
+    auto &stretchDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)];
+    auto pixelStretchDrawable = std::static_pointer_cast<RSPixelStretchDrawable>(stretchDrawable);
+    pixelStretchDrawable->OnUpdate(node);
+
+    size_t start = static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
+    size_t end = static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH);
+    // We do not fuze if drawableSlots between BACKGROUND_FILTER and PIXEL_STRETCH exist
+    for (size_t ptr = start; ptr < end; ptr++) {
+        if (!fuzeStretchBlurSafeList.count(static_cast<RSDrawableSlot>(ptr)) && drawableVec[ptr]) {
+            return false;
+        }
+    }
+    if (bgFilterDrawable->FuzePixelStretch(node)) {
+        pixelStretchDrawable->SetPixelStretch(std::nullopt);
+        return true;
+    }
+
+    return false;
 }
 
 void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus)

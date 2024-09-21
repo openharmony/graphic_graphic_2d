@@ -248,6 +248,7 @@ void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
 
 void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag)
 {
+    std::lock_guard<std::mutex> lock(resourceMut_);
     hardInfo_.resourceChanged = false;
     for (auto item = updateFlag.begin(); item != updateFlag.end(); item++) {
         if (item->second == true) {
@@ -371,7 +372,6 @@ void RoundCornerDisplay::RcdChooseHardwareResource()
 void RoundCornerDisplay::DrawOneRoundCorner(RSPaintFilterCanvas* canvas, int surfaceType)
 {
     RS_TRACE_BEGIN("RCD::DrawOneRoundCorner : surfaceType" + std::to_string(surfaceType));
-    std::lock_guard<std::mutex> lock(resourceMut_);
     if (canvas == nullptr) {
         RS_LOGE("[%{public}s] Canvas is null \n", __func__);
         RS_TRACE_END();

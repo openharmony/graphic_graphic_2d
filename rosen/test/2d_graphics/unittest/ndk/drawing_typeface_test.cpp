@@ -80,6 +80,141 @@ HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceDestroy, TestSize.Level1)
     OH_Drawing_TypefaceDestroy(typeface);
     ASSERT_TRUE(typeface != nullptr);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontArgumentsCreate
+ * @tc.desc: Test OH_Drawing_FontArgumentsCreate
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_FontArgumentsCreate, TestSize.Level1)
+{
+    OH_Drawing_FontArguments *fontArgs = OH_Drawing_FontArgumentsCreate();
+    ASSERT_TRUE(fontArgs != nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontArgumentsAddVariation
+ * @tc.desc: Test OH_Drawing_FontArgumentsAddVariation
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_FontArgumentsAddVariation, TestSize.Level1)
+{
+    OH_Drawing_FontArguments *fontArgs = OH_Drawing_FontArgumentsCreate();
+    ASSERT_TRUE(fontArgs != nullptr);
+    OH_Drawing_ErrorCode drawingErrorCode = OH_DRAWING_SUCCESS;
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, "wght", 100); // 100 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, "wght", 10000); // 10000 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, "wght", 0);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, "wght", -100); // -100 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(nullptr, "wght", 100); // 100 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, "weight", 100); // 100 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, nullptr, 100); // 100 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FontArgumentsDestroy(fontArgs);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontArgumentsDestroy
+ * @tc.desc: Test OH_Drawing_FontArgumentsDestroy
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_FontArgumentsDestroy, TestSize.Level1)
+{
+    OH_Drawing_FontArguments *fontArgs = OH_Drawing_FontArgumentsCreate();
+    ASSERT_TRUE(fontArgs != nullptr);
+    OH_Drawing_ErrorCode drawingErrorCode = OH_DRAWING_SUCCESS;
+    drawingErrorCode = OH_Drawing_FontArgumentsDestroy(nullptr);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    drawingErrorCode = OH_Drawing_FontArgumentsDestroy(fontArgs);
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypefaceCreateFromFileWithArguments
+ * @tc.desc: Test OH_Drawing_TypefaceCreateFromFileWithArguments
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceCreateFromFileWithArguments, TestSize.Level1)
+{
+    OH_Drawing_FontArguments *fontArgs = OH_Drawing_FontArgumentsCreate();
+    ASSERT_TRUE(fontArgs != nullptr);
+    OH_Drawing_ErrorCode drawingErrorCode = OH_DRAWING_SUCCESS;
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, "wght", 100); // 100 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+    OH_Drawing_Typeface *typeface =
+        OH_Drawing_TypefaceCreateFromFileWithArguments(nullptr, fontArgs);
+    ASSERT_TRUE(typeface == nullptr);
+    typeface = OH_Drawing_TypefaceCreateFromFileWithArguments("/system/fonts/HarmonyOS_Sans.ttf", nullptr);
+    ASSERT_TRUE(typeface == nullptr);
+    typeface = OH_Drawing_TypefaceCreateFromFileWithArguments("/system/fonts/HarmonyOS_Sans.ttf", fontArgs);
+    ASSERT_TRUE(typeface != nullptr);
+    OH_Drawing_Typeface *typeface1 =
+        OH_Drawing_TypefaceCreateFromFileWithArguments("/system/fonts/HarmonyOS_Sans_Digit.ttf", fontArgs);
+    ASSERT_TRUE(typeface1 != nullptr);
+    OH_Drawing_Typeface *typeface2 =
+        OH_Drawing_TypefaceCreateFromFileWithArguments("/system/fonts/HarmonyOS_Sans_TC.ttf", fontArgs);
+    ASSERT_TRUE(typeface2 != nullptr);
+
+    OH_Drawing_FontArgumentsDestroy(fontArgs);
+    OH_Drawing_TypefaceDestroy(typeface);
+    OH_Drawing_TypefaceDestroy(typeface1);
+    OH_Drawing_TypefaceDestroy(typeface2);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypefaceCreateFromCurrent
+ * @tc.desc: Test OH_Drawing_TypefaceCreateFromCurrent001
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceCreateFromCurrent001, TestSize.Level1)
+{
+    OH_Drawing_FontArguments *fontArgs = OH_Drawing_FontArgumentsCreate();
+    ASSERT_TRUE(fontArgs != nullptr);
+    OH_Drawing_ErrorCode drawingErrorCode = OH_DRAWING_SUCCESS;
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, "wght", 100); // 100 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+
+    OH_Drawing_Typeface *current = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HarmonyOS_Sans.ttf", 0);
+    ASSERT_TRUE(current != nullptr);
+    OH_Drawing_Typeface *typeface = OH_Drawing_TypefaceCreateFromCurrent(current, nullptr);
+    ASSERT_TRUE(typeface == nullptr);
+    typeface = OH_Drawing_TypefaceCreateFromCurrent(nullptr, fontArgs);
+    ASSERT_TRUE(typeface == nullptr);
+    typeface = OH_Drawing_TypefaceCreateFromCurrent(current, fontArgs);
+    ASSERT_TRUE(typeface != nullptr);
+
+    OH_Drawing_FontArgumentsDestroy(fontArgs);
+    OH_Drawing_TypefaceDestroy(current);
+    OH_Drawing_TypefaceDestroy(typeface);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypefaceCreateFromCurrent
+ * @tc.desc: Test OH_Drawing_TypefaceCreateFromCurrent002
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceCreateFromCurrent002, TestSize.Level1)
+{
+    OH_Drawing_FontArguments *fontArgs = OH_Drawing_FontArgumentsCreate();
+    ASSERT_TRUE(fontArgs != nullptr);
+    OH_Drawing_ErrorCode drawingErrorCode = OH_DRAWING_SUCCESS;
+    drawingErrorCode = OH_Drawing_FontArgumentsAddVariation(fontArgs, "wght", 800); // 800 means coordinate value
+    EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
+
+    OH_Drawing_Typeface *current = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HarmonyOS_Sans_Digit.ttf", 0);
+    ASSERT_TRUE(current != nullptr);
+    OH_Drawing_Typeface *typeface = OH_Drawing_TypefaceCreateFromCurrent(current, fontArgs);
+    ASSERT_TRUE(typeface == nullptr);
+
+    OH_Drawing_FontArgumentsDestroy(fontArgs);
+    OH_Drawing_TypefaceDestroy(current);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

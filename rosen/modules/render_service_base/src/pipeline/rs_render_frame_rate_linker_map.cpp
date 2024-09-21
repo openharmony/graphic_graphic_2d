@@ -35,6 +35,7 @@ bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinker(const std::shared_ptr<R
 
 void RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
+    ROSEN_LOGI("RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker id: %{public}" PRIu64, id);
     frameRateLinkerMap_.erase(id);
 }
 

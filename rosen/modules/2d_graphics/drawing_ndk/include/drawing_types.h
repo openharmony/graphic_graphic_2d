@@ -33,12 +33,16 @@
  *
  * @brief Declares the data types for drawing 2D graphics, including the canvas, brush, pen, bitmap, and path.
  *
+ * @kit ArkGraphics2D
+ * @library libnative_drawing.so
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @since 8
  * @version 1.0
  */
 
-#include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -237,6 +241,14 @@ typedef struct OH_Drawing_Font OH_Drawing_Font;
 typedef struct OH_Drawing_MemoryStream OH_Drawing_MemoryStream;
 
 /**
+ * @brief Defines fontArguments, which is used to describe the arguments for a font.
+ *
+ * @since 13
+ * @version 1.0
+ */
+typedef struct OH_Drawing_FontArguments OH_Drawing_FontArguments;
+
+/**
  * @brief Defines a typeface, which is used to describe the typeface.
  *
  * @since 11
@@ -300,6 +312,14 @@ typedef struct OH_Drawing_GpuContext OH_Drawing_GpuContext;
  * @version 1.0
  */
 typedef struct OH_Drawing_Surface OH_Drawing_Surface;
+
+/**
+ * @brief Defines a array object, which is used to store multiple object.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct OH_Drawing_Array OH_Drawing_Array;
 
 /**
  * @brief Enumerates storage formats of bitmap pixels.
@@ -498,6 +518,22 @@ typedef struct OH_Drawing_FontMgr OH_Drawing_FontMgr;
  * @version 1.0
  */
 typedef struct OH_Drawing_FontStyleSet OH_Drawing_FontStyleSet;
+
+/**
+ * @brief Define OH_Drawing_RecordCmdUtils, which is used to generate drawing commands tool.
+ *
+ * @since 13
+ * @version 1.0
+ */
+typedef struct OH_Drawing_RecordCmdUtils OH_Drawing_RecordCmdUtils;
+
+/**
+ * @brief Define OH_Drawing_RecordCmd, which is used to replay drawing commands.
+ *
+ * @since 13
+ * @version 1.0
+ */
+typedef struct OH_Drawing_RecordCmd OH_Drawing_RecordCmd;
 
 #ifdef __cplusplus
 }

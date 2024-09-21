@@ -607,5 +607,26 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest021, TestSize.Level1)
     node->DumpNode(10);
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest021 end";
 }
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest022
+ * @tc.desc: Verify the create RSNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest022, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest022 start";
+    /**
+     * @tc.steps: step1. init
+     */
+    auto node = std::make_shared<RSNodeMock>(false);
+    EXPECT_TRUE(node != nullptr);
+
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve;
+    RSNode::OpenImplicitAnimation(protocol, curve);
+    RSNode::CloseImplicitCancelAnimation();
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest022 end";
+}
 } // namespace Rosen
 } // namespace OHOS

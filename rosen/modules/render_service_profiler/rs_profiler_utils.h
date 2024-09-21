@@ -20,11 +20,11 @@
 #include <string>
 #include <vector>
 
-#ifdef REPLAY_TOOL_CLIENT
+#ifdef RENDER_PROFILER_APPLICATION
 #include "rs_adapt.h"
 #else
 #include "common/rs_macros.h"
-#endif // REPLAY_TOOL_CLIENT
+#endif
 
 namespace OHOS::Rosen {
 
@@ -101,6 +101,7 @@ public:
     static void LoadContent(const std::string& path, std::string& content);
 
     static bool FileExists(const std::string& path);
+    static bool FileDelete(const std::string& path);
     static FILE* FileOpen(const std::string& path, const std::string& options);
     static void FileClose(FILE* file);
     static bool IsFileValid(FILE* file);
@@ -172,7 +173,7 @@ public:
     static uint64_t ComposeDataId(pid_t pid, uint32_t id)
     {
         constexpr uint32_t bits = 31u;
-        return ComposeNodeId(static_cast<uint32_t>(pid) | (1 << bits), id);
+        return ComposeNodeId(static_cast<uint32_t>(pid) | (1u << bits), id);
     }
 
     static constexpr uint64_t GetRootNodeId(uint64_t id)
@@ -193,97 +194,6 @@ public:
     }
 };
 
-// ArgList
-
-class ArgList final {
-public:
-    explicit ArgList() = default;
-    explicit ArgList(std::vector<std::string> args) : args_(std::move(args)) {}
-
-    size_t Count() const
-    {
-        return args_.size();
-    }
-
-    bool Empty() const
-    {
-        return args_.empty();
-    }
-
-    void Clear()
-    {
-        args_.clear();
-    }
-
-    const std::string& String(size_t index = 0u) const
-    {
-        static const std::string EMPTY;
-        return index < Count() ? args_[index] : EMPTY;
-    }
-
-    int8_t Int8(size_t index = 0u) const
-    {
-        return Utils::ToInt8(String(index));
-    }
-
-    int16_t Int16(size_t index = 0u) const
-    {
-        return Utils::ToInt16(String(index));
-    }
-
-    int32_t Int32(size_t index = 0u) const
-    {
-        return Utils::ToInt32(String(index));
-    }
-
-    int64_t Int64(size_t index = 0u) const
-    {
-        return Utils::ToInt64(String(index));
-    }
-
-    uint8_t Uint8(size_t index = 0u) const
-    {
-        return Utils::ToUint8(String(index));
-    }
-
-    uint16_t Uint16(size_t index = 0u) const
-    {
-        return Utils::ToUint16(String(index));
-    }
-
-    uint32_t Uint32(size_t index = 0u) const
-    {
-        return Utils::ToUint32(String(index));
-    }
-
-    uint64_t Uint64(size_t index = 0u) const
-    {
-        return Utils::ToUint64(String(index));
-    }
-
-    float Fp32(size_t index = 0u) const
-    {
-        return Utils::ToFp32(String(index));
-    }
-
-    double Fp64(size_t index = 0u) const
-    {
-        return Utils::ToFp64(String(index));
-    }
-
-    pid_t Pid(size_t index = 0u) const
-    {
-        return Uint32(index);
-    }
-
-    uint64_t Node(size_t index = 0u) const
-    {
-        return Uint64(index);
-    }
-
-protected:
-    std::vector<std::string> args_;
-};
 } // namespace OHOS::Rosen
 
 #endif // RS_PROFILER_UTILS_H

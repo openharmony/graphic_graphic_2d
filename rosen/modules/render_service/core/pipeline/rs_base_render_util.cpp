@@ -22,12 +22,6 @@
 #include <unistd.h>
 #include <unordered_set>
 
-#include "include/utils/SkCamera.h"
-#include "png.h"
-#include "rs_frame_rate_vote.h"
-#include "rs_trace.h"
-#include "system/rs_system_parameters.h"
-
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector2.h"
@@ -35,19 +29,32 @@
 #include "draw/clip.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
+#include "include/utils/SkCamera.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
+#include "png.h"
+#include "rs_frame_rate_vote.h"
+#include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 #include "utils/camera3d.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
+
+inline int64_t GenerateCurrentTimeStamp()
+{
+    struct timeval now;
+    gettimeofday(&now, nullptr);
+    constexpr int64_t secToUsec = 1000 * 1000;
+    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    return nowVal;
+}
 }
 namespace Detail {
 // [PLANNING]: Use GPU to do the gamut conversion instead of these following works.
@@ -84,7 +91,7 @@ inline float SafePow(float x, float e)
 
 inline PixelTransformFunc GenOETF(float gamma)
 {
-    if (gamma == 1.0f || gamma == 0.0f) {
+    if (ROSEN_EQ(gamma, 1.0f) || ROSEN_EQ(gamma, 0.0f)) {
         return PassThrough;
     }
 
@@ -93,7 +100,7 @@ inline PixelTransformFunc GenOETF(float gamma)
 
 inline PixelTransformFunc GenEOTF(float gamma)
 {
-    if (gamma == 1.0f) {
+    if (ROSEN_EQ(gamma, 1.0f)) {
         return PassThrough;
     }
 
@@ -145,11 +152,11 @@ inline constexpr float FullResponse(float x, const TransferParameters& p)
 
 inline PixelTransformFunc GenOETF(const TransferParameters& params)
 {
-    if (params.g < 0) { // HDR
+    if (params.g < 0.0f) { // HDR
         return [params](float x) { return RcpResponsePq(x, params); };
     }
 
-    if (params.e == 0.0f && params.f == 0.0f) {
+    if (ROSEN_EQ(params.e, 0.0f) && ROSEN_EQ(params.f, 0.0f)) {
         return [params](float x) { return RcpResponse(x, params); };
     }
 
@@ -158,11 +165,11 @@ inline PixelTransformFunc GenOETF(const TransferParameters& params)
 
 inline PixelTransformFunc GenEOTF(const TransferParameters& params)
 {
-    if (params.g < 0) {
+    if (params.g < 0.0f) {
         return [params](float x) { return ResponsePq(x, params); };
     }
 
-    if (params.e == 0.0f && params.f == 0.0f) {
+    if (ROSEN_EQ(params.e, 0.0f) && ROSEN_EQ(params.f, 0.0f)) {
         return [params](float x) { return Response(x, params); };
     }
 
@@ -312,7 +319,7 @@ public:
     SimpleColorSpace(
         const std::array<Vector2f, 3>& basePoints,
         const Vector2f& whitePoint,
-        float gamma,
+        float gamma = 0.0f,
         PixelTransformFunc clamper = Saturate<float>
     ) noexcept
         : rgbToXyz_(GenRGBToXYZMatrix(basePoints, whitePoint)),
@@ -424,7 +431,7 @@ SimpleColorSpace &GetBT2020ColorSpace()
 bool IsValidMetaData(const std::vector<GraphicHDRMetaData> &metaDatas)
 {
     uint16_t validFlag = 0;
-    for (auto metaData : metaDatas) {
+    for (const auto& metaData : metaDatas) {
         validFlag ^= 1 << metaData.key;
     }
 
@@ -904,6 +911,8 @@ Drawing::ColorType RSBaseRenderUtil::GetColorTypeFromBufferFormat(int32_t pixelF
     switch (pixelFmt) {
         case GRAPHIC_PIXEL_FMT_RGBA_8888:
             return Drawing::ColorType::COLORTYPE_RGBA_8888;
+        case GRAPHIC_PIXEL_FMT_RGBX_8888:
+            return Drawing::ColorType::COLORTYPE_RGB_888X;
         case GRAPHIC_PIXEL_FMT_BGRA_8888 :
             return Drawing::ColorType::COLORTYPE_BGRA_8888;
         case GRAPHIC_PIXEL_FMT_RGB_565:
@@ -926,18 +935,12 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
     return {damage.left_, damage.top_, damage.width_, damage.height_};
 }
 
-bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
-    RSSurfaceHandler& surfaceHandler, const ControlBufferConsumeParam& param)
+bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
-        // this node has no new buffer, try use cache.
-        // if don't have cache, will not update and use old buffer.
-        // display surface don't have cache, always use old buffer.
-        surfaceHandler.ConsumeAndUpdateBuffer(
-            surfaceHandler.GetBufferFromCache(param.vsyncTimestamp, param.surfaceName));
         return true;
     }
-    auto consumer = surfaceHandler.GetConsumer();
+    const auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         RS_LOGE("Consume and update buffer fail for consumer is nullptr");
         return false;
@@ -945,18 +948,26 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
     DropFrameProcess(surfaceHandler);
     std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
-        std::vector<Rect> damages;
-        surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
-        int32_t ret = consumer->AcquireBuffer(surfaceBuffer->buffer, surfaceBuffer->acquireFence,
-            surfaceBuffer->timestamp, damages);
-        if (surfaceBuffer->buffer == nullptr || ret != SURFACE_ERROR_OK) {
+        IConsumerSurface::AcquireBufferReturnValue returnValue;
+        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
+        if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
             surfaceBuffer = nullptr;
             return false;
         }
+        surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
+        surfaceBuffer->buffer = returnValue.buffer;
+        surfaceBuffer->acquireFence = returnValue.fence;
+        surfaceBuffer->timestamp = returnValue.timestamp;
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
+            "presentWhen = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
+            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp);
+        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, "
+            "presentWhen = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
+            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp);
         // The damages of buffer will be merged here, only single damage is supported so far
-        Rect damageAfterMerge = MergeBufferDamages(damages);
+        Rect damageAfterMerge = MergeBufferDamages(returnValue.damages);
         if (damageAfterMerge.h <= 0 || damageAfterMerge.w <= 0) {
             RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
                 surfaceHandler.GetNodeId());
@@ -981,33 +992,15 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         consumer->SetBufferHold(false);
         RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") consume hold buffer", surfaceHandler.GetNodeId());
     }
-    if (surfaceBuffer->buffer == nullptr) {
+    if (surfaceBuffer == nullptr || surfaceBuffer->buffer == nullptr) {
         RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") no buffer to consume", surfaceHandler.GetNodeId());
         return false;
     }
-    bool directConsume = param.isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
-        !RSSystemParameters::GetControlBufferConsumeEnabled();
-    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
-            "directConsume[%{public}d], vysnc[%{public}" PRIu64 "], "
-            "buffer[timestamp:%{public}" PRId64 ", seq:%{public}" PRIu32 "].",
-            surfaceHandler.GetNodeId(), directConsume, param.vsyncTimestamp,
-            surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
-    RS_TRACE_NAME_FMT("surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, "
-            "directConsume[%d], vysnc[%" PRIu64 "], "
-            "buffer[timestamp:%" PRId64 ", seq:%" PRIu32 "].",
-            surfaceHandler.GetNodeId(), directConsume, param.vsyncTimestamp,
-            surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
-    if (directConsume) {
-        surfaceHandler.ConsumeAndUpdateBuffer(*(surfaceBuffer.get()));
-    } else {
-        surfaceHandler.CacheBuffer(*(surfaceBuffer.get()), param.surfaceName);
-        surfaceHandler.ConsumeAndUpdateBuffer(
-            surfaceHandler.GetBufferFromCache(param.vsyncTimestamp, param.surfaceName));
-    }
-    surfaceHandler.ReduceAvailableBuffer();
+    surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
         consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     surfaceBuffer = nullptr;
+    surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
         return true;
@@ -1117,20 +1110,51 @@ bool RSBaseRenderUtil::IsBufferValid(const sptr<SurfaceBuffer>& buffer)
     return true;
 }
 
-Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds)
+GraphicTransformType RSBaseRenderUtil::GetSurfaceBufferTransformType(
+    const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer)
+{
+    auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    if (consumer == nullptr || buffer == nullptr) {
+        return transformType;
+    }
+    if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
+        RS_LOGE("RSBaseRenderUtil::GetSurfaceBufferTransformType GetSurfaceBufferTransformType failed");
+    }
+    return transformType;
+}
+
+Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(
+    GraphicTransformType rotationTransform, const RectF &bounds, const RectF &bufferBounds, Gravity gravity)
 {
     Drawing::Matrix matrix;
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
+    const float bufferHeight = bufferBounds.GetHeight();
+    float heightAdjust = boundsHeight;
+
+    static std::unordered_set<Gravity> resizeGravities = {Gravity::RESIZE,
+        Gravity::RESIZE_ASPECT,
+        Gravity::RESIZE_ASPECT_TOP_LEFT,
+        Gravity::RESIZE_ASPECT_BOTTOM_RIGHT,
+        Gravity::RESIZE_ASPECT_FILL,
+        Gravity::RESIZE_ASPECT_FILL_TOP_LEFT,
+        Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT};
+    if (resizeGravities.find(gravity) != resizeGravities.end()) {
+        heightAdjust = boundsHeight;
+    } else if (bufferHeight > 0) {
+        heightAdjust = std::min(bufferHeight, boundsHeight);
+    }
+
     switch (rotationTransform) {
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            matrix.PreTranslate(0, boundsHeight);
-            matrix.PreRotate(-90); // rotate 90 degrees anti-clockwise at last.
+            matrix.PreTranslate(0, heightAdjust);
+            matrix.PreRotate(-90);  // rotate 90 degrees anti-clockwise at last.
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            matrix.PreTranslate(boundsWidth, boundsHeight);
-            matrix.PreRotate(-180); // rotate 180 degrees anti-clockwise at last.
+            matrix.PreTranslate(boundsWidth, heightAdjust);
+            matrix.PreRotate(-180);  // rotate 180 degrees anti-clockwise at last.
+
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
@@ -1157,7 +1181,7 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     auto frameHeight = static_cast<float>(buffer->GetSurfaceBufferHeight());
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
-    if (frameWidth == boundsWidth && frameHeight == boundsHeight) {
+    if (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight)) {
         return gravityMatrix;
     }
 
@@ -1170,21 +1194,32 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 }
 
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-    RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams)
+    RectF &localBounds, BufferDrawParam &params, RSSurfaceRenderParams *nodeParams)
 {
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
     int extraRotation = 0;
-    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
-        (system::GetParameter("const.build.product", "") == "ICL") ?
-        FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
+    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
     if (nodeParams != nullptr && nodeParams->GetFixRotationByUser()) {
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
         extraRotation = degree - rotationDegree;
     }
+
     rotationTransform = static_cast<GraphicTransformType>(
         (rotationTransform + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
-    params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
+
+    RectF bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f};
+    if (params.buffer != nullptr) {
+        bufferBounds = {0.0f, 0.0f, params.buffer->GetSurfaceBufferWidth(), params.buffer->GetSurfaceBufferHeight()};
+        if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+            rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
+            std::swap(bufferBounds.width_, bufferBounds.height_);
+        }
+    }
+
+    params.matrix.PreConcat(
+        RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds, bufferBounds, gravity));
+
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
@@ -1205,7 +1240,7 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     if (type != GraphicTransformType::GRAPHIC_FLIP_H && type != GraphicTransformType::GRAPHIC_FLIP_V) {
         return;
     }
-     
+
     const int angle = 180;
     Drawing::Camera3D camera3D;
     switch (type) {
@@ -1354,10 +1389,7 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
         return false;
     }
 
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = GenerateCurrentTimeStamp();
     std::string filename = "/data/SurfaceRenderNode_" +
         node.GetName() + "_"  +
         std::to_string(node.GetId()) + "_" +
@@ -1387,10 +1419,7 @@ bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
         return false;
     }
 
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = GenerateCurrentTimeStamp();
     std::string filename = "/data/CacheRenderNode_" +
         std::to_string(node.GetId()) + "_" +
         std::to_string(nowVal) + ".png";
@@ -1503,10 +1532,7 @@ bool RSBaseRenderUtil::WritePixelMapToPng(Media::PixelMap& pixelMap)
     if (type != DumpSurfaceType::PIXELMAP) {
         return false;
     }
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = GenerateCurrentTimeStamp();
     std::string filename = "/data/PixelMap_" + std::to_string(nowVal) + ".png";
 
     WriteToPngParam param;
@@ -1530,10 +1556,7 @@ bool RSBaseRenderUtil::WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint
         return false;
     }
 
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    int64_t nowVal = GenerateCurrentTimeStamp();
     std::string filename = "/data/SurfaceBuffer_" + std::to_string(id) + "_" + std::to_string(nowVal) + ".png";
     BufferHandle *bufferHandle = buffer->GetBufferHandle();
     if (bufferHandle == nullptr) {

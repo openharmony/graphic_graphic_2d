@@ -44,6 +44,7 @@ RSCanvasRenderNode::RSCanvasRenderNode(NodeId id, const std::weak_ptr<RSContext>
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
 #endif
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
 
 RSCanvasRenderNode::~RSCanvasRenderNode()
@@ -51,6 +52,7 @@ RSCanvasRenderNode::~RSCanvasRenderNode()
 #ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
 #endif
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
 void RSCanvasRenderNode::UpdateRecording(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
