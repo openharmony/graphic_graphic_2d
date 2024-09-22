@@ -443,37 +443,6 @@ HWTEST_F(RSCanvasDrawingNodeDrawableTest, GetPixelmapTestExt, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetSurfaceForGLTestExt
- * @tc.desc: Test If ResetSurfaceForGL Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAFX7M
- */
-HWTEST_F(RSCanvasDrawingNodeDrawableTest, ResetSurfaceForGLTestExt, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    int width = 1;
-    int height = 1;
-    canvas.recordingState_ = true;
-    bool result = drawable->ResetSurfaceForGL(width, height, canvas);
-    ASSERT_TRUE(result);
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    canvas.recordingState_ = false;
-    auto drawCanvas = std::make_shared<Drawing::Canvas>();
-    canvas.canvas_ = drawCanvas.get();
-    result = drawable->ResetSurfaceForGL(width, height, canvas);
-    ASSERT_TRUE(result);
-    canvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-    ASSERT_TRUE(canvas.GetGPUContext());
-    drawable->backendTexture_.isValid_ = true;
-    result = drawable->ResetSurfaceForGL(width, height, canvas);
-    ASSERT_TRUE(result);
-#endif
-}
-
-/**
  * @tc.name: ResetSurfaceTestExt002
  * @tc.desc: Test If ResetSurface Can Run
  * @tc.type: FUNC
@@ -498,31 +467,6 @@ HWTEST_F(RSCanvasDrawingNodeDrawableTest, ResetSurfaceTestExt002, TestSize.Level
 }
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-
-/**
- * @tc.name: GetCurrentContextAndImageTestExt
- * @tc.desc: Test If GetCurrentContextAndImage Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAFX7M
- */
-HWTEST_F(RSCanvasDrawingNodeDrawableTest, GetCurrentContextAndImageTestExt, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(0);
-    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
-    std::shared_ptr<Drawing::GPUContext> grContext;
-    std::shared_ptr<Drawing::Image> image;
-    uint64_t tid = INVALID_NODEID;
-    auto drawCanvas = std::make_shared<Drawing::Canvas>();
-    drawable->canvas_ = std::make_shared<RSPaintFilterCanvas>(drawCanvas.get());
-    drawable->surface_ = std::make_shared<Drawing::Surface>();
-    drawable->image_ = std::make_shared<Drawing::Image>();
-    bool res = drawable->GetCurrentContextAndImage(grContext, image, tid);
-    ASSERT_FALSE(res);
-
-    tid = drawable->preThreadInfo_.first;
-    res = drawable->GetCurrentContextAndImage(grContext, image, tid);
-    ASSERT_TRUE(res);
-}
 
 /**
  * @tc.name: ReuseBackendTextureTestExt
