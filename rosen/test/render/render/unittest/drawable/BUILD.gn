@@ -69,6 +69,17 @@ ohos_unittest("RSNodeDrawableAdapter1Test") {
   }
 }
 
+## Build RSNodeDrawable1Test
+ohos_unittest("RSNodeDrawable1Test") {
+  module_out_path = module_output_path
+  sources = [ "rs_node_drawable1_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
 ## Build RSDmaBufferSurfaceNodeDrawableTest
 ohos_unittest("RSDmaBufferSurfaceNodeDrawableTest") {
   module_out_path = module_output_path
