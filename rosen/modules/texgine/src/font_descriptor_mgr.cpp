@@ -34,6 +34,7 @@ void FontDescriptorMgr::ParseAllFontSource()
 {
     std::unique_lock<std::mutex> guard(parserMtx_);
     descCache_.ParserSystemFonts();
+    descCache_.ParserStylishFonts();
 }
 
 void FontDescriptorMgr::ClearFontFileCache()
@@ -46,5 +47,18 @@ void FontDescriptorMgr::MatchFontDescriptors(FontDescSharedPtr desc, std::set<Fo
 {
     std::unique_lock<std::mutex> guard(parserMtx_);
     descCache_.MatchFromFontDescriptor(desc, descs);
+}
+
+void FontDescriptorMgr::GetFontDescSharedPtrByFullName(const std::string& fullName,
+    const int32_t& systemFontType, FontDescSharedPtr& result)
+{
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    descCache_.GetFontDescSharedPtrByFullName(fullName, systemFontType, result);
+}
+
+void FontDescriptorMgr::GetSystemFontFullNamesByType(const int32_t& systemFontType, std::set<std::string>& fontList)
+{
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    descCache_.GetSystemFontFullNamesByType(systemFontType, fontList);
 }
 } // namespace OHOS::Rosen
