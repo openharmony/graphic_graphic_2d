@@ -883,7 +883,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
         RS_TRACE_NAME("DropFrame");
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
-        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
@@ -892,7 +892,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
             return OHOS::GSERROR_NO_BUFFER;
         }
 
-        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
+        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::InvalidFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
                     "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
