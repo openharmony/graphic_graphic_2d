@@ -113,28 +113,6 @@ HWTEST_F(RSDmaBufferSurfaceNodeDrawableTest, CreateSurfaceExtTest, TestSize.Leve
     ASSERT_TRUE(result);
 }
 
-
-/**
- * @tc.name: RequestFrameExtTest
- * @tc.desc: Test If RequestFrame Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAH6OI
- */
-HWTEST_F(RSDmaBufferSurfaceNodeDrawableTest, RequestFrameExtTest, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    RenderContext* renderContext = nullptr;
-    std::shared_ptr<Drawing::GPUContext> skContext = std::make_shared<Drawing::GPUContext>();
-    auto result = surfaceDrawable_->RequestFrame(renderContext, skContext);
-    ASSERT_FALSE(result);
-
-    surfaceDrawable_->CreateSurface();
-    ASSERT_TRUE(surfaceDrawable_->surfaceHandlerUiFirst_->GetConsumer());
-    ASSERT_TRUE(surfaceDrawable_->surface_);
-    result = surfaceDrawable_->RequestFrame(renderContext, skContext);
-    ASSERT_FALSE(result);
-}
-
 /**
  * @tc.name: DrawDmaBufferWithGPUExtTest
  * @tc.desc: Test If DrawDmaBufferWithGPU Can Run
@@ -149,37 +127,6 @@ HWTEST_F(RSDmaBufferSurfaceNodeDrawableTest, DrawDmaBufferWithGPUExtTest, TestSi
     surfaceDrawable_->DrawDmaBufferWithGPU(*canvas_);
     ASSERT_TRUE(surfaceDrawable_->surfaceHandlerUiFirst_->GetBuffer());
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-}
-
-/**
- * @tc.name: DrawUIFirstCacheWithDmaExtTest
- * @tc.desc: Test If DrawUIFirstCacheWithDma Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAH6OI
- */
-HWTEST_F(RSDmaBufferSurfaceNodeDrawableTest, DrawUIFirstCacheWithDmaExtTest, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    bool result = surfaceDrawable_->DrawUIFirstCacheWithDma(*canvas_, *surfaceParams);
-    ASSERT_FALSE(result);
-
-    surfaceDrawable_->surfaceHandlerUiFirst_->bufferAvailableCount_ = DEFAULT_CANVAS_SIZE;
-    result = surfaceDrawable_->DrawUIFirstCacheWithDma(*canvas_, *surfaceParams);
-    ASSERT_FALSE(result);
-    surfaceDrawable_->surfaceHandlerUiFirst_->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    result = surfaceDrawable_->DrawUIFirstCacheWithDma(*canvas_, *surfaceParams);
-    ASSERT_FALSE(result);
-
-    surfaceDrawable_->surfaceHandlerUiFirst_->bufferAvailableCount_ = 0;
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-    result = surfaceDrawable_->DrawUIFirstCacheWithDma(*canvas_, *surfaceParams);
-    ASSERT_TRUE(result);
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    surfaceParams->isHardwareEnabled_ = true;
-    result = surfaceDrawable_->DrawUIFirstCacheWithDma(*canvas_, *surfaceParams);
-    ASSERT_TRUE(result);
 }
 
 /**

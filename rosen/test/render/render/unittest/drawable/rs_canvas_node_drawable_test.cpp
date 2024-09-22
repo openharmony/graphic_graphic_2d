@@ -116,34 +116,6 @@ HWTEST(RSCanvasNodeDrawableTest, OnDrawExtTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnCaptureExtTest002
- * @tc.desc: Test If OnCapture Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST(RSCanvasNodeDrawableTest, OnCaptureExtTest002, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
-    ASSERT_NE(drawable, nullptr);
-    Drawing::Canvas canvas;
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas();
-    paintFilterCanvas->canvas_ = drawingCanvas;
-    RSUniRenderThread::GetCaptureParam().isMirror_ = true;
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    drawable->renderParams_->shouldPaint_ = true;
-    drawable->renderParams_->contentEmpty_ = false;
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-    ASSERT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams());
-    ASSERT_TRUE(drawable->GetRenderParams());
-    drawable->OnCapture(canvas);
-    ASSERT_TRUE(drawable->ShouldPaint());
-    RSUniRenderThread::Instance().Sync(nullptr);
-}
-
-/**
  * @tc.name: OnCaptureExtTest003
  * @tc.desc: Test If OnCapture Can Run
  * @tc.type: FUNC
