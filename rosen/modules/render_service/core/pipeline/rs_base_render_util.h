@@ -172,6 +172,7 @@ public:
     static int GetAccumulatedBufferCount();
     static void IncAcquiredBufferCount();
     static void DecAcquiredBufferCount();
+    static pid_t GetLastSendingPid();
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);
@@ -184,6 +185,7 @@ private:
     static bool enableClient;
 
     static inline std::atomic<int> acquiredBufferCount_ = 0;
+    static pid_t lastSendingPid_;
 };
 } // namespace Rosen
 } // namespace OHOS

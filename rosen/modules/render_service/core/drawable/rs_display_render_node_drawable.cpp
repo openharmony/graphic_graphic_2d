@@ -340,7 +340,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
 
     RS_LOGD("DisplayNode skip");
     RS_TRACE_NAME("DisplayNode skip");
-    GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX();
+    GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX(RSBaseRenderUtil::GetLastSendingPid());
 #ifdef OHOS_PLATFORM
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
