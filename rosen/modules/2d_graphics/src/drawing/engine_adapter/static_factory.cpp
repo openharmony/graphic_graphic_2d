@@ -79,6 +79,16 @@ std::shared_ptr<Typeface> StaticFactory::MakeFromFile(const char path[], int ind
     return EngineStaticFactory::MakeFromFile(path, index);
 }
 
+std::shared_ptr<Typeface> StaticFactory::MakeFromFile(const char path[], const FontArguments& fontArguments)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromFile(path, fontArguments);
+    }
+#endif
+    return EngineStaticFactory::MakeFromFile(path, fontArguments);
+}
+
 std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
