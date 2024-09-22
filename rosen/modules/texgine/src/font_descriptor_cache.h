@@ -19,6 +19,7 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "font_parser.h"
@@ -30,12 +31,24 @@ public:
     FontDescriptorCache();
     ~FontDescriptorCache();
     void ParserSystemFonts();
+    void ParserStylishFonts();
     void MatchFromFontDescriptor(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& result);
     void ClearFontFileCache();
     void Dump();
+    void GetFontDescSharedPtrByFullName(const std::string& fullName,
+        const int32_t& systemFontType, FontDescSharedPtr& result);
+    void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
 
 private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
+    void ParserInstallFonts();
+    bool ParseInstalledConfigFile(const std::string& fontPath, std::vector<std::string>& fontPathList);
+    bool ProcessInstalledFontPath(const std::string& path);
+    bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
+    bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result);
+    std::unordered_set<std::string> GetInstallFontList();
+    std::unordered_set<std::string> GetStylishFontList();
+    std::unordered_set<std::string> GetGenericFontList();
     bool HandleMapIntersection(std::set<FontDescSharedPtr>& finishRet, const std::string& name,
         std::unordered_map<std::string, std::set<FontDescSharedPtr>>& map);
     bool FilterBoldCache(int weight, std::set<FontDescSharedPtr>& finishRet);
@@ -67,6 +80,8 @@ private:
     std::set<FontDescSharedPtr> italicCache_;
     std::set<FontDescSharedPtr> monoSpaceCache_;
     std::set<FontDescSharedPtr> symbolicCache_;
+    std::unordered_map<std::string, std::vector<std::string>> installPathMap_;
+    std::unordered_map<std::string, std::set<FontDescSharedPtr>> stylishFullNameMap_;
 };
 } // namespace OHOS::Rosen
 

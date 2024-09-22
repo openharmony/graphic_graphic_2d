@@ -38,6 +38,8 @@ napi_value JsFontDescriptor::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("matchFontDescriptors", JsFontDescriptor::MatchFontDescriptorsAsync),
+        DECLARE_NAPI_STATIC_FUNCTION("getSystemFontFullNamesByType", JsFontDescriptor::GetSystemFontFullNamesByType),
+        DECLARE_NAPI_STATIC_FUNCTION("getFontDescriptorByFullName", JsFontDescriptor::GetFontDescriptorByFullName),
     };
     
     NAPI_CHECK_AND_THROW_ERROR(
@@ -200,5 +202,108 @@ napi_value JsFontDescriptor::CreateFontDescriptorArray(napi_env env, std::set<Fo
             "Failed to set element");
     }
     return descArray;
+}
+
+napi_value JsFontDescriptor::CreateFontDescriptor(napi_env env, FontDescSharedPtr& result)
+{
+    TEXT_ERROR_CHECK(env != nullptr, return nullptr, "Env is nullptr");
+    TEXT_ERROR_CHECK(result != nullptr, return nullptr, "FontDescSharedPtr is nullptr");
+    napi_value fontDescriptor = nullptr;
+    TEXT_ERROR_CHECK(napi_create_object(env, &fontDescriptor) == napi_ok, return nullptr,
+        "Failed to create fontDescriptor");
+    TEXT_CHECK(CreateAndSetProperties(env, fontDescriptor, result), return nullptr);
+    TEXT_CHECK(ConvertFontDescWeight(env, fontDescriptor, result->weight), return nullptr);
+    return fontDescriptor;
+}
+
+napi_value JsFontDescriptor::GetSystemFontFullNamesByType(napi_env env, napi_callback_info info)
+{
+    struct SystemFontListContext : public ContextBase {
+        TextEngine::FontParser::SystemFontType systemFontType;
+        std::unordered_set<std::string> fontList;
+    };
+
+    sptr<SystemFontListContext> context = sptr<SystemFontListContext>::MakeSptr();
+
+    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY,
+        "Failed to get systemFont fullName list by type, no memory");
+
+    auto inputParser = [env, context](size_t argc, napi_value *argv) {
+        TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is nullptr");
+        NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Status error, status=%d", static_cast<int>(context->status));
+        NAPI_CHECK_ARGS(context, argc == ARGC_ONE, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM,
+            return, "Argc is invalid %zu", argc);
+        NAPI_CHECK_ARGS(context, ConvertFromJsValue(env, argv[0], context->systemFontType), napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Parameter systemFontType is invalid");
+    };
+
+    context->GetCbInfo(env, info, inputParser);
+
+    auto executor = [context]() {
+        FontDescriptorMgrInstance.GetSystemFontFullNamesByType(context->systemFontType, context->fontList);
+    };
+
+    auto complete = [env, context](napi_value& output) {
+        output = JsFontDescriptor::CreateFontList(env, context->fontList);
+    };
+
+    return NapiAsyncWork::Enqueue(env, context, "GetSystemFontFullNamesByType", executor, complete);
+}
+
+napi_value JsFontDescriptor::CreateFontList(napi_env env, std::unordered_set<std::string>& fontList)
+{
+    TEXT_ERROR_CHECK(env != nullptr, return nullptr, "Env is nullptr");
+    napi_value fullNameArray = nullptr;
+    TEXT_ERROR_CHECK(napi_create_array(env, &fullNameArray) == napi_ok, return nullptr,
+        "Failed to create fontList");
+    uint32_t index = 0;
+    for (const auto& item : fontList) {
+        napi_value fullName = nullptr;
+        TEXT_ERROR_CHECK(napi_create_string_utf8(env, item.c_str(), NAPI_AUTO_LENGTH, &fullName) == napi_ok,
+            return nullptr, "Failed to create utf8 to string");
+        TEXT_ERROR_CHECK(napi_set_element(env, fullNameArray, index++, fullName) == napi_ok, return nullptr,
+            "Failed to set element");
+    }
+    return fullNameArray;
+}
+
+napi_value JsFontDescriptor::GetFontDescriptorByFullName(napi_env env, napi_callback_info info)
+{
+    struct FontDescriptorContext : public ContextBase {
+        std::string fullName;
+        TextEngine::FontParser::SystemFontType systemFontType;
+        FontDescSharedPtr resultDesc = nullptr;
+    };
+
+    sptr<FontDescriptorContext> context = sptr<FontDescriptorContext>::MakeSptr();
+
+    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY,
+        "Failed to get fontDescriptor by name, no memory");
+
+    auto inputParser = [env, context](size_t argc, napi_value *argv) {
+        TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is nullptr");
+        NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Status error, status=%d", static_cast<int>(context->status));
+        NAPI_CHECK_ARGS(context, argc == ARGC_TWO, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM,
+            return, "Argc is invalid %zu", argc);
+        NAPI_CHECK_ARGS(context, ConvertFromJsValue(env, argv[0], context->fullName), napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Parameter fullName is invalid");
+        NAPI_CHECK_ARGS(context, ConvertFromJsValue(env, argv[1], context->systemFontType), napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Parameter systemFontType is invalid");
+    };
+
+    context->GetCbInfo(env, info, inputParser);
+
+    auto executor = [context]() {
+        FontDescriptorMgrInstance.GetFontDescSharedPtrByFullName(
+            context->fullName, context->systemFontType, context->resultDesc);
+    };
+
+    auto complete = [env, context](napi_value& output) {
+        output = JsFontDescriptor::CreateFontDescriptor(env, context->resultDesc);
+    };
+
+    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorByFullName", executor, complete);
 }
 }

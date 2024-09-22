@@ -39,6 +39,9 @@ public:
 
     void ParseAllFontSource();
     void MatchFontDescriptors(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& descs);
+    void GetFontDescSharedPtrByFullName(const std::string& fullName,
+        const int32_t& systemFontType, FontDescSharedPtr& result);
+    void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
     void ClearFontFileCache();
 
 private:
