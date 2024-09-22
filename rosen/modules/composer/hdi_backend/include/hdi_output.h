@@ -102,7 +102,7 @@ private:
     sptr<VSyncSampler> sampler_ = nullptr;
 
     std::vector<sptr<SyncFence>> historicalPresentfences_;
-    sptr<SyncFence> thirdFrameAheadPresentFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> thirdFrameAheadPresentFence_ = SyncFence::InvalidFence();
     int32_t presentFenceIndex_ = 0;
 
     sptr<SurfaceBuffer> currFrameBuffer_ = nullptr;
