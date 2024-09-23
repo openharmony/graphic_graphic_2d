@@ -1219,14 +1219,17 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
     const std::unordered_map<std::string, bool>& GetWatermark() const;
     bool IsWatermarkEmpty() const;
-    bool GetIsIntersectWithRoundCorner() const
-    {
-        return isIntersectWithRoundCorner_;
+    template<class... Args>
+    void SetIntersectedRoundCornerAABBs(Args&& ...args) {
+        std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
 
-    void SetIsIntersectWithRoundCorner(bool isIntersectWithRoundCorner)
-    {
-        isIntersectWithRoundCorner_ = isIntersectWithRoundCorner;
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const {
+        return intersectedRoundCornerAABBs_;
+    }
+
+    size_t GetIntersectedRoundCornerAABBsSize() const {
+        return intersectedRoundCornerAABBs_.size();
     }
 protected:
     void OnSync() override;
@@ -1283,7 +1286,7 @@ private:
     bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
-    bool isIntersectWithRoundCorner_ = false;
+    std::vector<RectI> intersectedRoundCornerAABBs_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
