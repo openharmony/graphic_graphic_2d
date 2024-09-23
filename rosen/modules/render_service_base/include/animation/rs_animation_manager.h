@@ -54,8 +54,7 @@ public:
     uint32_t GetAnimationsSize();
     pid_t GetAnimationPid() const;
 
-    std::tuple<bool, bool, bool> Animate(int64_t time, bool nodeIsOnTheTree);
-    std::tuple<bool, bool, bool> AnimateBackground(int64_t time, bool nodeIsOnTheTree);
+    std::tuple<bool, bool, bool> Animate(int64_t time, bool nodeIsOnTheTree, bool abilityState);
 
     // spring animation related
     void RegisterSpringAnimation(PropertyId propertyId, AnimationId animId);

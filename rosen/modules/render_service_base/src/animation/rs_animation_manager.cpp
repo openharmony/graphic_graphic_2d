@@ -141,7 +141,7 @@ pid_t RSAnimationManager::GetAnimationPid() const
     return 0;
 }
 
-std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnTheTree)
+std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnTheTree, bool abilityState)
 {
     // process animation
     bool hasRunningAnimation = false;
@@ -152,11 +152,15 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool node
     rateDecider_.Reset();
     // iterate and execute all animations, remove finished animations
     EraseIf(animations_, [this, &hasRunningAnimation, time,
-        &needRequestNextVsync, nodeIsOnTheTree, &isCalculateAnimationValue](auto& iter) -> bool {
+        &needRequestNextVsync, nodeIsOnTheTree, &isCalculateAnimationValue, abilityState](auto& iter) -> bool {
         auto& animation = iter.second;
-        if (!nodeIsOnTheTree && animation->GetRepeatCount() == -1) {
+        if ((!nodeIsOnTheTree || !abilityState) && animation->GetRepeatCount() == -1) {
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
             return false;
+        }
+        if (!abilityState && animation->GetRepeatCount() != -1) {
+            OnAnimationFinished(animation);
+            return true;
         }
         bool isFinished = animation->Animate(time);
         if (isFinished) {
@@ -177,37 +181,6 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool node
             RS_OPTIONAL_TRACE_END();
         }
         return isFinished;
-    });
-    rateDecider_.MakeDecision(frameRateGetFunc_);
-    isCalculateAnimationValue = isCalculateAnimationValue && nodeIsOnTheTree;
-
-    return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
-}
-
-std::tuple<bool, bool, bool> RSAnimationManager::AnimateBackground(int64_t time, bool nodeIsOnTheTree)
-{
-    // process animation
-    bool hasRunningAnimation = false;
-    bool needRequestNextVsync = false;
-    // isCalculateAnimationValue is embedded modify for stat animate frame drop
-    bool isCalculateAnimationValue = false;
-    rsRange_.Reset();
-    rateDecider_.Reset();
-    // iterate and execute all animations, remove finished animations
-    EraseIf(animations_, [this, &hasRunningAnimation, time,
-        &needRequestNextVsync, nodeIsOnTheTree, &isCalculateAnimationValue](auto& iter) -> bool {
-        auto& animation = iter.second;
-        if (animation->GetRepeatCount() == -1) {
-            ROSEN_LOGD("RSAnimationManager::AnimateBackground, infinite loop animation, animation id:[%{public}" PRIu64 "]",
-            animation->GetAnimationId());
-            hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
-            return false;
-        } else {
-            ROSEN_LOGD("RSAnimationManager::AnimateBackground, finite loop animation, animation id:[%{public}" PRIu64 "]",
-            animation->GetAnimationId());
-            OnAnimationFinished(animation);
-            return true;
-        }
     });
     rateDecider_.MakeDecision(frameRateGetFunc_);
     isCalculateAnimationValue = isCalculateAnimationValue && nodeIsOnTheTree;

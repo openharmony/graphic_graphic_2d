@@ -1179,17 +1179,11 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
         return displaySync_->GetAnimateResult();
     }
     RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "]");
-    std::tuple<bool, bool, bool> animateResult;
-    auto context = GetContext().lock();
-    if (context) {
-        if (context->GetNodeMap().GetAbilityStateById(GetId())) {
-            animateResult = animationManager_.Animate(timestamp, IsOnTheTree());
-        } else {
-            animateResult = animationManager_.AnimateBackground(timestamp, IsOnTheTree());
-        }
-    } else {
-        animateResult = animationManager_.Animate(timestamp, IsOnTheTree());
+    bool abilityState = true;
+    if (context = GetContext().lock()) {
+        abilityState = context->GetNodeMap().GetAbilityStateById(GetId());
     }
+    auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
     }
