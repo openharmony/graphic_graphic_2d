@@ -1559,6 +1559,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
     auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(rootId);
     if (!uifirstRootNodeDrawable || uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+        RS_LOGE("uifirst invalid uifirstrootNodeId %" PRIu64, rootId);
         return false;
     }
     auto uifirstRootSurfaceNodeDrawable =
@@ -1575,7 +1576,11 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     };
     std::unique_lock<std::mutex> lock(notifyMutex_);
     notifyCv_.wait_for(lock, TIME_OUT, pred);
-    return pred();
+    auto ret = pred();
+    if (!ret) {
+        RS_LOGE("uifirst nodeId %" PRIu64" wait uifirstrootNodeId %" PRIu64" until timeout", params.GetId(), rootId);
+    }
+    return ret;
 }
 
 bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSSurfaceRenderParams& params)
