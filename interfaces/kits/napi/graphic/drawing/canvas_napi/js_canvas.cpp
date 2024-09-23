@@ -46,6 +46,9 @@
 #include "roundRect_napi/js_roundrect.h"
 #include "js_drawing_utils.h"
 #include "utils/performanceCaculate.h"
+#ifdef OHOS_PLATFORM
+#include "pipeline/rs_recording_canvas.h"
+#endif
 
 namespace OHOS::Rosen {
 #ifdef ROSEN_OHOS
@@ -254,7 +257,6 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
             Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix()));
         m_canvas->GetMutableBrush().SetShaderEffect(shader);
     }
-
     JS_CALL_DRAWING_FUNC(
         m_canvas->DrawVertices(*builder.Detach(), Drawing::BlendMode::MODULATE));
 }
@@ -679,14 +681,22 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
     PixelMapNapi* pixelMapNapi = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
 
-    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+    auto pixel = pixelMapNapi->GetPixelNapiInner();
+    if (pixel == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImage pixelmap GetPixelNapiInner is nullptr");
         return nullptr;
     }
 
     if (argc == ARGC_THREE) {
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
+        if (m_canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(m_canvas);
+            Drawing::Rect src(0, 0, pixel->GetWidth(), pixel->GetHeight());
+            Drawing::Rect dst(px, py, px + pixel->GetWidth(), py + pixel->GetHeight());
+            canvas_->DrawPixelMapRect(pixel, src, dst, Drawing::SamplingOptions());
+            return nullptr;
+        }
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
         if (image == nullptr) {
             ROSEN_LOGE("JsCanvas::OnDrawImage image is nullptr");
             return nullptr;
@@ -701,8 +711,15 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
             ROSEN_LOGE("JsCanvas::OnDrawImage get samplingOptions is nullptr");
             return nullptr;
         }
+        if (m_canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(m_canvas);
+            Drawing::Rect src(0, 0, pixel->GetWidth(), pixel->GetHeight());
+            Drawing::Rect dst(px, py, px + pixel->GetWidth(), py + pixel->GetHeight());
+            canvas_->DrawPixelMapRect(pixel, src, dst, *samplingOptions.get());
+            return nullptr;
+        }
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
         if (image == nullptr) {
             ROSEN_LOGE("JsCanvas::OnDrawImage image is nullptr");
             return nullptr;
