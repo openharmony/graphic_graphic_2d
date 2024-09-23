@@ -154,6 +154,26 @@ public:
     uint32_t SetupExtendObject(const std::vector<std::shared_ptr<ExtendObject>>& objectList);
 
     /*
+     * @brief  return RecordCmd index. UINT32_MAX is error.
+     */
+    uint32_t AddRecordCmd(const std::shared_ptr<RecordCmd>& recordCmd);
+
+    /*
+     * @brief  get RecordCmd by index.
+     */
+    std::shared_ptr<RecordCmd> GetRecordCmd(uint32_t index);
+
+    /*
+     * @brief  return real setup RecordCmd size.
+     */
+    uint32_t SetupRecordCmd(std::vector<std::shared_ptr<RecordCmd>>& recordCmdList);
+
+    /*
+     * @brief  return RecordCmd size, 0 is no RecordCmd.
+     */
+    uint32_t GetAllRecordCmd(std::vector<std::shared_ptr<RecordCmd>>& recordCmdList);
+
+    /*
      * @brief  return imageObject index, negative is error.
      */
     uint32_t AddImageObject(const std::shared_ptr<ExtendImageObject>& object);
@@ -250,6 +270,8 @@ protected:
     std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
     uint32_t opCnt_ = 0;
 
+    std::vector<std::shared_ptr<RecordCmd>> recordCmdVec_;
+    std::mutex recordCmdMutex_;
     std::vector<std::shared_ptr<ExtendImageObject>> imageObjectVec_;
     std::mutex imageObjectMutex_;
     std::vector<std::shared_ptr<ExtendImageBaseObj>> imageBaseObjVec_;
