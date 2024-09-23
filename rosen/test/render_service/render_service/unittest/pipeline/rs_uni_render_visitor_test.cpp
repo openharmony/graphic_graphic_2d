@@ -4298,6 +4298,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdatePrepareClip003, TestSize.Level1)
 HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceRenderNodeRotate002, TestSize.Level2)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4336,7 +4337,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode001, TestSize.Leve
     RSDisplayNodeConfig displayConfig;
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
     ASSERT_NE(rsDisplayRenderNode, nullptr);
-    // rsDisplayRenderNode->InitRenderParams();
     rsDisplayRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(rsDisplayRenderNode->dirtyManager_, nullptr);
     rsDisplayRenderNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
@@ -4345,7 +4345,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode001, TestSize.Leve
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curDisplayNode_ = rsDisplayRenderNode;
     rsUniRenderVisitor->QuickPrepareDisplayRenderNode(*rsDisplayRenderNode);
-    // ASSERT_FALSE(rsUniRenderVisitor->ancestorNodeHasAnimation_);
 }
 
 /**
