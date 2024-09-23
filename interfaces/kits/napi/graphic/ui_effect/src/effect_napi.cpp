@@ -181,26 +181,6 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
             "EffectNapi CreateBrightnessBlender failed, is not system app");
         return nullptr;
     }
-    BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
-    if (blender == nullptr) {
-        UIEFFECT_LOG_E("CreateBrightnessBlender blender is nullptr");
-        return nullptr;
-    }
-    napi_value object = nullptr;
-    napi_create_object(env, &object);
-    if (object == nullptr) {
-        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender object is Faild");
-        delete blender;
-        blender = nullptr;
-        return nullptr;
-    }
-    napi_wrap(
-        env, object, blender,
-        [](napi_env env, void* data, void* hint) {
-            BrightnessBlender* blenderObj = (BrightnessBlender*)data;
-            delete blenderObj;
-        },
-        nullptr, nullptr);
 
     size_t argc = 1;
     napi_value argv[1];
@@ -208,16 +188,18 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
     napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
     if (argc != 1) {
         UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, argc number is not 1.");
-        delete blender;
-        blender = nullptr;
         return nullptr;
     }
 
     napi_value nativeObj = argv[0];
     if (nativeObj == nullptr) {
         UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, nativeObj is nullptr.");
-        delete blender;
-        blender = nullptr;
+        return nullptr;
+    }
+
+    BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
+    if (blender == nullptr) {
+        UIEFFECT_LOG_E("CreateBrightnessBlender blender is nullptr");
         return nullptr;
     }
 
@@ -228,16 +210,21 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
         return nullptr;
     }
 
-    napi_set_named_property(env, object, "cubicRate", ParseJsValue(env, nativeObj, "cubicRate"));
-    napi_set_named_property(env, object, "quadraticRate", ParseJsValue(env, nativeObj, "quadraticRate"));
-    napi_set_named_property(env, object, "linearRate", ParseJsValue(env, nativeObj, "linearRate"));
-    napi_set_named_property(env, object, "degree", ParseJsValue(env, nativeObj, "degree"));
-    napi_set_named_property(env, object, "saturation", ParseJsValue(env, nativeObj, "saturation"));
-    napi_set_named_property(env, object, "positiveCoefficient", ParseJsValue(env, nativeObj, "positiveCoefficient"));
-    napi_set_named_property(env, object, "negativeCoefficient", ParseJsValue(env, nativeObj, "negativeCoefficient"));
-    napi_set_named_property(env, object, "fraction", ParseJsValue(env, nativeObj, "fraction"));
+    napi_status status = napi_wrap(
+        env, nativeObj, blender,
+        [](napi_env env, void* data, void* hint) {
+            BrightnessBlender* blenderObj = (BrightnessBlender*)data;
+            delete blenderObj;
+        },
+        nullptr, nullptr);
+    if (status != napi_ok) {
+        UIEFFECT_LOG_E("EffectNapi  Wrap native instance failed.");
+        delete blender;
+        blender = nullptr;
+        return nullptr;
+    }
 
-    return object;
+    return nativeObj;
 }
  
 static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arraySize)
