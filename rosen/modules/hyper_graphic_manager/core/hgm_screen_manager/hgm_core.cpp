@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-123
+
 #include "hgm_core.h"
 
 #include <algorithm>
@@ -190,7 +190,8 @@ void HgmCore::SetLtpoConfig()
         HGM_LOGW("HgmCore failed to find switch strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end()) {
+    if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end() &&
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig["maxTE"])) {
         maxTE_ = std::stoul(curScreenSetting.ltpoConfig["maxTE"]);
         CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
     } else {
@@ -198,7 +199,8 @@ void HgmCore::SetLtpoConfig()
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("alignRate") != curScreenSetting.ltpoConfig.end()) {
+    if (curScreenSetting.ltpoConfig.find("alignRate") != curScreenSetting.ltpoConfig.end() &&
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig["alignRate"])) {
         alignRate_ = std::stoul(curScreenSetting.ltpoConfig["alignRate"]);
     } else {
         alignRate_ = 0;
