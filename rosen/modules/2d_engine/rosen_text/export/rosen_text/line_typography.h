@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,29 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef ARRAY_MGR_H
-#define ARRAY_MGR_H
+#ifndef ROSEN_TEXT_LINE_TYPOGRAPHY_H
+#define ROSEN_TEXT_LINE_TYPOGRAPHY_H
+
+#include "typography.h"
 
 namespace OHOS {
 namespace Rosen {
-enum ObjectType {
-    INVALID = -1,
-    STRING = 0,
-    TEXT_LINE = 1,
-    TEXT_RUN = 2,
-    DRAWING_RECT = 3,
-};
-
-struct ObjectArray {
-    void* addr = nullptr;
-    size_t num = 0;
-    ObjectType type = ObjectType::INVALID;
-};
-
-struct LineObject {
-    void* line = nullptr;
-    bool isArray = false;
+class LineTypography {
+public:
+    virtual ~LineTypography() = default;
+    virtual size_t GetLineBreak(size_t startIndex, double width) const = 0;
+    virtual std::unique_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) = 0;
+    virtual std::unique_ptr<Typography> GetTempTypography() = 0;
+    virtual void* GetLineFetcher() const = 0;
+    virtual size_t GetUnicodeSize() const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // ARRAY_MGR_H
+
+#endif // ROSEN_TEXT_LINE_TYPOGRAPHY_H

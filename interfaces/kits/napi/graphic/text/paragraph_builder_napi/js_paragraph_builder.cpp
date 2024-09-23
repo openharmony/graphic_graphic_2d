@@ -14,6 +14,7 @@
  */
 #include "fontcollection_napi/js_fontcollection.h"
 #include "js_paragraph_builder.h"
+#include "line_typeset_napi/js_line_typeset.h"
 #include "napi_common.h"
 #include "paragraph_napi/js_paragraph.h"
 #include "utils/text_log.h"
@@ -82,6 +83,7 @@ napi_value JsParagraphBuilder::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("popStyle", JsParagraphBuilder::PopStyle),
         DECLARE_NAPI_FUNCTION("addPlaceholder", JsParagraphBuilder::AddPlaceholder),
         DECLARE_NAPI_FUNCTION("build", JsParagraphBuilder::Build),
+        DECLARE_NAPI_FUNCTION("buildLineTypeset", JsParagraphBuilder::BuildLineTypeset),
         DECLARE_NAPI_FUNCTION("addSymbol", JsParagraphBuilder::AppendSymbol),
     };
 
@@ -235,6 +237,25 @@ napi_value JsParagraphBuilder::OnBuild(napi_env env, napi_callback_info info)
 
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate_->CreateTypography();
     return JsParagraph::CreateJsTypography(env, std::move(typography));
+}
+
+napi_value JsParagraphBuilder::BuildLineTypeset(napi_env env, napi_callback_info info)
+{
+    JsParagraphBuilder* me = CheckParamsAndGetThis<JsParagraphBuilder>(env, info);
+    return (me != nullptr) ? me->OnBuildLineTypeset(env, info) : nullptr;
+}
+
+napi_value JsParagraphBuilder::OnBuildLineTypeset(napi_env env, napi_callback_info info)
+{
+    if (typographyCreate_ == nullptr) {
+        TEXT_LOGE("Typography creator is null");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    std::unique_ptr<OHOS::Rosen::LineTypography> lineTypography = typographyCreate_->CreateLineTypography();
+    if (lineTypography == nullptr) {
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create line typography.");
+    }
+    return JsLineTypeset::CreateJsLineTypeset(env, std::move(lineTypography));
 }
 
 napi_value JsParagraphBuilder::AppendSymbol(napi_env env, napi_callback_info info)

@@ -58,6 +58,14 @@ typedef struct OH_Drawing_FontCollection OH_Drawing_FontCollection;
 typedef struct OH_Drawing_Typography OH_Drawing_Typography;
 
 /**
+ * @brief Defines an <b>OH_Drawing_LineTypography</b>, which is used to perform line layout.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct OH_Drawing_LineTypography OH_Drawing_LineTypography;
+
+/**
  * @brief Defines an <b>OH_Drawing_TextStyle</b>, which is used to manage text colors and decorations.
  *
  * @since 8

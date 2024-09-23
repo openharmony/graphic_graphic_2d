@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
+#include "js_text_init.h"
 #include "enum_napi/text_enum_napi.h"
 #include "fontcollection_napi/js_fontcollection.h"
 #include "js_fontdescriptor.h"
-#include "js_text_init.h"
+#include "line_typeset_napi/js_line_typeset.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "paragraph_napi/js_paragraph.h"
 #include "run_napi/js_run.h"
@@ -34,6 +35,7 @@ napi_value TextInit(napi_env env, napi_value exportObj)
     JsParagraphBuilder::Init(env, exportObj);
     JsStrutStyleManager::Init(env, exportObj);
     JsFontDescriptor::Init(env, exportObj);
+    JsLineTypeset::Init(env, exportObj);
     return exportObj;
 }
 } // namespace OHOS::Rosen

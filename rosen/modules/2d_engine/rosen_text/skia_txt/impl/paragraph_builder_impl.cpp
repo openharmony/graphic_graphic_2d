@@ -18,6 +18,7 @@
 #include "modules/skparagraph/include/ParagraphStyle.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
+#include "paragraph_line_fetcher_impl.h"
 #include "txt/paragraph_style.h"
 #include "utils/text_log.h"
 
@@ -147,6 +148,20 @@ std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
     auto ret = std::make_unique<ParagraphImpl>(builder_->Build(), std::move(paints_));
     builder_->Reset();
     return ret;
+}
+
+std::unique_ptr<ParagraphLineFetcher> ParagraphBuilderImpl::BuildLineFetcher()
+{
+    if (builder_ == nullptr) {
+        return nullptr;
+    }
+    auto lineFetcher = builder_->buildLineFetcher();
+    if (lineFetcher == nullptr) {
+        return nullptr;
+    }
+    auto fetcherImpl = std::make_unique<ParagraphLineFetcherImpl>(std::move(lineFetcher), std::move(paints_));
+    builder_->Reset();
+    return fetcherImpl;
 }
 
 skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
