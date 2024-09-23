@@ -104,7 +104,6 @@ private:
     std::map<uint32_t, uint64_t> refreshRateCounts_;
     sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
     int64_t delayTime_ = 0;
-    bool isLastAdaptive_ = false;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;

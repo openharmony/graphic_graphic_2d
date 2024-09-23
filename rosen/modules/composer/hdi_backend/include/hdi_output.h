@@ -97,6 +97,7 @@ public:
     void ReleaseLayers(sptr<SyncFence>& releaseFence);
     int32_t GetBufferCacheSize();
     void SetVsyncSamplerEnabled(bool enabled);
+    bool GetVsyncSamplerEnabled();
 
 private:
     HdiDevice *device_ = nullptr;
@@ -150,7 +151,7 @@ private:
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
-    bool disableVsyncSample_ = false;
+    bool enableVsyncSample_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

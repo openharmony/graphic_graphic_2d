@@ -257,6 +257,15 @@ void HdiBackend::SetVsyncSamplerEnabled(const OutputPtr &output, bool enabled)
     output->SetVsyncSamplerEnabled(enabled);
 }
 
+bool HdiBackend::GetVsyncSamplerEnabled(const OutputPtr &output)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return false;
+    }
+    output->GetVsyncSamplerEnabled();
+}
+
 void HdiBackend::ResetDevice()
 {
     if (device_) {

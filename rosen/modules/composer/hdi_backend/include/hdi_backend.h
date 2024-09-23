@@ -63,6 +63,7 @@ public:
     /* set a temporary period used only for VSyncSampler::GetHardwarePeriod interface */
     void SetPendingMode(const OutputPtr &output, int64_t period, int64_t timestamp);
     void SetVsyncSamplerEnabled(const OutputPtr &output, bool enabled);
+    bool GetVsyncSamplerEnabled(const OutputPtr &output);
 private:
     HdiBackend() = default;
     virtual ~HdiBackend() = default;

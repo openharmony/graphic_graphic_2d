@@ -545,7 +545,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     bool startSample = false;
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        startSample = !disableVsyncSample_ && sampler_->AddPresentFenceTime(timestamp);
+        startSample = enableVsyncSample_ && sampler_->AddPresentFenceTime(timestamp);
         RecordCompositionTime(timestamp);
         bool presentTimeUpdated = false;
         LayerPtr uniRenderLayer = nullptr;
@@ -580,7 +580,12 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 void HdiOutput::SetVsyncSamplerEnabled(bool enabled)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    disableVsyncSample_ = !enabled;
+    enableVsyncSample_ = enabled;
+}
+
+bool HdiOutput::GetVsyncSamplerEnabled()
+{
+    return enableVsyncSample_;
 }
 
 
@@ -714,7 +719,7 @@ int32_t HdiOutput::StartVSyncSampler(bool forceReSample)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     ScopedBytrace func("HdiOutput::StartVSyncSampler, forceReSample:" + std::to_string(forceReSample));
-    if (disableVsyncSample_) {
+    if (!enableVsyncSample_) {
         ScopedBytrace func("disabled vsyncSample");
         return GRAPHIC_DISPLAY_FAILURE;
     }
