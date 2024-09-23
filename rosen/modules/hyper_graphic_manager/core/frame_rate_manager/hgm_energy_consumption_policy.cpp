@@ -238,7 +238,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
         return;
     }
 
-    if (rsRange.componentScene_ != ComponentScene::UNKNOWN_SCENE) {
+    if (rsRange.GetComponentName() != "UNKNOWN_SCENE") {
         lastAssuranceLog = std::string("COMPONENT_ASSURANCE[ ") + rsRange.GetComponentName() + "]";
         if (lastAssuranceLog_ == lastAssuranceLog) {
             return;
@@ -253,6 +253,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
     if (lastAssuranceLog == "" || lastAssuranceLog_ == lastAssuranceLog) {
         return;
     }
+    lastAssuranceLog_ = lastAssuranceLog;
     RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
     HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
 }

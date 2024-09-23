@@ -42,8 +42,8 @@ public:
     FrameRateRange(int min, int max, int preferred, int type) : min_(min), max_(max),
         preferred_(preferred), type_(type) {}
 
-    FrameRateRange(int min, int max, int preferred, int type, int componentScene) : min_(min), max_(max),
-        preferred_(preferred), type_(type), componentScene_(ComponentScene::UNKNOWN_SCENE) {}
+    FrameRateRange(int min, int max, int preferred, int type, ComponentScene componentScene) : min_(min), max_(max),
+        preferred_(preferred), type_(type), componentScene_(componentScene) {}
 
     bool IsZero() const
     {

@@ -146,6 +146,7 @@ public:
     void Init(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     void InitTouchManager();
+    void InitPowerTouchManager();
     // called by RSMainTHread
     void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
@@ -254,6 +255,8 @@ private:
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
+    // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
+    HgmTouchManager powerTouchManager_;
     std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
     bool needHighRefresh_ = false;

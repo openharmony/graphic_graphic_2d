@@ -34,6 +34,9 @@ HgmTouchManager::HgmTouchManager() : HgmStateMachine<TouchState, TouchEvent>(Tou
         OnEvent(TouchEvent::RS_IDLE_TIMEOUT_EVENT);
     })
 {
+    RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
+        ChangeState(TouchState::DOWN_STATE);
+    });
     RegisterEventCallback(TouchEvent::UP_EVENT, [this] (TouchEvent event) {
         ChangeState(TouchState::UP_STATE);
     });
