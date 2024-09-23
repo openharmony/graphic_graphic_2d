@@ -89,6 +89,10 @@ void DrawCmdList::ClearOp()
         opCnt_ = 0;
     }
     {
+        std::lock_guard<std::mutex> lock(recordCmdMutex_);
+        recordCmdVec_.clear();
+    }
+    {
         std::lock_guard<std::mutex> lock(imageObjectMutex_);
         imageObjectVec_.clear();
     }
@@ -475,6 +479,10 @@ void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList
         return;
     }
 
+    {
+        std::lock_guard<std::mutex> lock(drawCmdList->recordCmdMutex_);
+        drawCmdList->recordCmdVec_.swap(recordCmdVec_);
+    }
 #ifdef SUPPORT_OHOS_PIXMAP
     {
         std::lock_guard<std::mutex> lock(drawCmdList->imageObjectMutex_);

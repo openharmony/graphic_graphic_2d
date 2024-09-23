@@ -145,6 +145,19 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
     return bitmap;
 }
 
+OpDataHandle DRAWING_API CmdListHelper::AddRecordCmdToCmdList(
+    CmdList& cmdList, const std::shared_ptr<RecordCmd>& recordCmd)
+{
+    auto index = cmdList.AddRecordCmd(recordCmd);
+    return { index };
+}
+
+std::shared_ptr<RecordCmd> CmdListHelper::GetRecordCmdFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& recordCmdHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetRecordCmd(recordCmdHandle.offset);
+}
+
 OpDataHandle CmdListHelper::AddImageObjectToCmdList(CmdList& cmdList, const std::shared_ptr<ExtendImageObject>& object)
 {
     auto index = cmdList.AddImageObject(object);
