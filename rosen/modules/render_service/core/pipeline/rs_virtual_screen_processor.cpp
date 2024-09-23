@@ -86,7 +86,7 @@ void RSVirtualScreenProcessor::PostProcess()
         canvas_->Clear(Drawing::Color::COLOR_BLACK);
     }
     auto surfaceOhos = renderFrame_->GetSurface();
-    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
+    RSBaseRenderEngine::SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
 }
 

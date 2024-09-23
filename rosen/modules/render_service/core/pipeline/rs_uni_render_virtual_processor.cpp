@@ -310,7 +310,7 @@ void RSUniRenderVirtualProcessor::PostProcess()
         return;
     }
     auto surfaceOhos = renderFrame_->GetSurface();
-    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
+    RSBaseRenderEngine::SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
     RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
