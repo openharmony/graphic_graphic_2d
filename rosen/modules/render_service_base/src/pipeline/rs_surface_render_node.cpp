@@ -1120,13 +1120,6 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, co
     AddToPendingSyncList();
 }
 
-void RSSurfaceRenderNode::ResetPreBuffer()
-{
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    surfaceParams->SetPreBuffer(nullptr);
-    AddToPendingSyncList();
-}
-
 void RSSurfaceRenderNode::NeedClearBufferCache()
 {
     if (!surfaceHandler_) {
