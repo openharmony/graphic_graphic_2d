@@ -128,7 +128,8 @@
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json",
             "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect:libgraphics_effect",
-            "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/native_display_soloist:libnative_display_soloist"
+            "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/native_display_soloist:libnative_display_soloist",
+            "//foundation/graphic/graphic_2d/utils/color_manager/ndk:libnative_color_space_manager"
           ],
           "fwk_group": [
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
@@ -389,9 +390,20 @@
               "header_files": [
                   "color_space_object_convertor.h",
                   "js_color_space.h",
-                  "js_color_space_utils.h"
+                  "js_color_space_utils.h",
+                  "ndk_color_space.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/utils/color_manager/ndk:libnative_color_space_manager",
+            "header": {
+              "header_files": [
+                "native_color_space_manager.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/color_manager"
             }
           },
           {

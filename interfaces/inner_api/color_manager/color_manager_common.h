@@ -17,6 +17,7 @@
 #define OHOS_ROSEN_COLOR_MANAGER_COMMON_H
 
 #include <cstdint>
+#include <map>
 
 namespace OHOS {
 namespace ColorManager {
