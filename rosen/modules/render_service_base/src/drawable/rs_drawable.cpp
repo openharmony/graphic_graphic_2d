@@ -141,6 +141,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_DEGREE
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_PARAMS
+    RSDrawableSlot::FOREGROUND_FILTER,             // DISTORTION_K
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::BACKGROUND_FILTER,             // MAGNIFIER_PARA,
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS
@@ -263,7 +264,7 @@ enum DrawableVecStatus : uint8_t {
     // Used by skip logic in RSRenderNode::UpdateDisplayList
     FRAME_NOT_EMPTY    = 1 << 4,
     NODE_NOT_EMPTY     = 1 << 5,
- 
+
     // masks
     BOUNDS_MASK  = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
     FRAME_MASK   = FRAME_NOT_EMPTY,
@@ -607,7 +608,7 @@ bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
         !drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
         return false;
     }
-    
+
     auto &filterDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)];
     auto bgFilterDrawable = std::static_pointer_cast<RSBackgroundFilterDrawable>(filterDrawable);
     bgFilterDrawable->RemovePixelStretch();
