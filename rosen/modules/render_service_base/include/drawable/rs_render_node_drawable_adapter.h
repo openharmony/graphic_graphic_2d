@@ -195,6 +195,7 @@ private:
     static inline std::mutex cacheMapMutex_;
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
+    static void RemoveDrawableFromCache(const NodeId nodeId);
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSDisplayRenderNode;
