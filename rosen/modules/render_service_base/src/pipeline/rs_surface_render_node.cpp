@@ -1047,7 +1047,7 @@ void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
     ancoForceDoDirect_.store(direct);
 }
 
-bool RSSurfaceRenderNode::GetOriAncoForceDoDirect() const
+bool RSSurfaceRenderNode::GetOriAncoForceDoDirect()
 {
     return ancoForceDoDirect_.load();
 }
