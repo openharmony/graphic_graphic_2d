@@ -160,7 +160,7 @@ void HgmCore::SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting)
         std::string asConfig = curScreenSetting.ltpoConfig["adaptiveSync"];
  
         if (asConfig == "1" || asConfig == "0") {
-            adaptiveSync_ = std::stoi(curScreenSetting.ltpoConfig["adaptiveSync"]);
+            adaptiveSync_ = std::stoi(asConfig);
         } else {
             adaptiveSync_ = 0;
         }
