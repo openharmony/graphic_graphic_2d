@@ -77,6 +77,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
+    rsImage_->SetFitMatrix(imageInfo.fitMatrix);
     imageInfo_ = imageInfo;
 }
 
@@ -102,6 +103,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
                         imageInfo.frameRect.GetRight(),
                         imageInfo.frameRect.GetBottom());
         rsImage_->SetFrameRect(frameRect);
+        rsImage_->SetFitMatrix(imageInfo.fitMatrix);
     }
 }
 
