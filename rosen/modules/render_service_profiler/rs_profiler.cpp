@@ -24,6 +24,7 @@
 #include "rs_profiler_cache.h"
 #include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_capturedata.h"
+#include "rs_profiler_command.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_json.h"
 #include "rs_profiler_log.h"
@@ -31,7 +32,6 @@
 #include "rs_profiler_packet.h"
 #include "rs_profiler_settings.h"
 #include "rs_profiler_telemetry.h"
-#include "rs_profiler_utils.h"
 
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_main_thread.h"
@@ -390,7 +390,16 @@ void RSProfiler::ProcessSignalFlag()
     if (!signalFlagChanged_) {
         bool newEnabled = RSSystemProperties::GetProfilerEnabled();
         bool newBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
-        if (IsEnabled() != newEnabled || IsBetaRecordEnabled() != newBetaRecord) {
+        if (enabled_ && !newEnabled) {
+            const ArgList dummy;
+            if (GetMode() == Mode::READ) {
+                PlaybackStop(dummy);
+            }
+            if (GetMode() == Mode::WRITE) {
+                RecordStop(dummy);
+            }
+        }
+        if (enabled_ != newEnabled || IsBetaRecordEnabled() != newBetaRecord) {
             enabled_ = newEnabled;
             betaRecordingEnabled_ = newBetaRecord;
             OnWorkModeChanged();
@@ -563,7 +572,7 @@ void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
 {
     g_renderServiceRenderCpuId = Utils::GetCpuId();
 
-    if (g_calcPerfNode == 0 || g_calcPerfNodeTry < 0 || g_calcPerfNodeTry > CALC_PERF_NODE_TIME_COUNT) {
+    if (g_calcPerfNode == 0 || g_calcPerfNodeTry < 0 || g_calcPerfNodeTry >= CALC_PERF_NODE_TIME_COUNT) {
         return;
     }
 
@@ -1804,60 +1813,6 @@ void RSProfiler::PlaybackResume(const ArgList& args)
     Respond("OK");
 }
 
-RSProfiler::Command RSProfiler::GetCommand(const std::string& command)
-{
-    static const std::map<std::string, Command> COMMANDS = {
-        { "rstree_contains", DumpTree },
-        { "rstree_fix", PatchNode },
-        { "rstree_kill_node", KillNode },
-        { "rstree_setparent", AttachChild },
-        { "rstree_getroot", GetRoot },
-        { "rstree_node_mod", DumpNodeModifiers },
-        { "rstree_node_prop", DumpNodeProperties },
-        { "rstree_pid", DumpSurfaces },
-        { "rstree_kill_pid", KillPid },
-        { "rstree_prepare_replay", PlaybackPrepare },
-        { "rstree_save_frame", TestSaveFrame },
-        { "rstree_load_frame", TestLoadFrame },
-        { "rstree_switch", TestSwitch },
-        { "rstree_dump_json", DumpTreeToJson },
-        { "rsrecord_start", RecordStart },
-        { "rsrecord_stop", RecordStop },
-        { "rsrecord_replay_prepare", PlaybackPrepareFirstFrame },
-        { "rsrecord_replay", PlaybackStart },
-        { "rsrecord_replay_stop", PlaybackStop },
-        { "rsrecord_pause_now", PlaybackPause },
-        { "rsrecord_pause_at", PlaybackPauseAt },
-        { "rsrecord_pause_resume", PlaybackResume },
-        { "rsrecord_pause_clear", PlaybackPauseClear },
-        { "rsrecord_sendbinary", RecordSendBinary },
-        { "rssurface_pid", DumpNodeSurface },
-        { "rscon_print", DumpConnections },
-        { "save_rdc", SaveRdc },
-        { "save_skp", SaveSkp },
-        { "info", GetDeviceInfo },
-        { "freq", GetDeviceFrequency },
-        { "fixenv", FixDeviceEnv },
-        { "set", SetSystemParameter },
-        { "get", GetSystemParameter },
-        { "params", DumpSystemParameters },
-        { "get_perf_tree", GetPerfTree },
-        { "calc_perf_node", CalcPerfNode },
-        { "calc_perf_node_all", CalcPerfNodeAll },
-        { "socket_shutdown", SocketShutdown },
-        { "version", Version },
-        { "file_version", FileVersion },
-        { "reset", Reset },
-    };
-
-    if (command.empty()) {
-        return nullptr;
-    }
-
-    const auto delegate = COMMANDS.find(command);
-    return (delegate != COMMANDS.end()) ? delegate->second : nullptr;
-}
-
 void RSProfiler::ProcessCommands()
 {
     if (g_playbackWaitFrames > 0) {
@@ -1867,18 +1822,9 @@ void RSProfiler::ProcessCommands()
         return;
     }
 
-    std::vector<std::string> commandData;
-    if (!Network::PopCommand(commandData)) {
-        return;
-    }
-
-    const std::string& command = commandData[0];
-    if (const Command delegate = GetCommand(command)) {
-        const ArgList args =
-            (commandData.size() > 1) ? ArgList({ commandData.begin() + 1, commandData.end() }) : ArgList();
-        delegate(args);
-    } else if (!command.empty()) {
-        Respond("Command has not been found: " + command);
+    std::vector<std::string> line;
+    if (Network::PopCommand(line)) {
+        Invoke(line);
     }
 }
 

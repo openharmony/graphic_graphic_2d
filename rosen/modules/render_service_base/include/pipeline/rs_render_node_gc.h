@@ -34,7 +34,7 @@ constexpr const char* DELETE_DRAWABLE_TASK = "ReleaseDrawableMemory";
 class RSB_EXPORT RSRenderNodeGC {
 public:
     typedef void (*gcTask)(RSTaskMessage::RSTask, const std::string&, int64_t,
-        AppExecFwk::EventQueue::Priority priority);
+        AppExecFwk::EventQueue::Priority);
 
     static RSRenderNodeGC& Instance();
 

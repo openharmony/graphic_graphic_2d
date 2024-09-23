@@ -30,3 +30,10 @@ rosen/modules/render_service_base/src/render/ @lyt1024
 
 [IPC]
 rosen/modules/render_service/core/transaction/ @hengming-wang
+
+[animation]
+interfaces/kits/napi/graphic/animation/window_animation_manager/ @comicchang
+rosen/modules/animation/window_animation/ @comicchang
+rosen/modules/render_service_base/include/animation/ @comicchang
+rosen/modules/render_service_base/src/animation/ @comicchang
+rosen/modules/render_service_client/core/animation/ @comicchang

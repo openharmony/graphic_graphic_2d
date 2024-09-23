@@ -109,6 +109,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_connection.cpp",
     "core/pipeline/rs_render_service_listener.cpp",
     "core/pipeline/rs_render_service_visitor.cpp",
+    "core/pipeline/rs_surface_buffer_callback_manager.cpp",
     "core/pipeline/rs_surface_capture_task.cpp",
     "core/pipeline/rs_surface_capture_task_parallel.cpp",
     "core/pipeline/rs_ui_capture_task_parallel.cpp",
@@ -244,6 +245,7 @@ ohos_shared_library("librender_service") {
       "$rosen_root/modules/render_service_profiler/rs_profiler_beta_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capture_recorder.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_capturedata.cpp",
+      "$rosen_root/modules/render_service_profiler/rs_profiler_command.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_file.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_network.cpp",
       "$rosen_root/modules/render_service_profiler/rs_profiler_packet.cpp",
@@ -287,6 +289,7 @@ ohos_shared_library("librender_service") {
 
   external_deps = [
     "ability_runtime:app_manager",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",

@@ -63,7 +63,6 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_SKIP_DRAW,
     SURFACE_NODE_SET_WATERMARK,
     SURFACE_NODE_SET_WATERMARK_ENABLED,
-    SURFACE_NODE_SET_WINDOW_MODE,
     SURFACE_NODE_SET_ABILITY_STATE,
 };
 
@@ -92,7 +91,7 @@ public:
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
     static void MarkUIHidden(RSContext& context, NodeId nodeId, bool isHidden);
     static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType);
-    static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, float density);
+    static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, RRect rrect);
     static void SetAnimationFinished(RSContext& context, NodeId nodeId);
     static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
@@ -108,7 +107,6 @@ public:
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
     static void SetWatermarkEnabled(RSContext& context, NodeId nodeId, const std::string& name, bool isEnabled);
-    static void SetWindowMode(RSContext& context, NodeId nodeId, RSWindowMode mode);
     static void SetAbilityState(RSContext& context, NodeId nodeId, bool abilityState);
 };
 
@@ -160,7 +158,7 @@ ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
     SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, uint8_t))
 ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW, SurfaceNodeCommandHelper::SetContainerWindow,
-    NodeId, bool, float))
+    NodeId, bool, RRect))
 ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED, SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
 ADD_COMMAND(RSSurfaceNodeAttachToDisplay,
@@ -190,8 +188,6 @@ ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
 ADD_COMMAND(RSSurfaceNodeSetWatermarkEnabled,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED, SurfaceNodeCommandHelper::SetWatermarkEnabled,
     NodeId, std::string, bool))
-ADD_COMMAND(RSSurfaceNodeSetWindowMode,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_WINDOW_MODE, SurfaceNodeCommandHelper::SetWindowMode, NodeId, RSWindowMode))
 ADD_COMMAND(RSSurfaceNodeSetAbilityState,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_ABILITY_STATE, SurfaceNodeCommandHelper::SetAbilityState, NodeId, bool))
 } // namespace Rosen

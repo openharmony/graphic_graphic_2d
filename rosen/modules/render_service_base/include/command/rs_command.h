@@ -90,6 +90,9 @@ public:
     {
         return "commandType:[" + std::to_string(GetType()) + ", " + std::to_string(GetSubType()) + "], ";
     }
+private:
+    size_t indexVerifier_ = 0;
+    friend class RSTransactionData;
 #ifdef RS_PROFILER_ENABLED
 protected:
     using PatchFunction = NodeId (*)(NodeId);

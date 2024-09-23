@@ -67,7 +67,7 @@ enum class TextErrorCode : int32_t {
     ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
     ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
     ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
-    ERR_NO_MEMORY = 8800100, // no memory
+    ERROR_NO_MEMORY = 8800100, // no memory
 };
 
 #define GET_UNWRAP_PARAM(argc, value)                                                                                  \
@@ -538,6 +538,8 @@ void SetStrutStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pog
 void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle);
 
 napi_value GetFontMetricsAndConvertToJsValue(napi_env env, Drawing::FontMetrics* metrics);
+
+bool NapiValueTypeIsValid(napi_env env, napi_value argValue);
 
 } // namespace OHOS::Rosen
 #endif // OHOS_JS_TEXT_UTILS_H

@@ -89,7 +89,7 @@ bool RSUIDirectorFuzzTest(const uint8_t* data, size_t size)
     uint8_t alpha = GetData<uint8_t>();
     bool isRenderForced = GetData<bool>();
     bool hasContainerWindow = GetData<bool>();
-    float density = GetData<float>();
+    RRect rrect = GetData<RRect>();
     NodeId root = GetData<NodeId>();
     uint64_t timeStamp = GetData<uint64_t>();
     std::string abilityName = GetStringFromData(STR_LEN);
@@ -101,7 +101,7 @@ bool RSUIDirectorFuzzTest(const uint8_t* data, size_t size)
     uiDirector->SetRSSurfaceNode(surfaceNode);
     uiDirector->SetAbilityBGAlpha(alpha);
     uiDirector->SetRTRenderForced(isRenderForced);
-    uiDirector->SetContainerWindow(hasContainerWindow, density);
+    uiDirector->SetContainerWindow(hasContainerWindow, rrect);
     uiDirector->SetRoot(root);
     uiDirector->SetTimeStamp(timeStamp, abilityName);
     uiDirector->SetCacheDir(cacheFilePath);

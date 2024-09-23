@@ -66,6 +66,78 @@ void TextLineBaseImpl::Paint(Drawing::Canvas *canvas, double x, double y)
     }
     return textlinebase_->Paint(canvas, x, y);
 }
+
+std::unique_ptr<TextLineBase> TextLineBaseImpl::CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
+    const std::string& ellipsisStr) const
+{
+    if (!textlinebase_) {
+        return nullptr;
+    }
+
+    std::unique_ptr<SPText::TextLineBase> textLine = textlinebase_->CreateTruncatedLine(width, ellipsisMode,
+        ellipsisStr);
+    if (textLine == nullptr) {
+        return nullptr;
+    }
+
+    return std::make_unique<TextLineBaseImpl>(std::move(textLine));
+}
+
+double TextLineBaseImpl::GetTypographicBounds(double* ascent, double* descent, double* leading) const
+{
+    if (!textlinebase_) {
+        return 0.0;
+    }
+    return textlinebase_->GetTypographicBounds(ascent, descent, leading);
+}
+
+Drawing::Rect TextLineBaseImpl::GetImageBounds() const
+{
+    if (!textlinebase_) {
+        return {};
+    }
+    return textlinebase_->GetImageBounds();
+}
+
+double TextLineBaseImpl::GetTrailingSpaceWidth() const
+{
+    if (!textlinebase_) {
+        return 0.0;
+    }
+    return textlinebase_->GetTrailingSpaceWidth();
+}
+
+int32_t TextLineBaseImpl::GetStringIndexForPosition(SkPoint point) const
+{
+    if (!textlinebase_) {
+        return 0;
+    }
+    return textlinebase_->GetStringIndexForPosition(point);
+}
+
+double TextLineBaseImpl::GetOffsetForStringIndex(int32_t index) const
+{
+    if (!textlinebase_) {
+        return 0.0;
+    }
+    return textlinebase_->GetOffsetForStringIndex(index);
+}
+
+std::map<int32_t, double> TextLineBaseImpl::GetIndexAndOffsets(bool& isHardBreak) const
+{
+    if (!textlinebase_) {
+        return {};
+    }
+    return textlinebase_->GetIndexAndOffsets(isHardBreak);
+}
+
+double TextLineBaseImpl::GetAlignmentOffset(double alignmentFactor, double alignmentWidth) const
+{
+    if (!textlinebase_) {
+        return 0.0;
+    }
+    return textlinebase_->GetAlignmentOffset(alignmentFactor, alignmentWidth);
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

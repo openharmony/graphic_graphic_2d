@@ -279,12 +279,12 @@ HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectFPS002, Function | SmallTest | Lev
 }
 
 /**
- * @tc.name: GetUiFrameworkTypeList
- * @tc.desc: Verify the result of SetAndGetSurfaceTimeState function
+ * @tc.name: GetUiFrameworkTypeTable
+ * @tc.desc: Verify the result of GetUiFrameworkTypeTable function
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */
-HWTEST_F(HgmIdleDetectorTest, GetUiFrameworkTypeList, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, GetUiFrameworkTypeTable, Function | SmallTest | Level1)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
@@ -303,6 +303,5 @@ HWTEST_F(HgmIdleDetectorTest, GetUiFrameworkTypeList, Function | SmallTest | Lev
         }
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -298,20 +298,7 @@ private:
      * 3. find the child background node, which is no transparency and completely filling the window
      */
     void CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNode& node);
-
-    inline void RegScreenCallback(RSDisplayRenderNode& node)
-    {
-        std::call_once(regScreenCallbackFlag, [&node]() {
-            node.SetReleaseTask([](uint64_t screenId) {
-                auto screenManager = CreateOrGetScreenManager();
-                if (screenManager == nullptr) {
-                    RS_LOGE("RealeaseScreenDmaBuffer RSScreenManager is nullptr!");
-                    return;
-                }
-                screenManager->RealeaseScreenDmaBuffer(screenId);
-            });
-        });
-    }
+    void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     uint32_t appWindowNum_ = 0;
@@ -344,6 +331,8 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentCleanFilter_;
     // record nodes which has transparent dirty filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentDirtyFilter_;
+    // record DRM nodes
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
@@ -367,7 +356,6 @@ private:
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
     Vector4f curCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     Drawing::Matrix parentSurfaceNodeMatrix_;
-    std::once_flag regScreenCallbackFlag;
     // visible filter in transparent surface or display must prepare
     bool filterInGlobal_ = true;
     // opinc feature

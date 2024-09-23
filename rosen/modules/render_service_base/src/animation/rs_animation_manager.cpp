@@ -158,11 +158,7 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool node
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
             return false;
         }
-        if (!abilityState && animation->GetRepeatCount() != -1) {
-            OnAnimationFinished(animation);
-            return true;
-        }
-        bool isFinished = animation->Animate(time);
+        bool isFinished = animation->Animate(time) || !abilityState;
         if (isFinished) {
             isCalculateAnimationValue = true;
             OnAnimationFinished(animation);
@@ -228,7 +224,7 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
         "Animation Send Finish", targetId, animationId, false);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(targetId, animationId, FINISHED);
-    RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), std::move(command));
+    RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
     animation->Detach();
 }
 

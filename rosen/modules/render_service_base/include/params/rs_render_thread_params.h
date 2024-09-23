@@ -329,6 +329,11 @@ public:
         return isDrawingCacheDfxEnabled_;
     }
 
+    bool IsAceDebugBoundaryEnabled() const
+    {
+        return isAceDebugBoundaryEnabled_;
+    }
+
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -373,6 +378,7 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
+    bool isAceDebugBoundaryEnabled_ = false;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;

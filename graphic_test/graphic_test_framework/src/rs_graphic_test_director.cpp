@@ -150,7 +150,7 @@ void RSGraphicTestDirector::FlushMessage()
 std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait(int ms)
 {
     auto callback = std::make_shared<TestSurfaceCaptureCallback>();
-    if (!RSInterfaces::GetInstance().TakeSurfaceCapture(rootNode_->screenSurfaceNode_->GetId(), callback)) {
+    if (!RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
         return nullptr;
     }
 
@@ -187,6 +187,13 @@ void RSGraphicTestDirector::SetSurfaceBounds(const Vector4f& bounds)
 {
     if (rootNode_->testSurfaceNode_) {
         rootNode_->testSurfaceNode_->SetBounds(bounds);
+    }
+}
+
+void RSGraphicTestDirector::SetScreenSurfaceBounds(const Vector4f& bounds)
+{
+    if (rootNode_->screenSurfaceNode_) {
+        rootNode_->screenSurfaceNode_->SetBounds(bounds);
     }
 }
 

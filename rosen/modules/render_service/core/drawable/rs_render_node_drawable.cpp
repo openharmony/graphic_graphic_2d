@@ -435,14 +435,16 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
-        cachedBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
+        auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+        VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+        if (isHdrOn) {
+            colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+            format = VK_FORMAT_R16G16B16A16_SFLOAT;
+        }
+        cachedBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, format);
         auto vkTextureInfo = cachedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cachedBackendTexture_.IsValid() || !vkTextureInfo) {
             return;
-        }
-        auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
-        if (isHdrOn) {
-            colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
         }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
             RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
@@ -679,6 +681,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         cacheCanvas->SetHighContrast(renderEngine->IsHighContrastEnabled());
     }
     cacheCanvas->CopyConfigurationToOffscreenCanvas(*curCanvas);
+    cacheCanvas->CopyHDRConfiguration(*curCanvas);
     // Using filter cache in multi-thread environment may cause GPU memory leak or invalid textures
     // [PLANNNING] disable it in sub-thread.
 
@@ -695,6 +698,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
     // draw content + children
     auto bounds = params.GetBounds();
+    ApplyForegroundColorIfNeed(*cacheCanvas, bounds);
     if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
         DrawContent(*cacheCanvas, params.GetFrameRect());
         DrawChildren(*cacheCanvas, bounds);

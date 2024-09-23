@@ -33,6 +33,8 @@ public:
     void SetUp() override;
     void TearDown() override;
     static inline NodeId id;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceRenderNodeThreeTest::SetUpTestCase() {}
@@ -493,8 +495,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, CheckOpaqueRegionBaseInfo, TestSize.Level
     Vector4<int> cornerRadius;
     ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius));
     bool hasContainer = true;
-    float density = 1.0f;
-    node->containerConfig_.Update(hasContainer, density);
+    node->containerConfig_.Update(hasContainer, rrect);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     node->addedToPendingSyncList_ = true;
     node->isHardwareForcedDisabled_ = true;

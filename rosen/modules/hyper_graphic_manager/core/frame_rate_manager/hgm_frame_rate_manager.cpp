@@ -48,11 +48,7 @@ namespace {
 
     constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
-    constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
-    constexpr uint64_t UI_ENERGY_ASSURANCE_TASK_DELAY_TIME = 3000; // 3s
     constexpr int32_t RS_IDLE_TIMEOUT_MS = 600; // ms
-    const static std::string ENERGY_ASSURANCE_TASK_ID = "ENERGY_ASSURANCE_TASK_ID";
-    const static std::string UI_ENERGY_ASSURANCE_TASK_ID = "UI_ENERGY_ASSURANCE_TASK_ID";
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
@@ -215,6 +211,7 @@ void HgmFrameRateManager::InitTouchManager()
                 .pkgName = touchManager_.GetPkgName(),
                 .touchState = newState,
             };
+            HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::IDLE_STATE);
             multiAppStrategy_.HandleTouchInfo(touchInfo);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
@@ -240,29 +237,29 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
     }
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
-    static uint64_t lastPendingConstraintRelativeTime = 0;
-    static uint32_t lastPendingRefreshRate = 0;
-    if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
-        dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
-        hgmCore.SetPendingScreenRefreshRate(rsRate);
-    } else if (pendingRefreshRate_ != nullptr) {
+    if (pendingRefreshRate_ != nullptr) {
         hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
-        lastPendingConstraintRelativeTime = pendingConstraintRelativeTime_;
+        lastPendingConstraintRelativeTime_ = pendingConstraintRelativeTime_;
         pendingConstraintRelativeTime_ = 0;
 
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
-        lastPendingRefreshRate = *pendingRefreshRate_;
+        lastPendingRefreshRate_ = *pendingRefreshRate_;
         pendingRefreshRate_.reset();
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
     } else {
-        if (lastPendingConstraintRelativeTime != 0) {
-            hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime);
+        if (lastPendingConstraintRelativeTime_ != 0) {
+            hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime_);
         }
-        if (lastPendingRefreshRate != 0) {
-            hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate);
-            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate);
+        if (lastPendingRefreshRate_ != 0) {
+            hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate_);
+            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
         }
+    }
+
+    if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
+        dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+        hgmCore.SetPendingScreenRefreshRate(rsRate);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
     }
     changeGeneratorRateValid_.store(true);
 }
@@ -314,7 +311,7 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     if (!idleDetector_.GetAppSupportedState()) {
         return;
     }
-    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurfaceIdleState = [%d]  AceAnimatorIdleState = [%d]",
+    RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleState = [%d]  AceAnimatorIdleState = [%d]",
         touchManager_.GetState(), idleDetector_.GetSurfaceIdleState(timestamp),
         idleDetector_.GetAceAnimatorIdleState());
 
@@ -388,6 +385,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
             HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange);
             finalRange.Merge(expectedRange);
         }
+        HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(finalRange);
         ProcessLtpoVote(finalRange, idleTimerExpired);
     }
 
@@ -556,7 +554,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     changeGeneratorRateValid_.store(false);
 }
 
-uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range)
+uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const
 {
     // Find current refreshRate by FrameRateRange. For example:
     // 1. FrameRateRange[min, max, preferred] is [24, 48, 48], supported refreshRates
@@ -768,10 +766,10 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGD("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;
-        ExitEnergyConsumptionAssuranceMode();
+        HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::DOWN_STATE);
         if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
             strategyRes.dynamicMode != DynamicModeType::TOUCH_DISENABLED) {
-                touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
+            touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
         }
     } else if (touchStatus == TOUCH_UP || touchStatus == TOUCH_PULL_UP) {
         if (touchCnt != LAST_TOUCH_CNT) {
@@ -784,8 +782,8 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         }
         if (touchCnt == LAST_TOUCH_CNT) {
             HGM_LOGD("[touch manager] up");
-            EnterEnergyConsumptionAssuranceMode();
             touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
+            HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::UP_STATE);
         }
     } else {
         HGM_LOGD("[touch manager] other touch status not support");
@@ -823,6 +821,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    UpdateAppSupportedState();  // sync app state config when RefreshRateMode changed
 }
 
 void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
@@ -915,11 +914,11 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     if (gameSceneList.find(sceneName) != gameSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
             if (gameScenes_.insert(sceneName).second) {
-                MarkVoteChange("VOTER_SCENE");
+                MarkVoteChange();
             }
         } else {
             if (gameScenes_.erase(sceneName)) {
-                MarkVoteChange("VOTER_SCENE");
+                MarkVoteChange();
             }
         }
     }
@@ -1174,14 +1173,18 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
 
 bool HgmFrameRateManager::IsCurrentScreenSupportAS()
 {
+    auto hdiDevice = HdiDevice::GetInstance();
+    if (hdiDevice == nullptr) {
+        return false;
+    }
     ScreenId id = HgmCore::Instance().GetActiveScreenId();
     ScreenPhysicalId screenId = static_cast<ScreenPhysicalId>(id);
-    uint64_t propertyAS_ = 0;
-    (void)HdiDevice::GetInstance()->GetDisplayProperty(screenId, ADAPTIVE_SYNC_PROPERTY, propertyAS_);
-    return propertyAS_ == DISPLAY_SUCCESS;
+    uint64_t propertyAS = 0;
+    hdiDevice->GetDisplayProperty(screenId, ADAPTIVE_SYNC_PROPERTY, propertyAS);
+    return propertyAS == DISPLAY_SUCCESS;
 }
 
-void HgmFrameRateManager::ProcessAdaptiveSync(std::string voterName)
+void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
 {
     bool isAdaptiveSyncEnabled = HgmCore::Instance().GetAdaptiveSyncEnabled();
     if (!isAdaptiveSyncEnabled) {
@@ -1422,22 +1425,7 @@ void HgmFrameRateManager::UpdateEnergyConsumptionConfig()
         multiAppStrategy_.GetScreenSetting().animationPowerConfig);
     HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionConfig(
         multiAppStrategy_.GetScreenSetting().uiPowerConfig);
-}
-
-void HgmFrameRateManager::EnterEnergyConsumptionAssuranceMode()
-{
-    auto task = []() { HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true); };
-    HgmTaskHandleThread::Instance().PostEvent(ENERGY_ASSURANCE_TASK_ID, task, ENERGY_ASSURANCE_TASK_DELAY_TIME);
-    auto uiTask = []() { HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(true); };
-    HgmTaskHandleThread::Instance().PostEvent(UI_ENERGY_ASSURANCE_TASK_ID, uiTask, UI_ENERGY_ASSURANCE_TASK_DELAY_TIME);
-}
-
-void HgmFrameRateManager::ExitEnergyConsumptionAssuranceMode()
-{
-    HgmTaskHandleThread::Instance().RemoveEvent(ENERGY_ASSURANCE_TASK_ID);
-    HgmTaskHandleThread::Instance().RemoveEvent(UI_ENERGY_ASSURANCE_TASK_ID);
-    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(false);
-    HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(false);
+    HgmEnergyConsumptionPolicy::Instance().SetRefreshRateMode(curRefreshRateMode_, curScreenStrategyId_);
 }
 
 void HgmFrameRateManager::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip)
@@ -1470,3 +1458,4 @@ std::unordered_map<std::string, pid_t> HgmFrameRateManager::GetUiFrameworkDirtyN
 }
 } // namespace Rosen
 } // namespace OHOS
+

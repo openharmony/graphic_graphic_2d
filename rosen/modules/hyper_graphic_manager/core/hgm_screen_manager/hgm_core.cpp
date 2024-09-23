@@ -288,7 +288,6 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
         HGM_LOGW("HgmCore refuse an illegal framerate: %{public}d", rate);
         return HGM_ERROR;
     }
-    sceneId = static_cast<int32_t>(screenSceneSet_.size());
     int32_t modeToSwitch = screen->SetActiveRefreshRate(sceneId, static_cast<uint32_t>(rate));
     if (modeToSwitch < 0) {
         return modeToSwitch;
@@ -332,7 +331,7 @@ int32_t HgmCore::SetRefreshRateMode(int32_t refreshRateMode)
     }
 
     hgmFrameRateMgr_->HandleRefreshRateMode(refreshRateMode);
-
+    // sync vsync mode after refreshRate mode switching
     auto refreshRateModeName = GetCurrentRefreshRateModeName();
     if (refreshRateModeChangeCallback_ != nullptr) {
         refreshRateModeChangeCallback_(refreshRateModeName);

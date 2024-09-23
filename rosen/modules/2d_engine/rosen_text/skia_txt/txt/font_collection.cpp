@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "text_bundle_config_parser.h"
 #include "txt/platform.h"
 #include "txt/text_style.h"
 
@@ -118,6 +119,8 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
 {
     std::unique_lock lock(collectionMutex_);
     if (!sktFontCollection_) {
+        skia::textlayout::FontCollection::SetAdapterTextHeightEnabled(
+            OHOS::Rosen::SPText::TextBundleConfigParser::IsAdapterTextHeightEnabled());
         sktFontCollection_ = sk_make_sp<skia::textlayout::FontCollection>();
 
         std::vector<SkString> defaultFontFamilies;

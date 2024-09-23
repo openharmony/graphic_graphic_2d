@@ -27,6 +27,7 @@
 
 #include <event_handler.h>
 
+#include "hgm_frame_rate_manager.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "vsync_type.h"
@@ -58,6 +59,9 @@ public:
 
     ScreenId GetActiveScreenId() const
     {
+        if (hgmFrameRateMgr_ != nullptr) {
+            return hgmFrameRateMgr_->GetCurScreenId();
+        }
         return activeScreenId_.load();
     }
 
@@ -257,7 +261,6 @@ private:
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeListToApply_ = nullptr;
 
     std::atomic<ScreenId> activeScreenId_{ INVALID_SCREEN_ID };
-    std::unordered_set<SceneType> screenSceneSet_;
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
 
     // for LTPO

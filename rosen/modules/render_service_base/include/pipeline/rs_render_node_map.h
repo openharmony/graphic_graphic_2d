@@ -50,7 +50,7 @@ public:
 
     bool ContainPid(pid_t pid) const;
     void FilterNodeByPid(pid_t pid);
-    bool GetAbilityStateById(NodeId id) const;
+    bool GetAbilityStateByNodeId(NodeId id) const;
     void AddBackgroundPidBySurfaceNodeId(NodeId id);
     void RemoveBackgroundPidBySurfaceNodeId(NodeId id);
     void MoveRenderNodeMap(

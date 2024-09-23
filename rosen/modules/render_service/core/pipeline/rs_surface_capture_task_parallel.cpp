@@ -83,6 +83,7 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
             }
         }
         pendingSyncNodes.clear();
+        RSUifirstManager::Instance().UifirstCurStateClear();
     };
     RSUniRenderThread::Instance().PostSyncTask(syncTask);
 }
@@ -185,6 +186,12 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     canvas.SetCapture(true);
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
+        // make sure the previous uifirst task is completed.
+        if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*curNodeParams, false)) {
+            return false;
+        }
+        RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
+            curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
         RSUniRenderThread::SetCaptureParam(
             CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true));
         surfaceNodeDrawable_->OnCapture(canvas);
@@ -549,18 +556,13 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
     if (cleanUpHelper == nullptr) {
         return nullptr;
     }
-
+    // attention: cleanUpHelper will be delete by NativeBufferUtils::DeleteVkImage, don't delete again
     auto drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         gpuContext.get(),
         backendTextureTmp.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT,
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
         NativeBufferUtils::DeleteVkImage, cleanUpHelper);
-    if (!drawingSurface) {
-        delete cleanUpHelper;
-        cleanUpHelper = nullptr;
-        RS_LOGE("DmaMem::GetSurfaceFromSurfaceBuffer: MakeFromBackendTexture fail.");
-    }
     return drawingSurface;
 }
 #endif

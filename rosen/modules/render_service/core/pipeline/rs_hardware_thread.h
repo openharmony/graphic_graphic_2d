@@ -84,6 +84,8 @@ private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
     static GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers);
+    static bool ConvertColorGamutToSpaceType(const GraphicColorGamut& colorGamut,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceInfo);
 #endif
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -100,7 +102,7 @@ private:
     RSVBlankIdleCorrector vblankIdleCorrector_;
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;
-    sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
     int64_t delayTime_ = 0;
 
     friend class RSUniRenderThread;

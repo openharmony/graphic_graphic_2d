@@ -12,14 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "js_paragraph.h"
+#include <cmath>
 #include "canvas_napi/js_canvas.h"
 #include "draw/canvas.h"
-#include "recording/recording_canvas.h"
-#include "js_paragraph.h"
 #include "napi_async_work.h"
 #include "napi_common.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "path_napi/js_path.h"
+#include "recording/recording_canvas.h"
 #include "text_line_napi/js_text_line.h"
 #include "utils/text_log.h"
 
@@ -797,36 +799,33 @@ napi_value JsParagraph::LayoutAsync(napi_env env, napi_callback_info info)
 
 napi_value JsParagraph::OnLayoutAsync(napi_env env, napi_callback_info info)
 {
-    NAPI_CHECK_AND_THROW_ERROR(paragraph_ != nullptr, TextErrorCode::ERROR_INVALID_PARAM,
-        "JsParagraph::OnLayoutAsync paragraph_ is nullptr");
+    NAPI_CHECK_AND_THROW_ERROR(paragraph_ != nullptr, TextErrorCode::ERROR_INVALID_PARAM, "Paragraph is null");
 
     struct ConcreteContext : public ContextBase {
         double width = 0.0;
     };
-    auto context = std::make_shared<ConcreteContext>();
-    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERR_NO_MEMORY,
-        "JsParagraph::OnLayoutAsync failed, no memory");
-
+    sptr<ConcreteContext> context = sptr<ConcreteContext>::MakeSptr();
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
-        TEXT_ERROR_CHECK(argv, return, "JsParagraph::OnLayoutAsync inputParser context or argv is nullptr");
-        NAPI_CHECK_ARGS_RETURN_VOID(context, context->status == napi_ok, napi_invalid_arg,
-            "JsParagraph::OnLayoutAsync status error", TextErrorCode::ERROR_INVALID_PARAM);
-        NAPI_CHECK_ARGS_RETURN_VOID(context, argc >= ARGC_ONE, napi_invalid_arg,
-            "JsParagraph::OnLayoutAsync argc is invalid", TextErrorCode::ERROR_INVALID_PARAM);
-        NAPI_CHECK_ARGS_RETURN_VOID(context, ConvertFromJsValue(env, argv[0], context->width), napi_invalid_arg,
-            "JsParagraph::OnLayoutAsync Argv is invalid", TextErrorCode::ERROR_INVALID_PARAM);
+        TEXT_ERROR_CHECK(argv, return, "Argv is null");
+        NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Status error, status=%d", static_cast<int>(context->status));
+        NAPI_CHECK_ARGS(context, argc >= ARGC_ONE, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM,
+            return, "Argc is invalid %zu", argc);
+        NAPI_CHECK_ARGS(context, NapiValueTypeIsValid(env, argv[0]) &&
+            ConvertFromJsValue(env, argv[0], context->width) && (!std::signbit(context->width)),
+            napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return, "Argv is invalid %f", context->width);
     };
 
     context->GetCbInfo(env, info, inputParser);
 
     auto executor = [context]() {
-        TEXT_ERROR_CHECK(context != nullptr, return, "JsParagraph::OnLayoutAsync executor error, context is nullptr");
+        TEXT_ERROR_CHECK(context != nullptr, return, "Context is null");
 
         auto* jsParagraph = reinterpret_cast<JsParagraph*>(context->native);
-        NAPI_CHECK_ARGS_RETURN_VOID(context, jsParagraph != nullptr, napi_generic_failure,
-            "JsParagraph::OnLayoutAsync executor failed jsParagraph is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
-        NAPI_CHECK_ARGS_RETURN_VOID(context, jsParagraph->paragraph_ != nullptr, napi_generic_failure,
-            "JsParagraph::OnLayoutAsync executor failed paragraph_ is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS(context, jsParagraph != nullptr, napi_generic_failure,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "JsParagraph is nullptr");
+        NAPI_CHECK_ARGS(context, jsParagraph->paragraph_ != nullptr, napi_generic_failure,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Inner paragraph is null");
         jsParagraph->paragraph_->Layout(context->width);
     };
 

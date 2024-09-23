@@ -321,6 +321,20 @@ public:
         radius_[3] = radius[3];
     }
 
+    std::string ToString() const
+    {
+        return std::string("rect [") +
+            std::to_string(rect_.left_) + ", " +
+            std::to_string(rect_.top_) + ", " +
+            std::to_string(rect_.width_) + ", " +
+            std::to_string(rect_.height_) +
+            "] radius: [" +
+            "(" + std::to_string(radius_[0].x_) + "," + std::to_string(radius_[0].y_) + ")," + //0: topLeft Corner
+            "(" + std::to_string(radius_[1].x_) + "," + std::to_string(radius_[1].y_) + ")," + //1: topRight Corner
+            "(" + std::to_string(radius_[2].x_) + "," + std::to_string(radius_[2].y_) + ")," + //2: bottomRight Corner
+            "(" + std::to_string(radius_[3].x_) + "," + std::to_string(radius_[3].y_) + ")]";  //3: bottomLeft Corner
+    }
+
     RRectT operator-(const RRectT<T>& other) const;
     RRectT operator+(const RRectT<T>& other) const;
     RRectT operator/(float scale) const;

@@ -38,7 +38,7 @@ namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
-    std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
+    std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::UNKNOWN;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
@@ -198,11 +198,7 @@ public:
         targetColorGamut_ = colorGamut;
     }
 
-    void SetSubThreadSkip(bool isSubThreadSkip)
-    {
-        isSubThreadSkip_ = isSubThreadSkip;
-    }
-
+    void SetSubThreadSkip(bool isSubThreadSkip);
     bool IsSubThreadSkip() const
     {
         return isSubThreadSkip_;
@@ -219,6 +215,7 @@ public:
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override;
+    GraphicColorGamut GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams);
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 

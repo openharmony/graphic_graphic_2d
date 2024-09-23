@@ -264,15 +264,6 @@ enum class RSSurfaceNodeType : uint8_t {
     UI_EXTENSION_SECURE_NODE, // uiextension node that requires info callback
 };
 
-enum class RSWindowMode : uint32_t {
-    RS_WINDOW_MODE_UNDEFINED = 0,        // default
-    RS_WINDOW_MODE_FULLSCREEN = 1,       // full screen
-    RS_WINDOW_MODE_SPLIT_PRIMARY = 100,  // split screen, on top or left
-    RS_WINDOW_MODE_SPLIT_SECONDARY,      // split screen, on bottom or right
-    RS_WINDOW_MODE_FLOATING,             // floating mode
-    RS_WINDOW_MODE_PIP                   // picture-in-picture mode
-};
-
 enum class MultiThreadCacheType : uint8_t {
     NONE = 0,
     LEASH_WINDOW,
@@ -323,8 +314,8 @@ using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
     bool isMirrored = false;
-    bool isSync = false;
     NodeId mirrorNodeId = 0;
+    bool isSync = false;
 };
 
 constexpr int64_t NS_TO_S = 1000000000;

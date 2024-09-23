@@ -63,7 +63,6 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
     MessageOption option;
 
     uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
-    EXPECT_TRUE(RSSurfaceCaptureCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);

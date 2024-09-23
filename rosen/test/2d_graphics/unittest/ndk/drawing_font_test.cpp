@@ -622,6 +622,178 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontGetBounds003, TestSize.Level1)
     EXPECT_EQ(OH_Drawing_RectDestroyArray(outRectarr), OH_DRAWING_SUCCESS);
     OH_Drawing_FontDestroy(font);
 }
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath001
+ * @tc.desc: test for common character of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath001, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* str = "Hello 中文";
+    size_t length = std::char_traits<char>::length(str);
+    float x = 12.0f;
+    float y = 150.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, str, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) > 0);
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath002
+ * @tc.desc: test for UTF16 and UTF32 character of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath002, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+
+    float x = 12.0f;
+    float y = 150.0f;
+    const char16_t* u16str = u"Hello 中文";
+    size_t u16strLen = std::char_traits<char16_t>::length(u16str);
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, u16str, sizeof(char16_t) * u16strLen, TEXT_ENCODING_UTF16, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    float u16PathLen = OH_Drawing_PathGetLength(path, false);
+
+    const char32_t* u32str = U"Hello 中文";
+    size_t u32strLen = std::char_traits<char32_t>::length(u32str);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, u32str, sizeof(char32_t) * u32strLen, TEXT_ENCODING_UTF32, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    float u32PathLen = OH_Drawing_PathGetLength(path, false);
+    ASSERT_TRUE(u16PathLen > 0 && u32PathLen > 0);
+    ASSERT_EQ(u16PathLen, u32PathLen);
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath003
+ * @tc.desc: test for space character of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath003, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* space = " ";
+    size_t length = std::char_traits<char>::length(space);
+    float x = 12.0f;
+    float y = 150.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, space, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) == 0);
+    EXPECT_FALSE(OH_Drawing_PathIsClosed(path, false));
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath004
+ * @tc.desc: test for abnormal paramete of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath004, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* str = "Hello 中文";
+    size_t length = std::char_traits<char>::length(str);
+    float x = 12.0f;
+    float y = 150.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(nullptr, str, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, nullptr, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, str, 0, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, str, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, nullptr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath005
+ * @tc.desc: test for negative coordinates of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath005, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* str = "Hello 中文";
+    size_t length = std::char_traits<char>::length(str);
+    float x = -1.0f;
+    float y = -1.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, str, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    if (path != nullptr) {
+        EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) > 0);
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath006
+ * @tc.desc: test for conversion of glyphsID to path.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath006, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* str = "Hello 中文";
+    uint32_t count = 0;
+    count = OH_Drawing_FontCountText(font, str, strlen(str), TEXT_ENCODING_UTF8);
+    EXPECT_NE(count, 0);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, str, strlen(str), TEXT_ENCODING_UTF8, glyphs, count);
+
+    float x = 12.0f;
+    float y = 150.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, glyphs, sizeof(glyphs), TEXT_ENCODING_GLYPH_ID, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    if (path != nullptr) {
+        EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) > 0);
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

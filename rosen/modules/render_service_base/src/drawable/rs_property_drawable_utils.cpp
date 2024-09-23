@@ -293,6 +293,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         Drawing::Brush brush = filter->GetBrush();
         Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
         canvas->SaveLayer(slr);
+        filter->PostProcess(*canvas);
         return;
     }
 
@@ -356,6 +357,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
     filter->DrawImageRect(*canvas, imageSnapshot, srcRect, dstRect);
+    filter->PostProcess(*canvas);
 }
 
 void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds)
@@ -471,6 +473,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     auto clipBounds = Drawing::Rect(0, 0, imageRect.GetWidth(), imageRect.GetHeight());
     auto imageSnapshotBounds = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     filter->DrawImageRect(offscreenCanvas, imageSnapshot, imageSnapshotBounds, clipBounds);
+    filter->PostProcess(offscreenCanvas);
 
     auto imageCache = offscreenSurface->GetImageSnapshot();
     if (imageCache == nullptr) {
@@ -1200,6 +1203,56 @@ bool RSPropertyDrawableUtils::GetGravityMatrix(const Gravity& gravity, const Dra
             return false;
         }
     }
+}
+
+void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark)
+{
+    Drawing::Brush brush;
+    int16_t rgb_light = 235;
+    int16_t rgb_dark = 80;
+    int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
+    RSColor demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
+    if (isDark) {
+        demoColor = RSColor(rgb_dark, rgb_dark, rgb_dark, alpha);
+    }
+
+    float sat = 1.0f;
+    float brightness = 0.9f;
+    float normalizedDegree = brightness - sat;
+    const float brightnessMat[] = {
+        1.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        1.0f,
+        0.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        0.0f,
+        1.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f,
+        0.0f,
+    };
+    Drawing::ColorMatrix cm;
+    cm.SetSaturation(sat);
+    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
+    cm.GetArray(cmArray);
+    std::shared_ptr<Drawing::ColorFilter> filterCompose =
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
+    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*filterCompose, nullptr);
+    Drawing::Filter filter;
+    filter.SetImageFilter(colorImageFilter);
+    brush.SetFilter(filter);
+    brush.SetColor(demoColor.AsArgbInt());
+    canvas->DrawBackground(brush);
 }
 
 bool RSPropertyDrawableUtils::RSFilterSetPixelStretch(const RSProperties& property,

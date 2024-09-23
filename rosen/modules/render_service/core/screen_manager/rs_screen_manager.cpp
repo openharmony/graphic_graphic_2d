@@ -1331,11 +1331,16 @@ void RSScreenManager::GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInf
     GetScreenActiveModeLocked(defaultScreenId_, screenModeInfo);
 }
 
-void RSScreenManager::RealeaseScreenDmaBuffer(uint64_t screenId)
+void RSScreenManager::ReleaseScreenDmaBuffer(uint64_t screenId)
 {
-    auto output = GetOutput(screenId);
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer RSScreenManager is nullptr!");
+        return;
+    }
+    auto output = screenManager->GetOutput(screenId);
     if (output == nullptr) {
-        RS_LOGE("RSScreenManager::RealeaseScreenDmaBuffer HdiOutput is nullptr!");
+        RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer HdiOutput is nullptr!");
         return;
     }
     std::vector<LayerInfoPtr> layer;
@@ -1915,6 +1920,24 @@ uint32_t RSScreenManager::GetActualScreensNum() const
         }
     }
     return num;
+}
+
+ScreenInfo RSScreenManager::GetActualScreenMaxResolution() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    uint32_t maxResolution = 0;
+    ScreenId maxScreenId = INVALID_SCREEN_ID;
+    for (const auto &[id, screen] : screens_) {
+        if (!screen || screen->IsVirtual()) {
+            continue;
+        }
+        uint32_t resolution = screen->PhyWidth() * screen->PhyHeight();
+        if (resolution > maxResolution) {
+            maxScreenId = id;
+            maxResolution = resolution;
+        }
+    }
+    return QueryScreenInfoLocked(maxScreenId);
 }
 
 int32_t RSScreenManager::GetScreenColorGamut(ScreenId id, ScreenColorGamut &mode) const

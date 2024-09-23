@@ -60,7 +60,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_SUCCESS);
     bool enabled = false, needFlush = false;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenVsyncEnabled(screenId, enabled), GRAPHIC_DISPLAY_SUCCESS);
-    uint32_t pid = 3;
+    uint32_t pid = 1;
     uint64_t pvalue = 0;
     EXPECT_CALL(*hdiDeviceMock_,
         GetDisplayProperty(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));

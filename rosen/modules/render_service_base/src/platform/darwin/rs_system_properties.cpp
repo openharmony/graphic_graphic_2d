@@ -122,6 +122,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return {};
@@ -498,6 +503,11 @@ bool RSSystemProperties::IsForceClient()
     return false;
 }
 
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetTextBlobAsPixelMap()
 {
     return false;
@@ -523,9 +533,9 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+std::string RSSystemProperties::GetVersionType()
 {
-    return false;
+    return "";
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()

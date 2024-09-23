@@ -381,8 +381,8 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     }
 
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
-    int32_t maxLines = 0;
-    if (tempValue != nullptr && napi_get_value_int32(env, tempValue, &maxLines) == napi_ok) {
+    int64_t maxLines = 0;
+    if (tempValue != nullptr && napi_get_value_int64(env, tempValue, &maxLines) == napi_ok) {
         pographyStyle.maxLines = maxLines < 0 ? 0 : maxLines;
     }
 
@@ -717,4 +717,13 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, Drawing::FontMetrics*
     return objValue;
 }
 
+bool NapiValueTypeIsValid(napi_env env, napi_value argValue)
+{
+    napi_valuetype valueType;
+    if (napi_typeof(env, argValue, &valueType) != napi_ok || valueType == napi_null || valueType == napi_undefined) {
+        TEXT_LOGE("Invalid value type %{public}d", static_cast<int32_t>(valueType));
+        return false;
+    }
+    return true;
+}
 } // namespace OHOS::Rosen

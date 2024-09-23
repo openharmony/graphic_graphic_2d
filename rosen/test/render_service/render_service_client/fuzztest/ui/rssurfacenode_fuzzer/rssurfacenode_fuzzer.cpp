@@ -470,8 +470,8 @@ bool DoSetContainerWindow(const uint8_t* data, size_t size)
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool hasContainerWindow = GetData<bool>();
-    float density = GetData<float>();
-    surfaceNode->SetContainerWindow(hasContainerWindow, density);
+    RRect rrect = GetData<RRect>();
+    surfaceNode->SetContainerWindow(hasContainerWindow, rrect);
     return true;
 }
 

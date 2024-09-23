@@ -152,6 +152,16 @@ public:
         return isHardwareEnabledBufferUpdated_;
     }
 
+    void SetGlobalDarkColorMode(bool isDark)
+    {
+        isGlobalDarkColorMode_ = isDark;
+    }
+
+    bool GetGlobalDarkColorMode() const
+    {
+        return isGlobalDarkColorMode_;
+    }
+
     /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */
@@ -184,7 +194,7 @@ public:
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string bundleName, const std::string abilityName, uint64_t focusNodeId);
+        int32_t pid, int32_t uid, const std::string& bundleName, const std::string& abilityName, uint64_t focusNodeId);
     const std::unordered_map<NodeId, bool>& GetCacheCmdSkippedNodes() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
@@ -447,6 +457,7 @@ private:
 
     bool IsResidentProcess(pid_t pid) const;
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
+    void UpdateAceDebugBoundaryEnabled();
 
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
@@ -463,6 +474,7 @@ private:
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
+    void UpdateGpuContextCacheSize();
     void ProcessScreenHotPlugEvents();
     void WaitUntilUploadTextureTaskFinishedForGL();
 #ifdef RES_SCHED_ENABLE
@@ -587,6 +599,10 @@ private:
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
+    std::atomic<bool> isGlobalDarkColorMode_ = false;
+
+    bool isAceDebugBoundaryEnabledOfLastFrame_ = false;
+    bool hasPostUpdateAceDebugBoundaryTask_ = false;
 
     std::atomic_bool noNeedToPostTask_ = false;
 
@@ -618,7 +634,6 @@ private:
     std::condition_variable nodeTreeDumpCondVar_;
     std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
-    bool surfaceNodeWatermarksChanged_ = false;
     std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
 
     // used for watermark

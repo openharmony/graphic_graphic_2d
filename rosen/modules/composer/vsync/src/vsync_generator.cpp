@@ -201,18 +201,20 @@ void VSyncGenerator::ThreadLoop()
                     con_.wait(locker);
                 }
                 continue;
-            } else if (vsyncMode_ == VSYNC_MODE_LTPO) {
-                bool modelChanged = UpdateChangeDataLocked(occurTimestamp, occurReferenceTime, nextTimeStamp);
-                if (modelChanged) {
-                    ScopedBytrace func("VSyncGenerator: LTPO mode change");
-                    bool clearAllSamplesFlag = clearAllSamplesFlag_;
-                    clearAllSamplesFlag_ = false;
-                    locker.unlock();
-                    ClearAllSamplesInternal(clearAllSamplesFlag);
+            } else if (vsyncMode_ == VSYNC_MODE_LTPO &&
+                UpdateChangeDataLocked(occurTimestamp, occurReferenceTime, nextTimeStamp)) {
+                ScopedBytrace func("VSyncGenerator: LTPO mode change");
+                bool clearAllSamplesFlag = clearAllSamplesFlag_;
+                clearAllSamplesFlag_ = false;
+                locker.unlock();
+                ClearAllSamplesInternal(clearAllSamplesFlag);
+                if (appVSyncDistributor_ != nullptr) {
                     appVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
-                    rsVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
-                    continue;
                 }
+                if (rsVSyncDistributor_ != nullptr) {
+                    rsVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
+                }
+                continue;
             }
         }
 
@@ -514,7 +516,7 @@ void VSyncGenerator::SubScribeSystemAbility()
     std::string strPid = std::to_string(getpid());
     std::string strTid = std::to_string(gettid());
 
-    saStatusChangeListener_ = new (std::nothrow)VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
+    saStatusChangeListener_ = new VSyncSystemAbilityListener(threadName, strUid, strPid, strTid);
     int32_t ret = systemAbilityManager->SubscribeSystemAbility(RES_SCHED_SYS_ABILITY_ID, saStatusChangeListener_);
     if (ret != ERR_OK) {
         VLOGE("%{public}s subscribe system ability %{public}d failed.", __func__, RES_SCHED_SYS_ABILITY_ID);
@@ -764,6 +766,7 @@ VsyncError VSyncGenerator::StartRefresh()
 
 void VSyncGenerator::SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     rsVSyncDistributor_ = rsVSyncDistributor;
 }
 
@@ -800,6 +803,7 @@ void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
 
 void VSyncGenerator::SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     appVSyncDistributor_ = appVSyncDistributor;
 }
 
@@ -932,7 +936,9 @@ void VSyncGenerator::SetPendingMode(int64_t period, int64_t timestamp)
     std::lock_guard<std::mutex> lock(mutex_);
     pendingPeriod_ = period;
     pendingReferenceTime_ = timestamp;
-    rsVSyncDistributor_->UpdatePendingReferenceTime(pendingReferenceTime_);
+    if (rsVSyncDistributor_ != nullptr) {
+        rsVSyncDistributor_->UpdatePendingReferenceTime(pendingReferenceTime_);
+    }
 }
 
 void VSyncGenerator::Dump(std::string &result)

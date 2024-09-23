@@ -30,7 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* g_data = nullptr;
+const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 } // namespace
@@ -40,10 +40,10 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
+    if (DATA == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
@@ -57,7 +57,7 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -72,7 +72,7 @@ bool DoMarshalling(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
     RSHgmConfigData rsHgmConfigData;
@@ -87,7 +87,7 @@ bool DoAddAnimDynamicItem(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
     RSHgmConfigData rsHgmConfigData;
@@ -105,7 +105,7 @@ bool DoGetSet(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
     RSHgmConfigData rsHgmConfigData;

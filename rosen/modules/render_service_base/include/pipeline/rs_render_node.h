@@ -40,9 +40,9 @@
 #include "memory/rs_memory_snapshot.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_dirty_region_manager.h"
+#include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_content.h"
-#include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -174,6 +174,11 @@ public:
     inline bool GetIsTextureExportNode() const
     {
         return isTextureExportNode_;
+    }
+
+    inline RectI GetFilterRegion() const
+    {
+        return filterRegion_;
     }
 
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
@@ -745,7 +750,7 @@ public:
     {
         return renderDrawable_;
     }
-
+    void MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark);
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -826,11 +831,11 @@ protected:
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
+    bool flagIntersectWithDRM_ = false;
 private:
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;
-    bool isChildrenSorted_ = true;
     bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
     bool shouldPaint_ = true;

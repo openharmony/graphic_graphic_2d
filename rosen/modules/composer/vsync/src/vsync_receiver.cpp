@@ -165,6 +165,19 @@ VsyncError VSyncReceiver::Init()
         return VSYNC_ERROR_NULLPTR;
     }
 
+    if (looper_ == nullptr) {
+        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
+        if (runner == nullptr) {
+            return VSYNC_ERROR_API_FAILED;
+        }
+        looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+        runner->Run();
+        looper_->PostTask([this] {
+            SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
+            this->ThreadCreateNotify();
+        });
+    }
+
     VsyncError ret = connection_->GetReceiveFd(fd_);
     if (ret != VSYNC_ERROR_OK) {
         return ret;
@@ -177,16 +190,6 @@ VsyncError VSyncReceiver::Init()
     }
 
     listener_->SetName(name_);
-
-    if (looper_ == nullptr) {
-        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
-        looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-        runner->Run();
-        looper_->PostTask([this] {
-            SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
-            this->ThreadCreateNotify();
-        });
-    }
 
     looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
@@ -319,7 +322,7 @@ void VSyncReceiver::CloseVsyncReceiverFd()
         VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
     }
 
-    if (fd_ > 0) {
+    if (fd_ >= 0) {
         close(fd_);
         fd_ = INVALID_FD;
     }

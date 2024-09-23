@@ -229,8 +229,17 @@ Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vect
         BYBy * B.x_, BY, BYBy * (1 - B.x_ - B.y_)
     };
 }
-static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
+static const std::shared_ptr<Drawing::ColorFilter> InvertColorMat(float hdrBrightnessRatio)
 {
+    if (!ROSEN_EQ(hdrBrightnessRatio, 1.f)) {
+        const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
+            0.402,  -1.174, -0.228, hdrBrightnessRatio, 0.0,
+            -0.598, -0.174, -0.228, hdrBrightnessRatio, 0.0,
+            -0.599, -1.175, 0.772,  hdrBrightnessRatio, 0.0,
+            0.0,    0.0,    0.0,    1.0, 0.0
+        };
+        return Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
+    }
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
         -0.598, -0.174, -0.228, 1.0, 0.0,
@@ -883,7 +892,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
         RS_TRACE_NAME("DropFrame");
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
-        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
@@ -892,7 +901,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
             return OHOS::GSERROR_NO_BUFFER;
         }
 
-        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
+        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::InvalidFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
                     "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
@@ -935,14 +944,9 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
     return {damage.left_, damage.top_, damage.width_, damage.height_};
 }
 
-bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
-    const std::string& surfaceName, const bool& isDisplaySurface, const uint64_t& vsyncTimestamp)
+bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
-        // this node has no new buffer, try use cache.
-        // if don't have cache, will not update and use old buffer.
-        // display surface don't have cache, always use old buffer.
-        surfaceHandler.ConsumeAndUpdateBuffer(vsyncTimestamp, surfaceName);
         return true;
     }
     const auto& consumer = surfaceHandler.GetConsumer();
@@ -953,18 +957,26 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
     DropFrameProcess(surfaceHandler);
     std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
-        std::vector<Rect> damages;
-        surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
-        int32_t ret = consumer->AcquireBuffer(surfaceBuffer->buffer, surfaceBuffer->acquireFence,
-            surfaceBuffer->timestamp, damages);
-        if (surfaceBuffer->buffer == nullptr || ret != SURFACE_ERROR_OK) {
+        IConsumerSurface::AcquireBufferReturnValue returnValue;
+        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
+        if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
             surfaceBuffer = nullptr;
             return false;
         }
+        surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
+        surfaceBuffer->buffer = returnValue.buffer;
+        surfaceBuffer->acquireFence = returnValue.fence;
+        surfaceBuffer->timestamp = returnValue.timestamp;
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
+            "presentWhen = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
+            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp);
+        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, "
+            "presentWhen = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
+            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp);
         // The damages of buffer will be merged here, only single damage is supported so far
-        Rect damageAfterMerge = MergeBufferDamages(damages);
+        Rect damageAfterMerge = MergeBufferDamages(returnValue.damages);
         if (damageAfterMerge.h <= 0 || damageAfterMerge.w <= 0) {
             RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
                 surfaceHandler.GetNodeId());
@@ -993,28 +1005,11 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
         RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") no buffer to consume", surfaceHandler.GetNodeId());
         return false;
     }
-    bool directConsume = isDisplaySurface || !RSUniRenderJudgement::IsUniRender() ||
-        !RSSystemParameters::GetControlBufferConsumeEnabled();
-    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
-            "directConsume[%{public}d], vysnc[%{public}" PRIu64 "], "
-            "buffer[timestamp:%{public}" PRId64 ", seq:%{public}" PRIu32 "].",
-            surfaceHandler.GetNodeId(), directConsume, vsyncTimestamp,
-            surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
-    RS_TRACE_NAME_FMT("surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, "
-            "directConsume[%d], vysnc[%" PRIu64 "], "
-            "buffer[timestamp:%" PRId64 ", seq:%" PRIu32 "].",
-            surfaceHandler.GetNodeId(), directConsume, vsyncTimestamp,
-            surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
-    if (directConsume) {
-        surfaceHandler.ConsumeAndUpdateBuffer(*(surfaceBuffer.get()));
-    } else {
-        surfaceHandler.CacheBuffer(*(surfaceBuffer.get()), surfaceName);
-        surfaceHandler.ConsumeAndUpdateBuffer(vsyncTimestamp, surfaceName);
-    }
-    surfaceHandler.ReduceAvailableBuffer();
+    surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
         consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     surfaceBuffer = nullptr;
+    surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
         return true;
@@ -1068,12 +1063,13 @@ bool RSBaseRenderUtil::IsColorFilterModeValid(ColorFilterMode mode)
     return valid;
 }
 
-void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint)
+void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode,
+    Drawing::Brush& paint, float hdrBrightnessRatio)
 {
     Drawing::Filter filter;
     switch (colorFilterMode) {
         case ColorFilterMode::INVERT_COLOR_ENABLE_MODE:
-            filter.SetColorFilter(Detail::InvertColorMat());
+            filter.SetColorFilter(Detail::InvertColorMat(hdrBrightnessRatio));
             break;
         case ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE:
             filter.SetColorFilter(Detail::ProtanomalyMat());

@@ -64,7 +64,6 @@ HWTEST_F(RSMessageProcessorTest, testing, TestSize.Level1)
  */
 HWTEST_F(RSMessageProcessorTest, ReInitializeMovedMap001, TestSize.Level1)
 {
-    RSMessageProcessor::Instance().ReInitializeMovedMap();
     EXPECT_EQ(false, RSMessageProcessor::Instance().HasTransaction());
 }
 
@@ -150,32 +149,5 @@ HWTEST_F(RSMessageProcessorTest, AddUIMessageLvalueReferenceTest, TestSize.Level
     EXPECT_EQ(true, RSMessageProcessor::Instance().HasTransaction());
 }
 
-/**
- * @tc.name: GinstanceValidIsfalseTest
- * @tc.desc: test results of g_instanceValid is false
- * @tc.type: FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSMessageProcessorTest, GinstanceValidIsfalseTest, TestSize.Level1)
-{
-    uint32_t pid = 1;
-    std::unique_ptr<RSCommand> command = nullptr;
-    RSMessageProcessor* messageProcessorTest1 = new RSMessageProcessor();
-    RSMessageProcessor* messageProcessorTest2 = new RSMessageProcessor();
-    delete messageProcessorTest1;
-    messageProcessorTest1 = nullptr;
-
-    messageProcessorTest2->AddUIMessage(pid, command);
-    std::unique_ptr<RSCommand> rsCommand = nullptr;
-    messageProcessorTest2->AddUIMessage(pid, std::move(rsCommand));
-    EXPECT_FALSE(messageProcessorTest2->HasTransaction());
-    EXPECT_FALSE(messageProcessorTest2->HasTransaction(0));
-    messageProcessorTest2->ReInitializeMovedMap();
-    EXPECT_EQ(messageProcessorTest2->GetTransaction(0), nullptr);
-    messageProcessorTest2->GetAllTransactions();
-
-    delete messageProcessorTest2;
-    messageProcessorTest2 = nullptr;
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -257,6 +257,17 @@ public:
      */
     bool GetPathForGlyph(uint16_t glyph, Path* path) const;
 
+    /**
+     * @brief            Get the text outline path.
+     * @param text       Indicates the character storage encoded with text encoding.
+     * @param byteLength Indicates the text length in bytes.
+     * @param encoding   Indicates the text encoding.
+     * @param x          Indicates x coordinates of the text.
+     * @param y          Indicates y coordinates of the text.
+     * @param path       The pointer of path object.
+     */
+    void GetTextPath(const void* text, size_t byteLength, TextEncoding encoding, float x, float y, Path* path) const;
+
     template<typename T>
     T* GetImpl() const
     {

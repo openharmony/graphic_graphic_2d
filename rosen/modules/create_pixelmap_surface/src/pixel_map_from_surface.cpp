@@ -518,7 +518,7 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
 {
     ScopedBytrace trace(__func__);
     // private func, surface is not nullptr.
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
     // a 4 * 4 idetity matrix
     float matrix[16] = {
         1, 0, 0, 0,

@@ -90,7 +90,6 @@ public:
     using BufferAvailableCallback = std::function<void()>;
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
     bool IsBufferAvailable() const;
-    using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
     void SetAnimationFinished();
 
@@ -125,7 +124,7 @@ public:
 
     void ResetContextAlpha() const;
 
-    void SetContainerWindow(bool hasContainerWindow, float density);
+    void SetContainerWindow(bool hasContainerWindow, RRect rrect);
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
@@ -146,7 +145,6 @@ public:
     bool GetAbilityState() const;
 
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
-    void SetRSWindowMode(RSWindowMode mode);
 
 protected:
     bool NeedForcedSendToRemote() const override;

@@ -88,7 +88,7 @@ bool DoSurfacenodecommand(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::MarkUIHidden(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, GetData<uint8_t>());
-    SurfaceNodeCommandHelper::SetContainerWindow(context, id, GetData<bool>(), GetData<float>());
+    SurfaceNodeCommandHelper::SetContainerWindow(context, id, GetData<bool>(), GetData<RRect>());
     SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
     SurfaceNodeCommandHelper::AttachToDisplay(context, id, screenId);
     SurfaceNodeCommandHelper::DetachToDisplay(context, id, screenId);

@@ -149,32 +149,25 @@ ohos_source_set("render_service_base_src") {
     "src/delegate/rs_functional_delegate.cpp",
 
     #ipc_callbacks
-    "src/ipc_callbacks/buffer_available_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
-    "src/ipc_callbacks/buffer_clear_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_clear_callback_stub.cpp",
     "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
     "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
-    "src/ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
-    "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
-    "src/ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.cpp",
-    "src/ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.cpp",
-    "src/ipc_callbacks/rs_iuiextension_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
+    "src/ipc_callbacks/rs_surface_buffer_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_surface_buffer_callback_stub.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_uiextension_callback_proxy.cpp",
     "src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
-    "src/ipc_callbacks/screen_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
-    "src/ipc_callbacks/surface_capture_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
 
@@ -341,25 +334,18 @@ ohos_source_set("render_service_base_src") {
       "src/common/rs_thread_looper_impl.cpp",
 
       #ipc_callbacks
-      "src/ipc_callbacks/buffer_available_callback_ipc_interface_code_access_verifier.cpp",
       "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
       "src/ipc_callbacks/buffer_available_callback_stub.cpp",
-      "src/ipc_callbacks/buffer_clear_callback_ipc_interface_code_access_verifier.cpp",
       "src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
       "src/ipc_callbacks/buffer_clear_callback_stub.cpp",
       "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
       "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
-      "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
-      "src/ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.cpp",
-      "src/ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.cpp",
       "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
       "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
       "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
       "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
-      "src/ipc_callbacks/screen_change_callback_ipc_interface_code_access_verifier.cpp",
       "src/ipc_callbacks/screen_change_callback_proxy.cpp",
       "src/ipc_callbacks/screen_change_callback_stub.cpp",
-      "src/ipc_callbacks/surface_capture_callback_ipc_interface_code_access_verifier.cpp",
       "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
       "src/ipc_callbacks/surface_capture_callback_stub.cpp",
 
@@ -476,7 +462,6 @@ ohos_source_set("render_service_base_src") {
   ]
 
   external_deps = [
-    "drivers_interface_display:display_commontype_idl_headers",
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
@@ -538,7 +523,10 @@ ohos_source_set("render_service_base_src") {
       "$rosen_root/modules/platform:image_native_config",
     ]
   } else {
-    external_deps += [ "hitrace:hitrace_meter" ]
+    external_deps += [
+      "drivers_interface_display:display_commontype_idl_headers",
+      "hitrace:hitrace_meter",
+    ]
   }
 
   if (rosen_is_win) {

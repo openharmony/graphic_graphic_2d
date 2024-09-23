@@ -569,10 +569,10 @@ void RSSurfaceNode::ResetContextAlpha() const
     transactionProxy->AddCommand(commandRS, true);
 }
 
-void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, float density)
+void RSSurfaceNode::SetContainerWindow(bool hasContainerWindow, RRect rrect)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow, density);
+        std::make_unique<RSSurfaceNodeSetContainerWindow>(GetId(), hasContainerWindow, rrect);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
@@ -843,24 +843,14 @@ void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
     }
 }
 
-void RSSurfaceNode::SetRSWindowMode(RSWindowMode mode)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetWindowMode>(GetId(), mode);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
-}
-
 void RSSurfaceNode::SetAbilityState(bool abilityState)
 {
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetAbilityState>(GetId(), abilityState);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        ROSEN_LOGD("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s", GetId(),
-        abilityState ? "foreground" : "background");
+        ROSEN_LOGD("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s",
+        GetId(), abilityState ? "foreground" : "background");
         transactionProxy->AddCommand(command, true);
     }
 }

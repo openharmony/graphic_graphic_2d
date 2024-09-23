@@ -221,14 +221,14 @@ void RSUIDirector::SetRTRenderForced(bool isRenderForced)
     RSRenderThread::Instance().SetRTRenderForced(isRenderForced);
 }
 
-void RSUIDirector::SetContainerWindow(bool hasContainerWindow, float density)
+void RSUIDirector::SetContainerWindow(bool hasContainerWindow, RRect rrect)
 {
     auto node = surfaceNode_.lock();
     if (!node) {
         ROSEN_LOGI("RSUIDirector::SetContainerWindow, surfaceNode_ is nullptr");
         return;
     }
-    node->SetContainerWindow(hasContainerWindow, density);
+    node->SetContainerWindow(hasContainerWindow, rrect);
 }
 
 void RSUIDirector::SetRoot(NodeId root)
@@ -354,12 +354,11 @@ void RSUIDirector::RecvMessages()
         return;
     }
     static const uint32_t pid = static_cast<uint32_t>(GetRealPid());
-    static std::mutex recvMessagesMutex;
-    std::unique_lock<std::mutex> lock(recvMessagesMutex);
-    if (RSMessageProcessor::Instance().HasTransaction(pid)) {
-        auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
-        RecvMessages(transactionDataPtr);
+    if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
+        return;
     }
+    auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
+    RecvMessages(transactionDataPtr);
 }
 
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)

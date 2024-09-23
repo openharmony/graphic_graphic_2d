@@ -188,6 +188,8 @@ public:
 
     virtual uint32_t GetActualScreensNum() const = 0;
 
+    virtual ScreenInfo GetActualScreenMaxResolution() const = 0;
+
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual ScreenId GetActiveScreenId() = 0;
@@ -226,8 +228,6 @@ public:
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
-
-    virtual void RealeaseScreenDmaBuffer(uint64_t screenId) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -361,6 +361,8 @@ public:
 
     uint32_t GetActualScreensNum() const override;
 
+    ScreenInfo GetActualScreenMaxResolution() const override;
+
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
@@ -436,7 +438,8 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
 
-    void RealeaseScreenDmaBuffer(uint64_t screenId) override;
+    static void ReleaseScreenDmaBuffer(uint64_t screenId);
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;

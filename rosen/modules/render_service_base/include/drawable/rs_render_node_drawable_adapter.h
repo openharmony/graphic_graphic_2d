@@ -16,8 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_ADAPTER_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_ADAPTER_H
 
-#include <map>
 #include <memory>
+#include <map>
 #include <mutex>
 
 #include "common/rs_common_def.h"
@@ -44,6 +44,7 @@ class Canvas;
 }
 
 struct DrawCmdIndex {
+    int8_t envForeGroundColorIndex_    = -1;
     int8_t shadowIndex_                = -1;
     int8_t renderGroupBeginIndex_      = -1;
     int8_t foregroundFilterBeginIndex_ = -1;
@@ -160,6 +161,7 @@ protected:
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 
     // used for foreground filter
     void DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;

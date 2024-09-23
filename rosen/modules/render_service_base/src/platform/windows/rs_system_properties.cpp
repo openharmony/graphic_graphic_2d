@@ -122,6 +122,11 @@ bool RSSystemProperties::GetVkQueuePriorityEnable()
     return false;
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return {};
@@ -522,12 +527,17 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+std::string RSSystemProperties::GetVersionType()
+{
+    return "";
+}
+
+bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 {
     return false;
 }
 
-bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
 }

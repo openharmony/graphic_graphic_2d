@@ -47,7 +47,10 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
     static float GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext);
+    static void InitMemoryLimit(Drawing::GPUContext* gpuContext);
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
+    static void MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
+    static bool IsExited(pid_t pid);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
     static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
     static void SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled);
@@ -63,14 +66,18 @@ private:
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
+    static void DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext);
     static void DumpMallocStat(std::string& log);
     static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
         const std::string& reportName);
-    static bool KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName);
+    static void TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     static void ErasePidInfo(const std::set<pid_t>& exitedPidSet);
 
     static std::mutex mutex_;
     static std::unordered_map<pid_t, std::pair<std::string, uint64_t>> pidInfo_;
     static uint32_t frameCount_;
+    static uint64_t memoryWarning_;
+    static uint64_t totalMemoryReportTime_;
+    static std::atomic<pid_t> exitedPid_;
 };
 } // namespace OHOS::Rosen

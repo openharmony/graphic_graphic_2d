@@ -48,7 +48,7 @@ public:
      * @param isRenderForced if true, rt will reject partial render and be forced to render all frames
      */
     void SetRTRenderForced(bool isRenderForced);
-    void SetContainerWindow(bool hasContainerWindow, float density);
+    void SetContainerWindow(bool hasContainerWindow, RRect rrect);
     void SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback);
 
     void SetRoot(NodeId root);

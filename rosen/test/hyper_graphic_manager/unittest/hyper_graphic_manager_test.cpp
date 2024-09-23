@@ -144,8 +144,6 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
     auto &instance5 = HgmCore::Instance();
     sptr<HgmScreen> screen = nullptr;
     ScreenId screenId = 3;
-    ScreenId screenId2 = 4;
-    
 
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
@@ -167,11 +165,6 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
 
         STEP("2. check the pointer") {
             STEP_ASSERT_NE(screen, nullptr);
-        }
-
-        STEP("3. try get the non-existence screen") {
-            screen = instance5.GetScreen(screenId2);
-            STEP_ASSERT_EQ(screen, nullptr);
         }
     }
 }
@@ -263,7 +256,6 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
 {
     auto &instance8 = HgmCore::Instance();
     ScreenId screenId = 7;
-    ScreenId screenId2 = 1;
     sptr<HgmScreen> screen = nullptr;
     int32_t width = 1344;
     int32_t height = 2772;
@@ -283,18 +275,12 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
             STEP_ASSERT_EQ(addScreenProfile, 0);
             auto addScreenProfile0 = instance8.AddScreenInfo(screenId, width0, height0, rate0, mode0);
             STEP_ASSERT_EQ(addScreenProfile0, 0);
-            addScreenProfile0 = instance8.AddScreenInfo(screenId2, width0, height0, rate0, mode0);
-            STEP_ASSERT_EQ(addScreenProfile0, 100);
             auto setRate500 = instance8.SetScreenRefreshRate(screenId, 0, 500);
             STEP_ASSERT_EQ(setRate500, -1);
             screen = instance8.GetScreen(screenId);
             STEP_ASSERT_NE(screen->GetActiveRefreshRate(), 500);
             auto setRate120 = instance8.SetScreenRefreshRate(screenId, 0, 120);
             STEP_ASSERT_NE(setRate120, -1);
-            auto setRate60 = instance8.SetScreenRefreshRate(screenId2, 0, 60);
-            STEP_ASSERT_EQ(setRate60, -1);
-            auto setRateNegative = instance8.SetScreenRefreshRate(screenId, 0, -1);
-            STEP_ASSERT_EQ(setRateNegative, -1);
             screen = instance8.GetScreen(screenId);
             STEP_ASSERT_EQ(screen->GetActiveRefreshRate(), 120);
             auto modeListToApply = instance8.GetModesToApply();
@@ -419,10 +405,11 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level
             STEP_ASSERT_NE(screen1->GetModeIdViaRate(0), -2);
             screen1->activeModeId_ = invalidValue; // invalid active mode
             STEP_ASSERT_EQ(screen1->IfSwitchToRate(screen1->GetActiveMode(), OLED_30_HZ), false);
+            int32_t switchScreenSceneId = 1;
+            STEP_ASSERT_EQ(screen1->IfSwitchToRate(switchScreenSceneId, OLED_30_HZ), true);
             STEP_ASSERT_EQ(screen1->GetModeIdViaRate(0), -1);
             screen1->activeModeId_ = savedActiveMode;
 
-            delete screen1;
             screen1 = nullptr;
             STEP_ASSERT_EQ(screen1, nullptr);
         }
@@ -440,7 +427,6 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests2, Function | MediumTest | Level
         }
     }
 }
-
 
 /**
  * @tc.name: HgmCoreTests

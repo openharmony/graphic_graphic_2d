@@ -17,11 +17,11 @@
 
 #include "rs_profiler.h"
 #include "rs_profiler_archive.h"
+#include "rs_profiler_command.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_network.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_telemetry.h"
-#include "rs_profiler_utils.h"
 
 namespace OHOS::Rosen {
 
@@ -149,13 +149,9 @@ bool RSProfiler::IsBetaRecordStarted()
 
 void RSProfiler::SaveBetaRecord()
 {
-    if (!IsBetaRecordSavingTriggered()) {
-        return;
-    }
-
     constexpr double recordMaxLengthSeconds = 30.0;
     const auto recordLength = Now() - g_recordsTimestamp;
-    if (recordLength > recordMaxLengthSeconds) {
+    if (!IsBetaRecordSavingTriggered() && (recordLength <= recordMaxLengthSeconds)) {
         return;
     }
 

@@ -40,6 +40,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
         }
         return;
     }
+
     std::string validSurfaceName = "";
     bool needHighRefresh = false;
     switch (uiFwkType) {
@@ -64,7 +65,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
 bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
     std::string& uiFwkType)
 {
-    for (auto supportedAppBuffer : supportAppBufferList_) {
+    for (auto& supportedAppBuffer : supportAppBufferList_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
             uiFwkType = supportedAppBuffer;
             return true;
@@ -76,7 +77,7 @@ bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
 bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName,
     std::string& validSurfaceName)
 {
-    for (auto supportedAppBuffer : supportAppBufferList_) {
+    for (auto& supportedAppBuffer : supportAppBufferList_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
             validSurfaceName = supportedAppBuffer;
             return true;

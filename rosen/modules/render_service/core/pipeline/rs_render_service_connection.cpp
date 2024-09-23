@@ -41,6 +41,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_ui_capture_task_parallel.h"
@@ -185,6 +186,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
     HgmTaskHandleThread::Instance().ScheduleTask([pid = remotePid_] () {
         RS_TRACE_NAME_FMT("CleanHgmEvent %d", pid);
         HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(pid);
@@ -467,15 +469,9 @@ int32_t RSRenderServiceConnection::SetFocusAppInfo(
         return INVALID_ARGUMENTS;
     }
     mainThread_->ScheduleTask(
-        [=, weakThis = wptr<RSRenderServiceConnection>(this)]() {
-            sptr<RSRenderServiceConnection> connection = weakThis.promote();
-            if (connection == nullptr) {
-                return;
-            }
-            if (connection->mainThread_ == nullptr) {
-                return;
-            }
-            connection->mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+        [pid, uid, bundleName, abilityName, focusNodeId, mainThread = mainThread_]() {
+            // don't use 'this' to get mainThread poninter
+            mainThread->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
         }
     );
     return SUCCESS;
@@ -1336,6 +1332,24 @@ bool RSRenderServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id
     return screenManager_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+bool RSRenderServiceConnection::SetGlobalDarkColorMode(bool isDark)
+{
+    if (!mainThread_) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), isDark]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            RS_LOGE("RSRenderServiceConnection::SetGlobalDarkColorMode fail");
+            return;
+        }
+        connection->mainThread_->SetGlobalDarkColorMode(isDark);
+    };
+    mainThread_->PostTask(task);
+    return true;
+}
+
 bool RSRenderServiceConnection::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     if (!screenManager_) {
@@ -1997,6 +2011,17 @@ void RSRenderServiceConnection::SetFreeMultiWindowStatus(bool enable)
         RSUifirstManager::Instance().SetFreeMultiWindowStatus(enable);
     };
     mainThread_->PostTask(task);
+}
+
+void RSRenderServiceConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    sptr<RSISurfaceBufferCallback> callback)
+{
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+void RSRenderServiceConnection::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
 }
 
 void RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool isTop)
