@@ -92,7 +92,7 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
                     parcel->GetDataSize());
                 return;
             }
-        } while (err != NO_ERROR && retryCount < MAX_RETRY_COUNT);
+        } while (err != NO_ERROR);
     }
 }
 
