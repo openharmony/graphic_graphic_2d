@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "memory/rs_memory_manager.h"
 #include "render/rs_typeface_cache.h"
 
 using namespace testing;
@@ -34,6 +35,74 @@ void RSTypefaceCacheTest::SetUpTestCase() {}
 void RSTypefaceCacheTest::TearDownTestCase() {}
 void RSTypefaceCacheTest::SetUp() {}
 void RSTypefaceCacheTest::TearDown() {}
+
+/**
+ * @tc.name: MemorySnapshotTest001
+ * @tc.desc: Verify memory info of RSTypefaceCache
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, MemorySnapshotTest001, TestSize.Level1)
+{
+    // prepare: typeface, size, hash, MemoryOverCheck hook
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    EXPECT_NE(typeface, nullptr);
+    uint32_t size = typeface->GetSize();
+    EXPECT_NE(size, 0);
+    uint32_t hash = typeface->GetHash();
+    EXPECT_NE(hash, 0);
+    // app1's pid is 123, app2's pid2 is 456, register same typeface
+    pid_t pid1 = 123;
+    pid_t pid2 = 456;
+    uint64_t uniqueId1 = (((uint64_t)pid1) << 32) | (uint64_t)(typeface->GetUniqueID());
+    uint64_t uniqueId2 = (((uint64_t)pid2) << 32) | (uint64_t)(typeface->GetUniqueID());
+
+    // Get base memory snapshot info before test
+    MemorySnapshotInfo baseInfo1;
+    bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid1, baseInfo1);
+    EXPECT_EQ(ret, false);
+    MemorySnapshotInfo baseInfo2;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid2, baseInfo2);
+    EXPECT_EQ(ret, false);
+
+    // branch1: pid1 register typeface
+    ret = RSTypefaceCache::Instance().HasTypeface(uniqueId1, hash);
+    EXPECT_EQ(ret, false);
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId1, typeface);
+    MemorySnapshotInfo currentInfo;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid1, currentInfo);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(currentInfo.cpuMemory, baseInfo1.cpuMemory + size);
+    // branch2: whether pid2 typeface exits
+    ret = RSTypefaceCache::Instance().HasTypeface(uniqueId2, hash);
+    EXPECT_EQ(ret, true);
+    currentInfo = { 0 };
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid2, currentInfo);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(currentInfo.cpuMemory, baseInfo2.cpuMemory + size);
+    // branch3: pid2 register typeface if exits
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId2, typeface);
+    currentInfo = { 0 };
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid2, currentInfo);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(currentInfo.cpuMemory, baseInfo2.cpuMemory + size);
+
+    // pid1 ungister typeface
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId1);
+    currentInfo = { 0 };
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid1, currentInfo);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(currentInfo.cpuMemory, baseInfo1.cpuMemory);
+    // pid2 ungister typeface
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId2);
+    currentInfo = { 0 };
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid2, currentInfo);
+    EXPECT_EQ(ret, true);
+    EXPECT_EQ(currentInfo.cpuMemory, baseInfo2.cpuMemory);
+
+    // clear context
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid1);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid2);
+}
 
 /**
  * @tc.name: GenGlobalUniqueIdTest001
