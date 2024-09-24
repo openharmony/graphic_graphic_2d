@@ -248,6 +248,7 @@ private:
 
     std::string currentBundleName_;
     ScreenId activeScreenId_ = INVALID_SCREEN_ID;
+    std::unordered_set<SceneType> screenSceneSet_;
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
 
     // for LTPO
