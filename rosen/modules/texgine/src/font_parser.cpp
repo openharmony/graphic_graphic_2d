@@ -128,7 +128,7 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
     auto storageOffset = nameTable->storageOffset.Get();
     auto stringStorage = data_ + storageOffset;
     for (int i = 0; i < count; ++i) {
-        if (nameTable->nameRecord[i].stringOffset.Get() == 0 || nameTable->nameRecord[i].length.Get() == 0) {
+        if (nameTable->nameRecord[i].stringOffset.Get() == 0 && nameTable->nameRecord[i].length.Get() == 0) {
             continue;
         }
         FontParser::NameId nameId = static_cast<FontParser::NameId>(nameTable->nameRecord[i].nameId.Get());
@@ -411,6 +411,30 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::GetSystemFo
         descriptors.emplace_back(std::make_shared<FontDescriptor>(desc));
     }
     return descriptors;
+}
+
+bool FontParser::ParserFontDescriptorFromPath(const std::string& path,
+    std::vector<std::shared_ptr<FontDescriptor>>& descriptors, const std::string locale)
+{
+    std::shared_ptr<Drawing::Typeface> typeface;
+    int index = 0;
+    FontDescriptor desc;
+    desc.requestedLid = GetLanguageId(locale);
+    desc.path = path;
+    while ((typeface = Drawing::Typeface::MakeFromFile(path.c_str(), index)) != nullptr) {
+        index++;
+        auto fontStyle = typeface->GetFontStyle();
+        desc.weight = fontStyle.GetWeight();
+        desc.width = fontStyle.GetWidth();
+        if (ParseTable(typeface, desc) != SUCCESSED) {
+            continue;
+        }
+        descriptors.emplace_back(std::make_shared<FontDescriptor>(desc));
+    }
+    if (descriptors.size() > 0) {
+        return true;
+    }
+    return false;
 }
 
 std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(const std::string& fontName,
