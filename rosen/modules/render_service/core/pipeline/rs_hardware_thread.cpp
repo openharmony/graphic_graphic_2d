@@ -254,20 +254,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             PostDelayTask(task, delayTime_);
         }
     }
-
-    for (const auto& layer : layers) {
-        if (layer == nullptr || layer->GetClearCacheSet().empty()) {
-            continue;
-        }
-
-        // Remove image caches when their SurfaceNode has gobackground/cleancache.
-        RSTaskMessage::RSTask clearTask = [this, cacheset = layer->GetClearCacheSet()]() {
-            if (uniRenderEngine_ != nullptr) {
-                uniRenderEngine_->ClearCacheSet(cacheset);
-            }
-        };
-        PostTask(clearTask);
-    }
 }
 
 RefreshRateParam RSHardwareThread::GetRefreshRateParam()

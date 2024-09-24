@@ -104,7 +104,6 @@ void RSRenderServiceListener::OnCleanCache()
         }
         RS_LOGI("RSRenderServiceListener::OnCleanCache node Name:%{public}s id:%{public}" PRIu64,
             nodePtr->GetName().c_str(), nodePtr->GetId());
-        nodePtr->NeedClearBufferCache();
     });
 }
 
