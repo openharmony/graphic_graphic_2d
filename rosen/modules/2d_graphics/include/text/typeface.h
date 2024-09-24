@@ -114,10 +114,22 @@ public:
      */
     void SetHash(uint32_t hash);
 
+    /**
+     * @brief   Get serialized data size of typeface. Firstly set size before GetSize().
+     * @return  serialized data size
+     */
+    uint32_t GetSize();
+
+    /**
+     * @brief Set serialized data size of typeface.
+     */
+    void SetSize(uint32_t size);
+
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
     static std::function<bool(std::shared_ptr<Typeface>)> registerTypefaceCallBack_;
     static std::function<bool(std::shared_ptr<Typeface>)> unregisterTypefaceCallBack_;
+    uint32_t size_ = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

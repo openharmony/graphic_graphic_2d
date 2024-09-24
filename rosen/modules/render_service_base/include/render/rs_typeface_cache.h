@@ -62,6 +62,8 @@ public:
 
 private:
     bool AddIfFound(uint64_t uniqueId, uint32_t hash);
+    void RemoveHashMap(pid_t pid, std::unordered_map<uint64_t, TypefaceTuple>& typefaceHashMap,
+        uint64_t hash_value);
     RSTypefaceCache(const RSTypefaceCache&) = delete;
     RSTypefaceCache(const RSTypefaceCache&&) = delete;
     RSTypefaceCache& operator=(const RSTypefaceCache&) = delete;
