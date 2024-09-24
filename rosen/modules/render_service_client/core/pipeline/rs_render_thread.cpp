@@ -470,7 +470,9 @@ void RSRenderThread::Render()
     }
     // get latest partial render status from system properties and set it to RTvisitor_
     visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(),
-        isRTRenderForced_ || (isOverDrawEnabledOfLastFrame_ != isOverDrawEnabledOfCurFrame_));
+        isRTRenderForced_ || (isOverDrawEnabledOfLastFrame_ != isOverDrawEnabledOfCurFrame_) ||
+        IsHighContrastChanged());
+    ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
     isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
