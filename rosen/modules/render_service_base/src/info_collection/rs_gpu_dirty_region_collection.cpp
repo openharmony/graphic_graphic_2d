@@ -17,6 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
+const std::string SELF_DRAWING_NODE_SUFFIX = "-selfDrawing";
 GpuDirtyRegionCollection& GpuDirtyRegionCollection::GetInstance()
 {
     static GpuDirtyRegionCollection instance;
@@ -49,7 +50,7 @@ void GpuDirtyRegionCollection::UpdateActiveDirtyInfoForDFX(NodeId id, const std:
     ++activeDirtyRegionInfoMap_[id].activeFramesNumber;
     activeDirtyRegionInfoMap_[id].activeDirtyRegionArea += damage.w * damage.h;
     activeDirtyRegionInfoMap_[id].pidOfBelongsApp = ExtractPid(id);
-    activeDirtyRegionInfoMap_[id].windowName = windowName;
+    activeDirtyRegionInfoMap_[id].windowName = windowName + SELF_DRAWING_NODE_SUFFIX;
 }
 
 void GpuDirtyRegionCollection::UpdateGlobalDirtyInfoForDFX(RectI rect)
@@ -59,10 +60,11 @@ void GpuDirtyRegionCollection::UpdateGlobalDirtyInfoForDFX(RectI rect)
     globalDirtyRegionInfo_.globalDirtyRegionAreas += rect.width_ * rect.height_;
 }
 
-void GpuDirtyRegionCollection::AddSkipProcessFramesNumberForDFX()
+void GpuDirtyRegionCollection::AddSkipProcessFramesNumberForDFX(pid_t sendingPid)
 {
     std::lock_guard<std::mutex> lock(globalMtx_);
     ++globalDirtyRegionInfo_.skipProcessFramesNumber;
+    ++sendingPidWhenDisplayNodeSkipMap_[sendingPid];
 }
 
 std::vector<ActiveDirtyRegionInfo> GpuDirtyRegionCollection::GetActiveDirtyRegionInfo() const
@@ -87,6 +89,7 @@ GlobalDirtyRegionInfo GpuDirtyRegionCollection::GetGlobalDirtyRegionInfo() const
             globalDirtyRegionInfo_.globalFramesNumber;
         globalDirtyRegionInfo.globalFramesNumber = globalDirtyRegionInfo_.globalFramesNumber;
         globalDirtyRegionInfo.skipProcessFramesNumber = globalDirtyRegionInfo_.skipProcessFramesNumber;
+        globalDirtyRegionInfo.mostSendingPidWhenDisplayNodeSkip = GetMostSendingPidWhenDisplayNodeSkip();
     }
     return globalDirtyRegionInfo;
 }
@@ -101,6 +104,20 @@ void GpuDirtyRegionCollection::ResetGlobalDirtyRegionInfo()
 {
     std::lock_guard<std::mutex> lock(globalMtx_);
     globalDirtyRegionInfo_ = GlobalDirtyRegionInfo {};
+    sendingPidWhenDisplayNodeSkipMap_.clear();
+}
+
+pid_t GpuDirtyRegionCollection::GetMostSendingPidWhenDisplayNodeSkip() const
+{
+    pid_t mostSendingPidWhenDisplayNodeSkip = 0;
+    int32_t maxCountOfSendingPid = 0;
+    for (const auto& pair : sendingPidWhenDisplayNodeSkipMap_) {
+        if (pair.second > maxCountOfSendingPid) {
+            mostSendingPidWhenDisplayNodeSkip = pair.first;
+            maxCountOfSendingPid = pair.second;
+        }
+    }
+    return mostSendingPidWhenDisplayNodeSkip;
 }
 } // namespace Rosen
 } // namespace OHOS
