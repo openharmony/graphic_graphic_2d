@@ -47,8 +47,5 @@ int main(int argc, const char *argv[])
 
     renderService->Run();
 
-
-    string s = "hellow";
-
     return 0;
 }

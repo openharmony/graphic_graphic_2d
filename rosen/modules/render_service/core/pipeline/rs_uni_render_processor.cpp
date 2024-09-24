@@ -272,7 +272,7 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
             // map_x = (buffer_width - buffer_right_x)
             if (adaptedSrcRect.x > 0) {
                 adaptedSrcRect.x = 0;
-            } else if (layerInfo.dstRect.x + layerInfo.dstRect.w >= screenInfo_.width) {
+            } else if (layerInfo.dstRect.x + layerInfo.dstRect.w >= static_cast<int32_t>(screenInfo_.width)) {
                 // 2. Intersect the right border of the screen.
                 // map_x = (buffer_width - buffer_right_x)
                 // Only left side adjustment can be triggerred on the narrow screen.
@@ -286,7 +286,7 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
             // The processing in the vertical direction is similar to that in the horizontal direction.
             if (adaptedSrcRect.y > 0) {
                 adaptedSrcRect.y = 0;
-            } else if (layerInfo.dstRect.y + layerInfo.dstRect.h >= screenInfo_.height) {
+            } else if (layerInfo.dstRect.y + layerInfo.dstRect.h >= static_cast<int32_t>(screenInfo_.height)) {
                 adaptedSrcRect.y =
                     buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferHeight()) - adaptedSrcRect.h) : 0;
             }
