@@ -162,6 +162,24 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsEmpty001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, IsEmpty001, TestSize.Level1)
+{
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    bool isCommonDataEmpty = rsTransactionProxy->implicitCommonTransactionData_->IsEmpty();
+    bool isRemoteDataEmpty = rsTransactionProxy->implicitRemoteTransactionData_->IsEmpty();
+    bool isCommonDataStackEmpty = rsTransactionProxy->implicitCommonTransactionDataStack_.empty();
+    bool isRemoteDataStackEmpty = rsTransactionProxy->implicitRemoteTransactionDataStack_.empty();
+
+    ASSERT_EQ(rsTransactionProxy->IsEmpty(),
+        isCommonDataEmpty & isRemoteDataEmpty & isCommonDataStackEmpty & isRemoteDataStackEmpty);
+}
+
+/**
  * @tc.name: FlushImplicitTransaction005
  * @tc.desc: test
  * @tc.type:FUNC
