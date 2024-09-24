@@ -231,21 +231,21 @@ Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vect
 }
 static const std::shared_ptr<Drawing::ColorFilter> InvertColorMat(float hdrBrightnessRatio)
 {
-    if (!ROSEN_EQ(hdrBrightnessRatio, 1.f)) {
-        const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
-            0.402,  -1.174, -0.228, hdrBrightnessRatio, 0.0,
-            -0.598, -0.174, -0.228, hdrBrightnessRatio, 0.0,
-            -0.599, -1.175, 0.772,  hdrBrightnessRatio, 0.0,
-            0.0,    0.0,    0.0,    1.0, 0.0
-        };
-        return Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
-    }
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
         -0.598, -0.174, -0.228, 1.0, 0.0,
         -0.599, -1.175, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
+    if (!ROSEN_EQ(hdrBrightnessRatio, 1.f)) {
+        const Drawing::scalar brightnessMatrixArray[MATRIX_SIZE] = {
+            1.0,  0.0, 0.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0,  1.0, 0.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0,  0.0, 1.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0,  0.0, 0.0, 1.0, 0.0
+        };
+        return Drawing::ColorFilter::CreateComposeColorFilter(brightnessMatrixArray, colorMatrixArray);
+    }
     static auto invertColorMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertColorMat;
 }
