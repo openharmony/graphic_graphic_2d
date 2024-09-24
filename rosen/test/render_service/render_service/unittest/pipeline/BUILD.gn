@@ -20,6 +20,7 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":RSAncoManagerTest",
     ":RSBaseRenderEngineUnitTest",
     ":RSBaseRenderUtilTest",
     ":RSComposerAdapterTest",
@@ -1214,6 +1215,20 @@ ohos_unittest("RSMagicPointerRenderManagerTest") {
 ohos_unittest("RSGraphic_Config_Test") {
   module_out_path = module_output_path
   sources = [ "rs_graphic_config_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSAncoManagerTest
+ohos_unittest("RSAncoManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_anco_manager_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

@@ -59,6 +59,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/rs_anco_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -2042,90 +2043,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     idleTimerExpiredFlag_ = false;
 }
 
-AncoHebcStatus RSMainThread::GetAncoHebcStatus() const
-{
-    return static_cast<AncoHebcStatus>(ancoHebcStatus_.load());
-}
-
-void RSMainThread::SetAncoHebcStatus(AncoHebcStatus hebcStatus)
-{
-    ancoHebcStatus_.store(static_cast<int32_t>(hebcStatus));
-}
-
-bool RSMainThread::AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt)
-{
-    constexpr int MIN_OPTIMIZE_ANCO_NUMS = 3;
-    constexpr int MIN_OPTIMIZE_ANCO_SFV_NUMS = 2;
-    bool numsMatch = nodesCnt == MIN_OPTIMIZE_ANCO_NUMS && sfvNodesCnt == MIN_OPTIMIZE_ANCO_SFV_NUMS;
-    if (numsMatch && isHebc) {
-        RS_LOGI("doDirect anco disable hebc");
-        SetAncoHebcStatus(AncoHebcStatus::NOT_USE_HEBC);
-        return true;
-    }
-    if (!numsMatch && !isHebc) {
-        RS_LOGI("doDirect anco enable hebc");
-        SetAncoHebcStatus(AncoHebcStatus::USE_HEBC);
-        return true;
-    }
-    SetAncoHebcStatus(AncoHebcStatus::INITIAL);
-    return false;
-}
-
-bool RSMainThread::AncoOptimizeDisplayNode(std::shared_ptr<RSDisplayRenderNode>& displayNode, ScreenInfo screenInfo)
-{
-    if (!RSSurfaceRenderNode::GetOriAncoForceDoDirect() || !RSSystemProperties::IsTabletType() ||
-        displayNode->GetRotation() != ScreenRotation::ROTATION_0) {
-        return false;
-    }
-
-    auto drawable = displayNode->GetRenderDrawable();
-    if (!drawable) {
-        return false;
-    }
-    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
-    if (surfaceHandler == nullptr || surfaceHandler->GetBuffer() == nullptr) {
-        return false;
-    }
-    bool isHebc = true;
-    if ((surfaceHandler->GetBuffer()->GetUsage() & BUFFER_USAGE_CPU_READ) ||
-        (surfaceHandler->GetBuffer()->GetUsage() & BUFFER_USAGE_CPU_WRITE)) {
-        isHebc = false;
-    }
-
-    // process displayNode rect
-    int minDisplayW = static_cast<int32_t>(screenInfo.GetRotatedPhyWidth() / 2);
-    int minDisplayH = static_cast<int32_t>(screenInfo.GetRotatedPhyHeight() / 2);
-    if (minDisplayW <= 0 && minDisplayH <= 0) {
-        return false;
-    }
-
-    int nodesCnt = 0;
-    int sfvNodesCnt = 0;
-    for (auto& surfaceNode : hardwareEnabledNodes_) {
-        if ((surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) == 0) {
-            continue;
-        }
-        auto alpha = surfaceNode->GetGlobalAlpha();
-        if (ROSEN_EQ(alpha, 0.0f) || !surfaceNode->GetRSSurfaceHandler() ||
-            !surfaceNode->GetRSSurfaceHandler()->GetBuffer()) {
-            continue;
-        }
-        auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
-        if (params == nullptr) {
-            continue;
-        }
-        auto& layerInfo = params->GetLayerInfo().dstRect;
-        if (layerInfo.w >= minDisplayW && layerInfo.h >= minDisplayH) {
-            nodesCnt++;
-            if (surfaceNode->GetAncoFlags() == static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) {
-                sfvNodesCnt++;
-            }
-        }
-    }
-    return AncoOptimizeCheck(isHebc, nodesCnt, sfvNodesCnt);
-}
-
 bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT)
 {
     auto children = rootNode->GetChildren();
@@ -2162,8 +2079,14 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
 
-    if (AncoOptimizeDisplayNode(displayNode, screenInfo)) {
-        return false;
+    auto drawable = displayNode->GetRenderDrawable();
+    if (drawable != nullptr)
+        auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+        auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+        if (RSAncoManager::Instance()->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes_,
+            displayNode->GetRotation(), screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight())) {
+            return false;
+        }
     }
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {

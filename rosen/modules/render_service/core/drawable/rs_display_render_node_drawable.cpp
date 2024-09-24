@@ -33,6 +33,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/rs_anco_manager.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
@@ -302,11 +303,11 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         params.GetNewPixelFormat());
 
     bool isHebc = true;
-    if (RSMainThread::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC) {
+    if (RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC) {
         isHebc = false;
         RS_LOGI("anco request frame not use hebc");
     }
-    RSMainThread::Instance()->SetAncoHebcStatus(AncoHebcStatus::INITIAL);
+    RSAncoManager::Instance()->SetAncoHebcStatus(AncoHebcStatus::INITIAL);
 
     auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
         bufferConfig, false, isHebc);
@@ -633,7 +634,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         isHdrOn, hdrBrightnessRatio);
 
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor) &&
-        RSMainThread::Instance()->GetAncoHebcStatus() == AncoHebcStatus::INITIAL) {
+        RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::INITIAL) {
         RSMainThread::Instance()->SetFrameIsRender(false);
         SetDisplayNodeSkipFlag(*uniParam, true);
         return;

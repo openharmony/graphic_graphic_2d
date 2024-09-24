@@ -358,10 +358,6 @@ public:
     void UnRegisterUIExtensionCallback(pid_t pid);
 
     void SetAncoForceDoDirect(bool direct);
-    AncoHebcStatus GetAncoHebcStatus() const;
-    void SetAncoHebcStatus(AncoHebcStatus hebcStatus);
-    bool AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt);
-    bool AncoOptimizeDisplayNode(std::shared_ptr<RSDisplayRenderNode>& displayNode, ScreenInfo screenInfo);
 
     bool IsBlurSwitchOpen() const;
 
@@ -731,9 +727,6 @@ private:
 
     // graphic config
     bool isBlurSwitchOpen_ = true;
-
-    // anco displayNode use hebc
-    std::atomic<int32_t> ancoHebcStatus_ = static_cast<int32_t>(AncoHebcStatus::INITIAL);
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

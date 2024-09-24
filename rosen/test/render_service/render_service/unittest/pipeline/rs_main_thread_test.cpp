@@ -22,7 +22,6 @@
 #include "limit_number.h"
 #include "rs_test_util.h"
 
-#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_root_render_node.h"
@@ -3848,93 +3847,5 @@ HWTEST_F(RSMainThreadTest, OnDumpClientNodeTree, TestSize.Level2)
     mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
     ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
     ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_[taskId].data.empty());
-}
-
-/**
- * @tc.name: AncoOptimizeDisplayNode
- * @tc.desc: test AncoOptimizeDisplayNode
- * @tc.type: FUNC
- * @tc.require: issueIARZ3Q
- */
-HWTEST_F(RSMainThreadTest, AncoOptimizeDisplayNode, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(1, config);
-    ScreenInfo screenInfo;
-
-    mainThread->SetAncoForceDoDirect(false);
-    ASSERT_EQ(mainThread->AncoOptimizeDisplayNode(displayNode, screenInfo), false);
-
-    mainThread->SetAncoForceDoDirect(true);
-    system::SetParameter("const.product.devicetype", "phone");
-    ASSERT_EQ(mainThread->AncoOptimizeDisplayNode(displayNode, screenInfo), false);
-
-    system::SetParameter("const.product.devicetype", "tablet");
-    displayNode->GetMutableRenderProperties().SetRotation(90.0f);
-    ASSERT_EQ(mainThread->AncoOptimizeDisplayNode(displayNode, screenInfo), false);
-
-    displayNode->GetMutableRenderProperties().SetRotation(0.0f);
-    ASSERT_EQ(mainThread->AncoOptimizeDisplayNode(displayNode, screenInfo), false);
-
-    auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(
-        DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(displayNode));
-    ASSERT_NE(displayDrawable, nullptr);
-    auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
-    ASSERT_NE(surfaceHandler, nullptr);
-    ASSERT_EQ(mainThread->AncoOptimizeDisplayNode(displayNode, screenInfo), false);
-
-    surfaceHandler->buffer_.buffer = SurfaceBuffer::Create();
-    ASSERT_NE(surfaceHandler->buffer_.buffer, nullptr);
-    ASSERT_EQ(mainThread->AncoOptimizeDisplayNode(displayNode, screenInfo), false);
-
-    screenInfo.phyWidth = 1080;
-    screenInfo.phyHeight = 2160;
-    ASSERT_EQ(mainThread->AncoOptimizeDisplayNode(displayNode, screenInfo), false);
-}
-
-/**
- * @tc.name: SetAncoHebcStatus
- * @tc.desc: test SetAncoHebcStatus
- * @tc.type: FUNC
- * @tc.require: issueIARZ3Q
- */
-HWTEST_F(RSMainThreadTest, SetAncoHebcStatus, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetAncoHebcStatus(AncoHebcStatus::USE_HEBC);
-    ASSERT_EQ(mainThread->GetAncoHebcStatus(), AncoHebcStatus::USE_HEBC);
-}
-
-/**
- * @tc.name: GetAncoHebcStatus
- * @tc.desc: test GetAncoHebcStatus
- * @tc.type: FUNC
- * @tc.require: issueIARZ3Q
- */
-HWTEST_F(RSMainThreadTest, GetAncoHebcStatus, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetAncoHebcStatus(AncoHebcStatus::INITIAL);
-    ASSERT_EQ(mainThread->GetAncoHebcStatus(), AncoHebcStatus::INITIAL);
-}
-
-/**
- * @tc.name: AncoOptimizeCheck
- * @tc.desc: test AncoOptimizeCheck
- * @tc.type: FUNC
- * @tc.require: issueIARZ3Q
- */
-HWTEST_F(RSMainThreadTest, AncoOptimizeCheck, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    ASSERT_EQ(mainThread->AncoOptimizeCheck(true, 3, 2), true);
-    ASSERT_EQ(mainThread->AncoOptimizeCheck(true, 4, 2), false);
-    ASSERT_EQ(mainThread->AncoOptimizeCheck(false, 3, 2), false);
-    ASSERT_EQ(mainThread->AncoOptimizeCheck(false, 4, 2), true);
 }
 } // namespace OHOS::Rosen
