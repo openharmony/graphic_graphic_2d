@@ -303,8 +303,9 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
         RS_LOGI("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
+        int32_t sceneId = (lastScreenId != id) ? SWITCH_SCREEN_SCENE : 0;
         lastScreenId = id;
-        int32_t status = hgmCore.SetScreenRefreshRate(id, 0, refreshRate);
+        int32_t status = hgmCore.SetScreenRefreshRate(id, sceneId, refreshRate);
         if (status < EXEC_SUCCESS) {
             RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "", refreshRate,
                 id);
