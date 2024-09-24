@@ -1340,9 +1340,8 @@ void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& a
     // If the node is a hardware-enabled type, intersect its destination rectangle with the prepare clip rectangle
     if (node.IsHardwareEnabledType()) {
         dstRect = dstRect.IntersectRect(clipRect);
-        if (curSurfaceNode_) {
-            auto curSurfaceNodeDstRect = curSurfaceNode_->GetDstRect();
-            dstRect = dstRect.IntersectRect(curSurfaceNodeDstRect);
+        if (curSurfaceNode_ && (node.GetId() != curSurfaceNode_->GetId())) {
+            dstRect = dstRect.IntersectRect(curSurfaceNode_->GetDstRect());
         }
     }
     dstRect.left_ = static_cast<int>(std::round(dstRect.left_ * screenInfo_.GetRogWidthRatio()));
