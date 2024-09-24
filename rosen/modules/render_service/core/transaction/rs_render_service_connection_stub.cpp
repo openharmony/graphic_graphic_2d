@@ -86,6 +86,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY),
@@ -977,6 +978,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId id = data.ReadUint64();
             ScreenScaleMode scaleMode = static_cast<ScreenScaleMode>(data.ReadUint32());
             bool result = SetVirtualMirrorScreenScaleMode(id, scaleMode);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE): {
+            bool isDark = data.ReadBool();
+            bool result = SetGlobalDarkColorMode(isDark);
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
             }

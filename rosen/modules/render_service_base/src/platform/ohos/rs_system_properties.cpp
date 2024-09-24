@@ -1068,5 +1068,13 @@ bool RSSystemProperties::GetMemoryOverTreminateEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
     return flag;
 }
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.markedFilter.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

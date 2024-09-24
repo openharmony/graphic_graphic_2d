@@ -869,6 +869,16 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenS
     return renderService->SetVirtualMirrorScreenScaleMode(id, scaleMode);
 }
 
+bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: renderService is nullptr");
+        return false;
+    }
+    return renderService->SetGlobalDarkColorMode(isDark);
+}
+
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
