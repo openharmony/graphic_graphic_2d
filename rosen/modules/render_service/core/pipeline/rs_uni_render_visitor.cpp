@@ -155,8 +155,6 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     }
 #endif
     isUIFirstDebugEnable_ = RSSystemProperties::GetUIFirstDebugEnabled();
-    isPrevalidateHwcNodeEnable_ = RSSystemParameters::GetPrevalidateHwcNodeEnabled() &&
-        RSUniHwcPrevalidateUtil::GetInstance().IsLoadSuccess();
 }
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
@@ -1618,7 +1616,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
 
 void RSUniRenderVisitor::PrevalidateHwcNode()
 {
-    if (!isPrevalidateHwcNodeEnable_) {
+    if (!RSUniHwcPrevalidateUtil::GetInstance().IsPrevalidateEnable(curDisplayNode_->GetScreenId())) {
         RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniRenderVisitor::PrevalidateHwcNode prevalidate close");
         return;
     }

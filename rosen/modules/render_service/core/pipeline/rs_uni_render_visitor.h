@@ -369,7 +369,6 @@ private:
     // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
     std::vector<RectI> globalSurfaceBounds_;
-    bool isPrevalidateHwcNodeEnable_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isSubThread_ = false;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
