@@ -353,6 +353,7 @@ HWTEST_F(RSMainThreadTest, RenderServiceTreeDump, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     std::string str = "";
     mainThread->RenderServiceTreeDump(str);
+    ASSERT_FALSE(str.size() == 0);
 }
 
 /**
@@ -364,10 +365,12 @@ HWTEST_F(RSMainThreadTest, RenderServiceTreeDump, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     std::string str = "";
     int32_t pid = INVALID_VALUE;
     int32_t uid = INVALID_VALUE;
     mainThread->SetFocusAppInfo(pid, uid, str, str, 0);
+    ASSERT_EQ(mainThread->focusAppPid_, pid);
 }
 
 /**
@@ -764,6 +767,7 @@ HWTEST_F(RSMainThreadTest, RecvRSTransactionData, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, PostSyncTask, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_EQ(mainThread->handler_, nullptr);
     RSTaskMessage::RSTask task = []() -> void { return; };
     mainThread->PostSyncTask(task);
 }
@@ -863,7 +867,7 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, GetWatermarkImg, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->GetWatermarkImg();
+    ASSERT_EQ(mainThread->GetWatermarkImg(), nullptr);
 }
 
 /**
@@ -913,7 +917,9 @@ HWTEST_F(RSMainThreadTest, DoParallelComposition, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetIdleTimerExpiredFlag, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->SetIdleTimerExpiredFlag(true);
+    ASSERT_TRUE(mainThread->idleTimerExpiredFlag_);
 }
 
 /**
@@ -1371,13 +1377,14 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
 
 /**
  * @tc.name: WaitUntilUnmarshallingTaskFinished001
- * @tc.desc: WaitUntilUnmarshallingTaskFinished test
+ * @tc.desc: WaitUntilUnmarshallingTaskFinished test, divided render, the func call will return immediately.
  * @tc.type: FUNC
  * @tc.require: issueI7HDVG
  */
 HWTEST_F(RSMainThreadTest, WaitUntilUnmarshallingTaskFinished001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     bool isUniRender = mainThread->isUniRender_;
     mainThread->isUniRender_ = false;
     mainThread->WaitUntilUnmarshallingTaskFinished();
@@ -1393,12 +1400,14 @@ HWTEST_F(RSMainThreadTest, WaitUntilUnmarshallingTaskFinished001, TestSize.Level
 HWTEST_F(RSMainThreadTest, MergeToEffectiveTransactionDataMap, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     TransactionDataMap tsDataMap;
     tsDataMap.emplace(0, std::vector<std::unique_ptr<RSTransactionData>>());
     auto data = std::make_unique<RSTransactionData>();
     data->SetIndex(1);
     tsDataMap[0].emplace_back(std::move(data));
     mainThread->MergeToEffectiveTransactionDataMap(tsDataMap);
+    ASSERT_TRUE(tsDataMap.empty());
 }
 
 /**

@@ -85,7 +85,8 @@ HWTEST_F(RSSystemParametersTest, GetDrawingCacheEnabledDfxTest, TestSize.Level1)
  */
 HWTEST_F(RSSystemParametersTest, GetQuickSkipPrepareTypeTest, TestSize.Level1)
 {
-    RSSystemParameters::GetQuickSkipPrepareType();
     system::SetParameter("rosen.quickskipprepare.enabled", "2");
+    auto result = RSSystemParameters::GetQuickSkipPrepareType();
+    ASSERT_EQ(result, QuickSkipPrepareType::STATIC_APP_INSTANCE);
 }
 } // namespace OHOS::Rosen

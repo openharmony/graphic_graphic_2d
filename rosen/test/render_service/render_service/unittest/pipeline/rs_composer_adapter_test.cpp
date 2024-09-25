@@ -111,7 +111,6 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest001, Function | SmallTest | Leve
     layers.emplace_back(infoPtr1);
     layers.emplace_back(infoPtr2);
     composerAdapter_->CommitLayers(layers);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -127,15 +126,18 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     std::vector<std::shared_ptr<HdiLayerInfo>> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode1, nullptr);
+    ASSERT_NE(surfaceNode1->GetRSSurfaceHandler(), nullptr);
     auto consumer = surfaceNode1->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
     GraphicExtDataHandle handle;
     handle.fd = -1;
     handle.reserveInts = 1;
     consumer->SetTunnelHandle(&handle);
     auto infoPtr = composerAdapter_->CreateLayer(*surfaceNode1);
+    ASSERT_EQ(infoPtr, nullptr);
     layers.emplace_back(infoPtr);
     composerAdapter_->CommitLayers(layers);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -160,7 +162,6 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest003, Function | SmallTest | Leve
     layers.emplace_back(infoPtr2);
     RSHardwareThread::Instance().Start();
     composerAdapter_->CommitLayers(layers);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -188,7 +189,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest001, Function | SmallTest | Leve
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
     auto infoPtr2 = composerAdapter_->CreateLayer(*surfaceNode2);
     auto infoPtr3 = composerAdapter_->CreateLayer(*surfaceNode3);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -219,7 +219,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest002, Function | SmallTest | Leve
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
     auto infoPtr2 = composerAdapter_->CreateLayer(*surfaceNode2);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -242,7 +241,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest003, Function | SmallTest | Leve
         ScreenRotation::ROTATION_90);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -265,7 +263,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest004, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -288,7 +285,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest005, Function | SmallTest | Leve
         ScreenRotation::ROTATION_270);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -314,7 +310,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest006, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -343,7 +338,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest007, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -374,7 +368,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest008, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -400,7 +393,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
-    composerAdapter_ = nullptr;
 }
 
 /**
@@ -420,7 +412,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest010, Function | SmallTest | Leve
     NodeId id = 1;
     RSDisplayRenderNode node(id, config);
     auto infoPtr = composerAdapter_->CreateLayer(node);
-    composerAdapter_ = nullptr;
+    ASSERT_EQ(infoPtr, nullptr);
 }
 
 /**
@@ -448,7 +440,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
         node->GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
-    composerAdapter_->CreateLayer(*node);
+    ASSERT_NE(composerAdapter_->CreateLayer(*node), nullptr);
 }
 
 /**
@@ -508,7 +500,9 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp003, Function | SmallTest |
     CreateComposerAdapterWithScreenInfo(
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    ASSERT_NE(layer, nullptr);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    ASSERT_NE(consumer, nullptr);
     layer->IsSupportedPresentTimestamp_ = true;
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
 }
@@ -527,6 +521,7 @@ HWTEST_F(RSComposerAdapterTest, OnPrepareComplete, Function | SmallTest | Level2
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     PrepareCompleteParam para;
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);

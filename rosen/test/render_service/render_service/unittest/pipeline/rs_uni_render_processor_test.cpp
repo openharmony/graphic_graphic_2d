@@ -72,6 +72,7 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
         return;
     }
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+    ASSERT_NE(processor, nullptr);
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(1, config);
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
@@ -110,6 +111,7 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
         return;
     }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(1, config);
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();

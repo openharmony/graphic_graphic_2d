@@ -367,19 +367,23 @@ HWTEST_F(RSUniRenderUtilTest, Is3DRotation_003, Function | SmallTest | Level2)
 
 /*
  * @tc.name: AssignWindowNodes
- * @tc.desc:
+ * @tc.desc: Test AssignWindowNodes when displaynode is nullptr, or has no child.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIATLPV
  */
 HWTEST_F(RSUniRenderUtilTest, AssignWindowNodes, Function | SmallTest | Level2)
 {
     std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
     RSUniRenderUtil::AssignWindowNodes(nullptr, mainThreadNodes, subThreadNodes);
+    ASSERT_TRUE(mainThreadNodes.empty());
+    ASSERT_TRUE(subThreadNodes.empty());
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     RSUniRenderUtil::AssignWindowNodes(node, mainThreadNodes, subThreadNodes);
+    ASSERT_TRUE(mainThreadNodes.empty());
+    ASSERT_TRUE(subThreadNodes.empty());
 }
 
 /*
@@ -523,9 +527,9 @@ HWTEST_F(RSUniRenderUtilTest, PostReleaseSurfaceTask002, Function | SmallTest | 
 
 /*
  * @tc.name: ClearNodeCacheSurface
- * @tc.desc:
+ * @tc.desc: Test ClearNodeCacheSurface
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIATLPV
  */
 HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Level2)
 {
@@ -534,6 +538,7 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(node, nullptr);
     threadIndex = UNI_MAIN_THREAD_INDEX;
     auto cacheSurface = node->GetCacheSurface(threadIndex, false);
     auto completedSurface= node->GetCompletedCacheSurface(0, true);
@@ -1349,14 +1354,14 @@ HWTEST_F(RSUniRenderUtilTest, CacheSubThreadNodesTest002, TestSize.Level1)
 HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
 {
     RSUniRenderUtil rsUniRenderUtil;
-    RSSurfaceRenderNode nodesTest1(0);
-    nodesTest1.GetRSSurfaceHandler()->buffer_.buffer = nullptr;
-    rsUniRenderUtil.LayerScaleDown(nodesTest1);
+    auto nodesTest1 = std::make_shared<RSSurfaceRenderNode>(0);
+    nodesTest1->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
+    rsUniRenderUtil.LayerScaleDown(*nodesTest1);
 
-    RSSurfaceRenderNode nodesTest2(1);
-    nodesTest2.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    nodesTest2.GetRSSurfaceHandler()->consumer_ = nullptr;
-    rsUniRenderUtil.LayerScaleDown(nodesTest2);
+    auto nodesTest2 = std::make_shared<RSSurfaceRenderNode>(1);
+    nodesTest2->GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    nodesTest2->GetRSSurfaceHandler()->consumer_ = nullptr;
+    rsUniRenderUtil.LayerScaleDown(*nodesTest2);
 }
 
 /*
@@ -1405,6 +1410,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo002, TestSize.Lev
 {
     RSUniRenderUtil rsUniRenderUtil;
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
     node->childrenHasUIExtension_ = true;
     Drawing::Matrix parentMatrix = Drawing::Matrix();
     parentMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);

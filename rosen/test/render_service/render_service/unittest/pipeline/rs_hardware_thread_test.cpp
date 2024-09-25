@@ -142,6 +142,7 @@ HWTEST_F(RSHardwareThreadTest, Start001, TestSize.Level1)
 {
     auto& hardwareThread = RSHardwareThread::Instance();
     hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
 }
 
 /**
@@ -155,6 +156,7 @@ HWTEST_F(RSHardwareThreadTest, Start002, TestSize.Level1)
     auto& hardwareThread = RSHardwareThread::Instance();
     hardwareThread.PostTask([&]() {});
     hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
     hardwareThread.PostTask([&]() {});
     hardwareThread.ScheduleTask([=]() {}).wait();
 }

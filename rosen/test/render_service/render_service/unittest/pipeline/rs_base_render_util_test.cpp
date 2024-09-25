@@ -411,6 +411,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
@@ -536,7 +537,7 @@ HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level2)
 
 /*
  * @tc.name: DealWithSurfaceRotationAndGravity_001
- * @tc.desc: Test DealWithSurfaceRotationAndGravity
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity, with empty param.buffer
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
@@ -546,12 +547,13 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
     BufferDrawParam params;
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
-
     std::shared_ptr<RSSurfaceRenderNode> rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsParentNode->AddChild(rsNode);
     rsNode->SetIsOnTheTree(true);
-
+    ASSERT_EQ(params.buffer, nullptr);
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    ASSERT_NE(rsNode->GetRSSurfaceHandler(), nullptr);
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
         rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
