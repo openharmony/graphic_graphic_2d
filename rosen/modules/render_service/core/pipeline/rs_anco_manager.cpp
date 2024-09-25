@@ -14,8 +14,6 @@
  */
 
 #include "rs_anco_manager.h"
-#include <memory>
-
 
 #include "params/rs_surface_render_params.h"
 #include "platform/common/rs_system_properties.h"
