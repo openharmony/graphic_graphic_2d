@@ -148,13 +148,6 @@ static const std::vector<struct JsEnumInt> g_fontTypeStyle = {
     { "BOLD", static_cast<size_t>(TextEngine::FontParser::FontTypeStyle::BOLD) },
 };
 
-static const std::vector<struct JsEnumInt> g_systemFontType = {
-    { "ALL", static_cast<size_t>(TextEngine::FontParser::SystemFontType::ALL) },
-    { "GENERIC", static_cast<size_t>(TextEngine::FontParser::SystemFontType::GENERIC) },
-    { "STYLISH", static_cast<size_t>(TextEngine::FontParser::SystemFontType::STYLISH) },
-    { "INSTALLED", static_cast<size_t>(TextEngine::FontParser::SystemFontType::INSTALLED) },
-};
-
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "TextAlign", g_textAlign },
     { "TextDecorationStyle", g_textDecorationStyle },
@@ -173,7 +166,6 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "FontWidth", g_fontWidth },
     { "TextHeightBehavior", g_textHeightBehavior },
     { "FontTypeStyle", g_fontTypeStyle },
-    { "SystemFontType", g_systemFontType },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

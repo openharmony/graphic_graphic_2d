@@ -73,13 +73,6 @@ public:
         BOLD = 1 << 1,
     };
 
-    enum SystemFontType : int32_t {
-        ALL = 1 << 0,
-        GENERIC = 1 << 1,
-        STYLISH = 1 << 2,
-        INSTALLED = 1 << 3,
-    };
-
     struct FontDescriptor {
         std::string path;
         std::string postScriptName;
@@ -107,9 +100,6 @@ public:
         const std::string locale = SIMPLIFIED_CHINESE);
     
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = SIMPLIFIED_CHINESE);
-    bool ParserFontDescriptorFromPath(const std::string& path,
-        std::vector<std::shared_ptr<FontDescriptor>>& descriptors,
-        const std::string locale = SIMPLIFIED_CHINESE);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
