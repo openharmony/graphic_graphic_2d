@@ -71,7 +71,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas001, TestSize.Level1)
     if (renderContext) {
         renderContext->InitializeEglContext();
         rsSurface.SetRenderContext(renderContext);
-        ASSERT_NE(rsSurface.GetCanvas(), nullptr);
+        EXPECT_NE(rsSurface.GetCanvas(), nullptr);
     }
 #endif
 }
@@ -110,7 +110,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface001, TestSize.Level1)
     if (renderContext) {
         renderContext->InitializeEglContext();
         rsSurface.SetRenderContext(renderContext);
-        ASSERT_NE(rsSurface.GetSurface(), nullptr);
+        EXPECT_NE(rsSurface.GetSurface(), nullptr);
     }
 #endif
 }
