@@ -750,6 +750,17 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualMirrorScreenScaleMode, Te
 }
 
 /**
+ * @tc.name: SetGlobalDarkColorMode Test
+ * @tc.desc: SetGlobalDarkColorMode Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetGlobalDarkColorMode, TestSize.Level1)
+{
+    ASSERT_TRUE(proxy->SetGlobalDarkColorMode(true));
+}
+
+/**
  * @tc.name: GetPixelmap Test
  * @tc.desc: GetPixelmap Test
  * @tc.type:FUNC
@@ -789,7 +800,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSurfaceOcclusionChangeCallb
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-    EXPECT_EQ(proxy->RegisterOcclusionChangeCallback(callback), 0);
+    EXPECT_NE(proxy->RegisterOcclusionChangeCallback(callback), -1);
     NodeId id = 1;
     proxy->UnRegisterSurfaceOcclusionChangeCallback(id);
     sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);

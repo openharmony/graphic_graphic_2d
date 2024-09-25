@@ -480,7 +480,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
     canvas_->Save();
 
-    canvas_->SetHighContrast(RSRenderThread::Instance().isHighContrastEnabled());
+    canvas_->SetHighContrast(RSRenderThread::Instance().IsHighContrastEnabled());
     // reset matrix
     const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
     const float rootHeight = property.GetFrameHeight() * property.GetScaleY();

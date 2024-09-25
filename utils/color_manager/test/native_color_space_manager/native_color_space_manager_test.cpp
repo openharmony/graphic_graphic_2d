@@ -17,6 +17,7 @@
 
 #include "common/rs_common_def.h"
 #include "native_color_space_manager.h"
+#include "ndk_color_space.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -89,7 +90,7 @@ HWTEST_F(NativeColorSpaceManagerTest, OH_NativeColorSpaceManager_CreateFromPrima
 
 /*
  * @tc.name: OH_NativeColorSpaceManager_GetColorSpaceName
- * @tc.desc: Test OH_NativeColorSpaceManager_GetColorSpaceName, test getColorSpaceName;
+ * @tc.desc: Test OH_NativeColorSpaceManager_GetColorSpaceName, test getColorSpaceName
  * @tc.type: FUNC
  * @tc.require: issueIALHL4
  */
@@ -109,7 +110,7 @@ HWTEST_F(NativeColorSpaceManagerTest, OH_NativeColorSpaceManager_GetColorSpaceNa
 
 /*
  * @tc.name: OH_NativeColorSpaceManager_GetWhitePoint
- * @tc.desc: Test OH_NativeColorSpaceManager_GetWhitePoint, test nativeColorSpaceManager is nullptr;
+ * @tc.desc: Test OH_NativeColorSpaceManager_GetWhitePoint, test nativeColorSpaceManager is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIALHL4
  */
@@ -123,7 +124,7 @@ HWTEST_F(NativeColorSpaceManagerTest, OH_NativeColorSpaceManager_GetWhitePoint, 
 
 /*
  * @tc.name: OH_NativeColorSpaceManager_GetGamma
- * @tc.desc: Test OH_NativeColorSpaceManager_GetGamma, test nativeColorSpaceManager is nullptr;
+ * @tc.desc: Test OH_NativeColorSpaceManager_GetGamma, test nativeColorSpaceManager is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIALHL4
  */
@@ -132,4 +133,19 @@ HWTEST_F(NativeColorSpaceManagerTest, OH_NativeColorSpaceManager_GetGamma, TestS
     OH_NativeColorSpaceManager* nativeColorSpaceManager = nullptr;
     float gamma = OH_NativeColorSpaceManager_GetGamma(nativeColorSpaceManager);
     ASSERT_TRUE(OHOS::Rosen::ROSEN_EQ(gamma, 0.f));
+}
+
+/*
+ * @tc.name: GetInnerColorSpace
+ * @tc.desc: Test GetInnerColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issueIASIN4
+ */
+HWTEST_F(NativeColorSpaceManagerTest, GetInnerColorSpace, TestSize.Level1)
+{
+    OH_NativeColorSpaceManager* nativeColorSpaceManager = nullptr;
+    ColorSpaceName colorSpaceName = ColorSpaceName::SRGB;
+    nativeColorSpaceManager = OH_NativeColorSpaceManager_CreateFromName(colorSpaceName);
+    auto token = reinterpret_cast<NativeColorSpaceManager*>(nativeColorSpaceManager)->GetInnerColorSpace();
+    ASSERT_TRUE(token.GetColorSpaceName() == OHOS::ColorManager::ColorSpaceName::SRGB);
 }

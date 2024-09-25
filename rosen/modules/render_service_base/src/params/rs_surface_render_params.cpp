@@ -446,7 +446,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->animateState_ = animateState_;
     targetSurfaceParams->isRotating_ = isRotating_;
-    targetSurfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->snapshotSkipLayerIds_= snapshotSkipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;

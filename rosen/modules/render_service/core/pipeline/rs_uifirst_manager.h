@@ -208,6 +208,7 @@ private:
     bool IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> node);
     SkipSyncState CollectSkipSyncNodeWithDrawableState(const std::shared_ptr<RSRenderNode> &node);
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
+    bool IsVMSurfaceName(std::string surfaceName);
 
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
@@ -266,6 +267,13 @@ private:
     const std::vector<std::string> screenshotAnimation_ = {
         { "SCREENSHOT_SCALE_ANIMATION" },
         { "SCREENSHOT_DISMISS_ANIMATION" },
+    };
+
+    const std::vector<std::string> vmAppNameSet_ = {
+        { "ohvm" },
+        { "win_emulator" },
+        { "hongyunvd" },
+        { "ecoengine" },
     };
 
     // use in MainThread & RT & subThread

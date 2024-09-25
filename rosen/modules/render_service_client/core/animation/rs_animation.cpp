@@ -227,7 +227,7 @@ void RSAnimation::InteractivePause()
 
     auto target = target_.lock();
     if (target == nullptr) {
-        ROSEN_LOGE("Failed to pause animation, target is null!");
+        ROSEN_LOGE("Failed to interactive pause animation, target is null!");
         return;
     }
 
@@ -241,13 +241,13 @@ void RSAnimation::InteractivePause()
 void RSAnimation::InteractiveContinue()
 {
     if (state_ != AnimationState::PAUSED) {
-        ROSEN_LOGD("State error, animation is in [%{public}d] when pause", state_);
+        ROSEN_LOGD("State error, animation is in [%{public}d] when continue", state_);
         return;
     }
 
     auto target = target_.lock();
     if (target == nullptr) {
-        ROSEN_LOGE("Failed to pause animation, target is null!");
+        ROSEN_LOGE("Failed to interactive continue animation, target is null!");
         return;
     }
 
@@ -266,7 +266,7 @@ void RSAnimation::InteractiveFinish(RSInteractiveAnimationPosition pos)
     }
     auto target = target_.lock();
     if (target == nullptr) {
-        ROSEN_LOGE("Failed to pause animation, target is null!");
+        ROSEN_LOGE("Failed to interactive finish animation, target is null!");
         return;
     }
     state_ = AnimationState::FINISHED;
@@ -518,7 +518,8 @@ void RSAnimation::UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAni
     // only process FrameRateRange(rs) here
     if (uiAnimation_ == nullptr) {
         auto range = GetFrameRateRange();
-        if (range.IsValid()) {
+        // Transfer frame rate and component informations
+        if (range.IsValid() || range.componentScene_ != ComponentScene::UNKNOWN_SCENE) {
             animation->SetFrameRateRange(range);
         }
     }

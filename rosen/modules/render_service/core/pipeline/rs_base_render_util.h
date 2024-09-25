@@ -45,7 +45,7 @@ struct ComposeInfo {
     GraphicLayerAlpha alpha;
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
     GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
     int32_t sdrNit { 0 };
@@ -59,9 +59,10 @@ class RSTransactionData;
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
 constexpr float DEFAULT_BRIGHTNESS_RATIO = 1.0f;
 #endif
+constexpr uint32_t CONSUME_DIRECTLY = 0;
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
 
     Drawing::Matrix matrix; // for moving canvas to layer(surface)'s leftTop point.
     Drawing::Rect srcRect; // surface's bufferSize
@@ -137,9 +138,7 @@ public:
 
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler);
     static Rect MergeBufferDamages(const std::vector<Rect>& damages);
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, const std::string& surfaceName = "",
-        const bool& isDisplaySurface = true, const uint64_t& vsyncTimestamp = 0);
-
+    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
@@ -151,8 +150,10 @@ public:
      *
      * @param colorFilterMode SkBlendMode applied to SKPaint
      * @param paint color matrix applied to SKPaint
+     * @param brightnessRatio hdr brightness ratio
      */
-    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint);
+    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint,
+        float hdrBrightnessRatio = 1.f);
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
@@ -181,6 +182,7 @@ public:
     static int GetAccumulatedBufferCount();
     static void IncAcquiredBufferCount();
     static void DecAcquiredBufferCount();
+    static pid_t GetLastSendingPid();
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);
@@ -193,6 +195,7 @@ private:
     static bool enableClient;
 
     static inline std::atomic<int> acquiredBufferCount_ = 0;
+    static pid_t lastSendingPid_;
 };
 } // namespace Rosen
 } // namespace OHOS

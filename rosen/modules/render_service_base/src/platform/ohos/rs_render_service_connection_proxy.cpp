@@ -30,8 +30,8 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 static constexpr size_t ASHMEM_SIZE_THRESHOLD = 400 * 1024; // cannot > 500K in TF_ASYNC mode
-static constexpr int MAX_RETRY_COUNT = 10;
-static constexpr int RETRY_WAIT_TIME_US = 500; // wait 0.5ms before retry SendRequest
+static constexpr int MAX_RETRY_COUNT = 20;
+static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
 }
 
 RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -88,10 +88,11 @@ void RSRenderServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransac
                 usleep(RETRY_WAIT_TIME_US);
             } else if (err != NO_ERROR) {
                 ROSEN_LOGE("RSRenderServiceConnectionProxy::CommitTransaction SendRequest failed, "
-                    "err = %{public}d, retryCount = %{public}d", err, retryCount);
+                    "err = %{public}d, retryCount = %{public}d, data size:%{public}zu", err, retryCount,
+                    parcel->GetDataSize());
                 return;
             }
-        } while (err != NO_ERROR && retryCount < MAX_RETRY_COUNT);
+        } while (err != NO_ERROR);
     }
 }
 
@@ -487,18 +488,25 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     if (!data.WriteUint32(height)) {
         return WRITE_PARCEL_ERR;
     }
-    
-    bool hasSurface = surface == nullptr ? false : true;
-    if (!data.WriteBool(hasSurface)) {
-        return WRITE_PARCEL_ERR;
-    }
-    if (hasSurface) {
+    if (surface != nullptr) {
         auto producer = surface->GetProducer();
         if (producer != nullptr) {
-            data.WriteRemoteObject(producer->AsObject());
+            if (!data.WriteBool(true)) {
+                return WRITE_PARCEL_ERR;
+            }
+            if (!data.WriteRemoteObject(producer->AsObject())) {
+                return WRITE_PARCEL_ERR;
+            }
+        } else {
+            if (!data.WriteBool(false)) {
+                return WRITE_PARCEL_ERR;
+            }
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            return WRITE_PARCEL_ERR;
         }
     }
-    
     if (!data.WriteUint64(mirrorId)) {
         return WRITE_PARCEL_ERR;
     }
@@ -2091,6 +2099,27 @@ bool RSRenderServiceConnectionProxy::SetVirtualMirrorScreenScaleMode(ScreenId id
     return result;
 }
 
+bool RSRenderServiceConnectionProxy::SetGlobalDarkColorMode(bool isDark)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteBool(isDark)) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return false;
+    }
+    return true;
+}
+
 bool RSRenderServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
@@ -2889,7 +2918,7 @@ GlobalDirtyRegionInfo RSRenderServiceConnectionProxy::GetGlobalDirtyRegionInfo()
         ROSEN_LOGE("RSRenderServiceConnectionProxy::GetGlobalDirtyRegionInfo: Send Request err.");
         return globalDirtyRegionInfo;
     }
-    return GlobalDirtyRegionInfo(reply.ReadInt64(), reply.ReadInt32(), reply.ReadInt32());
+    return GlobalDirtyRegionInfo(reply.ReadInt64(), reply.ReadInt32(), reply.ReadInt32(), reply.ReadInt32());
 }
 
 LayerComposeInfo RSRenderServiceConnectionProxy::GetLayerComposeInfo()

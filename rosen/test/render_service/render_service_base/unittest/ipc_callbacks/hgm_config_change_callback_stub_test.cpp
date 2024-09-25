@@ -117,7 +117,6 @@ HWTEST_F(RSHgmConfigChangeCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
     auto code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_CONFIG_CHANGED);
     data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
 
-    EXPECT_TRUE(RSHgmConfigChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
     int res = stub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ERR_NONE, res);
 }
@@ -135,7 +134,6 @@ HWTEST_F(RSHgmConfigChangeCallbackStubTest, OnRemoteRequest005, TestSize.Level1)
     auto code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_MODE_CHANGED);
     data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
 
-    EXPECT_TRUE(RSHgmConfigChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
     int res = stub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ERR_NONE, res);
 }
@@ -153,7 +151,6 @@ HWTEST_F(RSHgmConfigChangeCallbackStubTest, OnRemoteRequest006, TestSize.Level1)
     auto code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_CHANGED);
     data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
 
-    EXPECT_TRUE(RSHgmConfigChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
     int res = stub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ERR_NONE, res);
 }

@@ -124,7 +124,7 @@ public:
 
     void ResetContextAlpha() const;
 
-    void SetContainerWindow(bool hasContainerWindow, float density);
+    void SetContainerWindow(bool hasContainerWindow, RRect rrect);
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;

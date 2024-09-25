@@ -17,8 +17,10 @@
 
 #include "ge_kawase_blur_shader_filter.h"
 
+#include "ge_kawase_blur_shader_filter.cpp"
 #include "draw/color.h"
 #include "image/bitmap.h"
+#include "image/image.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -163,6 +165,47 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ScaleAndAddRandomColor002, TestSize.Level
 }
 
 /**
+ * @tc.name: ScaleAndAddRandomColor003
+ * @tc.desc: Verify function ScaleAndAddRandomColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ScaleAndAddRandomColor003, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto filter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(100, 30, format); // 100, 30  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    auto imageBlur = std::make_shared<Drawing::Image>();
+    auto width = std::max(static_cast<int>(std::ceil(dst_.GetWidth())), imageBlur->GetWidth());
+    auto height = std::max(static_cast<int>(std::ceil(dst_.GetHeight())), imageBlur->GetHeight());
+
+    EXPECT_EQ(filter->ScaleAndAddRandomColor(canvas_, image_, imageBlur, src_, dst_, width, height), imageBlur);
+}
+
+/**
+ * @tc.name: ScaleAndAddRandomColor004
+ * @tc.desc: Verify function ScaleAndAddRandomColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ScaleAndAddRandomColor004, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto filter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(100, 30, format); // 100, 30  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    std::shared_ptr<Drawing::Image> imageBlur = bmp.MakeImage();
+    auto image = std::make_shared<Drawing::Image>();
+    auto width = std::max(static_cast<int>(std::ceil(dst_.GetWidth())), imageBlur->GetWidth());
+    auto height = std::max(static_cast<int>(std::ceil(dst_.GetHeight())), imageBlur->GetHeight());
+    //imageBlur.GetHeight()=0,imageBlur.GetHeight()=0;
+    EXPECT_EQ(filter->ScaleAndAddRandomColor(canvas_, image, imageBlur, src_, dst_, width, height), imageBlur);
+}
+
+/**
  * @tc.name: ComputeRadiusAndScale001
  * @tc.desc: Verify function ComputeRadiusAndScale
  * @tc.type:FUNC
@@ -193,6 +236,20 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, InitSimpleFilter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitSimpleFilter002
+ * @tc.desc: Verify function InitSimpleFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitSimpleFilter002, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    geKawaseBlurShaderFilter->InitSimpleFilter();
+    //g_simpleFilter != nullptr
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitSimpleFilter());
+}
+
+/**
  * @tc.name: InitBlurEffectForAdvancedFilter001
  * @tc.desc: Verify function InitBlurEffectForAdvancedFilter
  * @tc.type:FUNC
@@ -203,6 +260,21 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, InitBlurEffectForAdvancedFilter001, TestS
     auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
     EXPECT_TRUE(geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter());
 }
+
+/**
+ * @tc.name: InitBlurEffectForAdvancedFilter002
+ * @tc.desc: Verify function InitBlurEffectForAdvancedFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitBlurEffectForAdvancedFilter002, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter();
+    //g_blurEffectAf != nullptr
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter());
+}
+
 
 /**
 * @tc.name: CheckInputImage001
@@ -216,6 +288,85 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, CheckInputImage001, TestSize.Level1)
     Drawing::Rect src { 3.0f, 5.0f, 3.0f, 5.0f };
     geKawaseBlurShaderFilter->CheckInputImage(canvas_, image_, image_, src);
     EXPECT_NE(image_, nullptr);
+}
+
+/**
+* @tc.name: getNormalizedOffset001
+* @tc.desc: Verify function getNormalizedOffset
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, getNormalizedOffset001, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    const uint32_t offsetCount = BLUR_SAMPLE_COUNT;
+    SkV2 offsets[offsetCount];
+    OffsetInfo offsetInfo = { 1.f, 1.f, 2, 2 };
+
+    getNormalizedOffset(offsets, offsetCount, offsetInfo);
+}
+
+/**
+* @tc.name: getNormalizedOffset002
+* @tc.desc: Verify function getNormalizedOffset
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, getNormalizedOffset002, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    const uint32_t offsetCount = BLUR_SAMPLE_COUNT;
+    OffsetInfo offsetInfo = { 1.f, 1.f, 2, 2 };
+    //offsets == nullptr
+    getNormalizedOffset(nullptr, offsetCount, offsetInfo);
+}
+
+/**
+* @tc.name: getNormalizedOffset003
+* @tc.desc: Verify function getNormalizedOffset
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, getNormalizedOffset003, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    const uint32_t offsetCount = 3;
+    SkV2 offsets[offsetCount];
+    OffsetInfo offsetInfo = { 1.f, 1.f, 2, 2 };
+    //offsetCount != BLUR_SAMPLE_COUNT
+    getNormalizedOffset(offsets, offsetCount, offsetInfo);
+}
+
+/**
+* @tc.name: getNormalizedOffset004
+* @tc.desc: Verify function getNormalizedOffset
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, getNormalizedOffset004, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    const uint32_t offsetCount = BLUR_SAMPLE_COUNT;
+    SkV2 offsets[offsetCount];
+    OffsetInfo offsetInfo = { 1.f, 1.f, 0, 2 };
+    // offsetInfo.width=0
+    getNormalizedOffset(offsets, offsetCount, offsetInfo);
+}
+
+/**
+* @tc.name: getNormalizedOffset005
+* @tc.desc: Verify function getNormalizedOffset
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, getNormalizedOffset005, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    const uint32_t offsetCount = BLUR_SAMPLE_COUNT;
+    SkV2 offsets[offsetCount];
+    OffsetInfo offsetInfo = { 1.f, 1.f, 2, 0 };
+    // offsetInfo.height=0
+    getNormalizedOffset(offsets, offsetCount, offsetInfo);
 }
 
 } // namespace GraphicsEffectEngine

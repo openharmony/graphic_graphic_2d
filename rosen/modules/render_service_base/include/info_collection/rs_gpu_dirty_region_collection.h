@@ -42,12 +42,15 @@ struct GlobalDirtyRegionInfo {
     int64_t globalDirtyRegionAreas = 0;
     int32_t globalFramesNumber = 0;
     int32_t skipProcessFramesNumber = 0;
+    pid_t mostSendingPidWhenDisplayNodeSkip = 0;
     GlobalDirtyRegionInfo()
-        : globalDirtyRegionAreas(), globalFramesNumber(), skipProcessFramesNumber() {}
+        : globalDirtyRegionAreas(), globalFramesNumber(), skipProcessFramesNumber(),
+          mostSendingPidWhenDisplayNodeSkip() {}
     GlobalDirtyRegionInfo(int64_t globalDirtyRegionAreas_, int32_t globalFramesNumber_,
-        int32_t skipProcessFramesNumber_)
+        int32_t skipProcessFramesNumber_, pid_t mostSendingPidWhenDisplayNodeSkip_)
         : globalDirtyRegionAreas(globalDirtyRegionAreas_), globalFramesNumber(globalFramesNumber_),
-          skipProcessFramesNumber(skipProcessFramesNumber_) {}
+          skipProcessFramesNumber(skipProcessFramesNumber_),
+          mostSendingPidWhenDisplayNodeSkip(mostSendingPidWhenDisplayNodeSkip_) {}
 };
 
 class RSB_EXPORT GpuDirtyRegionCollection {
@@ -57,7 +60,7 @@ public:
     void UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, std::vector<RectI> rectIs);
     void UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, Rect damage);
     void UpdateGlobalDirtyInfoForDFX(RectI rect);
-    void AddSkipProcessFramesNumberForDFX();
+    void AddSkipProcessFramesNumberForDFX(pid_t sendingPid);
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() const;
     void ResetActiveDirtyRegionInfo();
@@ -71,7 +74,10 @@ private:
     GpuDirtyRegionCollection& operator=(const GpuDirtyRegionCollection&) = delete;
     GpuDirtyRegionCollection& operator=(const GpuDirtyRegionCollection&&) = delete;
 
+    pid_t GetMostSendingPidWhenDisplayNodeSkip() const;
+
     std::unordered_map<NodeId, ActiveDirtyRegionInfo> activeDirtyRegionInfoMap_;
+    std::unordered_map<pid_t, int32_t> sendingPidWhenDisplayNodeSkipMap_;
     GlobalDirtyRegionInfo globalDirtyRegionInfo_;
     mutable std::mutex activeMtx_;
     mutable std::mutex globalMtx_;

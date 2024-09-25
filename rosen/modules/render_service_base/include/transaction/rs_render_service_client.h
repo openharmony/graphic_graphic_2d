@@ -255,6 +255,8 @@ public:
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 
+    bool SetGlobalDarkColorMode(bool isDark);
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);

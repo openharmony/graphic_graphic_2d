@@ -37,16 +37,18 @@ void ContextBase::GetCbInfo(napi_env envi, napi_callback_info info, NapiCbInfoPa
     size_t argc = ARGC_MAX;
     napi_value argv[ARGC_MAX] = {nullptr};
     status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    NAPI_CHECK_ARGS_RETURN_VOID(this, status == napi_ok, status, "napi_get_cb_info failed", TextErrorCode::ERROR);
-    NAPI_CHECK_ARGS_RETURN_VOID(this, argc <= ARGC_MAX, status, "too many arguments",
-        TextErrorCode::ERROR_INVALID_PARAM);
-    NAPI_CHECK_ARGS_RETURN_VOID(this, self, status, "no JavaScript this argument",
-        TextErrorCode::ERROR_INVALID_PARAM);
+    NAPI_CHECK_ARGS(this, status == napi_ok, status, TextErrorCode::ERROR, return,
+        "Failed to get callback info");
+    NAPI_CHECK_ARGS(this, argc <= ARGC_MAX, status, TextErrorCode::ERROR_INVALID_PARAM, return,
+        "Too many arguments %zu", argc);
+    NAPI_CHECK_ARGS(this, self, status, TextErrorCode::ERROR_INVALID_PARAM, return,
+        "There is no JavaScript for this parameter");
 
     napi_create_reference(env, self, 1, &selfRef);
 
     status = napi_unwrap(env, self, &native);
-    NAPI_CHECK_ARGS_RETURN_VOID(this, status == napi_ok, status, "self unwrap failed", TextErrorCode::ERROR);
+    NAPI_CHECK_ARGS(this, status == napi_ok, status, TextErrorCode::ERROR, return,
+        "Failed to unwrap self");
 
     if (!sync && (argc > 0)) {
         // get the last arguments :: <callback>
@@ -55,7 +57,8 @@ void ContextBase::GetCbInfo(napi_env envi, napi_callback_info info, NapiCbInfoPa
         napi_status tyst = napi_typeof(env, argv[index], &type);
         if ((tyst == napi_ok) && (type == napi_function)) {
             status = napi_create_reference(env, argv[index], 1, &callbackRef);
-            NAPI_CHECK_ARGS_RETURN_VOID(this, status == napi_ok, status, "ref callback failed", TextErrorCode::ERROR);
+            NAPI_CHECK_ARGS(this, status == napi_ok, status, TextErrorCode::ERROR, return,
+                "Failed to get callback ref");
             argc = index;
             TEXT_LOGD("async callback, no promise");
         } else {
@@ -66,12 +69,12 @@ void ContextBase::GetCbInfo(napi_env envi, napi_callback_info info, NapiCbInfoPa
     if (parser) {
         parser(argc, argv);
     } else {
-        NAPI_CHECK_ARGS_RETURN_VOID(this, argc == 0, status, "required no arguments",
-            TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS(this, argc == 0, status, TextErrorCode::ERROR_INVALID_PARAM, return,
+            "Required no arguments");
     }
 }
 
-napi_value NapiAsyncWork::Enqueue(napi_env env, std::shared_ptr<ContextBase> contextBase, const std::string& name,
+napi_value NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBase, const std::string& name,
                                   NapiAsyncExecute execute, NapiAsyncComplete complete)
 {
     TEXT_ERROR_CHECK(contextBase, return nullptr, "NapiAsyncWork::Enqueue contextBase nullptr");
@@ -84,70 +87,75 @@ napi_value NapiAsyncWork::Enqueue(napi_env env, std::shared_ptr<ContextBase> con
         napi_get_undefined(contextBase->env, &promise);
     }
 
+    contextBase->IncStrongRef(nullptr);
     napi_value resource = nullptr;
     napi_create_string_utf8(contextBase->env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
     napi_create_async_work(
         contextBase->env, nullptr, resource,
         [](napi_env env, void* data) {
             TEXT_ERROR_CHECK(data, return, "NapiAsyncWork::Enqueue napi_async_execute_callback nullptr");
-            auto contextBase = reinterpret_cast<ContextBase*>(data);
+            sptr<ContextBase> contextBase(static_cast<ContextBase *>(data));
             if (contextBase && contextBase->execute && contextBase->status == napi_ok) {
                 contextBase->execute();
             }
         },
         [](napi_env env, napi_status status, void* data) {
             TEXT_ERROR_CHECK(data, return, "NapiAsyncWork::Enqueue napi_async_complete_callback nullptr");
-            auto contextBase = reinterpret_cast<ContextBase*>(data);
+            sptr<ContextBase> contextBase(static_cast<ContextBase *>(data));
             TEXT_ERROR_CHECK(contextBase, return, "contextBase nullptr");
-
             if ((status != napi_ok) && contextBase && (contextBase->status == napi_ok)) {
                 contextBase->status = status;
             }
             if (contextBase && (contextBase->complete) && (status == napi_ok) && (contextBase->status == napi_ok)) {
                 contextBase->complete(contextBase->output);
             }
-            GenerateOutput(*contextBase);
+            GenerateOutput(contextBase);
         },
-        reinterpret_cast<void*>(contextBase.get()), &contextBase->work);
+        reinterpret_cast<void*>(contextBase.GetRefPtr()), &contextBase->work);
     napi_queue_async_work_with_qos(contextBase->env, contextBase->work, napi_qos_user_initiated);
-    contextBase->hold = contextBase; // save crossing-thread contextBase.
     return promise;
 }
 
-void NapiAsyncWork::GenerateOutput(ContextBase& contextBase)
+void NapiAsyncWork::GenerateOutput(sptr<ContextBase> contextBase)
 {
+    if (contextBase == nullptr) {
+        TEXT_LOGE("contextBase is nullptr");
+        return;
+    }
     napi_value result[RESULT_ALL] = {nullptr};
-    if (contextBase.status == napi_ok) {
-        napi_get_undefined(contextBase.env, &result[RESULT_ERROR]);
-        if (contextBase.output == nullptr) {
-            napi_get_undefined(contextBase.env, &contextBase.output);
+    if (contextBase->status == napi_ok) {
+        napi_get_undefined(contextBase->env, &result[RESULT_ERROR]);
+        if (contextBase->output == nullptr) {
+            napi_get_undefined(contextBase->env, &contextBase->output);
         }
-        result[RESULT_DATA] = contextBase.output;
+        result[RESULT_DATA] = contextBase->output;
     } else {
         napi_value message = nullptr;
         napi_value code = nullptr;
-        napi_create_string_utf8(contextBase.env, contextBase.errMessage.c_str(), NAPI_AUTO_LENGTH, &message);
-        napi_create_error(contextBase.env, nullptr, message, &result[RESULT_ERROR]);
-        napi_create_int32(contextBase.env, contextBase.errCode, &code);
-        napi_set_named_property(contextBase.env, result[RESULT_ERROR], "code", code);
-        napi_get_undefined(contextBase.env, &result[RESULT_DATA]);
+        napi_create_string_utf8(contextBase->env, contextBase->errMessage.c_str(), NAPI_AUTO_LENGTH, &message);
+        napi_create_error(contextBase->env, nullptr, message, &result[RESULT_ERROR]);
+        napi_create_int32(contextBase->env, contextBase->errCode, &code);
+        napi_set_named_property(contextBase->env, result[RESULT_ERROR], "code", code);
+        napi_get_undefined(contextBase->env, &result[RESULT_DATA]);
     }
-    if (contextBase.deferred != nullptr) {
-        if (contextBase.status == napi_ok) {
+    if (contextBase->deferred != nullptr) {
+        if (contextBase->status == napi_ok) {
             TEXT_LOGD("deferred promise resolved");
-            napi_resolve_deferred(contextBase.env, contextBase.deferred, result[RESULT_DATA]);
+            napi_resolve_deferred(contextBase->env, contextBase->deferred, result[RESULT_DATA]);
         } else {
             TEXT_LOGD("deferred promise rejected");
-            napi_reject_deferred(contextBase.env, contextBase.deferred, result[RESULT_ERROR]);
+            napi_reject_deferred(contextBase->env, contextBase->deferred, result[RESULT_ERROR]);
         }
     } else {
         napi_value callback = nullptr;
-        napi_get_reference_value(contextBase.env, contextBase.callbackRef, &callback);
+        napi_get_reference_value(contextBase->env, contextBase->callbackRef, &callback);
         napi_value callbackResult = nullptr;
         TEXT_LOGD("call callback function");
-        napi_call_function(contextBase.env, nullptr, callback, RESULT_ALL, result, &callbackResult);
+        napi_call_function(contextBase->env, nullptr, callback, RESULT_ALL, result, &callbackResult);
     }
-
-    contextBase.hold.reset(); // release contextBase.
+    int count = contextBase->GetSptrRefCount();
+    for (int i = 0; i < count - 1; ++i) {
+        contextBase->DecStrongRef(nullptr);
+    }
 }
 }

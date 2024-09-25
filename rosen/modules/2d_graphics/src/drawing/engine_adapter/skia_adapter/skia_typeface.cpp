@@ -49,6 +49,19 @@ std::string SkiaTypeface::GetFamilyName() const
     return name;
 }
 
+std::string SkiaTypeface::GetFontPath() const
+{
+    std::string path;
+    if (!skTypeface_) {
+        LOGE("skTypeface nullptr");
+        return path;
+    }
+    SkString skName;
+    skTypeface_->getFontPath(&skName);
+    SkiaConvertUtils::SkStringCastToStdString(skName, path);
+    return path;
+}
+
 FontStyle SkiaTypeface::GetFontStyle() const
 {
     FontStyle fontStyle;
@@ -190,6 +203,22 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], const Fo
     return std::make_shared<Typeface>(typefaceImpl);
 }
 
+std::vector<std::shared_ptr<Typeface>> SkiaTypeface::GetSystemFonts()
+{
+    std::vector<sk_sp<SkTypeface>> skTypefaces = SkTypeface::GetSystemFonts();
+    if (skTypefaces.empty()) {
+        return {};
+    }
+    std::vector<std::shared_ptr<Typeface>> typefaces;
+    typefaces.reserve(skTypefaces.size());
+    for (auto& item : skTypefaces) {
+        item->setIsCustomTypeface(false);
+        std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(item);
+        typefaces.emplace_back(std::make_shared<Typeface>(typefaceImpl));
+    }
+    return typefaces;
+}
+
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     if (!memoryStream) {
@@ -302,7 +331,8 @@ uint32_t SkiaTypeface::GetHash() const
     }
 
     auto skData = skTypeface_->serialize(SkTypeface::SerializeBehavior::kDontIncludeData);
-    hash_ = SkOpts::hash_fn(skData->data(), skData->size(), 0);
+    std::unique_ptr<SkStreamAsset> ttfStream = skTypeface_->openExistingStream(0);
+    hash_ = SkOpts::hash_fn(skData->data(), skData->size(), ttfStream->getLength());
     return hash_;
 }
 

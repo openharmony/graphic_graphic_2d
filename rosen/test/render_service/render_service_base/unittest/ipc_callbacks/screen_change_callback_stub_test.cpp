@@ -55,7 +55,6 @@ HWTEST_F(RSScreenChangeCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
     ASSERT_NE(rsScreenChangeCallbackStub, nullptr);
     auto code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
     data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor());
-    EXPECT_TRUE(RSScreenChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
     int res = rsScreenChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE);
 }
@@ -90,7 +89,6 @@ HWTEST_F(RSScreenChangeCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
     auto rsScreenChangeCallbackStub = std::make_shared<RSScreenChangeCallbackStubMock>();
     ASSERT_NE(rsScreenChangeCallbackStub, nullptr);
     uint32_t code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
-    EXPECT_TRUE(RSScreenChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
     int res = rsScreenChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
 }

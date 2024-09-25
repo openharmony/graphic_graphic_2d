@@ -1205,6 +1205,58 @@ bool RSPropertyDrawableUtils::GetGravityMatrix(const Gravity& gravity, const Dra
     }
 }
 
+void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark)
+{
+    Drawing::Brush brush;
+    int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
+    RSColor demoColor;
+    if (isDark) {
+        int16_t rgb_dark = 80;
+        demoColor = RSColor(rgb_dark, rgb_dark, rgb_dark, alpha);
+    } else {
+        int16_t rgb_light = 235;
+        demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
+    }
+
+    float sat = 1.0f;
+    float brightness = 0.9f;
+    float normalizedDegree = brightness - sat;
+    const float brightnessMat[] = {
+        1.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        1.0f,
+        0.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        0.0f,
+        1.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f,
+        0.0f,
+    };
+    Drawing::ColorMatrix cm;
+    cm.SetSaturation(sat);
+    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
+    cm.GetArray(cmArray);
+    std::shared_ptr<Drawing::ColorFilter> filterCompose =
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
+    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*filterCompose, nullptr);
+    Drawing::Filter filter;
+    filter.SetImageFilter(colorImageFilter);
+    brush.SetFilter(filter);
+    brush.SetColor(demoColor.AsArgbInt());
+    canvas->DrawBackground(brush);
+}
+
 bool RSPropertyDrawableUtils::RSFilterSetPixelStretch(const RSProperties& property,
     const std::shared_ptr<RSFilter>& filter)
 {

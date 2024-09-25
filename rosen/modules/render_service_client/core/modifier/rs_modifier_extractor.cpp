@@ -448,11 +448,6 @@ float RSModifierExtractor::GetLightIntensity() const
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_INTENSITY, 0.f, =);
 }
 
-Color RSModifierExtractor::GetLightColor() const
-{
-    GET_PROPERTY_FROM_MODIFIERS(Color, LIGHT_COLOR, RgbPalette::White(), =);
-}
-
 Vector4f RSModifierExtractor::GetLightPosition() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Vector4f, LIGHT_POSITION, Vector4f(0.f), =);
@@ -471,6 +466,11 @@ int RSModifierExtractor::GetIlluminatedType() const
 float RSModifierExtractor::GetBloom() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, BLOOM, 0.f, =);
+}
+
+Color RSModifierExtractor::GetLightColor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(Color, LIGHT_COLOR, RgbPalette::White(), =);
 }
 
 std::string RSModifierExtractor::Dump() const

@@ -152,6 +152,16 @@ public:
         return isHardwareEnabledBufferUpdated_;
     }
 
+    void SetGlobalDarkColorMode(bool isDark)
+    {
+        isGlobalDarkColorMode_ = isDark;
+    }
+
+    bool GetGlobalDarkColorMode() const
+    {
+        return isGlobalDarkColorMode_;
+    }
+
     /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */
@@ -288,6 +298,7 @@ public:
 
     void SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec);
     void SurfaceOcclusionCallback();
+    bool CheckSurfaceOcclusionNeedProcess(NodeId id);
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
@@ -589,6 +600,7 @@ private:
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
+    std::atomic<bool> isGlobalDarkColorMode_ = false;
 
     bool isAceDebugBoundaryEnabledOfLastFrame_ = false;
     bool hasPostUpdateAceDebugBoundaryTask_ = false;
@@ -605,6 +617,7 @@ private:
 
     // used for hardware enabled case
     bool doDirectComposition_ = true;
+    bool needDrawFrame_ = true;
     bool isLastFrameDirectComposition_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

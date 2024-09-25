@@ -14,9 +14,13 @@
  */
 
 #include "rs_rcd_render_manager.h"
+
+#include <unordered_set>
 #include "common/rs_optional_trace.h"
+#include "common/rs_singleton.h"
 #include "platform/common/rs_log.h"
 #include "rs_rcd_render_visitor.h"
+#include "rs_round_corner_display_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,15 +42,6 @@ bool RSRcdRenderManager::GetRcdRenderEnabled() const
     return rcdRenderEnabled_;
 }
 
-void RSRcdRenderManager::DoPrepareRenderTask(const RcdPrepareInfo& info)
-{
-    if (!isBufferCacheClear_) {
-        topSurfaceNode_->ClearBufferCache();
-        bottomSurfaceNode_->ClearBufferCache();
-        isBufferCacheClear_ = true;
-    }
-}
-
 bool RSRcdRenderManager::IsRcdProcessInfoValid(const RcdProcessInfo& info)
 {
     if (info.uniProcessor == nullptr) {
@@ -59,7 +54,89 @@ bool RSRcdRenderManager::IsRcdProcessInfoValid(const RcdProcessInfo& info)
     return true;
 }
 
-void RSRcdRenderManager::DoProcessRenderTask(const RcdProcessInfo& info)
+bool RSRcdRenderManager::CheckExist(NodeId id, const RSRenderNodeMap& map)
+{
+    const auto& node = map.GetRenderNode<RSDisplayRenderNode>(id);
+    if (node == nullptr) {
+        return false;
+    }
+    return true;
+}
+
+void RSRcdRenderManager::CheckRenderTargetNode(const RSContext& context)
+{
+    std::lock_guard<std::mutex> lock(nodeMapMut_);
+    const auto& nodeMap = context.GetNodeMap();
+    std::unordered_set<NodeId> idSets;
+    for (const auto& p : topSurfaceNodeMap_) {
+        idSets.insert(p.first);
+    }
+    for (const auto& p : bottomSurfaceNodeMap_) {
+        idSets.insert(p.first);
+    }
+    for (auto it = idSets.begin(); it != idSets.end(); it++) {
+        if (!CheckExist(*it, nodeMap)) {
+            // to remove the resource which rendertarget display node not exist
+            topSurfaceNodeMap_.erase(*it);
+            bottomSurfaceNodeMap_.erase(*it);
+            RSSingleton<RoundCornerDisplayManager>::GetInstance().RemoveRoundCornerDisplay(*it);
+            RSSingleton<RoundCornerDisplayManager>::GetInstance().RemoveRCDLayerInfo(*it);
+            RS_LOGI_IF(DEBUG_PIPELINE,
+                "[%{public}s] nodeId:%{public}" PRIu64 " not exist in nodeMap remove the rcd module \n",
+                __func__, *it);
+        } else {
+            RS_LOGD("[%{public}s] nodeId:%{public}" PRIu64 " detected in nodeMap \n", __func__, *it);
+        }
+    }
+}
+
+RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetContentSurfaceNodes(NodeId id) const
+{
+    auto it = topSurfaceNodeMap_.find(id);
+    if (it != topSurfaceNodeMap_.end() && it->second != nullptr) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBackgroundSurfaceNodes(NodeId id) const
+{
+    auto it = bottomSurfaceNodeMap_.find(id);
+    if (it != bottomSurfaceNodeMap_.end() && it->second != nullptr) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetTopRenderNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(nodeMapMut_);
+    auto it = topSurfaceNodeMap_.find(id);
+    if (it != topSurfaceNodeMap_.end() && it->second != nullptr) {
+        return it->second;
+    }
+    // create and insert
+    auto topRcdNode = RSRcdSurfaceRenderNode::Create(TOP_RCD_NODE_ID, RCDSurfaceType::TOP);
+    topSurfaceNodeMap_[id] = topRcdNode;
+    RS_LOGI_IF(DEBUG_PIPELINE, "RCD: insert a top rendernode");
+    return topRcdNode;
+}
+
+RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBottomRenderNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(nodeMapMut_);
+    auto it = bottomSurfaceNodeMap_.find(id);
+    if (it != bottomSurfaceNodeMap_.end() && it->second != nullptr) {
+        return it->second;
+    }
+    // create and insert
+    auto bottomRcdNode = RSRcdSurfaceRenderNode::Create(BACKGROUND_RCD_NODE_ID, RCDSurfaceType::BOTTOM);
+    bottomSurfaceNodeMap_[id] = bottomRcdNode;
+    RS_LOGI_IF(DEBUG_PIPELINE, "RCD: insert a bottom rendernode");
+    return bottomRcdNode;
+}
+
+void RSRcdRenderManager::DoProcessRenderTask(NodeId id, const RcdProcessInfo& info)
 {
     RS_TRACE_BEGIN("RSUniRender:DoRCDProcessTask");
     if (!IsRcdProcessInfoValid(info)) {
@@ -69,12 +146,12 @@ void RSRcdRenderManager::DoProcessRenderTask(const RcdProcessInfo& info)
     }
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
-    visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode_, info.bottomLayer, info.resourceChanged);
-    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode_, info.topLayer, info.resourceChanged);
+    visitor->ProcessRcdSurfaceRenderNode(*GetBottomRenderNode(id), info.bottomLayer);
+    visitor->ProcessRcdSurfaceRenderNode(*GetTopRenderNode(id), info.topLayer);
     RS_TRACE_END();
 }
 
-void RSRcdRenderManager::DoProcessRenderMainThreadTask(const RcdProcessInfo& info)
+void RSRcdRenderManager::DoProcessRenderMainThreadTask(NodeId id, const RcdProcessInfo& info)
 {
     RS_TRACE_BEGIN("RSUniRender:DoRCDProcessMainThreadTask");
     if (!IsRcdProcessInfoValid(info)) {
@@ -84,16 +161,15 @@ void RSRcdRenderManager::DoProcessRenderMainThreadTask(const RcdProcessInfo& inf
     }
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*bottomSurfaceNode_, info.resourceChanged);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode_, info.resourceChanged);
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*GetBottomRenderNode(id));
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*GetTopRenderNode(id));
     RS_TRACE_END();
 }
 
-void RSRcdRenderManager::Reset()
+void RSRcdRenderManager::SetHardWareInfoChanged(NodeId id)
 {
-    topSurfaceNode_->Reset();
-    bottomSurfaceNode_->Reset();
+    GetBottomRenderNode(id)->SetHardWareInfoChanged(true);
+    GetTopRenderNode(id)->SetHardWareInfoChanged(true);
 }
-
 } // namespace Rosen
 } // namespace OHOS

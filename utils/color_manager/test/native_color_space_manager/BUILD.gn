@@ -27,9 +27,13 @@ ohos_unittest("native_color_space_manager_test") {
 
   sources = [ "native_color_space_manager_test.cpp" ]
 
-  include_dirs = [ "$graphic_2d_root/interfaces/inner_api/color_manager" ]
+  include_dirs = [
+    "$graphic_2d_root/interfaces/inner_api/color_manager",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor",
+  ]
 
   deps = [
+    "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/utils/color_manager/ndk:libnative_color_space_manager",

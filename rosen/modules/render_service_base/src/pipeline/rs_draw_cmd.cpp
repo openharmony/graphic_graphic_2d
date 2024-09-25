@@ -77,6 +77,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
+    rsImage_->SetFitMatrix(imageInfo.fitMatrix);
     imageInfo_ = imageInfo;
 }
 
@@ -102,6 +103,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
                         imageInfo.frameRect.GetRight(),
                         imageInfo.frameRect.GetBottom());
         rsImage_->SetFrameRect(frameRect);
+        rsImage_->SetFitMatrix(imageInfo.fitMatrix);
     }
 }
 
@@ -174,6 +176,12 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (!pixelMap || !rsImage_) {
         return;
     }
+    auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMap);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (pixelMap->IsHdr()) {
+        colorSpace = Drawing::ColorSpace::CreateSRGB();
+    }
+#endif
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -184,8 +192,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()),
-                RSPixelMapUtil::GetPixelmapColorSpace(pixelMap))) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }

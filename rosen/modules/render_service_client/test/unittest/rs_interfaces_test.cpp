@@ -1565,6 +1565,17 @@ HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenScaleMode, Function | SmallTest
 }
 
 /*
+ * @tc.name: SetGlobalDarkColorMode
+ * @tc.desc: Test SetGlobalDarkColorMode
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetGlobalDarkColorMode, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces->SetGlobalDarkColorMode(true));
+}
+
+/*
  * @tc.name: SetScreenCorrection
  * @tc.desc: Test SetScreenCorrection
  * @tc.type: FUNC
@@ -1842,6 +1853,32 @@ HWTEST_F(RSInterfacesTest, SetFreeMultiWindowStatus_002, Function | SmallTest | 
 {
     ASSERT_NE(rsInterfaces, nullptr);
     rsInterfaces->SetFreeMultiWindowStatus(true);
+}
+
+/*
+ * @tc.name: SetLayerTop_001
+ * @tc.desc: Test SetLayerTop with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTop_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetLayerTop(nodeIdStr, false);
+}
+
+/*
+ * @tc.name: SetLayerTop_002
+ * @tc.desc: Test SetLayerTop with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetLayerTop(nodeIdStr, true);
 }
 } // namespace Rosen
 } // namespace OHOS

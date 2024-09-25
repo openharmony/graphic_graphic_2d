@@ -30,6 +30,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "modifier/rs_modifier_type.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -800,6 +801,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
             out += ", snapshotSkipLayer: " + std::to_string(surfaceNode->GetSnapshotSkipLayer());
         }
         out += ", surfaceType: " + std::to_string((int)surfaceNode->GetSurfaceNodeType());
+        out += ", ContainerConfig: " + surfaceNode->GetContainerConfigDump();
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
@@ -1168,9 +1170,9 @@ void RSRenderNode::FallbackAnimationsToRoot()
     }
     animationManager_.animations_.clear();
     // Check the next frame's VSync has been requested. If there is no request, add another VSync request
-    if (!context->IsNeedRequestNextVsync()) {
-        context->SetNeedRequestNextVsync(true);
+    if (!context->IsRequestedNextVsyncAnimate()) {
         context->RequestVsync();
+        context->SetRequestedNextVsyncAnimate(true);
     }
 }
 
@@ -1566,8 +1568,8 @@ bool RSRenderNode::UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRe
         auto rect = surfaceHandler->GetDamageRegion();
         auto matrix = surfaceNode->GetBufferRelMatrix();
         matrix.PostConcat(GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-        auto bufferDirtyRect =
-            GetRenderProperties().GetBoundsGeometry()->MapRect(RectF(rect.x, rect.y, rect.w, rect.h), matrix);
+        auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapRect(
+            RectF(rect.x, rect.y, rect.w, rect.h), matrix);
         bufferDirtyRect.JoinRect(drawRegion);
         // The buffer's dirtyRect should not be out of the scope of the node's dirtyRect
         dirtyRect = bufferDirtyRect.IntersectRect(dirtyRect);
@@ -2148,7 +2150,8 @@ void RSRenderNode::SetOccludedStatus(bool occluded)
 void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
-        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(), GetRenderProperties());
+        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(),
+            std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry()));
         RSPropertyTrace::GetInstance().TracePropertiesByNodeName(GetId(), GetNodeName(), GetRenderProperties());
     }
 }
@@ -2727,7 +2730,9 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
         OnAlphaChanged();
     }
     globalAlpha_ = alpha;
-    stagingRenderParams_->SetGlobalAlpha(alpha);
+    if (stagingRenderParams_) {
+        stagingRenderParams_->SetGlobalAlpha(alpha);
+    }
 }
 
 float RSRenderNode::GetGlobalAlpha() const
@@ -3170,7 +3175,9 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
             nodeGroupType_ |= type;
             ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, mark node group", GetId());
             SetDirty();
-            stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
+            if (stagingRenderParams_) {
+                stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
+            }
         }
     } else {
         if (isNodeGroup) {
@@ -3180,7 +3187,9 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         }
         ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, mark node group", GetId());
         SetDirty();
-        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
+        if (stagingRenderParams_) {
+            stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
+        }
     }
     if (nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE) && !isNodeGroup) {
         needClearSurface_ = true;
@@ -4066,16 +4075,6 @@ void RSRenderNode::OnSync()
         stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
     }
 
-    // copy newest for uifirst root node, now force sync done nodes
-    if (uifirstNeedSync_) {
-        RS_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
-        renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
-                                                    renderDrawable_->drawCmdList_.end());
-        renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
-        renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
-        uifirstNeedSync_ = false;
-    }
-
     if (!uifirstSkipPartialSync_) {
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
@@ -4084,6 +4083,16 @@ void RSRenderNode::OnSync()
                 }
             }
             dirtySlots_.clear();
+        }
+
+        // copy newest for uifirst root node, now force sync done nodes
+        if (uifirstNeedSync_) {
+            RS_OPTIONAL_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
+            renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
+                                                        renderDrawable_->drawCmdList_.end());
+            renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
+            renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
+            uifirstNeedSync_ = false;
         }
     } else {
         RS_TRACE_NAME_FMT("partial_sync %lld", GetId());
@@ -4134,6 +4143,16 @@ void RSRenderNode::ValidateLightResources()
     }
     if (properties.illuminatedPtr_ && properties.illuminatedPtr_->IsIlluminatedValid()) {
         RSPointLightManager::Instance()->AddDirtyIlluminated(weak_from_this());
+    }
+}
+
+void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
+{
+    const auto& properties = GetRenderProperties();
+    if (properties.GetBackgroundFilter()) {
+        if (auto filterDrawable = GetFilterDrawable(false)) {
+            filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
+        }
     }
 }
 

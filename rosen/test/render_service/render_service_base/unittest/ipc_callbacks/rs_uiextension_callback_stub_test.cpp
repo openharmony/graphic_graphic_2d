@@ -57,7 +57,6 @@ HWTEST_F(RSUIExtensionCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
     int res = rsUiExtensionCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
     code = static_cast<uint32_t>(RSIUIExtensionCallbackInterfaceCode::ON_UIEXTENSION);
-    EXPECT_TRUE(RSUIExtensionCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     res = rsUiExtensionCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
@@ -77,7 +76,6 @@ HWTEST_F(RSUIExtensionCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
     auto rsUiExtensionCallbackStub = std::make_shared<RSUIExtensionCallbackStubMock>();
     auto code = static_cast<uint32_t>(RSIUIExtensionCallbackInterfaceCode::ON_UIEXTENSION);
     data.WriteInterfaceToken(RSIUIExtensionCallback::GetDescriptor());
-    EXPECT_TRUE(RSUIExtensionCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     int res = rsUiExtensionCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE);

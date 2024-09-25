@@ -153,6 +153,21 @@ uint32_t RSTransactionProxy::GetTransactionDataIndex() const
     return transactionDataIndex_;
 }
 
+bool RSTransactionProxy::IsEmpty() const
+{
+    bool isEmpty = true;
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (implicitCommonTransactionData_) {
+        isEmpty &= implicitCommonTransactionData_->IsEmpty();
+    }
+    if (implicitRemoteTransactionData_) {
+        isEmpty &= implicitRemoteTransactionData_->IsEmpty();
+    }
+    isEmpty &= implicitCommonTransactionDataStack_.empty();
+    isEmpty &= implicitRemoteTransactionDataStack_.empty();
+    return isEmpty;
+}
+
 void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutexForRT_);

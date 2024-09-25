@@ -1869,7 +1869,6 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
     bufferEntry.timestamp = 0;
     ret = psurf->RequestBuffer(bufferEntry.buffer, requestFence, requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-    rsSurfaceHandlerPtr_->CacheBuffer(bufferEntry, rsSurfaceRenderNode->GetName());
     rsSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
     ASSERT_TRUE(rsSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
     mainThread->ConsumeAndUpdateAllNodes();
@@ -2143,6 +2142,21 @@ HWTEST_F(RSMainThreadTest, SendCommands, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    mainThread->SendCommands();
+}
+
+/**
+ * @tc.name: SendCommands001
+ * @tc.desc: SendCommands Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SendCommands001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    AnimationId animationId = 1;
+    mainThread->context_->AddSyncFinishAnimationList(id, animationId);
     mainThread->SendCommands();
 }
 

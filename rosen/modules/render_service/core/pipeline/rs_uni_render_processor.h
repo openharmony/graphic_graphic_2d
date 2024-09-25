@@ -53,6 +53,7 @@ public:
     void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
 
 private:
+    bool GetForceClientForDRM(RSSurfaceRenderParams& params);
     LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
     void ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, RSLayerInfo& layerInfo, sptr<SurfaceBuffer> buffer);

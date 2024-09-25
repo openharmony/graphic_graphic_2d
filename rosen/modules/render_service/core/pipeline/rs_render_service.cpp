@@ -34,7 +34,8 @@
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -163,20 +164,24 @@ void RSRenderService::Run()
 
 void RSRenderService::RegisterRcdMsg()
 {
-    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
         if (!isRcdServiceRegister_) {
-            auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+            auto& rcdHardManager = RSRcdRenderManager::GetInstance();
             auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-            msgBus.RegisterTopic<uint32_t, uint32_t>(
+            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t>(
                 TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
-                &RoundCornerDisplay::UpdateDisplayParameter);
-            msgBus.RegisterTopic<ScreenRotation>(
+                &RoundCornerDisplayManager::UpdateDisplayParameter);
+            msgBus.RegisterTopic<NodeId, ScreenRotation>(
                 TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
-                &RoundCornerDisplay::UpdateOrientationStatus);
-            msgBus.RegisterTopic<int>(
+                &RoundCornerDisplayManager::UpdateOrientationStatus);
+            msgBus.RegisterTopic<NodeId, int>(
                 TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
-                &RoundCornerDisplay::UpdateNotchStatus);
+                &RoundCornerDisplayManager::UpdateNotchStatus);
+            msgBus.RegisterTopic<NodeId>(
+                TOPIC_RCD_RESOURCE_CHANGE, &rcdHardManager,
+                &RSRcdRenderManager::SetHardWareInfoChanged);
             isRcdServiceRegister_ = true;
             RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
             return;

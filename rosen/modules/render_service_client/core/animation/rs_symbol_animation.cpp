@@ -253,7 +253,8 @@ bool RSSymbolAnimation::SetReplaceAppear(
     bool isStartAnimation)
 {
     auto nodeNum = symbolAnimationConfig->numNodes;
-    if (nodeNum <= 0) {
+    if (symbolAnimationConfig->symbolNodes.empty()) {
+        ROSEN_LOGD("[%{public}s] symbol nodes is empty \n", __func__);
         return false;
     }
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
@@ -376,11 +377,10 @@ bool RSSymbolAnimation::SetPublicAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
     uint32_t nodeNum = symbolAnimationConfig->numNodes;
-    if (nodeNum <= 0) {
-        ROSEN_LOGD("HmSymbol SetDisappearAnimation::getNode or get symbolAnimationConfig:failed");
+    if (symbolAnimationConfig->symbolNodes.empty()) {
+        ROSEN_LOGD("[%{public}s] symbol nodes is empty \n", __func__);
         return false;
     }
-
     auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
     const auto& symbolFirstNode = symbolAnimationConfig->symbolNodes[0]; // calculate offset by the first node
 

@@ -18,7 +18,7 @@
 #include "luminance/rs_luminance_control.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_util.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
@@ -28,9 +28,9 @@
 
 namespace OHOS {
 namespace Rosen {
+
+using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
 namespace {
-const std::string RCD_TOP_LAYER_NAME = "RCDTopSurfaceNode";
-const std::string RCD_BOTTOM_LAYER_NAME = "RCDBottomSurfaceNode";
 const float REDRAW_DFX_ALPHA = 0.4f; // redraw dfx drawrect alpha
 }
 void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
@@ -62,7 +62,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
     const ScreenInfo& screenInfo)
 #endif
 {
-    std::map<std::string, bool> rcdLayersEnableMap = {{RCD_TOP_LAYER_NAME, false}, {RCD_BOTTOM_LAYER_NAME, false}};
+    std::vector<std::pair<NodeId, RoundCornerDisplayManager::RCDLayerType>> rcdLayerInfoList;
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -73,8 +73,9 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         }
         auto layerSurface = layer->GetSurface();
         if (layerSurface != nullptr) {
-            if (rcdLayersEnableMap.count(layerSurface->GetName()) > 0) {
-                rcdLayersEnableMap[layerSurface->GetName()] = true;
+            auto rcdlayerInfo = RSRcdManager::GetInstance().GetNodeId(layerSurface->GetName());
+            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
+                rcdLayerInfoList.push_back(rcdlayerInfo);
                 continue;
             }
         } else {
@@ -116,12 +117,8 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
 
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
 
-    if (rcdLayersEnableMap[RCD_TOP_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().DrawTopRoundCorner(&canvas);
-    }
-
-    if (rcdLayersEnableMap[RCD_BOTTOM_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().DrawBottomRoundCorner(&canvas);
+    if (RSRcdManager::GetInstance().GetRcdEnable()) {
+        RSRcdManager::GetInstance().DrawRoundCorner(rcdLayerInfoList, &canvas);
     }
 }
 

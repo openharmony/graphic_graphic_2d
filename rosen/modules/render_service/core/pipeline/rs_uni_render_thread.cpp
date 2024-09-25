@@ -32,7 +32,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"

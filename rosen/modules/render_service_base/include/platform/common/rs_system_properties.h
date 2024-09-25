@@ -245,6 +245,7 @@ public:
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool GetHDRImageEnable();
     static bool IsForceClient();
+    static bool GetDrmMarkedFilterEnabled();
     static bool GetUnmarshParallelFlag();
     static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
@@ -279,7 +280,7 @@ public:
     }
 
     static int GetRSNodeLimit();
-    static bool GetMemoryOverTreminateEnabled();
+    static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
 private:
     RSSystemProperties() = default;

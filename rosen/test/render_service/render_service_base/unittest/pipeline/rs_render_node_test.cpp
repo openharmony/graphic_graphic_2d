@@ -45,7 +45,9 @@ const std::string OUT_STR2 =
     "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
     "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
     "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
-    "Children list needs update, current count: 0 expected count: 0+1\n";
+    "Children list needs update, current count: 0 expected count: 0+1\n"
+    "  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], "
+    "IsPureContainer: true\n";
 const int DEFAULT_BOUNDS_SIZE = 10;
 const int DEFAULT_NODE_ID = 1;
 class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
@@ -2133,6 +2135,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->cacheSurface_->cachedCanvas_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
     nodeTest->cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
+    nodeTest->NeedInitCacheSurface();
     EXPECT_NE(nodeTest, nullptr);
 }
 

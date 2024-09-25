@@ -62,6 +62,7 @@ public:
     static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
+    static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
     static bool HandleSubThreadNode(RSSurfaceRenderNode& node, RSPaintFilterCanvas& canvas);
     static bool HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas& canvas);
     // This is used for calculate matrix from buffer coordinate to window's relative coordinate

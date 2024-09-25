@@ -150,10 +150,6 @@ public:
     {
         return isRotating_;
     }
-    bool GetForceClientForDRMOnly() const
-    {
-        return forceClientForDRMOnly_;
-    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
@@ -525,7 +521,7 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
 #endif
     bool isHardwareEnabled_ = false;
@@ -539,7 +535,6 @@ private:
     bool isProtectedLayer_ = false;
     bool animateState_ = false;
     bool isRotating_ = false;
-    bool forceClientForDRMOnly_ = false;
     bool isSubSurfaceNode_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;

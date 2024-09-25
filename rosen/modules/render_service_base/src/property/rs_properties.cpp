@@ -1339,7 +1339,7 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
             return;
         }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-        if (particleAnimation) {
+        if (particleAnimation != nullptr) {
             particleAnimation->UpdateNoiseField(particleNoiseFields_);
         }
     }
@@ -1969,6 +1969,7 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     contentDirty_ = true;
 }
 
+
 const Color& RSProperties::GetShadowColor() const
 {
     static const auto DEFAULT_SPOT_COLOR_VALUE = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
@@ -2141,11 +2142,11 @@ RectF RSProperties::GetBoundsRect() const
     auto rect = RectF();
     if (boundsGeo_->IsEmpty()) {
         if (!std::isinf(GetFrameWidth()) && !std::isinf(GetFrameHeight())) {
-            return {0, 0, GetFrameWidth(), GetFrameHeight()};
+            rect = {0, 0, GetFrameWidth(), GetFrameHeight()};
         }
     } else {
         if (!std::isinf(GetBoundsWidth()) && !std::isinf(GetBoundsHeight())) {
-            return {0, 0, GetBoundsWidth(), GetBoundsHeight()};
+            rect = {0, 0, GetBoundsWidth(), GetBoundsHeight()};
         }
     }
     return rect;
@@ -2739,7 +2740,7 @@ std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float
     float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
     cm.GetArray(cmArray);
     std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO);
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO_CLAMP);
     return filterCompose;
 }
 
@@ -3471,7 +3472,7 @@ void RSProperties::GenerateColorFilter()
         matrix[1] = matrix[INDEX_6] = matrix[INDEX_11] = 0.7152f * grayScale; // 0.7152 : gray scale coefficient
         matrix[INDEX_2] = matrix[INDEX_7] = matrix[INDEX_12] = 0.0722f * grayScale; // 0.0722 : gray scale coefficient
         matrix[INDEX_18] = 1.0 * grayScale;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3484,7 +3485,7 @@ void RSProperties::GenerateColorFilter()
         brightness = brightness - 1;
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = matrix[INDEX_18] = 1.0f;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = brightness;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3498,7 +3499,7 @@ void RSProperties::GenerateColorFilter()
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = contrast;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = contrastValue128 * (1 - contrast) / contrastValue255;
         matrix[INDEX_18] = 1.0f;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3514,7 +3515,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_6] = 0.6094f * (1 - saturate) + saturate; // 0.6094 : saturate coefficient
         matrix[INDEX_12] = 0.0820f * (1 - saturate) + saturate; // 0.0820 : saturate coefficient
         matrix[INDEX_18] = 1.0f;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3535,7 +3536,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_11] = 0.534f * sepia;
         matrix[INDEX_12] = 0.131f * sepia;
         matrix[INDEX_18] = 1.0f * sepia;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3553,7 +3554,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_18] = 1.0f;
         // invert = 0.5 -> RGB = (0.5, 0.5, 0.5) -> image completely gray
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = invert;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3588,7 +3589,7 @@ void RSProperties::GenerateColorFilter()
             default:
                 break;
         }
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }

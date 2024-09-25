@@ -31,6 +31,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
@@ -200,6 +201,29 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
         static_cast<int>(layerInfo.layerType));
 }
 
+bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
+{
+    if (params.GetIsProtectedLayer() == false) {
+        return false;
+    }
+    if (params.GetAnimateState() == true) {
+        return true;
+    }
+    bool forceClientForDRM = false;
+    auto ancestorDisplayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (ancestorDisplayDrawable == nullptr || ancestorDisplayDrawable->GetRenderParams() == nullptr ||
+        uniParam == nullptr) {
+        RS_LOGE("%{public}s ancestorDisplayDrawable/ancestorDisplayDrawableParams/uniParam is nullptr", __func__);
+        return false;
+    } else {
+        auto params = static_cast<RSDisplayRenderParams*>(ancestorDisplayDrawable->GetRenderParams().get());
+        forceClientForDRM = params->IsRotationChanged() || uniParam->GetCacheEnabledForRotation();
+    }
+    return forceClientForDRM;
+}
+
 LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
     sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence)
 {
@@ -225,8 +249,12 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     }
     layer->SetLayerSize(dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
-    bool forceClient = RSSystemProperties::IsForceClient() ||
-        (params.GetIsProtectedLayer() && (params.GetAnimateState() || params.GetForceClientForDRMOnly()));
+    bool forceClientForDRM = GetForceClientForDRM(params);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s nodeName[%s] forceClientForDRM[%d]",
+        __func__, params.GetName().c_str(), forceClientForDRM);
+    RS_LOGD("%{public}s nodeName[%{public}s] forceClientForDRM[%{public}d]",
+        __func__, params.GetName().c_str(), forceClientForDRM);
+    bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
@@ -235,8 +263,9 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetVisibleRegions(visibleRegions);
     std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
-        const auto& dirtyRect = params.GetBufferDamage();
-        dirtyRegions.emplace_back(GraphicIRect { dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h });
+        const auto& bufferDamage = params.GetBufferDamage();
+        GraphicIRect dirtyRect = GraphicIRect { bufferDamage.x, bufferDamage.y, bufferDamage.w, bufferDamage.h };
+        dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect));
     } else {
         dirtyRegions.emplace_back(layerInfo.srcRect);
     }

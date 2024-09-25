@@ -222,8 +222,6 @@ private:
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
     void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes, bool& ancoHasGpu);
-    void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
-        std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& appNode);
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
@@ -298,6 +296,7 @@ private:
      * 3. find the child background node, which is no transparency and completely filling the window
      */
     void CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNode& node);
+    void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     uint32_t appWindowNum_ = 0;
@@ -330,6 +329,8 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentCleanFilter_;
     // record nodes which has transparent dirty filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentDirtyFilter_;
+    // record DRM nodes
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;

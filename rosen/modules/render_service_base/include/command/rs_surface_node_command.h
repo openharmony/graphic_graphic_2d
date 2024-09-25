@@ -90,7 +90,7 @@ public:
     static void SetIsNotifyUIBufferAvailable(RSContext& context, NodeId nodeId, bool available);
     static void MarkUIHidden(RSContext& context, NodeId nodeId, bool isHidden);
     static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType);
-    static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, float density);
+    static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, RRect rrect);
     static void SetAnimationFinished(RSContext& context, NodeId nodeId);
     static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
@@ -156,7 +156,7 @@ ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
     SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, uint8_t))
 ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW, SurfaceNodeCommandHelper::SetContainerWindow,
-    NodeId, bool, float))
+    NodeId, bool, RRect))
 ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED, SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
 ADD_COMMAND(RSSurfaceNodeAttachToDisplay,

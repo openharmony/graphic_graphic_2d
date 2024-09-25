@@ -17,8 +17,10 @@
 
 #include <memory>
 
+#include "font_config.h"
 #include "include/core/SkString.h"
 #include "include/core/SkTypeface.h"
+#include "utils/text_log.h"
 
 namespace txt {
 AssetFontManager::AssetFontManager(std::unique_ptr<FontAssetProvider> fontProvider)
@@ -111,5 +113,17 @@ SkFontStyleSet* TestFontManager::onMatchFamily(const char familyName[]) const
         }
     }
     return AssetFontManager::onMatchFamily(sanitizedName.c_str());
+}
+
+int DynamicFontManager::ParseInstallFontConfig(const std::string& configPath,
+    std::vector<std::string>& fontPathVec)
+{
+    OHOS::Rosen::TextEngine::FontConfigJson fontConfigJson;
+    int ret = fontConfigJson.ParseInstallConfig(configPath.c_str(), fontPathVec);
+    if (ret != SUCCESSED) {
+        TEXT_LOGE_LIMIT3_MIN("Failed to parse json config file, ret = %d", ret);
+        return ERROR_PARSE_CONFIG_FAILED;
+    }
+    return SUCCESSED;
 }
 } // namespace txt

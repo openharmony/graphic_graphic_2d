@@ -319,7 +319,8 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
 
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
-    if (argValue == nullptr) {
+    napi_valuetype valueType = napi_undefined;
+    if (argValue == nullptr || napi_typeof(env, argValue, &valueType) != napi_ok || valueType != napi_object) {
         return false;
     }
     SetColorFromJS(env, argValue, "color", textStyle.color);
@@ -381,8 +382,8 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     }
 
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
-    int32_t maxLines = 0;
-    if (tempValue != nullptr && napi_get_value_int32(env, tempValue, &maxLines) == napi_ok) {
+    int64_t maxLines = 0;
+    if (tempValue != nullptr && napi_get_value_int64(env, tempValue, &maxLines) == napi_ok) {
         pographyStyle.maxLines = maxLines < 0 ? 0 : maxLines;
     }
 
@@ -402,6 +403,12 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
         pographyStyle.ellipsisModal = textStyle.ellipsisModal;
     } else {
         SetParagraphStyleEllipsis(env, argValue, pographyStyle);
+    }
+
+    napi_get_named_property(env, argValue, "tab", &tempValue);
+    TextTab textTab;
+    if (tempValue != nullptr && GetTextTabFromJS(env, tempValue, textTab)) {
+        pographyStyle.tab = textTab;
     }
 
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
@@ -496,8 +503,15 @@ bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetric
     return true;
 }
 
-void SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle)
+bool SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle)
 {
+    napi_valuetype valueType = napi_undefined;
+    if (strutStyleValue == nullptr || napi_typeof(env, strutStyleValue, &valueType) != napi_ok ||
+        valueType != napi_object) {
+        TEXT_LOGE("Invalid strut style value");
+        return false;
+    }
+
     napi_value tempValue = nullptr;
     if (GetNamePropertyFromJS(env, strutStyleValue, "fontFamilies", tempValue)) {
         std::vector<std::string> fontFamilies;
@@ -518,6 +532,7 @@ void SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographySty
     SetBoolValueFromJS(env, strutStyleValue, "enabled", typographyStyle.useLineStyle);
     SetBoolValueFromJS(env, strutStyleValue, "heightOverride", typographyStyle.lineStyleHeightOnly);
     SetBoolValueFromJS(env, strutStyleValue, "halfLeading", typographyStyle.lineStyleHalfLeading);
+    return true;
 }
 
 void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle)
@@ -717,4 +732,119 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, Drawing::FontMetrics*
     return objValue;
 }
 
+bool NapiValueTypeIsValid(napi_env env, napi_value argValue)
+{
+    napi_valuetype valueType;
+    if (napi_typeof(env, argValue, &valueType) != napi_ok || valueType == napi_null || valueType == napi_undefined) {
+        TEXT_LOGE("Invalid value type %{public}d", static_cast<int32_t>(valueType));
+        return false;
+    }
+    return true;
+}
+
+bool GetTextTabFromJS(napi_env env, napi_value argValue, TextTab& tab)
+{
+    if (argValue == nullptr) {
+        return false;
+    }
+    napi_value tempValue = nullptr;
+    if (napi_get_named_property(env, argValue, "alignment", &tempValue) != napi_ok) {
+        TEXT_LOGE("Failed to get alignment");
+        return false;
+    }
+    uint32_t align = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &align) == napi_ok) {
+        TextAlign textAlign;
+        switch (TextAlign(align)) {
+            case TextAlign::LEFT: {
+                textAlign = TextAlign::LEFT;
+                break;
+            }
+            case TextAlign::RIGHT: {
+                textAlign = TextAlign::RIGHT;
+                break;
+            }
+            case TextAlign::CENTER: {
+                textAlign = TextAlign::CENTER;
+                break;
+            }
+            default: {
+                textAlign = TextAlign::LEFT;
+                break;
+            }
+        }
+        tab.alignment = textAlign;
+    } else {
+        TEXT_LOGE("Invalid alignment");
+        return false;
+    }
+
+    double location = 0;
+    if (napi_get_named_property(env, argValue, "location", &tempValue) != napi_ok) {
+        return false;
+    }
+    if (tempValue != nullptr && napi_get_value_double(env, tempValue, &location) == napi_ok) {
+        tab.location = location;
+    } else {
+        TEXT_LOGE("Invalid location");
+        return false;
+    }
+    return true;
+}
+
+napi_value GetTypographicBoundsAndConvertToJsValue(napi_env env, float ascent,
+    float descent, float leading, float width)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_status status = napi_set_named_property(env, objValue, "ascent", CreateJsNumber(env, ascent));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+        status = napi_set_named_property(env, objValue, "descent", CreateJsNumber(env, descent));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+        status = napi_set_named_property(env, objValue, "leading", CreateJsNumber(env, leading));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+        status = napi_set_named_property(env, objValue, "width", CreateJsNumber(env, width));
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set named property, ret %{public}d", status);
+            return nullptr;
+        }
+    }
+    return objValue;
+}
+
+bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &end)
+{
+    napi_valuetype valueType = napi_undefined;
+    if (arg == nullptr || napi_typeof(env, arg, &valueType) != napi_ok || valueType != napi_object) {
+        TEXT_LOGE("Failed arg is invalid");
+        return false;
+    }
+    napi_value tempValue = nullptr;
+    if (napi_get_named_property(env, arg, "start", &tempValue) != napi_ok) {
+        TEXT_LOGE("Failed start is invalid");
+        return false;
+    }
+    bool isStartOk = ConvertFromJsValue(env, tempValue, start);
+    if (napi_get_named_property(env, arg, "end", &tempValue) != napi_ok) {
+        TEXT_LOGE("Failed end is invalid");
+        return false;
+    }
+    bool isEndOk = ConvertFromJsValue(env, tempValue, end);
+    if (!isStartOk || !isEndOk || start < 0 || end < 0) {
+        TEXT_LOGE("Failed start or end is invalid");
+        return false;
+    }
+
+    return true;
+}
 } // namespace OHOS::Rosen
