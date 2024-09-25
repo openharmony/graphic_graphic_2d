@@ -211,7 +211,6 @@ void HgmFrameRateManager::InitTouchManager()
                 .pkgName = touchManager_.GetPkgName(),
                 .touchState = newState,
             };
-            HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::IDLE_STATE);
             multiAppStrategy_.HandleTouchInfo(touchInfo);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
