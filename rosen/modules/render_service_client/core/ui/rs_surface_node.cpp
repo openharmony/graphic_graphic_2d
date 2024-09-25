@@ -845,6 +845,7 @@ void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 
 void RSSurfaceNode::SetAbilityState(bool abilityState)
 {
+    abilityState_ = abilityState;
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetAbilityState>(GetId(), abilityState);
     auto transactionProxy = RSTransactionProxy::GetInstance();

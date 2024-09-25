@@ -447,6 +447,8 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
+    director->GoForeground();
+    director->GoBackground();
     Rosen::RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "WindowScene_";
     std::shared_ptr<RSSurfaceNode> surfaceNode = std::make_shared<RSSurfaceNode>(config, true);
@@ -470,6 +472,8 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
         director->isUniRenderEnabled_ = false;
     }
     director->GoForeground();
+    director->GoForeground();
+    director->GoBackground();
     director->GoBackground();
     director->isUniRenderEnabled_ = flag;
     ASSERT_TRUE(res);

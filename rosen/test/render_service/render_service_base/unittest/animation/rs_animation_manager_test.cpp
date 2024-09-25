@@ -155,7 +155,8 @@ HWTEST_F(RSAnimationManagerTest, AnimateTest001, TestSize.Level1)
     RSAnimationManager rsAnimationManager;
     int64_t time = 10;
     bool nodeIsOnTheTree = false;
-    rsAnimationManager.Animate(time, nodeIsOnTheTree);
+    bool abilityState = true;
+    rsAnimationManager.Animate(time, nodeIsOnTheTree, abilityState);
     ASSERT_NE(time, 0);
 }
 

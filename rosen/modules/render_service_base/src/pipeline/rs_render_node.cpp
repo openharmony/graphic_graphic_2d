@@ -1201,7 +1201,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
     }
     bool abilityState = true;
     if (auto context = GetContext().lock()) {
-        abilityState = context->GetNodeMap().GetAbilityStateByNodeId(GetId());
+        abilityState = context->GetMutableNodeMap().GetAbilityStateByPid(ExtractPid(GetId()));
     }
     RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "], abilityState: " +
     std::string(abilityState ? "foreground" : "background"));

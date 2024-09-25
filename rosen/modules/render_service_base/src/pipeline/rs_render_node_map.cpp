@@ -14,7 +14,6 @@
  */
 
 #include "pipeline/rs_render_node_map.h"
-#include <sys/types.h>
 #include "common/rs_common_def.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -329,28 +328,34 @@ const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) co
     return "";
 }
 
-bool RSRenderNodeMap::GetAbilityStateByNodeId(NodeId id) const
+bool RSRenderNodeMap::GetAbilityStateByPid(pid_t pid)
 {
-    auto nodePid = ExtractPid(id);
     std::lock_guard<std::mutex> lock(backgroundPidsMutex_);
-    return backgroundPids_.find(nodePid) == backgroundPids_.end();
+    return backgroundPids_.find(pid) == backgroundPids_.end();
 }
 
 void RSRenderNodeMap::AddBackgroundPid(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(backgroundPidsMutex_);
     backgroundPids_.insert(pid);
+    ROSEN_LOGD("RSRenderNodeMap::AddBackgroundPid insert pid [%{public}lld], "
+               "current background pids numbers: %{public}lu",
+               static_cast<long long>(pid), static_cast<unsigned long>(backgroundPids_.size()));
 }
 
 void RSRenderNodeMap::RemoveBackgroundPid(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(backgroundPidsMutex_);
-    backgroundPids_.erase(pid);
+    auto erased = backgroundPids_.erase(pid);
+    if (erased) {
+        ROSEN_LOGD("RSRenderNodeMap::RemoveBackgroundPid erase pid [%{public}lld], "
+                   "current background pids numbers: %{public}lu",
+                   static_cast<long long>(pid), static_cast<unsigned long>(backgroundPids_.size()));
+    }
 }
 
-bool RSRenderNodeMap::IsAllSurfaceNodesWithSamePidOnBackground(NodeId id) const
+bool RSRenderNodeMap::IsAllSurfaceNodesWithSamePidOnBackground(pid_t pid) const
 {
-    auto pid = ExtractPid(id);
     for (const auto& [surfaceNodeId, surfaceNode] : surfaceNodeMap_) {
         if (ExtractPid(surfaceNodeId) == pid && surfaceNode && surfaceNode->GetAbilityState()) {
             return false;

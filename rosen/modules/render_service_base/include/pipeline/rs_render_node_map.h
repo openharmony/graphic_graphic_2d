@@ -50,10 +50,10 @@ public:
 
     bool ContainPid(pid_t pid) const;
     void FilterNodeByPid(pid_t pid);
-    bool GetAbilityStateByNodeId(NodeId id) const;
+    bool GetAbilityStateByPid(pid_t pid);
     void AddBackgroundPid(pid_t pid);
     void RemoveBackgroundPid(pid_t pid);
-    bool IsAllSurfaceNodesWithSamePidOnBackground(NodeId id) const;
+    bool IsAllSurfaceNodesWithSamePidOnBackground(pid_t pid) const;
     void MoveRenderNodeMap(
         std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap, pid_t pid);
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;
@@ -100,7 +100,7 @@ private:
     std::unordered_set<NodeId> uiExtensionSurfaceNodes_;
     mutable std::mutex uiExtensionSurfaceNodesMutex_;
     std::unordered_set<pid_t> backgroundPids_;
-    mutable std::mutex backgroundPidsMutex_;
+    std::mutex backgroundPidsMutex_;
 
     friend class RSContext;
     friend class RSMainThread;

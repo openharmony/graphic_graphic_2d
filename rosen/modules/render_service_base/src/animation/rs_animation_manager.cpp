@@ -158,7 +158,10 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool node
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
             return false;
         }
-        bool isFinished = animation->Animate(time) || !abilityState;
+        if (!abilityState) {
+            animation->Finish();
+        }
+        bool isFinished = animation->Animate(time);
         if (isFinished) {
             isCalculateAnimationValue = true;
             OnAnimationFinished(animation);
