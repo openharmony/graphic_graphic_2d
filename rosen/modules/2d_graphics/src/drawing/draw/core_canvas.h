@@ -595,8 +595,8 @@ public:
      * a translation matrix; then replaces RSMatrix with the resulting matrix premultiplied with RSMatrix.
      * This has the effect of rotating the drawing about a given point before transforming the result with RSMatrix.
      * @param deg amount to rotate, in degrees
-     * @param sx      x-axis value of the point to rotate about
-     * @param sy      y-axis value of the point to rotate about
+     * @param sx  x-axis value of the point to rotate about
+     * @param sy  y-axis value of the point to rotate about
      */
     virtual void Rotate(scalar deg, scalar sx, scalar sy);
 
