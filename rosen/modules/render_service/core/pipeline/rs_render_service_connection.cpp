@@ -417,10 +417,15 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSu
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
     int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
-    if (!mainThread_) {
+    if (mainThread_ == nullptr) {
         return INVALID_ARGUMENTS;
     }
-    mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    mainThread_->ScheduleTask(
+        [pid, uid, bundleName, abilityName, focusNodeId, mainThread = mainThread_]() {
+            // don't use 'this' to get mainThread poninter
+            mainThread->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+        }
+    );
     return SUCCESS;
 }
 
