@@ -662,7 +662,7 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
         node->GetStagingRenderParams()->GetUifirstRootNodeId(), node->GetStagingRenderParams()->GetFirstLevelNodeId(),
         params->GetUifirstRootNodeId(), params->GetFirstLevelNodeId(), node->GetId(), curRootIdState);
 
-    if (curRootIdState == CacheProcessStatus::DOING ||
+    if (curRootIdState == CacheProcessStatus::DOING || curRootIdState == CacheProcessStatus::WAITING ||
         /* unknow state to check prefirstLevelNode */
         (uifirstRootId == INVALID_NODEID && IsPreFirstLevelNodeDoing(node))) {
         pendingSyncForSkipBefore_[uifirstRootId].push_back(node);
@@ -780,7 +780,7 @@ bool RSUifirstManager::IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> no
     for (auto it = preFirstLevelNodeIdSet.begin(); it != preFirstLevelNodeIdSet.end();
          it = preFirstLevelNodeIdSet.erase(it)) {
         const auto& curRootIdState = GetUifirstCachedState(*it);
-        if (curRootIdState == CacheProcessStatus::DOING) {
+        if (curRootIdState == CacheProcessStatus::DOING || curRootIdState == CacheProcessStatus::WAITING) {
             return true;
         }
     }
@@ -1572,7 +1572,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto pred = [uifirstRootSurfaceNodeDrawable] {
         auto curState = uifirstRootSurfaceNodeDrawable->GetCacheSurfaceProcessedStatus();
         return curState == CacheProcessStatus::DONE || curState == CacheProcessStatus::UNKNOWN ||
-            uifirstRootSurfaceNodeDrawable->IsSubThreadSkip();
+            curState == CacheProcessStatus::SKIPPED;
     };
     std::unique_lock<std::mutex> lock(notifyMutex_);
     notifyCv_.wait_for(lock, TIME_OUT, pred);
