@@ -51,7 +51,10 @@ void RSMESABlurShaderFilter::SetRadius(int radius)
 
 void RSMESABlurShaderFilter::SetPixelStretchParams(std::shared_ptr<RSPixelStretchParams>& param)
 {
-    pixelStretchParam_ = std::move(param);
+    {
+        std::lock_guard<std::mutex> lock(pixelStretchParamsMutex_);
+        pixelStretchParam_ = std::move(param);
+    }
     CalculateHash();
 }
 
@@ -60,8 +63,7 @@ void RSMESABlurShaderFilter::CalculateHash()
     hash_ = SkOpts::hash(&radius_, sizeof(radius_), 0);
     hash_ = SkOpts::hash(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
     hash_ = SkOpts::hash(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
-    std::shared_ptr<RSPixelStretchParams> localParams = pixelStretchParam_;
-    if (localParams) {
+    if (auto localParams = GetPixelStretchParams()) {
         hash_ = SkOpts::hash(&localParams->offsetX_, sizeof(localParams->offsetX_), hash_);
         hash_ = SkOpts::hash(&localParams->offsetY_, sizeof(localParams->offsetY_), hash_);
         hash_ = SkOpts::hash(&localParams->offsetZ_, sizeof(localParams->offsetZ_), hash_);
@@ -77,8 +79,7 @@ std::string RSMESABlurShaderFilter::GetDetailedDescription() const
     std::string filterString = ", radius: " + std::to_string(radius_) + " sigma";
     filterString = filterString + ", greyCoef1: " + std::to_string(greyCoefLow_);
     filterString = filterString + ", greyCoef2: " + std::to_string(greyCoefHigh_);
-    std::shared_ptr<RSPixelStretchParams> localParams = pixelStretchParam_;
-    if (localParams) {
+    if (auto localParams = GetPixelStretchParams()) {
         filterString = filterString + ", pixel stretch offsetX: " + std::to_string(localParams->offsetX_);
         filterString = filterString + ", offsetY: " + std::to_string(localParams->offsetY_);
         filterString = filterString + ", offsetZ: " + std::to_string(localParams->offsetZ_);
@@ -97,8 +98,7 @@ void RSMESABlurShaderFilter::GenerateGEVisualEffect(
     mesaFilter->SetParam("MESA_BLUR_RADIUS", (int)radius_); // blur radius
     mesaFilter->SetParam("MESA_BLUR_GREY_COEF_1", greyCoefLow_);
     mesaFilter->SetParam("MESA_BLUR_GREY_COEF_2", greyCoefHigh_);
-    std::shared_ptr<RSPixelStretchParams> localParams = pixelStretchParam_;
-    if (localParams) {
+    if (auto localParams = GetPixelStretchParams()) {
         mesaFilter->SetParam("OFFSET_X", localParams->offsetX_);
         mesaFilter->SetParam("OFFSET_Y", localParams->offsetY_);
         mesaFilter->SetParam("OFFSET_Z", localParams->offsetZ_);
