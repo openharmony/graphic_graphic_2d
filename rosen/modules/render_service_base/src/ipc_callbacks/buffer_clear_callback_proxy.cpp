@@ -39,7 +39,14 @@ void RSBufferClearCallbackProxy::OnBufferClear()
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIBufferClearCallbackInterfaceCode::ON_BUFFER_CLEAR);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    
+    auto  remote = Remote();
+    if (remote == nullptr) {
+        ROSEN_LOGE("RSBufferClearCallbackProxy::remote is null!");
+        return;
+    }
+
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSBufferClearCallbackProxy::OnBufferClear error = %{public}d", err);
     }

@@ -14,6 +14,9 @@
  */
 #include <parameter.h>
 #include <parameters.h>
+#include <if_system_ability_manager.h>
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
@@ -1866,7 +1869,6 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
     bufferEntry.timestamp = 0;
     ret = psurf->RequestBuffer(bufferEntry.buffer, requestFence, requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-    rsSurfaceHandlerPtr_->CacheBuffer(bufferEntry, rsSurfaceRenderNode->GetName());
     rsSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
     ASSERT_TRUE(rsSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
     mainThread->ConsumeAndUpdateAllNodes();
@@ -2140,6 +2142,21 @@ HWTEST_F(RSMainThreadTest, SendCommands, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    mainThread->SendCommands();
+}
+
+/**
+ * @tc.name: SendCommands001
+ * @tc.desc: SendCommands Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SendCommands001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    AnimationId animationId = 1;
+    mainThread->context_->AddSyncFinishAnimationList(id, animationId);
     mainThread->SendCommands();
 }
 
@@ -2488,8 +2505,8 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel001, TestSize.Level1)
         std::map<NodeId, RSVisibleLevel> pidVisMap;
         pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->lastVisMapForVsyncRate_.clear();
-        mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
         ASSERT_NE(connection->highPriorityRate_, (int32_t)SIMI_VISIBLE_RATE);
     }
 }
@@ -2519,8 +2536,8 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel002, TestSize.Level1)
         std::map<NodeId, RSVisibleLevel> pidVisMap;
         pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE;
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->lastVisMapForVsyncRate_.clear();
-        mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
         ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
     }
 }
@@ -2550,8 +2567,8 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel003, TestSize.Level1)
         std::map<NodeId, RSVisibleLevel> pidVisMap;
         pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_INVISIBLE;
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->lastVisMapForVsyncRate_.clear();
-        mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
         ASSERT_NE(connection->highPriorityRate_, (int32_t)INVISBLE_WINDOW_RATE);
     }
 }
@@ -2581,8 +2598,8 @@ HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel004, TestSize.Level1)
         std::map<NodeId, RSVisibleLevel> pidVisMap;
         pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
         std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->lastVisMapForVsyncRate_.clear();
-        mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
         ASSERT_NE(connection->highPriorityRate_, (int32_t)DEFAULT_RATE);
     }
 }
@@ -2614,8 +2631,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes004, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2646,8 +2663,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes005, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2678,8 +2695,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes006, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2710,8 +2727,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes007, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2742,8 +2759,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes008, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -2774,8 +2791,8 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes009, TestSize.Level1)
     std::map<NodeId, RSVisibleLevel> pidVisMap;
     pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->lastVisMapForVsyncRate_.clear();
-    mainThread->SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
+    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
+    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
     ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
 }
 
@@ -3457,6 +3474,50 @@ HWTEST_F(RSMainThreadTest, CheckUIExtensionCallbackDataChanged002, TestSize.Leve
 }
 
 /**
+ * @tc.name: CheckOnUIExtensionCallback001
+ * @tc.desc: test CheckOnUIExtensionCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, CheckOnUIExtensionCallback001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->lastFrameUIExtensionDataEmpty_ = false;
+    mainThread->uiExtensionCallbackData_.clear();
+    ASSERT_TRUE(mainThread->CheckUIExtensionCallbackDataChanged());
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObj = samgr->GetSystemAbility(RENDER_SERVICE);
+    ASSERT_NE(remoteObj, nullptr);
+    auto callback = iface_cast<RSIUIExtensionCallback>(remoteObj);
+    uint64_t userId = 0;
+    pid_t pid = 0;
+    mainThread->RegisterUIExtensionCallback(pid, userId, callback);
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    mainThread->UnRegisterUIExtensionCallback(pid);
+}
+
+/**
+ * @tc.name: CheckOnUIExtensionCallback002
+ * @tc.desc: test RegisterUIExtensionCallback when callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIABHAX
+ */
+HWTEST_F(RSMainThreadTest, CheckOnUIExtensionCallback002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    uint64_t userId = 0;
+    pid_t pid = 0;
+    sptr<RSIUIExtensionCallback> callback = nullptr;
+    mainThread->RegisterUIExtensionCallback(pid, userId, callback);
+    mainThread->UIExtensionNodesTraverseAndCallback();
+    mainThread->UnRegisterUIExtensionCallback(pid);
+}
+
+/**
  * @tc.name: GetDynamicRefreshRate002
  * @tc.desc: test GetDynamicRefreshRate, refreshRate = 0
  * @tc.type: FUNC
@@ -3776,7 +3837,6 @@ HWTEST_F(RSMainThreadTest, OnDrawingCacheDfxSwitchCallback, TestSize.Level2)
     RSMainThread::OnDrawingCacheDfxSwitchCallback("persist", "1", nullptr);
     RSMainThread::OnDrawingCacheDfxSwitchCallback("rosen.drawingCache.enabledDfx", "1", nullptr);
 }
-
 
 /**
  * @tc.name: OnDumpClientNodeTree

@@ -75,10 +75,7 @@ napi_value JsLattice::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsLattice *jsLattice = new(std::nothrow) JsLattice();
-    if (jsLattice == nullptr) {
-        return nullptr;
-    }
+    JsLattice *jsLattice = new JsLattice();
     status = napi_wrap(env, jsThis, jsLattice, JsLattice::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsLattice;

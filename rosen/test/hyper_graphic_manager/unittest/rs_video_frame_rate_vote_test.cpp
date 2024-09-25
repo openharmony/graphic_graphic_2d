@@ -16,9 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#define private public
 #include "rs_frame_rate_vote.h"
-#undef private
 
 using namespace testing;
 using namespace testing::ext;

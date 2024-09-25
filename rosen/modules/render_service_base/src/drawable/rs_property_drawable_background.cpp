@@ -336,6 +336,8 @@ Drawing::ColorType RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat 
             return Drawing::COLORTYPE_RGBA_F16;
         case VK_FORMAT_R5G6B5_UNORM_PACK16:
             return Drawing::COLORTYPE_RGB_565;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return Drawing::COLORTYPE_RGBA_1010102;
         default:
             return Drawing::COLORTYPE_RGBA_8888;
     }
@@ -376,7 +378,7 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         return nullptr;
     }
     std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
-    if (pixelMapId_ != pixelMap->GetUniqueId()) {
+    if (pixelMapId_ != pixelMap->GetUniqueId() || !backendTexture_.IsValid()) {
         backendTexture_ = {};
         ReleaseNativeWindowBuffer();
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
@@ -398,14 +400,15 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         tid_ = gettid();
     }
 
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSBackgroundImageDrawable::MakeFromTextureForVK canvas.GetGPUContext is nullptr");
+        ReleaseNativeWindowBuffer();
+        return nullptr;
+    }
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    if (canvas.GetGPUContext() == nullptr) {
-        RS_LOGE("RSBackgroundImageDrawable::MakeFromTextureForVK canvas.GetGPUContext is nullptr");
-        return;
-    }
     if (!dmaImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {

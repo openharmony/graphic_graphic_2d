@@ -78,8 +78,8 @@ void RSDirtyRectsDFXTest::SetUp()
         canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
     }
     auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
 }
 void RSDirtyRectsDFXTest::TearDown() {}
@@ -98,24 +98,25 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
     ASSERT_NE(canvas_, nullptr);
     rsDirtyRectsDfx_->OnDraw(canvas_);
 
-    RSUniRenderThread::Instance().renderThreadParams_->isPartialRenderEnabled_ = true;
-    RSUniRenderThread::Instance().renderThreadParams_->isOpaqueRegionDfxEnabled_ = true;
-    RSUniRenderThread::Instance().renderThreadParams_->isVisibleRegionDfxEnabled_ = true;
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_TRUE(renderThreadParams);
+    renderThreadParams->isPartialRenderEnabled_ = true;
+    renderThreadParams->isOpaqueRegionDfxEnabled_ = true;
+    renderThreadParams->isVisibleRegionDfxEnabled_ = true;
     RSRealtimeRefreshRateManager::Instance().enableState_ = true;
     rsDirtyRectsDfx_->OnDraw(canvas_);
 
-    RSUniRenderThread::Instance().renderThreadParams_->isDirtyRegionDfxEnabled_ = true;
-    RSUniRenderThread::Instance().renderThreadParams_->isTargetDirtyRegionDfxEnabled_ = true;
-    RSUniRenderThread::Instance().renderThreadParams_->isDisplayDirtyDfxEnabled_ = true;
+    renderThreadParams->isDirtyRegionDfxEnabled_ = true;
+    renderThreadParams->isTargetDirtyRegionDfxEnabled_ = true;
+    renderThreadParams->isDisplayDirtyDfxEnabled_ = true;
     rsDirtyRectsDfx_->OnDraw(canvas_);
-    RSUniRenderThread::Instance().renderThreadParams_->isPartialRenderEnabled_ = false;
-    RSUniRenderThread::Instance().renderThreadParams_->isOpaqueRegionDfxEnabled_ = false;
-    RSUniRenderThread::Instance().renderThreadParams_->isVisibleRegionDfxEnabled_ = false;
+    renderThreadParams->isPartialRenderEnabled_ = false;
+    renderThreadParams->isOpaqueRegionDfxEnabled_ = false;
+    renderThreadParams->isVisibleRegionDfxEnabled_ = false;
     RSRealtimeRefreshRateManager::Instance().enableState_ = false;
-    RSUniRenderThread::Instance().renderThreadParams_->isDirtyRegionDfxEnabled_ = false;
-    RSUniRenderThread::Instance().renderThreadParams_->isTargetDirtyRegionDfxEnabled_ = false;
-    RSUniRenderThread::Instance().renderThreadParams_->isDisplayDirtyDfxEnabled_ = false;
-    ASSERT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams());
+    renderThreadParams->isDirtyRegionDfxEnabled_ = false;
+    renderThreadParams->isTargetDirtyRegionDfxEnabled_ = false;
+    renderThreadParams->isDisplayDirtyDfxEnabled_ = false;
 }
 
 /**
@@ -131,11 +132,11 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDrawVirtual, TestSize.Level1)
     rsDirtyRectsDfx_->OnDraw(canvas);
     ASSERT_NE(canvas_, nullptr);
     rsDirtyRectsDfx_->OnDrawVirtual(canvas_);
-    ASSERT_FALSE(RSUniRenderThread::Instance().renderThreadParams_->isVirtualDirtyDfxEnabled_);
+    ASSERT_FALSE(RSUniRenderThread::Instance().GetRSRenderThreadParams()->isVirtualDirtyDfxEnabled_);
 
-    RSUniRenderThread::Instance().renderThreadParams_->isVirtualDirtyDfxEnabled_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isVirtualDirtyDfxEnabled_ = true;
     rsDirtyRectsDfx_->OnDrawVirtual(canvas_);
-    RSUniRenderThread::Instance().renderThreadParams_->isVirtualDirtyDfxEnabled_ = false;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isVirtualDirtyDfxEnabled_ = false;
 }
 
 /**

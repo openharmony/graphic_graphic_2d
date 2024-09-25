@@ -31,7 +31,7 @@ struct FontArgumentsConcreteContext : public ContextBase {
     ResourceInfo info;
 };
 
-bool ParseContextFilePath(napi_env env, napi_value* argv, std::shared_ptr<FontArgumentsConcreteContext> context)
+bool ParseContextFilePath(napi_env env, napi_value* argv, sptr<FontArgumentsConcreteContext> context)
 {
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[ARGC_ONE], &valueType);
@@ -157,7 +157,7 @@ napi_value JsFontCollection::LoadFontSync(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnLoadFont(env, info) : nullptr;
 }
 
-bool JsFontCollection::SpiltAbsoluteFontPath(std::string& absolutePath)
+bool JsFontCollection::SplitAbsoluteFontPath(std::string& absolutePath)
 {
     auto iter = absolutePath.find_first_of(':');
     if (iter == std::string::npos) {
@@ -292,7 +292,7 @@ bool JsFontCollection::ParseResourcePath(const std::string familyName, ResourceI
             if (state >= GLOBAL_ERROR || state < 0) {
                 return false;
             }
-            if (!SpiltAbsoluteFontPath(rPath) || !GetFontFileProperties(rPath, familyName)) {
+            if (!SplitAbsoluteFontPath(rPath) || !GetFontFileProperties(rPath, familyName)) {
                 return false;
             }
         }
@@ -400,7 +400,7 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
             TEXT_LOGE("Failed to convert argv[1]");
             return nullptr;
         }
-        if (!SpiltAbsoluteFontPath(familySrc) || !GetFontFileProperties(familySrc, familyName)) {
+        if (!SplitAbsoluteFontPath(familySrc) || !GetFontFileProperties(familySrc, familyName)) {
             return nullptr;
         }
         return NapiGetUndefined(env);
@@ -439,51 +439,48 @@ napi_value JsFontCollection::LoadFontAsync(napi_env env, napi_callback_info info
 
 napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info info)
 {
-    auto context = std::make_shared<FontArgumentsConcreteContext>();
-    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERR_NO_MEMORY, "OnLoadFontAsync failed, no memory");
-
+    sptr<FontArgumentsConcreteContext> context = sptr<FontArgumentsConcreteContext>::MakeSptr();
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
-        TEXT_ERROR_CHECK(argv != nullptr, return, "OnLoadFontAsync inputParser argv is nullptr");
-        NAPI_CHECK_ARGS_RETURN_VOID(context, context->status == napi_ok, napi_invalid_arg,
-            "OnLoadFontAsync inputParser status error", TextErrorCode::ERROR_INVALID_PARAM);
-        NAPI_CHECK_ARGS_RETURN_VOID(context, argc >= ARGC_TWO, napi_invalid_arg,
-            "OnLoadFontAsync inputParser argc is invalid", TextErrorCode::ERROR_INVALID_PARAM);
-        NAPI_CHECK_ARGS_RETURN_VOID(context, ConvertFromJsValue(env, argv[0], context->familyName), napi_invalid_arg,
-            "OnLoadFontAsync inputParser familyName is invalid", TextErrorCode::ERROR_INVALID_PARAM);
+        TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is null");
+        NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Status error, status=%d", static_cast<int>(context->status));
+        NAPI_CHECK_ARGS(context, argc >= ARGC_TWO, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM,
+            return, "Argc is invalid %zu", argc);
+        NAPI_CHECK_ARGS(context, ConvertFromJsValue(env, argv[0], context->familyName), napi_invalid_arg,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "FamilyName is invalid %s", context->familyName.c_str());
 
         if (!ParseContextFilePath(env, argv, context)) {
             auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
-            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection != nullptr, napi_invalid_arg,
-                "OnLoadFontAsync inputParser failed fontCollection is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
-            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->ParseResourceType(env, argv[ARGC_ONE], context->info),
-                napi_invalid_arg, "OnLoadFontAsync inputParser failed parse resource error",
-                TextErrorCode::ERROR_INVALID_PARAM);
+            NAPI_CHECK_ARGS(context, fontCollection != nullptr, napi_invalid_arg,
+                TextErrorCode::ERROR_INVALID_PARAM, return, "FontCollection is null");
+            NAPI_CHECK_ARGS(context, fontCollection->ParseResourceType(env, argv[ARGC_ONE], context->info),
+                napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return, "Parse resource error");
         }
     };
 
     context->GetCbInfo(env, info, inputParser);
 
     auto executor = [context]() {
-        TEXT_ERROR_CHECK(context != nullptr, return, "OnLoadFontAsync executor error, context is nullptr");
+        TEXT_ERROR_CHECK(context != nullptr, return, "Context is null");
 
         auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
-        NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection != nullptr, napi_generic_failure,
-            "OnLoadFontAsync executor error, fontCollection is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
-        NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->fontcollection_ != nullptr, napi_generic_failure,
-            "OnLoadFontAsync executor error, fontcollection_ is nullptr", TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS(context, fontCollection != nullptr, napi_generic_failure,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "FontCollection is null");
+
+        NAPI_CHECK_ARGS(context, fontCollection->fontcollection_ != nullptr, napi_generic_failure,
+            TextErrorCode::ERROR_INVALID_PARAM, return, "Inner fontcollection is null");
 
         if (!context->filePath.empty()) {
-            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->SpiltAbsoluteFontPath(context->filePath),
-                napi_invalid_arg, "OnLoadFontAsync executor SpiltAbsoluteFontPath failed",
-                TextErrorCode::ERROR_INVALID_PARAM);
+            NAPI_CHECK_ARGS(context, fontCollection->SplitAbsoluteFontPath(context->filePath),
+                napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return, "Failed to split absolute font path");
 
-            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->GetFontFileProperties(context->filePath,
-                context->familyName), napi_invalid_arg, "OnLoadFontAsync executor GetFontFileProperties failed",
-                TextErrorCode::ERROR_INVALID_PARAM);
+            NAPI_CHECK_ARGS(context, fontCollection->GetFontFileProperties(context->filePath,
+                context->familyName), napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return,
+                "Failed to get font file properties");
         } else {
-            NAPI_CHECK_ARGS_RETURN_VOID(context, fontCollection->ParseResourcePath(context->familyName, context->info),
-                napi_invalid_arg, "OnLoadFontAsync executor load font failed, path is invalid",
-                TextErrorCode::ERROR_INVALID_PARAM);
+            NAPI_CHECK_ARGS(context, fontCollection->ParseResourcePath(context->familyName, context->info),
+                napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM, return,
+                "Failed to execute function, path is invalid");
         }
     };
 

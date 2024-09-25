@@ -392,4 +392,20 @@ HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest, TestSize.Leve
     RSRenderThread::Instance().CreateAndInitRenderContextIfNeed();
     EXPECT_TRUE(RSRenderThread::Instance().thread_);
 }
+
+/**
+ * @tc.name: HighContrastSettingsAndChanges
+ * @tc.desc: test results of HighContrastSettingsAndChanges
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSRenderThreadTest, HighContrastSettingsAndChanges, TestSize.Level1)
+{
+    RSRenderThread::Instance().SetHighContrast(true);
+    EXPECT_TRUE(RSRenderThread::Instance().IsHighContrastEnabled());
+    EXPECT_TRUE(RSRenderThread::Instance().IsHighContrastChanged());
+
+    RSRenderThread::Instance().ResetHighContrastChanged();
+    EXPECT_FALSE(RSRenderThread::Instance().IsHighContrastChanged());
+}
 } // namespace OHOS::Rosen

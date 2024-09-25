@@ -62,6 +62,7 @@ void ParagraphTest::SetUpTestCase()
     }
     // 50 just for test
     paragraph_->Layout(50);
+    paragraph_->MeasureText();
 }
 
 void ParagraphTest::TearDownTestCase()

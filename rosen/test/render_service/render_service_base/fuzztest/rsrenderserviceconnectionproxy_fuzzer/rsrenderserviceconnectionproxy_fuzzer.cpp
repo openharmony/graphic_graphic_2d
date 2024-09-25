@@ -223,6 +223,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.FillParcelWithTransactionData(transactionData, parcel);
     rsRenderServiceConnectionProxy.ReportDataBaseRs(messageParcel, reply, option, info);
     rsRenderServiceConnectionProxy.ReportGameStateDataRs(messageParcel, reply, option, gameStateDataInfo);
+    rsRenderServiceConnectionProxy.SetFreeMultiWindowStatus(true);
     return true;
 }
 

@@ -62,6 +62,8 @@ ohos_shared_library("libgraphic_utils") {
     ":sandbox_utils",
     ":scoped_bytrace",
     ":test_header",
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
   ]
 
   part_name = "graphic_2d"

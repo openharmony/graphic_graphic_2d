@@ -92,19 +92,8 @@ void RSRenderServiceListener::OnCleanCache()
         RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGI("RSRenderServiceListener::OnCleanCache ResetBufferAvailableCount");
+    RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
     node->GetRSSurfaceHandler()->ResetBufferAvailableCount();
-    node->SetNeedClearPreBuffer(true);
-    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
-    RSMainThread::Instance()->PostTask([surfaceNode]() {
-        auto nodePtr = surfaceNode.lock();
-        if (nodePtr == nullptr) {
-            RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
-            return;
-        }
-        RS_LOGI("RSRenderServiceListener::OnCleanCache node Name:%{public}s id:%{public}" PRIu64,
-            nodePtr->GetName().c_str(), nodePtr->GetId());
-    });
 }
 
 void RSRenderServiceListener::OnGoBackground()

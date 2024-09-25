@@ -36,18 +36,22 @@ public:
 
     static std::shared_ptr<Typeface> MakeDefault();
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index = 0);
+    static std::shared_ptr<Typeface> MakeFromFile(const char path[], const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static void RegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
     static void UnRegisterCallBackFunc(std::function<bool(std::shared_ptr<Typeface>)> func);
     static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceRegisterCallBack();
     static std::function<bool(std::shared_ptr<Typeface>)>& GetTypefaceUnRegisterCallBack();
+    static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
 
     /**
      * @brief   Get the familyName for this typeface.
      * @return  FamilyName.
      */
     std::string GetFamilyName() const;
+
+    std::string GetFontPath() const;
 
     /**
      * @brief   Get the fontStyle for this typeface.

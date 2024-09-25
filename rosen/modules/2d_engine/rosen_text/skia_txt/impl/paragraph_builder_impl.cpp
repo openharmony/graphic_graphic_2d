@@ -18,6 +18,7 @@
 #include "modules/skparagraph/include/ParagraphStyle.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
+#include "paragraph_line_fetcher_impl.h"
 #include "txt/paragraph_style.h"
 #include "utils/text_log.h"
 
@@ -149,10 +150,32 @@ std::unique_ptr<Paragraph> ParagraphBuilderImpl::Build()
     return ret;
 }
 
+std::unique_ptr<ParagraphLineFetcher> ParagraphBuilderImpl::BuildLineFetcher()
+{
+    if (builder_ == nullptr) {
+        return nullptr;
+    }
+    auto lineFetcher = builder_->buildLineFetcher();
+    if (lineFetcher == nullptr) {
+        return nullptr;
+    }
+    auto fetcherImpl = std::make_unique<ParagraphLineFetcherImpl>(std::move(lineFetcher), std::move(paints_));
+    builder_->Reset();
+    return fetcherImpl;
+}
+
 skt::ParagraphPainter::PaintID ParagraphBuilderImpl::AllocPaintID(const PaintRecord& paint)
 {
     paints_.push_back(paint);
     return static_cast<int>(paints_.size()) - 1;
+}
+
+skt::TextTabs ConvertToSkTextTab(const TextTab& tab)
+{
+    return {
+        static_cast<skt::TextAlign>(tab.alignment),
+        tab.location,
+    };
 }
 
 skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyle& txt)
@@ -208,6 +231,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setReplaceTabCharacters(true);
     skStyle.setTextSplitRatio(txt.textSplitRatio);
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
+    skStyle.setTextTab(ConvertToSkTextTab(txt.tab));
 
     return skStyle;
 }

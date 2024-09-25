@@ -175,3 +175,4 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
     }
 }
 } // namespace OHOS::Rosen
+

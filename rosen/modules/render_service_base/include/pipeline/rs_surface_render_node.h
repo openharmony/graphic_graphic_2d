@@ -175,8 +175,6 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
-
-    void ResetPreBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -446,17 +444,19 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
+    void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
-    void SetForceClientForDRMOnly(bool forceClient);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+    bool GetSnapshotSkipLayer() const;
     bool GetProtectedLayer() const;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
+    bool GetHasSnapshotSkipLayer() const;
     bool GetHasProtectedLayer() const;
 
     void ResetSpecialLayerChangedFlag()
@@ -471,6 +471,8 @@ public:
 
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
+    void SyncOnTheTreeInfoToFirstLevelNode();
+    void SyncSnapshotSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
@@ -607,11 +609,6 @@ public:
         return abilityBgAlpha_;
     }
 
-    bool GetQosCal()
-    {
-        return qosPidCal_;
-    }
-
     void setQosCal(bool qosPidCal)
     {
         qosPidCal_ = qosPidCal;
@@ -676,6 +673,12 @@ public:
 
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const;
+
+    // Only call this if the node is self-drawing surface node.
+    void UpdateColorSpaceToIntanceRootNode();
+    GraphicColorGamut GetSubSurfaceColorSpace() const;
+    void ResetSubSurfaceColorSpace();
+
 #ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
     void SetBlendType(GraphicBlendType blendType);
@@ -790,9 +793,14 @@ public:
         return containerConfig_.hasContainerWindow_;
     }
 
-    void SetContainerWindow(bool hasContainerWindow, float density)
+    void SetContainerWindow(bool hasContainerWindow, RRect rrect);
+
+    std::string GetContainerConfigDump() const
     {
-        containerConfig_.Update(hasContainerWindow, density);
+        return "[outR: " + std::to_string(containerConfig_.outR) +
+               " inR: " + std::to_string(containerConfig_.inR) +
+               " bt: " + std::to_string(containerConfig_.bt) +
+               " bp: " + std::to_string(containerConfig_.bp) + "]";
     }
 
     bool IsOpaqueRegionChanged() const
@@ -1019,9 +1027,6 @@ public:
         return false;
     }
 
-    void SetNeedClearPreBuffer(bool needClear);
-    bool GetNeedClearPreBuffer() const;
-
     void UpdateSurfaceCacheContentStaticFlag();
 
     void UpdateSurfaceSubTreeDirtyFlag();
@@ -1205,18 +1210,20 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
-    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
-    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> GetWatermark() const;
-    size_t GetWatermarkSize() const;
-    bool GetIsIntersectWithRoundCorner() const
-    {
-        return isIntersectWithRoundCorner_;
+    const std::unordered_map<std::string, bool>& GetWatermark() const;
+    bool IsWatermarkEmpty() const;
+    template<class... Args>
+    void SetIntersectedRoundCornerAABBs(Args&& ...args) {
+        std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
 
-    void SetIsIntersectWithRoundCorner(bool isIntersectWithRoundCorner)
-    {
-        isIntersectWithRoundCorner_ = isIntersectWithRoundCorner;
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const {
+        return intersectedRoundCornerAABBs_;
+    }
+
+    size_t GetIntersectedRoundCornerAABBsSize() const {
+        return intersectedRoundCornerAABBs_.size();
     }
 protected:
     void OnSync() override;
@@ -1260,9 +1267,10 @@ private:
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool isProtectedLayer_ = false;
-    bool forceClientForDRMOnly_ = false;
     std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
     bool specialLayerChanged_ = false;
@@ -1271,7 +1279,7 @@ private:
     bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
-    bool isIntersectWithRoundCorner_ = false;
+    std::vector<RectI> intersectedRoundCornerAABBs_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
@@ -1284,6 +1292,7 @@ private:
     bool isLayerTop_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    std::optional<GraphicColorGamut> subColorSpace_ = std::nullopt;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif
@@ -1291,7 +1300,6 @@ private:
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
     std::atomic_bool isBufferAvailable_ = false;
-    std::atomic_bool isNeedClearPreBuffer_ = false;
     sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
     sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
     sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;
@@ -1375,7 +1383,8 @@ private:
     */
     class ContainerConfig {
     public:
-        void Update(bool hasContainer, float density);
+        // rrect means content region, including padding to left and top, inner radius;
+        void Update(bool hasContainer, RRect rrect);
     private:
         inline int RoundFloor(float length)
         {
@@ -1383,15 +1392,7 @@ private:
             return std::abs(length - std::round(length)) < 0.05f ? std::round(length) : std::floor(length);
         }
     public:
-        // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface
-        const static int CONTAINER_TITLE_HEIGHT = 37;   // container title height = 37 vp
-        const static int CONTENT_PADDING = 4;           // container <--> content distance 4 vp
-        const static int CONTAINER_BORDER_WIDTH = 1;    // container border width 2 vp
-        const static int CONTAINER_OUTER_RADIUS = 16;   // container outer radius 16 vp
-        const static int CONTAINER_INNER_RADIUS = 14;   // container inner radius 14 vp
-
         bool hasContainerWindow_ = false;               // set to false as default, set by arkui
-        float density = 2.0f;                           // The density default value is 2
         int outR = 32;                                  // outer radius (int value)
         int inR = 28;                                   // inner radius (int value)
         int bp = 10;                                    // border width + padding (int value)
@@ -1490,7 +1491,7 @@ private:
     bool isSkipDraw_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
-    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> watermarkHandles_ = {};
+    std::unordered_map<std::string, bool> watermarkHandles_ = {};
 
     bool arsrTag_ = true;
 

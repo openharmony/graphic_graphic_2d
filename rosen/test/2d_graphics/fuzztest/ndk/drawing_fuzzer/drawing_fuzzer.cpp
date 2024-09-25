@@ -414,6 +414,49 @@ void NativeDrawingShadowLayerTest(const uint8_t* data, size_t size)
     OH_Drawing_PenDestroy(pen);
     OH_Drawing_BrushDestroy(brush);
 }
+
+void NativeDrawingTextStyleDecorationTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    if (txtStyle == nullptr) {
+        return;
+    }
+    int decorationA = GetObject<int>();
+    int decorationB = GetObject<int>();
+    OH_Drawing_AddTextStyleDecoration(txtStyle, decorationA);
+    OH_Drawing_AddTextStyleDecoration(txtStyle, decorationB);
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, decorationA);
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, decorationB);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+void OHDrawingTextTabTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    float location = GetObject<float>();
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TextTab* tab = OH_Drawing_CreateTextTab(OH_Drawing_TextAlign::TEXT_ALIGN_LEFT, location);
+    OH_Drawing_GetTextTabAlignment(tab);
+    OH_Drawing_GetTextTabLocation(tab);
+    OH_Drawing_SetTypographyTextTab(typoStyle, tab);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextTab(tab);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -442,6 +485,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::OHDrawingTypographyTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPenTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingShadowLayerTest(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingTextStyleDecorationTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingTextTabTest(data, size);
 
     return 0;
 }

@@ -604,7 +604,6 @@ napi_value ColorPickerNapi::GetLargestProportionColor(napi_env env, napi_callbac
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
     size_t argCount = 1;
-    EFFECT_LOG_I("Get Largest Proportion Color");
     EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     EFFECT_NAPI_CHECK_RET_D(EFFECT_IS_OK(status),
                             nullptr,

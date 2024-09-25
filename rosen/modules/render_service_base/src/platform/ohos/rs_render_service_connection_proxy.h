@@ -73,6 +73,8 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark) override;
+
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
@@ -167,6 +169,8 @@ public:
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation) override;
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
+
+    bool SetGlobalDarkColorMode(bool isDark) override;
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
@@ -268,6 +272,14 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
+
+    void SetFreeMultiWindowStatus(bool enable) override;
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -277,6 +289,8 @@ private:
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
 
     bool SetAncoForceDoDirect(bool direct) override;
+
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

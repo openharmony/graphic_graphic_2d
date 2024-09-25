@@ -144,7 +144,9 @@ public:
         // <rateTypeName, idleFps>
         std::unordered_map<std::string, std::string> uiPowerConfig;
         // <SCENE_APP_START_ANIMATION, placeholder>
-        std::unordered_map<std::string, std::string> ancoSceneList;
+        SceneConfigMap ancoSceneList;
+        // <componentCode, idleFps>
+        std::unordered_map<std::string, int32_t> componentPowerConfig;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;
@@ -162,7 +164,7 @@ public:
     bool virtualDisplaySwitch_;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
-    std::unordered_map<std::string, std::string> sourceTuningConfig_;;
+    std::unordered_map<std::string, std::string> sourceTuningConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     bool videoFrameRateVoteSwitch_ = false;

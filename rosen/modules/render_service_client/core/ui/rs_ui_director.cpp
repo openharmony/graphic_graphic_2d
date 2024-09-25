@@ -36,9 +36,6 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "render_context/memory_handler.h"
-#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -165,11 +162,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         // clean bufferQueue cache
         RSRenderThread::Instance().PostTask([surfaceNode]() {
             if (surfaceNode != nullptr) {
-#ifdef NEW_RENDER_CONTEXT
-                std::shared_ptr<RSRenderSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
-#else
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
-#endif
                 if (rsSurface == nullptr) {
                     ROSEN_LOGE("rsSurface is nullptr");
                     return;
@@ -182,12 +175,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             auto renderContext = RSRenderThread::Instance().GetRenderContext();
             if (renderContext != nullptr) {
 #ifndef ROSEN_CROSS_PLATFORM
-#if defined(NEW_RENDER_CONTEXT)
-                auto drawingContext = RSRenderThread::Instance().GetDrawingContext();
-                MemoryHandler::ClearRedundantResources(drawingContext->GetDrawingContext());
-#else
                 renderContext->ClearRedundantResources();
-#endif
 #endif
             }
         });
@@ -231,14 +219,14 @@ void RSUIDirector::SetRTRenderForced(bool isRenderForced)
     RSRenderThread::Instance().SetRTRenderForced(isRenderForced);
 }
 
-void RSUIDirector::SetContainerWindow(bool hasContainerWindow, float density)
+void RSUIDirector::SetContainerWindow(bool hasContainerWindow, RRect rrect)
 {
     auto node = surfaceNode_.lock();
     if (!node) {
         ROSEN_LOGI("RSUIDirector::SetContainerWindow, surfaceNode_ is nullptr");
         return;
     }
-    node->SetContainerWindow(hasContainerWindow, density);
+    node->SetContainerWindow(hasContainerWindow, rrect);
 }
 
 void RSUIDirector::SetRoot(NodeId root)
@@ -364,12 +352,11 @@ void RSUIDirector::RecvMessages()
         return;
     }
     static const uint32_t pid = static_cast<uint32_t>(GetRealPid());
-    static std::mutex recvMessagesMutex;
-    std::unique_lock<std::mutex> lock(recvMessagesMutex);
-    if (RSMessageProcessor::Instance().HasTransaction(pid)) {
-        auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
-        RecvMessages(transactionDataPtr);
+    if (!RSMessageProcessor::Instance().HasTransaction(pid)) {
+        return;
     }
+    auto transactionDataPtr = RSMessageProcessor::Instance().GetTransaction(pid);
+    RecvMessages(transactionDataPtr);
 }
 
 void RSUIDirector::RecvMessages(std::shared_ptr<RSTransactionData> cmds)
@@ -450,6 +437,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
 
 void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
 {
+    RS_TRACE_NAME_FMT("DumpClientNodeTree dump task[%u] node[%" PRIu64 "]", taskId, nodeId);
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;

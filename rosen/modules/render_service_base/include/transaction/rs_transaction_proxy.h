@@ -70,6 +70,8 @@ public:
 
     uint32_t GetTransactionDataIndex() const;
 
+    bool IsEmpty() const;
+
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();
@@ -85,7 +87,7 @@ private:
     void AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
 
     // Command Transaction Triggered by UI Thread.
-    std::mutex mutex_;
+    mutable std::mutex mutex_;
     std::unique_ptr<RSTransactionData> implicitCommonTransactionData_{std::make_unique<RSTransactionData>()};
     std::unique_ptr<RSTransactionData> implicitRemoteTransactionData_{std::make_unique<RSTransactionData>()};
 

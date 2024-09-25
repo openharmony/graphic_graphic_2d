@@ -41,6 +41,8 @@ public:
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
     uint8_t MAX_ALPHA = 255;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceRenderNodeTwoTest::SetUpTestCase()
@@ -81,7 +83,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, ResetSurfaceOpaqueRegion03, TestSize.Level1
         static_cast<int>(std::ceil(1)), static_cast<int>(std::ceil(1)));
     surfaceRenderNode.ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadiusT);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, true, dstCornerRadius);
 }
@@ -163,6 +165,28 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSkipInfoToFirstLevelNode001, TestSize.L
     EXPECT_TRUE(renderNodeSecond->GetFirstLevelNodeId() == 0);
     renderNodeSecond->SyncSkipInfoToFirstLevelNode();
     EXPECT_TRUE(renderNodeSecond->skipLayerIds_.size() == 0);
+}
+
+/**
+ * @tc.name: SyncSnapshotSkipInfoToFirstLevelNodeTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: issueIA4VTS
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSnapshotSkipInfoToFirstLevelNode001, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    renderNode->SetProtectedLayer(true);
+    renderNode->SyncSnapshotSkipInfoToFirstLevelNode();
+    EXPECT_TRUE(renderNode->GetId() != 0);
+    EXPECT_TRUE(renderNode->GetFirstLevelNodeId() == 0);
+    renderNode->SetProtectedLayer(false);
+    renderNode->SyncSnapshotSkipInfoToFirstLevelNode();
+    auto renderNodeSecond = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_TRUE(renderNodeSecond->GetId() == 0);
+    EXPECT_TRUE(renderNodeSecond->GetFirstLevelNodeId() == 0);
+    renderNodeSecond->SyncSnapshotSkipInfoToFirstLevelNode();
+    EXPECT_TRUE(renderNodeSecond->snapshotSkipLayerIds_.size() == 0);
 }
 
 /**
@@ -694,7 +718,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, CheckParticipateInOcclusion, TestSize.Level
     node->SetAbilityBGAlpha(255);
     node->SetGlobalAlpha(1.0f);
     node->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    node->SetContainerWindow(true, 1.0f);
+    node->SetContainerWindow(true, rrect);
     node->CheckParticipateInOcclusion();
     node->isSubSurfaceNode_ = true;
     node->CheckParticipateInOcclusion();

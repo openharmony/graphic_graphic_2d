@@ -34,11 +34,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -52,6 +48,7 @@ public:
         ScreenInfo screenInfo;
         std::map<ScreenId, bool> displayHasSecSurface;
         std::map<ScreenId, bool> displayHasSkipSurface;
+        std::map<ScreenId, bool> displayHasSnapshotSkipSurface;
         std::map<ScreenId, bool> displayHasProtectedSurface;
         std::map<ScreenId, bool> displaySpecailSurfaceChanged;
         std::map<ScreenId, bool> hasCaptureWindow;
@@ -87,14 +84,7 @@ public:
         return screenId_;
     }
 
-    inline void SetReleaseTask(ReleaseDmaBufferTask callback)
-    {
-        if (!releaseScreenDmaBufferTask_ && callback) {
-            releaseScreenDmaBufferTask_ = callback;
-        } else {
-            RS_LOGE("RreleaseScreenDmaBufferTask_ register failed!");
-        }
-    }
+    static void SetReleaseTask(ReleaseDmaBufferTask callback);
 
     void SetRogSize(uint32_t rogWidth, uint32_t rogHeight)
     {
@@ -510,7 +500,7 @@ private:
 
     bool curZoomState_ = false;
     bool preZoomState_ = false;
-    ReleaseDmaBufferTask releaseScreenDmaBufferTask_ = nullptr;
+    static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
 };
 } // namespace Rosen
 } // namespace OHOS

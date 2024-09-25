@@ -24,7 +24,7 @@ namespace Rosen {
 namespace AdapterTxt {
 class RunImpl : public ::OHOS::Rosen::Run {
 public:
-    explicit RunImpl(std::unique_ptr<SPText::Run> run);
+    explicit RunImpl(std::unique_ptr<SPText::Run> run = nullptr);
 
     Drawing::Font GetFont() const override;
     size_t GetGlyphCount() const override;
@@ -32,6 +32,8 @@ public:
     std::vector<Drawing::Point> GetPositions() override;
     std::vector<Drawing::Point> GetOffsets() override;
     void Paint(Drawing::Canvas *canvas, double x, double y) override;
+
+    void SetSpRunBase(std::unique_ptr<SPText::Run>& run) { run_ = std::move(run); }
 
 private:
     std::unique_ptr<SPText::Run> run_ = nullptr;

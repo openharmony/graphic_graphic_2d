@@ -188,6 +188,8 @@ public:
 
     virtual uint32_t GetActualScreensNum() const = 0;
 
+    virtual ScreenInfo GetActualScreenMaxResolution() const = 0;
+
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual ScreenId GetActiveScreenId() = 0;
@@ -359,6 +361,8 @@ public:
 
     uint32_t GetActualScreensNum() const override;
 
+    ScreenInfo GetActualScreenMaxResolution() const override;
+
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
@@ -434,6 +438,8 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
 
+    static void ReleaseScreenDmaBuffer(uint64_t screenId);
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -494,6 +500,9 @@ private:
     void HandleSensorData(float angle);
     FoldState TransferAngleToScreenState(float angle);
 #endif
+
+    void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
+    void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
 
     mutable std::mutex mutex_;
     mutable std::mutex blackListMutex_;

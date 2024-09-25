@@ -46,6 +46,7 @@ DEFINE_CONVERT_FUNC(TextRectWidthStyle, SPText::RectWidthStyle);
 DEFINE_CONVERT_FUNC(TypographyStyle, SPText::ParagraphStyle);
 DEFINE_CONVERT_FUNC(PlaceholderSpan, SPText::PlaceholderRun);
 DEFINE_CONVERT_FUNC(TextStyle, SPText::TextStyle);
+DEFINE_CONVERT_FUNC(TextTab, SPText::TextTab);
 
 #undef DEFINE_CONVERT_FUNC
 } // namespace AdapterTxt

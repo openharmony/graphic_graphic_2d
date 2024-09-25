@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "common/rs_occlusion_region.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -86,7 +87,7 @@ public:
         auto node = ancestorDisplayNode.lock();
         ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
     }
-  
+
     RSRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
         return ancestorDisplayNode_;
@@ -133,6 +134,10 @@ public:
     {
         return isSkipLayer_;
     }
+    bool GetIsSnapshotSkipLayer() const
+    {
+        return isSnapshotSkipLayer_;
+    }
     bool GetIsProtectedLayer() const
     {
         return isProtectedLayer_;
@@ -145,10 +150,6 @@ public:
     {
         return isRotating_;
     }
-    bool GetForceClientForDRMOnly() const
-    {
-        return forceClientForDRMOnly_;
-    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
@@ -157,6 +158,10 @@ public:
     {
         return skipLayerIds_;
     }
+    const std::set<NodeId>& GetSnapshotSkipLayerIds() const
+    {
+        return snapshotSkipLayerIds_;
+    }
     bool HasSecurityLayer()
     {
         return securityLayerIds_.size() != 0;
@@ -164,6 +169,10 @@ public:
     bool HasSkipLayer()
     {
         return skipLayerIds_.size() != 0;
+    }
+    bool HasSnapshotSkipLayer()
+    {
+        return snapshotSkipLayerIds_.size() != 0;
     }
     bool HasProtectedLayer()
     {
@@ -343,10 +352,9 @@ public:
 
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
     
-    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
-    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> GetWatermark() const;
-    size_t GetWatermarkSize() const;
+    const std::unordered_map<std::string, bool>& GetWatermarksEnabled() const;
+    bool IsWatermarkEmpty() const;
 
     void SetPreScalingMode(ScalingMode scalingMode) override
     {
@@ -513,7 +521,7 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
 #endif
     bool isHardwareEnabled_ = false;
@@ -523,14 +531,15 @@ private:
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     bool animateState_ = false;
     bool isRotating_ = false;
-    bool forceClientForDRMOnly_ = false;
     bool isSubSurfaceNode_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
     std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
     std::set<int32_t> bufferCacheSet_ = {};
@@ -543,7 +552,7 @@ private:
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
-    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> watermarkHandles_ = {};
+    std::unordered_map<std::string, bool> watermarkHandles_ = {};
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

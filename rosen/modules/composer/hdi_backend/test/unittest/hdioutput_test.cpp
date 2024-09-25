@@ -337,25 +337,6 @@ HWTEST_F(HdiOutputTest, CheckAndUpdateClientBufferCahce003, Function | MediumTes
 }
 
 /*
-* Function: SetBufferColorSpace
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1.call SetBufferColorSpace()
-*                  2.check ret
-*/
-HWTEST_F(HdiOutputTest, SetBufferColorSpace, Function | MediumTest | Level1)
-{
-    std::vector<LayerPtr> layers;
-    for (size_t i = 0; i < 3; i++) {
-        layers.emplace_back(std::make_shared<HdiLayer>(i));
-    }
-    sptr<SurfaceBuffer> buffer = nullptr;
-    HdiOutputTest::hdiOutput_->SetBufferColorSpace(buffer, layers);
-    sptr<SurfaceBuffer> buffer1 = new SurfaceBufferImpl();
-    HdiOutputTest::hdiOutput_->SetBufferColorSpace(buffer1, layers);
-}
-/*
 * Function: ReleaseLayers
 * Type: Function
 * Rank: Important(1)

@@ -142,6 +142,9 @@ private:
         if (valueEstimator_ == nullptr) {
             valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
         }
+        if (valueEstimator_ == nullptr) {
+            return;
+        }
         valueEstimator_->InitCurveAnimationValue(property_, endValue_, startValue_, startValue_);
     }
 

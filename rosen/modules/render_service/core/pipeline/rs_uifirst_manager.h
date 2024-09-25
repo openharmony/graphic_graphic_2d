@@ -16,13 +16,16 @@
 #ifndef RS_UIFIRST_MANAGER_H
 #define RS_UIFIRST_MANAGER_H
 
+#include <condition_variable>
 #include <map>
-#include <vector>
 #include <set>
-#include "drawable/rs_surface_render_node_drawable.h"
-#include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_main_thread.h"
+#include <vector>
+
 #include "rs_processor.h"
+
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS::Rosen {
@@ -30,6 +33,12 @@ class RSUifirstManager {
 public:
     // planning: move to display node
     static RSUifirstManager& Instance();
+
+    typedef enum {
+        STATE_NEED_SKIP,
+        STATE_NOT_SKIP,
+        STATE_NEED_CHECK,
+    } SkipSyncState;
 
     struct EventInfo {
         int64_t startTime = 0;
@@ -141,6 +150,17 @@ public:
     void CollectSkipSyncBuffer(std::vector<std::function<void()>>& tasks, NodeId id);
     void ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks);
 
+    void SetFreeMultiWindowStatus(bool enable)
+    {
+        isFreeMultiWindowEnabled_ = enable;
+    }
+    UiFirstModeType GetUiFirstMode();
+    // only use in mainThread & RT onsync
+    inline void UifirstCurStateClear()
+    {
+        uifirstCacheState_.clear();
+    }
+
 private:
     RSUifirstManager();
     ~RSUifirstManager() = default;
@@ -186,11 +206,16 @@ private:
     void CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node);
     void ResetCurrentFrameDeletedCardNodes();
     bool IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> node);
+    SkipSyncState CollectSkipSyncNodeWithDrawableState(const std::shared_ptr<RSRenderNode> &node);
+    CacheProcessStatus& GetUifirstCachedState(NodeId id);
+    bool IsVMSurfaceName(std::string surfaceName);
 
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
     bool rotationChanged_ = false;
+
+    std::map<NodeId, CacheProcessStatus> uifirstCacheState_;
 
     // only use in RT
     std::unordered_map<NodeId, std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> subthreadProcessingNode_;
@@ -244,6 +269,13 @@ private:
         { "SCREENSHOT_DISMISS_ANIMATION" },
     };
 
+    const std::vector<std::string> vmAppNameSet_ = {
+        { "ohvm" },
+        { "win_emulator" },
+        { "hongyunvd" },
+        { "ecoengine" },
+    };
+
     // use in MainThread & RT & subThread
     std::mutex useDmaBufferMutex_;
     bool useDmaBuffer_ = false;
@@ -252,6 +284,60 @@ private:
     std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
+
+    bool isFreeMultiWindowEnabled_ = false;
+};
+class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
+public:
+    RSUiFirstProcessStateCheckerHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
+    {
+        isCurUifirstRootNodeId_ = curNodeId == curUifirstRootNodeId;
+        isCurFirsLevelNodeId_ = curNodeId == curFirsLevelNodeId;
+        if (isCurUifirstRootNodeId_) {
+            curUifirstRootNodeId_ = curUifirstRootNodeId;
+        }
+        if (isCurFirsLevelNodeId_) {
+            curFirstLevelNodeId_ = curFirsLevelNodeId;
+        }
+    }
+
+    // If a subnode is delivered directly
+    // record the firstLevelNodeId in the delivered subnode as the real one.
+    RSUiFirstProcessStateCheckerHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId)
+    {
+        isCurUifirstRootNodeId_ = true;
+        isCurFirsLevelNodeId_ = true;
+        curUifirstRootNodeId_ = curUifirstRootNodeId;
+        curFirstLevelNodeId_ = curFirsLevelNodeId;
+    }
+
+    ~RSUiFirstProcessStateCheckerHelper()
+    {
+        if (isCurUifirstRootNodeId_) {
+            curUifirstRootNodeId_ = INVALID_NODEID;
+        }
+        if (isCurFirsLevelNodeId_) {
+            curFirstLevelNodeId_ = INVALID_NODEID;
+        }
+    }
+    // return false when timeout
+    static void NotifyAll()
+    {
+        notifyCv_.notify_all();
+    }
+    static bool CheckMatchAndWaitNotify(const RSSurfaceRenderParams& params, bool checkMatch = true);
+private:
+    static bool IsCurFirstLevelMatch(const RSSurfaceRenderParams& params);
+    static bool CheckAndWaitPreFirstLevelDrawableNotify(const RSSurfaceRenderParams& params);
+
+    static inline std::mutex notifyMutex_;
+    static inline std::condition_variable notifyCv_;
+
+    static inline thread_local NodeId curUifirstRootNodeId_ = INVALID_NODEID;
+    static inline thread_local NodeId curFirstLevelNodeId_ = INVALID_NODEID;
+
+    bool isCurUifirstRootNodeId_ = false;
+    bool isCurFirsLevelNodeId_ = false;
 };
 }
 #endif // RS_UIFIRST_MANAGER_H

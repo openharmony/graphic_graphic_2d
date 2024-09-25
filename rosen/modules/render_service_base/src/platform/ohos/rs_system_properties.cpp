@@ -270,6 +270,14 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
+}
+
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     static bool hardwareComposerEnabled = system::GetParameter(
@@ -294,6 +302,14 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
 bool RSSystemProperties::GetDrawMirrorCacheImageEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheimage.mirror.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.pixelmapdfx.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
@@ -453,6 +469,13 @@ ParallelRenderingType RSSystemProperties::GetParallelRenderingEnabled()
     static ParallelRenderingType systemPropertieType = static_cast<ParallelRenderingType>(
         std::atoi((system::GetParameter("persist.rosen.parallelrender.enabled", "0")).c_str()));
     return systemPropertieType;
+}
+
+bool RSSystemProperties::GetSurfaceNodeWatermarkEnabled()
+{
+    static bool watermark =
+        std::atoi((system::GetParameter("persist.rosen.watermark.enabled", "1")).c_str()) != 0;
+    return watermark;
 }
 
 HgmRefreshRates RSSystemProperties::GetHgmRefreshRatesEnabled()
@@ -938,20 +961,22 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()
+bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 {
-    static bool PreAllocateTextureBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.pre_allocate_texture_between_frames_enabled", "1")
-                       .c_str()) != 0);
-    return PreAllocateTextureBetweenFramesEnabled;
+    static bool gpuMemoryAsyncReclaimerEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
+            0);
+    return gpuMemoryAsyncReclaimerEnabled;
 }
 
-bool RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()
+bool RSSystemProperties::GetGpuCacheSuppressWindowEnabled()
 {
-    static bool AsyncFreeVMAMemoryBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.async_free_between_frames_enabled", "1").c_str()) !=
+    static bool gpuCacheSuppressWindowEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
             0);
-    return AsyncFreeVMAMemoryBetweenFramesEnabled;
+    return gpuCacheSuppressWindowEnabled;
 }
 
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =
@@ -1104,11 +1129,10 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return ConvertToInt(num, 1) != 0;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+std::string RSSystemProperties::GetVersionType()
 {
-    static bool flag =
-        std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
-    return flag;
+    static std::string versionType = system::GetParameter("const.logsystem.versiontype", "");
+    return versionType;
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
@@ -1117,6 +1141,14 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 1) != 0;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.markedFilter.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

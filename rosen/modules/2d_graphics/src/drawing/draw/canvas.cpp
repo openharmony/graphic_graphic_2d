@@ -22,7 +22,7 @@ namespace Rosen {
 namespace Drawing {
 AutoCanvasMatrixBrush::AutoCanvasMatrixBrush(Canvas* canvas,
     const Matrix* matrix, const Brush* brush, const Rect& bounds)
-    : canvas_(canvas), saveCount_(canvas->GetSaveCount()),
+    : canvas_(canvas), saveCount_(canvas->Save()),
     paintPen_(canvas->GetMutablePen()), paintBrush_(canvas->GetMutableBrush())
 {
     if (brush) {

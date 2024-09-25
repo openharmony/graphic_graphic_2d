@@ -56,6 +56,21 @@ HWTEST_F(GEVisualEffectContainerTest, AddToChainedFilter001, TestSize.Level1)
     GTEST_LOG_(INFO) << "GEVisualEffectContainerTest AddToChainedFilter001 end";
 }
 
+/**
+ * @tc.name: AddToChainedFilter002
+ * @tc.desc: Verify the AddToChainedFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(GEVisualEffectContainerTest, AddToChainedFilter002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GEVisualEffectContainerTest AddToChainedFilter002 start";
+
+    auto visualEffectContainer = std::make_shared<GEVisualEffectContainer>();
+    visualEffectContainer->AddToChainedFilter(nullptr);
+
+    GTEST_LOG_(INFO) << "GEVisualEffectContainerTest AddToChainedFilter002 end";
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

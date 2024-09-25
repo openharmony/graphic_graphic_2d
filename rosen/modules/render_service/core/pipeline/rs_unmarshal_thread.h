@@ -36,7 +36,8 @@ public:
     bool CachedTransactionDataEmpty();
     void Wait();
 
-    bool ReportTransactionDataStatistics(pid_t pid, size_t dataSize, bool isNonSystemAppCalling);
+    bool ReportTransactionDataStatistics(pid_t pid, RSTransactionData* transactionData,
+        bool isNonSystemAppCalling = false);
     void ClearTransactionDataStatistics();
 
 private:
@@ -47,6 +48,7 @@ private:
     RSUnmarshalThread& operator=(const RSUnmarshalThread&);
     RSUnmarshalThread& operator=(const RSUnmarshalThread&&);
 
+    bool IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const;
     void SetFrameLoad(int load);
     void SetFrameParam(int requestId, int load, int frameNum, int value);
     static constexpr uint32_t MIN_PENDING_REQUEST_SYNC_DATA_SIZE = 32 * 1024;

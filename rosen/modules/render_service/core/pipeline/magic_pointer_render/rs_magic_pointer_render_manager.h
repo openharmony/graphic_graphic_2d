@@ -57,19 +57,19 @@ private:
     void CalculateColorRange(RectI& pRect);
     bool CalculateTargetLayer(std::shared_ptr<RSProcessor> processor);
     void RunColorPickerTask();
-    std::shared_ptr<Drawing::Image> GetIntersectImageByLayer(const BufferDrawParam& param);
+    std::shared_ptr<Drawing::Image> GetIntersectImageByLayer(BufferDrawParam& param);
     bool GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext);
 #if defined (RS_ENABLE_VK)
     std::shared_ptr<Drawing::Image> GetIntersectImageFromVK(Drawing::RectI& imgCutRect,
-    std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& param);
+    std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param);
 #endif
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
     std::shared_ptr<Drawing::Image> GetIntersectImageFromGL(Drawing::RectI& imgCutRect,
-    std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& param);
+    std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param);
 #endif
     std::shared_ptr<Drawing::Image> GetImageTexture(std::shared_ptr<Drawing::Image>& image);
     void GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect, int displayNodeIndex);
-    void RunColorPickerTaskBackground(const BufferDrawParam& param);
+    void RunColorPickerTaskBackground(BufferDrawParam& param);
     int16_t CalcAverageLuminance(std::shared_ptr<Drawing::Image> image);
 
 private:

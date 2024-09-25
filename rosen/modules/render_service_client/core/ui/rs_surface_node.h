@@ -30,12 +30,8 @@
 #include "surface_delegate.h"
 #endif
 
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
 #include "platform/common/rs_surface_ext.h"
-#endif
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 
@@ -83,6 +79,8 @@ public:
     bool GetSecurityLayer() const;
     void SetSkipLayer(bool isSkipLayer);
     bool GetSkipLayer() const;
+    void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
+    bool GetSnapshotSkipLayer() const;
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
     void SetAbilityBGAlpha(uint8_t alpha);
@@ -92,7 +90,6 @@ public:
     using BufferAvailableCallback = std::function<void()>;
     bool SetBufferAvailableCallback(BufferAvailableCallback callback);
     bool IsBufferAvailable() const;
-    using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
     void SetAnimationFinished();
 
@@ -110,8 +107,6 @@ public:
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
     void SetTextureExport(bool isTextureExportNode) override;
-    void SetLayerTop(const std::string& targetName, bool isTop);
-    bool IsLayerTop() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
@@ -129,7 +124,7 @@ public:
 
     void ResetContextAlpha() const;
 
-    void SetContainerWindow(bool hasContainerWindow, float density);
+    void SetContainerWindow(bool hasContainerWindow, RRect rrect);
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
@@ -147,7 +142,6 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
 
-    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
 protected:
@@ -171,11 +165,7 @@ private:
     void CreateTextureExportRenderNodeInRT() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_;
-#else
     std::shared_ptr<RSSurface> surface_;
-#endif
     std::string name_;
     std::string bundleName_;
     mutable std::mutex mutex_;
@@ -185,11 +175,11 @@ private:
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool hasFingerprint_ = false;
     bool isChildOperationDisallowed_ { false };
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
-    bool isLayerTop_ = false;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

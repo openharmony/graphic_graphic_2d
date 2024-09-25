@@ -15,7 +15,6 @@
 
 #include <sstream>
 
-#include "common/rs_common_tools.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
@@ -27,6 +26,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/sk_resource_manager.h"
 #ifdef ROSEN_OHOS
+#include "common/rs_common_tools.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
@@ -58,6 +58,8 @@ Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
             return Drawing::COLORTYPE_RGBA_F16;
         case VK_FORMAT_R5G6B5_UNORM_PACK16:
             return Drawing::COLORTYPE_RGB_565;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return Drawing::COLORTYPE_RGBA_1010102;
         default:
             return Drawing::COLORTYPE_RGBA_8888;
     }
@@ -75,6 +77,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
+    rsImage_->SetFitMatrix(imageInfo.fitMatrix);
     imageInfo_ = imageInfo;
 }
 
@@ -82,9 +85,11 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
     const Drawing::AdaptiveImageInfo& imageInfo)
 {
     if (pixelMap) {
+#ifdef ROSEN_OHOS
         if (RSSystemProperties::GetDumpUIPixelmapEnabled()) {
             CommonTools::SavePixelmapToFile(pixelMap, "/data/storage/el1/base/imageObject_");
         }
+#endif
         rsImage_ = std::make_shared<RSImage>();
         rsImage_->SetPixelMap(pixelMap);
         rsImage_->SetImageFit(imageInfo.fitNum);
@@ -98,6 +103,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
                         imageInfo.frameRect.GetRight(),
                         imageInfo.frameRect.GetBottom());
         rsImage_->SetFrameRect(frameRect);
+        rsImage_->SetFitMatrix(imageInfo.fitMatrix);
     }
 }
 
@@ -170,6 +176,12 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (!pixelMap || !rsImage_) {
         return;
     }
+    auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMap);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (pixelMap->IsHdr()) {
+        colorSpace = Drawing::ColorSpace::CreateSRGB();
+    }
+#endif
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -180,8 +192,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()),
-                RSPixelMapUtil::GetPixelmapColorSpace(pixelMap))) {
+            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }
@@ -668,13 +679,15 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, SURFACEBUFFER_OPITEM),
       surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_, handle->surfaceBufferInfo.offSetY_,
-                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_)
+                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_,
+                         handle->surfaceBufferInfo.pid_, handle->surfaceBufferInfo.uid_)
 {
     surfaceBufferInfo_.surfaceBuffer_ = CmdListHelper::GetSurfaceBufferFromCmdList(cmdList, handle->surfaceBufferId);
 }
 
 DrawSurfaceBufferOpItem::~DrawSurfaceBufferOpItem()
 {
+    OnDestruct();
     Clear();
 }
 
@@ -691,7 +704,29 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
     cmdList.AddOp<ConstructorHandle>(
         CmdListHelper::AddSurfaceBufferToCmdList(cmdList, surfaceBufferInfo_.surfaceBuffer_),
         surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_, paintHandle);
+        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_,
+        surfaceBufferInfo_.pid_, surfaceBufferInfo_.uid_, paintHandle);
+}
+
+namespace {
+    std::function<void(pid_t, uint64_t, uint32_t)> surfaceBufferFenceCallback;
+}
+
+void DrawSurfaceBufferOpItem::OnDestruct()
+{
+    if (surfaceBufferFenceCallback && surfaceBufferInfo_.surfaceBuffer_) {
+        std::invoke(surfaceBufferFenceCallback, surfaceBufferInfo_.pid_,
+            surfaceBufferInfo_.uid_, surfaceBufferInfo_.surfaceBuffer_->GetSeqNum());
+    }
+}
+
+void DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
+    std::function<void(pid_t, uint64_t, uint32_t)> callback)
+{
+    if (std::exchange(surfaceBufferFenceCallback, callback)) {
+        RS_LOGE("DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback"
+            " registered callback twice incorrectly.");
+    }
 }
 
 void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)

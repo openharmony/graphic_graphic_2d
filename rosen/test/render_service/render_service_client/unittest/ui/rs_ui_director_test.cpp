@@ -44,6 +44,8 @@ public:
     static constexpr uint64_t g_normalUInt64_2 = 34342;
     static constexpr uint64_t g_normalUInt64_3 = 3245;
     static constexpr uint64_t g_vsyncPeriod = 11718750;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -247,13 +249,13 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     std::string cacheDir = "/data/log";
     director->SetAbilityBGAlpha(0);
-    director->SetContainerWindow(true, 1.f);
+    director->SetContainerWindow(true, rrect);
     director->SetAppFreeze(true);
     RSSurfaceNodeConfig c;
     auto surfaceNode = RSSurfaceNode::Create(c);
     director->SetRSSurfaceNode(surfaceNode);
     director->SetAbilityBGAlpha(0);
-    director->SetContainerWindow(true, 1.f);
+    director->SetContainerWindow(true, rrect);
     director->SetAppFreeze(true);
     director->FlushAnimation(10);
     director->FlushModifier();

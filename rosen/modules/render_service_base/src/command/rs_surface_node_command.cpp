@@ -102,6 +102,13 @@ void SurfaceNodeCommandHelper::SetSkipLayer(RSContext& context, NodeId id, bool 
     }
 }
 
+void SurfaceNodeCommandHelper::SetSnapshotSkipLayer(RSContext& context, NodeId id, bool isSnapshotSkipLayer)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetSnapshotSkipLayer(isSnapshotSkipLayer);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetFingerprint(RSContext& context, NodeId id, bool hasFingerprint)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
@@ -177,10 +184,10 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
 }
 
 void SurfaceNodeCommandHelper::SetContainerWindow(
-    RSContext& context, NodeId nodeId, bool hasContainerWindow, float density)
+    RSContext& context, NodeId nodeId, bool hasContainerWindow, RRect rrect)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetContainerWindow(hasContainerWindow, density);
+        node->SetContainerWindow(hasContainerWindow, rrect);
     }
 }
 
@@ -201,7 +208,8 @@ void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId
     nodeMap.TraverseDisplayNodes(
         [&surfaceRenderNode, &screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
-                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation()) {
+                displayRenderNode->GetBootAnimation() != surfaceRenderNode->GetBootAnimation() ||
+                !displayRenderNode->IsOnTheTree()) {
                 return;
             }
             displayRenderNode->AddChild(surfaceRenderNode);
@@ -292,14 +300,6 @@ void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bo
     }
 }
 
-void SurfaceNodeCommandHelper::SetWatermark(RSContext& context, NodeId nodeId,
-    const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetWatermark(name, watermark);
-    }
-}
-
 void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId nodeId,
     const std::string& name, bool isEnabled)
 {
@@ -308,20 +308,5 @@ void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId no
     }
 }
 
-void SurfaceNodeCommandHelper::SetLayerTop(RSContext& context, NodeId nodeId, std::string nodeIdStr, bool isTop)
-{
-    const auto& nodeMap = context.GetNodeMap();
-    nodeMap.TraverseSurfaceNodes(
-        [&nodeIdStr, &isTop](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-        if (surfaceNode == nullptr) {
-            return;
-        }
-        if ((surfaceNode->GetName() == nodeIdStr) &&
-            (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
-            surfaceNode->SetLayerTop(isTop);
-            return;
-        }
-    });
-}
 } // namespace Rosen
 } // namespace OHOS

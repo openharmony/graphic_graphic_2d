@@ -15,6 +15,14 @@
 
 #include <gtest/gtest.h>
 
+#include <if_system_ability_manager.h>
+#include <iremote_stub.h>
+#include <iservice_registry.h>
+#include <mutex>
+#include <system_ability_definition.h>
+#include <unistd.h>
+
+#include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_thread_visitor.h"
@@ -38,6 +46,8 @@ public:
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
     uint8_t MAX_ALPHA = 255;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceRenderNodeTest::SetUpTestCase()
@@ -229,7 +239,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion03, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -284,7 +294,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion05, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -312,7 +322,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion06, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -340,7 +350,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion07, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -596,6 +606,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetSnapshotSkipLayer001
+ * @tc.desc: Test SetSnapshotSkipLayer for single surface node which is skip layer
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSnapshotSkipLayer001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSnapshotSkipLayer(true);
+    ASSERT_TRUE(node->GetSnapshotSkipLayer());
+}
+
+/**
  * @tc.name: SetSkipLayer002
  * @tc.desc: Test SetSkipLayer for surface node while skip Layer isn't first level node
  * @tc.type: FUNC
@@ -619,6 +646,32 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer002, TestSize.Level2)
     skipLayerNode->SetSkipLayer(true);
 
     ASSERT_TRUE(parentNode->GetHasSkipLayer());
+}
+
+/**
+ * @tc.name: SetSnapshotSkipLayer002
+ * @tc.desc: Test SetSnapshotSkipLayer for surface node while skip Layer isn't first level node
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSnapshotSkipLayer002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto snapshotSkipLayerNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(snapshotSkipLayerNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[snapshotSkipLayerNode->GetId()] = snapshotSkipLayerNode;
+
+    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parentNode->AddChild(snapshotSkipLayerNode);
+    parentNode->SetIsOnTheTree(true);
+    snapshotSkipLayerNode->SetSnapshotSkipLayer(true);
+
+    ASSERT_TRUE(parentNode->GetHasSnapshotSkipLayer());
 }
 
 /**
@@ -1271,6 +1324,21 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayerTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSnapshotSkipLayerTest
+ * @tc.desc: test results of SetSnapshotSkipLayer
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetSnapshotSkipLayerTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SetSnapshotSkipLayer(true);
+    EXPECT_TRUE(node->isSnapshotSkipLayer_);
+    node->SetSnapshotSkipLayer(false);
+    EXPECT_FALSE(node->isSnapshotSkipLayer_);
+}
+
+/**
  * @tc.name: SyncSecurityInfoToFirstLevelNodeTest
  * @tc.desc: test results of SyncSecurityInfoToFirstLevelNode
  * @tc.type: FUNC
@@ -1294,6 +1362,19 @@ HWTEST_F(RSSurfaceRenderNodeTest, SyncSkipInfoToFirstLevelNode, TestSize.Level1)
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->SyncSkipInfoToFirstLevelNode();
     EXPECT_FALSE(node->isSkipLayer_);
+}
+
+/**
+ * @tc.name: SyncSnapshotSkipInfoToFirstLevelNode
+ * @tc.desc: test results of SyncSnapshotSkipInfoToFirstLevelNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SyncSnapshotSkipInfoToFirstLevelNode, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->SyncSnapshotSkipInfoToFirstLevelNode();
+    EXPECT_FALSE(node->isSnapshotSkipLayer_);
 }
 
 /**
@@ -2011,8 +2092,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
     Vector4<int> cornerRadius;
     ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius));
     bool hasContainer = true;
-    float density = 1.0f;
-    node->containerConfig_.Update(hasContainer, density);
+    node->containerConfig_.Update(hasContainer, rrect);
 
     node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     node->addedToPendingSyncList_ = true;
@@ -2025,6 +2105,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
     node->UpdateHwcNodeLayerInfo(transform);
     auto layer = node->stagingRenderParams_->GetLayerInfo();
     ASSERT_TRUE(layer.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+}
+
+/**
+ * @tc.name: BufferClearCallbackProxy
+ * @tc.desc: test results of BufferClearCallbackProxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, BufferClearCallbackProxy, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    ASSERT_NE(remoteObject, nullptr);
+    sptr<RSBufferClearCallbackProxy> callback = new RSBufferClearCallbackProxy(remoteObject);
+    ASSERT_NE(callback, nullptr);
+    testNode->RegisterBufferClearListener(callback);
+    testNode->SetNotifyRTBufferAvailable(true);
+    ASSERT_TRUE(testNode->isNotifyRTBufferAvailable_);
+}
+
+/**
+ * @tc.name: MarkBlurIntersectDRMTest
+ * @tc.desc: test if node could be marked BlurIntersectWithDRM correctly
+ * @tc.type: FUNC
+ * @tc.require: issuesIAQZ4I
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, MarkBlurIntersectDRMTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->MarkBlurIntersectWithDRM(true, true);
 }
 } // namespace Rosen
 } // namespace OHOS

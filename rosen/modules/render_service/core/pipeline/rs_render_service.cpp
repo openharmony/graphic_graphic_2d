@@ -26,7 +26,6 @@
 
 #include "hgm_core.h"
 #include "parameter.h"
-#include <parameters.h>
 #include "rs_main_thread.h"
 #include "rs_profiler.h"
 #include "rs_render_service_connection.h"
@@ -126,8 +125,8 @@ bool RSRenderService::Init()
     mainThread_->rsVSyncController_ = rsVSyncController_;
     mainThread_->appVSyncController_ = appVSyncController_;
     mainThread_->vsyncGenerator_ = generator;
-    mainThread_->Init();
     mainThread_->SetAppVSyncDistributor(appVSyncDistributor_);
+    mainThread_->Init();
 
     // Wait samgr ready for up to 5 second to ensure adding service to samgr.
     int status = WaitParameter("bootevent.samgr.ready", "true", 5);
@@ -322,6 +321,10 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump EventParamList info\n")
         .append("allInfo                        ")
         .append("|dump all info\n")
+        .append("client                         ")
+        .append("|dump client ui node trees\n")
+        .append("client-server                  ")
+        .append("|dump client and server info\n")
         .append("dumpMem                        ")
         .append("|dump Cache\n")
         .append("trimMem cpu/gpu/shader         ")
@@ -574,7 +577,12 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg17(u"hitchs");
     std::u16string arg18(u"rsLogFlag");
     std::u16string arg19(u"flushJankStatsRs");
-    std::u16string arg20(u"clientNodeTree");
+    std::u16string arg20(u"client");
+    std::u16string arg21(u"client-server");
+    if (argSets.count(arg21)) {
+        argSets.insert(arg9);
+        argSets.insert(arg20);
+    }
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -659,7 +667,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
     }
-    if (argSets.count(arg9) || argSets.count(arg20)) {
+    if (argSets.count(arg20)) {
         auto taskId = GenerateTaskId();
         mainThread_->ScheduleTask(
             [this, taskId]() {

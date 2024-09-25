@@ -107,6 +107,7 @@ public:
         auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
         if (LIKELY(uniParam)) {
             isEnabled = uniParam->IsOverDrawEnabled();
+            isAceDebugBoundaryEnabled_ = uniParam->IsAceDebugBoundaryEnabled();
         }
         enable_ = isEnabled && curCanvas != nullptr;
         curCanvas_ = curCanvas;
@@ -122,17 +123,21 @@ private:
         if (!enable_) {
             return;
         }
-        auto gpuContext = curCanvas_->GetGPUContext();
-        if (gpuContext == nullptr) {
-            RS_LOGE("RSOverDrawDfx::StartOverDraw failed: need gpu canvas");
-            return;
-        }
 
         auto width = curCanvas_->GetWidth();
         auto height = curCanvas_->GetHeight();
         Drawing::ImageInfo info =
             Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-        overdrawSurface_ = Drawing::Surface::MakeRaster(info);
+        if (!isAceDebugBoundaryEnabled_) {
+            auto gpuContext = curCanvas_->GetGPUContext();
+            if (gpuContext == nullptr) {
+                RS_LOGE("RSOverDrawDfx::StartOverDraw failed: need gpu canvas");
+                return;
+            }
+            overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+        } else {
+            overdrawSurface_ = Drawing::Surface::MakeRaster(info);
+        }
         if (!overdrawSurface_) {
             RS_LOGE("RSOverDrawDfx::StartOverDraw failed: surface is nullptr");
             return;
@@ -166,6 +171,7 @@ private:
     }
 
     bool enable_;
+    bool isAceDebugBoundaryEnabled_ = false;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
     std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
     std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
@@ -345,7 +351,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
 
     RS_LOGD("DisplayNode skip");
     RS_TRACE_NAME("DisplayNode skip");
-    GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX();
+    GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX(RSBaseRenderUtil::GetLastSendingPid());
 #ifdef OHOS_PLATFORM
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
@@ -566,8 +572,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 return;
             }
             currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
-            uniParam->SetBlackList(currentBlackList_);
-            uniParam->SetWhiteList(screenInfo.whiteList);
+            RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
+            RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
             RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw Mirror screen.");
@@ -606,6 +612,17 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isHdrOn = params->GetHDRPresent();
+    ScreenId screenId = curScreenInfo.id;
+    // 0 means defalut hdrBrightnessRatio
+    float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
+    if (!isHdrOn) {
+        params->SetBrightnessRatio(hdrBrightnessRatio);
+        hdrBrightnessRatio = 1.0f;
+    }
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR content in UniRender:%{public}d, BrightnessRatio:%{public}f",
+        isHdrOn, hdrBrightnessRatio);
+
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor)) {
         RSMainThread::Instance()->SetFrameIsRender(false);
         SetDisplayNodeSkipFlag(*uniParam, true);
@@ -615,8 +632,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSMainThread::Instance()->SetFrameIsRender(true);
 
     CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
-    bool isHdrOn = params->GetHDRPresent();
-    RS_LOGD("SetHDRPresent: %{public}d OnDraw", isHdrOn);
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR isHdrOn: %{public}d", isHdrOn);
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
@@ -654,15 +670,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    ScreenId screenId = curScreenInfo.id;
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
     curCanvas_->SetScreenId(screenId);
-    if (isHdrOn) {
-        // 0 means defalut hdrBrightnessRatio
-        float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
-        curCanvas_->SetBrightnessRatio(hdrBrightnessRatio);
-    }
-
     curCanvas_->SetDisableFilterCache(params->GetZoomed());
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
@@ -709,7 +718,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                     }
                     ClearTransparentBeforeSaveLayer();
                     FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST,
-                        Drawing::MipmapMode::NONE), RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
+                        Drawing::MipmapMode::NONE), hdrBrightnessRatio);
                     uniParam->SetOpDropped(isOpDropped);
                 } else {
                     RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw canvasBackup_ is nullptr");
@@ -717,7 +726,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             // watermark and color filter should be applied after offscreen render.
             DrawWatermarkIfNeed(*params, *curCanvas_);
-            SwitchColorFilter(*curCanvas_);
+            SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
         }
         rsDirtyRectsDfx.OnDraw(curCanvas_);
         if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
@@ -821,12 +830,11 @@ int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& 
         params.HasSecurityLayer(), params.HasSkipLayer(), params.HasProtectedLayer(),
         uniRenderThread.IsCurtainScreenOn(), params.GetHDRPresent(), uniRenderThread.IsColorFilterModeOn());
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+        hasGeneralSpecialLayer |= params.HasSnapshotSkipLayer();
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }
-    auto uniParam = uniRenderThread.GetRSRenderThreadParams() ?
-       uniRenderThread.GetRSRenderThreadParams().get() : nullptr;
-    if (hasGeneralSpecialLayer || (uniParam && !uniParam->GetWhiteList().empty()) || !currentBlackList_.empty()) {
+    if (hasGeneralSpecialLayer || uniRenderThread.GetWhiteList().empty() || !currentBlackList_.empty()) {
         return HAS_SPECIAL_LAYER;
     } else if (params.HasCaptureWindow()) {
         return CAPTURE_WINDOW;
@@ -939,8 +947,8 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
-    uniParam.SetBlackList({});
-    uniParam.SetWhiteList({});
+    RSUniRenderThread::Instance().SetBlackList({});
+    RSUniRenderThread::Instance().SetWhiteList({});
     uniParam.SetSecExemption(false);
 }
 
@@ -1298,7 +1306,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledTopNodesMissedInCacheImage(
     }
 }
 
-void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const
+void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio) const
 {
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
@@ -1315,17 +1323,11 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas)
     RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::SetColorFilterModeToPaint mode:%d",
         static_cast<int32_t>(colorFilterMode));
     Drawing::Brush brush;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush, hdrBrightnessRatio);
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-#ifdef NEW_RENDER_CONTEXT
-    RSTagTracker tagTracker(
-        renderEngine->GetDrawingContext()->GetDrawingContext(),
-        RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
-#else
     RSTagTracker tagTracker(
         renderEngine->GetRenderContext()->GetDrGPUContext(),
         RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
-#endif
 #endif
     Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
     canvas.SaveLayer(slr);
@@ -1399,7 +1401,6 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         // SelfDrawingNodes need to use LayerMatrix(totalMatrix) when doing capturing
         auto matrix = surfaceParams->GetLayerInfo().matrix;
-        matrix.PostScale(RSUniRenderThread::GetCaptureParam().scaleX_, RSUniRenderThread::GetCaptureParam().scaleY_);
         canvas.ConcatMatrix(matrix);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
         surfaceNodeDrawable->DealWithSelfDrawingNodeBuffer(*rscanvas, *surfaceParams);

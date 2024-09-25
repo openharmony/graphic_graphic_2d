@@ -156,6 +156,7 @@ std::string DrawCmdList::GetOpsWithDesc() const
 void DrawCmdList::Dump(std::string& out)
 {
     bool found = false;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     for (auto& item : drawOpItems_) {
         if (item == nullptr) {
             continue;

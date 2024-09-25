@@ -168,9 +168,10 @@ HWTEST_F(RSFrameRatePolicyTest, GetPreferredFps, TestSize.Level1)
 HWTEST_F(RSFrameRatePolicyTest, GetExpectedFrameRate, TestSize.Level1)
 {
     auto instance = RSFrameRatePolicy::GetInstance();
+    instance->animAttributes_.insert({ "translate", { { "translate", AnimDynamicAttribute({0, 26, 25}) } } });
     RSPropertyUnit unit = RSPropertyUnit::PIXEL_POSITION;
     int32_t res = instance->GetExpectedFrameRate(unit, 1.f);
-    EXPECT_TRUE(res == 0);
+    EXPECT_FALSE(res == 0);
 
     unit = RSPropertyUnit::PIXEL_SIZE;
     res = instance->GetExpectedFrameRate(unit, 1.f);

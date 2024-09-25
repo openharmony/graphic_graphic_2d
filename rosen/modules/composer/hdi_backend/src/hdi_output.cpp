@@ -415,44 +415,6 @@ bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint
     return false;
 }
 
-void HdiOutput::SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers)
-{
-    if (buffer == nullptr) {
-        HLOGE("HdiOutput::SetBufferColorSpace null buffer");
-        return;
-    }
-
-    CM_ColorSpaceType targetColorSpace = CM_DISPLAY_SRGB;
-    for (auto& layer : layers) {
-        auto layerInfo = layer->GetLayerInfo();
-        if (layerInfo == nullptr) {
-            HLOGW("HdiOutput::SetBufferColorSpace The info of layer is nullptr");
-            continue;
-        }
-
-        auto layerBuffer = layerInfo->GetBuffer();
-        if (layerBuffer == nullptr) {
-            HLOGW("HdiOutput::SetBufferColorSpace The buffer of layer is nullptr");
-            continue;
-        }
-
-        CM_ColorSpaceInfo colorSpaceInfo;
-        if (MetadataHelper::GetColorSpaceInfo(layerBuffer, colorSpaceInfo) != GSERROR_OK) {
-            HLOGD("HdiOutput::SetBufferColorSpace Get color space failed");
-            continue;
-        }
-
-        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
-            targetColorSpace = CM_DISPLAY_P3_SRGB;
-            break;
-        }
-    }
-
-    if (MetadataHelper::SetColorSpaceType(buffer, targetColorSpace) != GSERROR_OK) {
-        HLOGE("HdiOutput::SetBufferColorSpace set metadata to buffer failed");
-    }
-}
-
 // DISPLAY ENGINE
 bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
 {
@@ -470,6 +432,8 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         GRAPHIC_PIXEL_FMT_UYVY_422_PKG,
         GRAPHIC_PIXEL_FMT_YVYU_422_PKG,
         GRAPHIC_PIXEL_FMT_VYUY_422_PKG,
+        GRAPHIC_PIXEL_FMT_YCBCR_P010,
+        GRAPHIC_PIXEL_FMT_YCRCB_P010,
     };
 
     static const std::unordered_set<std::string> videoLayers {
@@ -478,7 +442,7 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         "SceneViewer Model totemweather0",
     };
 
-    if (layerInfo->GetBuffer() == nullptr) {
+    if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr || layerInfo->GetBuffer() == nullptr) {
         return false;
     }
 
@@ -511,7 +475,9 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
 
     const auto& fbAcquireFence = fbEntry->acquireFence;
     for (auto &layer : compClientLayers) {
-        layer->MergeWithFramebufferFence(fbAcquireFence);
+        if (layer != nullptr) {
+            layer->MergeWithFramebufferFence(fbAcquireFence);
+        }
     }
 
     currFrameBuffer_ = fbEntry->buffer;
@@ -528,8 +494,6 @@ int32_t HdiOutput::FlushScreen(std::vector<LayerPtr> &compClientLayers)
     } else {
         bufferCached = CheckAndUpdateClientBufferCahce(currFrameBuffer_, index);
     }
-
-    SetBufferColorSpace(currFrameBuffer_, compClientLayers);
 
     CHECK_DEVICE_NULL(device_);
     int32_t ret = device_->SetScreenClientDamage(screenId_, outputDamages_);
@@ -650,7 +614,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
             // reset prevBuffer if we release it successfully,
             // to avoid releasing the same buffer next frame in some situations.
             buffer = nullptr;
-            releaseFence = SyncFence::INVALID_FENCE;
+            releaseFence = SyncFence::InvalidFence();
         }
     };
     const auto layersReleaseFence = GetLayersReleaseFenceLocked();
@@ -664,7 +628,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
             }
             auto preBuffer = layer->GetLayerInfo()->GetPreBuffer();
             auto consumer = layer->GetLayerInfo()->GetSurface();
-            releaseBuffer(preBuffer, SyncFence::INVALID_FENCE, consumer);
+            releaseBuffer(preBuffer, SyncFence::InvalidFence(), consumer);
         }
         HLOGD("HdiOutput::ReleaseLayers: no layer needs to release");
     }
@@ -873,6 +837,11 @@ void HdiOutput::ClearFpsDump(std::string &result, const std::string &arg)
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
+            layer->GetLayerInfo()->GetSurface() == nullptr) {
+            result += "layer is null.\n";
+            return;
+        }
         const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
         if (name == arg) {
             result += "\n The fps info of surface [" + name + "] Id["

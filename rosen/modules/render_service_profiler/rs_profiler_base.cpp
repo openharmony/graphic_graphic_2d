@@ -30,6 +30,7 @@
 #include "rs_profiler_network.h"
 #include "rs_profiler_utils.h"
 #include "rs_profiler_file.h"
+#include "rs_profiler_log.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -83,6 +84,9 @@ static const size_t PARCEL_MAX_CAPACITY = 234 * 1024 * 1024;
 static std::unordered_map<AnimationId, std::vector<int64_t>> g_animeStartMap;
 
 bool RSProfiler::testing_ = false;
+bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
+bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
+int8_t RSProfiler::signalFlagChanged_ = 0;
 
 constexpr size_t GetParcelMaxCapacity()
 {
@@ -91,8 +95,12 @@ constexpr size_t GetParcelMaxCapacity()
 
 bool RSProfiler::IsEnabled()
 {
-    static const bool ENABLED = RSSystemProperties::GetProfilerEnabled();
-    return ENABLED || testing_;
+    return enabled_ || testing_;
+}
+
+bool RSProfiler::IsBetaRecordEnabled()
+{
+    return betaRecordingEnabled_;
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -297,6 +305,11 @@ void RSProfiler::TimePauseClear()
 {
     g_pauseCumulativeTime = 0;
     g_pauseAfterTime = 0;
+}
+
+uint64_t RSProfiler::TimePauseGet()
+{
+    return g_pauseAfterTime;
 }
 
 std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(const RSContext& context)
@@ -711,7 +724,7 @@ void RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& data, Node
         node->GetMutableRenderProperties().SetPositionZ(positionZ);
         node->GetMutableRenderProperties().SetPivotZ(pivotZ);
         node->SetPriority(priority);
-        node->SetIsOnTheTree(isOnTree);
+        node->RSRenderNode::SetIsOnTheTree(isOnTree);
         node->nodeGroupType_ = nodeGroupType;
         UnmarshalNodeModifiers(*node, data, fileVersion);
     }
@@ -992,11 +1005,6 @@ void RSProfiler::EnableBetaRecord()
     RSSystemProperties::SetBetaRecordingMode(1);
 }
 
-bool RSProfiler::IsBetaRecordEnabled()
-{
-    return RSSystemProperties::GetBetaRecordingMode() != 0;
-}
-
 bool RSProfiler::IsBetaRecordSavingTriggered()
 {
     constexpr uint32_t savingMode = 2u;
@@ -1036,7 +1044,13 @@ static const uint8_t* GetCachedAshmemData(uint64_t id)
 
 void RSProfiler::WriteParcelData(Parcel& parcel)
 {
-    if (!IsEnabled()) {
+    bool isClientEnabled = RSSystemProperties::GetProfilerEnabled();
+    if (!parcel.WriteBool(isClientEnabled)) {
+        HRPE("Unable to write is_client_enabled");
+        return;
+    }
+
+    if (!isClientEnabled) {
         return;
     }
 
@@ -1045,7 +1059,12 @@ void RSProfiler::WriteParcelData(Parcel& parcel)
 
 const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc)
 {
-    if (!IsEnabled()) {
+    bool isClientEnabled = false;
+    if (!parcel.ReadBool(isClientEnabled)) {
+        HRPE("Unable to read is_client_enabled");
+        return nullptr;
+    }
+    if (!isClientEnabled) {
         return RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
     }
 
@@ -1082,7 +1101,7 @@ std::string RSProfiler::SendMessageBase()
     return value;
 }
 
-void RSProfiler::SendMessageBase(const std::string msg)
+void RSProfiler::SendMessageBase(const std::string& msg)
 {
     const std::lock_guard<std::mutex> guard(g_msgBaseMutex);
     g_msgBaseList.push(msg);

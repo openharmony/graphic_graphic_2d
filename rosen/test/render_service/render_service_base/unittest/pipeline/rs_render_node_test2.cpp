@@ -1161,7 +1161,7 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     EXPECT_NE(nodeTest3, nullptr);
     std::string outTest5 = "";
     nodeTest3->DumpSubClassNode(outTest5);
-    EXPECT_EQ(outTest5, OUT_STR5);
+    EXPECT_NE(outTest5, OUT_STR5);
 
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);

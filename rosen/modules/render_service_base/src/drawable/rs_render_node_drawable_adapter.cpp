@@ -40,7 +40,7 @@ RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ =
 #endif
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
-    : nodeType_(node->GetType()), renderNode_(std::move(node)) {}
+    : nodeType_(node ? node->GetType() : RSRenderNodeType::UNKNOW), renderNode_(std::move(node)) {}
 
 RSRenderNodeDrawableAdapter::~RSRenderNodeDrawableAdapter() = default;
 
@@ -65,10 +65,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         return node->renderDrawable_;
     }
     static const auto Destructor = [](RSRenderNodeDrawableAdapter* ptr) {
-        {
-            std::lock_guard<std::mutex> lock(cacheMapMutex_);
-            RenderNodeDrawableCache_.erase(ptr->nodeId_); // Remove from cache before deleting
-        }
+        RemoveDrawableFromCache(ptr->nodeId_); // Remove from cache before deleting
         RSRenderNodeGC::DrawableDestructor(ptr);
     };
     auto id = node->GetId();
@@ -77,6 +74,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
         if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
             if (const auto ptr = cacheIt->second.lock()) {
+                ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node id in Cache is %{public}" PRIu64, id);
                 return ptr;
             } else {
                 RenderNodeDrawableCache_.erase(cacheIt);
@@ -195,6 +193,12 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
     }
 
     for (auto i = start; i < end; i++) {
+#ifdef RS_ENABLE_PREFETCH
+            int prefetchIndex = i + 2;
+            if (prefetchIndex < end) {
+                __builtin_prefetch(&drawCmdList_[prefetchIndex], 0, 1);
+            }
+#endif
         drawCmdList_[i](&canvas, &rect);
     }
 }
@@ -403,6 +407,21 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     }
 }
 
+void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
+    Drawing::Canvas& canvas, const RSRenderParams& params)
+{
+    // The shadow without shadowRect has drawn in Nodegroup's cache, so we can't draw it again
+    if (!params.GetShadowRect().IsEmpty()) {
+        DrawBackground(canvas, params.GetBounds());
+    } else {
+        DrawRangeImpl(
+            canvas, params.GetBounds(), drawCmdIndex_.foregroundFilterBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
+    }
+    if (curDrawingCacheRoot_) {
+        curDrawingCacheRoot_->ReduceFilterRectSize(ClipHoleForCacheSize(params));
+    }
+}
+
 void RSRenderNodeDrawableAdapter::DrawBeforeCacheWithForegroundFilter(Drawing::Canvas& canvas,
     const Drawing::Rect& rect) const
 {
@@ -445,6 +464,13 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
 }
+
+int RSRenderNodeDrawableAdapter::ClipHoleForCacheSize(const RSRenderParams& params) const
+{
+    return int(drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty()) +
+           int(drawCmdIndex_.backgroundFilterIndex_ != -1) + int(drawCmdIndex_.useEffectIndex_ != -1);
+}
+
 int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
 {
     switch (skipType_) {
@@ -456,6 +482,12 @@ int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
         default:
             return -1;
     }
+}
+
+void RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(const NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(cacheMapMutex_);
+    RenderNodeDrawableCache_.erase(nodeId);
 }
 
 void RSRenderNodeDrawableAdapter::RegisterClearSurfaceFunc(ClearSurfaceTask task)
@@ -504,4 +536,10 @@ void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
     hasSkipCacheLayer_ = hasSkipCacheLayer;
 }
 
+void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
+    }
+}
 } // namespace OHOS::Rosen::DrawableV2

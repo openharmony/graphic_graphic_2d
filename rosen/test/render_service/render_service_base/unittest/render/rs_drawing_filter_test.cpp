@@ -18,7 +18,6 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_maskcolor_shader_filter.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -206,38 +205,6 @@ HWTEST_F(RSDrawingFilterTest, ApplyColorFilter001, TestSize.Level1)
     Drawing::Rect dst;
     drawingFilter.ApplyColorFilter(canvas, image, src, dst);
     EXPECT_TRUE(image != nullptr);
-}
-
-/**
- * @tc.name: SetColorFilterForHDR
- * @tc.desc: test results of SetColorFilterForHDR
- * @tc.type: FUNC
- * @tc.require: issuesIALVQH
- */
-HWTEST_F(RSDrawingFilterTest, SetColorFilterForHDR001, TestSize.Level1)
-{
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, hash);
-    auto colorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX);
-    drawingFilter.SetColorFilterForHDR(colorFilter);
-}
-
-/**
- * @tc.name: ResetColorFilterForHDR
- * @tc.desc: test results of ResetColorFilterForHDR
- * @tc.type: FUNC
- * @tc.require: issuesIALVQH
- */
-HWTEST_F(RSDrawingFilterTest, ResetColorFilterForHDR001, TestSize.Level1)
-{
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, hash);
-    drawingFilter.ResetColorFilterForHDR();
-    auto colorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX);
-    drawingFilter.SetColorFilterForHDR(colorFilter);
-    drawingFilter.ResetColorFilterForHDR();
 }
 
 /**

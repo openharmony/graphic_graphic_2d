@@ -113,20 +113,28 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
     // 5. Draw foreground of this node by the main canvas.
     DrawForeground(canvas, bounds);
 
-    if (surfaceParams.GetWatermarkSize() > 0) {
-        DrawWatermarkIfNeed(canvas, surfaceParams);
-    }
+    DrawWatermark(canvas, surfaceParams);
 }
 
-void RSSurfaceRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params)
+void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params)
 {
-    auto surfaceRect = params.GetBounds();
-    if (surfaceRect.GetWidth() == 0 || surfaceRect.GetHeight() == 0) {
+    if (params.IsWatermarkEmpty()) {
+        RS_LOGE("SurfaceNodeDrawable DrawWatermark Name:%{public}s Id:%{public}" PRIu64 " water mark count is zero",
+            GetName().c_str(), params.GetId());
         return;
     }
-    for (auto& [name, pixelMapInfo] : params.GetWatermark()) {
-        auto [isEnabled, watermark] = pixelMapInfo;
-        if (!isEnabled || !watermark) {
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!renderThreadParams) {
+        RS_LOGE("SurfaceNodeDrawable DrawWatermark renderThreadParams is nullptr");
+        return;
+    }
+    auto surfaceRect = params.GetBounds();
+    for (auto& [name, isEnabled] : params.GetWatermarksEnabled()) {
+        if (!isEnabled) {
+            continue;
+        }
+        auto watermark = renderThreadParams->GetWatermark(name);
+        if (!watermark) {
             continue;
         }
         auto imagePtr = RSPixelMapUtil::ExtractDrawingImage(watermark);
@@ -350,6 +358,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetId(), name_.c_str(), surfaceParams->GetOcclusionVisible(),
         surfaceParams->GetBounds().ToString().c_str());
 
+    RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
+        surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
+        return;
+    }
+
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
         return;
     }
@@ -505,6 +519,11 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
+        surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
+        return;
+    }
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!uniParam)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture uniParam is nullptr");
@@ -518,10 +537,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
     rscanvas->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     // process white list
-    auto whiteList = uniParam->GetWhiteList();
+    auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
     SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetId());
 
-    if (CheckIfSurfaceSkipInMirror(*uniParam, *surfaceParams)) {
+    if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
         return;
     }
 
@@ -551,21 +570,20 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     ResetVirtualScreenWhiteListRootId(surfaceParams->GetId());
 }
 
-bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(
-    const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParams)
+bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
 {
     if (!RSUniRenderThread::GetCaptureParam().isMirror_) {
         return false;
     }
     // Check black list.
-    const auto& blackList = uniParam.GetBlackList();
+    const auto& blackList = RSUniRenderThread::Instance().GetBlackList();
     if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
             (id:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
         return true;
     }
     // Check white list.
-    const auto& whiteList = uniParam.GetWhiteList();
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     if (!whiteList.empty() && RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == INVALID_NODEID) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
             (id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());
@@ -603,7 +621,10 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
         return;
     }
-    if ((surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) || surfaceParams.GetIsSkipLayer()) {
+    auto isSnapshotSkipLayer =
+        RSUniRenderThread::GetCaptureParam().isSnapshot_ && surfaceParams.GetIsSnapshotSkipLayer();
+    if (UNLIKELY(surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) ||
+        surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
             surfaceParams.GetId(), name_.c_str());
@@ -635,8 +656,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hwcEnable = surfaceParams.GetHardwareEnabled();
     surfaceParams.SetHardwareEnabled(false);
     RS_LOGD("HDR hasHdrPresent_:%{public}d", canvas.IsCapture());
-    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer() ||
-        hasHdrPresent_) && DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
+    if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasSnapshotSkipLayer() ||
+        surfaceParams.HasProtectedLayer() || hasHdrPresent_) &&
+        DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
         return;
     }
@@ -658,6 +680,31 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
+GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams)
+{
+    GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    auto ancestorDrawable = surfaceParams.GetAncestorDisplayDrawable().lock();
+    if (!ancestorDrawable) {
+        RS_LOGE("ancestorDrawable return nullptr");
+        return targetColorGamut;
+    }
+    auto ancestorDisplayDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(ancestorDrawable);
+    if (!ancestorDisplayDrawable) {
+        RS_LOGE("ancestorDisplayDrawable return nullptr");
+        return targetColorGamut;
+    }
+    auto& ancestorParam = ancestorDrawable->GetRenderParams();
+    if (!ancestorParam) {
+        RS_LOGE("ancestorParam return nullptr");
+        return targetColorGamut;
+    }
+
+    auto renderParams = static_cast<RSDisplayRenderParams*>(ancestorParam.get());
+    targetColorGamut = renderParams->GetNewColorSpace();
+    RS_LOGD("params.targetColorGamut is %{public}d in DealWithSelfDrawingNodeBuffer", targetColorGamut);
+    return targetColorGamut;
+}
+
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
@@ -676,7 +723,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     surfaceParams.SetGlobalAlpha(1.0f);
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
-    params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.sdrNits = surfaceParams.GetSdrNit();
     params.tmoNits = surfaceParams.GetDisplayNit();

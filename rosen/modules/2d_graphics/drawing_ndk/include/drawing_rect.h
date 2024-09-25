@@ -37,6 +37,7 @@
  * @version 1.0
  */
 
+#include "drawing_error_code.h"
 #include "drawing_types.h"
 
 #ifdef __cplusplus
@@ -209,6 +210,64 @@ void OH_Drawing_RectCopy(OH_Drawing_Rect* src, OH_Drawing_Rect* dst);
  * @version 1.0
  */
 void OH_Drawing_RectDestroy(OH_Drawing_Rect*);
+
+/**
+ * @brief Creates an <b>OH_Drawing_Array</b> object, which is used to store multiple <b>OH_Drawing_Rect</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param size Indicates the size of the array object.
+ * @return Returns the pointer to the <b>OH_Drawing_Array</b> object created.
+ *         If nullptr is returned, the creation fails.
+ *         The possible cause of the failure is that the available memory is empty,
+ *         or size is invalid.
+ * @since 14
+ * @version 1.0
+ */
+OH_Drawing_Array* OH_Drawing_RectCreateArray(size_t size);
+
+/**
+ * @brief Gets the size of an <b>OH_Drawing_Array</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param rectArray Indicates the array object.
+ * @param pSize Indicates the size pointer.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if rectArray or pSize is nullptr.
+ * @since 14
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_RectGetArraySize(OH_Drawing_Array* rectArray, size_t* pSize);
+
+/**
+ * @brief Gets the specified <b>OH_Drawing_Rect</b> object from <b>OH_Drawing_Array</b> object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param rectArray Indicates the array object.
+ * @param index Indicates the index of array, caller must make sure the index is valid.
+ * @param rect Pointers to Pointer of <b>OH_Drawing_Rect</b> object, returned to the caller.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if rectArray or pprect is nullptr,
+ *                 or index is valid.
+ * @since 14
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_RectGetArrayElement(OH_Drawing_Array* rectArray, size_t index,
+    OH_Drawing_Rect** rect);
+
+/**
+ * @brief Destroys an array <b>OH_Drawing_Rect</b> object and reclaims the memory occupied by the object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param rectArray Indicates the pointer to an <b>OH_Drawing_Array</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if rectArray is nullptr.
+ * @since 14
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_RectDestroyArray(OH_Drawing_Array* rectArray);
 
 #ifdef __cplusplus
 }

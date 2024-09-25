@@ -234,5 +234,21 @@ HWTEST_F(RSPixelMapUtilTest, IsSupportZeroCopyTest, TestSize.Level1)
 
     EXPECT_FALSE(RSPixelMapUtil::IsSupportZeroCopy(pixelmap, sampling));
 }
+
+/**
+ * @tc.name: GetPixelmapColorSpaceTest
+ * @tc.desc: Verify function GetPixelmapColorSpace
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, GetPixelmapColorSpaceTest, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 200;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+
+    auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelmap);
+    EXPECT_NE(colorSpace, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

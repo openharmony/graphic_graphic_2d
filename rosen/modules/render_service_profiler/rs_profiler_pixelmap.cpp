@@ -20,18 +20,26 @@
 
 #include "media_errors.h"
 #include "pixel_map.h"
+#ifdef RS_PROFILER_SUPPORTS_PIXELMAP_YUV_EXT
+#include "pixel_yuv_ext.h"
+#else
+#include "pixel_yuv.h"
+#endif
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
+#include "rs_profiler_log.h"
 #include "rs_profiler_utils.h"
+#include "rs_profiler_log.h"
 
 #include "transaction/rs_marshalling_helper.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS::Media {
 
-SurfaceBuffer* IncrementSurfaceBufferReference(sptr<SurfaceBuffer>& buffer)
+static SurfaceBuffer* IncrementSurfaceBufferReference(sptr<SurfaceBuffer>& buffer)
 {
     if (auto object = buffer.GetRefPtr()) {
-        OHOS::RefBase *ref = reinterpret_cast<OHOS::RefBase *>(object);
+        auto ref = reinterpret_cast<OHOS::RefBase*>(object);
         ref->IncStrongRef(ref);
         return object;
     }
@@ -186,10 +194,60 @@ public:
         return false;
     }
 
+    bool IsAshmemSizeValid(int32_t file) const
+    {
+        return astc || (static_cast<int32_t>(size) == AshmemGetSize(file));
+    }
+
+    bool IsYUV() const
+    {
+        return (info.pixelFormat == PixelFormat::NV12) || (info.pixelFormat == PixelFormat::NV21) ||
+               (info.pixelFormat == PixelFormat::YCBCR_P010) || (info.pixelFormat == PixelFormat::YCRCB_P010);
+    }
+
+    bool IsASTC() const
+    {
+        return (info.pixelFormat == PixelFormat::ASTC_4x4) || (info.pixelFormat == PixelFormat::ASTC_6x6) ||
+               (info.pixelFormat == PixelFormat::ASTC_8x8);
+    }
+
+    bool IsRGBA() const
+    {
+        return (info.pixelFormat == PixelFormat::ARGB_8888) || (info.pixelFormat == PixelFormat::BGRA_8888) ||
+               (info.pixelFormat == PixelFormat::RGBA_8888) || (info.pixelFormat == PixelFormat::RGBA_1010102) ||
+               (info.pixelFormat == PixelFormat::CMYK) || (info.pixelFormat == PixelFormat::RGBA_F16) ||
+               (info.pixelFormat == PixelFormat::RGBA_U16);
+    }
+
+    bool IsRGB() const
+    {
+        return (info.pixelFormat == PixelFormat::RGB_888) || (info.pixelFormat == PixelFormat::RGB_565);
+    }
+
+    bool IsR8() const
+    {
+        return (info.pixelFormat == PixelFormat::ALPHA_8);
+    }
+
+    bool IsFormatValid() const
+    {
+        return IsR8() || IsRGB() || IsRGBA() || IsASTC() || IsYUV();
+    }
+
+    bool IsSizeValid() const
+    {
+        const auto rawSize = static_cast<size_t>(rowPitch * info.size.height);
+        return (astc || IsYUV() || (size == rawSize) || (info.pixelFormat == PixelFormat::RGBA_F16));
+    }
+
 public:
     Parcel& parcel;
-    std::unique_ptr<PixelMap> map = std::make_unique<Media::PixelMap>();
+    std::unique_ptr<PixelMap> map;
     ImageInfo info;
+    bool editable = false;
+    bool astc = false;
+    int32_t csm = 0;
+    uint32_t versionId = 0u;
     AllocatorType allocType = AllocatorType::DEFAULT;
     size_t rowPitch = 0;
     size_t size = 0;
@@ -268,33 +326,58 @@ void ImageSource::UnmapImage(void* image, size_t size)
 
 bool ImageSource::InitUnmarshalling(UnmarshallingContext& context)
 {
+    if (!PixelMap::ReadImageInfo(context.parcel, context.info)) {
+        HRPE("Unmarshal: PixelMap::ReadImageInfo failed");
+        return false;
+    }
+
+    if (context.IsYUV()) {
+#ifdef RS_PROFILER_SUPPORTS_PIXELMAP_YUV_EXT
+        context.map = std::make_unique<PixelYuvExt>();
+        HRPI("Unmarshal: PixelYuvExt creation in progress...");
+#else
+        context.map = std::make_unique<PixelYuv>();
+        HRPI("Unmarshal: PixelYuv creation in progress...");
+#endif
+    } else {
+        context.map = std::make_unique<PixelMap>();
+        HRPI("Unmarshal: PixelMap creation in progress...");
+    }
+
     if (!context.map) {
+        HRPE("Unmarshal: Pixel map creation failed");
         return false;
     }
 
-    if (!context.map->ReadImageInfo(context.parcel, context.info)) {
-        return false;
-    }
-
-    context.map->SetEditable(context.parcel.ReadBool());
-
-    const bool isAstc = context.parcel.ReadBool();
-    context.map->SetAstc(isAstc);
-
+    context.editable = context.parcel.ReadBool();
+    context.astc = context.parcel.ReadBool();
     context.allocType = static_cast<AllocatorType>(context.parcel.ReadInt32());
-    context.parcel.ReadInt32(); // unused csm
+    context.csm = context.parcel.ReadInt32();
     context.rowPitch = static_cast<size_t>(context.parcel.ReadInt32());
+    context.versionId = context.parcel.ReadUint32();
     context.size = static_cast<size_t>(context.parcel.ReadInt32());
 
-    const size_t rawSize = static_cast<size_t>(context.rowPitch * context.info.size.height);
-    return (isAstc || (context.size == rawSize));
+    if (!context.IsFormatValid()) {
+        HRPE("Unmarshal: Invalid pixel format");
+        return false;
+    }
+
+    if (!context.IsSizeValid()) {
+        HRPE("Unmarshal: Invalid size");
+        return false;
+    }
+
+    context.map->SetEditable(context.editable);
+    context.map->SetAstc(context.astc);
+    context.map->SetVersionId(context.versionId);
+    return true;
 }
 
 bool ImageSource::UnmarshalFromSharedMemory(UnmarshallingContext& context, uint64_t id)
 {
     constexpr int32_t invalidFile = -1;
-    const int32_t file =
-        Rosen::RSProfiler::IsParcelMock(context.parcel) ? invalidFile : context.map->ReadFileDescriptor(context.parcel);
+    const auto file =
+        Rosen::RSProfiler::IsParcelMock(context.parcel) ? invalidFile : PixelMap::ReadFileDescriptor(context.parcel);
     if (file < 0) {
         if (auto image = GetCachedImage(id)) {
             if (context.GatherImageFromFile(image)) {
@@ -302,16 +385,25 @@ bool ImageSource::UnmarshalFromSharedMemory(UnmarshallingContext& context, uint6
                 return true;
             }
         }
+        HRPE("Unmarshal: SharedMemory: Cached image fetch failed");
+        return false;
+    }
+
+    if (!context.IsAshmemSizeValid(file)) {
+        ::close(file);
+        HRPE("Unmarshal: SharedMemory: Invalid file size");
         return false;
     }
 
     auto image = MapImage(file, context.size, PROT_READ | PROT_WRITE);
     if (!image) {
         image = MapImage(file, context.size, PROT_READ);
-        if (!image) {
-            ::close(file);
-            return false;
-        }
+    }
+
+    if (!image) {
+        ::close(file);
+        HRPE("Unmarshal: SharedMemory: Cannot map an image from a file");
+        return false;
     }
 
     const auto imageData = GenerateImageData(image, context.size, *context.map);
@@ -321,6 +413,7 @@ bool ImageSource::UnmarshalFromSharedMemory(UnmarshallingContext& context, uint6
     if (!context.context) {
         UnmapImage(image, context.size);
         ::close(file);
+        HRPE("Unmarshal: SharedMemory: Cannot allocate memory for a file handle");
         return false;
     }
     *static_cast<int32_t*>(context.context) = file;
@@ -355,8 +448,12 @@ bool ImageSource::UnmarshalFromDMA(UnmarshallingContext& context, uint64_t id)
 
 bool ImageSource::UnmarshalFromData(UnmarshallingContext& context)
 {
-    context.base = context.map->ReadImageData(context.parcel, context.size);
-    return (context.base != nullptr);
+    context.base = PixelMap::ReadImageData(context.parcel, static_cast<int32_t>(context.size));
+    if (!context.base) {
+        HRPE("Unmarshal: PixelMap::ReadImageData failed");
+        return false;
+    }
+    return true;
 }
 
 PixelMap* ImageSource::FinalizeUnmarshalling(UnmarshallingContext& context)
@@ -365,21 +462,33 @@ PixelMap* ImageSource::FinalizeUnmarshalling(UnmarshallingContext& context)
         if (context.map->freePixelMapProc_) {
             context.map->freePixelMapProc_(context.base, context.context, context.size);
         }
-        context.map->ReleaseMemory(context.allocType, context.base, context.context, context.size);
+        PixelMap::ReleaseMemory(context.allocType, context.base, context.context, context.size);
         if (context.context && (context.allocType == AllocatorType::SHARE_MEM_ALLOC)) {
             delete static_cast<int32_t*>(context.context);
         }
 
-        return nullptr;
-    }
-    context.map->SetPixelsAddr(context.base, context.context, context.size, context.allocType, nullptr);
-    if (!context.map->ReadTransformData(context.parcel, context.map.get())) {
-        return nullptr;
-    }
-    if (!context.map->ReadAstcRealSize(context.parcel, context.map.get())) {
+        HRPE("Unmarshal: PixelMap::SetImageInfo failed");
         return nullptr;
     }
 
+    context.map->SetPixelsAddr(context.base, context.context, context.size, context.allocType, nullptr);
+
+    if (!context.map->ReadTransformData(context.parcel, context.map.get())) {
+        HRPE("Unmarshal: PixelMap::ReadTransformData failed");
+        return nullptr;
+    }
+
+    if (!context.map->ReadAstcRealSize(context.parcel, context.map.get())) {
+        HRPE("Unmarshal: PixelMap::ReadAstcRealSize failed");
+        return nullptr;
+    }
+
+    if (!context.map->ReadYuvDataInfoFromParcel(context.parcel, context.map.get())) {
+        HRPE("Unmarshal: PixelMap::ReadYuvDataInfoFromParcel failed");
+        return nullptr;
+    }
+
+    HRPI("Unmarshal: Done");
     return context.map.release();
 }
 
@@ -465,7 +574,12 @@ using PixelMapHelper = Media::ImageSource;
 
 Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
 {
-    if (!IsEnabled()) {
+    bool isClientEnabled = false;
+    if (!parcel.ReadBool(isClientEnabled)) {
+        HRPE("Unable to read is_client_enabled for image");
+        return nullptr;
+    }
+    if (!isClientEnabled) {
         return Media::PixelMap::Unmarshalling(parcel);
     }
 
@@ -478,7 +592,13 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
         return false;
     }
 
-    if (!IsEnabled()) {
+    bool isClientEnabled = RSSystemProperties::GetProfilerEnabled();
+    if (!parcel.WriteBool(isClientEnabled)) {
+        HRPE("Unable to write is_client_enabled for image");
+        return false;
+    }
+
+    if (!isClientEnabled) {
         return map->Marshalling(parcel);
     }
 

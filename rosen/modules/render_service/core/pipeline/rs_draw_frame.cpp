@@ -20,8 +20,10 @@
 
 #include "rs_trace.h"
 
+#include "memory/rs_memory_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "property/rs_filter_cache_manager.h"
@@ -56,6 +58,7 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     const bool doJankStats = IsUniRenderAndOnVsync();
     JankStatsRenderFrameAfterSync(doJankStats);
     RSMainThread::Instance()->ProcessUiCaptureTasks();
@@ -73,6 +76,7 @@ void RSDrawFrame::RenderFrame()
         unirenderInstance_.PurgeCacheBetweenFrames();
     }
     unirenderInstance_.MemoryManagementBetweenFrames();
+    MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     JankStatsRenderFrameEnd(doJankStats);
 }
 
@@ -162,7 +166,7 @@ void RSDrawFrame::Sync()
     }
     pendingSyncNodes.clear();
 
-    unirenderInstance_.Sync(stagingRenderThreadParams_);
+    unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 }
 
 void RSDrawFrame::UnblockMainThread()

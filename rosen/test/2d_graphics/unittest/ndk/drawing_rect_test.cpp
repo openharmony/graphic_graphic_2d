@@ -559,6 +559,126 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_RectCopy001, TestSize.Leve
     OH_Drawing_RectDestroy(rectSrc1);
     OH_Drawing_RectDestroy(rectDst1);
 }
+
+/*
+ * @tc.name: NativeDrawingRectTest_CreateArray001
+ * @tc.desc: test for nomral use of OH_Drawing_RectCreateArray
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_CreateArray001, TestSize.Level1)
+{
+    OH_Drawing_Array *rectArray = OH_Drawing_RectCreateArray(50);
+    ASSERT_FALSE(rectArray == nullptr);
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(rectArray), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_CreateArray002
+ * @tc.desc: test for abnomral parameter of OH_Drawing_RectCreateArray
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_CreateArray002, TestSize.Level1)
+{
+    OH_Drawing_Array *rectArray = OH_Drawing_RectCreateArray(0);
+    EXPECT_EQ(rectArray, nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_GetArraySize001
+ * @tc.desc: test for normal use of OH_Drawing_RectGetArraySize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetArraySize001, TestSize.Level1)
+{
+    OH_Drawing_Array *rectArray = OH_Drawing_RectCreateArray(10);
+    ASSERT_FALSE(rectArray == nullptr);
+    size_t size = 0;
+    EXPECT_EQ(OH_Drawing_RectGetArraySize(rectArray, &size), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(size, 10);
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(rectArray), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_GetArraySize002
+ * @tc.desc: test for abnomral parameter of OH_Drawing_RectGetArraySize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetArraySize002, TestSize.Level1)
+{
+    OH_Drawing_Array *rectArray = OH_Drawing_RectCreateArray(50);
+    ASSERT_FALSE(rectArray == nullptr);
+    size_t size = 0;
+    EXPECT_EQ(OH_Drawing_RectGetArraySize(nullptr, &size), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectGetArraySize(rectArray, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(rectArray), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_GetArrayElement001
+ * @tc.desc: test for normal use of OH_Drawing_RectGetArrayElement
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetArrayElement001, TestSize.Level1)
+{
+    OH_Drawing_Array *rectArray = OH_Drawing_RectCreateArray(10);
+    ASSERT_FALSE(rectArray == nullptr);
+    OH_Drawing_Rect *rect = nullptr;
+    EXPECT_EQ(OH_Drawing_RectGetArrayElement(rectArray, 0, &rect), OH_DRAWING_SUCCESS);
+    EXPECT_NE(rect, nullptr);
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(rectArray), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_GetArrayElement002
+ * @tc.desc: test for abnormal parameter of OH_Drawing_RectGetArrayElement
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_GetArrayElement002, TestSize.Level1)
+{
+    size_t size = 50;
+    OH_Drawing_Array *rectArray = OH_Drawing_RectCreateArray(size);
+    ASSERT_FALSE(rectArray == nullptr);
+    OH_Drawing_Rect *rect = nullptr;
+    EXPECT_EQ(OH_Drawing_RectGetArrayElement(rectArray, size, &rect), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(rect, nullptr);
+    EXPECT_EQ(OH_Drawing_RectGetArrayElement(rectArray, size - 1, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectGetArrayElement(rectArray, size - 1, &rect), OH_DRAWING_SUCCESS);
+    EXPECT_NE(rect, nullptr);
+    rect = nullptr;
+    EXPECT_EQ(OH_Drawing_RectGetArrayElement(nullptr, size - 1, &rect), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(rect, nullptr);
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(rectArray), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_DestroyArray001
+ * @tc.desc: test for normal use of OH_Drawing_RectDestroyArray
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_DestroyArray001, TestSize.Level1)
+{
+    OH_Drawing_Array *rectArray = OH_Drawing_RectCreateArray(10);
+    ASSERT_FALSE(rectArray == nullptr);
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(rectArray), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_DestroyArray002
+ * @tc.desc: test for abnormal parameter of OH_Drawing_RectDestroyArray
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_DestroyArray002, TestSize.Level1)
+{
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

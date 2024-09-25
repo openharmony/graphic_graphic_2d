@@ -109,6 +109,14 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
+bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    if (renderServiceClient_ == nullptr) {
+        return false;
+    }
+    return renderServiceClient_->SetWatermark(name, watermark);
+}
+
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
     int64_t interval, int32_t rangeSize)
@@ -302,6 +310,11 @@ bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typefa
     uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
+}
+
+bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
+{
+    return renderServiceClient_->SetGlobalDarkColorMode(isDark);
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -715,5 +728,29 @@ bool RSInterfaces::SetAncoForceDoDirect(bool direct)
     return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
 
+void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
+{
+    renderServiceClient_->SetFreeMultiWindowStatus(enable);
+}
+
+bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
+        return false;
+    }
+    return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
+}
+
+void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -17,6 +17,8 @@
 #include "drawing_brush.h"
 #include "drawing_error_code.h"
 #include "drawing_font.h"
+#include "drawing_path.h"
+#include "drawing_rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -414,6 +416,382 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontMeasureSingleCharacter015, TestSize.
     drawingErrorCode = OH_Drawing_FontMeasureSingleCharacter(font, strTwo, &textWidth);
     EXPECT_EQ(drawingErrorCode, OH_DRAWING_SUCCESS);
     EXPECT_TRUE(textWidth > 0);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontCreatePathForGlyph001
+ * @tc.desc: test for common character of glyph ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetPathForGlyph001, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* str = "helloworld";
+    uint32_t count = OH_Drawing_FontCountText(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
+    EXPECT_EQ(strlen(str), count);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
+        glyphs, count);
+    for (int i = 0; i < count; i++) {
+        OH_Drawing_Path* path = OH_Drawing_PathCreate();
+        ASSERT_NE(path, nullptr);
+        EXPECT_EQ(OH_Drawing_FontGetPathForGlyph(font, glyphs[i], path), OH_DRAWING_SUCCESS);
+        EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) > 0);
+        EXPECT_TRUE(OH_Drawing_PathIsClosed(path, false));
+        if (path != nullptr) {
+            OH_Drawing_PathDestroy(path);
+        }
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontCreatePathForGlyph002
+ * @tc.desc: test for space character of glyph ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetPathForGlyph002, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* space = " ";
+    uint32_t count = OH_Drawing_FontCountText(font, space, strlen(space), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
+    EXPECT_EQ(strlen(space), count);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, space, strlen(space), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
+        glyphs, count);
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetPathForGlyph(font, glyphs[0], path), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) == 0);
+    EXPECT_FALSE(OH_Drawing_PathIsClosed(path, false));
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontCreatePathForGlyph003
+ * @tc.desc: test for abnormal parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetPathForGlyph003, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* str = "hello world";
+    uint32_t count = OH_Drawing_FontCountText(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
+    EXPECT_EQ(strlen(str), count);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
+        glyphs, count);
+
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetPathForGlyph(nullptr, glyphs[0], path), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetPathForGlyph(font, glyphs[0], nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontCreatePathForGlyph004
+ * @tc.desc: test for non exist glyph ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetPathForGlyph004, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50);
+    uint16_t glyphsNotExist = 65535;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetPathForGlyph(font, glyphsNotExist, path), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetBounds001
+ * @tc.desc: test for common character of glyph ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetBounds001, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* str = "helloworld";
+    uint32_t count = OH_Drawing_FontCountText(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
+    EXPECT_EQ(strlen(str), count);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, str, strlen(str), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
+        glyphs, count);
+    OH_Drawing_Array *outRectarr = OH_Drawing_RectCreateArray(count);
+    ASSERT_NE(outRectarr, nullptr);
+    size_t size = 0;
+    EXPECT_EQ(OH_Drawing_RectGetArraySize(outRectarr, &size), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(size, count);
+    EXPECT_EQ(OH_Drawing_FontGetBounds(font, glyphs, count, outRectarr), OH_DRAWING_SUCCESS);
+    for (int i = 0; i < count; i++) {
+        OH_Drawing_Rect *iter = nullptr;
+        EXPECT_EQ(OH_Drawing_RectGetArrayElement(outRectarr, i, &iter), OH_DRAWING_SUCCESS);
+        ASSERT_NE(iter, nullptr);
+        EXPECT_TRUE(OH_Drawing_RectGetWidth(iter) > 0);
+        EXPECT_TRUE(OH_Drawing_RectGetHeight(iter) > 0);
+    }
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(outRectarr), OH_DRAWING_SUCCESS);
+    
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetBounds002
+ * @tc.desc: test for space character of glyph ID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetBounds002, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* space = "   ";
+    uint32_t count = OH_Drawing_FontCountText(font, space, strlen(space), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
+    EXPECT_EQ(strlen(space), count);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, space, strlen(space), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
+        glyphs, count);
+    OH_Drawing_Array *outRectarr = OH_Drawing_RectCreateArray(count);
+    ASSERT_NE(outRectarr, nullptr);
+    size_t size = 0;
+    EXPECT_EQ(OH_Drawing_RectGetArraySize(outRectarr, &size), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(size, count);
+    EXPECT_EQ(OH_Drawing_FontGetBounds(font, glyphs, count, outRectarr), OH_DRAWING_SUCCESS);
+    for (int i = 0; i < count; i++) {
+        OH_Drawing_Rect *iter = nullptr;
+        EXPECT_EQ(OH_Drawing_RectGetArrayElement(outRectarr, i, &iter), OH_DRAWING_SUCCESS);
+        ASSERT_NE(iter, nullptr);
+        EXPECT_TRUE(OH_Drawing_RectGetWidth(iter) == 0);
+        EXPECT_TRUE(OH_Drawing_RectGetHeight(iter) == 0);
+    }
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(outRectarr), OH_DRAWING_SUCCESS);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetBounds003
+ * @tc.desc: test for abnormal parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetBounds003, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* space = "   ";
+    uint32_t count = OH_Drawing_FontCountText(font, space, strlen(space), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8);
+    EXPECT_EQ(strlen(space), count);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, space, strlen(space), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8,
+        glyphs, count);
+    OH_Drawing_Array *outRectarr = OH_Drawing_RectCreateArray(count - 1);
+    ASSERT_NE(outRectarr, nullptr);
+    // not enough size
+    EXPECT_EQ(OH_Drawing_FontGetBounds(font, glyphs, count, outRectarr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetBounds(nullptr, glyphs, count, outRectarr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetBounds(font, nullptr, count, outRectarr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetBounds(font, glyphs, count, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectDestroyArray(outRectarr), OH_DRAWING_SUCCESS);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath001
+ * @tc.desc: test for common character of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath001, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* str = "Hello 中文";
+    size_t length = std::char_traits<char>::length(str);
+    float x = 12.0f;
+    float y = 150.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, str, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) > 0);
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath002
+ * @tc.desc: test for UTF16 and UTF32 character of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath002, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+
+    float x = 12.0f;
+    float y = 150.0f;
+    const char16_t* u16str = u"Hello 中文";
+    size_t u16strLen = std::char_traits<char16_t>::length(u16str);
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, u16str, sizeof(char16_t) * u16strLen, TEXT_ENCODING_UTF16, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    float u16PathLen = OH_Drawing_PathGetLength(path, false);
+
+    const char32_t* u32str = U"Hello 中文";
+    size_t u32strLen = std::char_traits<char32_t>::length(u32str);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, u32str, sizeof(char32_t) * u32strLen, TEXT_ENCODING_UTF32, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    float u32PathLen = OH_Drawing_PathGetLength(path, false);
+    ASSERT_TRUE(u16PathLen > 0 && u32PathLen > 0);
+    ASSERT_EQ(u16PathLen, u32PathLen);
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath003
+ * @tc.desc: test for space character of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath003, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* space = " ";
+    size_t length = std::char_traits<char>::length(space);
+    float x = 12.0f;
+    float y = 150.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, space, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) == 0);
+    EXPECT_FALSE(OH_Drawing_PathIsClosed(path, false));
+    if (path != nullptr) {
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath004
+ * @tc.desc: test for abnormal paramete of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath004, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* str = "Hello 中文";
+    size_t length = std::char_traits<char>::length(str);
+    float x = 12.0f;
+    float y = 150.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(nullptr, str, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, nullptr, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, str, 0, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, str, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, nullptr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath005
+ * @tc.desc: test for negative coordinates of textpath.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath005, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* str = "Hello 中文";
+    size_t length = std::char_traits<char>::length(str);
+    float x = -1.0f;
+    float y = -1.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, str, sizeof(char) * length, TEXT_ENCODING_UTF8, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    if (path != nullptr) {
+        EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) > 0);
+        OH_Drawing_PathDestroy(path);
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetTextPath006
+ * @tc.desc: test for conversion of glyphsID to path.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath006, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    const char* str = "Hello 中文";
+    uint32_t count = 0;
+    count = OH_Drawing_FontCountText(font, str, strlen(str), TEXT_ENCODING_UTF8);
+    EXPECT_NE(count, 0);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, str, strlen(str), TEXT_ENCODING_UTF8, glyphs, count);
+
+    float x = 12.0f;
+    float y = 150.0f;
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_NE(path, nullptr);
+    EXPECT_EQ(OH_Drawing_FontGetTextPath(font, glyphs, sizeof(glyphs), TEXT_ENCODING_GLYPH_ID, x, y, path),
+        OH_DRAWING_SUCCESS);
+    ASSERT_NE(path, nullptr);
+    if (path != nullptr) {
+        EXPECT_TRUE(OH_Drawing_PathGetLength(path, false) > 0);
+        OH_Drawing_PathDestroy(path);
+    }
     OH_Drawing_FontDestroy(font);
 }
 } // namespace Drawing

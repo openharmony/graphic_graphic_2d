@@ -16,6 +16,7 @@
 #include "typography_create.h"
 
 #include "convert.h"
+#include "line_typography.h"
 #include "typography.h"
 #include <unicode/utf8.h>
 
@@ -85,6 +86,15 @@ std::unique_ptr<OHOS::Rosen::Typography> TypographyCreate::CreateTypography()
 {
     auto paragraph = builder_->Build();
     return std::make_unique<Typography>(std::move(paragraph));
+}
+
+std::unique_ptr<OHOS::Rosen::LineTypography> TypographyCreate::CreateLineTypography()
+{
+    auto lineFetcher = builder_->BuildLineFetcher();
+    if (lineFetcher == nullptr) {
+        return nullptr;
+    }
+    return std::make_unique<LineTypography>(std::move(lineFetcher));
 }
 } // namespace AdapterTxt
 } // namespace Rosen

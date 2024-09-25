@@ -61,7 +61,7 @@ private:
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> illuminatedNodeMap_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyLightSourceList_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyIlluminatedList_;
-    ScreenRotation screenRotation_;
+    ScreenRotation screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
 };
 } // namespace Rosen
 } // namespace OHOS

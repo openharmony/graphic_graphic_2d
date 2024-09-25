@@ -175,6 +175,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Width(), 0);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Height(), 0);
+
+    // third: DrawFilterWithDRM test
+    Drawing::Canvas canvasTest3;
+    RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
+    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);
+    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, false);
 }
 
 /**
@@ -367,31 +373,16 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest013, testing::ext::Tes
     RSPaintFilterCanvas paintFilterCanvasTest(&canvasTest);
     RectF boundsRect = RectF(0.0f, 0.0f, 1.0f, 1.0f);
     std::optional<Vector4f> pixelStretch = std::nullopt;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
     pixelStretch = 1.0f;
     paintFilterCanvasTest.surface_ = nullptr;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
     Drawing::Surface surface;
     paintFilterCanvasTest.surface_ = &surface;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
-}
-
-/**
- * @tc.name: CreateColorFilterForHDRTest
- * @tc.desc: CreateColorFilterForHDRTest test
- * @tc.type:FUNC
- * @tc.require: issueI9SCBR
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, CreateColorFilterForHDRTest, testing::ext::TestSize.Level1)
-{
-    auto rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
-    auto ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(1.f, 0.5f);
-    EXPECT_NE(ret, nullptr);
-    ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(0.5f, 0.5f);
-    EXPECT_EQ(ret, nullptr);
-    ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(0.0f, 0.5f);
-    EXPECT_EQ(ret, nullptr);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
 }
 
 /**

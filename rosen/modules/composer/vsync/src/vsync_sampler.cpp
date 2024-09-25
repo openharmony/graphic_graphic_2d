@@ -107,46 +107,64 @@ bool VSyncSampler::GetHardwareVSyncStatus() const
 
 void VSyncSampler::RegSetScreenVsyncEnabledCallback(VSyncSampler::SetScreenVsyncEnabledCallback cb)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     setScreenVsyncEnabledCallback_ = cb;
 }
 
 void VSyncSampler::SetScreenVsyncEnabledInRSMainThread(bool enabled)
 {
-    if (setScreenVsyncEnabledCallback_ == nullptr) {
-        VLOGE("SetScreenVsyncEnabled:%{public}d failed, setScreenVsyncEnabledCallback_ is null", enabled);
+    SetScreenVsyncEnabledCallback cb;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        cb = setScreenVsyncEnabledCallback_;
+    }
+    SetScreenVsyncEnabledInRSMainThreadInternal(cb, enabled);
+}
+
+void VSyncSampler::SetScreenVsyncEnabledInRSMainThreadInternal(SetScreenVsyncEnabledCallback cb, bool enabled)
+{
+    if (cb == nullptr) {
+        VLOGE("SetScreenVsyncEnabled:%{public}d failed, cb is null", enabled);
         return;
     }
-    setScreenVsyncEnabledCallback_(enabled);
+    cb(enabled);
 }
 
 bool VSyncSampler::AddSample(int64_t timeStamp)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (numSamples_ < MAX_SAMPLES - 1) {
-        numSamples_++;
-    } else {
-        firstSampleIndex_ = (firstSampleIndex_ + 1) % MAX_SAMPLES;
+    if (timeStamp < 0) {
+        return true;
     }
+    SetScreenVsyncEnabledCallback cb;
+    bool shouldDisableScreenVsync;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (numSamples_ < MAX_SAMPLES - 1) {
+            numSamples_++;
+        } else {
+            firstSampleIndex_ = (firstSampleIndex_ + 1) % MAX_SAMPLES;
+        }
 
-    if (firstSampleIndex_ + numSamples_ >= 1) {
-        uint32_t index = (firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES;
-        samples_[index] = timeStamp;
+        if (firstSampleIndex_ + numSamples_ >= 1) {
+            uint32_t index = (firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES;
+            samples_[index] = timeStamp;
+        }
+        
+        UpdateReferenceTimeLocked();
+        UpdateModeLocked();
+
+        if (numResyncSamplesSincePresent_++ > MAX_SAMPLES_WITHOUT_PRESENT) {
+            ResetErrorLocked();
+        }
+
+        // 1/2 just a empirical value
+        shouldDisableScreenVsync = modeUpdated_ && (error_ < ERROR_THRESHOLD / 2);
+        cb = setScreenVsyncEnabledCallback_;
     }
-    
-    UpdateReferenceTimeLocked();
-    UpdateModeLocked();
-
-    if (numResyncSamplesSincePresent_++ > MAX_SAMPLES_WITHOUT_PRESENT) {
-        ResetErrorLocked();
-    }
-
-    // 1/2 just a empirical value
-    bool shouldDisableScreenVsync = modeUpdated_ && (error_ < ERROR_THRESHOLD / 2);
-
     if (shouldDisableScreenVsync) {
         // disabled screen vsync in rsMainThread
         VLOGD("Disable Screen Vsync");
-        SetScreenVsyncEnabledInRSMainThread(false);
+        SetScreenVsyncEnabledInRSMainThreadInternal(cb, false);
     }
 
     return !shouldDisableScreenVsync;
@@ -161,9 +179,7 @@ void VSyncSampler::UpdateReferenceTimeLocked()
         referenceTime_ = samples_[firstSampleIndex_];
         CheckIfFirstRefreshAfterIdleLocked();
         CreateVSyncGenerator()->UpdateMode(0, phase_, referenceTime_);
-    }
-    // check if the actual framerate is changed, at least 2 samples
-    if (isFrameRateChanging && (numSamples_ >= 2)) {
+    } else if (isFrameRateChanging && (numSamples_ >= 2)) { // at least 2 samples
         int64_t prevSample = samples_[(firstSampleIndex_ + numSamples_ - 2) % MAX_SAMPLES]; // at least 2 samples
         int64_t latestSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
         CheckIfFirstRefreshAfterIdleLocked();
@@ -212,19 +228,7 @@ void VSyncSampler::UpdateModeLocked()
 
         referenceTime_ = samples_[firstSampleIndex_];
 
-        double scale = 2.0 * PI / period_;
-        double deltaAvgX = 0;
-        double deltaAvgY = 0;
-        for (uint32_t i = 1; i < numSamples_; i++) {
-            double delta = (samples_[(firstSampleIndex_ + i) % MAX_SAMPLES] - referenceTime_) % period_ * scale;
-            deltaAvgX += cos(delta);
-            deltaAvgY += sin(delta);
-        }
-
-        deltaAvgX /= double(numSamples_ - 1);
-        deltaAvgY /= double(numSamples_ - 1);
-
-        phase_ = int64_t(::atan2(deltaAvgY, deltaAvgX) / scale);
+        ComputePhaseLocked();
 
         modeUpdated_ = true;
         CheckIfFirstRefreshAfterIdleLocked();
@@ -271,6 +275,9 @@ void VSyncSampler::UpdateErrorLocked()
 
 bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
 {
+    if (timestamp < 0) {
+        return false;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
     presentFenceTime_[presentFenceTimeOffset_] = timestamp;
 
@@ -296,6 +303,23 @@ void VSyncSampler::CheckIfFirstRefreshAfterIdleLocked()
         (curFenceTimeStamp - prevFenceTimeStamp > MAX_IDLE_TIME_THRESHOLD)) {
         CreateVSyncGenerator()->StartRefresh();
     }
+}
+
+void VSyncSampler::ComputePhaseLocked()
+{
+    double scale = 2.0 * PI / period_;
+    double deltaAvgX = 0;
+    double deltaAvgY = 0;
+    for (uint32_t i = 1; i < numSamples_; i++) {
+        double delta = (samples_[(firstSampleIndex_ + i) % MAX_SAMPLES] - referenceTime_) % period_ * scale;
+        deltaAvgX += cos(delta);
+        deltaAvgY += sin(delta);
+    }
+
+    deltaAvgX /= double(numSamples_ - 1);
+    deltaAvgY /= double(numSamples_ - 1);
+
+    phase_ = int64_t(::atan2(deltaAvgY, deltaAvgX) / scale);
 }
 
 int64_t VSyncSampler::GetPeriod() const

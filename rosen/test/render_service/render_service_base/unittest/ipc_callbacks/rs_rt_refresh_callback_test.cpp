@@ -40,14 +40,26 @@ void RSRTRefreshCallbackTest::TearDown() {}
  * @tc.type:FUNC
  * @tc.require: issueIAKP5Y
  */
-HWTEST_F(RSRTRefreshCallbackTest, ExecuteRefresh, TestSize.Level1)
+
+HWTEST_F(RSRTRefreshCallbackTest, SetRefresh, TestSize.Level1)
 {
     RSRTRefreshCallback::Instance().ExecuteRefresh();
     EXPECT_TRUE(RSRTRefreshCallback::Instance().callback_ == nullptr);
     std::function<void(void)> callback = []() {};
-    RSRTRefreshCallback::Instance().callback_ = callback;
+    RSRTRefreshCallback::Instance().SetRefresh(callback);
     RSRTRefreshCallback::Instance().ExecuteRefresh();
     EXPECT_TRUE(RSRTRefreshCallback::Instance().callback_ != nullptr);
+}
+
+HWTEST_F(RSRTRefreshCallbackTest, RefreshWorkingSimple, TestSize.Level1)
+{
+    int a = 1, b = 2, sum = 0;
+    const int expected = 3;
+    std::function<void(void)> callback = [&]() { sum += a + b; };
+    RSRTRefreshCallback::Instance().SetRefresh(callback);
+    RSRTRefreshCallback::Instance().ExecuteRefresh();
+    EXPECT_TRUE(RSRTRefreshCallback::Instance().callback_ != nullptr);
+    EXPECT_EQ(expected, sum);
 }
 
 } // namespace OHOS::Rosen

@@ -437,7 +437,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest001, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
         conns.emplace_back(conn);
     }
-    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPO);
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPO, 360);
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
@@ -458,7 +458,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest002, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
         conns.emplace_back(conn);
     }
-    vsyncDistributor->OnVSyncTrigger(1000000000, -8333333, 120, VSYNC_MODE_LTPO);
+    vsyncDistributor->OnVSyncTrigger(1000000000, -8333333, 120, VSYNC_MODE_LTPO, 360);
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
@@ -479,7 +479,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest003, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
         conns.emplace_back(conn);
     }
-    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPS);
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPS, 360);
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }

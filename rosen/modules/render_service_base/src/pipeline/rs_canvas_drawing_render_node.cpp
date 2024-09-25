@@ -18,8 +18,13 @@
 #include <memory>
 
 #include "include/core/SkCanvas.h"
-#include "rs_trace.h"
 #include "src/image/SkImage_Base.h"
+#ifdef NEW_SKIA
+#include "include/gpu/GrBackendSurface.h"
+#include "include/gpu/GrDirectContext.h"
+#endif
+
+#include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
@@ -34,10 +39,6 @@
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
 
-#ifdef NEW_SKIA
-#include "include/gpu/GrBackendSurface.h"
-#include "include/gpu/GrDirectContext.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -48,7 +49,9 @@ constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 50;
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSCanvasRenderNode(id, context, isTextureExportNode)
-{}
+{
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this) - sizeof(RSCanvasRenderNode));
+}
 
 RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 {
@@ -57,6 +60,7 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
         preThreadInfo_.second(std::move(surface_));
     }
 #endif
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this) - sizeof(RSCanvasRenderNode));
 }
 
 void RSCanvasDrawingRenderNode::InitRenderContent()
@@ -121,7 +125,6 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 {
     int width = 0;
     int height = 0;
-    RS_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::ProcessRenderContents  %" PRIu64 "", GetId());
     std::lock_guard<std::mutex> lockTask(taskMutex_);
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
@@ -242,8 +245,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
-        RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr, imagesize:[%{public}d, %{public}d],"
-                "id: %{public}" PRIu64"", width, height, GetId());
+        RS_LOGD("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
@@ -251,8 +253,8 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         if (!surface_) {
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
-            RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface, imagesize: [%{public}d, %{public}d],"
-                "id: %{public}" PRIu64"", width, height, GetId());
+            RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface [%{public}d, %{public}d] %{public}" PRIu64 "",
+                width, height, GetId());
             if (!surface_) {
                 RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface surface is nullptr");
                 return false;
@@ -326,6 +328,10 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!image_) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ is nullptr");
+        return bitmap;
+    }
+    if (GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ used by multi threads");
         return bitmap;
     }
     if (!image_->AsLegacyBitmap(bitmap)) {
@@ -445,6 +451,7 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::InitRenderParams failed");
         return;
     }
 }

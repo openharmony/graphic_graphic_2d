@@ -57,7 +57,7 @@ public:
         float ratio = 1.0f);
     static void DrawBinarization(Drawing::Canvas* canvas, const std::optional<Vector4f>& aiInvert);
     static void DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
-        const RectF& boundsRect, const bool boundsGeoValid);
+        const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode);
     static Drawing::Path CreateShadowPath(const std::shared_ptr<RSPath> rsPath,
         const std::shared_ptr<RSPath>& clipBounds, const RRect& rrect);
     static void DrawShadow(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX, const float& offsetY,
@@ -79,10 +79,8 @@ public:
         Drawing::Matrix& mat);
     static bool RSFilterSetPixelStretch(const RSProperties& property, const std::shared_ptr<RSFilter>& filter);
     static void RSFilterRemovePixelStretch(const std::shared_ptr<RSFilter>& filter);
+    static void DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark);
 
-    // Create a colorfilter if the brightness ratio of the cached image is different from that of the canvas.
-    static std::shared_ptr<Drawing::ColorFilter> CreateColorFilterForHDR(float cachedBrightnessRatio,
-        float newBrightnessRatio);
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;

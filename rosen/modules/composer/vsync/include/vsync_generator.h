@@ -37,7 +37,8 @@ class VSyncGenerator : public RefBase {
 public:
     class Callback : public RefBase {
     public:
-        virtual void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode) = 0;
+        virtual void OnVSyncEvent(int64_t now, int64_t period,
+            uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) = 0;
         virtual void OnPhaseOffsetChanged(int64_t phaseOffset) = 0;
         /* std::pair<id, refresh rate> */
         virtual void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) = 0;
@@ -78,7 +79,7 @@ public:
 
     virtual void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
     virtual void SetFrameRateChangingStatus(bool frameRateChanging) = 0;
-    virtual void SetAppDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
+    virtual void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -198,12 +199,12 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_;
     int32_t periodCheckCounter_ = 0;
     int64_t lastPeriod_ = 0;
+    sptr<VSyncDistributor> appVSyncDistributor_;
     int64_t expectNextVsyncTime_ = 0;
     bool expectTimeFlag_ = false;
-    sptr<VSyncDistributor> appVSyncDistributor_;
     int64_t targetPeriod_ = 0;
     bool clearAllSamplesFlag_ = false;
-    std::atomic<uint32_t> vsyncMaxRefreshRate_ = 360; // default max TE
+    uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
 };
 } // impl
 } // namespace Rosen

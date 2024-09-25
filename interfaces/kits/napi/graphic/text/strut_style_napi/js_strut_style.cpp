@@ -49,14 +49,21 @@ napi_value JsStrutStyleManager::IsStrutStyleEqual(napi_env env, napi_callback_in
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_TWO) {
-        TEXT_LOGE("JsStrutStyleManager::IsStrutStyleEqual Argc is invalid: %{public}zu", argc);
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        TEXT_LOGE("Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
     }
 
     TypographyStyle styleFrom;
+    if (!SetStrutStyleFromJS(env, argv[0], styleFrom)) {
+        TEXT_LOGE("Argv[0] is invalid");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+    }
+
     TypographyStyle styleTo;
-    SetStrutStyleFromJS(env, argv[0], styleFrom);
-    SetStrutStyleFromJS(env, argv[1], styleTo);
+    if (!SetStrutStyleFromJS(env, argv[1], styleTo)) {
+        TEXT_LOGE("Argv[1] is invalid");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+    }
 
     bool equal = (styleFrom == styleTo);
     return CreateJsValue(env, equal);

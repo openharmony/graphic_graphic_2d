@@ -24,6 +24,7 @@
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "skia_adapter/skia_typeface.h"
+#include "skia_adapter/skia_utils.h"
 #include "utils/system_properties.h"
 
 namespace OHOS {
@@ -57,6 +58,11 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromFile(const char path[], int
     return SkiaTypeface::MakeFromFile(path, index);
 }
 
+std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromFile(const char path[], const FontArguments& fontArguments)
+{
+    return SkiaTypeface::MakeFromFile(path, fontArguments);
+}
+
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     return SkiaTypeface::MakeFromStream(std::move(memoryStream), index);
@@ -65,6 +71,11 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<Memo
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
 {
     return SkiaTypeface::MakeFromName(familyName, fontStyle);
+}
+
+std::vector<std::shared_ptr<Typeface>> SkiaStaticFactory::GetSystemFonts()
+{
+    return SkiaTypeface::GetSystemFonts();
 }
 
 #ifdef ACE_ENABLE_GPU
@@ -206,6 +217,11 @@ std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupP
 std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
 {
     return SkiaBlender::CreateWithBlendMode(mode);
+}
+
+void SkiaStaticFactory::SetVmaCacheStatus(bool flag)
+{
+    SkiaUtils::SetVmaCacheStatus(flag);
 }
 } // namespace Drawing
 } // namespace Rosen

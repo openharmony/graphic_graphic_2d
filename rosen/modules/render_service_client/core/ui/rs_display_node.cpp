@@ -97,6 +97,9 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
     SharedPtr displayNode(new RSDisplayNode(config, id));
     RSNodeMap::MutableInstance().RegisterNode(displayNode);
 
+    // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
+    displayNode->skipDestroyCommandInDestructor_ = true;
+
     return displayNode;
 }
 
@@ -248,6 +251,7 @@ void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_
     for (auto iter = oldScbPids.begin(); iter != oldScbPids.end(); ++iter) {
         oldPidsStr << *iter << ",";
     }
+    DoFlushModifier();
     ROSEN_LOGI("SetScbNodePid %{public}s", oldPidsStr.str().c_str());
 }
 

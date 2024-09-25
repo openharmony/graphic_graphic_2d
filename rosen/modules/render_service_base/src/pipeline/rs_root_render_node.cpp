@@ -15,11 +15,7 @@
 
 #include "pipeline/rs_root_render_node.h"
 
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
-#endif
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #ifndef ROSEN_CROSS_PLATFORM
@@ -35,6 +31,7 @@ RSRootRenderNode::RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& co
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
 #endif
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this) - sizeof(RSCanvasRenderNode));
 }
 
 RSRootRenderNode::~RSRootRenderNode()
@@ -42,6 +39,7 @@ RSRootRenderNode::~RSRootRenderNode()
 #ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
 #endif
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this) - sizeof(RSCanvasRenderNode));
 }
 
 void RSRootRenderNode::AttachRSSurfaceNode(NodeId surfaceNodeId)
@@ -64,11 +62,8 @@ void RSRootRenderNode::UpdateSuggestedBufferSize(float width, float height)
     suggestedBufferHeight_ = height;
     suggestedBufferWidth_ = width;
 }
-#ifdef NEW_RENDER_CONTEXT
-std::shared_ptr<RSRenderSurface> RSRootRenderNode::GetSurface()
-#else
+
 std::shared_ptr<RSSurface> RSRootRenderNode::GetSurface()
-#endif
 {
     return rsSurface_;
 }

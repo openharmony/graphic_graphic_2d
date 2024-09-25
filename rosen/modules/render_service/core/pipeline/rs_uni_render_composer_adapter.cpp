@@ -251,6 +251,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetMatrix(info.matrix);
     layer->SetGravity(info.gravity);
     SetMetaDataInfoToLayer(layer, info.buffer, surface);
+    layer->SetSdrNit(info.sdrNit);
     layer->SetDisplayNit(info.displayNit);
     layer->SetBrightnessRatio(info.brightnessRatio);
 }
@@ -806,14 +807,17 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
         RS_LOGE("RSUniRenderComposerAdapter::BuildComposeInfo fail, node params is nullptr");
         return info;
     }
+    info.sdrNit = renderParam->GetSdrNit();
     info.displayNit = renderParam->GetDisplayNit();
     info.brightnessRatio = renderParam->GetBrightnessRatio();
+    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
+        info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
         " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
-        node.GetId(), info.zOrder, info.blendType, info.needClient, info.displayNit, info.brightnessRatio,
+        node.GetId(), info.zOrder, info.blendType, info.needClient,
         info.alpha.enGlobalAlpha, info.alpha.gAlpha,
         info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
         info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,
@@ -872,14 +876,17 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSSurfaceRe
         RS_LOGE("RSUniRenderComposerAdapter::curRenderParam is nullptr");
         return info;
     }
+    info.sdrNit = curRenderParam->GetSdrNit();
     info.displayNit = curRenderParam->GetDisplayNit();
     info.brightnessRatio = curRenderParam->GetBrightnessRatio();
+    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
+        info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
         " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
-        surfaceDrawable.GetId(), info.zOrder, info.blendType, info.needClient, info.displayNit, info.brightnessRatio,
+        surfaceDrawable.GetId(), info.zOrder, info.blendType, info.needClient,
         info.alpha.enGlobalAlpha, info.alpha.gAlpha,
         info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
         info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,

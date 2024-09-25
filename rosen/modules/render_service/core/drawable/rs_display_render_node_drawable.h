@@ -42,7 +42,7 @@ public:
     void DrawHardwareEnabledNodes(Drawing::Canvas& canvas);
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
-    void SwitchColorFilter(RSPaintFilterCanvas& canvas) const;
+    void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f) const;
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -89,22 +89,6 @@ public:
     {
         return surfaceCreated_;
     }
-
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> GetRSSurface() const
-    {
-        return surface_;
-    }
-    void SetVirtualSurface(std::shared_ptr<RSRenderSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
-    {
-        virtualSurface_ = virtualSurface;
-        virtualSurfaceUniqueId_ = pSurfaceUniqueId;
-    }
-    std::shared_ptr<RSRenderSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
-    {
-        return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
-    }
-#else
     std::shared_ptr<RSSurface> GetRSSurface() const
     {
         return surface_;
@@ -118,7 +102,6 @@ public:
     {
         return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
     }
-#endif
 
     bool IsFirstTimeToProcessor() const
     {
@@ -208,13 +191,8 @@ private:
     // surface create in render thread
     static constexpr uint32_t BUFFER_SIZE = 4;
     bool surfaceCreated_ = false;
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
-    std::shared_ptr<RSRenderSurface> virtualSurface_ = nullptr;
-#else
     std::shared_ptr<RSSurface> surface_ = nullptr;
     std::shared_ptr<RSSurface> virtualSurface_ = nullptr;
-#endif
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;

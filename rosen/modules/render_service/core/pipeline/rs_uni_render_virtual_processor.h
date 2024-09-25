@@ -82,6 +82,7 @@ public:
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
+    void CanvasClipRegion(RSPaintFilterCanvas& canvas, float mainWidth, float mainHeight);
 
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
@@ -92,6 +93,8 @@ private:
     float mirrorHeight_ = 0.f;
     float mainWidth_ = 0.f;
     float mainHeight_ = 0.f;
+    float originalVirtualScreenWidth_ = 0.f; // used for recording the original virtual screen width
+    float originalVirtualScreenHeight_ = 0.f; // used for recording the original virtual screen height
     float virtualScreenWidth_ = 0.f;
     float virtualScreenHeight_ = 0.f;
     float mirroredScreenWidth_ = 0.f;

@@ -190,7 +190,8 @@ void HgmCore::SetLtpoConfig()
         HGM_LOGW("HgmCore failed to find switch strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end()) {
+    if (curScreenSetting.ltpoConfig.find("maxTE") != curScreenSetting.ltpoConfig.end() &&
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig["maxTE"])) {
         maxTE_ = std::stoul(curScreenSetting.ltpoConfig["maxTE"]);
         CreateVSyncGenerator()->SetVSyncMaxRefreshRate(maxTE_);
     } else {
@@ -198,7 +199,8 @@ void HgmCore::SetLtpoConfig()
         HGM_LOGW("HgmCore failed to find TE strategy for LTPO");
     }
 
-    if (curScreenSetting.ltpoConfig.find("alignRate") != curScreenSetting.ltpoConfig.end()) {
+    if (curScreenSetting.ltpoConfig.find("alignRate") != curScreenSetting.ltpoConfig.end() &&
+        XMLParser::IsNumber(curScreenSetting.ltpoConfig["alignRate"])) {
         alignRate_ = std::stoul(curScreenSetting.ltpoConfig["alignRate"]);
     } else {
         alignRate_ = 0;
@@ -278,6 +280,9 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
 {
     // set the screen to the desired refreshrate
     HGM_LOGD("HgmCore setting screen " PUBU64 " to the rate of %{public}d", id, rate);
+    if (mPolicyConfigData_ == nullptr) {
+        return HGM_ERROR;
+    }
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("HgmCore failed to get screen of : " PUBU64 "", id);
@@ -332,7 +337,7 @@ int32_t HgmCore::SetRefreshRateMode(int32_t refreshRateMode)
     }
 
     hgmFrameRateMgr_->HandleRefreshRateMode(refreshRateMode);
-
+    // sync vsync mode after refreshRate mode switching
     auto refreshRateModeName = GetCurrentRefreshRateModeName();
     if (refreshRateModeChangeCallback_ != nullptr) {
         refreshRateModeChangeCallback_(refreshRateModeName);

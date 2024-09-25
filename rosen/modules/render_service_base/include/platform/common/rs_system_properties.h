@@ -161,9 +161,11 @@ public:
     static bool GetHardwareComposerEnabledForMirrorMode();
     static bool GetHwcRegionDfxEnabled();
     static bool GetDrawMirrorCacheImageEnabled();
+    static bool GetPixelmapDfxEnabled();
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
     static bool GetRSScreenRoundCornerEnable();
+    static bool GetAceDebugBoundaryEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -206,8 +208,8 @@ public:
     static bool GetBlurExtraFilterEnabled();
     static bool GetDiscardCanvasBeforeFilterEnabled();
     static bool GetPurgeBetweenFramesEnabled();
-    static bool GetPreAllocateTextureBetweenFramesEnabled();
-    static bool GetAsyncFreeVMAMemoryBetweenFramesEnabled();
+    static bool GetGpuMemoryAsyncReclaimerEnabled();
+    static bool GetGpuCacheSuppressWindowEnabled();
 
     static bool GetAnimationCacheEnabled();
 
@@ -227,6 +229,7 @@ public:
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSnapshotWithDMAEnabled();
     static bool GetDrmEnabled();
+    static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsPhoneType();
     static bool IsTabletType();
     static bool IsPcType();
@@ -242,6 +245,7 @@ public:
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool GetHDRImageEnable();
     static bool IsForceClient();
+    static bool GetDrmMarkedFilterEnabled();
     static bool GetUnmarshParallelFlag();
     static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
@@ -276,7 +280,7 @@ public:
     }
 
     static int GetRSNodeLimit();
-    static bool GetMemoryOverTreminateEnabled();
+    static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
 private:
     RSSystemProperties() = default;

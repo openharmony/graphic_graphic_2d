@@ -189,21 +189,6 @@ void BootAnimationOperation::PlaySound(const std::string& path)
 bool BootAnimationOperation::InitRsSurface()
 {
     LOGI("InitRsSurface start");
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<OHOS::Rosen::RenderContextBase> renderContext =
-        Rosen::RenderContextBaseFactory::CreateRenderContext();
-    if (renderContext == nullptr) {
-        LOGE("create render context failed");
-        return false;
-    }
-    renderContext->Init();
-    std::shared_ptr<Rosen::DrawingContext> drawingContext = std::make_shared<Rosen::DrawingContext>(
-        renderContext->GetRenderType());
-    sptr<Surface> surface = rsSurfaceNode_->GetSurface();
-    drawingContext->SetUpDrawingContext();
-    rsSurface_ = Rosen::RSSurfaceFactory::CreateRSSurface(Rosen::PlatformName::OHOS, surface, drawingContext);
-    rsSurface_->SetRenderContext(renderContext);
-#else
     rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(rsSurfaceNode_);
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
@@ -223,7 +208,6 @@ bool BootAnimationOperation::InitRsSurface()
         }
     }
 #endif // ACE_ENABLE_GL
-#endif // NEW_RENDER_CONTEXT
     return true;
 }
 

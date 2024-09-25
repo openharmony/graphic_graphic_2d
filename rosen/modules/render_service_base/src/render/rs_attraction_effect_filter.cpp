@@ -384,7 +384,7 @@ void RSAttractionEffectFilter::CalculateWindowStatus(float canvasWidth, float ca
 
     Drawing::Point pointDst[1] = { { destinationPoint.x_, destinationPoint.y_ } };
 
-    Drawing::Point windowBottomCenter = { 0.5 * canvasWidth_, canvasHeight_ };
+    Drawing::Point windowBottomCenter = { 0.5 * canvasWidth_, 0.5 * canvasHeight_ };
 
     // 1.0 indicates that the window is to the right of the target point,
     // and - 1.0 indicates that the window is to the left.

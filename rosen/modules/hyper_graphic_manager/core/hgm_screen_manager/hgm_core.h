@@ -27,6 +27,7 @@
 
 #include <event_handler.h>
 
+#include "hgm_frame_rate_manager.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "vsync_type.h"
@@ -58,6 +59,9 @@ public:
 
     ScreenId GetActiveScreenId() const
     {
+        if (hgmFrameRateMgr_ != nullptr) {
+            return hgmFrameRateMgr_->GetCurScreenId();
+        }
         return activeScreenId_.load();
     }
 
@@ -76,6 +80,20 @@ public:
     uint32_t GetPendingScreenRefreshRate() const
     {
         return pendingScreenRefreshRate_.load();
+    }
+
+    // called by HgmThread
+    // the rate takes effect at the latest hardware timing
+    void SetScreenRefreshRateImme(uint32_t rate)
+    {
+        screenRefreshRateImme_.store(rate);
+    }
+
+    // called by HardwareThread
+    uint32_t GetScreenRefreshRateImme()
+    {
+        // 0 means disenable
+        return screenRefreshRateImme_.exchange(0);
     }
 
     // called by RSMainThread
@@ -248,6 +266,7 @@ private:
 
     // for LTPO
     std::atomic<uint32_t> pendingScreenRefreshRate_{ 0 };
+    std::atomic<uint32_t> screenRefreshRateImme_{ 0 };
     std::atomic<uint64_t> pendingConstraintRelativeTime_{ 0 };
     std::atomic<uint64_t> timestamp_{ 0 };
     bool ltpoEnabled_ = false;

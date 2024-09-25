@@ -319,7 +319,8 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
 
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
-    if (argValue == nullptr) {
+    napi_valuetype valueType = napi_undefined;
+    if (argValue == nullptr || napi_typeof(env, argValue, &valueType) != napi_ok || valueType != napi_object) {
         return false;
     }
     SetColorFromJS(env, argValue, "color", textStyle.color);
@@ -327,6 +328,27 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
     SetTextShadowProperty(env, argValue, textStyle);
     SetRectStyleFromJS(env, argValue, textStyle.backgroundRect);
     return true;
+}
+
+void SetParagraphStyleEllipsis(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
+{
+    napi_value tempValue = nullptr;
+    if (napi_get_named_property(env, argValue, "ellipsis", &tempValue) != napi_ok) {
+        return;
+    }
+    std::string text = "";
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
+        pographyStyle.ellipsis = Str8ToStr16(text);
+    }
+
+    if (napi_get_named_property(env, argValue, "ellipsisMode", &tempValue) != napi_ok) {
+        return;
+    }
+    uint32_t ellipsisModal = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &ellipsisModal) == napi_ok) {
+        pographyStyle.ellipsisModal = EllipsisModal(ellipsisModal);
+    }
+    return;
 }
 
 bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
@@ -360,8 +382,8 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     }
 
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
-    int32_t maxLines = 0;
-    if (tempValue != nullptr && napi_get_value_int32(env, tempValue, &maxLines) == napi_ok) {
+    int64_t maxLines = 0;
+    if (tempValue != nullptr && napi_get_value_int64(env, tempValue, &maxLines) == napi_ok) {
         pographyStyle.maxLines = maxLines < 0 ? 0 : maxLines;
     }
 
@@ -376,8 +398,18 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
         SetStrutStyleFromJS(env, strutStyleValue, pographyStyle);
     }
 
-    pographyStyle.ellipsis = textStyle.ellipsis;
-    pographyStyle.ellipsisModal = textStyle.ellipsisModal;
+    if (!textStyle.ellipsis.empty()) {
+        pographyStyle.ellipsis = textStyle.ellipsis;
+        pographyStyle.ellipsisModal = textStyle.ellipsisModal;
+    } else {
+        SetParagraphStyleEllipsis(env, argValue, pographyStyle);
+    }
+
+    napi_get_named_property(env, argValue, "tab", &tempValue);
+    TextTab textTab;
+    if (tempValue != nullptr && GetTextTabFromJS(env, tempValue, textTab)) {
+        pographyStyle.tab = textTab;
+    }
 
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
 
@@ -471,28 +503,15 @@ bool GetFontMetricsFromJS(napi_env env, napi_value argValue, Drawing::FontMetric
     return true;
 }
 
-bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetrics)
+bool SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle)
 {
-    if (argValue == nullptr) {
+    napi_valuetype valueType = napi_undefined;
+    if (strutStyleValue == nullptr || napi_typeof(env, strutStyleValue, &valueType) != napi_ok ||
+        valueType != napi_object) {
+        TEXT_LOGE("Invalid strut style value");
         return false;
     }
-    napi_value tempValue = nullptr;
-    napi_get_named_property(env, argValue, "textStyle", &tempValue);
-    OHOS::Rosen::TextStyle tempTextStyle;
-    if (tempValue != nullptr && GetTextStyleFromJS(env, tempValue, tempTextStyle)) {
-        runMetrics.textStyle = &tempTextStyle;
-    }
 
-    napi_get_named_property(env, argValue, "fontMetrics", &tempValue);
-    Drawing::FontMetrics tempFontMetrics;
-    if (tempValue != nullptr && GetFontMetricsFromJS(env, tempValue, tempFontMetrics)) {
-        runMetrics.fontMetrics = tempFontMetrics;
-    }
-    return true;
-}
-
-void SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle)
-{
     napi_value tempValue = nullptr;
     if (GetNamePropertyFromJS(env, strutStyleValue, "fontFamilies", tempValue)) {
         std::vector<std::string> fontFamilies;
@@ -513,6 +532,7 @@ void SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographySty
     SetBoolValueFromJS(env, strutStyleValue, "enabled", typographyStyle.useLineStyle);
     SetBoolValueFromJS(env, strutStyleValue, "heightOverride", typographyStyle.lineStyleHeightOnly);
     SetBoolValueFromJS(env, strutStyleValue, "halfLeading", typographyStyle.lineStyleHalfLeading);
+    return true;
 }
 
 void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle)
@@ -712,4 +732,63 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, Drawing::FontMetrics*
     return objValue;
 }
 
+bool NapiValueTypeIsValid(napi_env env, napi_value argValue)
+{
+    napi_valuetype valueType;
+    if (napi_typeof(env, argValue, &valueType) != napi_ok || valueType == napi_null || valueType == napi_undefined) {
+        TEXT_LOGE("Invalid value type %{public}d", static_cast<int32_t>(valueType));
+        return false;
+    }
+    return true;
+}
+
+bool GetTextTabFromJS(napi_env env, napi_value argValue, TextTab& tab)
+{
+    if (argValue == nullptr) {
+        return false;
+    }
+    napi_value tempValue = nullptr;
+    if (napi_get_named_property(env, argValue, "alignment", &tempValue) != napi_ok) {
+        TEXT_LOGE("Failed to get alignment");
+        return false;
+    }
+    uint32_t align = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &align) == napi_ok) {
+        TextAlign textAlign;
+        switch (TextAlign(align)) {
+            case TextAlign::LEFT: {
+                textAlign = TextAlign::LEFT;
+                break;
+            }
+            case TextAlign::RIGHT: {
+                textAlign = TextAlign::RIGHT;
+                break;
+            }
+            case TextAlign::CENTER: {
+                textAlign = TextAlign::CENTER;
+                break;
+            }
+            default: {
+                textAlign = TextAlign::LEFT;
+                break;
+            }
+        }
+        tab.alignment = textAlign;
+    } else {
+        TEXT_LOGE("Invalid alignment");
+        return false;
+    }
+
+    double location = 0;
+    if (napi_get_named_property(env, argValue, "location", &tempValue) != napi_ok) {
+        return false;
+    }
+    if (tempValue != nullptr && napi_get_value_double(env, tempValue, &location) == napi_ok) {
+        tab.location = location;
+    } else {
+        TEXT_LOGE("Invalid location");
+        return false;
+    }
+    return true;
+}
 } // namespace OHOS::Rosen

@@ -2207,7 +2207,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest095, TestSize.Level
     // -1.2 for unit test
     OH_Drawing_SetTypographyTextFontHeight(typoStyle, -1.2);
     EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightOnly, true);
-    EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, -1.2);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->heightScale, 0);
 }
 
 /*
@@ -2476,5 +2476,134 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest107, TestSize.Level
     OH_Drawing_DestroyTextShadow(shadow);
     OH_Drawing_PointDestroy(offset);
     EXPECT_TRUE(shadow != nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_AddTextStyleDecorationTest
+ * @tc.desc: test for add multiple text decoration
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_AddTextStyleDecorationTest, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, -1);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_OVERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(nullptr, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration,
+        TextDecoration::UNDERLINE | TextDecoration::OVERLINE | TextDecoration::LINE_THROUGH);
+
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::NONE);
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_RemoveTextStyleDecorationTest
+ * @tc.desc: test for remove specific text decoration
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_RemoveTextStyleDecorationTest, TestSize.Level1)
+{
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle != nullptr);
+    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    OH_Drawing_AddTextStyleDecoration(txtStyle, TEXT_DECORATION_OVERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::OVERLINE);
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, -1);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_RemoveTextStyleDecoration(nullptr, TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_AddTextStyleDecoration(txtStyle,
+        TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_OVERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration,
+        TextDecoration::UNDERLINE | TextDecoration::OVERLINE | TextDecoration::LINE_THROUGH);
+    OH_Drawing_RemoveTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH);
+    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::OVERLINE);
+
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest108
+ * @tc.desc: test for the text tab create and destroy
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest108, TestSize.Level1)
+{
+    OH_Drawing_TextTab* textTab = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, 0.0);
+    EXPECT_TRUE(textTab != nullptr);
+    OH_Drawing_TextTab* textTab2 = OH_Drawing_CreateTextTab(TEXT_ALIGN_END, -1.0);
+    EXPECT_TRUE(textTab2 != nullptr);
+    OH_Drawing_DestroyTextTab(textTab);
+    OH_Drawing_DestroyTextTab(textTab2);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest109
+ * @tc.desc: test for get alignment of the text tab
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest109, TestSize.Level1)
+{
+    OH_Drawing_TextTab* textTab = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, 0.0);
+    EXPECT_EQ(OH_Drawing_GetTextTabAlignment(textTab), TEXT_ALIGN_LEFT);
+    OH_Drawing_TextTab* textTab2 = OH_Drawing_CreateTextTab(TEXT_ALIGN_JUSTIFY, 0.0);
+    EXPECT_EQ(OH_Drawing_GetTextTabAlignment(textTab), TEXT_ALIGN_LEFT);
+    OH_Drawing_DestroyTextTab(textTab);
+    OH_Drawing_DestroyTextTab(textTab2);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest110
+ * @tc.desc: test for get location of the text tab
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest110, TestSize.Level1)
+{
+    OH_Drawing_TextTab* textTab = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, 0.0);
+    EXPECT_EQ(OH_Drawing_GetTextTabLocation(textTab), 0.0);
+    OH_Drawing_DestroyTextTab(textTab);
+    OH_Drawing_TextTab* textTab2 = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, -100.0);
+    EXPECT_EQ(OH_Drawing_GetTextTabLocation(textTab2), -100.0);
+    OH_Drawing_DestroyTextTab(textTab2);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest111
+ * @tc.desc: test for typography style set text tab
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest111, TestSize.Level1)
+{
+    OH_Drawing_TextTab* textTab = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, -1.0);
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_SetTypographyTextTab(typoStyle, textTab);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->tab.alignment, TextAlign::LEFT);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->tab.location, -1.0);
+    OH_Drawing_DestroyTextTab(textTab);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 } // namespace OHOS

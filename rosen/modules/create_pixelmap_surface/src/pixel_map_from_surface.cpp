@@ -118,8 +118,9 @@ void DmaMem::ReleaseGLMemory()
     }
     if (eglImage_ != EGL_NO_IMAGE_KHR) {
         auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        eglDestroyImageKHR(disp, eglImage_);
-        eglImage_ = EGL_NO_IMAGE_KHR;
+        if (disp != EGL_NO_DISPLAY && eglDestroyImageKHR(disp, eglImage_) != EGL_FALSE) {
+            eglImage_ = EGL_NO_IMAGE_KHR;
+        }
     }
     if (nativeWindowBuffer_ != nullptr) {
         DestroyNativeWindowBuffer(nativeWindowBuffer_);
@@ -148,6 +149,10 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
     EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE, };
 
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (disp == EGL_NO_DISPLAY) {
+        RS_LOGE("egl get display fail in GetSkSurfaceFromSurfaceBuffer");
+        return nullptr;
+    }
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
         eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
         if (eglImage_ == EGL_NO_IMAGE_KHR) {
@@ -248,8 +253,9 @@ void PixelMapFromSurface::Clear() noexcept
         }
         if (eglImage_ != EGL_NO_IMAGE_KHR) {
             auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-            eglDestroyImageKHR(disp, eglImage_);
-            eglImage_ = EGL_NO_IMAGE_KHR;
+            if (disp != EGL_NO_DISPLAY && eglDestroyImageKHR(disp, eglImage_) != EGL_FALSE) {
+                eglImage_ = EGL_NO_IMAGE_KHR;
+            }
         }
     }
 #endif
@@ -512,7 +518,7 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
 {
     ScopedBytrace trace(__func__);
     // private func, surface is not nullptr.
-    sptr<SyncFence> fence;
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
     // a 4 * 4 idetity matrix
     float matrix[16] = {
         1, 0, 0, 0,
@@ -550,6 +556,10 @@ bool PixelMapFromSurface::CreateEGLImage()
     ScopedBytrace trace(__func__);
     EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE };
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (disp == EGL_NO_DISPLAY) {
+        RS_LOGE("egl get display fail in CreateEGLImage");
+        return false;
+    }
     eglImage_ = eglCreateImageKHR(disp, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_OHOS, nativeWindowBuffer_, attrs);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {
         RS_LOGE("create eglImage fail");
