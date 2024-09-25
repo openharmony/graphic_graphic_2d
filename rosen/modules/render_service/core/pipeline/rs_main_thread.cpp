@@ -2075,7 +2075,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
 
     auto drawable = displayNode->GetRenderDrawable();
-    if (drawable != nullptr)
+    if (drawable != nullptr) {
         auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
         auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
         if (RSAncoManager::Instance()->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes_,

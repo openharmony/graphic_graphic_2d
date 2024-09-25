@@ -40,7 +40,7 @@ void RSAncoManagerTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueIARZ3Q
  */
-HWTEST(RSAncoManagerTest, AncoOptimizeDisplayNode, TestSize.Level2)
+HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode, TestSize.Level2)
 {
     auto ancoManager = RSAncoManager::Instance();
     ASSERT_NE(ancoManager, nullptr);
@@ -76,7 +76,7 @@ HWTEST(RSAncoManagerTest, AncoOptimizeDisplayNode, TestSize.Level2)
  */
 HWTEST_F(RSAncoManagerTest, SetAncoHebcStatus, TestSize.Level2)
 {
-    auto ancoManager = RSMainThread::Instance();
+    auto ancoManager = RSAncoManager::Instance();
     ASSERT_NE(ancoManager, nullptr);
     ancoManager->SetAncoHebcStatus(AncoHebcStatus::USE_HEBC);
     ASSERT_EQ(ancoManager->GetAncoHebcStatus(), AncoHebcStatus::USE_HEBC);
@@ -90,7 +90,7 @@ HWTEST_F(RSAncoManagerTest, SetAncoHebcStatus, TestSize.Level2)
  */
 HWTEST_F(RSAncoManagerTest, GetAncoHebcStatus, TestSize.Level2)
 {
-    auto ancoManager = RSMainThread::Instance();
+    auto ancoManager = RSAncoManager::Instance();
     ASSERT_NE(ancoManager, nullptr);
     ancoManager->SetAncoHebcStatus(AncoHebcStatus::INITIAL);
     ASSERT_EQ(ancoManager->GetAncoHebcStatus(), AncoHebcStatus::INITIAL);
@@ -104,7 +104,7 @@ HWTEST_F(RSAncoManagerTest, GetAncoHebcStatus, TestSize.Level2)
  */
 HWTEST_F(RSAncoManagerTest, AncoOptimizeCheck, TestSize.Level2)
 {
-    auto ancoManager = RSMainThread::Instance();
+    auto ancoManager = RSAncoManager::Instance();
     ASSERT_NE(ancoManager, nullptr);
     ASSERT_EQ(ancoManager->AncoOptimizeCheck(true, 3, 2), true);
     ASSERT_EQ(ancoManager->AncoOptimizeCheck(true, 4, 2), false);

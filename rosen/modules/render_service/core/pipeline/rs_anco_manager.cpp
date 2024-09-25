@@ -14,14 +14,11 @@
  */
 
 #include "rs_anco_manager.h"
-#include <memory>
-
 
 #include "params/rs_surface_render_params.h"
 #include "platform/common/rs_system_properties.h"
 
-namespace OHOS {
-namespace Rosen {
+namespace OHOS::Rosen {
 RSAncoManager* RSAncoManager::Instance()
 {
     static RSAncoManager instance;
@@ -38,7 +35,7 @@ void RSAncoManager::SetAncoHebcStatus(AncoHebcStatus hebcStatus)
     ancoHebcStatus_.store(static_cast<int32_t>(hebcStatus));
 }
 
-bool RSMainThread::AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt)
+bool RSAncoManager::AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt)
 {
     constexpr int MIN_OPTIMIZE_ANCO_NUMS = 3;
     constexpr int MIN_OPTIMIZE_ANCO_SFV_NUMS = 2;
@@ -57,12 +54,12 @@ bool RSMainThread::AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt)
     return false;
 }
 
-bool AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes,
         ScreenRotation rotation, int width, int height)
 {
     if (!RSSurfaceRenderNode::GetOriAncoForceDoDirect() || !RSSystemProperties::IsTabletType() ||
-        displayNode->GetRotation() != ScreenRotation::ROTATION_0) {
+        rotation != ScreenRotation::ROTATION_0) {
         return false;
     }
 
@@ -78,13 +75,13 @@ bool AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
     // process displayNode rect
     int minDisplayW = static_cast<int32_t>(width / 2);
     int minDisplayH = static_cast<int32_t>(height / 2);
-    if (minDisplayW <= 0 && minDisplayH <= 0) {
+    if (minDisplayW <= 0 || minDisplayH <= 0) {
         return false;
     }
 
     int nodesCnt = 0;
     int sfvNodesCnt = 0;
-    for (auto& surfaceNode : hardwareEnabledNodes_) {
+    for (auto& surfaceNode : hardwareEnabledNodes) {
         if ((surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) == 0) {
             continue;
         }
@@ -93,6 +90,7 @@ bool AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
             !surfaceNode->GetRSSurfaceHandler()->GetBuffer()) {
             continue;
         }
+
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
         if (params == nullptr) {
             continue;
@@ -105,8 +103,7 @@ bool AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
             }
         }
     }
+
     return AncoOptimizeCheck(isHebc, nodesCnt, sfvNodesCnt);
 }
-
-} // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS::Rosen
