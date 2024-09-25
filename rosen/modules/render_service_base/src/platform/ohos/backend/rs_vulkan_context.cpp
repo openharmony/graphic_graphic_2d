@@ -284,7 +284,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
     return true;
 }
 
-bool RsVulkanInterface::(GrVkBackendContext* context, bool createNew, bool isProtected)
+bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bool createNew, bool isProtected)
 {
     auto getProc = CreateSkiaGetProc();
     if (getProc == nullptr) {
