@@ -48,6 +48,7 @@ public:
 
     RSImageCache() = default;
     ~RSImageCache() = default;
+    bool CheckUniqueIdIsEmpty();
     void CollectUniqueId(uint64_t uniqueId);
     void ReleaseUniqueIdList();
 private:
