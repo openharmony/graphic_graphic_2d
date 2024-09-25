@@ -1565,6 +1565,17 @@ HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenScaleMode, Function | SmallTest
 }
 
 /*
+ * @tc.name: SetGlobalDarkColorMode
+ * @tc.desc: Test SetGlobalDarkColorMode
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetGlobalDarkColorMode, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces->SetGlobalDarkColorMode(true));
+}
+
+/*
  * @tc.name: SetScreenCorrection
  * @tc.desc: Test SetScreenCorrection
  * @tc.type: FUNC

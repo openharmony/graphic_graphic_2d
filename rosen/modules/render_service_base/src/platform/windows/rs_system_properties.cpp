@@ -492,5 +492,10 @@ bool RSSystemProperties::GetLayerCursorEnable()
 {
     return false;
 }
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
