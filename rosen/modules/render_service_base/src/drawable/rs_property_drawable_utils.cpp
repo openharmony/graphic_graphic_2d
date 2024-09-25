@@ -927,8 +927,16 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
 }
 
 void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
-    const float& offsetY, const float& radius, Color spotColor)
+    const float& offsetY, const float& radius, const bool& isFilled, Color spotColor)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::DrawShadowMaskFilter, Radius: %f, ShadowOffsetX: "
+        "%f, ShadowOffsetY: %f, bounds: %s",
+        radius, offsetX, offsetY, path.GetBounds().ToString().c_str());
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    if (!isFilled) {
+        canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
+    }
     path.Offset(offsetX, offsetY);
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(
