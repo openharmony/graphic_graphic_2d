@@ -229,6 +229,9 @@ void HgmFrameRateManager::InitTouchManager()
 
 void HgmFrameRateManager::InitPowerTouchManager()
 {
+    powerTouchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
+        powerTouchManager_.ChangeState(TouchState::DOWN_STATE);
+    });
     powerTouchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
         [](TouchState lastState, TouchState newState) {
         HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::DOWN_STATE);
