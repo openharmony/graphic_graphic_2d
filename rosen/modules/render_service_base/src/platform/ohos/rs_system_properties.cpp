@@ -104,6 +104,11 @@ bool RSSystemProperties::GetProfilerEnabled()
     return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
 
+void RSSystemProperties::SetProfilerDisabled()
+{
+    system::SetParameter("persist.graphic.profiler.enabled", "0");
+}
+
 bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     static bool vkQueuePriorityEnabled =

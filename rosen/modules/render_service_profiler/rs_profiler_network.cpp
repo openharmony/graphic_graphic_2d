@@ -341,6 +341,8 @@ void Network::Shutdown(Socket*& socket)
     AwakeRenderServiceThread();
 
     HRPE("Network: Shutdown");
+    RSSystemProperties::SetProfilerDisabled();
+    HRPE("Network: persist.graphic.profiler.enabled 0");
 }
 
 void Network::ProcessIncoming(Socket& socket)

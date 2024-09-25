@@ -126,6 +126,7 @@ public:
     static bool GetVkQueuePriorityEnable();
 
     static bool GetProfilerEnabled();
+    static void SetProfilerDisabled();
     static bool GetInstantRecording();
     static void SetInstantRecording(bool flag);
     static uint32_t GetBetaRecordingMode();
