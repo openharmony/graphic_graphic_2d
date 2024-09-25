@@ -16,10 +16,7 @@
 #ifndef RS_ANCO_MANAGER_H
 #define RS_ANCO_MANAGER_H
 
-#include <memory>
-
 #include "common/rs_common_def.h"
-#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "screen_manager/screen_types.h"
