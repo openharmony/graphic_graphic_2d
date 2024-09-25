@@ -2438,12 +2438,15 @@ void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes)
 {
     std::list<RectI> hwcRects;
+    bool disableRosenWeb = false;
     for (size_t i = 0; i < hwcNodes.size(); i++) {
         auto hwcNodePtr = hwcNodes[i].lock();
         if (!hwcNodePtr) {
             continue;
         }
-        if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
+        disableRosenWeb |= hwcNodePtr->IsRosenWeb();
+        if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
+            !disableRosenWeb) {
             hwcRects.push_back(hwcNodePtr->GetDstRect());
         } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
             hwcRects.size() != 0) {
