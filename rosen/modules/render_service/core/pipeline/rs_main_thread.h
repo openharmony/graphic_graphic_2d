@@ -298,6 +298,7 @@ public:
 
     void SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec);
     void SurfaceOcclusionCallback();
+    bool CheckSurfaceOcclusionNeedProcess(NodeId id);
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);

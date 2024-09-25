@@ -2519,67 +2519,98 @@ void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
 
 void RSMainThread::SurfaceOcclusionCallback()
 {
-    const auto& nodeMap = context_->GetNodeMap();
-    std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
-    for (auto &listener : surfaceOcclusionListeners_) {
-        if (savedAppWindowNode_.find(listener.first) == savedAppWindowNode_.end()) {
-            auto node = nodeMap.GetRenderNode(listener.first);
-            if (!node || !node->IsOnTheTree()) {
-                RS_LOGD("RSMainThread::SurfaceOcclusionCallback cannot find surfacenode %{public}"
-                    PRIu64 ".", listener.first);
+    std::list<std::pair<sptr<RSISurfaceOcclusionChangeCallback>, float>> callbackList;
+    {
+        std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
+        for (auto &listener : surfaceOcclusionListeners_) {
+            if (!CheckSurfaceOcclusionNeedProcess(listener.first)) {
                 continue;
             }
-            auto appWindowNodeId = node->GetInstanceRootNodeId();
-            if (appWindowNodeId == INVALID_NODEID) {
-                RS_LOGD("RSMainThread::SurfaceOcclusionCallback surfacenode %{public}"
-                    PRIu64 " cannot find app window node.", listener.first);
-                continue;
-            }
-            auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-            auto appWindowNode =
-                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
-            if (!surfaceNode || !appWindowNode) {
-                RS_LOGD("RSMainThread::SurfaceOcclusionCallback ReinterpretCastTo fail.");
-                continue;
-            }
-            savedAppWindowNode_[listener.first] = std::make_pair(surfaceNode, appWindowNode);
-        }
-        uint8_t level = 0;
-        float visibleAreaRatio = 0.0f;
-        bool isOnTheTree = savedAppWindowNode_[listener.first].first->IsOnTheTree();
-        if (isOnTheTree) {
-            const auto& property = savedAppWindowNode_[listener.first].second->GetRenderProperties();
-            auto dstRect = property.GetBoundsGeometry()->GetAbsRect();
-            if (dstRect.IsEmpty()) {
-                continue;
-            }
-            visibleAreaRatio = static_cast<float>(savedAppWindowNode_[listener.first].second->
-                GetVisibleRegion().Area()) / static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
-            auto& partitionVector = std::get<2>(listener.second); // get tuple 2 partition points vector
-            bool vectorEmpty = partitionVector.empty();
-            if (vectorEmpty && (visibleAreaRatio > 0.0f)) {
-                level = 1;
-            } else if (!vectorEmpty && ROSEN_EQ(visibleAreaRatio, 1.0f)) {
-                level = partitionVector.size();
-            } else if (!vectorEmpty && (visibleAreaRatio > 0.0f)) {
-                for (const auto &point : partitionVector) {
-                    if (visibleAreaRatio > point) {
-                        level += 1;
-                        continue;
+            uint8_t level = 0;
+            float visibleAreaRatio = 0.0f;
+            bool isOnTheTree = savedAppWindowNode_[listener.first].first->IsOnTheTree();
+            if (isOnTheTree) {
+                const auto& property = savedAppWindowNode_[listener.first].second->GetRenderProperties();
+                auto& geoPtr = property.GetBoundsGeometry();
+                if (!geoPtr) {
+                    continue;
+                }
+                auto dstRect = geoPtr->GetAbsRect();
+                if (dstRect.IsEmpty()) {
+                    continue;
+                }
+                visibleAreaRatio = static_cast<float>(savedAppWindowNode_[listener.first].second->
+                    GetVisibleRegion().Area()) / static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
+                auto& partitionVector = std::get<2>(listener.second); // get tuple 2 partition points vector
+                bool vectorEmpty = partitionVector.empty();
+                if (vectorEmpty && (visibleAreaRatio > 0.0f)) {
+                    level = 1;
+                } else if (!vectorEmpty && ROSEN_EQ(visibleAreaRatio, 1.0f)) {
+                    level = partitionVector.size();
+                } else if (!vectorEmpty && (visibleAreaRatio > 0.0f)) {
+                    for (const auto &point : partitionVector) {
+                        if (visibleAreaRatio > point) {
+                            level += 1;
+                            continue;
+                        }
+                        break;
                     }
-                    break;
+                }
+            }
+            auto& savedLevel = std::get<3>(listener.second); // tuple 3, check visible is changed
+            if (savedLevel != level) {
+                RS_LOGD("RSMainThread::SurfaceOcclusionCallback surfacenode: %{public}" PRIu64 ".", listener.first);
+                savedLevel = level;
+                if (isOnTheTree) {
+                    callbackList.push_back(std::make_pair(std::get<1>(listener.second), visibleAreaRatio));
                 }
             }
         }
-        auto& savedLevel = std::get<3>(listener.second); // tuple 3, check visible is changed
-        if (savedLevel != level) {
-            RS_LOGD("RSMainThread::SurfaceOcclusionCallback surfacenode: %{public}" PRIu64 ".", listener.first);
-            savedLevel = level;
-            if (isOnTheTree) {
-                std::get<1>(listener.second)->OnSurfaceOcclusionVisibleChanged(visibleAreaRatio);
-            }
+    }
+    for (auto &callback : callbackList) {
+        if (callback.first) {
+            callback.first->OnSurfaceOcclusionVisibleChanged(callback.second);
         }
     }
+}
+
+bool RSMainThread::CheckSurfaceOcclusionNeedProcess(NodeId id)
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    if (savedAppWindowNode_.find(id) == savedAppWindowNode_.end()) {
+        auto node = nodeMap.GetRenderNode(id);
+        if (!node || !node->IsOnTheTree()) {
+            RS_LOGD("RSMainThread::SurfaceOcclusionCallback cannot find surfacenode %{public}"
+                PRIu64 ".", id);
+            return false;
+        }
+        auto appWindowNodeId = node->GetInstanceRootNodeId();
+        if (appWindowNodeId == INVALID_NODEID) {
+            RS_LOGD("RSMainThread::SurfaceOcclusionCallback surfacenode %{public}"
+                PRIu64 " cannot find app window node.", id);
+            return false;
+        }
+        auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+        auto appWindowNode =
+            RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
+        if (!surfaceNode || !appWindowNode) {
+            RS_LOGD("RSMainThread::SurfaceOcclusionCallback ReinterpretCastTo fail.");
+            return false;
+        }
+        savedAppWindowNode_[id] = std::make_pair(surfaceNode, appWindowNode);
+    } else {
+        auto appWindowNodeId = savedAppWindowNode_[id].first->GetInstanceRootNodeId();
+        auto lastAppWindowNodeId = savedAppWindowNode_[id].second->GetId();
+        if (appWindowNodeId != lastAppWindowNodeId && appWindowNodeId != INVALID_NODEID) {
+            auto appWindowNode =
+                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
+            if (!appWindowNode) {
+                return false;
+            }
+            savedAppWindowNode_[id].second = appWindowNode;
+        }
+    }
+    return true;
 }
 
 bool RSMainThread::WaitHardwareThreadTaskExecute()
