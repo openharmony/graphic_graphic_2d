@@ -573,6 +573,7 @@ HWTEST_F(VulkanLoaderUnitTest, vkGetPhysicalDeviceSurfaceSupportKHR_Test, TestSi
         std::vector<VkBool32> supportsPresent(queueCount_);
         for (uint32_t i = 0; i < queueCount_; i++) {
             vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice_, i, surface_, &supportsPresent[i]);
+            EXPECT_EQ(supportsPresent[i], VK_TRUE);
         }
     }
 }
