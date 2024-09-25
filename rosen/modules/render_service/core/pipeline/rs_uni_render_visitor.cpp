@@ -2008,7 +2008,7 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (node.IsMainWindowType()) {
         node.SetGlobalCornerRadius(curCornerRadius_);
         CalculateOcclusion(node);
-        if(node.GetFirstLevelNodeId()==node.GetId()){
+        if (node.GetFirstLevelNodeId() == node.GetId()) {
             globalSurfaceBounds_.emplace_back(node.GetAbsDrawRect());
         }
     }
