@@ -458,4 +458,26 @@ HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
         std::cerr << "0" << std::endl;
     }
 }
+
+/**
+ * @tc.name: Playback009
+ * @tc.desc: test results of CreateBitmapFormat
+ * @tc.type:FUNC
+ * @tc.require: issueIATYWQ
+ */
+HWTEST_F(RSDrawCmdTest, Playback009, TestSize.Level1)
+{
+    Drawing::DrawCmdList list;
+    uint32_t surfaceBufferId = 1;
+    int offSetX = 1;
+    int offSetY = 1;
+    int width = 1;
+    int height = 1;
+    pid_t pid = {};
+    uint64_t uid = {};
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, paintHandle);
+    Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
+}
 } // namespace OHOS::Rosen
