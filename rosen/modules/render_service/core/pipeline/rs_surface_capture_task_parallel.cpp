@@ -410,7 +410,10 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         std::shared_ptr<Drawing::Surface> surface;
         auto grContext = RSBackgroundThread::Instance().GetShareGPUContext();
         if (!grContext) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel: grContext == nullptr");
             callback->OnSurfaceCapture(id, nullptr);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
