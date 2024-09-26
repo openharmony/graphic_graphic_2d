@@ -22,6 +22,7 @@
 #include "brightness_blender.h"
 #include "filter_blur_para.h"
 #include "filter_fly_out_para.h"
+#include "filter_distort_para.h"
 #include "filter_para.h"
 #include "filter_pixel_stretch_para.h"
 #include "filter_water_ripple_para.h"
@@ -136,6 +137,14 @@ namespace OHOS {
         flyOutPara->GetFlyMode();
     }
 
+    void DistortParaFuzzTest()
+    {
+        auto distortPara = std::make_shared<DistortPara>();
+        float distortionK = GetData<float>();
+        distortPara->SetDistortionK(distortionK);
+        distortPara->GetDistortionK();
+    }
+
     void FilterParaFuzzTest()
     {
         auto filterPara = std::make_shared<FilterPara>();
@@ -200,6 +209,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::VisualEffectFuzzTest();
     OHOS::FilterBlurParaFuzzTest();
     OHOS::FlyOutParaFuzzTest();
+    OHOS::DistortParaFuzzTest();
     OHOS::FilterParaFuzzTest();
     OHOS::PixelStretchParaFuzzTest();
     OHOS::WaterRippleParaFuzzTest();

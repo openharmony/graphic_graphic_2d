@@ -5904,6 +5904,21 @@ HWTEST_F(RSNodeTest, SetFlyOutParams, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDistortionK
+ * @tc.desc: test results of SetDistortionK
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSNodeTest, SetDistortionK, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    // for test
+    float distortionK = 0.5f;
+    rsNode->SetDistortionK(distortionK);
+    EXPECT_EQ(distortionK, 0.5f);
+}
+
+/**
  * @tc.name: SetNodeName
  * @tc.desc: test results of SetNodeName
  * @tc.type: FUNC

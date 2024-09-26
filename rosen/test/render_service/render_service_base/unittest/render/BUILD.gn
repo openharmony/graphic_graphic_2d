@@ -189,6 +189,7 @@ ohos_unittest("RSColorfulShadowFilterTest") {
 
   sources = [
     "rs_colorful_shadow_filter_test.cpp",
+    "rs_distortion_shader_filter_test.cpp",
     "rs_drawing_filter_test.cpp",
     "rs_filter_test.cpp",
     "rs_fly_out_shader_filter_test.cpp",
