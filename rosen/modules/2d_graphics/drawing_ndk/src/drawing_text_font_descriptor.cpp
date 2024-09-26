@@ -43,7 +43,6 @@ OH_Drawing_FontDescriptor* OH_Drawing_MatchFontDescriptors(OH_Drawing_FontDescri
     condition->italic = desc->italic;
     condition->monoSpace = desc->monoSpace;
     condition->symbolic = desc->symbolic;
-    condition->typeStyle = desc->typeStyle;
 
     std::set<std::shared_ptr<FontParser::FontDescriptor>> result;
     FontDescriptorMgrInstance.MatchFontDescriptors(condition, result);
@@ -70,8 +69,6 @@ OH_Drawing_FontDescriptor* OH_Drawing_MatchFontDescriptors(OH_Drawing_FontDescri
         descriptors[i].italic = item->italic;
         descriptors[i].monoSpace = item->monoSpace;
         descriptors[i].symbolic = item->symbolic;
-        descriptors[i].size = item->size;
-        descriptors[i].typeStyle = item->typeStyle;
         ++i;
     }
     return descriptors;

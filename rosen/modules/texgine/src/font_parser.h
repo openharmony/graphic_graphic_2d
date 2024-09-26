@@ -68,11 +68,6 @@ public:
         TRADEMARK = 7,
     };
 
-    enum FontTypeStyle {
-        ITALIC = 1 << 0,
-        BOLD = 1 << 1,
-    };
-
     enum SystemFontType : int32_t {
         ALL = 1 << 0,
         GENERIC = 1 << 1,
@@ -97,8 +92,6 @@ public:
         int italic = 0;
         bool monoSpace = false;
         bool symbolic = false;
-        double size = 0;
-        int typeStyle = 0;
     };
 
     FontParser();

@@ -56,7 +56,6 @@ private:
     bool FilterItalicCache(int italic, std::set<FontDescSharedPtr>& finishRet);
     bool FilterMonoSpaceCache(bool monoSpace, std::set<FontDescSharedPtr>& finishRet);
     bool FilterSymbolicCache(bool symbolic, std::set<FontDescSharedPtr>& finishRet);
-    bool FilterTypeStyle(int typeStyle, std::set<FontDescSharedPtr>& finishRet);
     bool IsDefault(FontDescSharedPtr desc);
 
 private:

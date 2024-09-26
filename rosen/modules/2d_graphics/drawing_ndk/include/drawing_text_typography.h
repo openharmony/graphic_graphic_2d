@@ -218,10 +218,6 @@ typedef struct OH_Drawing_FontDescriptor {
     bool monoSpace;
     /** whether symbolic fonts are supported */
     bool symbolic;
-    /** Font size */
-    size_t size;
-    /** Font style flag, from <b>OH_Drawing_FontTypeStyle</b> */
-    int typeStyle;
 } OH_Drawing_FontDescriptor;
 
 /**

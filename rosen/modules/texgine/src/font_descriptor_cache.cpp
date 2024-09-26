@@ -144,12 +144,10 @@ void FontDescriptorCache::FontDescriptorScatter(FontDescSharedPtr desc)
     handleMapScatter(fontSubfamilyNameMap_, desc->fontSubfamily);
 
     if (desc->weight > WEIGHT_400) {
-        desc->typeStyle |= TextEngine::FontParser::FontTypeStyle::BOLD;
         boldCache_.emplace(desc);
     }
 
     if (desc->italic != 0) {
-        desc->typeStyle |= TextEngine::FontParser::FontTypeStyle::ITALIC;
         italicCache_.emplace(desc);
     }
 
@@ -466,50 +464,11 @@ bool FontDescriptorCache::FilterSymbolicCache(bool symbolic, std::set<FontDescSh
     return true;
 }
 
-bool FontDescriptorCache::FilterTypeStyle(int typeStyle, std::set<FontDescSharedPtr>& finishRet)
-{
-    if (typeStyle < 0) {
-        return false;
-    }
-    if (typeStyle == 0) {
-        return true;
-    }
-
-    bool italicFlag = typeStyle & TextEngine::FontParser::FontTypeStyle::ITALIC;
-    bool boldFlag = typeStyle & TextEngine::FontParser::FontTypeStyle::BOLD;
-    auto handleCache = [&](const std::set<FontDescSharedPtr>& cache, const char* cacheName) {
-        if (cache.empty()) {
-            TEXT_LOGD("%{public}s is empty", cacheName);
-            return false;
-        }
-        if (finishRet.empty()) {
-            finishRet = cache;
-        } else {
-            std::set<FontDescSharedPtr> temp;
-            std::set_intersection(finishRet.begin(), finishRet.end(), cache.begin(), cache.end(),
-                                  std::inserter(temp, temp.begin()));
-            if (temp.empty()) {
-                TEXT_LOGD("Failed to match typeStyle %{public}s", cacheName);
-                return false;
-            }
-            finishRet = std::move(temp);
-        }
-        return true;
-    };
-    if (italicFlag && !handleCache(italicCache_, "italic")) {
-        return false;
-    }
-    if (boldFlag && !handleCache(boldCache_, "bold")) {
-        return false;
-    }
-    return true;
-}
-
 bool FontDescriptorCache::IsDefault(FontDescSharedPtr desc)
 {
     if (desc->fontFamily.empty() && desc->fullName.empty() && desc->postScriptName.empty()
         && desc->fontSubfamily.empty() && desc->weight == 0 && desc->width == 0 && desc->italic == 0
-        && !desc->monoSpace && !desc->symbolic && desc->typeStyle == 0) {
+        && !desc->monoSpace && !desc->symbolic) {
         return true;
     }
     return false;
@@ -541,7 +500,6 @@ void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::s
     TEXT_CHECK(FilterItalicCache(desc->italic, finishRet), return);
     TEXT_CHECK(FilterMonoSpaceCache(desc->monoSpace, finishRet), return);
     TEXT_CHECK(FilterSymbolicCache(desc->symbolic, finishRet), return);
-    TEXT_CHECK(FilterTypeStyle(desc->typeStyle, finishRet), return);
     result = std::move(finishRet);
 }
 

@@ -118,7 +118,6 @@ napi_value JsFontDescriptor::MatchFontDescriptorsAsync(napi_env env, napi_callba
                 {"italic", cb->matchDesc->italic},
                 {"monoSpace", cb->matchDesc->monoSpace},
                 {"symbolic", cb->matchDesc->symbolic},
-                {"typeStyle", cb->matchDesc->typeStyle},
             };
 
         for (auto& item : properties) {
@@ -173,8 +172,6 @@ bool JsFontDescriptor::CreateAndSetProperties(napi_env env, napi_value fontDescr
         {"italic", item->italic},
         {"monoSpace", item->monoSpace},
         {"symbolic", item->symbolic},
-        {"size", item->size},
-        {"typeStyle", item->typeStyle},
     };
 
     for (const auto& prop : properties) {
