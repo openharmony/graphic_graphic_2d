@@ -572,9 +572,9 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipDrawTest, TestSize.Level1)
 HWTEST_F(RSSurfaceNodeCommandTest, SetAbilityState, TestSize.Level1)
 {
     RSContext context;
-    SurfaceNodeCommandHelper::SetAbilityState(context, 0, true);
+    SurfaceNodeCommandHelper::SetAbilityState(context, 0, RSSurfaceNodeAbilityState::FOREGROUND);
     SurfaceNodeCommandHelper::Create(context, 1);
-    SurfaceNodeCommandHelper::SetAbilityState(context, 1, true);
+    SurfaceNodeCommandHelper::SetAbilityState(context, 1, RSSurfaceNodeAbilityState::FOREGROUND);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
 }
 } // namespace OHOS::Rosen

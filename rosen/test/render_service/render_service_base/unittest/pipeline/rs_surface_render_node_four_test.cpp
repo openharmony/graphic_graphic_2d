@@ -542,16 +542,11 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, SetAbilityState, TestSize.Level2)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->SetAbilityState(true);
-    ASSERT_TRUE(node->abilityState_);
-    rsContext->GetMutableNodeMap().surfaceNodeMap_[id] = node;
-    node->SetAbilityState(false);
-    ASSERT_FALSE(node->abilityState_);
-    ASSERT_FALSE(rsContext->GetMutableNodeMap().GetAbilityStateByPid(0));
-    node->SetAbilityState(true);
-    ASSERT_TRUE(rsContext->GetMutableNodeMap().GetAbilityStateByPid(0));
-    rsContext = nullptr;
-    node->SetAbilityState(false);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
+    ASSERT_TRUE(node->abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    ASSERT_FALSE(node->abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
 }
 
 /**
@@ -564,11 +559,11 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, GetAbilityState, TestSize.Level2)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    bool abilityState = node->GetAbilityState();
-    ASSERT_TRUE(abilityState);
-    node->abilityState_ = false;
+    auto abilityState = node->GetAbilityState();
+    ASSERT_TRUE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->abilityState_ = RSSurfaceNodeAbilityState::BACKGROUND;
     abilityState = node->GetAbilityState();
-    ASSERT_FALSE(abilityState);
+    ASSERT_FALSE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
 }
 } // namespace Rosen
 } // namespace OHOS

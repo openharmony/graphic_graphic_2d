@@ -211,13 +211,13 @@ HWTEST_F(RSAnimationManagerTest, Animate001, TestSize.Level1)
     renderCurveAnimation->SetRepeatCount(-1);
 
     std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
-        animationManager.Animate(0, false, true);
+        animationManager.Animate(0, false, RSSurfaceNodeAbilityState::FOREGROUND);
     EXPECT_FALSE(hasRunningAnimation);
     EXPECT_FALSE(needRequestNextVsync);
     EXPECT_FALSE(isCalculateAnimationValue);
 
     std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
-        animationManager.Animate(0, true, false);
+        animationManager.Animate(0, true, RSSurfaceNodeAbilityState::BACKGROUND);
     EXPECT_FALSE(hasRunningAnimation);
     EXPECT_FALSE(needRequestNextVsync);
     EXPECT_FALSE(isCalculateAnimationValue);
@@ -253,7 +253,7 @@ HWTEST_F(RSAnimationManagerTest, Animate002, TestSize.Level1)
     renderCurveAnimation->SetRepeatCount(1);
     renderCurveAnimation->Start();
     std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
-        animationManager.Animate(0, true, false);
+        animationManager.Animate(0, true, RSSurfaceNodeAbilityState::BACKGROUND);
     EXPECT_FALSE(hasRunningAnimation);
     EXPECT_FALSE(needRequestNextVsync);
     EXPECT_TRUE(isCalculateAnimationValue);
@@ -261,7 +261,7 @@ HWTEST_F(RSAnimationManagerTest, Animate002, TestSize.Level1)
     renderCurveAnimation->Start();
     renderCurveAnimation->Pause();
     std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
-        animationManager.Animate(0, true, true);
+        animationManager.Animate(0, true, RSSurfaceNodeAbilityState::FOREGROUND);
     EXPECT_FALSE(hasRunningAnimation);
     EXPECT_FALSE(needRequestNextVsync);
     EXPECT_FALSE(isCalculateAnimationValue);
@@ -269,7 +269,7 @@ HWTEST_F(RSAnimationManagerTest, Animate002, TestSize.Level1)
     renderCurveAnimation->Resume();
     renderCurveAnimation->Finish();
     std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
-        animationManager.Animate(0, false, false);
+        animationManager.Animate(0, false, RSSurfaceNodeAbilityState::BACKGROUND);
     EXPECT_FALSE(hasRunningAnimation);
     EXPECT_FALSE(needRequestNextVsync);
     EXPECT_FALSE(isCalculateAnimationValue);

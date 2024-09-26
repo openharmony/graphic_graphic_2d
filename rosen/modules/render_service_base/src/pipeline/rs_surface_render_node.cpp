@@ -2993,27 +2993,21 @@ void RSSurfaceRenderNode::SetWatermarkEnabled(const std::string& name, bool isEn
     AddToPendingSyncList();
 }
 
-void RSSurfaceRenderNode::SetAbilityState(bool abilityState)
+void RSSurfaceRenderNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)
 {
-    ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s",
-    GetId(), abilityState ? "foreground" : "background");
-
     if (abilityState_ == abilityState) {
+        ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], "
+            "ability state same with before: %{public}s",
+            GetId(), abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
         return;
     }
 
     abilityState_ = abilityState;
-
-    if (auto context = GetContext().lock()) {
-        if (abilityState_) {
-            context->GetMutableNodeMap().RemoveBackgroundPid(ExtractPid(GetId()));
-        } else if (context->GetNodeMap().IsAllSurfaceNodesWithSamePidOnBackground(ExtractPid(GetId()))) {
-            context->GetMutableNodeMap().AddBackgroundPid(ExtractPid(GetId()));
-        }
-    }
+    ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s",
+        GetId(), abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
 }
 
-bool RSSurfaceRenderNode::GetAbilityState() const
+RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
 {
     return abilityState_;
 }

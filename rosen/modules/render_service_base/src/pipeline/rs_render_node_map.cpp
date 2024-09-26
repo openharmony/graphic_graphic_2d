@@ -328,40 +328,5 @@ const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) co
     return "";
 }
 
-bool RSRenderNodeMap::GetAbilityStateByPid(pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(backgroundPidsMutex_);
-    return backgroundPids_.find(pid) == backgroundPids_.end();
-}
-
-void RSRenderNodeMap::AddBackgroundPid(pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(backgroundPidsMutex_);
-    backgroundPids_.insert(pid);
-    ROSEN_LOGD("RSRenderNodeMap::AddBackgroundPid insert pid [%{public}lld], "
-               "current background pids numbers: %{public}lu",
-               static_cast<long long>(pid), static_cast<unsigned long>(backgroundPids_.size()));
-}
-
-void RSRenderNodeMap::RemoveBackgroundPid(pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(backgroundPidsMutex_);
-    auto erased = backgroundPids_.erase(pid);
-    if (erased) {
-        ROSEN_LOGD("RSRenderNodeMap::RemoveBackgroundPid erase pid [%{public}lld], "
-                   "current background pids numbers: %{public}lu",
-                   static_cast<long long>(pid), static_cast<unsigned long>(backgroundPids_.size()));
-    }
-}
-
-bool RSRenderNodeMap::IsAllSurfaceNodesWithSamePidOnBackground(pid_t pid) const
-{
-    for (const auto& [surfaceNodeId, surfaceNode] : surfaceNodeMap_) {
-        if (ExtractPid(surfaceNodeId) == pid && surfaceNode && surfaceNode->GetAbilityState()) {
-            return false;
-        }
-    }
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS

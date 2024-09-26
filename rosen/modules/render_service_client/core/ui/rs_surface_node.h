@@ -141,8 +141,8 @@ public:
     static void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
-    void SetAbilityState(bool abilityState);
-    bool GetAbilityState() const;
+    void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
+    RSSurfaceNodeAbilityState GetAbilityState() const;
 
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
@@ -182,7 +182,7 @@ private:
     bool isChildOperationDisallowed_ { false };
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
-    bool abilityState_ = true;
+    RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

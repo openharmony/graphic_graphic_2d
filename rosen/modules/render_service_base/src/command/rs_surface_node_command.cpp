@@ -308,11 +308,15 @@ void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId no
     }
 }
 
-void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId, bool abilityState)
+void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId,
+    RSSurfaceNodeAbilityState abilityState)
 {
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetAbilityState(abilityState);
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (!node) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::SetAbilityState node is null!");
+        return;
     }
+    node->SetAbilityState(abilityState);
 }
 } // namespace Rosen
 } // namespace OHOS

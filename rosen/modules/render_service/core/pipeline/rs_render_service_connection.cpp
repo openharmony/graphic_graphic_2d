@@ -186,16 +186,6 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
-    mainThread_->ScheduleTask(
-        [weakThis = wptr<RSRenderServiceConnection>(this)]() {
-            sptr<RSRenderServiceConnection> connection = weakThis.promote();
-            if (!connection) {
-                return;
-            }
-            RS_TRACE_NAME_FMT("RemoveBackgroundState %d", connection->remotePid_);
-            auto& context = connection->mainThread_->GetContext();
-            context.GetMutableNodeMap().RemoveBackgroundPid(connection->remotePid_);
-        }).wait();
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
     HgmTaskHandleThread::Instance().ScheduleTask([pid = remotePid_] () {
         RS_TRACE_NAME_FMT("CleanHgmEvent %d", pid);

@@ -1647,11 +1647,11 @@ HWTEST_F(RSSurfaceNodeTest, SetAbilityState, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    surfaceNode->SetAbilityState(true);
-    EXPECT_TRUE(surfaceNode->GetAbilityState());
+    surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
+    EXPECT_TRUE(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND);
 
-    surfaceNode->SetAbilityState(false);
-    EXPECT_FALSE(surfaceNode->GetAbilityState());
+    surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    EXPECT_TRUE(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::BACKGROUND);
 }
 
 /**
@@ -1664,6 +1664,6 @@ HWTEST_F(RSSurfaceNodeTest, GetAbilityState, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    EXPECT_TRUE(surfaceNode->GetAbilityState());
+    EXPECT_TRUE(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND);
 }
 } // namespace OHOS::Rosen

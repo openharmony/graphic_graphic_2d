@@ -1199,12 +1199,18 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
     if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
         return displaySync_->GetAnimateResult();
     }
-    bool abilityState = true;
-    if (auto context = GetContext().lock()) {
-        abilityState = context->GetMutableNodeMap().GetAbilityStateByPid(ExtractPid(GetId()));
+    RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
+    
+    if (auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetInstanceRootNode())) {
+        abilityState = surfaceNode->GetAbilityState();
+        RS_OPTIONAL_TRACE_NAME("RSRenderNode:Animate node id: [" + std::to_string(GetId()) +
+            "], surface node id: [" + std::to_string(surfaceNode->GetId()) +
+            "], abilityState: " +
+            std::string(abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
+    } else {
+        ROSEN_LOGE("RSRenderNode::Animate surfaceNode is null!");
     }
-    RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "], abilityState: " +
-    std::string(abilityState ? "foreground" : "background"));
+    RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "]");
     auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);

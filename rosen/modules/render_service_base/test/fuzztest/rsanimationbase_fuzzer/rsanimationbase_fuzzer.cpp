@@ -126,7 +126,7 @@ namespace OHOS {
         pid_t pid = GetData<pid_t>();
         int64_t time = GetData<int64_t>();
         bool nodeIsOnTheTree = GetData<bool>();
-        bool abilityState = GetData<bool>();
+        RSSurfaceNodeAbilityState abilityState = GetData<RSSurfaceNodeAbilityState>();
         bool isEnable = GetData<bool>();
         const FrameRateGetFunc func;
         float width = GetData<float>();
