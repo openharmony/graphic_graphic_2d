@@ -1217,11 +1217,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest049, TestSize.Level
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     bool halfLeading = true;
     OH_Drawing_SetTypographyTextHalfLeading(typoStyle, halfLeading);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->halfLeading, true);
     OH_Drawing_SetTypographyTextLineStyleHalfLeading(typoStyle, halfLeading);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleHalfLeading, true);
     bool uselineStyle = true;
     OH_Drawing_SetTypographyTextUseLineStyle(typoStyle, uselineStyle);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->useLineStyle, true);
     bool linestyleOnly = false;
     OH_Drawing_SetTypographyTextLineStyleOnly(typoStyle, linestyleOnly);
+    EXPECT_EQ(ConvertToOriginalText(typoStyle)->lineStyleOnly, false);
 }
 
 /*
@@ -1293,6 +1297,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest051, TestSize.Level
     OH_Drawing_TextStyleSetBackgroundRect(txtStyle, &rectStyleInfo, styleId);
     uint32_t symbol = 2; // 2 means symbol for test
     OH_Drawing_TypographyHandlerAddSymbol(handler, symbol);
+    OH_Drawing_TypographyHandlerAddSymbol(nullptr, symbol);
     const char* key1 = "宋体";
     int value1 = 1; // 1 for test
     OH_Drawing_TextStyleAddFontFeature(nullptr, key1, value1);
@@ -2064,17 +2069,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest086, TestSize.Level
     double maxWidth = 300.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
     EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
-}
-
-/*
- * @tc.name: OH_Drawing_TypographyTest087
- * @tc.desc: test for adding symbol for text typography
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest087, TestSize.Level1)
-{
-    uint32_t symbol = 0; // 0 means symbol for test
-    OH_Drawing_TypographyHandlerAddSymbol(nullptr, symbol);
 }
 
 /*

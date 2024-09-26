@@ -620,7 +620,10 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetFilter001, TestSize.Le
 HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetFilter002, TestSize.Level1)
 {
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
-    OH_Drawing_PenGetFilter(pen, nullptr);
+    OH_Drawing_Filter* filter = nullptr;
+    OH_Drawing_PenGetFilter(pen, filter);
+    ASSERT_TRUE(filter == nullptr);
+    OH_Drawing_FilterDestroy(filter);
     OH_Drawing_PenDestroy(pen);
 }
 
