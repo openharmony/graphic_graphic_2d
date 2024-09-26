@@ -24,6 +24,7 @@
 #include "skia_adapter/skia_surface.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
+#include "render/rs_mesa_blur_shader_filter.h"
 
 namespace OHOS::Rosen {
 class RSPropertyDrawableUtilsTest : public testing::Test {
@@ -631,15 +632,20 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::e
     std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(rsFilterTest2);
     EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
 
+    // 10: blur radius
+    int radius = 10;
+    std::shared_ptr<RSMESABlurShaderFilter> mesaFilter = std::make_shared<RSMESABlurShaderFilter>(radius);
+    std::shared_ptr<RSDrawingFilter> filter3 = std::make_shared<RSDrawingFilter>(mesaFilter);
+
     // -1.0f: stretch offset param
     Vector4f pixelStretchTest(-1.0f, -1.0f, -1.0f, -1.0f);
     properties.pixelStretch_ = pixelStretchTest;
-    EXPECT_TRUE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
+    EXPECT_TRUE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter3));
 
     // 1.0f: stretch offset param
     Vector4f pixelStretchTest2(1.0f, 1.0f, 1.0f, 1.0f);
     properties.pixelStretch_ = pixelStretchTest2;
-    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
+    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter3));
 }
 
 /**
@@ -660,9 +666,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterRemovePixelStretchTest022, testing
     std::shared_ptr<RSDrawingFilter> filter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     rsPropertyDrawableUtils->RSFilterRemovePixelStretch(filter);
 
-    std::shared_ptr<RSShaderFilter> rsFilterTest2 = std::make_shared<RSShaderFilter>();
-    rsFilterTest2->type_ = RSShaderFilter::MESA;
-    std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(rsFilterTest2);
+    // 10: blur radius
+    int radius = 10;
+    std::shared_ptr<RSMESABlurShaderFilter> mesaFilter = std::make_shared<RSMESABlurShaderFilter>(radius);
+    std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(mesaFilter);
     rsPropertyDrawableUtils->RSFilterRemovePixelStretch(filter2);
 }
 } // namespace OHOS::Rosen
