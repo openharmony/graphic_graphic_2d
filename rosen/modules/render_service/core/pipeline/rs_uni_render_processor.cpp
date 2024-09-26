@@ -218,8 +218,8 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
         RS_LOGE("%{public}s ancestorDisplayDrawable/ancestorDisplayDrawableParams/uniParam is nullptr", __func__);
         return false;
     } else {
-        auto params = static_cast<RSDisplayRenderParams*>(ancestorDisplayDrawable->GetRenderParams().get());
-        forceClientForDRM = params->IsRotationChanged() || uniParam->GetCacheEnabledForRotation();
+        auto displayParams = static_cast<RSDisplayRenderParams*>(ancestorDisplayDrawable->GetRenderParams().get());
+        forceClientForDRM = displayParams->IsRotationChanged() || uniParam->GetCacheEnabledForRotation();
     }
     return forceClientForDRM;
 }
