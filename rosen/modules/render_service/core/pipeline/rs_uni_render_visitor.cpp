@@ -1235,7 +1235,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         CheckCurtainScreenUsingStatusChange() ||
         IsFirstFrameOfPartialRender() ||
         IsWatermarkFlagChanged() ||
-        IsDisplayZoomIn() ||
+        IsDisplayZoomStateChange() ||
         CheckLuminanceStatusChange();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
@@ -1289,13 +1289,15 @@ bool RSUniRenderVisitor::IsWatermarkFlagChanged() const
     }
 }
 
-bool RSUniRenderVisitor::IsDisplayZoomIn() const
+bool RSUniRenderVisitor::IsDisplayZoomStateChange() const
 {
     if (!curDisplayNode_) {
         return false;
     }
     auto scale = curDisplayNode_->GetRenderProperties().GetScale();
-    return scale.x_ > 1.f || scale.y_ > 1.f;
+    bool curZoomState = scale.x_ > 1.f || scale.y_ > 1.f;
+    curDisplayNode_->UpdateZoomState(curZoomState);
+    return curZoomState || curDisplayNode_->IsZoomStateChange();
 }
 
 void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node)
