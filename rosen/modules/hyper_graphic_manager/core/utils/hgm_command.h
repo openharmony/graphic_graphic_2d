@@ -30,6 +30,7 @@ constexpr int UNI_APP_PID = -1;
 constexpr int32_t HGM_REFRESHRATE_MODE_AUTO = -1;
 constexpr pid_t DEFAULT_PID = 0;
 constexpr int ADAPTIVE_SYNC_ENABLED = 1;
+constexpr int32_t SWITCH_SCREEN_SCENE = 1;
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,

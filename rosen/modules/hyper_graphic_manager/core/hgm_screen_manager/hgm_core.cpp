@@ -63,11 +63,6 @@ HgmCore::HgmCore()
 
 void HgmCore::Init()
 {
-    if (!isEnabled_) {
-        HGM_LOGE("HgmCore Hgm is desactivated");
-        return;
-    }
-
     static std::once_flag onceFlag;
     std::call_once(onceFlag, [this] () {
         if (InitXmlConfig() != EXEC_SUCCESS) {
@@ -278,6 +273,10 @@ void HgmCore::RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback&
 
 int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
+    if (!IsEnabled()) {
+        HGM_LOGD("HgmCore is not enabled");
+        return HGM_ERROR;
+    }
     // set the screen to the desired refreshrate
     HGM_LOGD("HgmCore setting screen " PUBU64 " to the rate of %{public}d", id, rate);
     if (mPolicyConfigData_ == nullptr) {
@@ -293,7 +292,6 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
         HGM_LOGW("HgmCore refuse an illegal framerate: %{public}d", rate);
         return HGM_ERROR;
     }
-    sceneId = static_cast<int32_t>(screenSceneSet_.size());
     int32_t modeToSwitch = screen->SetActiveRefreshRate(sceneId, static_cast<uint32_t>(rate));
     if (modeToSwitch < 0) {
         return modeToSwitch;

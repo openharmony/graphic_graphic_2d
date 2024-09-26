@@ -613,10 +613,6 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
 HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level4)
 {
     auto &hgm = HgmCore::Instance();
-    hgm.isEnabled_ = false; // HGMCore is disable.
-    hgm.Init();
-
-    hgm.isEnabled_ = true;
     hgm.Init();
 
     auto mgr = hgm.GetFrameRateMgr();

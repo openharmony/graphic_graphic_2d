@@ -47,11 +47,6 @@ public:
         return screenIds_;
     }
 
-    bool IsEnabled() const
-    {
-        return isEnabled_;
-    }
-
     int32_t GetScreenListSize() const
     {
         return screenList_.size();
@@ -247,7 +242,11 @@ private:
     int32_t SetCustomRateMode(int32_t mode);
     void SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting);
 
-    bool isEnabled_ = true;
+    bool IsEnabled() const
+    {
+        return mPolicyConfigData_ != nullptr && !mPolicyConfigData_->refreshRateForSettings_.empty();
+    }
+
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
@@ -261,7 +260,6 @@ private:
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeListToApply_ = nullptr;
 
     std::atomic<ScreenId> activeScreenId_{ INVALID_SCREEN_ID };
-    std::unordered_set<SceneType> screenSceneSet_;
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
 
     // for LTPO
