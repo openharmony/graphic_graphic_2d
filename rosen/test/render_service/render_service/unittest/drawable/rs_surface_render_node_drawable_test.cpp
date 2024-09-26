@@ -444,11 +444,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     surfaceParams->isSpherizeValid_ = false;
-    surfaceParams->isAttractionValid_ = false;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     surfaceDrawable_->hasHdrPresent_ = true;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    ASSERT_TRUE(!surfaceParams->IsAttractionValid());
 
     surfaceParams->protectedLayerIds_.insert(1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);

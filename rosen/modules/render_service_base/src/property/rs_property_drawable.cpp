@@ -167,8 +167,6 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::FOREGROUND_BLUR_COLOR_MODE, RSPropertyDrawableSlot::COMPOSITING_FILTER },
     { RSModifierType::FOREGROUND_BLUR_RADIUS_X, RSPropertyDrawableSlot::COMPOSITING_FILTER },
     { RSModifierType::FOREGROUND_BLUR_RADIUS_Y, RSPropertyDrawableSlot::COMPOSITING_FILTER },
-    { RSModifierType::ATTRACTION_FRACTION, RSPropertyDrawableSlot::INVALID },
-    { RSModifierType::ATTRACTION_DSTPOINT, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::CUSTOM, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::EXTENDED, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::TRANSITION, RSPropertyDrawableSlot::TRANSITION },

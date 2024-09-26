@@ -2064,7 +2064,6 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->renderContent_->renderProperties_.shadow_ = shadow;
     nodeTest->renderContent_->renderProperties_.shadow_->radius_ = 1.0f;
     nodeTest->renderContent_->renderProperties_.isSpherizeValid_ = true;
-    nodeTest->renderContent_->renderProperties_.isAttractionValid_ = true;
     nodeTest->cacheSurface_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
 
@@ -2137,7 +2136,6 @@ HWTEST_F(RSRenderNodeTest, InitCacheSurfaceTest024, TestSize.Level1)
     nodeTest->renderContent_->renderProperties_.shadow_ = shadow;
     nodeTest->renderContent_->renderProperties_.shadow_->radius_ = 1.0f;
     nodeTest->renderContent_->renderProperties_.isSpherizeValid_ = false;
-    nodeTest->renderContent_->renderProperties_.isAttractionValid_ = false;
     nodeTest->cacheSurface_ = nullptr;
     nodeTest->InitCacheSurface(&gpuContextTest1, funcTest1, 1);
     EXPECT_EQ(nodeTest->cacheSurface_, nullptr);

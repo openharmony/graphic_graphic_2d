@@ -173,8 +173,6 @@ bool DoGet003(const uint8_t* data, size_t size)
     modifierExtractor.GetForegroundBlurColorMode();
     modifierExtractor.GetForegroundBlurRadiusX();
     modifierExtractor.GetForegroundBlurRadiusY();
-    modifierExtractor.GetAttractionFractionValue();
-    modifierExtractor.GetAttractionDstPointValue();
     modifierExtractor.GetLightIntensity();
     modifierExtractor.GetLightColor();
     modifierExtractor.GetLightPosition();
