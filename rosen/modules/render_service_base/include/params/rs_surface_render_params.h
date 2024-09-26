@@ -56,21 +56,36 @@ struct RSLayerInfo {
     }
 #endif
 };
+struct RSWindowInfo {
+    bool isMainWindowType_ = false;
+    bool isLeashWindow_ = false;
+    bool isAppWindow_ = false;
+    void SetWindowInfo(bool isMainWindowType, bool isLeashWindow, bool isAppWindow)
+    {
+        isMainWindowType_ = isMainWindowType;
+        isLeashWindow_ = isLeashWindow;
+        isAppWindow_ = isAppWindow;
+    }
+};
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams(NodeId id);
     ~RSSurfaceRenderParams() override = default;
     inline bool IsMainWindowType() const
     {
-        return isMainWindowType_;
+        return windowInfo_.isMainWindowType_;
     }
     inline bool IsLeashWindow() const override
     {
-        return isLeashWindow_;
+        return windowInfo_.isLeashWindow_;
     }
     bool IsAppWindow() const override
     {
-        return isAppWindow_;
+        return windowInfo_.isAppWindow_;
+    }
+    void SetWindowInfo(bool isMainWindowType, bool isLeashWindow, bool isAppWindow)
+    {
+        windowInfo_.SetWindowInfo(isMainWindowType, isLeashWindow, isAppWindow);
     }
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
@@ -422,9 +437,6 @@ public:
     NodeId GetRootIdOfCaptureWindow() const override;
 protected:
 private:
-    bool isMainWindowType_ = false;
-    bool isLeashWindow_ = false;
-    bool isAppWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorDisplayNode_;
@@ -459,6 +471,7 @@ private:
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
     RSLayerInfo layerInfo_;
+    RSWindowInfo windowInfo_;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;

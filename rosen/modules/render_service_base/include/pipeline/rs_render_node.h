@@ -370,8 +370,8 @@ public:
     bool HasMustRenewedInfo() const;
     bool HasSubSurface() const;
 
-    bool NeedInitCacheSurface();
-    bool NeedInitCacheCompletedSurface();
+    bool NeedInitCacheSurface() const;
+    bool NeedInitCacheCompletedSurface() const;
     bool IsPureContainer() const;
     bool IsContentNode() const;
 
