@@ -31,6 +31,8 @@
 #include "drawing_pen.h"
 #include "drawing_shadow_layer.h"
 #include "drawing_text_declaration.h"
+#include "drawing_text_line.h"
+#include "drawing_text_lineTypography.h"
 #include "drawing_text_typography.h"
 #include "drawing_types.h"
 #include "draw/brush.h"
@@ -365,6 +367,49 @@ void OHDrawingTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_DestroyTextStyle(txtStyle);
 }
 
+void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    uint32_t red = static_cast<float>(data[1]);
+    uint32_t gree = static_cast<float>(data[1]);
+    uint32_t blue = static_cast<float>(data[1]);
+    uint32_t alpha = static_cast<float>(data[0]);
+    OH_Drawing_TypographyStyle* typographStyle = OH_Drawing_CreateTypographyStyle();
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TypographyCreate* creatHandler =
+    OH_Drawing_CreateTypographyHandler(typographStyle, OH_Drawing_CreateFontCollection());
+    OH_Drawing_SetTextStyleColor(textStyle, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
+    OH_Drawing_SetTextStyleFontSize(textStyle, static_cast<float>(data[0]));
+    OH_Drawing_SetTextStyleFontWeight(textStyle, FONT_WEIGHT_400);
+    OH_Drawing_SetTextStyleBaseLine(textStyle, TEXT_BASELINE_ALPHABETIC);
+    const char* fontFamilies[] = { "Roboto" };
+    OH_Drawing_SetTextStyleFontFamilies(textStyle, 1, fontFamilies);
+    OH_Drawing_TypographyHandlerPushTextStyle(creatHandler, textStyle);
+    std::string text = "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp ";
+    text += "试 Drawing \n\n   \u231A \u513B \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本";
+    OH_Drawing_TypographyHandlerAddText(creatHandler, text.c_str());
+    OH_Drawing_TypographyHandlerPopTextStyle(creatHandler);
+    OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(creatHandler);
+    if (lineTypography == nullptr) {
+        return;
+    }
+    for (auto i = 0; i < size - 1; i++) {
+        double maxWidth = data[i];
+        size_t startIndex = data[++i];
+        auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
+        OH_Drawing_TextLine *line = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
+        OH_Drawing_DestroyTextLine(line);
+    }
+
+    OH_Drawing_DestroyLineTypography(lineTypography);
+    OH_Drawing_DestroyTypographyHandler(creatHandler);
+    OH_Drawing_DestroyTypographyStyle(typographStyle);
+    OH_Drawing_DestroyTextStyle(textStyle);
+}
+
 void NativeDrawingPenTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -483,6 +528,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathCubicToTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathCloseTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTypographyTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingLineTypographyTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPenTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingShadowLayerTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingTextStyleDecorationTest(data, size);
