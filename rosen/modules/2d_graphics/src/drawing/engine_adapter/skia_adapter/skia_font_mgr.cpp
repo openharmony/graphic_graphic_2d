@@ -60,7 +60,7 @@ bool ConvertToUTF16BE(uint8_t* data, uint32_t dataLen, FontByteArray& fullname)
         return false;
     }
     // If the encoding format of data is UTF-16, copy it directly
-    if (strlen((char*)data) < dataLen || !IsUtf8((const char*)data)) {
+    if (strlen(reinterpret_cast<char*>(data)) < dataLen || !IsUtf8(reinterpret_cast<const char*>(data))) {
         fullname.strData = std::make_unique<uint8_t[]>(dataLen);
         if (memcpy_s(fullname.strData.get(), dataLen, data, dataLen) == EOK) {
             fullname.strLen = dataLen;
@@ -70,17 +70,17 @@ bool ConvertToUTF16BE(uint8_t* data, uint32_t dataLen, FontByteArray& fullname)
     }
     // If the data format is utf-8, create a converter from UTF-8 to UTF-16
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-    std::string utf8String((char*)data, dataLen);
+    std::string utf8String(reinterpret_cast<char*>(data), dataLen);
     std::u16string utf16String = converter.from_bytes(utf8String);
-    char16_t* u16Data = const_cast<char16_t*>(utf16String.c_str());
     // Get the byte length and copy the data
     size_t strByteLen = utf16String.size() * sizeof(char16_t);
     if (strByteLen == 0) {
         return false;
     }
-    SwapBytes(u16Data, strByteLen / sizeof(char16_t));
+    SwapBytes(const_cast<char16_t*>(utf16String.c_str()), strByteLen / sizeof(char16_t));
     fullname.strData = std::make_unique<uint8_t[]>(strByteLen);
-    if (memcpy_s(fullname.strData.get(), strByteLen, u16Data, strByteLen) == EOK) {
+    if (memcpy_s(fullname.strData.get(), strByteLen,
+        reinterpret_cast<const void*>(utf16String.c_str()), strByteLen) == EOK) {
         fullname.strLen = strByteLen;
         return true;
     }

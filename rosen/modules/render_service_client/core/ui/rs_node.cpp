@@ -1462,6 +1462,11 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             };
             SetFlyOutParams(rs_fly_out_param, degree);
         }
+        if (filterPara->GetParaType() == FilterPara::DISTORT) {
+            auto distortPara = std::static_pointer_cast<DistortPara>(filterPara);
+            auto distortionK = distortPara->GetDistortionK();
+            SetDistortionK(distortionK);
+        }
     }
 }
 
@@ -1858,6 +1863,11 @@ void RSNode::SetFlyOutParams(const RSFlyOutPara& params, float degree)
         RSProperty<RSFlyOutPara>>(RSModifierType::FLY_OUT_PARAMS, params);
     SetProperty<RSFlyOutDegreeModifier,
         RSAnimatableProperty<float>>(RSModifierType::FLY_OUT_DEGREE, degree);
+}
+
+void RSNode::SetDistortionK(const float distortionK)
+{
+    SetProperty<RSDistortionKModifier, RSAnimatableProperty<float>>(RSModifierType::DISTORTION_K, distortionK);
 }
 
 void RSNode::SetFreeze(bool isFreeze)

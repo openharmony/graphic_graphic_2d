@@ -112,6 +112,130 @@ HWTEST_F(SKImageChainUnittest, DrawTest003, TestSize.Level1)
     skImageChain->ForceCPU(true);
 }
 
+HWTEST_F(SKImageChainUnittest, CreateEffect_Blur_GetPixelMap_CPU, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageChainUnittest CreateEffect_Blur_GetPixelMap_CPU start";
+
+    // create from PixelMap
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(uniPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+    SkImageInfo imageInfo = SkImageInfo::Make(srcPixelMap->GetWidth(), srcPixelMap->GetHeight(),
+        SkColorType::kRGBA_8888_SkColorType,
+        static_cast<SkAlphaType>(srcPixelMap->GetAlphaType()));
+
+    auto skImageChain = std::make_shared<SKImageChain>(srcPixelMap);
+    ASSERT_NE(skImageChain, nullptr);
+
+    auto filterBlur = Rosen::SKImageFilterFactory::Blur(0.5);
+    ASSERT_NE(filterBlur, nullptr);
+    skImageChain->SetFilters(filterBlur);
+
+    skImageChain->ForceCPU(true);
+    skImageChain->Draw();
+
+    ASSERT_NE(skImageChain->GetPixelMap(), nullptr);
+}
+
+HWTEST_F(SKImageChainUnittest, CreateEffect_Blur_GetPixelMap_CPU_10000, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageChainUnittest CreateEffect_Blur_GetPixelMap_CPU_10000 start";
+
+    for (int i = 0;i < 10000; i++) {
+        // create from PixelMap
+        Media::InitializationOptions opts;
+        opts.size.width = 1;
+        opts.size.height = 1;
+        opts.editable = true;
+        auto uniPixelMap = Media::PixelMap::Create(opts);
+        ASSERT_NE(uniPixelMap, nullptr);
+
+        std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+        SkImageInfo imageInfo = SkImageInfo::Make(srcPixelMap->GetWidth(), srcPixelMap->GetHeight(),
+            SkColorType::kRGBA_8888_SkColorType,
+            static_cast<SkAlphaType>(srcPixelMap->GetAlphaType()));
+
+        auto skImageChain = std::make_shared<SKImageChain>(srcPixelMap);
+        ASSERT_NE(skImageChain, nullptr);
+
+        auto filterBlur = Rosen::SKImageFilterFactory::Blur(0.5);
+        ASSERT_NE(filterBlur, nullptr);
+        skImageChain->SetFilters(filterBlur);
+
+        skImageChain->ForceCPU(true);
+        skImageChain->Draw();
+
+        ASSERT_NE(skImageChain->GetPixelMap(), nullptr);
+    }
+}
+
+HWTEST_F(SKImageChainUnittest, CreateEffect_Blur_GetPixelMap_GPU, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageChainUnittest CreateEffect_Blur_GetPixelMap_GPU start";
+
+    // create from PixelMap
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(uniPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+    SkImageInfo imageInfo = SkImageInfo::Make(srcPixelMap->GetWidth(), srcPixelMap->GetHeight(),
+        SkColorType::kRGBA_8888_SkColorType,
+        static_cast<SkAlphaType>(srcPixelMap->GetAlphaType()));
+
+    auto skImageChain = std::make_shared<SKImageChain>(srcPixelMap);
+    ASSERT_NE(skImageChain, nullptr);
+
+    auto filterBlur = Rosen::SKImageFilterFactory::Blur(0.5);
+    ASSERT_NE(filterBlur, nullptr);
+    skImageChain->SetFilters(filterBlur);
+
+    skImageChain->ForceCPU(false);
+    skImageChain->Draw();
+
+    ASSERT_NE(skImageChain->GetPixelMap(), nullptr);
+}
+
+HWTEST_F(SKImageChainUnittest, CreateEffect_Blur_GetPixelMap_GPU_100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SKImageChainUnittest CreateEffect_Blur_GetPixelMap_GPU_100 start";
+
+    for (int i = 0;i < 100; i++) {
+        // create from PixelMap
+        Media::InitializationOptions opts;
+        opts.size.width = 1;
+        opts.size.height = 1;
+        opts.editable = true;
+        auto uniPixelMap = Media::PixelMap::Create(opts);
+        ASSERT_NE(uniPixelMap, nullptr);
+
+        std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+        SkImageInfo imageInfo = SkImageInfo::Make(srcPixelMap->GetWidth(), srcPixelMap->GetHeight(),
+            SkColorType::kRGBA_8888_SkColorType,
+            static_cast<SkAlphaType>(srcPixelMap->GetAlphaType()));
+
+        auto skImageChain = std::make_shared<SKImageChain>(srcPixelMap);
+        ASSERT_NE(skImageChain, nullptr);
+
+        auto filterBlur = Rosen::SKImageFilterFactory::Blur(0.5);
+        ASSERT_NE(filterBlur, nullptr);
+        skImageChain->SetFilters(filterBlur);
+
+        skImageChain->ForceCPU(false);
+        skImageChain->Draw();
+
+        ASSERT_NE(skImageChain->GetPixelMap(), nullptr);
+    }
+}
+
 /**
  * @tc.name: GetPixelMapTest001
  * @tc.desc: test GetPixelMap

@@ -1172,8 +1172,6 @@ OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
     desc->italic = 0;
     desc->monoSpace = false;
     desc->symbolic = false;
-    desc->size = 0;
-    desc->typeStyle = 0;
     return desc;
 }
 
@@ -1309,8 +1307,6 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
         descriptor->italic = systemFontList[i].italic;
         descriptor->monoSpace = systemFontList[i].monoSpace;
         descriptor->symbolic = systemFontList[i].symbolic;
-        descriptor->size = systemFontList[i].size;
-        descriptor->typeStyle = systemFontList[i].typeStyle;
         return descriptor;
     }
     return nullptr;

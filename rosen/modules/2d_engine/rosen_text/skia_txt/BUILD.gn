@@ -230,7 +230,7 @@ ohos_source_set("skia_paragraph") {
       current_os == "android" || current_os == "ios"
 
   if (!is_cross_platform) {
-    defines += [ "TXT_USE_PARAMETER" ]
+    defines += [ "OHOS_TEXT_ENABLE" ]
     external_deps += [ "init:libbegetutil" ]
   }
 }

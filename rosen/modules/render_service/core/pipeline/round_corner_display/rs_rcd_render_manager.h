@@ -16,13 +16,21 @@
 #ifndef RENDER_SERVICE_CORE_RS_RCD_RENDER_MANAGER_H
 #define RENDER_SERVICE_CORE_RS_RCD_RENDER_MANAGER_H
 
+#include <mutex>
+#include <thread>
+#include <unordered_map>
+#include <vector>
+
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_processor.h"
 #include "rs_rcd_surface_render_node.h"
 #include "pipeline/round_corner_display/rs_round_corner_config.h"
 
 namespace OHOS {
 namespace Rosen {
-
+using RSRcdSurfaceRenderNodePtr = RSRcdSurfaceRenderNode::SharedPtr;
+using RSRcdSurfaceRenderNodePtrMap = std::unordered_map<NodeId, RSRcdSurfaceRenderNode::SharedPtr>;
+using RSRcdSurfaceRenderNodePtrVec = std::vector<RSRcdSurfaceRenderNodePtr>;
 struct RcdPrepareInfo {
     RSBaseRenderNode::SharedPtr bottomNode = nullptr;
     RSBaseRenderNode::SharedPtr topNode = nullptr;
@@ -31,8 +39,8 @@ struct RcdPrepareInfo {
 
 struct RcdProcessInfo {
     std::shared_ptr<RSProcessor> uniProcessor = nullptr;
-    rs_rcd::RoundCornerLayer* topLayer = nullptr;
-    rs_rcd::RoundCornerLayer* bottomLayer = nullptr;
+    std::shared_ptr<rs_rcd::RoundCornerLayer> topLayer = nullptr;
+    std::shared_ptr<rs_rcd::RoundCornerLayer> bottomLayer = nullptr;
     bool resourceChanged = false;
 };
 
@@ -47,34 +55,34 @@ public:
     static void InitInstance();
     bool GetRcdRenderEnabled() const;
 
-    RSRcdSurfaceRenderNode::SharedPtr GetContentSurfaceNode() const
-    {
-        return topSurfaceNode_;
-    }
-    RSRcdSurfaceRenderNode::SharedPtr GetBackgroundSurfaceNode() const
-    {
-        return bottomSurfaceNode_;
-    }
+    void CheckRenderTargetNode(const RSContext& context);
+    RSRcdSurfaceRenderNodePtr GetContentSurfaceNodes(NodeId id) const;
+    RSRcdSurfaceRenderNodePtr GetBackgroundSurfaceNodes(NodeId id) const;
+    void DoProcessRenderTask(NodeId id, const RcdProcessInfo& info);
 
-    void DoPrepareRenderTask(const RcdPrepareInfo& info);
-    void DoProcessRenderTask(const RcdProcessInfo& info);
-    void DoProcessRenderMainThreadTask(const RcdProcessInfo& info);
+    void DoProcessRenderMainThreadTask(NodeId id, const RcdProcessInfo& info);
+
+    void SetHardWareInfoChanged(NodeId id);
+
     static bool IsRcdProcessInfoValid(const RcdProcessInfo& info);
 
     RSRcdRenderManager() = default;
     virtual ~RSRcdRenderManager() = default;
 
 private:
-    void Reset();
+    static bool CheckExist(NodeId id, const RSRenderNodeMap& map);
+    RSRcdSurfaceRenderNodePtr GetTopRenderNode(NodeId id);
+    RSRcdSurfaceRenderNodePtr GetBottomRenderNode(NodeId id);
 
     bool rcdRenderEnabled_ = false;
     constexpr static NodeId TOP_RCD_NODE_ID = 1;
     constexpr static NodeId BACKGROUND_RCD_NODE_ID = 2;
 
-    std::shared_ptr<RSRcdSurfaceRenderNode> topSurfaceNode_ =
-        std::make_shared<RSRcdSurfaceRenderNode>(TOP_RCD_NODE_ID, RCDSurfaceType::TOP);
-    std::shared_ptr<RSRcdSurfaceRenderNode> bottomSurfaceNode_ =
-        std::make_shared<RSRcdSurfaceRenderNode>(BACKGROUND_RCD_NODE_ID, RCDSurfaceType::BOTTOM);
+    std::mutex nodeMapMut_;
+    // key nodeId of display screen, rcd rendernode
+    RSRcdSurfaceRenderNodePtrMap topSurfaceNodeMap_;
+    RSRcdSurfaceRenderNodePtrMap bottomSurfaceNodeMap_;
+
     bool isBufferCacheClear_ = false;
 };
 } // namespace Rosen

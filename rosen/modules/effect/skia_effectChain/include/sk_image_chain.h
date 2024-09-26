@@ -42,15 +42,16 @@ enum class DrawError {
     ERR_OK = 0,
     ERR_CPU_CANVAS,
     ERR_GPU_CANVAS,
+    ERR_CANVAS_NULL,
     ERR_IMAGE_NULL,
-    ERR_READ_PIXEL
+    ERR_PIXEL_READ
 };
 
 class SKImageChain {
 public:
     SKImageChain(SkCanvas* canvas, sk_sp<SkImage> image);
     SKImageChain(std::shared_ptr<Media::PixelMap> srcPxielMap);
-    virtual ~SKImageChain() = default;
+    virtual ~SKImageChain();
     DrawError Draw();
     void ForceCPU(bool forceCPU);
     void SetFilters(sk_sp<SkImageFilter> filter);
@@ -60,10 +61,14 @@ public:
     std::shared_ptr<Media::PixelMap> GetPixelMap();
 
 private:
+    bool InitializeCanvas();
+    DrawError CheckForErrors();
+    void SetupPaint(SkPaint& paint);
+    void ApplyClipping();
+    bool DrawImage(SkPaint& paint);
     void InitWithoutCanvas();
     bool CreateCPUCanvas();
     bool CreateGPUCanvas();
-    void DestroyGPUCanvas();
     SkColorType PixelFormatConvert(const Media::PixelFormat& pixelFormat);
     SkImageInfo imageInfo_ = {};
     bool forceCPU_ = true;

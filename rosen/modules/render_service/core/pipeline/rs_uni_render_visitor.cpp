@@ -51,7 +51,7 @@
 #include <v1_0/buffer_handle_meta_key_type.h>
 #include <v1_0/cm_color_space.h>
 
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
 
 #include "rs_profiler.h"
@@ -459,8 +459,11 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (!curDisplayDirtyManager_) {
         return;
     }
-    bool isNeedNotchUpdate = RSSingleton<RoundCornerDisplay>::GetInstance().IsNotchNeedUpdate(
-        RSSystemParameters::GetHideNotchStatus());
+    if (curDisplayNode_ == nullptr) {
+        return;
+    }
+    bool isNeedNotchUpdate = RSSingleton<RoundCornerDisplayManager>::GetInstance().IsNotchNeedUpdate(
+        curDisplayNode_->GetId(), RSSystemParameters::GetHideNotchStatus());
     bool ret = CheckScreenPowerChange() ||
         CheckColorFilterChange() ||
         CheckCurtainScreenUsingStatusChange() ||
@@ -603,7 +606,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     UpdateVirtualScreenSecurityExemption(node);
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
-    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_;
+    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || IsDisplayZoomStateChange();
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
@@ -1648,12 +1651,12 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     prevalidLayers.insert(prevalidLayers.end(), uiFirstLayers.begin(), uiFirstLayers.end());
     // add rcd layer
     RequestLayerInfo rcdLayer;
-    if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
-        RSRcdRenderManager::GetInstance().GetBackgroundSurfaceNode(), screenInfo_, curFps, rcdLayer)) {
+    auto rcdSurface = RSRcdRenderManager::GetInstance().GetBackgroundSurfaceNodes(curDisplayNode_->GetId());
+    if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(rcdSurface, screenInfo_, curFps, rcdLayer)) {
         prevalidLayers.emplace_back(rcdLayer);
     }
-    if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(
-        RSRcdRenderManager::GetInstance().GetContentSurfaceNode(), screenInfo_, curFps, rcdLayer)) {
+    rcdSurface = RSRcdRenderManager::GetInstance().GetContentSurfaceNodes(curDisplayNode_->GetId());
+    if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(rcdSurface, screenInfo_, curFps, rcdLayer)) {
         prevalidLayers.emplace_back(rcdLayer);
     }
     std::map<uint64_t, RequestCompositionType> strategy;
@@ -2438,12 +2441,15 @@ void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes)
 {
     std::list<RectI> hwcRects;
+    bool disableRosenWeb = false;
     for (size_t i = 0; i < hwcNodes.size(); i++) {
         auto hwcNodePtr = hwcNodes[i].lock();
         if (!hwcNodePtr) {
             continue;
         }
-        if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
+        disableRosenWeb |= hwcNodePtr->IsRosenWeb();
+        if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
+            !disableRosenWeb) {
             hwcRects.push_back(hwcNodePtr->GetDstRect());
         } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
             hwcRects.size() != 0) {
@@ -2821,14 +2827,16 @@ void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)
 void RSUniRenderVisitor::SendRcdMessage(RSDisplayRenderNode& node)
 {
     if ((screenInfo_.state == ScreenState::HDI_OUTPUT_ENABLE) &&
-        RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSRcdRenderManager::GetInstance().CheckRenderTargetNode(RSMainThread::Instance()->GetContext());
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().AddRoundCornerDisplay(node.GetId());
         using rcd_msg = RSSingleton<RsMessageBus>;
-        rcd_msg::GetInstance().SendMsg<uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
-            screenInfo_.width, screenInfo_.height);
-        rcd_msg::GetInstance().SendMsg<ScreenRotation>(TOPIC_RCD_DISPLAY_ROTATION,
-            node.GetScreenRotation());
-        rcd_msg::GetInstance().SendMsg<int>(TOPIC_RCD_DISPLAY_NOTCH,
-            RSSystemParameters::GetHideNotchStatus());
+        rcd_msg::GetInstance().SendMsg<NodeId, uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
+            node.GetId(), screenInfo_.width, screenInfo_.height);
+        rcd_msg::GetInstance().SendMsg<NodeId, ScreenRotation>(TOPIC_RCD_DISPLAY_ROTATION,
+            node.GetId(), node.GetScreenRotation());
+        rcd_msg::GetInstance().SendMsg<NodeId, int>(TOPIC_RCD_DISPLAY_NOTCH,
+            node.GetId(), RSSystemParameters::GetHideNotchStatus());
     }
 }
 

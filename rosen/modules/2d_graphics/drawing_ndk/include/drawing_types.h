@@ -488,6 +488,19 @@ typedef struct {
 } OH_Drawing_RectStyle_Info;
 
 /**
+ * @brief Defines the string information struct.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct {
+    /** A pointer to a byte string containing UTF-16BE(Big Endian) encoded entities */
+    uint8_t* strData;
+    /** The length of `strData` in bytes */
+    uint32_t strLen;
+} OH_Drawing_String;
+
+/**
  * @brief Enumerates text encoding types.
  * @since 12
  * @version 1.0

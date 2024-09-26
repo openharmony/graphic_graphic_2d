@@ -68,9 +68,11 @@ public:
         TRADEMARK = 7,
     };
 
-    enum FontTypeStyle {
-        ITALIC = 1 << 0,
-        BOLD = 1 << 1,
+    enum SystemFontType : int32_t {
+        ALL = 1 << 0,
+        GENERIC = 1 << 1,
+        STYLISH = 1 << 2,
+        INSTALLED = 1 << 3,
     };
 
     struct FontDescriptor {
@@ -90,8 +92,6 @@ public:
         int italic = 0;
         bool monoSpace = false;
         bool symbolic = false;
-        double size = 0;
-        int typeStyle = 0;
     };
 
     FontParser();
@@ -100,6 +100,9 @@ public:
         const std::string locale = SIMPLIFIED_CHINESE);
     
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = SIMPLIFIED_CHINESE);
+    bool ParserFontDescriptorFromPath(const std::string& path,
+        std::vector<std::shared_ptr<FontDescriptor>>& descriptors,
+        const std::string locale = SIMPLIFIED_CHINESE);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
