@@ -804,7 +804,7 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
     bool isRgbx =
         surfaceBufferInfo_.surfaceBuffer_->GetFormat() == OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888;
     Drawing::BitmapFormat bitmapFormat = {
-        isRgbx ? Drawing::ColorType::COLORTYPE_RGBX_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888,
+        isRgbx ? Drawing::ColorType::COLORTYPE_RGB_888X : Drawing::ColorType::COLORTYPE_RGBA_8888,
         isRgbx ? Drawing::AlphaType::ALPHATYPE_OPAQUE : Drawing::AlphaType::ALPHATYPE_PREMUL };
     auto image = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
@@ -844,7 +844,7 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
     bool isRgbx =
         surfaceBufferInfo_.surfaceBuffer_->GetFormat() == OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888;
     Drawing::BitmapFormat bitmapFormat = {
-        isRgbx ? Drawing::ColorType::COLORTYPE_RGBX_8888 : Drawing::ColorType::COLORTYPE_RGBA_8888,
+        isRgbx ? Drawing::ColorType::COLORTYPE_RGB_888X : Drawing::ColorType::COLORTYPE_RGBA_8888,
         isRgbx ? Drawing::AlphaType::ALPHATYPE_OPAQUE : Drawing::AlphaType::ALPHATYPE_PREMUL };
     if (!canvas->GetGPUContext()) {
         LOGE("DrawSurfaceBufferOpItem::Draw: gpu context is nullptr");
