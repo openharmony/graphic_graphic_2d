@@ -180,6 +180,7 @@ enum class CacheProcessStatus : uint8_t {
     WAITING = 0, // waiting for process
     DOING, // processing
     DONE, // processed
+    SKIPPED, // skip cur process and wait for next new data to process
     UNKNOWN,
 };
 
