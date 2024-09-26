@@ -241,6 +241,8 @@ public:
     static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
 
+    static bool GetDrmMarkedFilterEnabled();
+
     static DdgrOpincType GetDdgrOpincType();
     static bool IsDdgrOpincEnable();
     static bool GetAutoCacheDebugEnabled();

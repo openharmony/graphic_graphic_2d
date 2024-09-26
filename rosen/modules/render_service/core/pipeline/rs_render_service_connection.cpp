@@ -1254,6 +1254,24 @@ bool RSRenderServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id
     return screenManager_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+bool RSRenderServiceConnection::SetGlobalDarkColorMode(bool isDark)
+{
+    if (!mainThread_) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), isDark]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            RS_LOGE("RSRenderServiceConnection::SetGlobalDarkColorMode fail");
+            return;
+        }
+        connection->mainThread_->SetGlobalDarkColorMode(isDark);
+    };
+    mainThread_->PostTask(task);
+    return true;
+}
+
 bool RSRenderServiceConnection::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     if (!screenManager_) {

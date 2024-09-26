@@ -476,6 +476,10 @@ private:
      */
     void CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNode& node);
 
+    void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
+
+    // record DRM nodes
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     std::shared_ptr<Drawing::Surface> offscreenSurface_;                 // temporary holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_; // backup current canvas before offscreen render
 
