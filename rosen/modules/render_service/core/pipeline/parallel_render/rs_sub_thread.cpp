@@ -271,9 +271,10 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), surfaceParams->GetId());
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
-    if (nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount()) {
+    if (nodeDrawable->HasCachedTexture() &&
+        nodeDrawable->GetTaskFrameCount() != RSUniRenderThread::Instance().GetFrameCount()) {
         RS_TRACE_NAME_FMT("subthread skip node id %llu", nodeId);
-        nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+        nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::SKIPPED);
         nodeDrawable->SetSubThreadSkip(true);
         doingCacheProcessNum_--;
         return;
