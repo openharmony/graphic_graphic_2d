@@ -132,6 +132,34 @@ config("rs_test_common_public_config") {
   ]
 }
 
+## Build RSRenderAutoCacheTest
+ohos_unittest("RSRenderAutoCacheTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_render_autocache_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSUIFirstRenderDrawableTest
+ohos_unittest("RSUIFirstRenderDrawableTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_ui_first_render_drawable_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
 ## Build RSRenderDrawableTest
 ohos_unittest("RSRenderDrawableTest") {
   module_out_path = module_output_path
