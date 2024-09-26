@@ -72,7 +72,7 @@ protected:
 
 private:
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
-    void InternalDrawContent(RSPaintFilterCanvas& canvas);
+    void InternalDrawContent(RSPaintFilterCanvas& canvas, bool needApplyMatrix);
 
     void PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty);
     void DrawShadow(RSModifierContext& context, RSPaintFilterCanvas& canvas);
