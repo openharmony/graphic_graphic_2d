@@ -445,7 +445,7 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         return nullptr;
     }
     std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
-    if (pixelMapId_ != pixelMap->GetUniqueId()) {
+    if (pixelMapId_ != pixelMap->GetUniqueId() || !backendTexture_.IsValid()) {
         backendTexture_ = {};
         ReleaseNativeWindowBuffer();
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
