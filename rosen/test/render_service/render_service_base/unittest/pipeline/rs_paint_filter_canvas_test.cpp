@@ -178,6 +178,7 @@ HWTEST_F(RSPaintFilterCanvasTest, SetHighContrastTest001, TestSize.Level1)
 HWTEST_F(RSPaintFilterCanvasTest, RestoreAlphaTest001, TestSize.Level1)
 {
     paintFilterCanvas_->RestoreAlpha();
+    ASSERT_EQ(paintFilterCanvas_->GetAlphaSaveCount(), 1);
 }
 
 /**
@@ -202,6 +203,7 @@ HWTEST_F(RSPaintFilterCanvasTest, RestoreAlphaToCountTest, TestSize.Level1)
 HWTEST_F(RSPaintFilterCanvasTest, RestoreEnvTest, TestSize.Level1)
 {
     paintFilterCanvas_->RestoreEnv();
+    ASSERT_EQ(paintFilterCanvas_->GetAlphaSaveCount(), 1);
 }
 
 /**
@@ -227,6 +229,7 @@ HWTEST_F(RSPaintFilterCanvasTest, SetEnvForegroundColorTest, TestSize.Level1)
 {
     Color color;
     paintFilterCanvas_->SetEnvForegroundColor(color);
+    ASSERT_EQ(paintFilterCanvas_->GetEnvForegroundColor(), 0);
 }
 
 /**
@@ -240,6 +243,7 @@ HWTEST_F(RSPaintFilterCanvasTest, GetEnvForegroundColorTest, TestSize.Level1)
     Color color { SET_COLOR };
     Color setColor {};
     paintFilterCanvas_->SetEnvForegroundColor(setColor);
+    ASSERT_EQ(paintFilterCanvas_->GetEnvForegroundColor(), 0);
 }
 
 /**

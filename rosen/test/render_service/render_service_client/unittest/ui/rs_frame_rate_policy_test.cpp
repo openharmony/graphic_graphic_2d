@@ -51,7 +51,7 @@ HWTEST_F(RSFrameRatePolicyTest, interface, TestSize.Level1)
 
     std::string scene = "0";
     float speed = 1.0;
-    instance->GetPreferredFps(scene, speed);
+    EXPECT_EQ(instance->GetPreferredFps(scene, speed), 0);
 }
 
 /**
@@ -65,7 +65,7 @@ HWTEST_F(RSFrameRatePolicyTest, GetRefreshRateMode_Test, TestSize.Level1)
 
     instance->RegisterHgmConfigChangeCallback();
 
-    instance->GetRefreshRateModeName();
+    EXPECT_EQ(instance->GetRefreshRateModeName(), -1);
 }
 
 /**

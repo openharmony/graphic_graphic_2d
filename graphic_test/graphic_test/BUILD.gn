@@ -68,6 +68,12 @@ group("test") {
 
 ## Build RSGraphicTest
 ohos_unittest("RSGraphicTest") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   module_out_path = module_output_path
   sources = []
   sources += drawing_engine_sources

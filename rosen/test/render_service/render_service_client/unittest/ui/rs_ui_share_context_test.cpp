@@ -36,6 +36,7 @@ HWTEST_F(RSUIShareContextTest, GetInstance001, TestSize.Level1)
 {
     auto& rs = RSUIShareContext::GetInstance();
     (void)(rs);
+    ASSERT_FALSE(RSUIShareContext::GetInstance().GetRsRenderContext() == nullptr);
 }
 
 /**
@@ -47,5 +48,6 @@ HWTEST_F(RSUIShareContextTest, GetRsRenderContext001, TestSize.Level1)
 {
     auto context = RSUIShareContext::GetInstance().GetRsRenderContext();
     (void)(context);
+    ASSERT_FALSE(context == nullptr);
 }
 } // namespace OHOS::Rosen
