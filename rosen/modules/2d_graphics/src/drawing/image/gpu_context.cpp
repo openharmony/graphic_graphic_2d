@@ -168,6 +168,11 @@ void GPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
     impl_->GetUpdatedMemoryMap(out);
 }
 
+void GPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size)
+{
+    impl_->InitGpuMemoryLimit(callback, size);
+}
+
 void GPUContext::ResetContext()
 {
     impl_->ResetContext();
