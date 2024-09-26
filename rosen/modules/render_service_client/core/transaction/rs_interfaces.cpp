@@ -269,6 +269,11 @@ bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typefa
     return true;
 }
 
+bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
+{
+    return renderServiceClient_->SetGlobalDarkColorMode(isDark);
+}
+
 #ifndef ROSEN_ARKUI_X
 int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
@@ -579,6 +584,11 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
+void RSInterfaces::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    renderServiceClient_->SetDefaultDeviceRotationOffset(offset);
+}
+
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
 {
     renderServiceClient_->NotifyLightFactorStatus(isSafe);
@@ -665,5 +675,19 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
 }
 
+bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
+        return false;
+    }
+    return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
+}
 } // namespace Rosen
 } // namespace OHOS

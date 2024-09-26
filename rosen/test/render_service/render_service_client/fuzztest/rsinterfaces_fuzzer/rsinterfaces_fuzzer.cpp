@@ -121,6 +121,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.ResizeVirtualScreen(static_cast<NodeId>(id), width, height);
     rsInterfaces.SetVirtualMirrorScreenCanvasRotation(static_cast<ScreenId>(id), canvasRotation);
     rsInterfaces.SetVirtualMirrorScreenScaleMode(static_cast<ScreenId>(id), static_cast<ScreenScaleMode>(scaleMode));
+    rsInterfaces.SetGlobalDarkColorMode(GetData<bool>());
     std::vector<NodeId> blackListVector = {};
     blackListVector.push_back(id);
     rsInterfaces.SetVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);

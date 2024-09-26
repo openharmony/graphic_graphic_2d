@@ -1303,7 +1303,7 @@ void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const 
     }
     bool intersect = false;
     for (auto& rect : rects) {
-        if (rect.Intersect(node.GetDstRect())) {
+        if (rect.Intersect(node.GetAbsDrawRect())) {
             intersect = true;
             break;
         }

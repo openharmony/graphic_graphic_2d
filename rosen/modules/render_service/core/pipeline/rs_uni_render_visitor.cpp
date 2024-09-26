@@ -1737,7 +1737,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
     }
-    node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_);
+    node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_,
+        RSMainThread::Instance()->IsAccessibilityConfigChanged());
 
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
@@ -2007,14 +2008,8 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (node.IsMainWindowType()) {
         node.SetGlobalCornerRadius(curCornerRadius_);
         CalculateOcclusion(node);
-        if (!(node.GetName().find("touch window") != std::string::npos ||
-            node.GetName().find("knuckle window") != std::string::npos ||
-            node.GetName().find("knuckle dynamic window") != std::string::npos ||
-            node.GetName().find("SCBGestureBack") != std::string::npos) &&
-            node.GetFirstLevelNodeId() == node.GetId()) {
-            auto rectF = node.GetRenderProperties().GetBoundsRect();
-            RectI rectI = RectI{rectF.GetLeft(), rectF.GetTop(), rectF.GetWidth(), rectF.GetHeight()};
-            globalSurfaceBounds_.emplace_back(rectI);
+        if (node.GetFirstLevelNodeId() == node.GetId()) {
+            globalSurfaceBounds_.emplace_back(node.GetAbsDrawRect());
         }
     }
     // 3. Update HwcNode Info for appNode
@@ -2352,6 +2347,9 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             auto hwcNodePtr = hwcNode.lock();
             if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
                 continue;
+            }
+            if (hwcNodePtr->GetProtectedLayer()) {
+                drmNodes_.emplace_back(hwcNode);
             }
             UpdateHwcNodeProperty(hwcNodePtr);
             UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
@@ -2861,6 +2859,7 @@ void RSUniRenderVisitor::CheckFilterCacheFullyCovered(std::shared_ptr<RSSurfaceR
         if (ROSEN_EQ(filterNode->GetGlobalAlpha(), 1.f) && !dirtyBelowContainsFilterNode) {
             surfaceNode->CheckValidFilterCacheFullyCoverTarget(*filterNode, screenRect_);
         }
+        MarkBlurIntersectWithDRM(filterNode);
         if (filterNode->EffectNodeShouldPaint() && !filterNode->IsFilterCacheValid()) {
             dirtyBelowContainsFilterNode = true;
         }
@@ -3080,6 +3079,30 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 
     // add if node is dirty
     node.AddToPendingSyncList();
+}
+
+void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const
+{
+    if (!RSSystemProperties::GetDrmMarkedFilterEnabled()) {
+        return;
+    }
+    static std::vector<std::string> drmKeyWins = { "SCBVolumePanel", "SCBBannerNotification" };
+    auto appWindowNodeId = node->GetInstanceRootNodeId();
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto appWindowNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(appWindowNodeId));
+    if (appWindowNode == nullptr) {
+        return;
+    }
+    for (const auto& win : drmKeyWins) {
+        if (appWindowNode->GetName().find(win) != std::string::npos) {
+            for (auto& drmNode : drmNodes_) {
+                auto drmNodePtr = drmNode.lock();
+                if (drmNodePtr && drmNodePtr->GetDstRect().Intersect(node->GetFilterRegion())) {
+                    node->MarkBlurIntersectWithDRM(true, RSMainThread::Instance()->GetGlobalDarkColorMode());
+                }
+            }
+        }
+    }
 }
 
 void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(

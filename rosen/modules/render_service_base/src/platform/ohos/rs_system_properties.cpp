@@ -432,6 +432,16 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    defaultDeviceRotationOffset_ = offset;
+}
+
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+{
+    return defaultDeviceRotationOffset_;
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
@@ -1067,6 +1077,14 @@ bool RSSystemProperties::GetMemoryOverTreminateEnabled()
     static bool flag =
         std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
     return flag;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.markedFilter.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

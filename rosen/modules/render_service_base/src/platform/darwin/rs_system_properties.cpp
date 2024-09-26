@@ -170,6 +170,15 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+}
+
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+{
+    return {};
+}
+
 #ifndef NEW_SKIA
 bool RSSystemProperties::GetReleaseResourceEnabled()
 {
@@ -454,6 +463,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 }
 
 bool RSSystemProperties::IsForceClient()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
 }

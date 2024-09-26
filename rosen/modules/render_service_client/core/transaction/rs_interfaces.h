@@ -106,6 +106,10 @@ public:
 
     // set scale mode for virtual screen
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
+
+    // WMS set dark color display mode to RS
+    bool SetGlobalDarkColorMode(bool isDark);
+
 #ifndef ROSEN_ARKUI_X
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
@@ -244,6 +248,8 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset);
+
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
@@ -268,6 +274,11 @@ public:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
+
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
 private:
     RSInterfaces();

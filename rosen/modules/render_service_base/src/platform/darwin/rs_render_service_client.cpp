@@ -311,6 +311,11 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenS
     return {};
 }
 
+bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     return {};
@@ -504,6 +509,10 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
+void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+}
+
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
 }
@@ -549,6 +558,17 @@ void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
 {
     return {};
+}
+
+bool RSRenderServiceClient::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

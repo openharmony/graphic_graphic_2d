@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <refbase.h>
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
@@ -98,6 +99,13 @@ public:
     SurfaceCaptureCallback() {}
     virtual ~SurfaceCaptureCallback() {}
     virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
+};
+
+class SurfaceBufferCallback {
+public:
+    SurfaceBufferCallback() = default;
+    virtual ~SurfaceBufferCallback() noexcept = default;
+    virtual void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) = 0;
 };
 
 class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
@@ -237,6 +245,8 @@ public:
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 
+    bool SetGlobalDarkColorMode(bool isDark);
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
@@ -312,6 +322,8 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset);
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
@@ -331,8 +343,13 @@ public:
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
+    void TriggerSurfaceBufferCallback(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) const;
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
@@ -341,7 +358,12 @@ private:
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;
     std::map<NodeId, std::vector<std::shared_ptr<SurfaceCaptureCallback>>> surfaceCaptureCbMap_;
 
+    sptr<RSISurfaceBufferCallback> surfaceBufferCbDirector_;
+    std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;
+    mutable std::shared_mutex surfaceBufferCallbackMutex_;
+
     friend class SurfaceCaptureCallbackDirector;
+    friend class SurfaceBufferCallbackDirector;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -30,6 +30,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "modifier/rs_modifier_type.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -683,7 +684,12 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 
     out += "\n";
 
-    for (auto& child : *GetSortedChildren()) {
+    for (auto& child : children_) {
+        if (auto c = child.lock()) {
+            c->DumpTree(depth + 1, out);
+        }
+    }
+    for (auto& [child, pos] : disappearingChildren_) {
         child->DumpTree(depth + 1, out);
     }
 }
@@ -2496,6 +2502,8 @@ void RSRenderNode::UpdateDisplayList()
         // If the end drawable exist, return its index, otherwise return -1
         return drawableVec_[endIndex] != nullptr ? stagingDrawCmdList_.size() - 1 : -1;
     };
+    // Update index of ENV_FOREGROUND_COLOR
+    stagingDrawCmdIndex_.envForeGroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::ENV_FOREGROUND_COLOR);
 
     // Update index of SHADOW
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SHADOW);
@@ -3973,16 +3981,6 @@ void RSRenderNode::OnSync()
         stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
     }
 
-    // copy newest for uifirst root node, now force sync done nodes
-    if (uifirstNeedSync_) {
-        RS_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
-        renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
-                                                    renderDrawable_->drawCmdList_.end());
-        renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
-        renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
-        uifirstNeedSync_ = false;
-    }
-
     if (!uifirstSkipPartialSync_) {
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
@@ -3991,6 +3989,16 @@ void RSRenderNode::OnSync()
                 }
             }
             dirtySlots_.clear();
+        }
+
+        // copy newest for uifirst root node, now force sync done nodes
+        if (uifirstNeedSync_) {
+            RS_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
+            renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
+                                                        renderDrawable_->drawCmdList_.end());
+            renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
+            renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
+            uifirstNeedSync_ = false;
         }
     } else {
         RS_TRACE_NAME_FMT("partial_sync %lld", GetId());
@@ -4041,6 +4049,16 @@ void RSRenderNode::ValidateLightResources()
     }
     if (properties.illuminatedPtr_ && properties.illuminatedPtr_->IsIlluminatedValid()) {
         RSPointLightManager::Instance()->AddDirtyIlluminated(weak_from_this());
+    }
+}
+
+void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
+{
+    const auto& properties = GetRenderProperties();
+    if (properties.GetBackgroundFilter()) {
+        if (auto filterDrawable = GetFilterDrawable(false)) {
+            filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
+        }
     }
 }
 

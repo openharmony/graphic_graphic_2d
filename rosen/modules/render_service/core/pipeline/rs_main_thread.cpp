@@ -68,6 +68,7 @@
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_ui_capture_task_parallel.h"
@@ -458,6 +459,8 @@ void RSMainThread::Init()
         };
         RSUnmarshalThread::Instance().Start();
     }
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
+        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -690,7 +693,7 @@ void RSMainThread::SetRSEventDetectorLoopFinishTag()
 }
 
 void RSMainThread::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
+    int32_t pid, int32_t uid, const std::string& bundleName, const std::string& abilityName, uint64_t focusNodeId)
 {
     focusAppPid_ = pid;
     focusAppUid_ = uid;
@@ -1069,7 +1072,6 @@ void RSMainThread::ProcessCommandForUniRender()
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s transactionDataEffective not empty", __func__);
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
-    transactionFlags_ = transactionFlags;
     for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
@@ -3076,11 +3078,10 @@ void RSMainThread::SendCommands()
 
 void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame)
 {
+    dumpString.append("-- current timeStamp: " + std::to_string(timestamp_) + "\n");
+    dumpString.append("-- vsyncId: " + std::to_string(vsyncId_) + "\n");
     if (LIKELY(forceDumpSingleFrame)) {
         RS_TRACE_NAME("GetDumpTree");
-        dumpString.append("-- RS transactionFlags: " + transactionFlags_ + "\n");
-        dumpString.append("-- current timeStamp: " + std::to_string(timestamp_) + "\n");
-        dumpString.append("-- vsyncId: " + std::to_string(vsyncId_) + "\n");
         dumpString.append("Animating Node: [");
         for (auto& [nodeId, _]: context_->animatingNodeList_) {
             dumpString.append(std::to_string(nodeId) + ", ");

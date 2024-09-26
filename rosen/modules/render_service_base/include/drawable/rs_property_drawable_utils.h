@@ -76,6 +76,7 @@ public:
     RSB_EXPORT static int GetAndResetBlurCnt();
     static bool GetGravityMatrix(const Gravity& gravity, const Drawing::Rect& rect, const float& w, const float& h,
         Drawing::Matrix& mat);
+    static void DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark);
 
 private:
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;

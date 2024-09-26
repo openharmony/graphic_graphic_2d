@@ -177,6 +177,8 @@ void RSFilterDrawable::OnSync()
     renderForceClearCacheForLastFrame_ = forceClearCacheForLastFrame_;
     renderIsEffectNode_ = isEffectNode_;
     renderIsSkipFrame_ = isSkipFrame_;
+    renderIntersectWithDRM_ = stagingIntersectWithDRM_;
+    renderIsDarkColorMode_ = stagingIsDarkColorMode_;
 
     ClearFilterCache();
 
@@ -188,6 +190,8 @@ void RSFilterDrawable::OnSync()
     forceUseCache_ = false;
     isOccluded_ = false;
     forceClearCacheForLastFrame_ = false;
+    stagingIntersectWithDRM_ = false;
+    stagingIsDarkColorMode_ = false;
 
     clearType_ = FilterCacheType::BOTH;
     isLargeArea_ = false;
@@ -201,6 +205,12 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas && ptr && ptr->renderIntersectWithDRM_) {
+            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc IntersectWithDRM node[%llu] isDarkColorMode[%d]",
+                ptr->nodeId_, ptr->renderIsDarkColorMode_);
+            RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, ptr->renderIsDarkColorMode_);
+            return;
+        }
         if (canvas && ptr && ptr->filter_) {
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->nodeId_);
             if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR && rect != nullptr) {
@@ -312,6 +322,13 @@ void RSFilterDrawable::ClearCacheIfNeeded()
     // when blur filter changes, we need to clear filtered cache if it valid.
     UpdateFlags(filterHashChanged_ ?
         FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true);
+}
+
+//should be called in rs main thread
+void RSFilterDrawable::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
+{
+    stagingIntersectWithDRM_ = intersectWithDRM;
+    stagingIsDarkColorMode_ = isDark;
 }
 
 bool RSFilterDrawable::IsFilterCacheValid() const

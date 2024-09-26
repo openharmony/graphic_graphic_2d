@@ -37,6 +37,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_ui_capture_task_parallel.h"
@@ -189,6 +190,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -412,10 +414,15 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceConnection::CreatePixelMapFromSu
 int32_t RSRenderServiceConnection::SetFocusAppInfo(
     int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
-    if (!mainThread_) {
+    if (mainThread_ == nullptr) {
         return INVALID_ARGUMENTS;
     }
-    mainThread_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    mainThread_->ScheduleTask(
+        [pid, uid, bundleName, abilityName, focusNodeId, mainThread = mainThread_]() {
+            // don't use 'this' to get mainThread poninter
+            mainThread->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+        }
+    );
     return SUCCESS;
 }
 
@@ -1211,6 +1218,24 @@ bool RSRenderServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id
     return screenManager_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
 }
 
+bool RSRenderServiceConnection::SetGlobalDarkColorMode(bool isDark)
+{
+    if (!mainThread_) {
+        return false;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), isDark]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            RS_LOGE("RSRenderServiceConnection::SetGlobalDarkColorMode fail");
+            return;
+        }
+        connection->mainThread_->SetGlobalDarkColorMode(isDark);
+    };
+    mainThread_->PostTask(task);
+    return true;
+}
+
 bool RSRenderServiceConnection::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
     if (!screenManager_) {
@@ -1756,6 +1781,11 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
 }
 
+void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    RSSystemProperties::SetDefaultDeviceRotationOffset(offset);
+}
+
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()
 {
     const auto& activeDirtyRegionInfos = GpuDirtyRegionCollection::GetInstance().GetActiveDirtyRegionInfo();
@@ -1840,6 +1870,17 @@ int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, 
     }
     mainThread_->RegisterUIExtensionCallback(remotePid_, userId, callback);
     return StatusCode::SUCCESS;
+}
+
+void RSRenderServiceConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    sptr<RSISurfaceBufferCallback> callback)
+{
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+void RSRenderServiceConnection::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -147,6 +147,16 @@ public:
         return isHardwareEnabledBufferUpdated_;
     }
 
+    void SetGlobalDarkColorMode(bool isDark)
+    {
+        isGlobalDarkColorMode_ = isDark;
+    }
+
+    bool GetGlobalDarkColorMode() const
+    {
+        return isGlobalDarkColorMode_;
+    }
+
     /* Judge if rootnode has to be prepared based on it corresponding process is active
      * If its pid is in activeProcessPids_ set, return true
      */
@@ -179,7 +189,7 @@ public:
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId);
+        int32_t pid, int32_t uid, const std::string& bundleName, const std::string& abilityName, uint64_t focusNodeId);
     const std::unordered_map<NodeId, bool>& GetCacheCmdSkippedNodes() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
@@ -490,7 +500,6 @@ private:
     uint64_t lastCleanCacheTimestamp_ = 0;
     pid_t lastCleanCachePid_ = -1;
     int hardwareTid_ = -1;
-    std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
     std::shared_ptr<RSContext> context_;
@@ -563,6 +572,7 @@ private:
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
+    std::atomic<bool> isGlobalDarkColorMode_ = false;
 
     std::atomic_bool noNeedToPostTask_ = false;
 

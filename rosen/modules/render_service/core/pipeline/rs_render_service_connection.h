@@ -181,6 +181,8 @@ private:
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
 
+    bool SetGlobalDarkColorMode(bool isDark) override;
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
@@ -256,6 +258,8 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
+
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
@@ -274,6 +278,10 @@ private:
 
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

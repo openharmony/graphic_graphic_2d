@@ -167,6 +167,8 @@ public:
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
+    static void SetDefaultDeviceRotationOffset(uint32_t offset);
+    static uint32_t GetDefaultDeviceRotationOffset();
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
@@ -239,6 +241,8 @@ public:
     static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
 
+    static bool GetDrmMarkedFilterEnabled();
+
     static DdgrOpincType GetDdgrOpincType();
     static bool IsDdgrOpincEnable();
     static bool GetAutoCacheDebugEnabled();
@@ -270,6 +274,7 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
+    inline static std::atomic<uint32_t> defaultDeviceRotationOffset_ = 0;
     static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
