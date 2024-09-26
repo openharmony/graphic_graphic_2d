@@ -56,6 +56,8 @@ Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
             return Drawing::COLORTYPE_RGBA_F16;
         case VK_FORMAT_R5G6B5_UNORM_PACK16:
             return Drawing::COLORTYPE_RGB_565;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return Drawing::COLORTYPE_RGBA_1010102;
         default:
             return Drawing::COLORTYPE_RGBA_8888;
     }
