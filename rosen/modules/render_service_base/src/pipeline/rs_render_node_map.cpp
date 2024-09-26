@@ -18,6 +18,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -216,19 +217,16 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
         if (pair.second == nullptr) {
             return true;
         }
-        auto parent = pair.second->GetParent().lock();
-        if (parent) {
-            parent->RemoveChildFromFulllist(pair.second->GetId());
-        }
-        // remove node from tree
-        pair.second->RemoveFromTree(false);
+        // remove nodes from tree in batch
+        RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(pair.second);
         pair.second->GetAnimationManager().FilterAnimationByPid(pid);
         return true;
     });
 
     EraseIf(surfaceNodeMap_, [pid, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid);
-        if (shouldErase) {
+        if (pair.second && shouldErase) {
+            pair.second->RemoveFromTree(false);
             RemoveUIExtensionSurfaceNode(pair.second);
         }
         return shouldErase;

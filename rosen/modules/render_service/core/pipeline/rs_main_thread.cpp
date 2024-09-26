@@ -466,6 +466,8 @@ void RSMainThread::Init()
         rsEventManager_.UpdateParam();
         ResetAnimateNodeFlag();
         SKResourceManager::Instance().ReleaseResource();
+        // release batched node from render tree
+        RSRenderNodeGC::Instance().ReleaseFromTree();
         // release node memory
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
         if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
