@@ -117,6 +117,18 @@ void RSImageCache::ReleaseUniqueIdList()
     }
 }
 
+bool RSImageCache::CheckUniqueIdIsEmpty()
+{
+    if (uniqueIdListMutex_.try_lock()) {
+        if (uniqueIdList_.empty()) {
+            uniqueIdListMutex_.unlock();
+            return true;
+        }
+        uniqueIdListMutex_.unlock();
+    }
+    return false;
+}
+
 void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
 {
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
