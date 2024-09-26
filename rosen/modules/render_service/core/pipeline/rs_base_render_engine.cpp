@@ -642,6 +642,11 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
+#endif
+
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
@@ -649,6 +654,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = Drawing::ColorSpace::CreateSRGB();
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         drawingColorSpace = ConvertColorGamutToDrawingColorSpace(params.targetColorGamut);
+        if (ret != GSERROR_OK) {
+            drawingColorSpace = nullptr;
+        }
 #endif
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
 #ifndef ROSEN_EMULATOR
@@ -673,8 +681,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 
 #ifdef RS_ENABLE_GL // RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex,
-            params.targetColorGamut);
+        auto colorGamut = params.targetColorGamut;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        if (ret != GSERROR_OK) {
+            colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+        }
+#endif
+        image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex, colorGamut);
         if (image == nullptr) {
             RS_LOGE("RSBaseRenderEngine::DrawImage: image is nullptr!");
             return;
@@ -702,8 +715,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         canvas.DetachBrush();
     } else {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
-    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
 
     // For sdr brightness ratio
     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
@@ -718,8 +729,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 
     if (ret != GSERROR_OK) {
         RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.", ret);
-        MetadataHelper::ConvertColorSpaceTypeToInfo(HDI::Display::Graphic::Common::V1_0::CM_BT709_LIMIT,
-            parameter.inputColorSpace.colorSpaceInfo);
+        DrawImageRect(canvas, image, params, samplingOptions);
+        return;
     }
     
     if (!ConvertColorGamutToSpaceInfo(params.targetColorGamut, parameter.outputColorSpace.colorSpaceInfo)) {

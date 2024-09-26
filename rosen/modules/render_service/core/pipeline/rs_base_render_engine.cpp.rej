@@ -1,0 +1,38 @@
+diff a/rosen/modules/render_service/core/pipeline/rs_base_render_engine.cpp b/rosen/modules/render_service/core/pipeline/rs_base_render_engine.cpp	(rejected hunks)
+@@ -734,6 +734,11 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
+         return;
+     }
+ 
++#ifdef USE_VIDEO_PROCESSING_ENGINE
++    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
++    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
++#endif
++
+ #ifdef RS_ENABLE_VK
+     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+@@ -766,8 +774,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
+ 
+ #ifdef RS_ENABLE_GL
+     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+-        image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex,
+-            params.targetColorGamut);
++        auto colorGamut = params.targetColorGamut;
++#ifdef USE_VIDEO_PROCESSING_ENGINE
++        if (ret != GSERROR_OK) {
++            colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
++        }
++#endif
++        image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex, colorGamut);
+         if (image == nullptr) {
+             RS_LOGE("RSBaseRenderEngine::DrawImage: image is nullptr!");
+             return;
+@@ -784,8 +797,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
+                             : Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+     }
+ #ifdef USE_VIDEO_PROCESSING_ENGINE
+-    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+-    GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
+ 
+     // For sdr brightness ratio
+     if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
