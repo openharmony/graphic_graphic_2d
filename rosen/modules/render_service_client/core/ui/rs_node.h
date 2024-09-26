@@ -296,6 +296,7 @@ public:
     void SetDynamicLightUpRate(const float rate);
     void SetDynamicLightUpDegree(const float lightUpDegree);
     void SetDynamicDimDegree(const float dimDegree);
+    void SetBlender(const Blender* blender);
     void SetFgBrightnessParams(const RSDynamicBrightnessPara& params);
     void SetFgBrightnessRates(const Vector4f& rates);
     void SetFgBrightnessSaturation(const float& saturation);

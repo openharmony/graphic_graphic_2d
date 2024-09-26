@@ -20,6 +20,7 @@
 #include "modifier/rs_property_modifier.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
+#include "ui_effect/effect/include/brightness_blender.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_implicit_animator.h"
@@ -5404,6 +5405,25 @@ HWTEST_F(RSNodeTest, SetDynamicLightUpDegree, TestSize.Level1)
     float lightUpDegree = 1.f; // for test
     rsNode->SetDynamicLightUpDegree(lightUpDegree);
     EXPECT_NE(lightUpDegree, 0.f);
+}
+
+/**
+ * @tc.name: SetBlender
+ * @tc.desc: test results of SetBlender
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetBlender, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetBlender(nullptr);
+    EXPECT_NE(rsNode, nullptr);
+    Blender blender;
+    rsNode->SetBlender(&blender);
+    EXPECT_NE(rsNode, nullptr);
+    BrightnessBlender brightnessBlender;
+    rsNode->SetBlender(&brightnessBlender);
+    EXPECT_NE(rsNode, nullptr);
 }
 
 /**
