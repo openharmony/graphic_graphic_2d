@@ -461,28 +461,37 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
     ASSERT_EQ(true, visitor->ConsumeAndUpdateBuffer(*topSurfaceNode));
 }
 
+template<typename T1, typename T2, typename T3>
 struct TestMsgBus {
-    template<typename T>
-    void TestFunc1(T a)
+    T1 mA;
+    T2 mB;
+    T3 mC;
+    TestMsgBus(T1 a, T2 b, T3 c) : mA{a}, mB{b}, mC{c} {};
+
+    void TestFunc1(T1 a)
     {
-        std::cout << "TestMsg Bus Func1:" << sizeof(T) << "," << &a << std::endl;
+        std::cout << "TestMsg Bus Func1:" << sizeof(T1) << "," << &a << std::endl;
+        EXPECT_TRUE(mA == a);
     }
 
-    template<typename T1, typename T2>
     void TestFunc2(T1 a, T2 b)
     {
         std::cout << "TestMsg Bus Func2:" <<
             sizeof(T1) << "," << &a << std::endl <<
             sizeof(T2) << "," << &b << std::endl;
+        EXPECT_TRUE(mA == a);
+        EXPECT_TRUE(mB == b);
     }
 
-    template<typename T1, typename T2, typename T3>
     void TestFunc3(T1 a, T2 b, T3 c)
     {
         std::cout << "TestMsg Bus Func3:" <<
             sizeof(T1) << "," << &a << std::endl <<
             sizeof(T2) << "," << &b << std::endl <<
             sizeof(T3) << "," << &c << std::endl;
+        EXPECT_TRUE(mA == a);
+        EXPECT_TRUE(mB == b);
+        EXPECT_TRUE(mC == c);
     }
 };
 
@@ -491,21 +500,28 @@ void TestMsgBusFunc()
 {
     std::string topic = "TEST_TOPIC";
     auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-    TestMsgBus obj;
-    TestMsgBus* objPtr = nullptr;
+    using TestMsgBusClass = TestMsgBus<T1, T2, T3>;
+    TestMsgBusClass* objPtr = nullptr;
     int num1 = 1;
     int num2 = 2;
     int num3 = 3;
-    msgBus.RegisterTopic<T1>(topic, objPtr, &TestMsgBus::TestFunc1<T1>);
-    msgBus.RegisterTopic<T1>(topic, &obj, &TestMsgBus::TestFunc1<T1>);
+    TestMsgBusClass obj(static_cast<T1>(num1), static_cast<T2>(num2), static_cast<T3>(num3));
+    msgBus.RegisterTopic<T1>(topic, objPtr, &TestMsgBusClass::TestFunc1);
+    msgBus.RegisterTopic<T1>(topic, &obj, &TestMsgBusClass::TestFunc1);
+    EXPECT_TRUE(msgBus.m_map.size() == 1);
     msgBus.SendMsg(topic, static_cast<T1>(num1));
     msgBus.RemoveTopic<T1>(topic);
-    msgBus.RegisterTopic<T1, T2>(topic, &obj, &TestMsgBus::TestFunc2<T1, T2>);
+    EXPECT_TRUE(msgBus.m_map.size() == 0);
+    msgBus.RegisterTopic<T1, T2>(topic, &obj, &TestMsgBusClass::TestFunc2);
+    EXPECT_TRUE(msgBus.m_map.size() == 1);
     msgBus.SendMsg(topic, static_cast<T1>(num1), static_cast<T2>(num2));
     msgBus.RemoveTopic<T1, T2>(topic);
-    msgBus.RegisterTopic<T1, T2, T3>(topic, &obj, &TestMsgBus::TestFunc3<T1, T2, T3>);
+    EXPECT_TRUE(msgBus.m_map.size() == 0);
+    msgBus.RegisterTopic<T1, T2, T3>(topic, &obj, &TestMsgBusClass::TestFunc3);
+    EXPECT_TRUE(msgBus.m_map.size() == 1);
     msgBus.SendMsg(topic, static_cast<T1>(num1), static_cast<T2>(num2), static_cast<T3>(num3));
     msgBus.RemoveTopic<T1, T2, T3>(topic);
+    EXPECT_TRUE(msgBus.m_map.size() == 0);
 }
 
 template<typename T1, typename T2>
@@ -549,6 +565,7 @@ HWTEST_F(RSRoundCornerDisplayTest, MessageBus, TestSize.Level1)
     TestMsgBusFunc2<int>();
     TestMsgBusFunc2<float>();
     TestMsgBusFunc2<double>();
+    EXPECT_TRUE(msgBus.m_map.size() == 0);
 }
 
 /*
