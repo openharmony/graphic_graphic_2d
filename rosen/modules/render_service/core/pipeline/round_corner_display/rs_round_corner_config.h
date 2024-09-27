@@ -106,6 +106,7 @@ struct RoundCornerLayer {
 
 struct RoundCornerHardware {
     bool resourceChanged = false;
+    bool resourcePreparing = false;
     std::shared_ptr<RoundCornerLayer> topLayer = nullptr;
     std::shared_ptr<RoundCornerLayer> bottomLayer = nullptr;
 };

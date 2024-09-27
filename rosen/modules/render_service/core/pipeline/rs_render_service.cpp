@@ -179,9 +179,9 @@ void RSRenderService::RegisterRcdMsg()
             msgBus.RegisterTopic<NodeId, int>(
                 TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
                 &RoundCornerDisplayManager::UpdateNotchStatus);
-            msgBus.RegisterTopic<NodeId>(
-                TOPIC_RCD_RESOURCE_CHANGE, &rcdHardManager,
-                &RSRcdRenderManager::SetHardWareInfoChanged);
+            msgBus.RegisterTopic<NodeId, bool>(
+                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
             isRcdServiceRegister_ = true;
             RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
             return;

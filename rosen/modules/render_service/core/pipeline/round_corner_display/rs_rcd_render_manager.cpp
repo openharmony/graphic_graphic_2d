@@ -18,6 +18,8 @@
 #include <unordered_set>
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/round_corner_display/rs_message_bus.h"
 #include "platform/common/rs_log.h"
 #include "rs_rcd_render_visitor.h"
 #include "rs_round_corner_display_manager.h"
@@ -146,8 +148,10 @@ void RSRcdRenderManager::DoProcessRenderTask(NodeId id, const RcdProcessInfo& in
     }
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
-    visitor->ProcessRcdSurfaceRenderNode(*GetBottomRenderNode(id), info.bottomLayer);
-    visitor->ProcessRcdSurfaceRenderNode(*GetTopRenderNode(id), info.topLayer);
+    visitor->ProcessRcdSurfaceRenderNode(*GetBottomRenderNode(id), info.bottomLayer, info.resourceChanged);
+    visitor->ProcessRcdSurfaceRenderNode(*GetTopRenderNode(id), info.topLayer, info.resourceChanged);
+    if (info.resourceChanged)
+        RSSingleton<RsMessageBus>::GetInstance().SendMsg<NodeId, bool>(TOPIC_RCD_DISPLAY_HWRESOURCE, id, true);
     RS_TRACE_END();
 }
 
@@ -161,15 +165,10 @@ void RSRcdRenderManager::DoProcessRenderMainThreadTask(NodeId id, const RcdProce
     }
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*GetBottomRenderNode(id));
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*GetTopRenderNode(id));
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*GetBottomRenderNode(id), info.resourceChanged);
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*GetTopRenderNode(id), info.resourceChanged);
     RS_TRACE_END();
 }
 
-void RSRcdRenderManager::SetHardWareInfoChanged(NodeId id)
-{
-    GetBottomRenderNode(id)->SetHardWareInfoChanged(true);
-    GetTopRenderNode(id)->SetHardWareInfoChanged(true);
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -65,16 +65,6 @@ void RSRcdSurfaceRenderNode::SetRenderTargetId(NodeId id)
     renerTargetId_ = id;
 }
 
-void RSRcdSurfaceRenderNode::SetHardWareInfoChanged(bool isChanged)
-{
-    isHardWareResoureceChangeTag.store(isChanged);
-}
-
-bool RSRcdSurfaceRenderNode::GetIsHarwareInfoChanged() const
-{
-    return isHardWareResoureceChangeTag.load();
-}
-
 bool RSRcdSurfaceRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
 {
     RS_LOGD("RCD: Start RSRcdSurfaceRenderNode CreateSurface");

@@ -21,6 +21,7 @@
 #include <map>
 #include <thread>
 #include <mutex>
+#include <shared_mutex>
 #include <condition_variable>
 #include "render_context/render_context.h"
 #include "event_handler.h"
@@ -35,6 +36,8 @@ constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
 constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
 constexpr char TOPIC_RCD_DISPLAY_NOTCH[] = "RCD_UPDATE_DISPLAY_NOTCH";
 constexpr char TOPIC_RCD_RESOURCE_CHANGE[] = "TOPIC_RCD_RESOURCE_CHANGE";
+constexpr char TOPIC_RCD_DISPLAY_HWRESOURCE[] = "RCD_UPDATE_DISPLAY_HWRESOURCE";
+
 // On the devices that LCD/AMOLED contain notch, at settings-->display-->notch
 // we can set default or hide notch.
 enum WindowNotchStatus {
@@ -75,6 +78,9 @@ public:
     // update curOrientation_ and lastOrientation_
     void UpdateOrientationStatus(ScreenRotation orientation);
 
+    // update hardInfo_.resourceChanged after hw resource applied
+    void UpdateHardwareResourcePrepared(bool prepared);
+
     void DrawTopRoundCorner(RSPaintFilterCanvas* canvas);
 
     void DrawBottomRoundCorner(RSPaintFilterCanvas* canvas);
@@ -93,14 +99,23 @@ public:
         task(); // do task
     }
 
-    rs_rcd::RoundCornerHardware GetHardwareInfo() const
+    rs_rcd::RoundCornerHardware GetHardwareInfo()
     {
+        std::shared_lock<std::shared_mutex> lock(resourceMut_);
+        return hardInfo_;
+    }
+
+    rs_rcd::RoundCornerHardware GetHardwareInfoPreparing()
+    {
+        std::unique_lock<std::shared_mutex> lock(resourceMut_);
+        if (hardInfo_.resourceChanged)
+            hardInfo_.resourcePreparing = true;
         return hardInfo_;
     }
 
     bool IsNotchNeedUpdate(bool notchStatus)
     {
-        std::lock_guard<std::mutex> lock(resourceMut_);
+        std::shared_lock<std::shared_mutex> lock(resourceMut_);
         bool result = notchStatus != lastNotchStatus_;
         lastNotchStatus_ = notchStatus;
         return result;
@@ -109,6 +124,8 @@ public:
     void InitOnce();
 
 private:
+    int resourceDesyncCnt = 0;
+    
     NodeId renderTargetId_ = 0;
     bool isInit = false;
     // load config
@@ -156,7 +173,7 @@ private:
     std::shared_ptr<Drawing::Image> curTop_ = nullptr;
     std::shared_ptr<Drawing::Image> curBottom_ = nullptr;
 
-    std::mutex resourceMut_;
+    std::shared_mutex resourceMut_;
 
     rs_rcd::RoundCornerHardware hardInfo_;
 

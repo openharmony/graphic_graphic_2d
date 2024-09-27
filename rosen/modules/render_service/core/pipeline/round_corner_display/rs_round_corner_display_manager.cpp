@@ -149,6 +149,20 @@ void RoundCornerDisplayManager::UpdateOrientationStatus(NodeId id, ScreenRotatio
     rcdMap_[id]->UpdateOrientationStatus(orientation);
 }
 
+void RoundCornerDisplayManager::UpdateHardwareResourcePrepared(NodeId id, bool prepared)
+{
+    if (!CheckExist(id)) {
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module not exist \n", __func__, id);
+        return;
+    }
+    if (rcdMap_[id] == nullptr) {
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
+        RemoveRoundCornerDisplay(id);
+        return;
+    }
+    rcdMap_[id]->UpdateHardwareResourcePrepared(prepared);
+}
+
 void RoundCornerDisplayManager::DrawRoundCorner(const RoundCornerDisplayManager::RCDLayerInfoVec& layerInfos,
     RSPaintFilterCanvas* canvas)
 {
@@ -204,7 +218,7 @@ void RoundCornerDisplayManager::RunHardwareTask(NodeId id, const std::function<v
     rcdMap_[id]->RunHardwareTask(task);
 }
 
-rs_rcd::RoundCornerHardware RoundCornerDisplayManager::GetHardwareInfo(NodeId id) const
+rs_rcd::RoundCornerHardware RoundCornerDisplayManager::GetHardwareInfo(NodeId id, bool preparing)
 {
     rs_rcd::RoundCornerHardware rcdhardinfo{};
     if (!CheckExist(id)) {
@@ -215,7 +229,7 @@ rs_rcd::RoundCornerHardware RoundCornerDisplayManager::GetHardwareInfo(NodeId id
         RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
         return rcdhardinfo;
     }
-    return rcdMap_.at(id)->GetHardwareInfo();
+    return preparing ? rcdMap_.at(id)->GetHardwareInfoPreparing() : rcdMap_.at(id)->GetHardwareInfo();
 }
 
 bool RoundCornerDisplayManager::GetRcdEnable() const

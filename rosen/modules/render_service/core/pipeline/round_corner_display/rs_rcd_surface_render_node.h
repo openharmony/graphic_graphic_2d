@@ -131,8 +131,6 @@ public:
 
     void SetRenderTargetId(NodeId id);
 
-    void SetHardWareInfoChanged(bool isChanged);
-    bool GetIsHarwareInfoChanged() const;
 private:
     float GetSurfaceWidth() const;
     float GetSurfaceHeight() const;
@@ -152,7 +150,6 @@ private:
     CldInfo cldInfo_;
 
     NodeId renerTargetId_ = 0;
-    std::atomic<bool> isHardWareResoureceChangeTag = false;
 };
 } // namespace Rosen
 } // namespace OHOS

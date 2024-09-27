@@ -412,7 +412,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
     bottomSurfaceNode->FillHardwareResource(info, 0, 0);
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     // test
-    visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer);
+    visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, true);
 }
 
 /*
@@ -431,32 +431,26 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
 
     // 1 null processor
-    topSurfaceNode->SetHardWareInfoChanged(true);
-    inValidSurfaceNode->SetHardWareInfoChanged(true);
     std::shared_ptr<RSProcessor> processorPtr = nullptr;
     visitor->SetUniProcessor(processorPtr);
     EXPECT_TRUE(visitor->uniProcessor_ == processorPtr);
-    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode);
+    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer, true);
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
 
     // 2 invalid node
     processorPtr =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
     visitor->SetUniProcessor(processorPtr);
-    visitor->ProcessRcdSurfaceRenderNode(*inValidSurfaceNode, hardInfo.bottomLayer);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*inValidSurfaceNode);
-    EXPECT_TRUE(topSurfaceNode->GetIsHarwareInfoChanged() == true);
+    visitor->ProcessRcdSurfaceRenderNode(*inValidSurfaceNode, hardInfo.bottomLayer, true);
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*inValidSurfaceNode, true);
 
     // 3 resource not changed
-    topSurfaceNode->SetHardWareInfoChanged(false);
-    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode);
-    EXPECT_TRUE(topSurfaceNode->GetIsHarwareInfoChanged() == false);
+    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer, true);
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
 
     // processor node changedTag Ok
-    topSurfaceNode->SetHardWareInfoChanged(true);
-    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer);
-    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode);
+    visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode, hardInfo.bottomLayer, true);
+    visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
 
     ASSERT_EQ(true, visitor->ConsumeAndUpdateBuffer(*topSurfaceNode));
 }
@@ -1207,11 +1201,8 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
     RcdProcessInfo info{};
     rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);
     rcdManagerInstance.DoProcessRenderTask(id, info);
-    rcdManagerInstance.SetHardWareInfoChanged(id);
     auto topNode = rcdManagerInstance.GetTopRenderNode(id);
-    EXPECT_TRUE(topNode->isHardWareResoureceChangeTag.load());
     auto bottomNode = rcdManagerInstance.GetTopRenderNode(id);
-    EXPECT_TRUE(bottomNode->isHardWareResoureceChangeTag.load());
     RSRenderNodeMap nodeMap;
     EXPECT_TRUE(RSRcdRenderManager::CheckExist(id, nodeMap) == false);
 

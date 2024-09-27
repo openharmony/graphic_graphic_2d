@@ -68,6 +68,9 @@ public:
     // update curOrientation_ and lastOrientation_
     void UpdateOrientationStatus(NodeId id, ScreenRotation orientation);
 
+    // update hardwareInfo_.resourceChanged and resourcePreparing
+    void UpdateHardwareResourcePrepared(NodeId id, bool prepared);
+
     // the soft draw top rcd api: draw rendertarget node input and canvas.
     void DrawTopRoundCorner(NodeId id, RSPaintFilterCanvas* canvas);
 
@@ -78,7 +81,7 @@ public:
     void RunHardwareTask(NodeId id, const std::function<void()>& task);
 
     // get the hardware info via rendertarget ID which rcd hardwareComposer buffer prepare task needed
-    rs_rcd::RoundCornerHardware GetHardwareInfo(NodeId id) const;
+    rs_rcd::RoundCornerHardware GetHardwareInfo(NodeId id, bool preparing = false);
 
     // get the rcd enable tag
     bool GetRcdEnable() const;

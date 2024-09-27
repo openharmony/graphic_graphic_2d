@@ -62,8 +62,6 @@ public:
 
     void DoProcessRenderMainThreadTask(NodeId id, const RcdProcessInfo& info);
 
-    void SetHardWareInfoChanged(NodeId id);
-
     static bool IsRcdProcessInfoValid(const RcdProcessInfo& info);
 
     RSRcdRenderManager() = default;
