@@ -326,6 +326,7 @@ HWTEST_F(RSInterfacesTest, GetHardwareComposeDisabledReasonInfo001, TestSize.Lev
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     instance.GetHwcDisabledReasonInfo();
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 
 /**

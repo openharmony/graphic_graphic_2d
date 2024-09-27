@@ -862,6 +862,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus001, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(), false);
+    EXPECT_EQ(rsRenderThreadVisitor.partialRenderStatus_, PartialRenderType::SET_DAMAGE_AND_DROP_OP);
 }
 
 /**
@@ -874,6 +875,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus002, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(), true);
+    EXPECT_EQ(rsRenderThreadVisitor.partialRenderStatus_, PartialRenderType::SET_DAMAGE_AND_DROP_OP);
 }
 
 /**
@@ -886,6 +888,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus003, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetUniPartialRenderEnabled(), true);
+    EXPECT_EQ(rsRenderThreadVisitor.partialRenderStatus_, PartialRenderType::DISABLED);
 }
 
 /**
@@ -898,6 +901,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus004, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetUniPartialRenderEnabled(), false);
+    EXPECT_EQ(rsRenderThreadVisitor.partialRenderStatus_, PartialRenderType::DISABLED);
 }
 
 /**
@@ -910,6 +914,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus005, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetUniPartialRenderEnabled(), true);
+    EXPECT_EQ(rsRenderThreadVisitor.partialRenderStatus_, PartialRenderType::DISABLED);
 }
 
 /**
@@ -923,6 +928,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus006, TestSize.Level1)
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::DISABLED, true);
     rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::SET_DAMAGE_AND_DROP_OP, true);
+    EXPECT_EQ(rsRenderThreadVisitor.partialRenderStatus_, PartialRenderType::SET_DAMAGE_AND_DROP_OP);
 }
 
 /**

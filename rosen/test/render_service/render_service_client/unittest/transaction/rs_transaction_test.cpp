@@ -46,6 +46,7 @@ HWTEST_F(RSTransactionTest, FlushImplicitTransaction001, TestSize.Level1)
     //      which constructor is privated.
     //      Only use its static function.
     RSTransaction::FlushImplicitTransaction();
+    EXPECT_NE(RSTransaction::FlushImplicitTransaction, nullptr);
 }
 
 /**
