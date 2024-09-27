@@ -358,6 +358,7 @@ void RSMainThread::Init()
             renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
         }
         RenderFrameStart(timestamp_);
+        RSRenderNodeGC::Instance().SetGCTaskEnable(true);
 #if defined(RS_ENABLE_UNI_RENDER)
         WaitUntilSurfaceCapProcFinished();
 #endif
@@ -464,11 +465,6 @@ void RSMainThread::Init()
     if (ret != 0) {
         RS_LOGW("Add watchdog thread failed");
     }
-    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
-        AppExecFwk::EventQueue::Priority priority) {
-        RSMainThread::Instance()->PostTask(task, name, delayTime, priority);
-    };
-    RSRenderNodeGC::Instance().SetMainTask(PostTaskProxy);
 #ifdef RES_SCHED_ENABLE
     SubScribeSystemAbility();
 #endif
@@ -484,6 +480,15 @@ void RSMainThread::Init()
         renderEngine_ = std::make_shared<RSRenderEngine>();
         renderEngine_->Init();
     }
+    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+        AppExecFwk::EventQueue::Priority priority) {
+        RSMainThread::Instance()->PostTask(task, name, delayTime, priority);
+    };
+    RSRenderNodeGC::Instance().SetMainTask(PostTaskProxy);
+    auto GCNotifyTaskProxy = [](bool isEnable) {
+        RSRenderNodeGC::Instance().SetGCTaskEnable(isEnable);
+    };
+    conn->SetGCNotifyTask(GCNotifyTaskProxy);
 #ifdef RS_ENABLE_GL
     /* move to render thread ? */
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
