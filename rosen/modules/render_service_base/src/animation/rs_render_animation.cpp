@@ -368,7 +368,6 @@ bool RSRenderAnimation::Animate(int64_t time)
 
 void RSRenderAnimation::SetStartTime(int64_t time)
 {
-    time = RS_PROFILER_ANIME_SET_START_TIME(id_, time);
     animationFraction_.SetLastFrameTime(time);
     needUpdateStartTime_ = false;
 }
