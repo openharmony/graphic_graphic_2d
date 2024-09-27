@@ -41,8 +41,9 @@ struct TextTab {
     TextTab() = default;
     TextTab(TextAlign alignment, float location) : alignment(alignment), location(location) {};
     TextTab& operator=(const TextTab&) = default;
-    TextAlign alignment;
-    float location;
+    TextAlign alignment = TextAlign::LEFT;
+    static constexpr float INVALID_LOCATION = -1.0f;
+    float location = INVALID_LOCATION;
 };
 
 class ParagraphStyle {

@@ -35,8 +35,9 @@ struct TextTab {
         return (this->alignment == rhs.alignment) &&
             (skia::textlayout::nearlyEqual(this->location, rhs.location));
     }
-    TextAlign alignment;
-    float location;
+    TextAlign alignment = TextAlign::LEFT;
+    static constexpr float INVALID_LOCATION = -1.0f;
+    float location = INVALID_LOCATION;
 };
 struct TypographyStyle {
     const static inline std::u16string ELLIPSIS = u"\u2026";
