@@ -82,7 +82,7 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::CreatePixelMapByNode(std::s
     opts.size.height = ceil(pixmapHeight * scaleY_);
     uint32_t length = opts.size.width * opts.size.height;
     auto data = std::make_unique<uint32_t[]>(length);
-    return Media::PixelMap::Create(data.release(), length, opts);
+    return Media::PixelMap::Create(data.get(), length, opts);
 }
 
 std::shared_ptr<Drawing::Surface> RSDividedUICapture::CreateSurface(
