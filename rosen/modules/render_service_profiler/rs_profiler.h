@@ -21,8 +21,9 @@
 #include <map>
 #include <string>
 
-#include "common/rs_vector4.h"
+#include "recording/draw_cmd_list.h"
 
+#include "common/rs_vector4.h"
 #include "params/rs_display_render_params.h"
 
 #define RS_PROFILER_INIT(renderSevice) RSProfiler::Init(renderSevice)
@@ -56,6 +57,7 @@
 #define RS_PROFILER_ANIME_SET_START_TIME(id, time) RSProfiler::AnimeSetStartTime(id, time)
 #define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex) RSProfiler::ReplayFixTrIndex(curIndex, lastIndex)
 #define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val) RSProfiler::PatchTypefaceId(parcel, val)
+#define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) RSProfiler::DrawingNodeAddClearOp(drawCmdList)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN()
@@ -87,6 +89,7 @@
 #define RS_PROFILER_ANIME_SET_START_TIME(id, time) time
 #define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex)
 #define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val)
+#define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) (drawCmdList)->ClearOp()
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -191,6 +194,9 @@ public:
     RSB_EXPORT static bool IsSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
+
+    RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
+    RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
 
 private:
     static const char* GetProcessNameByPid(int pid);
@@ -362,12 +368,14 @@ private:
     static void CalcPerfNode(const ArgList& args);
     static void CalcPerfNodeAll(const ArgList& args);
     static void SocketShutdown(const ArgList& args);
+    static void DumpDrawingCanvasNodes(const ArgList& args);
 
     static void Version(const ArgList& args);
     static void FileVersion(const ArgList& args);
 
     static void SaveSkp(const ArgList& args);
     static void SaveRdc(const ArgList& args);
+    static void DrawingCanvasRedrawEnable(const ArgList& args);
 
     static void RecordStart(const ArgList& args);
     static void RecordStop(const ArgList& args);
@@ -409,6 +417,8 @@ private:
 
     inline static const char SYS_KEY_ENABLED[] = "persist.graphic.profiler.enabled";
     inline static const char SYS_KEY_BETARECORDING[] = "persist.graphic.profiler.betarecording";
+    // flag for enabling DRAWING_CANVAS_NODE redrawing
+    RSB_EXPORT static std::atomic_bool dcnRedraw_;
 };
 
 } // namespace OHOS::Rosen

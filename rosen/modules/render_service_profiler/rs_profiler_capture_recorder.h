@@ -44,6 +44,12 @@ public:
 
     Drawing::Canvas* TryInstantCapture(float width, float height);
     void EndInstantCapture();
+    // Used for .skp capturing of DrawingCanvasNode's local canvas
+    Drawing::Canvas* TryDrawingCanvasCapture(float width, float height, uint64_t nodeId);
+    void EndDrawingCanvasCapture();
+
+    void InvalidateDrawingCanvasNodeId();
+    void SetDrawingCanvasNodeId(uint64_t nodeId);
 
     // to check if .rdc is recorded and send the filename to client
     static bool PullAndSendRdc();
@@ -68,7 +74,8 @@ private:
     std::unique_ptr<SkPictureRecorder> skRecorder_;
     std::shared_ptr<Drawing::Canvas> recordingSkpCanvas_;
     // to make sure the capture start/finish happen for the same frame / thread
-    bool recordingTriggered_ = false;
+    bool recordingTriggeredFullFrame_ = false;
+    bool recordingTriggeredDrawingCanvas_ = false;
 
     sk_sp<SkPicture> picture_;
 
@@ -80,6 +87,8 @@ private:
     int32_t mskpIdxCurrent_ = -1;
     int32_t mskpIdxNext_ = -1;
     bool isPageActive_ = false;
+    bool isMskpActive_ = false;
+    uint64_t drawingCanvasNodeId_ = 0;
 };
 
 } // namespace OHOS::Rosen

@@ -934,9 +934,15 @@ void RSProfiler::SaveRdc(const ArgList& args)
 
 void RSProfiler::SaveSkp(const ArgList& args)
 {
-    RSSystemProperties::SetInstantRecording(true);
+    const auto nodeId = args.Node();
+    RSCaptureRecorder::GetInstance().SetDrawingCanvasNodeId(nodeId);
+    if (nodeId == 0) {
+        RSSystemProperties::SetInstantRecording(true);
+        Respond("Recording full frame .skp");
+    } else {
+        Respond("Recording .skp for DrawingCanvasNode: id=" + std::to_string(nodeId));
+    }
     AwakeRenderServiceThread();
-    Respond("Recording current frame cmds into : /data/default.skp");
 }
 
 void RSProfiler::ProcessSendingRdc()
@@ -1082,6 +1088,25 @@ void RSProfiler::DumpNodeProperties(const ArgList& args)
     if (const auto node = GetRenderNode(args.Node())) {
         Respond("RenderProperties=" + DumpRenderProperties(*node));
     }
+}
+
+void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
+{
+    if (!g_context) {
+        return;
+    }
+    const auto& map = const_cast<RSContext&>(*g_context).GetMutableNodeMap();
+    for (const auto& item : map.renderNodeMap_) {
+        if (item.second->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+            Respond("CANVAS_DRAWING_NODE: " + std::to_string(item.second->GetId()));
+        }
+    }
+}
+
+void RSProfiler::DrawingCanvasRedrawEnable(const ArgList& args)
+{
+    const auto enable = args.Uint64(); // 0 - disabled, >0 - enabled
+    RSProfiler::SetDrawingCanvasNodeRedraw(enable > 0);
 }
 
 void RSProfiler::DumpTree(const ArgList& args)

@@ -60,6 +60,8 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "version", Version },
     { "file_version", FileVersion },
     { "reset", Reset },
+    { "drawing_canvas", DumpDrawingCanvasNodes },
+    { "drawing_canvas_enable", DrawingCanvasRedrawEnable },
 };
 
 void RSProfiler::Invoke(const std::vector<std::string>& line)

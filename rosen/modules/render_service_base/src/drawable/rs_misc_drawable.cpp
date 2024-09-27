@@ -22,6 +22,8 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 
+#include "rs_profiler.h"
+
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 constexpr int TRACE_LEVEL_TWO = 2;
@@ -230,7 +232,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
             }
             drawCmdList->Playback(*canvas, rect);
             if (ptr->needClearOp_ && ptr->type_ == RSModifierType::CONTENT_STYLE) {
-                drawCmdList->ClearOp();
+                RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList);
             }
         }
     };

@@ -87,6 +87,7 @@ bool RSProfiler::testing_ = false;
 bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 int8_t RSProfiler::signalFlagChanged_ = 0;
+std::atomic_bool RSProfiler::dcnRedraw_ = false;
 
 constexpr size_t GetParcelMaxCapacity()
 {
@@ -1015,6 +1016,19 @@ bool RSProfiler::IsBetaRecordEnabledWithMetrics()
 {
     constexpr uint32_t metricsMode = 3u;
     return RSSystemProperties::GetBetaRecordingMode() == metricsMode;
+}
+
+void RSProfiler::SetDrawingCanvasNodeRedraw(bool enable)
+{
+    dcnRedraw_ = enable && IsEnabled();
+}
+
+void RSProfiler::DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList)
+{
+    if (dcnRedraw_ || !drawCmdList) {
+        return;
+    }
+    drawCmdList->ClearOp();
 }
 
 static uint64_t NewAshmemDataCacheId()

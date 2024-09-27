@@ -27,6 +27,10 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "platform/common/rs_log.h"
 
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
+
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
     constexpr int EDGE_WIDTH_LIMIT = 1000;
@@ -101,6 +105,14 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("Failed to init surface!");
         return;
     }
+
+#ifdef RS_PROFILER_ENABLED
+        if (auto canvas = RSCaptureRecorder::GetInstance().TryDrawingCanvasCapture(
+            static_cast<float>(canvas_->GetWidth()), static_cast<float>(canvas_->GetHeight()), nodeId_)) {
+            DrawContent(*canvas, bounds);
+            RSCaptureRecorder::GetInstance().EndDrawingCanvasCapture();
+        }
+#endif
 
     // 1. Draw background of this drawing node by the main canvas.
     DrawBackground(canvas, bounds);
