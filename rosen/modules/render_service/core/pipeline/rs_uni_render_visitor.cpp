@@ -3214,20 +3214,17 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             }
         }
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
-        if (!(hwcNodePtr->GetTotalMatrix() == matrix) ||
-            surfaceHandler->GetBufferSizeChanged() || surfaceHandler->CheckScalingModeChanged()) {
-            const auto& properties = hwcNodePtr->GetRenderProperties();
-            Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
-            Drawing::Rect absRect;
-            matrix.MapRect(absRect, bounds);
-            RectI rect = {std::round(absRect.left_), std::round(absRect.top_),
-                std::round(absRect.GetWidth()), std::round(absRect.GetHeight())};
-            UpdateDstRect(*hwcNodePtr, rect, prepareClipRect_);
-            UpdateSrcRect(*hwcNodePtr, matrix, rect);
-            UpdateHwcNodeByTransform(*hwcNodePtr);
-            UpdateHwcNodeEnableBySrcRect(*hwcNodePtr);
-            UpdateHwcNodeEnableByBufferSize(*hwcNodePtr);
-        }
+        const auto& properties = hwcNodePtr->GetRenderProperties();
+        Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
+        Drawing::Rect absRect;
+        matrix.MapRect(absRect, bounds);
+        RectI rect = {std::round(absRect.left_), std::round(absRect.top_),
+            std::round(absRect.GetWidth()), std::round(absRect.GetHeight())};
+        UpdateDstRect(*hwcNodePtr, rect, prepareClipRect_);
+        UpdateSrcRect(*hwcNodePtr, matrix, rect);
+        UpdateHwcNodeByTransform(*hwcNodePtr);
+        UpdateHwcNodeEnableBySrcRect(*hwcNodePtr);
+        UpdateHwcNodeEnableByBufferSize(*hwcNodePtr);
         hwcNodePtr->SetTotalMatrix(matrix);
     }
 }
