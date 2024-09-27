@@ -801,6 +801,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
             out += ", snapshotSkipLayer: " + std::to_string(surfaceNode->GetSnapshotSkipLayer());
         }
         out += ", surfaceType: " + std::to_string((int)surfaceNode->GetSurfaceNodeType());
+        out += ", ContainerConfig: " + surfaceNode->GetContainerConfigDump();
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
@@ -1169,9 +1170,9 @@ void RSRenderNode::FallbackAnimationsToRoot()
     }
     animationManager_.animations_.clear();
     // Check the next frame's VSync has been requested. If there is no request, add another VSync request
-    if (!context->IsNeedRequestNextVsync()) {
-        context->SetNeedRequestNextVsync(true);
+    if (!context->IsRequestedNextVsyncAnimate()) {
         context->RequestVsync();
+        context->SetRequestedNextVsyncAnimate(true);
     }
 }
 
@@ -1567,8 +1568,8 @@ bool RSRenderNode::UpdateBufferDirtyRegion(RectI& dirtyRect, const RectI& drawRe
         auto rect = surfaceHandler->GetDamageRegion();
         auto matrix = surfaceNode->GetBufferRelMatrix();
         matrix.PostConcat(GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-        auto bufferDirtyRect =
-            GetRenderProperties().GetBoundsGeometry()->MapRect(RectF(rect.x, rect.y, rect.w, rect.h), matrix);
+        auto bufferDirtyRect = GetRenderProperties().GetBoundsGeometry()->MapRect(
+            RectF(rect.x, rect.y, rect.w, rect.h), matrix);
         bufferDirtyRect.JoinRect(drawRegion);
         // The buffer's dirtyRect should not be out of the scope of the node's dirtyRect
         dirtyRect = bufferDirtyRect.IntersectRect(dirtyRect);
@@ -2729,7 +2730,9 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
         OnAlphaChanged();
     }
     globalAlpha_ = alpha;
-    stagingRenderParams_->SetGlobalAlpha(alpha);
+    if (stagingRenderParams_) {
+        stagingRenderParams_->SetGlobalAlpha(alpha);
+    }
 }
 
 float RSRenderNode::GetGlobalAlpha() const
@@ -4084,7 +4087,7 @@ void RSRenderNode::OnSync()
 
         // copy newest for uifirst root node, now force sync done nodes
         if (uifirstNeedSync_) {
-            RS_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
+            RS_OPTIONAL_TRACE_NAME_FMT("uifirst_sync %lld", GetId());
             renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
                                                         renderDrawable_->drawCmdList_.end());
             renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
@@ -4273,9 +4276,15 @@ void SharedTransitionParam::InternalUnregisterSelf()
 {
     if (auto inNode = inNode_.lock()) {
         inNode->SetSharedTransitionParam(nullptr);
+        if (auto parent = inNode->GetParent().lock()) {
+            parent->ApplyModifiers();
+        }
     }
     if (auto outNode = outNode_.lock()) {
         outNode->SetSharedTransitionParam(nullptr);
+        if (auto parent = outNode->GetParent().lock()) {
+            parent->ApplyModifiers();
+        }
     }
 }
 

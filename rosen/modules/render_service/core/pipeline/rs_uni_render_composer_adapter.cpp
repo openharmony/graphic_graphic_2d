@@ -42,6 +42,15 @@ constexpr uint32_t FLAT_ANGLE = 180;
 constexpr int32_t DEFAULT_BRIGHTNESS = 500;
 constexpr float NO_RATIO = 1.0f;
 static const int GLOBAL_ALPHA_MAX = 255;
+
+std::string RectVectorToString(const std::vector<GraphicIRect>& dirtyRects)
+{
+    std::stringstream ss;
+    for (auto& rect : dirtyRects) {
+        ss << "[" << rect.x << "," << rect.y << "," << rect.w << "," << rect.h << "]";
+    }
+    return ss.str();
+}
 }
 
 bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
@@ -239,13 +248,16 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(info.visibleRect);
     layer->SetVisibleRegions(visibleRegions);
+    std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
-        layer->SetDirtyRegions(info.dirtyRects);
+        // Make sure the dirty region does not exceed layer src range.
+        for (const auto& rect : info.dirtyRects) {
+            dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(info.srcRect, rect));
+        }
     } else {
-        std::vector<GraphicIRect> dirtyRegions;
         dirtyRegions.emplace_back(info.srcRect);
-        layer->SetDirtyRegions(dirtyRegions);
     }
+    layer->SetDirtyRegions(dirtyRegions);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
     layer->SetMatrix(info.matrix);
@@ -1355,8 +1367,8 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
         return nullptr;
     }
     ComposeInfo info = BuildComposeInfo(displayDrawable, displayDrawable.GetDirtyRects());
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable zorder:%d bufferFormat:%d", info.zOrder,
-        surfaceHandler->GetBuffer()->GetFormat());
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable dirty:%s zorder:%d bufferFormat:%d",
+        RectVectorToString(info.dirtyRects).c_str(), info.zOrder, surfaceHandler->GetBuffer()->GetFormat());
     if (info.buffer) {
         RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayDrawable id:%{public}" PRIu64 " dst [%{public}d"
             " %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d]"

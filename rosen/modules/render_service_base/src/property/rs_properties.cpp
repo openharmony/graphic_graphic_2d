@@ -41,6 +41,7 @@
 #include "src/core/SkOpts.h"
 #include "render/rs_water_ripple_shader_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
+#include "render/rs_distortion_shader_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -178,6 +179,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
     [](RSProperties* prop) { prop->SetFlyOutDegree(0.0f); },              // FLY_OUT_DEGREE
     [](RSProperties* prop) { prop->SetFlyOutParams({}); },               // FLY_OUT_PARAMS
+    [](RSProperties* prop) { prop->SetDistortionK(0.0f); },              // DISTORTION_K
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
     [](RSProperties* prop) { prop->SetMagnifierParams({}); },            // MAGNIFIER_PARA
     [](RSProperties* prop) { prop->SetBackgroundBlurRadius(0.f); },      // BACKGROUND_BLUR_RADIUS
@@ -1339,7 +1341,7 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
             return;
         }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-        if (particleAnimation) {
+        if (particleAnimation != nullptr) {
             particleAnimation->UpdateNoiseField(particleNoiseFields_);
         }
     }
@@ -1442,6 +1444,27 @@ std::optional<RSFlyOutPara> RSProperties::GetFlyOutParams() const
 bool RSProperties::IsFlyOutValid() const
 {
     return ROSEN_GE(flyOutDegree_, 0.0f) && ROSEN_LE(flyOutDegree_, 1.0f) && flyOutParams_.has_value();
+}
+
+void RSProperties::SetDistortionK(const std::optional<float>& distortionK)
+{
+    distortionK_ = distortionK;
+    if (distortionK_.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetDistortionK() const
+{
+    return distortionK_;
+}
+
+bool RSProperties::IsDistortionKValid() const
+{
+    return distortionK_.has_value() && ROSEN_GE(*distortionK_, -1.0f) && ROSEN_LE(*distortionK_, 1.0f);
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
@@ -1969,6 +1992,7 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     contentDirty_ = true;
 }
 
+
 const Color& RSProperties::GetShadowColor() const
 {
     static const auto DEFAULT_SPOT_COLOR_VALUE = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
@@ -2141,11 +2165,11 @@ RectF RSProperties::GetBoundsRect() const
     auto rect = RectF();
     if (boundsGeo_->IsEmpty()) {
         if (!std::isinf(GetFrameWidth()) && !std::isinf(GetFrameHeight())) {
-            return {0, 0, GetFrameWidth(), GetFrameHeight()};
+            rect = {0, 0, GetFrameWidth(), GetFrameHeight()};
         }
     } else {
         if (!std::isinf(GetBoundsWidth()) && !std::isinf(GetBoundsHeight())) {
-            return {0, 0, GetBoundsWidth(), GetBoundsHeight()};
+            rect = {0, 0, GetBoundsWidth(), GetBoundsHeight()};
         }
     }
     return rect;
@@ -4273,6 +4297,9 @@ void RSProperties::UpdateForegroundFilter()
         } else {
             foregroundFilter_ = colorfulShadowFilter;
         }
+    } else if (IsDistortionKValid()) {
+        auto distortionFilter = std::make_shared<RSDistortionFilter>(*distortionK_);
+        foregroundFilter_ = distortionFilter;
     } else {
         foregroundFilter_.reset();
         foregroundFilterCache_.reset();

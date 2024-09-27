@@ -606,4 +606,36 @@ HWTEST_F(RSImageTest, SetDyamicRangeModeTest, TestSize.Level1)
     rsImage->SetDyamicRangeMode(dynamicRangeMode);
     EXPECT_EQ(rsImage->dynamicRangeMode_, dynamicRangeMode);
 }
+
+/**
+ * @tc.name: SetFitMatrixTest
+ * @tc.desc: Test RSImageTest.SetFitMatrix
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST_F(RSImageTest, SetFitMatrixTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    ASSERT_NE(rsImage, nullptr);
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    rsImage->SetFitMatrix(matrix);
+    EXPECT_EQ(rsImage->fitMatrix_.value(), matrix);
+}
+
+/**
+ * @tc.name: GetFitMatrixTest
+ * @tc.desc: Test RSImageTest.GetFitMatrix
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST_F(RSImageTest, GetFitMatrixTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    ASSERT_NE(rsImage, nullptr);
+    Drawing::Matrix matrix;
+    matrix.SetScaleTranslate(0.1, 0.1, 100, 100);
+    rsImage->fitMatrix_ = matrix;
+    EXPECT_EQ(rsImage->GetFitMatrix(), matrix);
+}
 } // namespace OHOS::Rosen

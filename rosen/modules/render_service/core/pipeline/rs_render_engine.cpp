@@ -105,7 +105,8 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
 #ifdef USE_VIDEO_PROCESSING_ENGINE
             params.tmoNits = layer->GetDisplayNit();
             params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
-            if (!node.GetRSSurfaceHandler() && !CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer())) {
+            if (node.GetRSSurfaceHandler() != nullptr &&
+                !CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer())) {
                 params.brightnessRatio = layer->GetBrightnessRatio();
             } else {
                 params.isHdrRedraw = true;

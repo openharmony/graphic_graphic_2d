@@ -190,6 +190,7 @@ enum class CacheProcessStatus : uint8_t {
     WAITING = 0, // waiting for process
     DOING, // processing
     DONE, // processed
+    SKIPPED, // skip cur process and wait for next new data to process
     UNKNOWN,
 };
 
@@ -413,7 +414,14 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
 }
 
 enum class AncoFlags : uint32_t {
-    IS_ANCO_NODE = 0x0001
+    IS_ANCO_NODE = 0x0001,
+    ANCO_SFV_NODE = 0x0011
+};
+
+enum class AncoHebcStatus : int32_t {
+    INITIAL,
+    NOT_USE_HEBC,
+    USE_HEBC
 };
 
 } // namespace Rosen

@@ -27,6 +27,7 @@
 
 #include <event_handler.h>
 
+#include "hgm_frame_rate_manager.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "vsync_type.h"
@@ -46,11 +47,6 @@ public:
         return screenIds_;
     }
 
-    bool IsEnabled() const
-    {
-        return isEnabled_;
-    }
-
     int32_t GetScreenListSize() const
     {
         return screenList_.size();
@@ -58,6 +54,9 @@ public:
 
     ScreenId GetActiveScreenId() const
     {
+        if (hgmFrameRateMgr_ != nullptr) {
+            return hgmFrameRateMgr_->GetCurScreenId();
+        }
         return activeScreenId_.load();
     }
 
@@ -243,7 +242,11 @@ private:
     int32_t SetCustomRateMode(int32_t mode);
     void SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting);
 
-    bool isEnabled_ = true;
+    bool IsEnabled() const
+    {
+        return mPolicyConfigData_ != nullptr && !mPolicyConfigData_->refreshRateForSettings_.empty();
+    }
+
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;

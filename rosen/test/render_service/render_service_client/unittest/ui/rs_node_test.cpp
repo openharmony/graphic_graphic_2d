@@ -5904,6 +5904,21 @@ HWTEST_F(RSNodeTest, SetFlyOutParams, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDistortionK
+ * @tc.desc: test results of SetDistortionK
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSNodeTest, SetDistortionK, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    // for test
+    float distortionK = 0.5f;
+    rsNode->SetDistortionK(distortionK);
+    EXPECT_EQ(distortionK, 0.5f);
+}
+
+/**
  * @tc.name: SetNodeName
  * @tc.desc: test results of SetNodeName
  * @tc.type: FUNC
@@ -7271,5 +7286,21 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     string out2;
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
+}
+
+/**
+ * @tc.name: MarkUifirstNode
+ * @tc.desc: test results of MarkUifirstNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9RLG7
+ */
+HWTEST_F(RSNodeTest, MarkUifirstNode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkUifirstNode(true);
+    EXPECT_TRUE(rsNode->isUifirstNode_);
+
+    rsNode->MarkUifirstNode(false);
+    EXPECT_TRUE(!rsNode->isUifirstNode_);
 }
 } // namespace OHOS::Rosen

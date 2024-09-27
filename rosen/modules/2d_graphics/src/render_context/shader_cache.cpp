@@ -24,6 +24,9 @@
 #include <tuple>
 #include "rs_trace.h"
 #include "render_context_log.h"
+#ifdef PRELOAD_SHADER_CACHE
+#include "shader_cache_utils.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -81,6 +84,9 @@ void ShaderCache::SetFilePath(const std::string& filename)
     }
     std::lock_guard<std::mutex> lock(mutex_);
     filePath_ = filename + "/shader_cache";
+#ifdef PRELOAD_SHADER_CACHE
+    ShaderCacheUtils::SetPreloadCacheDir(filePath_);
+#endif
 }
 
 std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)

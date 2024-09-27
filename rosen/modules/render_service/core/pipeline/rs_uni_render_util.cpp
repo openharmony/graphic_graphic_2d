@@ -287,6 +287,22 @@ std::vector<RectI> RSUniRenderUtil::FilpRects(const std::vector<RectI>& srcRects
     return retRects;
 }
 
+GraphicIRect RSUniRenderUtil::IntersectRect(const GraphicIRect& first, const GraphicIRect& second)
+{
+    int left = std::max(first.x, second.x);
+    int top = std::max(first.y, second.y);
+    int right = std::min(first.x + first.w, second.x + second.w);
+    int bottom = std::min(first.y + first.h, second.y + second.h);
+    int width = right - left;
+    int height = bottom - top;
+
+    if (width <= 0 || height <= 0) {
+        return GraphicIRect { 0, 0, 0, 0 };
+    } else {
+        return GraphicIRect { left, top, width, height };
+    }
+}
+
 void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
     const sptr<IConsumerSurface>& surface, RectF& localBounds)
 {

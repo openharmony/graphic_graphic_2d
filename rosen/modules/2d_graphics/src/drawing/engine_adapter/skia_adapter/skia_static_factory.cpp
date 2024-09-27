@@ -73,6 +73,11 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromName(const char familyName[
     return SkiaTypeface::MakeFromName(familyName, fontStyle);
 }
 
+std::vector<std::shared_ptr<Typeface>> SkiaStaticFactory::GetSystemFonts()
+{
+    return SkiaTypeface::GetSystemFonts();
+}
+
 #ifdef ACE_ENABLE_GPU
 #ifdef RS_ENABLE_VK
 std::shared_ptr<Surface> SkiaStaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,

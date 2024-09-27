@@ -25,6 +25,7 @@
 #include "text/typeface.h"
 #include "utils/rect.h"
 #include "utils/scalar.h"
+#include "draw/path.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -73,6 +74,9 @@ public:
     virtual scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding,
         Rect* bounds = nullptr) const = 0;
     virtual int CountText(const void* text, size_t byteLength, TextEncoding encoding) const = 0;
+    
+    virtual void GetTextPath(const void* text, size_t byteLength,
+        TextEncoding encoding, float x, float y, Path* path) const = 0;
 
 protected:
     FontImpl() noexcept = default;

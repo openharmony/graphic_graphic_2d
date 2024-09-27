@@ -1129,11 +1129,10 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return ConvertToInt(num, 1) != 0;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+std::string RSSystemProperties::GetVersionType()
 {
-    static bool flag =
-        std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
-    return flag;
+    static std::string versionType = system::GetParameter("const.logsystem.versiontype", "");
+    return versionType;
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()

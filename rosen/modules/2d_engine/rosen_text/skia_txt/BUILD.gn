@@ -52,12 +52,14 @@ template("skia_libtxt") {
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/adapter/skia_txt",
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt/txt",
+      "$graphic_2d_root/rosen/modules/texgine/src",
     ]
 
     sources = [
       "$txt_root/impl/drawing_painter_impl.cpp",
       "$txt_root/impl/paragraph_builder_impl.cpp",
       "$txt_root/impl/paragraph_impl.cpp",
+      "$txt_root/impl/paragraph_line_fetcher_impl.cpp",
       "$txt_root/impl/run_impl.cpp",
       "$txt_root/impl/text_line_impl.cpp",
       "$txt_root/symbol_engine/hm_symbol_node_build.cpp",
@@ -176,6 +178,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/ParagraphBuilderImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphCache.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphImpl.cpp",
+    "//third_party/skia/modules/skparagraph/src/ParagraphLineFetcherImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphPainterImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphStyle.cpp",
     "//third_party/skia/modules/skparagraph/src/Run.cpp",
@@ -184,6 +187,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/TextLineBaseImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/TextShadow.cpp",
     "//third_party/skia/modules/skparagraph/src/TextStyle.cpp",
+    "//third_party/skia/modules/skparagraph/src/TextTabAlign.cpp",
     "//third_party/skia/modules/skparagraph/src/TextWrapper.cpp",
     "//third_party/skia/modules/skparagraph/src/TypefaceFontProvider.cpp",
   ]
@@ -226,7 +230,7 @@ ohos_source_set("skia_paragraph") {
       current_os == "android" || current_os == "ios"
 
   if (!is_cross_platform) {
-    defines += [ "TXT_USE_PARAMETER" ]
+    defines += [ "OHOS_TEXT_ENABLE" ]
     external_deps += [ "init:libbegetutil" ]
   }
 }

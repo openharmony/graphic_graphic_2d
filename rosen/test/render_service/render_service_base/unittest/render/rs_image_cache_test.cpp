@@ -35,6 +35,34 @@ void RSImageCacheTest::SetUp() {}
 void RSImageCacheTest::TearDown() {}
 
 /**
+ * @tc.name: CheckUniqueIdIsEmptyTest
+ * @tc.desc: Verify function CheckUniqueIdIsEmpty
+ * @tc.type:FUNC
+ * @tc.require: issueIATB9R
+ */
+
+HWTEST_F(RSImageCacheTest, CheckUniqueIdIsEmptyTest, TestSize.Level0)
+{
+    for (uint64_t id = 0; id < 10; id++)
+    {
+        RSImageCache::Instance().CollectUniqueId(id);
+    }
+    EXPECT_FALSE(RSImageCache::Instance().CheckUniqueIdIsEmpty());
+
+    RSImageCache::Instance().ReleaseUniqueIdList();
+    {
+        std::unique_lock<std::mutex> lock(RSImageCache::Instance().uniqueIdListMutex_);
+        EXPECT_TRUE(RSImageCache::Instance().uniqueIdList_.empty());
+    }
+    EXPECT_TRUE(RSImageCache::Instance().CheckUniqueIdIsEmpty());
+
+    {
+        std::unique_lock<std::mutex> lock(RSImageCache::Instance().uniqueIdListMutex_);
+        RSImageCache::Instance().uniqueIdList_.clear();
+    }
+}
+
+/**
  * @tc.name: InstanceTest
  * @tc.desc: Verify function Instance
  * @tc.type:FUNC

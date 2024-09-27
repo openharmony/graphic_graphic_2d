@@ -48,9 +48,9 @@ public:
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
     bool ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node);
-    void ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
-        bool resourceChanged);
-    void ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged);
+    void ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node,
+        const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo);
+    void ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node);
 
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
 
@@ -58,6 +58,7 @@ private:
     std::mutex bufferMut_;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_ = nullptr;
     std::shared_ptr<RSProcessor> uniProcessor_ = nullptr;
+    bool isResourceChange_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1111,6 +1111,12 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilter, TestSize.Level1)
 
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     displayDrawable_->SwitchColorFilter(canvas);
+    displayDrawable_->SwitchColorFilter(canvas, 0.6);
+
+    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    displayDrawable_->SwitchColorFilter(canvas);
+    displayDrawable_->SwitchColorFilter(canvas, 0.6);
+
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }

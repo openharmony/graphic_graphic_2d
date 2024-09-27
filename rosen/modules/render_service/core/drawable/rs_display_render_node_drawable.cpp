@@ -32,7 +32,8 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
+#include "pipeline/rs_anco_manager.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
@@ -177,22 +178,21 @@ private:
     std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
 };
 
-void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
     const ScreenInfo& screenInfo)
 {
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [&processor, &rcdInfo]() {
-                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
+            [id, &processor, &rcdInfo](void) {
+                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
                 rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
                     hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo->processInfo);
-            }
-        );
+                RSRcdRenderManager::GetInstance().DoProcessRenderTask(id, rcdInfo->processInfo);
+            });
     }
 }
 
@@ -300,7 +300,16 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         params.GetNewColorSpace(), params.GetNewPixelFormat());
     RS_LOGD("RequestFrame colorspace is %{public}d, pixelformat is %{public}d", params.GetNewColorSpace(),
         params.GetNewPixelFormat());
-    auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface), bufferConfig);
+
+    bool isHebc = true;
+    if (RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC) {
+        isHebc = false;
+        RS_LOGI("anco request frame not use hebc");
+    }
+    RSAncoManager::Instance()->SetAncoHebcStatus(AncoHebcStatus::INITIAL);
+
+    auto renderFrame = renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
+        bufferConfig, false, isHebc);
     if (!renderFrame) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame renderEngine requestFrame is null");
         return nullptr;
@@ -351,7 +360,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
 
     RS_LOGD("DisplayNode skip");
     RS_TRACE_NAME("DisplayNode skip");
-    GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX();
+    GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX(RSBaseRenderUtil::GetLastSendingPid());
 #ifdef OHOS_PLATFORM
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
@@ -388,7 +397,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     // commit RCD layers
     auto rcdInfo = std::make_unique<RcdInfo>();
     const auto& screenInfo = params.GetScreenInfo();
-    DoScreenRcdTask(processor, rcdInfo, screenInfo);
+    DoScreenRcdTask(params.GetId(), processor, rcdInfo, screenInfo);
     processor->PostProcess();
     return true;
 }
@@ -623,7 +632,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR content in UniRender:%{public}d, BrightnessRatio:%{public}f",
         isHdrOn, hdrBrightnessRatio);
 
-    if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor)) {
+    if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor) &&
+        RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::INITIAL) {
         RSMainThread::Instance()->SetFrameIsRender(false);
         SetDisplayNodeSkipFlag(*uniParam, true);
         return;
@@ -726,7 +736,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             // watermark and color filter should be applied after offscreen render.
             DrawWatermarkIfNeed(*params, *curCanvas_);
-            SwitchColorFilter(*curCanvas_);
+            SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
         }
         rsDirtyRectsDfx.OnDraw(curCanvas_);
         if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
@@ -757,7 +767,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // process round corner display
     auto rcdInfo = std::make_unique<RcdInfo>();
-    DoScreenRcdTask(processor, rcdInfo, screenInfo);
+    DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
         RS_LOGW("RSDisplayRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute");
@@ -1306,7 +1316,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledTopNodesMissedInCacheImage(
     }
 }
 
-void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const
+void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio) const
 {
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
@@ -1323,7 +1333,7 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas)
     RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::SetColorFilterModeToPaint mode:%d",
         static_cast<int32_t>(colorFilterMode));
     Drawing::Brush brush;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush, hdrBrightnessRatio);
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     RSTagTracker tagTracker(
         renderEngine->GetRenderContext()->GetDrGPUContext(),

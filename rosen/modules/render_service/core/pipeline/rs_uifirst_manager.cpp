@@ -662,7 +662,7 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
         node->GetStagingRenderParams()->GetUifirstRootNodeId(), node->GetStagingRenderParams()->GetFirstLevelNodeId(),
         params->GetUifirstRootNodeId(), params->GetFirstLevelNodeId(), node->GetId(), curRootIdState);
 
-    if (curRootIdState == CacheProcessStatus::DOING ||
+    if (curRootIdState == CacheProcessStatus::DOING || curRootIdState == CacheProcessStatus::WAITING ||
         /* unknow state to check prefirstLevelNode */
         (uifirstRootId == INVALID_NODEID && IsPreFirstLevelNodeDoing(node))) {
         pendingSyncForSkipBefore_[uifirstRootId].push_back(node);
@@ -779,8 +779,8 @@ bool RSUifirstManager::IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> no
     auto& preFirstLevelNodeIdSet = node->GetMutablePreFirstLevelNodeIdSet();
     for (auto it = preFirstLevelNodeIdSet.begin(); it != preFirstLevelNodeIdSet.end();
          it = preFirstLevelNodeIdSet.erase(it)) {
-        auto& curRootIdState = GetUifirstCachedState(*it);
-        if (curRootIdState == CacheProcessStatus::DOING) {
+        const auto& curRootIdState = GetUifirstCachedState(*it);
+        if (curRootIdState == CacheProcessStatus::DOING || curRootIdState == CacheProcessStatus::WAITING) {
             return true;
         }
     }
@@ -1250,6 +1250,18 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     return isNeedAssignToSubThread;
 }
 
+// Vm app not use uifirst when it is focused
+bool RSUifirstManager::IsVMSurfaceName(std::string surfaceName)
+{
+    for (auto& item : vmAppNameSet_) {
+        if (surfaceName.find(item) != std::string::npos) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // NonFocusWindow, may reuse last image cache
 bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
@@ -1267,7 +1279,8 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     }
     if ((node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
         node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId())) &&
-        node.GetHasSharedTransitionNode()) {
+        (node.GetHasSharedTransitionNode() || RSUifirstManager::Instance().IsVMSurfaceName(surfaceName))) {
+        RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] is MainThread", surfaceName.c_str());
         return false;
     }
     return node.QuerySubAssignable(isDisplayRotation);
@@ -1546,6 +1559,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
     auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(rootId);
     if (!uifirstRootNodeDrawable || uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+        RS_LOGE("uifirst invalid uifirstrootNodeId %" PRIu64, rootId);
         return false;
     }
     auto uifirstRootSurfaceNodeDrawable =
@@ -1558,11 +1572,15 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto pred = [uifirstRootSurfaceNodeDrawable] {
         auto curState = uifirstRootSurfaceNodeDrawable->GetCacheSurfaceProcessedStatus();
         return curState == CacheProcessStatus::DONE || curState == CacheProcessStatus::UNKNOWN ||
-            uifirstRootSurfaceNodeDrawable->IsSubThreadSkip();
+            curState == CacheProcessStatus::SKIPPED;
     };
     std::unique_lock<std::mutex> lock(notifyMutex_);
     notifyCv_.wait_for(lock, TIME_OUT, pred);
-    return pred();
+    auto ret = pred();
+    if (!ret) {
+        RS_LOGE("uifirst nodeId %" PRIu64" wait uifirstrootNodeId %" PRIu64" until timeout", params.GetId(), rootId);
+    }
+    return ret;
 }
 
 bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSSurfaceRenderParams& params)

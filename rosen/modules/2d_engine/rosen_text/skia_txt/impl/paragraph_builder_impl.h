@@ -36,6 +36,7 @@ public:
     void AddText(const std::u16string& text) override;
     void AddPlaceholder(PlaceholderRun& span) override;
     std::unique_ptr<Paragraph> Build() override;
+    std::unique_ptr<ParagraphLineFetcher> BuildLineFetcher() override;
 
     static skia::textlayout::TextStyle ConvertTextStyleToSkStyle(const TextStyle& txt);
 

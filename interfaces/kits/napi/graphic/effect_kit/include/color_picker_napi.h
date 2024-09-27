@@ -19,8 +19,9 @@
 #include "effect_type.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-
+#include "color.h"
 namespace OHOS {
+
 namespace Media {
 class PixelMap;
 }
@@ -32,6 +33,9 @@ enum class ImageType {
     TYPE_IMAGE_SOURCE,
 };
 
+
+// context
+struct ColorPickerAsyncContext;
 class ColorPickerNapi {
 public:
     ColorPickerNapi();
@@ -44,8 +48,14 @@ private:
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
 
     // static mothod
+    static std::unique_ptr<ColorPickerAsyncContext> InitializeAsyncContext(
+        napi_env env, napi_status& status, napi_value* argValue, size_t argCount);
+    static void ProcessCallbackAndCoordinates(
+        napi_env env, napi_value* argValue, size_t argCount, std::unique_ptr<ColorPickerAsyncContext>& asyncContext);
+    static napi_value CreatePromiseOrHandleError(
+        napi_env env, napi_status status, std::unique_ptr<ColorPickerAsyncContext>& asyncContext, ImageType imgType);
     static napi_value CreateColorPicker(napi_env env, napi_callback_info info);
-    static void CreateColorPickerFromPixelmapComplete(napi_env env, napi_status status, void *data);
+    static void CreateColorPickerFromPixelmapComplete(napi_env env, napi_status status, void* data);
     static napi_value GetScaledPixelMap(napi_env env, napi_callback_info info);
     static napi_value GetMainColor(napi_env env, napi_callback_info info);
     static napi_value GetMainColorSync(napi_env env, napi_callback_info info);
@@ -68,6 +78,22 @@ private:
     // native var
     std::shared_ptr<ColorPicker> nativeColorPicker_;
 };
+struct ColorPickerAsyncContext {
+    napi_env env;
+    napi_async_work work;
+    napi_deferred deferred;
+    napi_ref callbackRef;
+    uint32_t status;
+    // build error msg
+    napi_value errorMsg = {nullptr};
+    ColorPickerNapi *nConstructor = {nullptr};
+    std::shared_ptr<ColorPicker> rColorPicker = {nullptr};
+    std::shared_ptr<Media::PixelMap> rPixelMap = {nullptr};
+    ColorManager::Color color;
+    bool regionFlag = {false};
+    double coordinatesBuffer[4];
+};
+
 } // namespace Rosen
 } // namespace OHOS
 #endif /* COLOR_PICKER_NAPI_H */

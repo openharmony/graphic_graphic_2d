@@ -17,6 +17,7 @@
 
 #include "rs_pixel_stretch_params.h"
 #include "render/rs_drawing_filter.h"
+#include <mutex>
 
 namespace OHOS {
 namespace Rosen {
@@ -30,8 +31,9 @@ public:
     void SetPixelStretchParams(std::shared_ptr<RSPixelStretchParams>& param);
     void SetRadius(int radius);
     std::string GetDetailedDescription() const;
-    std::shared_ptr<RSPixelStretchParams>& GetPixelStretchParams()
+    std::shared_ptr<RSPixelStretchParams> GetPixelStretchParams() const
     {
+        std::lock_guard<std::mutex> lock(pixelStretchParamsMutex_);
         return pixelStretchParam_;
     }
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
@@ -40,6 +42,7 @@ private:
     int radius_ = 0;
     float greyCoefLow_ = 0.f;
     float greyCoefHigh_ = 0.f;
+    mutable std::mutex pixelStretchParamsMutex_;
     std::shared_ptr<RSPixelStretchParams> pixelStretchParam_ = nullptr;
     friend class RSMarshallingHelper;
 };

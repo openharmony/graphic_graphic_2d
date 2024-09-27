@@ -405,6 +405,7 @@ public:
         oldScbPids_ = oldScbPids;
         currentScbPid_ = currentScbPid;
         isNeedWaitNewScbPid_ = true;
+        isFullChildrenListValid_ = false;
     }
 
     std::vector<int32_t> GetOldScbPids() const

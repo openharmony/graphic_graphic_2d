@@ -146,6 +146,8 @@ public:
         std::unordered_map<std::string, std::string> uiPowerConfig;
         // <SCENE_APP_START_ANIMATION, placeholder>
         SceneConfigMap ancoSceneList;
+        // <componentCode, idleFps>
+        std::unordered_map<std::string, int32_t> componentPowerConfig;
     };
     // <"-1", ScreenSetting>
     using ScreenConfig = std::unordered_map<std::string, ScreenSetting>;

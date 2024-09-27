@@ -53,6 +53,52 @@ HWTEST_F(GEVisualEffectTest, SetParam001, TestSize.Level1)
     GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam001 end";
 }
 
+/**
+ * @tc.name: SetParam002
+ * @tc.desc: Verify the SetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(GEVisualEffectTest, SetParam002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam002 start";
+
+    auto visualEffect = std::make_shared<GEVisualEffect>(GE_FILTER_KAWASE_BLUR);
+    visualEffect->SetParam(GE_FILTER_KAWASE_BLUR_RADIUS, static_cast<double>(1));
+
+    GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam002 end";
+}
+
+/**
+ * @tc.name: SetParam003
+ * @tc.desc: Verify the SetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(GEVisualEffectTest, SetParam003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam003 start";
+
+    auto visualEffect = std::make_shared<GEVisualEffect>(GE_FILTER_KAWASE_BLUR);
+    visualEffect->SetParam(GE_FILTER_KAWASE_BLUR_RADIUS, static_cast< const char* const>("1"));
+
+    GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam003 end";
+}
+
+/**
+ * @tc.name: SetParam004
+ * @tc.desc: Verify the SetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(GEVisualEffectTest, SetParam004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam004 start";
+
+    auto visualEffect = std::make_shared<GEVisualEffect>(GE_FILTER_KAWASE_BLUR);
+    visualEffect->SetParam(GE_FILTER_KAWASE_BLUR_RADIUS, static_cast<int64_t>(1));
+
+    GTEST_LOG_(INFO) << "GEVisualEffectTest SetParam004 end";
+}
+
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

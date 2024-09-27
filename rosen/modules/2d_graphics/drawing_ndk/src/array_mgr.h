@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +30,11 @@ struct ObjectArray {
     void* addr = nullptr;
     size_t num = 0;
     ObjectType type = ObjectType::INVALID;
+};
+
+struct LineObject {
+    void* line = nullptr;
+    bool isArray = false;
 };
 } // namespace Rosen
 } // namespace OHOS

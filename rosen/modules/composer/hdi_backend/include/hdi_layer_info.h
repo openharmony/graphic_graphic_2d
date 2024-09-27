@@ -17,7 +17,6 @@
 #define HDI_BACKEND_HDI_LAYER_INFO_H
 
 #include <string>
-#include <set>
 #include "iconsumer_surface.h"
 #include <surface.h>
 #include <sync_fence.h>
@@ -444,16 +443,6 @@ public:
         layerSource_ = layerSouce;
     }
 
-    void SetClearCacheSet(const std::set<int32_t>& clearCacheSet)
-    {
-        clearCacheSet_ = clearCacheSet;
-    }
-
-    std::set<int32_t> GetClearCacheSet() const
-    {
-        return clearCacheSet_;
-    }
-
     void SetRotationFixed(bool rotationFixed)
     {
         rotationFixed_ = rotationFixed;
@@ -504,7 +493,6 @@ public:
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
         scalingMode_ = layerInfo->GetScalingMode();
         layerSource_ = layerInfo->GetLayerSourceTuning();
-        clearCacheSet_ = layerInfo->GetClearCacheSet();
         rotationFixed_ = layerInfo->GetRotationFixed();
         arsrTag_ = layerInfo->GetLayerArsr();
     }
@@ -614,7 +602,7 @@ private:
 
     void *additionalInfo_ = nullptr;
     sptr<IConsumerSurface> cSurface_ = nullptr;
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
@@ -626,7 +614,6 @@ private:
     uint64_t nodeId_ = 0;
     ScalingMode scalingMode_;
     int32_t layerSource_ = 0; // default layer source tag
-    std::set<int32_t> clearCacheSet_;
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
 };

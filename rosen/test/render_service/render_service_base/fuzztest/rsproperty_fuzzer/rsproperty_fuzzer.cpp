@@ -251,6 +251,7 @@ void RSPropertiesFuzzTestInner04(RSProperties& properties)
     bool clipToBounds = GetData<bool>();
     bool clipToFrame = GetData<bool>();
     bool visible = GetData<bool>();
+    float distortionK = GetData<float>();
 
     properties.SetScaleX(sx);
     properties.SetScaleY(sy);
@@ -262,6 +263,7 @@ void RSPropertiesFuzzTestInner04(RSProperties& properties)
     properties.SetClipToBounds(clipToBounds);
     properties.SetClipToFrame(clipToFrame);
     properties.SetVisible(visible);
+    properties.SetDistortionK(distortionK);
 }
 
 bool RSPropertiesFuzzTest(const uint8_t* data, size_t size)

@@ -21,10 +21,5 @@ using namespace OHOS::Rosen;
 
 int main()
 {
-    EglManager::GetInstance().Init();
-    Builder builder;
-    ImageChain* imageChain = builder.CreateFromConfig(
-        "/data/accounts/account_0/appdata/com.example.myapplication/files/config.json");
-    imageChain->Render();
     return 0;
 }

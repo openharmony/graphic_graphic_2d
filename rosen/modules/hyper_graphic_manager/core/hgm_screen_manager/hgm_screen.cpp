@@ -133,6 +133,7 @@ bool HgmScreen::IfSwitchToRate(int32_t sceneId, uint32_t rate) const
     // decides if a refreshrate switch will be accepted or not
     auto profilePtr = GetModeViaId(activeModeId_);
     bool ifSwitch = false;
+
     // switch screen need force update
     if (sceneId == SWITCH_SCREEN_SCENE) {
         ifSwitch = true;

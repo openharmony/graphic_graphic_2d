@@ -73,7 +73,7 @@ bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
     Parcel parcel;
     bool isAppFreeze = GetData<bool>();
     bool hasContainerWindow = GetData<bool>();
-    float density = GetData<float>();
+    RRect rrect = GetData<RRect>();
 
     std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     if (!surfaceNode) {
@@ -89,7 +89,7 @@ bool RSSurfaceNodeFuzzTest(const uint8_t* data, size_t size)
     RSSurfaceNode::Unmarshalling(parcel);
     RSSurfaceNode::UnmarshallingAsProxyNode(parcel);
     surfaceNode->SetFreeze(isAppFreeze);
-    surfaceNode->SetContainerWindow(hasContainerWindow, density);
+    surfaceNode->SetContainerWindow(hasContainerWindow, rrect);
 
     return true;
 }

@@ -1208,12 +1208,14 @@ bool RSPropertyDrawableUtils::GetGravityMatrix(const Gravity& gravity, const Dra
 void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark)
 {
     Drawing::Brush brush;
-    int16_t rgb_light = 235;
-    int16_t rgb_dark = 80;
     int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
-    RSColor demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
+    RSColor demoColor;
     if (isDark) {
+        int16_t rgb_dark = 80;
         demoColor = RSColor(rgb_dark, rgb_dark, rgb_dark, alpha);
+    } else {
+        int16_t rgb_light = 235;
+        demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
     }
 
     float sat = 1.0f;

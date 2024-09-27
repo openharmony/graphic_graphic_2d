@@ -13,8 +13,13 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <codecvt>
 #include <cstddef>
+#include <fcntl.h>
 #include <fstream>
+#include <locale>
+#include <sys/stat.h>
 
 #include "gtest/gtest.h"
 #include "impl_factory.h"
@@ -126,6 +131,199 @@ HWTEST_F(FontMgrTest, CreateStyleSet001, TestSize.Level1)
     ASSERT_TRUE(FontMgr != nullptr);
     FontStyleSet* fontStyleSet = FontMgr->CreateStyleSet(0);
     ASSERT_TRUE(fontStyleSet != nullptr);
+}
+
+const char* TTF_FILE_PATH = "/system/fonts/Roboto-Regular.ttf";
+// The ttf font file fullname is the utf16BE format content corresponding to "Noto Sans Regular"
+const uint8_t TTF_FULLNAME[] = {0x0, 0x4e, 0x0, 0x6f, 0x0, 0x74, 0x0, 0x6f, 0x0, 0x20, 0x0, 0x53,
+                                0x0, 0x61, 0x0, 0x6e, 0x0, 0x73, 0x0, 0x20, 0x0, 0x52, 0x0, 0x65,
+                                0x0, 0x67, 0x0, 0x75, 0x0, 0x6c, 0x0, 0x61, 0x0, 0x72};
+const char* OTF_FILE_PATH = "/data/fonts/Igiari-2.otf";
+// The otf font file fullname is the utf16BE format content corresponding to "Igiari"
+const uint8_t OTF_FULLNAME[] = {0x0, 0x49, 0x0, 0x67, 0x0, 0x69, 0x0, 0x61, 0x0, 0x72, 0x0, 0x69};
+const char* TTC_FILE_PATH = "/system/fonts/NotoSerifCJK-Regular.ttc";
+// The ttc font file fullname is the utf16BE format content corresponding to "Noto Serif CJK JP"
+const uint8_t TTC_FULLNAME[] = {0x0, 0x4e, 0x0, 0x6f, 0x0, 0x74, 0x0, 0x6f, 0x0, 0x20, 0x0, 0x53,
+                                0x0, 0x65, 0x0, 0x72, 0x0, 0x69, 0x0, 0x66, 0x0, 0x20, 0x0, 0x43,
+                                0x0, 0x4a, 0x0, 0x4b, 0x0, 0x20, 0x0, 0x4a, 0x0, 0x50};
+const char* ERRORPATH_FILE_PATH = "/system/fonts/error_path.ttf";
+const char* ERRORFORMAT_FILE_PATH = "/system/etc/fontconfig.json";
+const char* JSON_CONFIG_PATH = "/data/fonts/install_fontconfig.json";
+const char* ERROR_JSON_CONFIG_PATH = "/data/fonts/error_path.json";
+const char* CONFIG_FIRST_FONT_PATH = "/data/fonts/Igiari-2.otf";
+/**
+ * @tc.name:GetFontFullName001
+ * @tc.desc: Check the validity of the TTF file and obtain the full name
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, GetFontFullName001, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<FontByteArray> fullnameVec;
+    std::string fontPath = TTF_FILE_PATH;
+    int fd = open(fontPath.c_str(), O_RDONLY);
+    if (fd != -1) {
+        int ret = fontMgr->GetFontFullName(fd, fullnameVec);
+        close(fd);
+        EXPECT_TRUE(ret == 0 && fullnameVec.size() > 0);
+        EXPECT_TRUE(fullnameVec[0].strLen == sizeof(TTF_FULLNAME));
+        EXPECT_TRUE(memcmp(fullnameVec[0].strData.get(), TTF_FULLNAME, fullnameVec[0].strLen) == 0);
+    }
+}
+
+/**
+ * @tc.name:GetFontFullName002
+ * @tc.desc: Check the validity of the OTF file and obtain the full name
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, GetFontFullName002, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<FontByteArray> fullnameVec;
+    std::string fontPath = OTF_FILE_PATH;
+    int fd = open(fontPath.c_str(), O_RDONLY);
+    if (fd != -1) {
+        int ret = fontMgr->GetFontFullName(fd, fullnameVec);
+        close(fd);
+        EXPECT_TRUE(ret == 0 && fullnameVec.size() > 0);
+        EXPECT_TRUE(fullnameVec[0].strLen == sizeof(OTF_FULLNAME));
+        EXPECT_TRUE(memcmp(fullnameVec[0].strData.get(), OTF_FULLNAME, fullnameVec[0].strLen) == 0);
+    }
+}
+
+/**
+ * @tc.name:GetFontFullName003
+ * @tc.desc: Check the validity of the TTC file and obtain the full name
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, GetFontFullName003, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<FontByteArray> fullnameVec;
+    std::string fontPath = TTC_FILE_PATH;
+    int fd = open(fontPath.c_str(), O_RDONLY);
+    if (fd != -1) {
+        int ret = fontMgr->GetFontFullName(fd, fullnameVec);
+        close(fd);
+        EXPECT_TRUE(ret == 0 && fullnameVec.size() > 0);
+        EXPECT_TRUE(fullnameVec[0].strLen == sizeof(TTC_FULLNAME));
+        EXPECT_TRUE(memcmp(fullnameVec[0].strData.get(), TTC_FULLNAME, fullnameVec[0].strLen) == 0);
+    }
+}
+
+/**
+ * @tc.name:GetFontFullName004
+ * @tc.desc: Enter an incorrect path and return the corresponding error reason code
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, GetFontFullName004, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<FontByteArray> fullnameVec;
+    std::string fontPath = ERRORPATH_FILE_PATH;
+    int fd = open(fontPath.c_str(), O_RDONLY);
+    int ret = fontMgr->GetFontFullName(fd, fullnameVec);
+    if (fd != -1) {
+        close(fd);
+    }
+    EXPECT_TRUE(ret == ERROR_TYPE_OTHER);
+}
+/**
+ * @tc.name:GetFontFullName005
+ * @tc.desc: Enter an empty path and return the corresponding error reason code
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, GetFontFullName005, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<FontByteArray> fullnameVec;
+    std::string filepath = "";
+    int fd = open(filepath.c_str(), O_RDONLY);
+    int ret = fontMgr->GetFontFullName(fd, fullnameVec);
+    if (fd != -1) {
+        close(fd);
+    }
+    EXPECT_TRUE(ret == ERROR_TYPE_OTHER);
+}
+/**
+ * @tc.name:GetFontFullName006
+ * @tc.desc: Enter the file path of an incorrectly formatted font file and return the corresponding error reason code
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, GetFontFullName006, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<FontByteArray> fullnameVec;
+    std::string fontPath = ERRORFORMAT_FILE_PATH;
+    int fd = open(fontPath.c_str(), O_RDONLY);
+    int ret = fontMgr->GetFontFullName(fd, fullnameVec);
+    if (fd != -1) {
+        close(fd);
+    }
+    EXPECT_TRUE(ret == ERROR_TYPE_OTHER);
+}
+
+/**
+ * @tc.name:ParseInstallFontConfig001
+ * @tc.desc: Enter the path of a properly formatted JSON configuration file and parse it successfully
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, ParseInstallFontConfig001, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<std::string> fontPathVec;
+    std::string configPath = JSON_CONFIG_PATH;
+    std::ifstream configFile(configPath, std::ios::in);
+    if (configFile.is_open()) {
+        configFile.close();
+        int ret = fontMgr->ParseInstallFontConfig(configPath, fontPathVec);
+        EXPECT_TRUE(ret == 0 && fontPathVec.size() > 0);
+        EXPECT_TRUE(fontPathVec[0] == CONFIG_FIRST_FONT_PATH);
+    }
+}
+/**
+ * @tc.name:ParseInstallFontConfig002
+ * @tc.desc: Enter the path of a valid JSON configuration file and fail to parse it
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, ParseInstallFontConfig002, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<std::string> fontPathVec;
+    std::string configPath = ERROR_JSON_CONFIG_PATH;
+    int ret = fontMgr->ParseInstallFontConfig(configPath, fontPathVec);
+    EXPECT_TRUE(ret == ERROR_PARSE_CONFIG_FAILED);
+}
+/**
+ * @tc.name:ParseInstallFontConfig003
+ * @tc.desc: Enter an empty file path and fail to parse
+ * @tc.type: FUNC
+ * @tc.require: I91F9L
+ */
+HWTEST_F(FontMgrTest, ParseInstallFontConfig003, TestSize.Level1)
+{
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
+    EXPECT_TRUE(fontMgr != nullptr);
+    std::vector<std::string> fontPathVec;
+    std::string configPath = "";
+    int ret = fontMgr->ParseInstallFontConfig(configPath, fontPathVec);
+    EXPECT_TRUE(ret == ERROR_PARSE_CONFIG_FAILED);
 }
 } // namespace Drawing
 } // namespace Rosen

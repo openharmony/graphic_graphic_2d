@@ -265,7 +265,7 @@ public:
     float GetFgBrightnessFract() const;
     void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
-    
+
     void SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params);
     std::optional<RSWaterRipplePara> GetWaterRippleParams() const;
     void SetWaterRippleProgress(const float& progress);
@@ -276,6 +276,9 @@ public:
     void SetFlyOutDegree(const float& degree);
     float GetFlyOutDegree() const;
     void CreateFlyOutShaderFilter();
+
+    void SetDistortionK(const std::optional<float>& distortionK);
+    const std::optional<float>& GetDistortionK() const;
 
     void SetBgBrightnessRates(const Vector4f& rates);
     Vector4f GetBgBrightnessRates() const;
@@ -459,7 +462,6 @@ public:
     Vector2f GetAttractionDstPoint() const;
     void CreateAttractionEffectFilter();
     RectI GetAttractionEffectCurrentDirtyRegion() const;
-
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;
     bool IsLightUpEffectValid() const;
@@ -469,6 +471,7 @@ public:
     bool IsBgBrightnessValid() const;
     bool IsWaterRippleValid() const;
     bool IsFlyOutValid() const;
+    bool IsDistortionKValid() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
 
@@ -630,7 +633,13 @@ private:
     std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
     std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
     float flyOutDegree_ = 0.0f;
+    std::optional<float> distortionK_;
     float foregroundEffectRadius_ = 0.f;
+    bool haveEffectRegion_ = false;
+    bool isAttractionValid_ = false;
+    float attractFraction_ = 0.f;
+    Vector2f attractDstPoint_ = {0.f, 0.f};
+    RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
@@ -646,12 +655,6 @@ private:
     std::optional<Matrix3f> sublayerTransform_;
     float spherizeDegree_ = 0.f;
     float lightUpEffectDegree_ = 1.0f;
-    float attractFraction_ = 0.f;
-    bool isAttractionValid_ = false;
-    bool haveEffectRegion_ = false;
-    Vector2f attractDstPoint_ = {0.f, 0.f};
-    RectI attractionEffectCurrentDirtyRegion_ = {0, 0, 0, 0};
-
     // filter property
     float backgroundBlurRadius_ = 0.f;
     float backgroundBlurSaturation_ = 1.f;
@@ -660,7 +663,6 @@ private:
     Color backgroundMaskColor_ = RSColor();
     float backgroundBlurRadiusX_ = 0.f;
     float backgroundBlurRadiusY_ = 0.f;
-
     float foregroundBlurRadius_ = 0.f;
     float foregroundBlurSaturation_ = 1.f;
     float foregroundBlurBrightness_ = 1.f;
@@ -668,8 +670,8 @@ private:
     Color foregroundMaskColor_ = RSColor();
     float foregroundBlurRadiusX_ = 0.f;
     float foregroundBlurRadiusY_ = 0.f;
-
     std::weak_ptr<RSRenderNode> backref_;
+    
     std::optional<Vector4f> aiInvert_;
     std::optional<RRect> clipRRect_;
     int pixelStretchTileMode_ = 0;

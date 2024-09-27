@@ -71,6 +71,7 @@ HWTEST_F(RSJankStatsTest, SetEndTimeTest, TestSize.Level1)
     pid_t appPid = 1;
     rsJankStats.SetAppFirstFrame(appPid);
     rsJankStats.SetEndTime(true);
+    EXPECT_FALSE(rsJankStats.isFirstSetStart_);
 }
 
 /**
@@ -109,6 +110,7 @@ HWTEST_F(RSJankStatsTest, HandleDirectCompositionTest, TestSize.Level1)
     rsParams.timeEnd_ = rsJankStats.GetCurrentSystimeMs();
     rsParams.timeEndSteady_ = rsJankStats.GetCurrentSteadyTimeMs();
     rsJankStats.HandleDirectComposition(rsParams, true);
+    EXPECT_FALSE(rsJankStats.isFirstSetStart_);
 }
 
 /**
@@ -123,6 +125,7 @@ HWTEST_F(RSJankStatsTest, ReportJankStatsTest, TestSize.Level1)
     rsJankStats.SetStartTime();
     rsJankStats.SetEndTime(false);
     rsJankStats.ReportJankStats();
+    EXPECT_FALSE(rsJankStats.isFirstSetStart_);
 }
 
 /**
@@ -142,6 +145,7 @@ HWTEST_F(RSJankStatsTest, SetReportEventResponseTest, TestSize.Level1)
     rsJankStats.SetReportEventResponse(info1);
     rsJankStats.SetStartTime();
     rsJankStats.SetEndTime(false);
+    EXPECT_FALSE(rsJankStats.isFirstSetStart_);
 }
 
 /**
@@ -161,6 +165,7 @@ HWTEST_F(RSJankStatsTest, SetReportEventCompleteTest, TestSize.Level1)
     rsJankStats.SetReportEventComplete(info1);
     rsJankStats.SetStartTime();
     rsJankStats.SetEndTime(false);
+    EXPECT_FALSE(rsJankStats.isFirstSetStart_);
 }
 
 /**
@@ -179,6 +184,7 @@ HWTEST_F(RSJankStatsTest, SetReportEventJankFrameTest, TestSize.Level1)
     rsJankStats.SetReportEventJankFrame(info1, true);
     rsJankStats.SetStartTime();
     rsJankStats.SetEndTime(false);
+    EXPECT_FALSE(rsJankStats.isFirstSetStart_);
 }
 
 /**
@@ -215,6 +221,7 @@ HWTEST_F(RSJankStatsTest, ConvertTimeToSystimeTest, TestSize.Level1)
     rsJankStats.SetEndTime(false); // JANK_FRAME_180_FREQ
     usleep(3000 * 1000);
     rsJankStats.SetEndTime(false); // jank frames skip more than 180
+    EXPECT_FALSE(rsJankStats.isFirstSetStart_);
 }
 
 /**
@@ -250,6 +257,7 @@ HWTEST_F(RSJankStatsTest, ReportEventCompleteTest, TestSize.Level1)
     rsJankStats.SetReportEventComplete(info1);
     rsJankStats.SetStartTime();
     rsJankStats.SetEndTime(false, true);
+    EXPECT_FALSE(rsJankStats.isFirstSetStart_);
 }
 
 /**

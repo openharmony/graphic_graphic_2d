@@ -61,6 +61,7 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("textToGlyphs", JsFont::TextToGlyphs),
     DECLARE_NAPI_FUNCTION("createPathForGlyph", JsFont::CreatePathForGlyph),
     DECLARE_NAPI_FUNCTION("getBounds", JsFont::GetBounds),
+    DECLARE_NAPI_FUNCTION("getTextPath", JsFont::CreatePathForText),
 };
 
 napi_value JsFont::Init(napi_env env, napi_value exportObj)
@@ -126,6 +127,12 @@ void JsFont::Destructor(napi_env env, void *nativeObject, void *finalize)
         JsFont *napi = reinterpret_cast<JsFont *>(nativeObject);
         delete napi;
     }
+}
+
+napi_value JsFont::CreatePathForText(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnCreatePathForText(env, info) : nullptr;
 }
 
 napi_value JsFont::CreateFont(napi_env env, napi_callback_info info)
@@ -938,6 +945,44 @@ std::shared_ptr<Font> JsFont::GetFont()
 void JsFont::SetFont(std::shared_ptr<Font> font)
 {
     m_font = font;
+}
+
+napi_value JsFont::OnCreatePathForText(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    std::string text = "";
+    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
+        ROSEN_LOGE("Argv[ARGC_ZERO] is invalid, The text input must be string");
+        return nullptr;
+    }
+
+    uint32_t byteLength = 0;
+    if (!ConvertFromJsNumber(env, argv[ARGC_ONE], byteLength)) {
+        ROSEN_LOGE("Argv[ARGC_ONE] is invalid, The byteLength input must be valid");
+        return nullptr;
+    }
+
+    double x = 0.0;
+    if (!ConvertFromJsNumber(env, argv[ARGC_TWO], x)) {
+        ROSEN_LOGE("Argv[ARGC_TWO] is invalid, The x input must be valid");
+        return nullptr;
+    }
+
+    double y = 0.0;
+    if (!ConvertFromJsNumber(env, argv[ARGC_THREE], y)) {
+        ROSEN_LOGE("Argv[ARGC_THREE] is invalid, The y input must be valid");
+        return nullptr;
+    }
+
+    Path* path = new Path();
+    m_font->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path);
+    return JsPath::CreateJsPath(env, path);
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

@@ -254,20 +254,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             PostDelayTask(task, delayTime_);
         }
     }
-
-    for (const auto& layer : layers) {
-        if (layer == nullptr || layer->GetClearCacheSet().empty()) {
-            continue;
-        }
-
-        // Remove image caches when their SurfaceNode has gobackground/cleancache.
-        RSTaskMessage::RSTask clearTask = [this, cacheset = layer->GetClearCacheSet()]() {
-            if (uniRenderEngine_ != nullptr) {
-                uniRenderEngine_->ClearCacheSet(cacheset);
-            }
-        };
-        PostTask(clearTask);
-    }
 }
 
 RefreshRateParam RSHardwareThread::GetRefreshRateParam()
@@ -312,7 +298,6 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
     }
 
     static ScreenId lastScreenId = 12345; // init value diff with any real screen id
-    auto screenManager = CreateOrGetScreenManager();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (hgmCore.GetFrameRateMgr() == nullptr) {
         RS_LOGD("FrameRateMgr is null");

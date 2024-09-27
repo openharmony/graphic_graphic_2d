@@ -294,6 +294,7 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
         RS_LOGW("RSRenderServiceConnection::ExecuteSynchronousTask, task or main thread is null!");
         return;
     }
+    // After a synchronous task times out, it will no longer be executed.
     auto isTimeout = std::make_shared<bool>(0);
     std::weak_ptr<bool> isTimeoutWeak = isTimeout;
     std::chrono::nanoseconds span(task->GetTimeout());
@@ -303,6 +304,7 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
         }
         task->Process(mainThread->GetContext());
     }).wait_for(span);
+    isTimeout.reset();
 }
 
 bool RSRenderServiceConnection::GetUniRenderEnabled()
@@ -1894,7 +1896,13 @@ void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, Se
 
 void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 {
-    RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [isEnabled]() {
+        RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
+    };
+    mainThread_->PostTask(task);
 }
 
 void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)

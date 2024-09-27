@@ -42,13 +42,14 @@ public:
         RSModifierType type, bool isSingleFrameComposer = false);
     void ClearRecording();
 
-    void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
-    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas, bool includeProperty) override;
+    void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderContents(RSPaintFilterCanvas& canvas) override;
-    void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
+
     void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
+    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
 
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;

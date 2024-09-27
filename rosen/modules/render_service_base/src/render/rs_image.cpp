@@ -123,7 +123,16 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             ApplyImageFit();
             ApplyCanvasClip(canvas);
         }
+        bool isFitMatrixValid = !isBackground && imageFit_ == ImageFit::MATRIX &&
+                                fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
+        if (isFitMatrixValid) {
+            canvas.Save();
+            canvas.ConcatMatrix(fitMatrix_.value());
+        }
         DrawImageRepeatRect(samplingOptions, canvas);
+        if (isFitMatrixValid) {
+            canvas.Restore();
+        }
     } else {
         Drawing::AutoCanvasRestore acr(canvas, HasRadius());
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
@@ -163,6 +172,9 @@ struct ImageParameter {
 RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, RectF tempRectF)
 {
     switch (imageFit_) {
+        case ImageFit::MATRIX:
+            tempRectF.SetAll(0.f, 0.f, imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
         case ImageFit::TOP_LEFT:
             tempRectF.SetAll(0.f, 0.f, imageParameter.srcW, imageParameter.srcH);
             return tempRectF;
@@ -292,9 +304,20 @@ Drawing::AdaptiveImageInfo RSImage::GetAdaptiveImageInfoWithCustomizedFrameRect(
         .width = 0,
         .height = 0,
         .dynamicRangeMode = dynamicRangeMode_,
-        .frameRect = frameRect
+        .frameRect = frameRect,
+        .fitMatrix = fitMatrix_.has_value() ? fitMatrix_.value() : Drawing::Matrix()
     };
     return imageInfo;
+}
+
+void RSImage::SetFitMatrix(const Drawing::Matrix& matrix)
+{
+    fitMatrix_ = matrix;
+}
+
+Drawing::Matrix RSImage::GetFitMatrix() const
+{
+    return fitMatrix_.value();
 }
 
 RectF RSImage::GetDstRect()
@@ -596,7 +619,9 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, imageFit) &&
                    RSMarshallingHelper::Marshalling(parcel, imageRepeat) &&
                    RSMarshallingHelper::Marshalling(parcel, radius_) &&
-                   RSMarshallingHelper::Marshalling(parcel, scale_);
+                   RSMarshallingHelper::Marshalling(parcel, scale_) &&
+                   parcel.WriteBool(fitMatrix_.has_value()) &&
+                   fitMatrix_.has_value() ? RSMarshallingHelper::Marshalling(parcel, fitMatrix_.value()) : true;
     return success;
 }
 
@@ -625,7 +650,9 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     int repeatNum;
     std::vector<Drawing::Point> radius(CORNER_SIZE);
     double scale;
-    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale)) {
+    bool hasFitMatrix;
+    Drawing::Matrix fitMatrix;
+    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale, hasFitMatrix, fitMatrix)) {
         return nullptr;
     }
     RSImage* rsImage = new RSImage();
@@ -638,6 +665,9 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetRadius(radius);
     rsImage->SetScale(scale);
     rsImage->SetNodeId(nodeId);
+    if (hasFitMatrix && !fitMatrix.IsIdentity()) {
+        rsImage->SetFitMatrix(fitMatrix);
+    }
     ProcessImageAfterCreation(rsImage, uniqueId, useSkImage, pixelMap);
     return rsImage;
 }
@@ -657,7 +687,8 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
 }
 
 bool RSImage::UnmarshalImageProperties(
-    Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale)
+    Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
+    bool& hasFitMatrix, Drawing::Matrix& fitMatrix)
 {
     if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
         RS_LOGE("RSImage::Unmarshalling fitNum fail");
@@ -677,6 +708,17 @@ bool RSImage::UnmarshalImageProperties(
     if (!RSMarshallingHelper::Unmarshalling(parcel, scale)) {
         RS_LOGE("RSImage::Unmarshalling scale fail");
         return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, hasFitMatrix)) {
+        return false;
+    }
+
+    if (hasFitMatrix) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, fitMatrix)) {
+            RS_LOGE("RSImage::Unmarshalling fitMatrix fail");
+            return false;
+        }
     }
 
     return true;

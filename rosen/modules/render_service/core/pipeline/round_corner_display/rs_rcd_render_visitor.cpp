@@ -40,7 +40,7 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     }
 
     sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
     Rect damage;
     auto ret = consumer->AcquireBuffer(buffer, acquireFence, timestamp, damage);
@@ -62,9 +62,9 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     return true;
 }
 
-void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged)
+void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node)
 {
-    if (uniProcessor_ == nullptr || node.IsInvalidSurface() || resourceChanged) {
+    if (uniProcessor_ == nullptr || node.IsInvalidSurface() || node.GetIsHarwareInfoChanged()) {
         RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid or resource is changed!");
         return;
     }
@@ -76,17 +76,17 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRende
     }
 }
 
-void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
-    bool resourceChanged)
+void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node,
+    const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo)
 {
     std::lock_guard<std::mutex> lock(bufferMut_);
-    if (uniProcessor_ == nullptr || node.IsInvalidSurface()) {
+    if (uniProcessor_ == nullptr || node.IsInvalidSurface() || renderEngine_ == nullptr) {
         RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid!");
         return;
     }
 
     sptr<SurfaceBuffer> buffer = node.GetBuffer();
-    if (!resourceChanged && buffer != nullptr) {
+    if (!node.GetIsHarwareInfoChanged() && buffer != nullptr) {
         uniProcessor_->ProcessRcdSurface(node);
         return;
     }
@@ -128,6 +128,7 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
     }
 
     uniProcessor_->ProcessRcdSurface(node);
+    node.SetHardWareInfoChanged(false);
 }
 
 void RSRcdRenderVisitor::SetUniProcessor(std::shared_ptr<RSProcessor> processor)

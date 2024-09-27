@@ -68,6 +68,7 @@ public:
         COMPOUND_EFFECT,
         MAGNIFIER,
         FLY_OUT,
+        DISTORT,
     };
     FilterType GetFilterType() const
     {

@@ -229,7 +229,7 @@ Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vect
         BYBy * B.x_, BY, BYBy * (1 - B.x_ - B.y_)
     };
 }
-static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
+static const std::shared_ptr<Drawing::ColorFilter> InvertColorMat(float hdrBrightnessRatio)
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
@@ -237,6 +237,15 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
         -0.599, -1.175, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
+    if (!ROSEN_EQ(hdrBrightnessRatio, 1.f)) {
+        const Drawing::scalar brightnessMatrixArray[MATRIX_SIZE] = {
+            1.0,  0.0, 0.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0,  1.0, 0.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0,  0.0, 1.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0,  0.0, 0.0, 1.0, 0.0
+        };
+        return Drawing::ColorFilter::CreateComposeColorFilter(brightnessMatrixArray, colorMatrixArray);
+    }
     static auto invertColorMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertColorMat;
 }
@@ -883,7 +892,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
         RS_TRACE_NAME("DropFrame");
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
-        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
@@ -892,7 +901,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
             return OHOS::GSERROR_NO_BUFFER;
         }
 
-        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
+        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::InvalidFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
                     "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
@@ -1054,12 +1063,13 @@ bool RSBaseRenderUtil::IsColorFilterModeValid(ColorFilterMode mode)
     return valid;
 }
 
-void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint)
+void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode,
+    Drawing::Brush& paint, float hdrBrightnessRatio)
 {
     Drawing::Filter filter;
     switch (colorFilterMode) {
         case ColorFilterMode::INVERT_COLOR_ENABLE_MODE:
-            filter.SetColorFilter(Detail::InvertColorMat());
+            filter.SetColorFilter(Detail::InvertColorMat(hdrBrightnessRatio));
             break;
         case ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE:
             filter.SetColorFilter(Detail::ProtanomalyMat());
@@ -1356,6 +1366,8 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
     }
 }
 
+pid_t RSBaseRenderUtil::lastSendingPid_ = 0;
+
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(MessageParcel& parcel)
 {
     RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
@@ -1365,7 +1377,8 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(Messag
         RS_LOGE("UnMarsh RSTransactionData fail!");
         return nullptr;
     }
-    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(transactionData->GetSendingPid()));
+    lastSendingPid_ = transactionData->GetSendingPid();
+    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(lastSendingPid_));
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;
 }
@@ -1750,6 +1763,11 @@ void RSBaseRenderUtil::DecAcquiredBufferCount()
 {
     --acquiredBufferCount_;
     RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
+}
+
+pid_t RSBaseRenderUtil::GetLastSendingPid()
+{
+    return lastSendingPid_;
 }
 
 } // namespace Rosen

@@ -55,9 +55,6 @@ public:
 
     bool BuildFromGL(const GPUContextOptions& options) override;
 
-    static std::unique_ptr<SkExecutor> threadPool;
-    void InitSkExecutor();
-
 #ifdef RS_ENABLE_VK
     bool BuildFromVK(const GrVkBackendContext& context) override;
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
@@ -101,6 +98,8 @@ public:
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag) override;
 
     void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) override;
+
+    void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size) override;
 #ifdef RS_ENABLE_VK
     void StoreVkPipelineCacheData() override;
 #endif

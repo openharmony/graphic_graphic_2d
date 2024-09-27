@@ -298,6 +298,7 @@ public:
 
     void SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec);
     void SurfaceOcclusionCallback();
+    bool CheckSurfaceOcclusionNeedProcess(NodeId id);
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
@@ -616,6 +617,7 @@ private:
 
     // used for hardware enabled case
     bool doDirectComposition_ = true;
+    bool needDrawFrame_ = true;
     bool isLastFrameDirectComposition_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;

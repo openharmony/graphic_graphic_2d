@@ -48,11 +48,7 @@ namespace {
 
     constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
-    constexpr uint64_t ENERGY_ASSURANCE_TASK_DELAY_TIME = 1000; //1s
-    constexpr uint64_t UI_ENERGY_ASSURANCE_TASK_DELAY_TIME = 3000; // 3s
     constexpr int32_t RS_IDLE_TIMEOUT_MS = 600; // ms
-    const static std::string ENERGY_ASSURANCE_TASK_ID = "ENERGY_ASSURANCE_TASK_ID";
-    const static std::string UI_ENERGY_ASSURANCE_TASK_ID = "UI_ENERGY_ASSURANCE_TASK_ID";
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
@@ -227,6 +223,26 @@ void HgmFrameRateManager::InitTouchManager()
             HgmTaskHandleThread::Instance().RemoveEvent(UP_TIME_OUT_TASK_ID);
             startCheck_.store(false);
         });
+        InitPowerTouchManager();
+    });
+}
+
+void HgmFrameRateManager::InitPowerTouchManager()
+{
+    powerTouchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
+        powerTouchManager_.ChangeState(TouchState::DOWN_STATE);
+    });
+    powerTouchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
+        [](TouchState lastState, TouchState newState) {
+        HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::DOWN_STATE);
+    });
+    powerTouchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
+        [](TouchState lastState, TouchState newState) {
+        HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::UP_STATE);
+    });
+    powerTouchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
+        [](TouchState lastState, TouchState newState) {
+        HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::IDLE_STATE);
     });
 }
 
@@ -240,29 +256,29 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
     }
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetTimestamp(timestamp);
-    static uint64_t lastPendingConstraintRelativeTime = 0;
-    static uint32_t lastPendingRefreshRate = 0;
-    if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
-        dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
-        hgmCore.SetPendingScreenRefreshRate(rsRate);
-    } else if (pendingRefreshRate_ != nullptr) {
+    if (pendingRefreshRate_ != nullptr) {
         hgmCore.SetPendingConstraintRelativeTime(pendingConstraintRelativeTime_);
-        lastPendingConstraintRelativeTime = pendingConstraintRelativeTime_;
+        lastPendingConstraintRelativeTime_ = pendingConstraintRelativeTime_;
         pendingConstraintRelativeTime_ = 0;
 
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
-        lastPendingRefreshRate = *pendingRefreshRate_;
+        lastPendingRefreshRate_ = *pendingRefreshRate_;
         pendingRefreshRate_.reset();
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
     } else {
-        if (lastPendingConstraintRelativeTime != 0) {
-            hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime);
+        if (lastPendingConstraintRelativeTime_ != 0) {
+            hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime_);
         }
-        if (lastPendingRefreshRate != 0) {
-            hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate);
-            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate);
+        if (lastPendingRefreshRate_ != 0) {
+            hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate_);
+            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
         }
+    }
+
+    if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO &&
+        dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+        hgmCore.SetPendingScreenRefreshRate(rsRate);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
     }
     changeGeneratorRateValid_.store(true);
 }
@@ -388,6 +404,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
             HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange);
             finalRange.Merge(expectedRange);
         }
+        HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(finalRange);
         ProcessLtpoVote(finalRange, idleTimerExpired);
     }
 
@@ -768,7 +785,7 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGD("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;
-        ExitEnergyConsumptionAssuranceMode();
+        powerTouchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
         if (multiAppStrategy_.GetFocusAppStrategyConfig(strategyRes) == EXEC_SUCCESS &&
             strategyRes.dynamicMode != DynamicModeType::TOUCH_DISENABLED) {
             touchManager_.HandleTouchEvent(TouchEvent::DOWN_EVENT, "");
@@ -784,8 +801,8 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         }
         if (touchCnt == LAST_TOUCH_CNT) {
             HGM_LOGD("[touch manager] up");
-            EnterEnergyConsumptionAssuranceMode();
             touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
+            powerTouchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
         }
     } else {
         HGM_LOGD("[touch manager] other touch status not support");
@@ -823,6 +840,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    UpdateAppSupportedState();  // sync app state config when RefreshRateMode changed
 }
 
 void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
@@ -903,6 +921,7 @@ void HgmFrameRateManager::HandleRsFrame()
         rsIdleTimer_->Start();
     }
     touchManager_.HandleRsFrame();
+    powerTouchManager_.HandleRsFrame();
 }
 
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
@@ -915,11 +934,11 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     if (gameSceneList.find(sceneName) != gameSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
             if (gameScenes_.insert(sceneName).second) {
-                MarkVoteChange("VOTER_SCENE");
+                MarkVoteChange();
             }
         } else {
             if (gameScenes_.erase(sceneName)) {
-                MarkVoteChange("VOTER_SCENE");
+                MarkVoteChange();
             }
         }
     }
@@ -1426,22 +1445,7 @@ void HgmFrameRateManager::UpdateEnergyConsumptionConfig()
         multiAppStrategy_.GetScreenSetting().animationPowerConfig);
     HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionConfig(
         multiAppStrategy_.GetScreenSetting().uiPowerConfig);
-}
-
-void HgmFrameRateManager::EnterEnergyConsumptionAssuranceMode()
-{
-    auto task = []() { HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(true); };
-    HgmTaskHandleThread::Instance().PostEvent(ENERGY_ASSURANCE_TASK_ID, task, ENERGY_ASSURANCE_TASK_DELAY_TIME);
-    auto uiTask = []() { HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(true); };
-    HgmTaskHandleThread::Instance().PostEvent(UI_ENERGY_ASSURANCE_TASK_ID, uiTask, UI_ENERGY_ASSURANCE_TASK_DELAY_TIME);
-}
-
-void HgmFrameRateManager::ExitEnergyConsumptionAssuranceMode()
-{
-    HgmTaskHandleThread::Instance().RemoveEvent(ENERGY_ASSURANCE_TASK_ID);
-    HgmTaskHandleThread::Instance().RemoveEvent(UI_ENERGY_ASSURANCE_TASK_ID);
-    HgmEnergyConsumptionPolicy::Instance().SetAnimationEnergyConsumptionAssuranceMode(false);
-    HgmEnergyConsumptionPolicy::Instance().SetUiEnergyConsumptionAssuranceMode(false);
+    HgmEnergyConsumptionPolicy::Instance().SetRefreshRateMode(curRefreshRateMode_, curScreenStrategyId_);
 }
 
 void HgmFrameRateManager::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip)

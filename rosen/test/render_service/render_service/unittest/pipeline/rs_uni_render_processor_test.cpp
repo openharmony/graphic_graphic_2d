@@ -18,6 +18,8 @@
 #include "limit_number.h"
 #include "rs_test_util.h"
 
+#include "drawable/rs_display_render_node_drawable.h"
+#include "params/rs_display_render_params.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -467,6 +469,91 @@ HWTEST(RSUniRenderProcessorTest, CreateUIFirstLayer002, TestSize.Level1)
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->CreateUIFirstLayer(*surfaceDrawable, params);
+}
+
+/**
+ * @tc.name: GetForceClientForDRM001
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM001, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.isProtectedLayer_ = false;
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+}
+
+/**
+ * @tc.name: GetForceClientForDRM002
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM002, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.isProtectedLayer_ = true;
+    params.animateState_ = true;
+    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
+}
+
+/**
+ * @tc.name: GetForceClientForDRM003
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM003, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.isProtectedLayer_ = true;
+    params.animateState_ = false;
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+}
+
+/**
+ * @tc.name: GetForceClientForDRM004
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.isProtectedLayer_ = true;
+    params.animateState_ = false;
+    RSDisplayNodeConfig config;
+    NodeId id = 1;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    std::shared_ptr<DrawableV2::RSDisplayRenderNodeDrawable> displayDrawable(
+        static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(
+        DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node)));
+    ASSERT_NE(displayDrawable, nullptr);
+    params.ancestorDisplayDrawable_ = displayDrawable;
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
+    ASSERT_NE(displayDrawable->GetRenderParams(), nullptr);
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
 }
 
 /**

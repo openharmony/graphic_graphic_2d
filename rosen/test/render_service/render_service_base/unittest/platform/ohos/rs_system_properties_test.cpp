@@ -836,7 +836,7 @@ HWTEST_F(RSSystemPropertiesTest, IsFoldScreenFlag, TestSize.Level1)
 {
     std::string foldScreenFlag = system::GetParameter("const.window.foldscreen.type", "");
     system::SetParameter("const.window.foldscreen.type", "0");
-    ASSERT_TRUE(RSSystemProperties::IsFoldScreenFlag());
+    EXPECT_TRUE(RSSystemProperties::IsFoldScreenFlag());
     system::SetParameter("const.window.foldscreen.type", foldScreenFlag);
 }
 

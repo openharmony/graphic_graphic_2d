@@ -2135,6 +2135,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->cacheSurface_->cachedCanvas_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
     nodeTest->cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
+    nodeTest->NeedInitCacheSurface();
     EXPECT_NE(nodeTest, nullptr);
 }
 

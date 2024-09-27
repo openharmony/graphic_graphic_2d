@@ -37,6 +37,7 @@ struct AdaptiveImageInfo {
     int32_t height = 0;
     uint32_t dynamicRangeMode = 0;
     Rect frameRect;
+    Drawing::Matrix fitMatrix = Drawing::Matrix();
 };
 }
 
@@ -80,6 +81,7 @@ enum class ImageFit {
     BOTTOM,
     BOTTOM_RIGHT,
     COVER_TOP_LEFT,
+    MATRIX,
 };
 
 class RSB_EXPORT RSImage : public RSImageBase {
@@ -110,6 +112,8 @@ public:
     Drawing::AdaptiveImageInfo GetAdaptiveImageInfoWithCustomizedFrameRect(const Drawing::Rect& frameRect) const;
     RectF GetDstRect();
     void SetFrameRect(RectF frameRect);
+    void SetFitMatrix(const Drawing::Matrix& matrix);
+    Drawing::Matrix GetFitMatrix() const;
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
@@ -143,7 +147,8 @@ private:
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(
-        Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale);
+        Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
+        bool& hasFitMatrix, Drawing::Matrix& fitMatrix);
     static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
         const std::shared_ptr<Media::PixelMap>& pixelMap);
 #endif
@@ -158,6 +163,7 @@ private:
     NodeId nodeId_ = 0;
     Drawing::Paint paint_;
     uint32_t dynamicRangeMode_ = 0;
+    std::optional<Drawing::Matrix> fitMatrix_ = std::nullopt;
 };
 
 template<>

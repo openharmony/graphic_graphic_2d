@@ -30,6 +30,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 using pid_t = int;
+using MemoryOverflowCalllback = std::function<void(pid_t, uint64_t, bool)>;
 struct GPUResourceTag;
 struct HpsBlurParameter;
 class GPUContext;
@@ -82,6 +83,8 @@ public:
     virtual void SetCurrentGpuResourceTag(const GPUResourceTag &tag) = 0;
 
     virtual void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) = 0;
+
+    virtual void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size) = 0;
 
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;

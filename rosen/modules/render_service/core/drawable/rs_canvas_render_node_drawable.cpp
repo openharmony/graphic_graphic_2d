@@ -64,9 +64,8 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
         QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw) {
-        RS_LOGI("RSCanvasRenderNodeDrawable::OnDraw IsOpDropped = %{public}d, "
-        "GetOpDropped = %{public}d, isOpincDraw = %{public}d, id:%{public}" PRIu64 "",
-            uniParam->IsOpDropped(), GetOpDropped(), isOpincDraw, nodeId_);
+        RS_LOGI("RSCanvasRenderNodeDrawable::OnDraw quickReject, and uniParam is nullptr?"
+            " %{public}d, id:%{public}" PRIu64 "", !uniParam, nodeId_);
         return;
     }
 

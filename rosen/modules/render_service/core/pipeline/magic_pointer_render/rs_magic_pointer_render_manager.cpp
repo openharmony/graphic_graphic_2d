@@ -137,7 +137,7 @@ bool RSMagicPointerRenderManager::CheckColorPickerEnabled()
         ROSEN_LOGE("RSMagicPointerRenderManager::CheckColorPickerEnabled threadParams == nullptr");
         return false;
     }
-    auto& hardwareDrawables = threadParams->GetHardwareEnabledTypeDrawables();
+    const auto& hardwareDrawables = threadParams->GetHardwareEnabledTypeDrawables();
 
     for (const auto& drawable : hardwareDrawables) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
@@ -180,7 +180,7 @@ void RSMagicPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor
 
 bool RSMagicPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
-    auto& hardwareDrawables =
+    const auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     for (const auto& drawable : hardwareDrawables) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
@@ -378,7 +378,7 @@ std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageBy
     mat.MapRect(imgCutRectF, rectOrigin);
     Drawing::RectI imgCutRect = Drawing::RectI(imgCutRectF.GetLeft(), imgCutRectF.GetTop(), imgCutRectF.GetRight(),
         imgCutRectF.GetBottom());
-    auto context = RSBackgroundThread::Instance().GetShareGPUContext();
+    const auto context = RSBackgroundThread::Instance().GetShareGPUContext();
     if (context == nullptr) {
         RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageByLayer context is nullptr.");
         return nullptr;
@@ -404,7 +404,7 @@ std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageBy
 
 #ifdef RS_ENABLE_VK
 std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFromVK(Drawing::RectI& imgCutRect,
-    std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param)
+    const std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param)
 {
     if (vkImageManager_ == nullptr) {
         RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK vkImageManager_ == nullptr");
@@ -434,7 +434,7 @@ std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFr
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
 std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFromGL(Drawing::RectI& imgCutRect,
-    std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param)
+    const std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param)
 {
     if (eglImageManager_ == nullptr) {
         RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL eglImageManager_ == nullptr");

@@ -238,7 +238,7 @@ private:
     std::unordered_set<NodeId> blackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
 
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
 
     // vma cache
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag

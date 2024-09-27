@@ -46,6 +46,8 @@ public:
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
     uint8_t MAX_ALPHA = 255;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceRenderNodeTest::SetUpTestCase()
@@ -237,7 +239,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion03, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -292,7 +294,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion05, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -320,7 +322,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion06, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -348,7 +350,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion07, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -2075,6 +2077,18 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateChildrenFilterRects, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetOriAncoForceDoDirect
+ * @tc.desc: test results of GetOriAncoForceDoDirect
+ * @tc.type: FUNC
+ * @tc.require: issueIARZ3Q
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
+{
+    RSSurfaceRenderNode::SetAncoForceDoDirect(false);
+    EXPECT_FALSE(RSSurfaceRenderNode::GetOriAncoForceDoDirect());
+}
+
+/**
  * @tc.name: CheckUpdateHwcNodeLayerInfo
  * @tc.desc: test results of CheckUpdateHwcNodeLayerInfo
  * @tc.type: FUNC
@@ -2090,8 +2104,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
     Vector4<int> cornerRadius;
     ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius));
     bool hasContainer = true;
-    float density = 1.0f;
-    node->containerConfig_.Update(hasContainer, density);
+    node->containerConfig_.Update(hasContainer, rrect);
 
     node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     node->addedToPendingSyncList_ = true;
