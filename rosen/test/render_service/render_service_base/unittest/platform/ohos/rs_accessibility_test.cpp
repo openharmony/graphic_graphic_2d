@@ -42,6 +42,7 @@ HWTEST_F(RRSAccessibilityTest, ListenHighContrastChangeTest, TestSize.Level1)
 {
     RSAccessibility::OnHighContrastChange callback;
     RSAccessibility::GetInstance().ListenHighContrastChange(callback);
+    EXPECT_EQ(callback, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

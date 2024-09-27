@@ -50,6 +50,7 @@ HWTEST_F(RSLogTest, RSLogOutput001, TestSize.Level1)
     RSLogOutput(tag, RSLog::Level::LEVEL_ERROR, "format");
     RSLogOutput(tag, RSLog::Level::LEVEL_INFO, "format");
     RSLogOutput(tag, RSLog::Level::LEVEL_FATAL, "format");
+    EXPECT_NE(tag, -1);
 }
 
 } // namespace Rosen
