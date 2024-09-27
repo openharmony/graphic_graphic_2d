@@ -539,4 +539,494 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest016, TestSize.Level1)
 
     OH_Drawing_DestroyTextLines(textLines);
 }
+
+/*
+ * @tc.name: NativeDrawingLineTest017
+ * @tc.desc: test for the textLine GetImageBounds.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest017, TestSize.Level1)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Rect *rect = OH_Drawing_TextLineGetImageBounds(textLine);
+        EXPECT_GT(OH_Drawing_RectGetRight(rect), OH_Drawing_RectGetLeft(rect));
+        EXPECT_GT(OH_Drawing_RectGetBottom(rect), OH_Drawing_RectGetTop(rect));
+        EXPECT_LT(OH_Drawing_RectGetWidth(rect), 500.0);
+        EXPECT_LE(OH_Drawing_RectGetHeight(rect), 40);
+        OH_Drawing_RectDestroy(rect);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest018
+ * @tc.desc: test for the textLine GetImageBounds.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest018, TestSize.Level1)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 7);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Rect *rect = OH_Drawing_TextLineGetImageBounds(textLine);
+        if (index == 3) {
+            EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 0);
+            EXPECT_EQ(OH_Drawing_RectGetRight(rect), 0);
+        } else {
+            EXPECT_GT(OH_Drawing_RectGetRight(rect), OH_Drawing_RectGetLeft(rect));
+        }
+        EXPECT_GE(OH_Drawing_RectGetBottom(rect), OH_Drawing_RectGetTop(rect));
+        EXPECT_LT(OH_Drawing_RectGetWidth(rect), 500.0);
+        EXPECT_LE(OH_Drawing_RectGetHeight(rect), 40);
+        OH_Drawing_RectDestroy(rect);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest019
+ * @tc.desc: test for the textLine GetImageBounds.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest019, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 5);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Rect *rect = OH_Drawing_TextLineGetImageBounds(textLine);
+        EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 0);
+        EXPECT_EQ(OH_Drawing_RectGetRight(rect), 0);
+        EXPECT_EQ(OH_Drawing_RectGetTop(rect), 0);
+        EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 0);
+        OH_Drawing_RectDestroy(rect);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+
+    OH_Drawing_Rect *rect = OH_Drawing_TextLineGetImageBounds(nullptr);
+    EXPECT_TRUE(rect == nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest020
+ * @tc.desc: test for the textLine GetTrailingSpaceWidth.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest020, TestSize.Level1)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double width = OH_Drawing_TextLineGetTrailingSpaceWidth(textLine);
+        EXPECT_GT(width, 1);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest021
+ * @tc.desc: test for the textLine GetTrailingSpaceWidth.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest021, TestSize.Level1)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 7);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double width = OH_Drawing_TextLineGetTrailingSpaceWidth(textLine);
+        if (index < 3) {
+            EXPECT_GT(width, 1.0);
+        } else {
+            EXPECT_EQ(width, 0.0);
+        }
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest022
+ * @tc.desc: test for the textLine GetTrailingSpaceWidth.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest022, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 5);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double width = OH_Drawing_TextLineGetTrailingSpaceWidth(textLine);
+        EXPECT_EQ(width, 0.0);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+
+    double width = OH_Drawing_TextLineGetTrailingSpaceWidth(nullptr);
+    EXPECT_EQ(width, 0.0);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest023
+ * @tc.desc: test for the textLine GetStringIndexForPosition.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest023, TestSize.Level1)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    const int maxCharacterNum = 88;
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Point *point = OH_Drawing_PointCreate(1.0, 2.0);
+        int32_t characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
+        if (index == 0) {
+            EXPECT_EQ(characterIndex, 0);
+        } else {
+            EXPECT_GT(characterIndex, 0);
+        }
+        EXPECT_LT(characterIndex, maxCharacterNum);
+        OH_Drawing_PointSet(point, 90.0, 4.0);
+        characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
+        EXPECT_GT(characterIndex, 1);
+        EXPECT_LT(characterIndex, maxCharacterNum);
+        OH_Drawing_PointDestroy(point);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest024
+ * @tc.desc: test for the textLine GetStringIndexForPosition.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest024, TestSize.Level1)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 7);
+
+    const int maxCharacterNum = 223;
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Point *point = OH_Drawing_PointCreate(1.0, 2.0);
+        int32_t characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
+        if (index == 0) {
+            EXPECT_EQ(characterIndex, 0);
+        } else {
+            EXPECT_GT(characterIndex, 0);
+        }
+        EXPECT_LT(characterIndex, maxCharacterNum);
+        OH_Drawing_PointSet(point, 400.0, 4.0);
+        characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
+        EXPECT_GT(characterIndex, 1);
+        EXPECT_LT(characterIndex, maxCharacterNum);
+        OH_Drawing_PointDestroy(point);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest025
+ * @tc.desc: test for the textLine GetStringIndexForPosition.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest025, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 4);
+
+    for (size_t index = 0; index < size - 1; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        OH_Drawing_Point *point = OH_Drawing_PointCreate(0.0, 2.0);
+        int32_t characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
+        EXPECT_EQ(characterIndex, index + 1);
+        OH_Drawing_PointSet(point, 400.0, 4.0);
+        characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
+        EXPECT_EQ(characterIndex, index + 1);
+        OH_Drawing_PointDestroy(point);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest026
+ * @tc.desc: test for the textLine GetStringIndexForPosition.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest026, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    OH_Drawing_TextLine* textLine = textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    EXPECT_TRUE(textLine != nullptr);
+
+    int32_t characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, nullptr);
+    EXPECT_EQ(characterIndex, 0);
+
+    OH_Drawing_Point *point = OH_Drawing_PointCreate(0.0, 2.0);
+    characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(nullptr, point);
+    EXPECT_EQ(characterIndex, 0);
+    OH_Drawing_PointDestroy(point);
+
+    characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(nullptr, nullptr);
+    EXPECT_EQ(characterIndex, 0);
+
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest027
+ * @tc.desc: test for the textLine GetOffsetForStringIndex.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest027, TestSize.Level1)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    const int maxCharacterNum = 88;
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 0);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 10);
+        if (index == 0) {
+            EXPECT_GT(offset, 1.0);
+        } else {
+            EXPECT_EQ(offset, 0.0);
+        }
+        EXPECT_LE(offset, 500.0);
+        offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, maxCharacterNum);
+        EXPECT_GT(offset, 1.0);
+        EXPECT_LE(offset, 500.0);
+        offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, -2);
+        EXPECT_EQ(offset, 0.0);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest028
+ * @tc.desc: test for the textLine GetOffsetForStringIndex.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest028, TestSize.Level1)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 7);
+
+    const int maxCharacterNum = 88;
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 0);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 10);
+        if (index == 0) {
+            EXPECT_GT(offset, 1.0);
+        } else {
+            EXPECT_EQ(offset, 0.0);
+        }
+        EXPECT_LE(offset, 500.0);
+        offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, maxCharacterNum);
+        if (index < 3) {
+            EXPECT_GT(offset, 1.0);
+        } else {
+            EXPECT_EQ(offset, 0.0);
+        }
+        EXPECT_LE(offset, 500.0);
+        offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, -2);
+        EXPECT_EQ(offset, 0.0);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest029
+ * @tc.desc: test for the textLine GetOffsetForStringIndex.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest029, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 0);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 100);
+        EXPECT_EQ(offset, 0.0);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+
+    double offset = OH_Drawing_TextLineGetOffsetForStringIndex(nullptr, 0);
+    EXPECT_EQ(offset, 0.0);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest030
+ * @tc.desc: test for the textLine GetAlignmentOffset.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest030, TestSize.Level1)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.0, 600);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.5, 700);
+        EXPECT_GT(offset, 100.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, -1.0, 700);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 2.0, 20);
+        EXPECT_EQ(offset, 0.0);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest031
+ * @tc.desc: test for the textLine GetAlignmentOffset.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest031, TestSize.Level1)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   \u231A \u513B"
+        " \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 7);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.0, 600);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.5, 700);
+        EXPECT_GT(offset, 100.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, -1.0, 700);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 2.0, 20);
+        if (index == 3) {
+            EXPECT_EQ(offset, 20.0);
+        } else {
+            EXPECT_EQ(offset, 0.0);
+        }
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: NativeDrawingLineTest032
+ * @tc.desc: test for the textLine GetAlignmentOffset.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest032, TestSize.Level1)
+{
+    PrepareCreateTextLine("\n\n\n\n");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 5);
+
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        double offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.0, 600);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.5, 700);
+        EXPECT_EQ(offset, 350.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, -1.0, -700);
+        EXPECT_EQ(offset, 0.0);
+        offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 2.0, 20);
+        EXPECT_EQ(offset, 20.0);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+
+    double offset = OH_Drawing_TextLineGetAlignmentOffset(nullptr, 0.0, 0.0);
+    EXPECT_EQ(offset, 0.0);
+}
 }
