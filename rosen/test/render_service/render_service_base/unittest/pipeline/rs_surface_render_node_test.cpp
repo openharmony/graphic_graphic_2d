@@ -2077,6 +2077,18 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateChildrenFilterRects, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetOriAncoForceDoDirect
+ * @tc.desc: test results of GetOriAncoForceDoDirect
+ * @tc.type: FUNC
+ * @tc.require: issueIARZ3Q
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
+{
+    RSSurfaceRenderNode::SetAncoForceDoDirect(false);
+    EXPECT_FALSE(RSSurfaceRenderNode::GetOriAncoForceDoDirect());
+}
+
+/**
  * @tc.name: CheckUpdateHwcNodeLayerInfo
  * @tc.desc: test results of CheckUpdateHwcNodeLayerInfo
  * @tc.type: FUNC

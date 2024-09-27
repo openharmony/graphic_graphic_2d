@@ -60,6 +60,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
+#include "pipeline/rs_anco_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -2073,6 +2074,16 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         INVALID_SCREEN_ID, renderEngine)) {
         RS_LOGE("RSMainThread::DoDirectComposition: processor init failed!");
         return false;
+    }
+
+    auto drawable = displayNode->GetRenderDrawable();
+    if (drawable != nullptr) {
+        auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
+        auto surfaceHandler = displayDrawable->GetRSSurfaceHandlerOnDraw();
+        if (RSAncoManager::Instance()->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes_,
+            displayNode->GetRotation(), screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight())) {
+            return false;
+        }
     }
 
     if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {

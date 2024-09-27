@@ -1032,6 +1032,11 @@ void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
     ancoForceDoDirect_.store(direct);
 }
 
+bool RSSurfaceRenderNode::GetOriAncoForceDoDirect()
+{
+    return ancoForceDoDirect_.load();
+}
+
 bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
 {
     return (ancoForceDoDirect_.load() && (GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)));
