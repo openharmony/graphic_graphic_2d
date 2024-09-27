@@ -126,6 +126,7 @@ public:
     int max_ = 0;
     int preferred_ = 0;
     int type_ = 0;
+    bool isEnergyAssurance_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
