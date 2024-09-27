@@ -111,8 +111,11 @@ bool RSRenderNode::IsMarkedRenderGroup()
     return (nodeGroupType_ > RSRenderNode::NodeGroupType::NONE) || isOpincRootFlag_;
 }
 
-bool RSRenderNode::OpincForcePrepareSubTree()
+bool RSRenderNode::OpincForcePrepareSubTree(bool autoCacheEnable)
 {
+    if (!autoCacheEnable) {
+        return false;
+    }
     bool flag = (!(IsSubTreeDirty() || IsContentDirty())) && GetSuggestOpincNode() &&
         OpincGetNodeSupportFlag() && !isOpincRootFlag_;
     if (flag) {

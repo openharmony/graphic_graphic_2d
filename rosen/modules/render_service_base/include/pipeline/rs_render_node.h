@@ -571,7 +571,7 @@ public:
         return isOpincNodeSupportFlag_;
     }
     bool IsMarkedRenderGroup();
-    bool OpincForcePrepareSubTree();
+    bool OpincForcePrepareSubTree(bool autoCacheEnable);
 
     // sync to drawable
     void OpincUpdateRootFlag(bool& unchangeMarkEnable);

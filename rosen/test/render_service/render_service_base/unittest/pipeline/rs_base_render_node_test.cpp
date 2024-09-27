@@ -1636,11 +1636,14 @@ HWTEST_F(RSBaseRenderNodeTest, IsMarkedRenderGroup02, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, OpincForcePrepareSubTree, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    ASSERT_EQ(node->OpincForcePrepareSubTree(), false);
+    bool autoCacheEnable = true;
+    ASSERT_EQ(node->OpincForcePrepareSubTree(autoCacheEnable), false);
     node->isSuggestOpincNode_ = true;
     node->isOpincRootFlag_ = false;
     node->isOpincNodeSupportFlag_ = true;
-    ASSERT_TRUE(node->OpincForcePrepareSubTree());
+    ASSERT_TRUE(node->OpincForcePrepareSubTree(autoCacheEnable));
+    autoCacheEnable = false;
+    ASSERT_EQ(node->OpincForcePrepareSubTree(autoCacheEnable), false);
 }
 
 /**
