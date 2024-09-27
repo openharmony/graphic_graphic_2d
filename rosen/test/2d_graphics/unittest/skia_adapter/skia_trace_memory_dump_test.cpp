@@ -38,108 +38,6 @@ void SkiaTraceMemoryDumpTest::SetUp() {}
 void SkiaTraceMemoryDumpTest::TearDown() {}
 
 /**
- * @tc.name: DumpNumericValue001
- * @tc.desc: Test DumpNumericValue
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaTraceMemoryDumpTest, DumpNumericValue001, TestSize.Level1)
-{
-    SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
-    skiaTraceMemoryDump.DumpNumericValue("dumpName1", "valueName", "bytes", 1);
-}
-
-/**
- * @tc.name: DumpNumericValue002
- * @tc.desc: Test DumpNumericValue
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaTraceMemoryDumpTest, DumpNumericValue002, TestSize.Level1)
-{
-    SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
-    skiaTraceMemoryDump.DumpNumericValue("dumpName1", "valueName", "bytes", 1);
-}
-
-/**
- * @tc.name: DumpStringValue001
- * @tc.desc: Test DumpStringValue
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaTraceMemoryDumpTest, DumpStringValue001, TestSize.Level1)
-{
-    SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
-    skiaTraceMemoryDump.DumpStringValue("dumpName1", "valueName", "1");
-}
-
-
-/**
- * @tc.name: DumpStringValue002
- * @tc.desc: Test DumpStringValue
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaTraceMemoryDumpTest, DumpStringValue002, TestSize.Level1)
-{
-    SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
-    skiaTraceMemoryDump.DumpStringValue("dumpName1", "valueName", "1");
-}
-
-/**
- * @tc.name: LogOutput001
- * @tc.desc: Test LogOutput
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaTraceMemoryDumpTest, LogOutput001, TestSize.Level1)
-{
-    SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
-    DfxString log;
-    skiaTraceMemoryDump.LogOutput(log);
-}
-
-
-/**
- * @tc.name: LogOutput002
- * @tc.desc: Test LogOutput
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaTraceMemoryDumpTest, LogOutput002, TestSize.Level1)
-{
-    SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
-    DfxString log;
-    skiaTraceMemoryDump.LogOutput(log);
-}
-
-/**
- * @tc.name: LogTotals001
- * @tc.desc: Test LogTotals
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaTraceMemoryDumpTest, LogTotals001, TestSize.Level1)
-{
-    SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
-    DfxString log;
-    skiaTraceMemoryDump.LogTotals(log);
-}
-
-/**
- * @tc.name: LogTotals002
- * @tc.desc: Test LogTotals
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(SkiaTraceMemoryDumpTest, LogTotals002, TestSize.Level1)
-{
-    SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
-    DfxString log;
-    skiaTraceMemoryDump.LogTotals(log);
-}
-
-/**
  * @tc.name: GetGpuMemorySizeInMB001
  * @tc.desc: Test GetGpuMemorySizeInMB
  * @tc.type: FUNC
@@ -148,6 +46,11 @@ HWTEST_F(SkiaTraceMemoryDumpTest, LogTotals002, TestSize.Level1)
 HWTEST_F(SkiaTraceMemoryDumpTest, GetGpuMemorySizeInMB001, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
+    skiaTraceMemoryDump.DumpNumericValue("dumpName1", "valueName", "bytes", 1);
+    skiaTraceMemoryDump.DumpStringValue("dumpName1", "valueName", "1");
+    DfxString log;
+    skiaTraceMemoryDump.LogOutput(log);
+    skiaTraceMemoryDump.LogTotals(log);
     ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
 }
 
@@ -161,6 +64,11 @@ HWTEST_F(SkiaTraceMemoryDumpTest, GetGpuMemorySizeInMB001, TestSize.Level1)
 HWTEST_F(SkiaTraceMemoryDumpTest, GetGpuMemorySizeInMB002, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
+    skiaTraceMemoryDump.DumpNumericValue("dumpName1", "valueName", "bytes", 1);
+    skiaTraceMemoryDump.DumpStringValue("dumpName1", "valueName", "1");
+    DfxString log;
+    skiaTraceMemoryDump.LogOutput(log);
+    skiaTraceMemoryDump.LogTotals(log);
     ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
 }
 

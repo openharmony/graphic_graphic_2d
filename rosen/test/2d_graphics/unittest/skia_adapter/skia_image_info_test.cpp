@@ -44,15 +44,24 @@ void SkiaImageInfoTest::TearDown() {}
  */
 HWTEST_F(SkiaImageInfoTest, ConvertToSkColorType001, TestSize.Level1)
 {
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_UNKNOWN);
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_ALPHA_8);
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGB_565);
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_ARGB_4444);
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGBA_8888);
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_BGRA_8888);
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGBA_F16);
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_N32);
-    SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGBA_1010102);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_UNKNOWN)
+                    == SkColorType::kUnknown_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_ALPHA_8)
+                    == SkColorType::kAlpha_8_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGB_565)
+                    == SkColorType::kRGB_565_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_ARGB_4444)
+                    == SkColorType::kARGB_4444_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGBA_8888)
+                    == SkColorType::kRGBA_8888_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_BGRA_8888)
+                    == SkColorType::kBGRA_8888_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGBA_F16)
+                    == SkColorType::kRGBA_F16_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_N32)
+                    == SkColorType::kN32_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkColorType(ColorType::COLORTYPE_RGBA_1010102)
+                    == SkColorType::kRGBA_1010102_SkColorType);
 }
 
 /**
@@ -63,10 +72,14 @@ HWTEST_F(SkiaImageInfoTest, ConvertToSkColorType001, TestSize.Level1)
  */
 HWTEST_F(SkiaImageInfoTest, ConvertToSkAlphaType001, TestSize.Level1)
 {
-    SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_UNKNOWN);
-    SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_OPAQUE);
-    SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_PREMUL);
-    SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_UNPREMUL);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_UNKNOWN)
+                    == SkAlphaType::kUnknown_SkAlphaType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_OPAQUE)
+                    == SkAlphaType::kOpaque_SkAlphaType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_PREMUL)
+                    == SkAlphaType::kPremul_SkAlphaType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkAlphaType(AlphaType::ALPHATYPE_UNPREMUL)
+                    == SkAlphaType::kUnpremul_SkAlphaType);
 }
 
 /**
@@ -78,7 +91,7 @@ HWTEST_F(SkiaImageInfoTest, ConvertToSkAlphaType001, TestSize.Level1)
 HWTEST_F(SkiaImageInfoTest, ConvertToSkImageInfo001, TestSize.Level1)
 {
     ImageInfo info;
-    SkiaImageInfo::ConvertToSkImageInfo(info);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkImageInfo(info).width() == 0);
 }
 
 /**
@@ -89,14 +102,22 @@ HWTEST_F(SkiaImageInfoTest, ConvertToSkImageInfo001, TestSize.Level1)
  */
 HWTEST_F(SkiaImageInfoTest, ConvertToColorType001, TestSize.Level1)
 {
-    SkiaImageInfo::ConvertToColorType(SkColorType::kUnknown_SkColorType);
-    SkiaImageInfo::ConvertToColorType(SkColorType::kAlpha_8_SkColorType);
-    SkiaImageInfo::ConvertToColorType(SkColorType::kRGB_565_SkColorType);
-    SkiaImageInfo::ConvertToColorType(SkColorType::kARGB_4444_SkColorType);
-    SkiaImageInfo::ConvertToColorType(SkColorType::kRGBA_8888_SkColorType);
-    SkiaImageInfo::ConvertToColorType(SkColorType::kBGRA_8888_SkColorType);
-    SkiaImageInfo::ConvertToColorType(SkColorType::kRGBA_F16_SkColorType);
-    SkiaImageInfo::ConvertToColorType(SkColorType::kRGBA_1010102_SkColorType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToColorType(SkColorType::kUnknown_SkColorType)
+                    == ColorType::COLORTYPE_UNKNOWN);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToColorType(SkColorType::kAlpha_8_SkColorType)
+                    == ColorType::COLORTYPE_ALPHA_8);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToColorType(SkColorType::kRGB_565_SkColorType)
+                    == ColorType::COLORTYPE_RGB_565);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToColorType(SkColorType::kARGB_4444_SkColorType)
+                    == ColorType::COLORTYPE_ARGB_4444);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToColorType(SkColorType::kRGBA_8888_SkColorType)
+                    == ColorType::COLORTYPE_RGBA_8888);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToColorType(SkColorType::kBGRA_8888_SkColorType)
+                    == ColorType::COLORTYPE_BGRA_8888);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToColorType(SkColorType::kRGBA_F16_SkColorType)
+                    == ColorType::COLORTYPE_RGBA_F16);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToColorType(SkColorType::kRGBA_1010102_SkColorType)
+                    == ColorType::COLORTYPE_RGBA_1010102);
 }
 
 /**
@@ -107,10 +128,14 @@ HWTEST_F(SkiaImageInfoTest, ConvertToColorType001, TestSize.Level1)
  */
 HWTEST_F(SkiaImageInfoTest, ConvertToAlphaType001, TestSize.Level1)
 {
-    SkiaImageInfo::ConvertToAlphaType(SkAlphaType::kUnknown_SkAlphaType);
-    SkiaImageInfo::ConvertToAlphaType(SkAlphaType::kOpaque_SkAlphaType);
-    SkiaImageInfo::ConvertToAlphaType(SkAlphaType::kPremul_SkAlphaType);
-    SkiaImageInfo::ConvertToAlphaType(SkAlphaType::kUnpremul_SkAlphaType);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToAlphaType(SkAlphaType::kUnknown_SkAlphaType)
+                    == AlphaType::ALPHATYPE_UNKNOWN);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToAlphaType(SkAlphaType::kOpaque_SkAlphaType)
+                    == AlphaType::ALPHATYPE_OPAQUE);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToAlphaType(SkAlphaType::kPremul_SkAlphaType)
+                    == AlphaType::ALPHATYPE_PREMUL);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToAlphaType(SkAlphaType::kUnpremul_SkAlphaType)
+                    == AlphaType::ALPHATYPE_UNPREMUL);
 }
 
 /**
@@ -122,7 +147,7 @@ HWTEST_F(SkiaImageInfoTest, ConvertToAlphaType001, TestSize.Level1)
 HWTEST_F(SkiaImageInfoTest, ConvertToRSImageInfo001, TestSize.Level1)
 {
     SkImageInfo info;
-    SkiaImageInfo::ConvertToRSImageInfo(info);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToRSImageInfo(info).GetWidth() == 0);
 }
 
 /**
@@ -133,10 +158,14 @@ HWTEST_F(SkiaImageInfoTest, ConvertToRSImageInfo001, TestSize.Level1)
  */
 HWTEST_F(SkiaImageInfoTest, ConvertToSkEncodedImageFormat001, TestSize.Level1)
 {
-    SkiaImageInfo::ConvertToSkEncodedImageFormat(EncodedImageFormat::JPEG);
-    SkiaImageInfo::ConvertToSkEncodedImageFormat(EncodedImageFormat::PNG);
-    SkiaImageInfo::ConvertToSkEncodedImageFormat(EncodedImageFormat::WEBP);
-    SkiaImageInfo::ConvertToSkEncodedImageFormat(EncodedImageFormat::UNKNOWN);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkEncodedImageFormat(EncodedImageFormat::JPEG)
+                    == SkEncodedImageFormat::kJPEG);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkEncodedImageFormat(EncodedImageFormat::PNG)
+                    == SkEncodedImageFormat::kPNG);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkEncodedImageFormat(EncodedImageFormat::WEBP)
+                    == SkEncodedImageFormat::kWEBP);
+    ASSERT_TRUE(SkiaImageInfo::ConvertToSkEncodedImageFormat(EncodedImageFormat::UNKNOWN)
+                    == SkEncodedImageFormat::kJPEG);
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -93,7 +93,12 @@ HWTEST_F(SkiaMatrixTest, Equals001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, Scale001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
-    skiaMatrix.Scale(2, 2, 2, 2); // 2: sx, sy, px, py
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
+    scalar scale = 2;
+    skiaMatrix.Scale(scale, scale, scale, scale);
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), scale));
 }
 
 /**
@@ -105,7 +110,11 @@ HWTEST_F(SkiaMatrixTest, Scale001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PreRotate001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
     skiaMatrix.PreRotate(90); // 90: degree
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), matrixParam));
 }
 
 /**
@@ -117,7 +126,11 @@ HWTEST_F(SkiaMatrixTest, PreRotate001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PreRotate002, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
     skiaMatrix.PreRotate(90, 0, 0); // 90: degree
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), matrixParam));
 }
 
 /**
@@ -129,7 +142,11 @@ HWTEST_F(SkiaMatrixTest, PreRotate002, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PostRotate001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
     skiaMatrix.PostRotate(90); // 90: degree
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), -matrixParam));
 }
 
 /**
@@ -141,7 +158,12 @@ HWTEST_F(SkiaMatrixTest, PostRotate001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PostTranslate001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
-    skiaMatrix.PostTranslate(100, 100); // 100: dx, dy
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
+    scalar trans = 100;
+    skiaMatrix.PostTranslate(trans, trans);
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::TRANS_X), matrixParam * trans + matrixParam));
 }
 
 /**
@@ -153,7 +175,12 @@ HWTEST_F(SkiaMatrixTest, PostTranslate001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PreScale001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
-    skiaMatrix.PreScale(2, 2); // 2: sx, sy
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
+    scalar scale = 2;
+    skiaMatrix.PreScale(scale, scale);
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), scale * matrixParam));
 }
 
 /**
@@ -165,7 +192,12 @@ HWTEST_F(SkiaMatrixTest, PreScale001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PostScale001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
-    skiaMatrix.PostScale(2, 2); // 2: sx, sy
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
+    scalar scale = 2;
+    skiaMatrix.PostScale(scale, scale);
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), matrixParam * scale));
 }
 
 /**
@@ -177,8 +209,12 @@ HWTEST_F(SkiaMatrixTest, PostScale001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PreConcat001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
     Matrix44 matrix44;
     skiaMatrix.PreConcat(matrix44);
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), matrixParam));
 }
 
 /**
@@ -190,8 +226,12 @@ HWTEST_F(SkiaMatrixTest, PreConcat001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PostConcat001, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
     Matrix matrix;
     skiaMatrix.PostConcat(matrix);
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), matrixParam));
 }
 
 /**
@@ -203,8 +243,12 @@ HWTEST_F(SkiaMatrixTest, PostConcat001, TestSize.Level1)
 HWTEST_F(SkiaMatrixTest, PostConcat002, TestSize.Level1)
 {
     SkiaMatrix skiaMatrix;
+    scalar matrixParam = 5;
+    skiaMatrix.SetMatrix(matrixParam, matrixParam, matrixParam, matrixParam, matrixParam,
+                         matrixParam, matrixParam, matrixParam, matrixParam);
     Matrix44 matrix44;
     skiaMatrix.PostConcat(matrix44);
+    ASSERT_TRUE(IsScalarAlmostEqual(skiaMatrix.Get(Matrix::SCALE_X), matrixParam));
 }
 
 /**

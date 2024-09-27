@@ -47,8 +47,9 @@ HWTEST_F(SkiaFontStyleSetTest, GetStyle001, TestSize.Level1)
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = nullptr;
     auto skiaFontStyleSet = std::make_shared<FontStyleSet>(fontStyleSetImpl);
     FontStyle fontStyle;
-    std::string styleName = "style";
-    skiaFontStyleSet->GetStyle(0, &fontStyle, &styleName);
+    std::string* styleName = nullptr;
+    skiaFontStyleSet->GetStyle(0, &fontStyle, styleName);
+    ASSERT_TRUE(styleName == nullptr);
 }
 
 /**

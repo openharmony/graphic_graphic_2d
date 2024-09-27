@@ -50,6 +50,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithColor001, TestSize.Level1)
     ColorQuad colorQuad = 0xFF000000;
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithColor(colorQuad);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 
 /**
@@ -64,6 +65,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithBlend001, TestSize.Level1)
     ShaderEffect shaderEffect2{ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, 0xFF000000};
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithBlend(shaderEffect1, shaderEffect2, BlendMode::CLEAR);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 
 /**
@@ -79,6 +81,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithImage001, TestSize.Level1)
     SamplingOptions samplingOptions;
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithImage(image, TileMode::MIRROR, TileMode::REPEAT, samplingOptions, matrix);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 
 /**
@@ -94,6 +97,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithPicture001, TestSize.Level1)
     Rect rect;
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithPicture(picture, TileMode::MIRROR, TileMode::CLAMP, FilterMode::LINEAR, matrix, rect);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 
 /**
@@ -111,6 +115,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithLinearGradient001, TestSize.Level1)
     std::vector<scalar> pos { 30.0f };
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithLinearGradient(startPt, endPt, color, pos, TileMode::MIRROR, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 
 /**
@@ -128,6 +133,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithRadialGradient001, TestSize.Level1)
     std::vector<scalar> pos { 16.0f };
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithRadialGradient(centerPt, radius, color, pos, TileMode::REPEAT, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 
 /**
@@ -149,6 +155,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithTwoPointConical001, TestSize.Level1)
     Matrix matrix;
     skiaShaderEffect.InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, color, pos, TileMode::CLAMP,
         &matrix);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 
 /**
@@ -167,6 +174,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithSweepGradient001, TestSize.Level1)
     scalar endAngle = 60.0f;
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithSweepGradient(centerPt, color, pos, TileMode::MIRROR, startAngle, endAngle, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 
 /**

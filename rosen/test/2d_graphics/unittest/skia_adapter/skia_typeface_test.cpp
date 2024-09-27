@@ -51,9 +51,8 @@ void SkiaTypefaceTest::TearDown() {}
  */
 HWTEST_F(SkiaTypefaceTest, GetFamilyName001, TestSize.Level1)
 {
-    std::string s = "asd";
     auto typeface1 = SkiaTypeface::MakeDefault();
-    typeface1->GetFamilyName();
+    ASSERT_TRUE(typeface1->GetFamilyName() != std::string());
 }
 
 /**
@@ -65,7 +64,7 @@ HWTEST_F(SkiaTypefaceTest, GetFamilyName001, TestSize.Level1)
 HWTEST_F(SkiaTypefaceTest, GetFontStyle001, TestSize.Level1)
 {
     auto typeface1 = SkiaTypeface::MakeDefault();
-    typeface1->GetFontStyle();
+    ASSERT_TRUE(typeface1->GetFontStyle().GetWidth() >= 0);
 }
 
 /**

@@ -119,7 +119,7 @@ HWTEST_F(SkiaBitmapTest, GetRowBytes001, TestSize.Level1)
 HWTEST_F(SkiaBitmapTest, GetColorType001, TestSize.Level1)
 {
     SkiaBitmap skiaBitmap;
-    skiaBitmap.GetColorType();
+    ASSERT_TRUE(skiaBitmap.GetColorType() == ColorType::COLORTYPE_UNKNOWN);
 }
 
 /**
@@ -131,7 +131,7 @@ HWTEST_F(SkiaBitmapTest, GetColorType001, TestSize.Level1)
 HWTEST_F(SkiaBitmapTest, GetAlphaType001, TestSize.Level1)
 {
     SkiaBitmap skiaBitmap;
-    skiaBitmap.GetAlphaType();
+    ASSERT_TRUE(skiaBitmap.GetAlphaType() == AlphaType::ALPHATYPE_UNKNOWN);
 }
 
 /**
@@ -182,7 +182,7 @@ HWTEST_F(SkiaBitmapTest, PeekPixels001, TestSize.Level1)
 HWTEST_F(SkiaBitmapTest, ExportSkiaBitmap001, TestSize.Level1)
 {
     SkiaBitmap skiaBitmap;
-    skiaBitmap.ExportSkiaBitmap();
+    ASSERT_TRUE(skiaBitmap.ExportSkiaBitmap().empty());
 }
 
 /**
@@ -207,18 +207,7 @@ HWTEST_F(SkiaBitmapTest, SetImmutable001, TestSize.Level1)
 {
     SkiaBitmap skiaBitmap;
     skiaBitmap.SetImmutable();
-}
-
-/**
- * @tc.name: ClearWithColor001
- * @tc.desc: Test ClearWithColor
- * @tc.type: FUNC
- * @tc.require: I91F9L
- */
-HWTEST_F(SkiaBitmapTest, ClearWithColor001, TestSize.Level1)
-{
-    SkiaBitmap skiaBitmap;
-    skiaBitmap.ClearWithColor(0xFF000000);
+    ASSERT_TRUE(!skiaBitmap.IsImmutable());
 }
 
 /**
@@ -229,8 +218,14 @@ HWTEST_F(SkiaBitmapTest, ClearWithColor001, TestSize.Level1)
  */
 HWTEST_F(SkiaBitmapTest, GetColor001, TestSize.Level1)
 {
+    int width = 100;
+    int height = 50;
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888,
+        AlphaType::ALPHATYPE_PREMUL};
     SkiaBitmap skiaBitmap;
-    skiaBitmap.GetColor(0, 0);
+    skiaBitmap.Build(width, height, bitmapFormat, 0);
+    skiaBitmap.ClearWithColor(Color::COLOR_BLACK);
+    ASSERT_TRUE(skiaBitmap.GetColor(0, 0) == Color::COLOR_BLACK);
 }
 
 /**
@@ -278,7 +273,7 @@ HWTEST_F(SkiaBitmapTest, IsEmpty001, TestSize.Level1)
 HWTEST_F(SkiaBitmapTest, GetPixmap001, TestSize.Level1)
 {
     SkiaBitmap skiaBitmap;
-    skiaBitmap.GetPixmap();
+    ASSERT_TRUE(skiaBitmap.GetPixmap().GetWidth() == 0);
 }
 
 /**
