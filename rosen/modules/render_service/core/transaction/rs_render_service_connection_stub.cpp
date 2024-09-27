@@ -102,6 +102,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
@@ -1368,6 +1369,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             int32_t result = SetScreenSkipFrameInterval(id, skipFrameInterval);
             if (!reply.WriteInt32(result)) {
                 ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE): {
+            ScreenId id = data.ReadUint64();
+            uint32_t maxRefreshRate = data.ReadUint32();
+            uint32_t actualRefreshRate = 0;
+            int32_t result = SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+            if (!reply.WriteInt32(result)) {
+                return ERR_INVALID_REPLY;
+            }
+            if (!reply.WriteUint32(actualRefreshRate)) {
+                return ERR_INVALID_REPLY;
             }
             break;
         }
