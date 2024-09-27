@@ -115,6 +115,12 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
     bool isRepeatFinished = false;
     bool isFinished = true;
 
+    if (deltaTime < 0) {
+        ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, "
+            "current time: %{public}lld is earlier than last frame time: %{public}lld",
+            static_cast<long long>(time), static_cast<long long>(lastFrameTime_));
+    }
+    
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
         isFinished = true;
         return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished};
