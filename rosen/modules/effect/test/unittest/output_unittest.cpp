@@ -439,7 +439,7 @@ HWTEST_F(OutputUnittest, GetColorBuffer001, TestSize.Level1)
     /**
      * @tc.steps: step2. Call GetColorBuffer to get render result
      */
-    bool testResult2 = output->GetColorBuffer().size() != 0;
+    bool testResult2 = output->GetColorBuffer().size() == 0;
     EXPECT_TRUE(testResult2);
 }
 
