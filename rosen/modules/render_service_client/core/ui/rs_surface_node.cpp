@@ -842,5 +842,30 @@ void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
         transactionProxy->AddCommand(command, true);
     }
 }
+
+void RSSurfaceNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)
+{
+    if (abilityState_ == abilityState) {
+        ROSEN_LOGD("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], "
+            "ability state same with before: %{public}s",
+            GetId(), abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetAbilityState>(GetId(), abilityState);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        ROSEN_LOGE("RSSurfaceNode::SetAbilityState, transactionProxy is null!");
+        return;
+    }
+    abilityState_ = abilityState;
+    transactionProxy->AddCommand(command, true);
+    ROSEN_LOGD("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], ability state: %{public}s",
+        GetId(), abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
+}
+
+RSSurfaceNodeAbilityState RSSurfaceNode::GetAbilityState() const
+{
+    return abilityState_;
+}
 } // namespace Rosen
 } // namespace OHOS

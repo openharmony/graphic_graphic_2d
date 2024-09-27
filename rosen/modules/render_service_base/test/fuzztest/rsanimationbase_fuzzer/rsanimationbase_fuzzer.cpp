@@ -125,6 +125,8 @@ namespace OHOS {
         AnimationId id = GetData<AnimationId>();
         pid_t pid = GetData<pid_t>();
         int64_t time = GetData<int64_t>();
+        bool nodeIsOnTheTree = GetData<bool>();
+        RSSurfaceNodeAbilityState abilityState = GetData<RSSurfaceNodeAbilityState>();
         bool isEnable = GetData<bool>();
         const FrameRateGetFunc func;
         float width = GetData<float>();
@@ -141,7 +143,7 @@ namespace OHOS {
         animationManager->FilterAnimationByPid(pid);
         animationManager->GetAnimationsSize();
         animationManager->GetAnimationPid();
-        animationManager->Animate(time, false);
+        animationManager->Animate(time, nodeIsOnTheTree, abilityState);
         animationManager->RegisterSpringAnimation(propertyId, animId);
         animationManager->UnregisterSpringAnimation(propertyId, animId);
         animationManager->QuerySpringAnimation(propertyId);
