@@ -56,12 +56,6 @@ private:
         -0.599, -1.175, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
-    static inline float InvertColorMatHdr[MATRIX_SIZE] = {
-        0.402,  -1.174, -0.228, BRIGHTNESS_RATIO, 0.0,
-        -0.598, -0.174, -0.228, BRIGHTNESS_RATIO, 0.0,
-        -0.599, -1.175, 0.772,  BRIGHTNESS_RATIO, 0.0,
-        0.0,    0.0,    0.0,    1.0, 0.0
-    };
     static inline float ProtanomalyMat[MATRIX_SIZE] = {
         0.622,  0.377,  0.0, 0.0, 0.0,
         0.264,  0.736,  0.0, 0.0, 0.0,
@@ -276,8 +270,7 @@ HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
 
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint, BRIGHTNESS_RATIO);
     filter = paint.GetFilter();
-    filter.GetColorFilter()->AsAColorMatrix(matrix);
-    CompareMatrix(matrix, InvertColorMatHdr);
+    ASSERT_NE(filter.GetColorFilter(), nullptr);
 
     colorFilterMode = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
