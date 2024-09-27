@@ -2814,7 +2814,6 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isExpandScreenDirtyEnabled_ = isExpandScreenDirtyEnabled_;
     renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;
     renderThreadParams->isForceCommitLayer_ |= pointerWindowManager_.IsNeedForceCommitByPointer();
-    renderThreadParams->cacheEnabledForRotation_ = RSSystemProperties::GetCacheEnabledForRotation();
 }
 
 void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)
