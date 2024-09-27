@@ -148,7 +148,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     }
 
     if (needUpdateCache) {
-        filterRects_.clear();
+        filterRectMap_.clear();
     }
     bool isForegroundFilterCache = params.GetForegroundFilterCache() != nullptr;
     // in case of no filter
@@ -185,12 +185,12 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
 void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (filterRects_.empty()) {
+    if (filterRectMap_.empty()) {
         return;
     }
     RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
     curDrawingCacheRoot_ = this;
-    curDrawingCacheRoot_->SetFilterRectSize(filterRects_.size());
+    filterNodeSize_ = filterRectMap_.size();
     Drawing::AutoCanvasRestore arc(canvas, true);
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
@@ -201,10 +201,12 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
 
     DrawBackground(canvas, params.GetBounds());
     Drawing::Region filterRegion;
-    for (auto& rect : filterRects_) {
-        Drawing::Region region;
-        region.SetRect(rect);
-        filterRegion.Op(region, Drawing::RegionOp::UNION);
+    for (auto& [_, filterRectVec] : filterRectMap_) {
+        for (auto& rect: filterRectVec) {
+            Drawing::Region region;
+            region.SetRect(rect);
+            filterRegion.Op(region, Drawing::RegionOp::UNION);
+        }
     }
     Drawing::Path filetrPath;
     filterRegion.GetBoundaryPath(&filetrPath);
@@ -234,7 +236,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     }
     // if children don't have any filter or effect, stop traversing
     if (params.GetForegroundFilterCache() == nullptr && drawBlurForCache_ && curDrawingCacheRoot_ &&
-        curDrawingCacheRoot_->GetFilterRectSize() <= 0) {
+        curDrawingCacheRoot_->GetFilterNodeSize() == 0) {
         RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", nodeId_);
         return;
     }
@@ -266,14 +268,31 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
 void RSRenderNodeDrawable::DrawWithoutNodeGroupCache(
     Drawing::Canvas& canvas, const RSRenderParams& params, DrawableCacheType originalCacheType)
 {
-    if (drawBlurForCache_ && GetCountOfClipHoleForCache(params) && curDrawingCacheRoot_) {
+    if (drawBlurForCache_ && curDrawingCacheRoot_ && curDrawingCacheRoot_->GetFilterRectMap().count(GetId()) > 0) {
         CheckShadowRectAndDrawBackground(canvas, params);
-        if (curDrawingCacheRoot_->GetFilterRectSize() > 0) {
+        curDrawingCacheRoot_->ReduceFilterNodeSize();
+        Drawing::Rect dst;
+        canvas.GetTotalMatrix().MapRect(dst, params.GetBounds());
+        Drawing::RectI dstRect(static_cast<int>(dst.GetLeft()), static_cast<int>(dst.GetTop()),
+            static_cast<int>(dst.GetLeft() + dst.GetWidth()), static_cast<int>(dst.GetTop() + dst.GetHeight()));
+
+        bool isIntersected = false;
+        auto& filterRectMap = curDrawingCacheRoot_->GetFilterRectMap();
+        auto begin = filterRectMap.find(GetId());
+        for (auto iter = ++begin; iter != filterRectMap.end(); ++iter) {
+            for (auto rect : iter->second) {
+                if (rect.Intersect(dstRect)) {
+                    isIntersected = true;
+                    break;
+                }
+            }
+        }
+        if (isIntersected) {
             DrawContent(canvas, params.GetFrameRect());
             DrawChildren(canvas, params.GetBounds());
-            // DrawChildren may reduce filterRectSize or not, if filterRects in other subtree of curDrawingCacheRoot_,
-            // we should draw foreground here
-            if (curDrawingCacheRoot_->GetFilterRectSize() > 0) {
+            // DrawChildren may reduce filterNodeSize, if still have filter in other subtree of
+            // curDrawingCacheRoot_,  we should draw foreground here
+            if (curDrawingCacheRoot_->GetFilterNodeSize() > 0) {
                 DrawForeground(canvas, params.GetBounds());
             }
         }

@@ -134,19 +134,21 @@ public:
     SkipType GetSkipType() { return skipType_; }
 
     void SetSkipCacheLayer(bool hasSkipCacheLayer);
-    void SetFilterRectSize(int size)
+    size_t GetFilterNodeSize() const
     {
-        filterRectSize_ = size;
+        return filterNodeSize_;
     }
-    int GetFilterRectSize() const
+    void ReduceFilterNodeSize()
     {
-        return filterRectSize_;
-    }
-    void ReduceFilterRectSize(int size)
-    {
-        filterRectSize_ -= size;
+        if (filterNodeSize_ > 0) {
+            --filterNodeSize_;
+        }
     }
 
+    const std::unordered_map<NodeId, std::vector<Drawing::RectI>>& GetFilterRectMap() const
+    {
+        return filterRectMap_;
+    }
 protected:
     // Util functions
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
@@ -200,7 +202,8 @@ protected:
     std::unique_ptr<RSRenderParams> uifirstRenderParams_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
-    std::vector<Drawing::RectI> filterRects_;
+    std::unordered_map<NodeId, std::vector<Drawing::RectI>> filterRectMap_;
+    size_t filterNodeSize_ = 0;
 #ifdef ROSEN_OHOS
     static thread_local RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #else
@@ -219,7 +222,6 @@ private:
     static CmdListVec toClearCmdListVec_;
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
-    int filterRectSize_ = 0;
     static void RemoveDrawableFromCache(const NodeId nodeId);
 
     friend class OHOS::Rosen::RSRenderNode;

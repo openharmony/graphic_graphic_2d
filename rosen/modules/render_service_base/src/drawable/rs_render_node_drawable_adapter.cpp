@@ -319,7 +319,11 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 curCanvas->ClipRect(shadowRect);
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
                 if (curDrawingCacheRoot_ != nullptr) {
-                    curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
+                    if (curDrawingCacheRoot_->filterRectMap_.count(GetId()) > 0) {
+                        curDrawingCacheRoot_->filterRectMap_[GetId()].emplace_back(curCanvas->GetDeviceClipBounds());
+                    } else {
+                        curDrawingCacheRoot_->filterRectMap_[GetId()] = {curCanvas->GetDeviceClipBounds()};
+                    }
                 }
             } else {
                 drawCmdList_[index](&canvas, &bounds);
@@ -333,7 +337,11 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
             if (curDrawingCacheRoot_ != nullptr) {
-                curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
+                if (curDrawingCacheRoot_->filterRectMap_.count(GetId()) > 0) {
+                    curDrawingCacheRoot_->filterRectMap_[GetId()].emplace_back(curCanvas->GetDeviceClipBounds());
+                } else {
+                    curDrawingCacheRoot_->filterRectMap_[GetId()] = {curCanvas->GetDeviceClipBounds()};
+                }
             }
         } else {
             drawCmdList_[index](&canvas, &bounds);
@@ -350,9 +358,6 @@ void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
     } else {
         DrawRangeImpl(
             canvas, params.GetBounds(), drawCmdIndex_.foregroundFilterBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
-    }
-    if (curDrawingCacheRoot_) {
-        curDrawingCacheRoot_->ReduceFilterRectSize(GetCountOfClipHoleForCache(params));
     }
 }
 
@@ -397,14 +402,6 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
-}
-
-int RSRenderNodeDrawableAdapter::GetCountOfClipHoleForCache(const RSRenderParams& params) const
-{
-    int count = drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty() ? 1 : 0;
-    count += drawCmdIndex_.shadowIndex_ != -1 ? 1 : 0;
-    count += drawCmdIndex_.useEffectIndex_ != -1 ? 1 : 0;
-    return count;
 }
 
 int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
