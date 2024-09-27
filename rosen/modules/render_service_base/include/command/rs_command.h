@@ -90,8 +90,22 @@ public:
     {
         return "commandType:[" + std::to_string(GetType()) + ", " + std::to_string(GetSubType()) + "], ";
     }
+
+    void SetCallingPidValid(bool isCallingPidValid)
+    {
+        if (isCallingPidValid_.load() != isCallingPidValid) {
+            isCallingPidValid_.store(isCallingPidValid);
+        }
+    }
+
+    bool IsCallingPidValid() const
+    {
+        return isCallingPidValid_.load();
+    }
+
 private:
     size_t indexVerifier_ = 0;
+    std::atomic_bool isCallingPidValid_ = true;
     friend class RSTransactionData;
 #ifdef RS_PROFILER_ENABLED
 protected:

@@ -329,7 +329,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                             RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION non-system callingPid %{public}d"
                                     " is denied to access commandPid %{public}d, commandMap = %{public}s",
                                     callingPid, conflictCommandPid, commandMapDesc.c_str());
-                            return ERR_INVALID_STATE;
                         }
                     }
                     CommitTransaction(transactionData);
@@ -358,7 +357,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                         RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION non-system callingPid %{public}d"
                                 " is denied to access commandPid %{public}d, commandMap = %{public}s",
                                 callingPid, conflictCommandPid, commandMapDesc.c_str());
-                        return ERR_INVALID_STATE;
                     }
                 }
                 CommitTransaction(transactionData);

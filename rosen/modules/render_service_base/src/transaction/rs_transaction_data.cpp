@@ -160,6 +160,9 @@ void RSTransactionData::Process(RSContext& context)
     std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [nodeId, followType, command] : payload_) {
         if (command != nullptr) {
+            if (!command->IsCallingPidValid()) {
+                continue;
+            }
             command->Process(context);
         }
     }
@@ -289,21 +292,34 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         return true;
     }
 
-    std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
-    for (const auto& [commandPid, commandTypeMap] : pidToCommandMap_) {
-        if (callingPid == commandPid) {
-            continue;
-        }
-        for (const auto& [nodeId, _] : commandTypeMap) {
-            if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+    bool isCallingPidValid = true;
+    std::unordered_set<NodeId> invalidNodeIdSet;
+    {
+        std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
+        for (const auto& [commandPid, commandTypeMap] : pidToCommandMap_) {
+            if (callingPid == commandPid) {
                 continue;
             }
-            conflictCommandPid = commandPid;
-            commandMapDesc = PrintCommandMapDesc(commandTypeMap);
-            return false;
+            for (const auto& [nodeId, _] : commandTypeMap) {
+                if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+                    continue;
+                }
+                if (isCallingPidValid) {
+                    conflictCommandPid = commandPid;
+                    commandMapDesc = PrintCommandMapDesc(commandTypeMap);
+                }
+                invalidNodeIdSet.insert(nodeId);
+                isCallingPidValid = false;
+            }
         }
     }
-    return true;
+    std::unique_lock<std::mutex> lock(commandMutex_);
+    for (auto& [nodeId, _, command] : payload_) {
+        if (invalidNodeIdSet.find(nodeId) != invalidNodeIdSet.end()) {
+            command->SetCallingPidValid(false);
+        }
+    }
+    return isCallingPidValid;
 }
 
 std::string RSTransactionData::PrintCommandMapDesc(
