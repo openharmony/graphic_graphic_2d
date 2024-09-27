@@ -68,6 +68,7 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getMaxWidth", JsParagraph::GetMaxWidth),
         DECLARE_NAPI_FUNCTION("getHeight", JsParagraph::GetHeight),
         DECLARE_NAPI_FUNCTION("getLongestLine", JsParagraph::GetLongestLine),
+        DECLARE_NAPI_FUNCTION("getLongestLineWithIndent", JsParagraph::GetLongestLineWithIndent),
         DECLARE_NAPI_FUNCTION("getMinIntrinsicWidth", JsParagraph::GetMinIntrinsicWidth),
         DECLARE_NAPI_FUNCTION("getMaxIntrinsicWidth", JsParagraph::GetMaxIntrinsicWidth),
         DECLARE_NAPI_FUNCTION("getAlphabeticBaseline", JsParagraph::GetAlphabeticBaseline),
@@ -260,6 +261,22 @@ napi_value JsParagraph::OnGetLongestLine(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double longestLine = paragraph_->GetActualWidth();
+    return CreateJsNumber(env, longestLine);
+}
+
+napi_value JsParagraph::GetLongestLineWithIndent(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetLongestLineWithIndent(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetLongestLineWithIndent(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Paragraph is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    double longestLine = paragraph_->GetLongestLineWithIndent();
     return CreateJsNumber(env, longestLine);
 }
 

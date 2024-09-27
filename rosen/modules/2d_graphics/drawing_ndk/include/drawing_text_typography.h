@@ -1026,6 +1026,17 @@ double OH_Drawing_TypographyGetHeight(OH_Drawing_Typography*);
 double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography*);
 
 /**
+ * @brief Gets the width of the longest line, and this width contains the width of indent.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param OH_Drawing_Typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @return Returns the length of the longest line with indent.
+ * @since 13
+ * @version 1.1
+ */
+double OH_Drawing_TypographyGetLongestLineWithIndent(OH_Drawing_Typography*);
+
+/**
  * @brief Gets the min intrinsic width.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
