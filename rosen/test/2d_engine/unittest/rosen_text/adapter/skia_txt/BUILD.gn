@@ -45,8 +45,8 @@ ohos_unittest("rosen_text_adapt_test") {
 
   cflags = [
     "-std=c++17",
-    "-Dprivate = public",
-    "-Dprotected = public",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   platform = current_os

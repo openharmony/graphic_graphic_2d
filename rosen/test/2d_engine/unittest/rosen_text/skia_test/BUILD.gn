@@ -27,8 +27,8 @@ ohos_unittest("2d_engine_rosen_text_skia_test") {
 
   cflags_cc = [
     "-std=c++17",
-    "-Dprivate = public",
-    "-Dprotected = public",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   include_dirs = [

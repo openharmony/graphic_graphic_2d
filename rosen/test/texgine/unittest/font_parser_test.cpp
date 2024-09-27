@@ -115,6 +115,7 @@ HWTEST_F(FontParserTest, FontParserTest3, TestSize.Level1)
     FontParser fontParser;
     std::unique_ptr<FontParser::FontDescriptor> font =
         fontParser.GetVisibilityFontByName("Noto Sans Regular");
+    EXPECT_EQ(font->fontFamily, "Noto Sans");
 }
 
 /**

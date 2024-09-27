@@ -21,7 +21,6 @@ ohos_unittest("rosen_text_skia_txt_test") {
   module_out_path = module_output_path
   if (use_skia_txt) {
     sources = [
-      "asset_font_manager_test.cpp",
       "drawing_painter_impl_test.cpp",
       "font_collection_test.cpp",
       "paint_record_test.cpp",
@@ -49,8 +48,8 @@ ohos_unittest("rosen_text_skia_txt_test") {
 
   cflags_cc = [
     "-std=c++17",
-    "-Dprivate = public",
-    "-Dprotected = public",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   platform = current_os
