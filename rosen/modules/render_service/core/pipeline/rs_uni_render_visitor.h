@@ -266,7 +266,7 @@ private:
     bool CheckLuminanceStatusChange();
     bool IsFirstFrameOfPartialRender() const;
     bool IsWatermarkFlagChanged() const;
-    bool IsDisplayZoomIn() const;
+    bool IsDisplayZoomStateChange() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
