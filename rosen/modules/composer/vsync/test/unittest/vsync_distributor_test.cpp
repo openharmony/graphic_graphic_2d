@@ -315,7 +315,8 @@ HWTEST_F(VSyncDistributorTest, UnmarkRSAnimate001, Function | MediumTest| Level3
  */
 HWTEST_F(VSyncDistributorTest, HasPendingUIRNV001, Function | MediumTest| Level3)
 {
-    VSyncDistributorTest::vsyncDistributor->HasPendingUIRNV();
+    auto res = VSyncDistributorTest::vsyncDistributor->HasPendingUIRNV();
+    EXPECT_FALSE(res);
 }
 
 /*
