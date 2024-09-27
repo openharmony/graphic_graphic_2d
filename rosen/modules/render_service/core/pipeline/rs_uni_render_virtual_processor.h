@@ -55,9 +55,9 @@ public:
     void UniScale(RSPaintFilterCanvas& canvas,
         float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight);
 
-    std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
+    std::shared_ptr<RSPaintFilterCanvas> GetCanvas()
     {
-        return std::move(canvas_);
+        return canvas_;
     }
     float GetMirrorScaleX() const
     {
@@ -86,7 +86,7 @@ private:
 
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
-    std::unique_ptr<RSPaintFilterCanvas> canvas_;
+    std::shared_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
     bool isExpand_ = false;
     float mirrorWidth_ = 0.f;

@@ -980,26 +980,25 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
     }
+    curCanvas_ = virtualProcesser->GetCanvas();
+    if (!curCanvas_) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawMirrorCopy failed to get canvas.");
+        return;
+    }
+    RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
+    mirrorDrawable.DrawHardwareEnabledNodesMissedInCacheImage(*curCanvas_);
     if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
         RS_TRACE_NAME("DrawMirrorCopy with cacheImage");
-        curCanvas_ = virtualProcesser->GetCanvas();
-        if (curCanvas_) {
-            RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
-            mirrorDrawable.DrawHardwareEnabledNodesMissedInCacheImage(*curCanvas_);
-            RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
-            mirrorDrawable.DrawHardwareEnabledTopNodesMissedInCacheImage(*curCanvas_);
-            RSUniRenderThread::ResetCaptureParam();
-        }
+        RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
     } else {
         RS_TRACE_NAME("DrawMirrorCopy with displaySurface");
         virtualProcesser->ProcessDisplaySurfaceForRenderThread(mirrorDrawable);
-        curCanvas_ = virtualProcesser->GetCanvas();
     }
+    mirrorDrawable.DrawHardwareEnabledTopNodesMissedInCacheImage(*curCanvas_);
+    RSUniRenderThread::ResetCaptureParam();
     uniParam.SetOpDropped(isOpDropped);
-    if (curCanvas_) {
-        // Restore the initial state of the canvas to avoid state accumulation
-        curCanvas_->RestoreToCount(0);
-    }
+    // Restore the initial state of the canvas to avoid state accumulation
+    curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
 }
 
