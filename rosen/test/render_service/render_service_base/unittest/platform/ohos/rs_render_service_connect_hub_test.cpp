@@ -75,6 +75,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, ConnectDiedTest, TestSize.Level1)
     RSRenderServiceConnectHub::GetInstance()->ConnectDied();
     RSRenderServiceConnectHub::GetInstance()->conn_ = nullptr;
     RSRenderServiceConnectHub::GetInstance()->ConnectDied();
+    EXPECT_NE(RSRenderServiceConnectHub::GetInstance(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS
