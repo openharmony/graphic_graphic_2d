@@ -79,6 +79,7 @@ public:
     {
         if (this->preferred_ < other.preferred_) {
             this->Set(other.min_, other.max_, other.preferred_, other.type_);
+            this->isEnergyAssurance_ = other.isEnergyAssurance_;
             return true;
         }
         return false;
@@ -86,20 +87,27 @@ public:
 
     std::string GetExtInfo() const
     {
+        std::string extInfo = "";
         switch (type_) {
             case RS_ANIMATION_FRAME_RATE_TYPE:
-                return "RS_ANIMATION";
+                extInfo = "RS_ANIMATION";
+                break;
             case UI_ANIMATION_FRAME_RATE_TYPE:
-                return "UI_ANIMATION";
+                extInfo = "UI_ANIMATION";
+                break;
             case DISPLAY_SYNC_FRAME_RATE_TYPE:
-                return "DISPLAY_SYNC";
+                extInfo = "DISPLAY_SYNC";
+                break;
             case ACE_COMPONENT_FRAME_RATE_TYPE:
-                return "ACE_COMPONENT";
+                extInfo = "ACE_COMPONENT";
+                break;
             case DISPLAY_SOLOIST_FRAME_RATE_TYPE:
-                return "DISPLAY_SOLOIST";
+                extInfo = "DISPLAY_SOLOIST";
+                break;
             default:
                 return "";
         }
+        return extInfo + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
     }
 
     bool operator==(const FrameRateRange& other) const
