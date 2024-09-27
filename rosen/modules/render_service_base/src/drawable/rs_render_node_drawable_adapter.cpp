@@ -385,7 +385,11 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 curCanvas->ClipRect(shadowRect);
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
                 if (curDrawingCacheRoot_ != nullptr) {
-                    curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
+                    if (curDrawingCacheRoot_->filterRectMap_.count(GetId()) > 0) {
+                        curDrawingCacheRoot_->filterRectMap_[GetId()].emplace_back(curCanvas->GetDeviceClipBounds());
+                    } else {
+                        curDrawingCacheRoot_->filterRectMap_[GetId()] = {curCanvas->GetDeviceClipBounds()};
+                    }
                 }
             } else {
                 drawCmdList_[index](&canvas, &bounds);
@@ -399,7 +403,11 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
             if (curDrawingCacheRoot_ != nullptr) {
-                curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
+                if (curDrawingCacheRoot_->filterRectMap_.count(GetId()) > 0) {
+                    curDrawingCacheRoot_->filterRectMap_[GetId()].emplace_back(curCanvas->GetDeviceClipBounds());
+                } else {
+                    curDrawingCacheRoot_->filterRectMap_[GetId()] = {curCanvas->GetDeviceClipBounds()};
+                }
             }
         } else {
             drawCmdList_[index](&canvas, &bounds);
@@ -416,9 +424,6 @@ void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
     } else {
         DrawRangeImpl(
             canvas, params.GetBounds(), drawCmdIndex_.foregroundFilterBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
-    }
-    if (curDrawingCacheRoot_) {
-        curDrawingCacheRoot_->ReduceFilterRectSize(ClipHoleForCacheSize(params));
     }
 }
 
@@ -463,12 +468,6 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
-}
-
-int RSRenderNodeDrawableAdapter::ClipHoleForCacheSize(const RSRenderParams& params) const
-{
-    return int(drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty()) +
-           int(drawCmdIndex_.backgroundFilterIndex_ != -1) + int(drawCmdIndex_.useEffectIndex_ != -1);
 }
 
 int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const

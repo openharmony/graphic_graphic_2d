@@ -772,11 +772,11 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     drawable->TraverseSubTreeAndDrawFilterWithClip(canvas, params);
-    ASSERT_TRUE(drawable->filterRects_.empty());
+    ASSERT_TRUE(drawable->filterRectMap_.empty());
 
     Drawing::RectI rect;
-    drawable->filterRects_.push_back(rect);
+    drawable->filterRectMap_[0] = {rect};
     drawable->TraverseSubTreeAndDrawFilterWithClip(canvas, params);
-    ASSERT_FALSE(drawable->filterRects_.empty());
+    ASSERT_FALSE(drawable->filterRectMap_.empty());
 }
 }
