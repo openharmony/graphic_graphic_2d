@@ -318,7 +318,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     calculateAnimationValue_ = true;
 
     if (!IsRunning()) {
-        ROSEN_LOGD("RSRenderAnimation::Animate, IsRunning is false");
+        ROSEN_LOGD("RSRenderAnimation::Animate, IsRunning is false!");
         return state_ == AnimationState::FINISHED;
     }
 
@@ -368,6 +368,7 @@ bool RSRenderAnimation::Animate(int64_t time)
 
 void RSRenderAnimation::SetStartTime(int64_t time)
 {
+    time = RS_PROFILER_ANIME_SET_START_TIME(id_, time);
     animationFraction_.SetLastFrameTime(time);
     needUpdateStartTime_ = false;
 }
