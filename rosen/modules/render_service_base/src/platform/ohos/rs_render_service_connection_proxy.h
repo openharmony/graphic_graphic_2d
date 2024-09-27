@@ -101,6 +101,8 @@ public:
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate) override;
 
+    void UnregisterFrameRateLinker(FrameRateLinkerId id) override;
+
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) override;
 
     int32_t GetCurrentRefreshRateMode() override;

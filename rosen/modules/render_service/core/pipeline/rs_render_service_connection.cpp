@@ -653,6 +653,28 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
         }).wait();
 }
 
+void RSRenderServiceConnection::UnregisterFrameRateLinker(FrameRateLinkerId id)
+{
+    if (!mainThread_) {
+        return;
+    }
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), id]() {
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (!connection) {
+                return;
+            }
+            auto& context = connection->mainThread_->GetContext();
+            auto& linkerMap = context.GetMutableFrameRateLinkerMap();
+            auto linker = linkerMap.GetFrameRateLinker(id);
+            if (linker == nullptr) {
+                RS_LOGE("UnregisterFrameRateLinker there is no frameRateLinker for id %{public}" PRIu64, id);
+                return;
+            }
+            linkerMap.UnregisterFrameRateLinker(id);
+        }).wait();
+}
+
 uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
 {
     auto &hgmCore = OHOS::Rosen::HgmCore::Instance();

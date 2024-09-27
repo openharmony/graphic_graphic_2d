@@ -512,6 +512,19 @@ HWTEST_F(RSClientTest, SetScreenRefreshRate001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UnregisterFrameRateLinker Test
+ * @tc.desc: UnregisterFrameRateLinker Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, UnregisterFrameRateLinker001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    FrameRateLinkerId id = 0;
+    rsClient->UnregisterFrameRateLinker(id);
+}
+
+/**
  * @tc.name: GetScreenSupportedRefreshRates Test
  * @tc.desc: GetScreenSupportedRefreshRates Test
  * @tc.type:FUNC

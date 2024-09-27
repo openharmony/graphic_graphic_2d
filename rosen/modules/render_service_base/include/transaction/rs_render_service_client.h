@@ -186,6 +186,8 @@ public:
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate);
 
+    void UnregisterFrameRateLinker(FrameRateLinkerId id);
+
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
     int32_t GetCurrentRefreshRateMode();

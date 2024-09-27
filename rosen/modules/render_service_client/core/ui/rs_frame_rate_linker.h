@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_FRAME_RATE_LINKER_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_FRAME_RATE_LINKER_H
 
+#include <atomic>
 #include <memory>
 #include <unistd.h>
 
@@ -43,7 +44,7 @@ private:
     const FrameRateLinkerId id_;
     FrameRateRange currentRange_;
     int32_t currAnimatorExpectedFrameRate_ = -1;
-    bool isEnabled_ = true;
+    std::atomic<bool> isEnabled_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

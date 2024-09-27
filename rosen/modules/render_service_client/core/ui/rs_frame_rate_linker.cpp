@@ -41,7 +41,7 @@ FrameRateLinkerId RSFrameRateLinker::GenerateId()
 std::shared_ptr<RSFrameRateLinker> RSFrameRateLinker::Create()
 {
     auto linker = std::make_shared<RSFrameRateLinker>();
-    ROSEN_LOGD("RSFrameRateLinker Create %{public}" PRIu64, linker->GetId());
+    ROSEN_LOGI("RSFrameRateLinker::Create id: %{public}" PRIu64, linker->GetId());
     return linker;
 }
 
@@ -59,6 +59,15 @@ RSFrameRateLinker::~RSFrameRateLinker()
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSFrameRateLinkerDestroy>(id_);
     transactionProxy->AddCommand(command, IsUniRenderEnabled());
+
+    auto renderServiceClient =
+            std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient == nullptr) {
+        ROSEN_LOGE("RSFrameRateLinker renderServiceClient is nullptr!");
+        return;
+    }
+    renderServiceClient->UnregisterFrameRateLinker(id_);
+    ROSEN_LOGI("RSFrameRateLinker::Destroy id: %{public}" PRIu64, id_);
 }
 
 FrameRateLinkerId RSFrameRateLinker::GetId() const
