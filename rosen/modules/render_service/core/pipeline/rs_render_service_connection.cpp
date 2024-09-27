@@ -32,9 +32,6 @@
 #include "include/gpu/GrDirectContext.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/pointer_render/rs_pointer_render_manager.h"
-#endif
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -519,39 +516,6 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Sur
     std::lock_guard<std::mutex> lock(mutex_);
     return screenManager_->SetVirtualScreenSurface(id, surface);
 }
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-int32_t RSRenderServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
-    float brightBuffer, int64_t interval, int32_t rangeSize)
-{
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
-        interval, rangeSize);
-    return StatusCode::SUCCESS;
-}
-
-int32_t RSRenderServiceConnection::SetPointerColorInversionEnabled(bool enable)
-{
-    RSPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(enable);
-    return StatusCode::SUCCESS;
-}
-
-int32_t RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback(
-    sptr<RSIPointerLuminanceChangeCallback> callback)
-{
-    if (!callback) {
-        RS_LOGE("RSRenderServiceConnection::RegisterPointerLuminanceChangeCallback: callback is nullptr");
-        return StatusCode::INVALID_ARGUMENTS;
-    }
-    RSPointerRenderManager::GetInstance().RegisterPointerLuminanceChangeCallback(remotePid_, callback);
-    return StatusCode::SUCCESS;
-}
-
-int32_t RSRenderServiceConnection::UnRegisterPointerLuminanceChangeCallback()
-{
-    RSPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
-    return StatusCode::SUCCESS;
-}
-#endif
 
 void RSRenderServiceConnection::RemoveVirtualScreen(ScreenId id)
 {
