@@ -580,9 +580,13 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         Drawing::AutoCanvasRestore acr(*canvas, true);
         paintFilterCanvas->ClipRect(*rect);
+        Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
+        canvas->GetTotalMatrix().MapRect(absRect, *rect);
+        Drawing::RectI bounds(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight() - absRect.GetLeft(),
+            absRect.GetBottom() - absRect.GetTop());
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
-            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_);
+            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_, bounds);
     };
 }
 
