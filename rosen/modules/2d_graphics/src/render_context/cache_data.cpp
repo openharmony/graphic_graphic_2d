@@ -21,6 +21,9 @@
 #include <cstring>
 #include <securec.h>
 #include "render_context_log.h"
+#ifdef PRELOAD_SHADER_CACHE
+#include "shader_cache_utils.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -33,14 +36,14 @@ CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
 
 CacheData::~CacheData() {}
 
-void CacheData::ReadFromFile()
+void CacheData::CacheReadFromFile(std::string filePath)
 {
-    if (cacheDir_.length() <= 0) {
+    if (filePath.length() <= 0) {
         LOGD("abandon, because of empty filename.");
         return;
     }
 
-    int fd = open(cacheDir_.c_str(), O_RDONLY, 0);
+    int fd = open(filePath.c_str(), O_RDONLY, 0);
     if (fd == ERR_NUMBER) {
         if (errno != ENOENT) {
             LOGD("abandon, because fail to open file");
@@ -77,6 +80,16 @@ void CacheData::ReadFromFile()
     }
     munmap(buffer, fileSize);
     close(fd);
+}
+
+void CacheData::ReadFromFile()
+{
+#ifdef PRELOAD_SHADER_CACHE
+    // read cache from preload cache dir
+    CacheReadFromFile(ShaderCacheUtils::GetPreloadCacheDir());
+#endif
+    // read cache from user data dir
+    CacheReadFromFile(cacheDir_);
 }
 
 void CacheData::WriteToFile()

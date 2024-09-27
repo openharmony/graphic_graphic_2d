@@ -50,6 +50,8 @@ public:
 
     int Serialize(uint8_t *buffer, const size_t size) const;
 
+    void CacheReadFromFile(std::string filePath);
+
     void WriteToFile();
 
     void ReadFromFile();
