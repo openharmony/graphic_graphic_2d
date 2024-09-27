@@ -55,6 +55,7 @@ namespace Rosen {
 namespace {
 constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
+constexpr float GAMMA2_2 = 2.2f;
 }
 void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
     bool useAlignedDirtyRegion)
@@ -575,7 +576,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     params.useCPU = false;
     params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    params.screenBrightnessNits = surfaceDrawable.GetDisplayNit();
+    params.sdrNits = renderParams.GetSdrNit();
+    params.tmoNits = renderParams.GetDisplayNit();
+    params.displayNits = params.tmoNits / std::pow(renderParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
 #endif
 
     Drawing::Filter filter;

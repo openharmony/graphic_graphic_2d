@@ -348,13 +348,11 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     ScreenId id = displayParams->GetScreenId();
     drawable->SetHDRPresent(isHdrOn);
     if (isHdrOn) {
-        // 0 means defalut brightnessRatio
-        drawable->SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(id, 0));
         drawable->SetScreenId(id);
         drawable->SetTargetColorGamut(displayParams->GetNewColorSpace());
     }
     RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", drawable->GetHDRPresent(),
-        drawable->GetBrightnessRatio());
+        surfaceParams->GetBrightnessRatio());
 }
 
 bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node)
@@ -405,11 +403,6 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
         SyncHDRDisplayParam(drawable);
-        // Skipping drawing is not allowed when there is an HDR display.
-        if (drawable->GetHDRPresent()) {
-            ++it;
-            continue;
-        }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         auto node = it->second;
         if (!surfaceParams || !node) {

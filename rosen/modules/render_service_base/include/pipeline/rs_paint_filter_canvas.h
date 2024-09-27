@@ -283,8 +283,6 @@ public:
     {
         return Drawing::DrawingType::PAINT_FILTER;
     }
-    bool GetHDRPresent() const;
-    void SetHDRPresent(bool hasHdrPresent);
     bool IsCapture() const;
     void SetCapture(bool isCapture);
     ScreenId GetScreenId() const;
@@ -293,8 +291,6 @@ public:
     void SetTargetColorGamut(GraphicColorGamut colorGamut);
     float GetBrightnessRatio() const;
     void SetBrightnessRatio(float brightnessRatio);
-    template <typename T>
-    void PaintFilter(T& paint);
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
 
 protected:
@@ -362,7 +358,6 @@ private:
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
     bool recordDrawable_ = false;
-    bool hasHdrPresent_ = false;
     bool isCapture_ = false;
 };
 

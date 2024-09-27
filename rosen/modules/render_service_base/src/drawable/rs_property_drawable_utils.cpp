@@ -440,8 +440,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
-    if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache() &&
-        !canvas->GetHDRPresent()) {
+    if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         canvas->SetEffectData(data);
@@ -466,11 +465,6 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     auto clipBounds = Drawing::Rect(0, 0, imageRect.GetWidth(), imageRect.GetHeight());
     auto imageSnapshotBounds = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
     filter->DrawImageRect(offscreenCanvas, imageSnapshot, imageSnapshotBounds, clipBounds);
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-    if (paintFilterCanvas != nullptr) {
-        offscreenCanvas.SetHDRPresent(paintFilterCanvas->GetHDRPresent());
-        offscreenCanvas.SetBrightnessRatio(paintFilterCanvas->GetBrightnessRatio());
-    }
     filter->PostProcess(offscreenCanvas);
 
     auto imageCache = offscreenSurface->GetImageSnapshot();
@@ -963,7 +957,6 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
         canvas->ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
     }
     Drawing::Brush brush;
-    brush.SetForceBrightnessDisable(true);
     canvas->AttachBrush(brush);
     // Draw the cached image in the coordinate system where the effect data is generated. The image content
     // outside the device clip bounds will be automatically clipped.

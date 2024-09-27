@@ -106,9 +106,6 @@ void BrushFuzzTestInner04(Brush& brush)
 void BrushFuzzTestInner05(Brush& brush)
 {
     brush.AsBlendMode();
-    bool disableBrightnessRatio = GetObject<bool>();
-    brush.SetForceBrightnessDisable(disableBrightnessRatio);
-    brush.IsForceBrightnessDisable();
     brush.Reset();
     float blurRadius = GetObject<float>();
     float dx = GetObject<float>();
@@ -117,9 +114,6 @@ void BrushFuzzTestInner05(Brush& brush)
     std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);
     brush.SetLooper(blurDrawLooper);
     brush.GetLooper();
-    bool isHdr = GetObject<bool>();
-    brush.SetHdr(isHdr);
-    brush.IsHdr();
 }
 
 bool BrushFuzzTest(const uint8_t* data, size_t size)

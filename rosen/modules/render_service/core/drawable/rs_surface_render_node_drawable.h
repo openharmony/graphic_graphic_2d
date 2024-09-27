@@ -118,7 +118,7 @@ public:
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX);
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isHdrOn = false);
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
@@ -181,26 +181,6 @@ public:
     bool GetHDRPresent() const
     {
         return hasHdrPresent_;
-    }
-
-    void SetDisplayNit(int32_t displayNit)
-    {
-        displayNit_ = displayNit;
-    }
-
-    int32_t GetDisplayNit() const
-    {
-        return displayNit_;
-    }
-
-    void SetBrightnessRatio(float brightnessRatio)
-    {
-        brightnessRatio_ = brightnessRatio;
-    }
-
-    float GetBrightnessRatio() const
-    {
-        return brightnessRatio_;
     }
 
     ScreenId GetScreenId() const
@@ -284,9 +264,6 @@ private:
     // To be deleted after captureWindow being deleted
     bool CheckIfNeedResetRotate(RSPaintFilterCanvas& canvas);
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    void DealWithHdr(const RSSurfaceRenderParams& surfaceParams);
-#endif
 
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
@@ -336,8 +313,6 @@ private:
     NodePriorityType priority_ = NodePriorityType::MAIN_PRIORITY;
     bool hasHdrPresent_ = false;
     // hdr
-    int32_t displayNit_ = 500; // default sdr luminance
-    float brightnessRatio_ = 1.0f; // 1.of means no discount.
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     uint64_t frameCount_ = 0;

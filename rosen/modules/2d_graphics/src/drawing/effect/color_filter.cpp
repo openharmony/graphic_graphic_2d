@@ -28,16 +28,16 @@ ColorFilter::ColorFilter(FilterType t, ColorQuad c, BlendMode mode) noexcept : C
     impl_->InitWithBlendMode(c, mode);
 }
 
-ColorFilter::ColorFilter(FilterType t, const ColorMatrix& m) noexcept : ColorFilter()
+ColorFilter::ColorFilter(FilterType t, const ColorMatrix& m, Clamp clamp) noexcept : ColorFilter()
 {
     type_ = t;
-    impl_->InitWithColorMatrix(m);
+    impl_->InitWithColorMatrix(m, clamp);
 }
 
-ColorFilter::ColorFilter(FilterType t, const float f[20]) noexcept : ColorFilter()
+ColorFilter::ColorFilter(FilterType t, const float f[20], Clamp clamp) noexcept : ColorFilter()
 {
     type_ = t;
-    impl_->InitWithColorFloat(f);
+    impl_->InitWithColorFloat(f, clamp);
 }
 
 ColorFilter::ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcept : ColorFilter()
@@ -47,10 +47,10 @@ ColorFilter::ColorFilter(FilterType t, ColorFilter& f1, ColorFilter& f2) noexcep
 }
 
 ColorFilter::ColorFilter(FilterType t, const float f1[MATRIX_SIZE],
-    const float f2[MATRIX_SIZE]) noexcept : ColorFilter()
+    const float f2[MATRIX_SIZE], Clamp clamp) noexcept : ColorFilter()
 {
     type_ = t;
-    impl_->InitWithCompose(f1, f2);
+    impl_->InitWithCompose(f1, f2, clamp);
 }
 
 ColorFilter::ColorFilter(FilterType t,
@@ -60,10 +60,10 @@ ColorFilter::ColorFilter(FilterType t,
     impl_->InitWithOverDrawColor(colors);
 }
 
-void ColorFilter::InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE])
+void ColorFilter::InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp)
 {
     type_ = ColorFilter::FilterType::COMPOSE;
-    impl_->InitWithCompose(f1, f2);
+    impl_->InitWithCompose(f1, f2, clamp);
 }
 
 ColorFilter::ColorFilter(FilterType t) noexcept : ColorFilter()
@@ -112,19 +112,19 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateComposeColorFilter(ColorFilter& 
 }
 
 std::shared_ptr<ColorFilter> ColorFilter::CreateComposeColorFilter(
-    const float (&f1)[MATRIX_SIZE], const float (&f2)[MATRIX_SIZE])
+    const float (&f1)[MATRIX_SIZE], const float (&f2)[MATRIX_SIZE], Clamp clamp)
 {
-    return std::make_shared<ColorFilter>(ColorFilter::FilterType::COMPOSE, f1, f2);
+    return std::make_shared<ColorFilter>(ColorFilter::FilterType::COMPOSE, f1, f2, clamp);
 }
 
-std::shared_ptr<ColorFilter> ColorFilter::CreateMatrixColorFilter(const ColorMatrix& m)
+std::shared_ptr<ColorFilter> ColorFilter::CreateMatrixColorFilter(const ColorMatrix& m, Clamp clamp)
 {
-    return std::make_shared<ColorFilter>(ColorFilter::FilterType::MATRIX, m);
+    return std::make_shared<ColorFilter>(ColorFilter::FilterType::MATRIX, m, clamp);
 }
 
-std::shared_ptr<ColorFilter> ColorFilter::CreateFloatColorFilter(const float (&f)[MATRIX_SIZE])
+std::shared_ptr<ColorFilter> ColorFilter::CreateFloatColorFilter(const float (&f)[MATRIX_SIZE], Clamp clamp)
 {
-    return std::make_shared<ColorFilter>(ColorFilter::FilterType::MATRIX, f);
+    return std::make_shared<ColorFilter>(ColorFilter::FilterType::MATRIX, f, clamp);
 }
 
 std::shared_ptr<ColorFilter> ColorFilter::CreateLinearToSrgbGamma()

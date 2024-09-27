@@ -142,11 +142,8 @@ bool PaintFuzzTest003(const uint8_t* data, size_t size)
 
     Paint paint = Paint();
     bool aa = GetObject<bool>();
-    bool hdrImage = GetObject<bool>();
     paint.SetAntiAlias(aa);
     paint.IsAntiAlias();
-    paint.SetHDRImage(hdrImage);
-    paint.IsHDRImage();
     paint.Reset();
     paint.Disable();
     Paint paintCopy = Paint(paint);

@@ -195,13 +195,6 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
         Drawing::TileMode::DECAL, linear, blurMatrixInv);
     Drawing::Brush brush;
 
-    if (canvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
-        RSPaintFilterCanvas& paintFilterCanvas = static_cast<RSPaintFilterCanvas&>(canvas);
-        if (paintFilterCanvas.GetHDRPresent()) {
-            paintFilterCanvas.PaintFilter(brush);
-        }
-    }
-
     brush.SetShaderEffect(blurShader);
     canvas.DrawBackground(brush);
 }
