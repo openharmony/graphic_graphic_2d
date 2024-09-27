@@ -216,7 +216,7 @@ template("graphics2d_source_set") {
         defines += [ "SKIA_PRIO_SCHED_ENABLE" ]
       }
 
-      if (!build_ohos_sdk) {
+      if (!build_ohos_sdk && !is_arkui_x) {
         defines += [ "RES_SCHED_ENABLE" ]
         include_dirs += [ "$rosen_root/modules/frame_report/include" ]
         if (rosen_is_ohos) {
