@@ -38,6 +38,7 @@ ohos_unittest("RSRenderAnimationTest") {
     "rs_render_particle_emitter_test.cpp",
     "rs_render_particle_test.cpp",
     "rs_render_path_animation_test.cpp",
+    "rs_render_property_animation_test.cpp",
     "rs_render_spring_animation_test.cpp",
     "rs_render_transition_effect_test.cpp",
     "rs_render_transition_test.cpp",
