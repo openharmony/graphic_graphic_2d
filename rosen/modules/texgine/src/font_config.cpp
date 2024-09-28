@@ -35,6 +35,8 @@ namespace TextEngine {
 #define FAILED 1
 
 const char* FONT_DEFAULT_CONFIG = "/system/etc/fontconfig.json";
+constexpr const char* FALLBACK_VARIATIONS_KEY = "variations";
+constexpr const char* FALLBACK_INDEX_KEY = "index";
 
 FontConfig::FontConfig(const char* fname)
 {
@@ -403,14 +405,21 @@ int FontConfigJson::ParseFallback(const cJSON* root, const char* key)
         if (item == nullptr) {
             continue;
         }
-        cJSON* item2 = cJSON_GetArrayItem(item, 0);
-        if (item2 == nullptr || item2->valuestring == nullptr || item2->string == nullptr) {
-            continue;
+        // refer to FontConfig_OHOS::parseFallbackItem
+        int itemSize = cJSON_GetArraySize(item);
+        for (int j = itemSize - 1; j >= 0; --j) {
+            cJSON* item2 = cJSON_GetArrayItem(item, j);
+            if (item2 == nullptr || item2->valuestring == nullptr || item2->string == nullptr ||
+                strcmp(item2->string, FALLBACK_VARIATIONS_KEY) == 0 ||
+                strcmp(item2->string, FALLBACK_INDEX_KEY) == 0) {
+                continue;
+            }
+            FallbackInfo fallbackInfo;
+            fallbackInfo.familyName = item2->valuestring;
+            fallbackInfo.font = item2->string;
+            fallbackGroup.fallbackInfoSet.emplace_back(std::move(fallbackInfo));
+            break;
         }
-        FallbackInfo fallbackInfo;
-        fallbackInfo.familyName = item2->valuestring;
-        fallbackInfo.font = item2->string;
-        fallbackGroup.fallbackInfoSet.emplace_back(std::move(fallbackInfo));
     }
     fontPtr->fallbackGroupSet.emplace_back(std::move(fallbackGroup));
     return SUCCESSED;
