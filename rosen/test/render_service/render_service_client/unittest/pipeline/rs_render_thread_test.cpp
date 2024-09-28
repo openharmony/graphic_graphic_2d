@@ -97,6 +97,7 @@ HWTEST_F(RSRenderThreadTest, PostPreTask001, TestSize.Level1)
      * @tc.steps: step1. PrepareChildren
      */
     RSRenderThread::Instance().PostPreTask();
+    EXPECT_EQ(RSRenderThread::Instance().handler_, nullptr);
 }
 
 /**
@@ -112,6 +113,7 @@ HWTEST_F(RSRenderThreadTest, UpdateWindowStatus001, TestSize.Level1)
      */
     RSRenderThread::Instance().UpdateWindowStatus(false);
     RSRenderThread::Instance().UpdateWindowStatus(true);
+    EXPECT_EQ(RSRenderThread::Instance().activeWindowCnt_, 0);
 }
 
 /**

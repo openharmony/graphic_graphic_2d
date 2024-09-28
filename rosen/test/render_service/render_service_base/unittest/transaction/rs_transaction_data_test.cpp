@@ -314,6 +314,7 @@ HWTEST_F(RSTransactionDataTest, AlarmRsNodeLog, TestSize.Level1)
 {
     RSTransactionData rsTransactionData;
     rsTransactionData.AlarmRsNodeLog();
+    EXPECT_EQ(rsTransactionData.pid_, 0);
 }
 
 /**
@@ -328,6 +329,7 @@ HWTEST_F(RSTransactionDataTest, AddCommand, TestSize.Level1)
     Parcel parcel;
     std::unique_ptr<RSCommand> command;
     rsTransactionData.AddCommand(command, 1, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_EQ(command, nullptr);
 }
 
 /**

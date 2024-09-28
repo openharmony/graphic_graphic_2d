@@ -492,5 +492,6 @@ HWTEST_F(RSMarshallingTest, SkipSkImage001, Function | MediumTest | Level2)
 {
     Parcel parcel;
     RSMarshallingHelper::SkipImage(parcel);
+    EXPECT_NE(RSMarshallingHelper::MIN_DATA_SIZE, 0);
 }
 } // namespace OHOS::Rosen
