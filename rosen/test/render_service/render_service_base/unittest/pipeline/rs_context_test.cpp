@@ -135,4 +135,18 @@ HWTEST_F(RSContextTest, InitializeTest005, TestSize.Level1)
     RSContext rSContext;
     rSContext.Initialize();
 }
+
+/**
+ * @tc.name: SetRequestedNextVsyncAnimateTest007
+ * @tc.desc: SetRequestedNextVsyncAnimate test.
+ * @tc.type: FUNC
+ * @tc.require: IAJ46S
+ */
+HWTEST_F(RSContextTest, SetRequestedNextVsyncAnimateTest007, TestSize.Level1)
+{
+    RSContext rSContext;
+    rSContext.SetRequestedNextVsyncAnimate(true);
+    auto ret = rSContext.IsRequestedNextVsyncAnimate();
+    EXPECT_TRUE(ret);
+}
 } // namespace OHOS::Rosen

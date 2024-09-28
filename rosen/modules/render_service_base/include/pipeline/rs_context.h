@@ -157,6 +157,16 @@ public:
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
 
+    void SetRequestedNextVsyncAnimate(bool requestedNextVsyncAnimate)
+    {
+        requestedNextVsyncAnimate_ = requestedNextVsyncAnimate;
+    }
+
+    bool IsRequestedNextVsyncAnimate() const
+    {
+        return requestedNextVsyncAnimate_;
+    }
+
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -168,6 +178,8 @@ private:
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
+    // This flag indicates that a request for the next Vsync is needed when moving to the animation fallback node.
+    bool requestedNextVsyncAnimate_ = false;
     PurgeType purgeType_ = PurgeType::NONE;
     ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
 
