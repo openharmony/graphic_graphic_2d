@@ -332,7 +332,8 @@ uint32_t SkiaTypeface::GetHash() const
 
     auto skData = skTypeface_->serialize(SkTypeface::SerializeBehavior::kDontIncludeData);
     std::unique_ptr<SkStreamAsset> ttfStream = skTypeface_->openExistingStream(0);
-    hash_ = SkOpts::hash_fn(skData->data(), skData->size(), ttfStream->getLength());
+    uint32_t seed = ttfStream.get() != nullptr ? ttfStream->getLength() : 0;
+    hash_ = SkOpts::hash_fn(skData->data(), skData->size(), seed);
     return hash_;
 }
 
