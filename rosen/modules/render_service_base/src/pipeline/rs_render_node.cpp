@@ -1080,6 +1080,7 @@ RSRenderNode::~RSRenderNode()
         clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_), cacheSurfaceThreadIndex_,
             completedSurfaceThreadIndex_);
     }
+    DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(GetId());
     ClearCacheSurface();
     auto context = GetContext().lock();
     if (!context) {

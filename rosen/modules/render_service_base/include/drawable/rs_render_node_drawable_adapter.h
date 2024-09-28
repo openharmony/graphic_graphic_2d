@@ -220,6 +220,7 @@ private:
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
     int filterRectSize_ = 0;
+    static void RemoveDrawableFromCache(const NodeId nodeId);
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSDisplayRenderNode;
