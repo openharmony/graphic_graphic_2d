@@ -302,6 +302,23 @@ public:
     Color CalculateInvertColor(Color backgroundColor) const;
 };
 
+class RSB_EXPORT RSCustomClipToFrameRenderModifier : public RSForegroundRenderModifier {
+public:
+    RSCustomClipToFrameRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSForegroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::CUSTOM_CLIP_TO_FRAME);
+    }
+    ~RSCustomClipToFrameRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::CUSTOM_CLIP_TO_FRAME;
+    }
+};
+
 // declare RenderModifiers like RSBoundsRenderModifier
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER, THRESHOLD_TYPE) \
     class RSB_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier {              \

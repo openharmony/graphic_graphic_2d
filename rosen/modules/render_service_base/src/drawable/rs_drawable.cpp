@@ -171,6 +171,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR
     RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY
     RSDrawableSlot::INVALID,                       // GEOMETRYTRANS
+    RSDrawableSlot::CUSTOM_CLIP_TO_FRAME,          // CUSTOM_CLIP_TO_FRAME,
     RSDrawableSlot::CHILDREN,                      // CHILDREN
 };
 
@@ -227,6 +228,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                             // SAVE_FRAME,
     RSFrameOffsetDrawable::OnGenerate,                   // FRAME_OFFSET,
     RSClipToFrameDrawable::OnGenerate,                   // CLIP_TO_FRAME,
+    RSCustomClipToFrameDrawable::OnGenerate,             // CUSTOM_CLIP_TO_FRAME,
     ModifierGenerator<RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE,
     RSChildrenDrawable::OnGenerate,                      // CHILDREN,
     ModifierGenerator<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE,

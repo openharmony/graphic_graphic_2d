@@ -1797,6 +1797,12 @@ void RSNode::SetClipToFrame(bool clipToFrame)
     SetProperty<RSClipToFrameModifier, RSProperty<bool>>(RSModifierType::CLIP_TO_FRAME, clipToFrame);
 }
 
+void RSNode::SetCustomClipToFrame(const Vector4f& clipRect)
+{
+    SetProperty<RSCustomClipToFrameModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::CUSTOM_CLIP_TO_FRAME, clipRect);
+}
+
 void RSNode::SetVisible(bool visible)
 {
     // kick off transition only if it's on tree(has valid parent) and visibility is changed.

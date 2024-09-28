@@ -108,6 +108,38 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier02, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetModifierType03
+ * @tc.desc: RSCustomClipToFrameModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, GetModifierType03, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSCustomClipToFrameModifier> clipModifier =
+        std::make_shared<RSCustomClipToFrameModifier>(property);
+    ASSERT_NE(clipModifier, nullptr);
+    RSModifierType ModifierType = clipModifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::CUSTOM_CLIP_TO_FRAME);
+}
+
+/**
+ * @tc.name: CreateRenderModifier03
+ * @tc.desc: RSCustomClipToFrameModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, CreateRenderModifier03, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSCustomClipToFrameModifier> clipModifier =
+        std::make_shared<RSCustomClipToFrameModifier>(property);
+    ASSERT_NE(clipModifier, nullptr);
+    auto res = clipModifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
  * @tc.name: Apply01
  * @tc.desc: RSBoundsModifier/RSBoundsSizeModifier/RSBoundsPositionModifier
  * @tc.type: FUNC

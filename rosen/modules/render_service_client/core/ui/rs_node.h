@@ -338,6 +338,7 @@ public:
     void SetClipBounds(const std::shared_ptr<RSPath>& clipToBounds);
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
+    void SetCustomClipToFrame(const Vector4f& clipRect);
 
     void SetVisible(bool visible);
     void SetMask(const std::shared_ptr<RSMask>& mask);

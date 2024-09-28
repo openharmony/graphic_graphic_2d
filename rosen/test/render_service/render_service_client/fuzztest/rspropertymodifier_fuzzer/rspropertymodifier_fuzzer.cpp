@@ -574,6 +574,9 @@ bool DoModifier011(const uint8_t* data, size_t size)
     auto attractionDstPointModifier = std::make_shared<RSAttractionDstPointModifier>(property);
     attractionDstPointModifier->GetModifierType();
     attractionDstPointModifier->CreateRenderModifier();
+    auto customClipToFramemodifier = std::make_shared<RSCustomClipToFrameModifier>(property);
+    customClipToFramemodifier->GetModifierType();
+    customClipToFramemodifier->CreateRenderModifier();
     return true;
 }
 

@@ -26,6 +26,7 @@
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "modifier/rs_modifier.h"
+#include "common/rs_vector4.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -5256,6 +5257,23 @@ HWTEST_F(RSNodeTest, SetEnvForegroundColorStrategy, TestSize.Level1)
     ForegroundColorStrategyType strategyType = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
     rsNode->SetEnvForegroundColorStrategy(strategyType);
     EXPECT_EQ(strategyType, ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR);
+}
+
+/**
+ * @tc.name: SetCustomClipToFrame
+ * @tc.desc: test results of SetCustomClipToFrame
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetCustomClipToFrame, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f clipRect{1.0f, 1.0f, 1.0f, 1.0f}; // for test
+    rsNode->SetCustomClipToFrame(clipRect);
+    EXPECT_EQ(clipRect.x_, 1.0f);
+    EXPECT_EQ(clipRect.y_, 1.0f);
+    EXPECT_EQ(clipRect.z_, 1.0f);
+    EXPECT_EQ(clipRect.w_, 1.0f);
 }
 
 /**

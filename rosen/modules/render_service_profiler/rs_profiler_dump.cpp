@@ -229,6 +229,15 @@ void RSProfiler::DumpNodeDrawCmdModifier(
             out["GEOMETRYTRANS"] = str;
             out.PopObject();
         }
+    } else if (modType == RSModifierType::CUSTOM_CLIP_TO_FRAME) {
+        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier.GetProperty());
+        if (propertyPtr) {
+            std::string str;
+            propertyPtr->Dump(str);
+            out.PushObject();
+            out["CUSTOM_CLIP_TO_FRAME"] = str;
+            out.PopObject();
+        }
     }
 }
 

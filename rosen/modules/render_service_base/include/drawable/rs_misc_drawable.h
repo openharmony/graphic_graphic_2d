@@ -182,6 +182,25 @@ protected:
 };
 
 // ============================================================================
+// CustomClipToFrame
+class RSCustomClipToFrameDrawable : public RSDrawable {
+public:
+    explicit RSCustomClipToFrameDrawable() = default;
+    ~RSCustomClipToFrameDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+protected:
+    bool needSync_ = false;
+    Drawing::Rect stagingCustomClipRect_;
+    Drawing::Rect customClipRect_;
+};
+
+// ============================================================================
 // Blender & BlendMode
 class RSBeginBlenderDrawable : public RSDrawable {
 public:

@@ -489,5 +489,46 @@ Drawing::RecordingCanvas::DrawFunc RSEnvFGColorStrategyDrawable::CreateDrawFunc(
         }
     };
 }
+
+// ============================================================================
+// CustomClipToFrame
+RSDrawable::Ptr RSCustomClipToFrameDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSCustomClipToFrameDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+bool RSCustomClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
+{
+    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    auto itr = drawCmdModifiers.find(RSModifierType::CUSTOM_CLIP_TO_FRAME);
+    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
+        return false;
+    }
+    const auto& modifier = itr->second.back();
+    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier->GetProperty());
+    const auto& clipRectV4f = renderProperty->Get();
+    stagingCustomClipRect_ = Drawing::Rect(clipRectV4f.x_, clipRectV4f.y_, clipRectV4f.z_, clipRectV4f.w_);
+    needSync_ = true;
+    return true;
+}
+void RSCustomClipToFrameDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    customClipRect_ = stagingCustomClipRect_;
+    needSync_ = false;
+}
+Drawing::RecordingCanvas::DrawFunc RSCustomClipToFrameDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSCustomClipToFrameDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        paintFilterCanvas->ClipRect(ptr->customClipRect_);
+    };
+}
+
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -847,6 +847,17 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RS_EXPORT RSCustomClipToFrameModifier : public RSForegroundModifier {
+public:
+    explicit RSCustomClipToFrameModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSCustomClipToFrameModifier() = default;
+
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+
 class RSC_EXPORT RSVisibleModifier : public RSAppearanceModifier {
 public:
     explicit RSVisibleModifier(const std::shared_ptr<RSPropertyBase>& property);
