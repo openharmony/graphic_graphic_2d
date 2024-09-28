@@ -302,7 +302,7 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
 
 void OH_Drawing_AddTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
 {
-    if (style != nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+    if (style == nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
         TextDecoration::LINE_THROUGH))) {
         return;
     }
@@ -314,7 +314,7 @@ void OH_Drawing_AddTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
 
 void OH_Drawing_RemoveTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
 {
-    if (style != nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+    if (style == nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
         TextDecoration::LINE_THROUGH))) {
         return;
     }
