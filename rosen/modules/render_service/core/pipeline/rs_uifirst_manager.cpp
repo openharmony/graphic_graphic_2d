@@ -320,7 +320,9 @@ void RSUifirstManager::ProcessDoneNode()
             ++it;
             continue;
         }
-        if (drawable->HasCachedTexture() && drawable->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::WAITING) {
+        auto cacheStatus = drawable->GetCacheSurfaceProcessedStatus();
+        if ((drawable->HasCachedTexture() && cacheStatus == CacheProcessStatus::WAITING) ||
+            cacheStatus == CacheProcessStatus::SKIPPED) {
             it = subthreadProcessingNode_.erase(it);
             continue;
         }
