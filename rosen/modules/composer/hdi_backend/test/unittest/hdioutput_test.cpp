@@ -181,7 +181,7 @@ HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
 
 /*
 * Function: GetLayerCompCapacity
-* Type: Functionrs_
+* Type: Function
 * Rank: Important(3)
 * EnvConditions: N/A
 * CaseDescription: 1. call SetLayerCompCapacity
