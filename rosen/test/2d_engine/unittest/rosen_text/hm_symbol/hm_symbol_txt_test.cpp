@@ -77,6 +77,7 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest003, TestSize.Level1)
     SPText::TextStyle textStyle;
     SPText::HMSymbolRun hmSymbolRun = SPText::HMSymbolRun();
     auto symbolInfo = hmSymbolRun.GetSymbolLayers(glyphId, textStyle.symbol);
+    EXPECT_TRUE(symbolInfo.renderGroups.empty() && symbolInfo.layers.empty());
 }
 
 /*
