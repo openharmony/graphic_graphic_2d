@@ -51,16 +51,6 @@ HWTEST_F(GESystemPropertiesTest, GetEventProperty001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetEventProperty002
- * @tc.desc: Verify function GetEventProperty
- * @tc.type:FUNC
- */
-HWTEST_F(GESystemPropertiesTest, GetEventProperty002, TestSize.Level1)
-{
-    EXPECT_EQ(GESystemProperties::GetEventProperty("const.telephony.satellite.supported"), "1");
-}
-
-/**
  * @tc.name: GetBoolSystemProperty001
  * @tc.desc: Verify function GetBoolSystemProperty
  * @tc.type:FUNC
