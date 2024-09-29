@@ -47,6 +47,7 @@ HWTEST_F(RSPropertyTraceTest, PropertiesDisplayByTrace001, TestSize.Level1)
     auto boundsGeometry = std::make_shared<RSObjAbsGeometry>();
     const NodeId id = 1;
     RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(id, boundsGeometry);
+    EXPECT_NE(RSPropertyTrace::GetInstance().IsNeedRefreshConfig(), true);
 }
 
 /**
@@ -58,6 +59,7 @@ HWTEST_F(RSPropertyTraceTest, PropertiesDisplayByTrace001, TestSize.Level1)
 HWTEST_F(RSPropertyTraceTest, RefreshNodeTraceInfo001, TestSize.Level1)
 {
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
+    EXPECT_NE(RSPropertyTrace::GetInstance().IsNeedRefreshConfig(), true);
 }
 
 /**
@@ -191,7 +193,12 @@ HWTEST_F(RSPropertyTraceTest, IsNeedPropertyTrace002, TestSize.Level1)
 HWTEST_F(RSPropertyTraceTest, AddTraceFlag001, TestSize.Level1)
 {
     std::string flag = "flag";
+    std::string nodeName = "node";
+    std::string info = "NODE_NAME:";
     RSPropertyTrace::GetInstance().AddTraceFlag(flag);
+    RSPropertyTrace::GetInstance().DealNodeNameConfig(info);
+    bool res = RSPropertyTrace::GetInstance().IsNeedPropertyTrace(nodeName);
+    EXPECT_EQ(res, true);
 }
 
 /**
@@ -203,6 +210,7 @@ HWTEST_F(RSPropertyTraceTest, AddTraceFlag001, TestSize.Level1)
 HWTEST_F(RSPropertyTraceTest, ClearNodeAndPropertyInfo001, TestSize.Level1)
 {
     RSPropertyTrace::GetInstance().ClearNodeAndPropertyInfo();
+    EXPECT_TRUE(RSPropertyTrace::GetInstance().nodeIdSet_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

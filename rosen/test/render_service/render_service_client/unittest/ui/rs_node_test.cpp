@@ -4297,6 +4297,9 @@ HWTEST_F(RSNodeTest, SetFreeze001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetFreeze(true);
+    std::shared_ptr<RSNode> child = std::make_shared<RSNode>(0);
+    child->SetFreeze(true);
+    EXPECT_TRUE(child != nullptr);
 }
 
 template<typename ModifierName, typename PropertyName, typename T>

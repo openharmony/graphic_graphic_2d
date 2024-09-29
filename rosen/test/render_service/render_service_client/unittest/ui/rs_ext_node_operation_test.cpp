@@ -36,6 +36,7 @@ HWTEST_F(RSExtNodeOperationTest, GetInstance001, TestSize.Level1)
 {
     auto& rs = RSExtNodeOperation::GetInstance();
     (void)(rs);
+    ASSERT_FALSE(RSExtNodeOperation::GetInstance().CheckNeedToProcess("test"));
 }
 
 /**
@@ -57,5 +58,6 @@ HWTEST_F(RSExtNodeOperationTest, CheckNeedToProcess001, TestSize.Level1)
 HWTEST_F(RSExtNodeOperationTest, ProcessRSSurfaceNode001, TestSize.Level1)
 {
     RSExtNodeOperation::GetInstance().ProcessRSExtNode("test_id", 0x5555, 1.0f, 1.0f, nullptr);
+    ASSERT_FALSE(RSExtNodeOperation::GetInstance().CheckNeedToProcess("test_id"));
 }
 } // namespace OHOS::Rosen

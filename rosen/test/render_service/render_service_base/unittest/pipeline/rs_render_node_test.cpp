@@ -164,6 +164,7 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionBeforeChildrenTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     node.ProcessTransitionBeforeChildren(*canvas_);
+    ASSERT_TRUE(canvas_->GetRecordingCanvas() == nullptr);
 }
 
 /**
