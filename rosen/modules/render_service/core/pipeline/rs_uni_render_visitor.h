@@ -192,7 +192,7 @@ private:
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
     bool IsWatermarkFlagChanged() const;
-    bool IsDisplayZoomStateChange() const;
+    void UpdateDisplayZoomState();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager, const RectI& globalFilterRect);
     RectI GetVisibleEffectDirty(RSRenderNode& node) const;
@@ -422,6 +422,8 @@ private:
     RSPointerWindowManager pointerWindowManager_;
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
+
+    bool zoomStateChange_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
