@@ -726,8 +726,8 @@ public:
     virtual bool FirstFrameHasEffectChildren() const { return false; }
     virtual void MarkClearFilterCacheIfEffectChildrenChanged() {}
     bool HasBlurFilter() const;
-    void SetChildrenHasSharedTransition(bool hasSharedTransition);
     virtual bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval) { return false; }
+    void SetChildrenHasSharedTransition(bool hasSharedTransition);
     void RemoveChildFromFulllist(NodeId nodeId);
     void SetStartingWindowFlag(bool startingFlag);
     bool GetStartingWindowFlag() const
@@ -1024,6 +1024,7 @@ private:
     RectI localForegroundEffectRect_;
     // map parentMatrix
     RectI absDrawRect_;
+    pid_t appPid_ = 0;
 
     bool isTextureExportNode_ = false;
 
@@ -1040,7 +1041,6 @@ private:
     void UpdateDisplayList();
     void UpdateShadowRect();
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
-    pid_t appPid_ = 0;
 
     const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 

@@ -240,11 +240,7 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
             return false;
         }
     }
-    EGLint attrs[] = {
-        EGL_IMAGE_PRESERVED,
-        EGL_TRUE,
-        EGL_NONE,
-    };
+    EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE };
 
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (eglImage_ == EGL_NO_IMAGE_KHR) {

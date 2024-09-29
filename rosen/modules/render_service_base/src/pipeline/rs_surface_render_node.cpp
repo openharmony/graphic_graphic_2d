@@ -2139,7 +2139,7 @@ std::vector<RectI> RSSurfaceRenderNode::GetChildrenNeedFilterRectsWithoutCacheVa
         }
     }
     return childrenFilterRectsWithoutCacheValid;
-};
+}
 
 // manage abilities' nodeid info
 void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
@@ -2151,7 +2151,7 @@ void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
     }
 }
 
-void RSSurfaceRenderNode::AddAbilityComponentNodeIds(const std::unordered_set<NodeId>& nodeIds)
+void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId>& nodeIds)
 {
     abilityNodeIds_.insert(nodeIds.begin(), nodeIds.end());
 }

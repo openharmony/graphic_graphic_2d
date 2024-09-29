@@ -309,7 +309,7 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
-    // When a child node is deleted, if the parent node has already been removed from the tree,
+    // When a child node is deleted, if the parent node is not on the tree,
     // then clear fullChildrenList_ and RSChildrenDrawable of the parent node; otherwise, it may cause a memory leak.
     if (!isOnTheTree_) {
         std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
@@ -2850,7 +2850,6 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
         canvas.Restore();
         return;
     }
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (cacheImage->IsTextureBacked()) {
             RS_LOGI("RSRenderNode::DrawCacheSurface convert cacheImage from texture to raster image");
@@ -2864,6 +2863,7 @@ void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t thread
     }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     if ((cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid()) || isUIFirst) {
         auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
         Vector2f gravityTranslate = surfaceNode ?
@@ -3181,7 +3181,7 @@ void RSRenderNode::SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode>
 
         auto rsParent = GetParent().lock();
         while (rsParent) {
-            //skip whern another child has set its parent or reach rootnode
+            //skip when another child has set its parent or reach rootnode
             if (rsParent->hasChildFullSurfaceOpaquCanvasNode_) {
                 break;
             }
