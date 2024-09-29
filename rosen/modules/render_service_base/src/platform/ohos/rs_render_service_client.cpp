@@ -511,6 +511,16 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
     return renderService->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
 }
 
+void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return;
+    }
+    renderService->UnregisterFrameRateLinker(id);
+}
+
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

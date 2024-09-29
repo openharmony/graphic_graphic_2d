@@ -192,6 +192,10 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
 {
 }
 
+void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
+{
+}
+
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 {
     return {};

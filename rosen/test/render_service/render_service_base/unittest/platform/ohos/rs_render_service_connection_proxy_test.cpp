@@ -360,6 +360,19 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SyncFrameRateRange, TestSize.Level1
 }
 
 /**
+ * @tc.name: UnregisterFrameRateLinker Test
+ * @tc.desc: UnregisterFrameRateLinker Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, UnregisterFrameRateLinker, TestSize.Level1)
+{
+    FrameRateLinkerId id = 1;
+    proxy->UnregisterFrameRateLinker(id);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
  * @tc.name: GetCurrentRefreshRateMode Test
  * @tc.desc: GetCurrentRefreshRateMode Test
  * @tc.type:FUNC
