@@ -55,4 +55,25 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Water_Ripple_Test)
     }
 }
 
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Fly_In_Test)
+{
+    int columnCount = 3;
+    int rowCount = 3;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<float> progressList = { 0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 20, 100 };
+
+    for (int i = 0; i < progressList.size(); i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        RSFlyOutPara para = { i % 2 };
+        testNodeBackGround->SetFlyOutParams(para, progressList[i]);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
 } // namespace OHOS::Rosen
