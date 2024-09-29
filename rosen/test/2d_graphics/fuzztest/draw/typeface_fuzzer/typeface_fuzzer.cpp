@@ -97,8 +97,7 @@ bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
     bool copyData = GetObject<bool>();
     std::unique_ptr<MemoryStream> memoryStream = std::make_unique<MemoryStream>(
         reinterpret_cast<const void*>(fontData), length, copyData);
-    int32_t index = GetObject<int32_t>();
-    std::shared_ptr<Typeface> typeface = Typeface::MakeFromStream(std::move(memoryStream), index);
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromStream(std::move(memoryStream));
 
     if (fontData != nullptr) {
         delete [] fontData;
