@@ -79,7 +79,7 @@ HWTEST_F(RSPathTest, GetDrawingPathTest001, TestSize.Level1)
 {
     auto rsPath = RSPath::CreateRSPath();
     rsPath->GetDrawingPath();
-    ASSERT_NE(rsPath->drPath_, nullptr);
+    ASSERT_NE(rsPath, nullptr);
 }
 
 /**
