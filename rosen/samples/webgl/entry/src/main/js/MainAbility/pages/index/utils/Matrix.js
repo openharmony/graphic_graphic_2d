@@ -52,135 +52,94 @@ export class Matrix4 {
     }
 
     rotateX(e, s, c) {
-        e[0] = 1;
-        e[4] = 0;
-        e[8] = 0;
-        e[12] = 0;
-        e[1] = 0;
-        e[5] = c;
-        e[9] = -s;
-        e[13] = 0;
-        e[2] = 0;
-        e[6] = s;
-        e[10] = c;
-        e[14] = 0;
-        e[3] = 0;
-        e[7] = 0;
-        e[11] = 0;
-        e[15] = 1;
+        e.set([1, 0, 0, 0, 0, c, s, 0, 0, -s, c, 0, 0, 0, 0, 1]);
     }
 
     rotateY(e, s, c) {
-        e[0] = c;
-        e[4] = 0;
-        e[8] = s;
-        e[12] = 0;
-        e[1] = 0;
-        e[5] = 1;
-        e[9] = 0;
-        e[13] = 0;
-        e[2] = -s;
-        e[6] = 0;
-        e[10] = c;
-        e[14] = 0;
-        e[3] = 0;
-        e[7] = 0;
-        e[11] = 0;
-        e[15] = 1;
+        e.set([
+            c, 0, s, 0,
+            0, 1, 0, 0,
+           -s, 0, c, 0,
+            0, 0, 0, 1
+        ]);
     }
 
     rotateZ(e, s, c) {
-        e[0] = c;
-        e[4] = -s;
-        e[8] = 0;
-        e[12] = 0;
-        e[1] = s;
-        e[5] = c;
-        e[9] = 0;
-        e[13] = 0;
-        e[2] = 0;
-        e[6] = 0;
-        e[10] = 1;
-        e[14] = 0;
-        e[3] = 0;
-        e[7] = 0;
-        e[11] = 0;
-        e[15] = 1;
+        e[0] = c; e[1] = s; e[2] = 0; e[3] = 0;
+        e[4] = -s; e[5] = c; e[6] = 0; e[7] = 0;
+        e[8] = 0; e[9] = 0; e[10] = 1; e[11] = 0;
+        e[12] = 0; e[13] = 0; e[14] = 0; e[15] = 1;
     }
 
     setRotate(angle, x, y, z) {
-        let e, s, c, len, rlen, nc, xy, yz, zx, xs, ys, zs;
-        angle = Math.PI * angle / 180;
-        e = this.elements;
-        s = Math.sin(angle);
-        c = Math.cos(angle);
-        if (0 !== x && 0 === y && 0 === z) {
-            if (x < 0) {
-                s = -s;
-            }
-            this.rotateX(e, s, c);
-        } else if (0 === x && 0 !== y && 0 === z) {
-            if (y < 0) {
-                s = -s;
-            }
-            this.rotateY(e, s, c);
-        } else if (0 === x && 0 === y && 0 !== z) {
-            if (z < 0) {
-                s = -s;
-            }
-            this.rotateZ(e, s, c);
-        } else {
-            len = Math.sqrt(x * x + y * y + z * z);
-            if (len !== 1) {
-                rlen = 1 / len;
-                x *= rlen;
-                y *= rlen;
-                z *= rlen;
-            }
-            nc = 1 - c;
-            xy = x * y;
-            yz = y * z;
-            zx = z * x;
-            xs = x * s;
-            ys = y * s;
-            zs = z * s;
-            e[0] = x * x * nc + c;
-            e[1] = xy * nc + zs;
-            e[2] = zx * nc - ys;
-            e[3] = e[7] = 0;
-            e[4] = xy * nc - zs;
-            e[5] = y * y * nc + c;
-            e[6] = yz * nc + xs;
-            e[8] = zx * nc + ys;
-            e[9] = yz * nc - xs;
-            e[10] = z * z * nc + c;
-            e[11] = e[12] = e[13] = e[14] = 0;
-            e[15] = 1;
+        const e = this.elements;
+        const rad = Math.PI * angle / 180;
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
+        const len = Math.sqrt(x * x + y * y + z * z);
+
+        if (len !== 1) {
+            const rlen = 1 / len;
+            x *= rlen;
+            y *= rlen;
+            z *= rlen;
         }
+
+        const nc = 1 - c;
+        const xy = x * y;
+        const yz = y * z;
+        const zx = z * x;
+        const xs = x * s;
+        const ys = y * s;
+        const zs = z * s;
+
+        e[0] = x * x * nc + c;
+        e[1] = xy * nc + zs;
+        e[2] = zx * nc - ys;
+        e[3] = 0;
+
+        e[4] = xy * nc - zs;
+        e[5] = y * y * nc + c;
+        e[6] = yz * nc + xs;
+        e[7] = 0;
+
+        e[8] = zx * nc + ys;
+        e[9] = yz * nc - xs;
+        e[10] = z * z * nc + c;
+        e[11] = 0;
+
+        e[12] = 0;
+        e[13] = 0;
+        e[14] = 0;
+        e[15] = 1;
+
         return this;
     }
 
-    multiply(other) {
-        let i, e, a, b, ai0, ai1, ai2, ai3;
-        e = this.elements;
-        a = this.elements;
-        b = other.elements;
-        if (e === b) {
-            b = new Float32Array(16);
-            for (i = 0; i < 16; ++i) {
-                b[i] = e[i];
+    multiply(matrix) {
+        let resultElements = this.elements;
+        let currentElements = this.elements;
+        let otherElements = matrix.elements;
+
+        if (resultElements === otherElements) {
+            otherElements = new Float32Array(16);
+            for (let i = 0; i < 16; ++i) {
+                otherElements[i] = resultElements[i];
             }
         }
-        for (i = 0; i < 4; i++) {
-            ai0 = a[i];
-            ai1 = a[i + 4];
-            ai2 = a[i + 8];
-            ai3 = a[i + 12];
-            e[i] = ai0 * b[0] + ai1 * b[1] + ai2 * b[2] + ai3 * b[3];
-            e[i + 4] = ai0 * b[4] + ai1 * b[5] + ai2 * b[6] + ai3 * b[7];
-            e[i + 8] = ai0 * b[8] + ai1 * b[9] + ai2 * b[10] + ai3 * b[11];
-            e[i + 12] = ai0 * b[12] + ai1 * b[13] + ai2 * b[14] + ai3 * b[15];
+
+        for (let row = 0; row < 4; row++) {
+            let row0 = currentElements[row];
+            let row1 = currentElements[row + 4];
+            let row2 = currentElements[row + 8];
+            let row3 = currentElements[row + 12];
+
+            resultElements[row] = row0 * otherElements[0] + row1 * otherElements[1] + row2 * otherElements[2] + row3 * otherElements[3];
+            resultElements[row + 4] = row0 * otherElements[4] + row1 * otherElements[5] + row2 * otherElements[6] + row3 * otherElements[7];
+            resultElements[row + 8] = row0 * otherElements[8] + row1 * otherElements[9] + row2 * otherElements[10] + row3 * otherElements[11];
+            resultElements[row + 12] = row0 * otherElements[12] + row1 * otherElements[13] + row2 * otherElements[14] + row3 * otherElements[15];
         }
+
         return this;
     }
 
@@ -228,65 +187,74 @@ export class Matrix4 {
         return result;
     }
 
-    setPerspective(fovy, aspect, near, far) {
-        let e, rd, s, ct;
-        if (near === far || aspect === 0) {
-            throw 'null frustum';
+    setPerspective(fovY, aspectRatio, nearPlane, farPlane) {
+        if (nearPlane === farPlane || aspectRatio === 0) {
+            throw new Error('Invalid frustum parameters');
         }
-        if (near <= 0) {
-            throw 'near <= 0';
+        if (nearPlane <= 0 || farPlane <= 0) {
+            throw new Error('Near and far planes must be greater than zero');
         }
-        if (far <= 0) {
-            throw 'far <= 0';
+
+        const halfFovY = (Math.PI * fovY) / 180 / 2;
+        const sinHalfFovY = Math.sin(halfFovY);
+        if (sinHalfFovY === 0) {
+            throw new Error('Invalid frustum parameters');
         }
-        fovy = Math.PI * fovy / 180 / 2;
-        s = Math.sin(fovy);
-        if (s === 0) {
-            throw 'null frustum';
-        }
-        rd = 1 / (far - near);
-        ct = Math.cos(fovy) / s;
-        e = this.elements;
-        e[0] = ct / aspect;
-        e[1] = 0;
-        e[2] = 0;
-        e[3] = 0;
-        e[4] = 0;
-        e[5] = ct;
-        e[6] = 0;
-        e[7] = 0;
-        e[8] = 0;
-        e[9] = 0;
-        e[10] = -(far + near) * rd;
-        e[11] = -1;
-        e[12] = 0;
-        e[13] = 0;
-        e[14] = -2 * near * far * rd;
-        e[15] = 0;
+
+        const cosHalfFovY = Math.cos(halfFovY);
+        const range = 1 / (nearPlane - farPlane);
+        const elements = this.elements;
+
+        elements[0] = cosHalfFovY / (aspectRatio * sinHalfFovY);
+        elements[1] = 0;
+        elements[2] = 0;
+        elements[3] = 0;
+
+        elements[4] = 0;
+        elements[5] = cosHalfFovY / sinHalfFovY;
+        elements[6] = 0;
+        elements[7] = 0;
+
+        elements[8] = 0;
+        elements[9] = 0;
+        elements[10] = (farPlane + nearPlane) * range;
+        elements[11] = -1;
+
+        elements[12] = 0;
+        elements[13] = 0;
+        elements[14] = 2 * farPlane * nearPlane * range;
+        elements[15] = 0;
+
         return this;
     }
 
-    setOrtho(left, right, bottom, top, near, far) {
-        let e = this.elements;
-        let rw = 1 / (right - left);
-        let rh = 1 / (top - bottom);
-        let rd = 1 / (far - near);
-        e[0] = 2 * rw;
-        e[1] = 0;
-        e[2] = 0;
-        e[3] = 0;
-        e[4] = 0;
-        e[5] = 2 * rh;
-        e[6] = 0;
-        e[7] = 0;
-        e[8] = 0;
-        e[9] = 0;
-        e[10] = -2 * rd;
-        e[11] = 0;
-        e[12] = -(right + left) * rw;
-        e[13] = -(top + bottom) * rh;
-        e[14] = -(far + near) * rd;
-        e[15] = 1;
+        setOrtho(left, right, bottom, top, near, far) {
+        const elements = this.elements;
+        const widthInverse = 1 / (right - left);
+        const heightInverse = 1 / (top - bottom);
+        const depthInverse = 1 / (far - near);
+
+        elements[0] = 2 * widthInverse;
+        elements[1] = 0;
+        elements[2] = 0;
+        elements[3] = 0;
+
+        elements[4] = 0;
+        elements[5] = 2 * heightInverse;
+        elements[6] = 0;
+        elements[7] = 0;
+
+        elements[8] = 0;
+        elements[9] = 0;
+        elements[10] = -2 * depthInverse;
+        elements[11] = 0;
+
+        elements[12] = -(right + left) * widthInverse;
+        elements[13] = -(top + bottom) * heightInverse;
+        elements[14] = -(far + near) * depthInverse;
+        elements[15] = 1;
+
+        return this;
     }
 
     lookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ) {
@@ -294,51 +262,56 @@ export class Matrix4 {
         return this.multiply(lookAt);
     }
 
-    setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ) {
-        let e, fx, fy, fz, rlf, sx, sy, sz, rls, ux, uy, uz;
-        fx = centerX - eyeX;
-        fy = centerY - eyeY;
-        fz = centerZ - eyeZ;
-        rlf = 1 / Math.sqrt(fx * fx + fy * fy + fz * fz);
-        fx *= rlf;
-        fy *= rlf;
-        fz *= rlf;
-        sx = fy * upZ - fz * upY;
-        sy = fz * upX - fx * upZ;
-        sz = fx * upY - fy * upX;
-        rls = 1 / Math.sqrt(sx * sx + sy * sy + sz * sz);
-        sx *= rls;
-        sy *= rls;
-        sz *= rls;
-        ux = sy * fz - sz * fy;
-        uy = sz * fx - sx * fz;
-        uz = sx * fy - sy * fx;
-        e = this.elements;
-        e[0] = sx;
-        e[1] = ux;
-        e[2] = -fx;
-        e[3] = 0;
-        e[4] = sy;
-        e[5] = uy;
-        e[6] = -fy;
-        e[7] = 0;
-        e[8] = sz;
-        e[9] = uz;
-        e[10] = -fz;
-        e[11] = 0;
-        e[12] = 0;
-        e[13] = 0;
-        e[14] = 0;
-        e[15] = 1;
+        setLookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ) {
+        let elements = this.elements;
+        let forwardX = centerX - eyeX;
+        let forwardY = centerY - eyeY;
+        let forwardZ = centerZ - eyeZ;
+
+        let forwardLength = Math.sqrt(forwardX * forwardX + forwardY * forwardY + forwardZ * forwardZ);
+        forwardX /= forwardLength;
+        forwardY /= forwardLength;
+        forwardZ /= forwardLength;
+
+        let sideX = forwardY * upZ - forwardZ * upY;
+        let sideY = forwardZ * upX - forwardX * upZ;
+        let sideZ = forwardX * upY - forwardY * upX;
+
+        let sideLength = Math.sqrt(sideX * sideX + sideY * sideY + sideZ * sideZ);
+        sideX /= sideLength;
+        sideY /= sideLength;
+        sideZ /= sideLength;
+
+        let upXNew = sideY * forwardZ - sideZ * forwardY;
+        let upYNew = sideZ * forwardX - sideX * forwardZ;
+        let upZNew = sideX * forwardY - sideY * forwardX;
+
+        elements[0] = sideX;
+        elements[1] = upXNew;
+        elements[2] = -forwardX;
+        elements[3] = 0;
+        elements[4] = sideY;
+        elements[5] = upYNew;
+        elements[6] = -forwardY;
+        elements[7] = 0;
+        elements[8] = sideZ;
+        elements[9] = upZNew;
+        elements[10] = -forwardZ;
+        elements[11] = 0;
+        elements[12] = 0;
+        elements[13] = 0;
+        elements[14] = 0;
+        elements[15] = 1;
+
         return this.translate(-eyeX, -eyeY, -eyeZ);
     }
 
-    translate(x, y, z) {
-        let e = this.elements;
-        e[12] += e[0] * x + e[4] * y + e[8] * z;
-        e[13] += e[1] * x + e[5] * y + e[9] * z;
-        e[14] += e[2] * x + e[6] * y + e[10] * z;
-        e[15] += e[3] * x + e[7] * y + e[11] * z;
+    translate(tx, ty, tz) {
+        const elements = this.elements;
+        elements[12] += elements[0] * tx + elements[4] * ty + elements[8] * tz;
+        elements[13] += elements[1] * tx + elements[5] * ty + elements[9] * tz;
+        elements[14] += elements[2] * tx + elements[6] * ty + elements[10] * tz;
+        elements[15] += elements[3] * tx + elements[7] * ty + elements[11] * tz;
         return this;
     }
 
@@ -509,26 +482,16 @@ export class Matrix4 {
     }
 
     transpose() {
-        let e, t;
-        e = this.elements;
-        t = e[1];
-        e[1] = e[4];
-        e[4] = t;
-        t = e[2];
-        e[2] = e[8];
-        e[8] = t;
-        t = e[3];
-        e[3] = e[12];
-        e[12] = t;
-        t = e[6];
-        e[6] = e[9];
-        e[9] = t;
-        t = e[7];
-        e[7] = e[13];
-        e[13] = t;
-        t = e[11];
-        e[11] = e[14];
-        e[14] = t;
+        const m = this.elements;
+        let temp;
+
+        temp = m[1]; m[1] = m[4]; m[4] = temp;
+        temp = m[2]; m[2] = m[8]; m[8] = temp;
+        temp = m[3]; m[3] = m[12]; m[12] = temp;
+        temp = m[6]; m[6] = m[9]; m[9] = temp;
+        temp = m[7]; m[7] = m[13]; m[13] = temp;
+        temp = m[11]; m[11] = m[14]; m[14] = temp;
+
         return this;
     }
 }
