@@ -55,6 +55,9 @@ void RSRenderDisplaySync::SetExpectedFrameRateRange(const FrameRateRange& range)
     if (expectedFrameRateRange_ != range) {
         expectedFrameRateRange_ = range;
         isSkipCountUpdate_ = true;
+        RS_LOGI("[RenderAnimation] Id: %{public}" PRIu64 " SetExpectedFrameRateRange"
+            "{%{public}d, %{public}d, %{public}d}", GetId(), expectedFrameRateRange_.min_,
+            expectedFrameRateRange_.max_, expectedFrameRateRange_.preferred_);
     }
 }
 
@@ -111,6 +114,8 @@ bool RSRenderDisplaySync::OnFrameSkip(uint64_t timestamp, int64_t period, bool i
     RS_OPTIONAL_TRACE_NAME_FMT(
         "RSRenderDisplaySync::OnFrameSkip preferred: [%d] currentPeroid: [%d] isFrameSkip:[%d]",
         expectedFrameRateRange_.preferred_, currentPeriod_, isFrameSkip);
+    RS_LOGD("[RenderAnimation] Id: %{public}" PRIu64 " preferred: %{public}d "
+        "isFrameSkip: %{public}d", GetId(), expectedFrameRateRange_.preferred_, isFrameSkip);
     return isFrameSkip;
 }
 
