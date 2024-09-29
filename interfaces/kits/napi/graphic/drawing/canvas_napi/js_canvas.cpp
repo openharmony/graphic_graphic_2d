@@ -353,10 +353,10 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
         ROSEN_LOGE("Drawing_napi: Failed to wrap native instance");
         return nullptr;
     }
+    return jsThis;
 #else
     return nullptr;
 #endif
-    return jsThis;
 }
 
 bool JsCanvas::CreateConstructor(napi_env env)
