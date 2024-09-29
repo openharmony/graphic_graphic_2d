@@ -56,6 +56,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, Create001, TestSize.Level1)
 {
     Drawing::Canvas canvas;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_NE(listener, nullptr);
     delete listener;
 }
 
@@ -164,6 +165,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPicture001, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Picture picture;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_NE(listener, nullptr);
     listener->DrawPicture(picture);
     delete listener;
 }
