@@ -1604,15 +1604,16 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
 bool RSRenderServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
     std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    RS_LOGD("RSRenderServiceConnection::RegisterTypeface: pid[%{public}d] register typeface[%{public}u]",
-        RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    RS_LOGI("RSRenderServiceConnection:reg typeface, pid[%{public}d], familyname:%{public}s, uniqueid:%{public}u",
+        RSTypefaceCache::GetTypefacePid(globalUniqueId), typeface->GetFamilyName().c_str(),
+        RSTypefaceCache::GetTypefaceId(globalUniqueId));
     RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
     return true;
 }
 
 bool RSRenderServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
 {
-    RS_LOGD("RSRenderServiceConnection::UnRegisterTypeface: pid[%{public}d] unregister typeface[%{public}u]",
+    RS_LOGW("RSRenderServiceConnection:uneg typeface: pid[%{public}d], uniqueid:%{public}u",
         RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
     RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;

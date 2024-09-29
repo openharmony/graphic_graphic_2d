@@ -279,16 +279,19 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
     if (RSSystemProperties::GetUniRenderEnabled()) {
         bool result = renderServiceClient_->RegisterTypeface(typeface);
         if (result) {
-            RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
-                    typeface->GetUniqueID());
+            RS_LOGI("RSInterfaces:Succeed in reg typeface, familyName:%{public}s, uniqueid:%{public}u",
+                typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
             uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
             RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+        } else {
+            RS_LOGE("RSInterfaces:Failed to reg typeface, familyName:%{public}s, uniqueid:%{public}u",
+                typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
         }
         return result;
     }
 
-    RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
-        typeface->GetUniqueID());
+    RS_LOGI("RSInterfaces:Succeed in reg typeface, familyName:%{public}s, uniqueid:%{public}u",
+        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
     uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
     return true;
@@ -296,6 +299,8 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
 
 bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
+    RS_LOGW("RSInterfaces:Unreg typeface: familyName:%{public}s, uniqueid:%{public}u",
+        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
     if (RSSystemProperties::GetUniRenderEnabled()) {
         bool result = renderServiceClient_->UnRegisterTypeface(typeface);
         if (result) {
@@ -305,8 +310,6 @@ bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typefa
         return result;
     }
 
-    RS_LOGD("RSInterfaces::UnRegisterTypeface: unregister typeface[%{public}u]",
-        typeface->GetUniqueID());
     uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;

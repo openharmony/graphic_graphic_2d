@@ -195,11 +195,12 @@ void RSTypefaceCache::RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqu
     RemoveHashQueue(typefaceHashQueue_, globalUniqueId);
 
     if (typefaceHashCode_.find(globalUniqueId) == typefaceHashCode_.end()) {
+        RS_LOGI("RSTypefaceCache:Failed to find typeface, uniqueid:%{public}u", GetTypefaceId(globalUniqueId));
         return;
     }
     auto hash_value = typefaceHashCode_[globalUniqueId];
     typefaceHashCode_.erase(globalUniqueId);
-
+    RS_LOGI("RSTypefaceCache:Remove typeface, uniqueid:%{public}u", GetTypefaceId(globalUniqueId));
     RemoveHashMap(GetTypefacePid(globalUniqueId), typefaceHashMap_, hash_value);
 }
 

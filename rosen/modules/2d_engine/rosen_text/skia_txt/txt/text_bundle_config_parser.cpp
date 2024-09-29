@@ -85,7 +85,7 @@ bool TextBundleConfigParser::IsAdapterTextHeightEnabled()
     static bool adapterTextHeight = []() {
         const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_text_height";
         auto enabled = IsMetaDataExistInEntryModule(ADAPTER_TEXT_HEIGHT_META_DATA);
-        TEXT_LOGD("Adapter text height enabled: %{public}d", enabled);
+        TEXT_LOGI("Adapter text height enabled: %{public}d", enabled);
         return enabled;
     }();
     return adapterTextHeight;
