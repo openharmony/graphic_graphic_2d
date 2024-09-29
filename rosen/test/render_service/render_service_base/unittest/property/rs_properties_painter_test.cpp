@@ -550,6 +550,10 @@ HWTEST_F(RSPropertiesPainterTest, GetDarkColor001, TestSize.Level1)
     RSColor color;
     color.SetGreen(200);
     RSPropertiesPainter::GetDarkColor(color);
+    ASSERT_EQ(color.GetBlue(), 0);
+    ASSERT_EQ(color.GetGreen(), 174);
+    ASSERT_EQ(color.GetRed(), 0);
+    ASSERT_EQ(color.GetAlpha(), 0);
 }
 
 /**
