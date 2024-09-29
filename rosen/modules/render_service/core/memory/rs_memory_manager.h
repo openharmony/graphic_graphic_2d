@@ -50,7 +50,6 @@ public:
     static void InitMemoryLimit(Drawing::GPUContext* gpuContext);
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static void MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
-    static bool IsExited(pid_t pid);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
     static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
     static void SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled);
@@ -78,6 +77,5 @@ private:
     static uint32_t frameCount_;
     static uint64_t memoryWarning_;
     static uint64_t totalMemoryReportTime_;
-    static std::atomic<pid_t> exitedPid_;
 };
 } // namespace OHOS::Rosen

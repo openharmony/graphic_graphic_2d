@@ -18,7 +18,6 @@
 #include "string_utils.h"
 #endif
 #include "common/rs_optional_trace.h"
-#include "memory/rs_memory_manager.h"
 #include "params/rs_render_params.h"
 namespace OHOS::Rosen::DrawableV2 {
 
@@ -33,8 +32,7 @@ constexpr int32_t OPINC_CACHE_SIZE_MAX = 1314000;
 
 bool RSRenderNodeDrawable::ShouldPaint() const
 {
-    return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint() &&
-        LIKELY(!MemoryManager::IsExited(ExtractPid(nodeId_)));
+    return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
 }
 
 bool RSRenderNodeDrawable::IsOpincRenderCacheEnable()

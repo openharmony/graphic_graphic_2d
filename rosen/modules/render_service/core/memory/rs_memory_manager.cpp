@@ -67,7 +67,6 @@ std::unordered_map<pid_t, std::pair<std::string, uint64_t>> MemoryManager::pidIn
 uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
-std::atomic<pid_t> MemoryManager::exitedPid_;
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
 {
@@ -536,16 +535,19 @@ void MemoryManager::InitMemoryLimit(Drawing::GPUContext* gpuContext)
     cJSON* kernelLeak = cJSON_GetObjectItem(root, "KernelLeak");
     if (kernelLeak == nullptr) {
         RS_LOGE("MemoryManager::InitMemoryLimit can not find kernelLeak");
+        cJSON_Delete(root);
         return;
     }
     cJSON* version = cJSON_GetObjectItem(kernelLeak, RSSystemProperties::GetVersionType().c_str());
     if (version == nullptr) {
         RS_LOGE("MemoryManager::InitMemoryLimit can not find version");
+        cJSON_Delete(root);
         return;
     }
     cJSON* rsWatchPoint = cJSON_GetObjectItem(version, "rs_watchpoint");
     if (rsWatchPoint == nullptr) {
         RS_LOGE("MemoryManager::InitMemoryLimit can not find rsWatchPoint");
+        cJSON_Delete(root);
         return;
     }
     // warning threshold for total memory of a single process
@@ -630,12 +632,7 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
     appMgrClient.GetBundleNameByPid(pid, bundleName, uid);
     MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
-    exitedPid_.store(pid); // only one process exited abnormally due to memory overflow for a period of time
-}
-
-bool MemoryManager::IsExited(pid_t pid)
-{
-    return pid == exitedPid_.load();
+    RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
 
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
@@ -666,9 +663,6 @@ void MemoryManager::ErasePidInfo(const std::set<pid_t>& exitedPidSet)
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto pid : exitedPidSet) {
         pidInfo_.erase(pid);
-        if (pid == exitedPid_.load()) {
-            exitedPid_.store(-1); // reset the exited pid
-        }
     }
 }
 

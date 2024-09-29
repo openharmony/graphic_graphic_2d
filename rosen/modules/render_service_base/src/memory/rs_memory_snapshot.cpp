@@ -25,12 +25,20 @@ MemorySnapshot& MemorySnapshot::Instance()
 
 void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
-    mInfo.cpuMemory += size;
-    totalMemory_ += size;
-    if (mInfo.cpuMemory > singleCpuMemoryLimit_ && mInfo.cpuMemory - size < singleCpuMemoryLimit_ && callback_) {
-        callback_(pid, mInfo.cpuMemory, false);
+    bool shouldReport = false;
+    size_t cpuMemory = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
+        mInfo.cpuMemory += size;
+        totalMemory_ += size;
+        if (mInfo.cpuMemory > singleCpuMemoryLimit_ && mInfo.cpuMemory - size < singleCpuMemoryLimit_) {
+            shouldReport = true;
+            cpuMemory = mInfo.cpuMemory;
+        }
+    }
+    if (shouldReport && callback_) {
+        callback_(pid, cpuMemory, false);
     }
 }
 
@@ -82,8 +90,8 @@ void MemorySnapshot::EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet)
         auto it = appMemorySnapshots_.find(pid);
         if (it != appMemorySnapshots_.end()) {
             totalMemory_ -= it->second.TotalMemory();
+            appMemorySnapshots_.erase(it);
         }
-        appMemorySnapshots_.erase(it);
     }
 }
 
