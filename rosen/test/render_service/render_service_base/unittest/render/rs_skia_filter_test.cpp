@@ -46,6 +46,7 @@ HWTEST_F(RSSkiaFilterTest, ExtractSkImage, TestSize.Level1)
     rsBlurFilter.GetBrush();
 
     rsBlurFilter.GetImageFilter();
+    ASSERT_TRUE(rsBlurFilter != nullptr);
 }
 
 /**

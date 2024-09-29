@@ -389,6 +389,7 @@ HWTEST_F(RSImageTest, TestRSImage001, TestSize.Level1)
     RSImage image;
     RSImage other;
     image.IsEqual(other);
+    ASSERT_TRUE(other != nullptr);
 }
 
 /**

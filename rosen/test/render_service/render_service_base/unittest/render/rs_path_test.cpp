@@ -93,6 +93,7 @@ HWTEST_F(RSPathTest, ReverseTest001, TestSize.Level1)
     auto rsPath = RSPath::CreateRSPath(path);
     auto reveseRsPath = rsPath->Reverse();
     EXPECT_NE(rsPath, reveseRsPath);
+    ASSERT_TRUE(rsPath != nullptr);
 }
 
 /**

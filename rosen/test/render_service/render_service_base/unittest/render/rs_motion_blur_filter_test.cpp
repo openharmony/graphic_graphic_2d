@@ -87,6 +87,7 @@ HWTEST_F(MotionBlurFilterTest, DisableMotionBlurTest, TestSize.Level1)
 
     bool isDisableMotionBlur = true;
     filter->DisableMotionBlur(isDisableMotionBlur);
+    ASSERT_TRUE(filter != nullptr);
 }
 
 /**
