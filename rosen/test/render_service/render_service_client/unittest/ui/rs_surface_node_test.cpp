@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "parameters.h"
 #include "ui/rs_surface_node.h"
 #include "limit_number.h"
 
@@ -333,11 +334,17 @@ HWTEST_F(RSSurfaceNodeTest, SetandGetBoundsHeight005, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeTest, SetWatermarkEnabled001, TestSize.Level1)
 {
+    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
+    if (flag) {
+        return;
+    }
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     std::string waterMark = "watermark";
     surfaceNode->SetWatermarkEnabled(waterMark, true);
     surfaceNode->SetWatermarkEnabled(waterMark, false);
+    std::string waterMark1(129, 't');
+    surfaceNode->SetWatermarkEnabled(waterMark1, false);
 }
 
 /**

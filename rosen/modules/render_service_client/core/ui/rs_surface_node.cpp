@@ -18,7 +18,9 @@
 
 #include <algorithm>
 #include <string>
-
+#ifdef ROSEN_OHOS
+#include "parameters.h"
+#endif
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -42,6 +44,11 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef ROSEN_OHOS
+namespace {
+constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+}
+#endif
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow)
 {
     if (!isWindow) {
@@ -833,6 +840,15 @@ bool RSSurfaceNode::GetSkipDraw() const
 
 void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
+#ifdef ROSEN_OHOS
+    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
+    if (flag) {
+        return;
+    }
+    if (name.empty() || name.length() > WATERMARK_NAME_LENGTH_LIMIT) {
+        ROSEN_LOGE("SetWatermarkEnabled name[%{public}s] is error.", name.c_str());
+        return;
+    }
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetWatermarkEnabled>(GetId(), name, isEnabled);
     auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -841,6 +857,7 @@ void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
             GetName().c_str(), GetId(), name.c_str());
         transactionProxy->AddCommand(command, true);
     }
+#endif
 }
 
 void RSSurfaceNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)

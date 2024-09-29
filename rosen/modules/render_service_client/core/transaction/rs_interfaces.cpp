@@ -15,7 +15,9 @@
 
 #include <cstdint>
 #include <functional>
-
+#ifdef ROSEN_OHOS
+#include "parameters.h"
+#endif
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
@@ -29,6 +31,12 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef ROSEN_OHOS
+namespace {
+constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
+constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+}
+#endif
 RSInterfaces &RSInterfaces::GetInstance()
 {
     static RSInterfaces instance;
@@ -111,10 +119,27 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
+#ifdef ROSEN_OHOS
+    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
+    if (flag) {
+        return false;
+    }
     if (renderServiceClient_ == nullptr) {
         return false;
     }
+    if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
+        ROSEN_LOGE("SetWatermark failed, name[%{public}s] is error.", name.c_str());
+        return false;
+    }
+    if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > WATERMARK_PIXELMAP_SIZE_LIMIT)) {
+        ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}d] is error",
+            watermark->IsAstc(), watermark->GetCapacity());
+        return false;
+    }
     return renderServiceClient_->SetWatermark(name, watermark);
+#else
+    return false;
+#endif
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR

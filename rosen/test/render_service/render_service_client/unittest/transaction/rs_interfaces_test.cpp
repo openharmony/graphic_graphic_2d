@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+#include "parameters.h"
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
 
@@ -384,10 +385,54 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
 {
+    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
+    if (flag) {
+        return;
+    }
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
     instance.renderServiceClient_ = nullptr;
     bool res = instance.SetWatermark("test", pixelmap);
+    EXPECT_FALSE(res);
+
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    res = instance.SetWatermark("test", pixelmap);
+    EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.name: SetWatermark002
+ * @tc.desc: test results of SetWatermark
+ * @tc.type: FUNC
+ * @tc.require: issueIASMZG
+ */
+HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
+{
+    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
+    if (flag) {
+        return;
+    }
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
+
+    std::string name1 = "";
+    bool res = instance.SetWatermark(name1, pixelmap);
+    EXPECT_FALSE(res);
+
+    std::string name2(1, 't');
+    res = instance.SetWatermark(name2, pixelmap);
+    EXPECT_TRUE(res);
+
+    std::string name3(2, 't');
+    res = instance.SetWatermark(name3, pixelmap);
+    EXPECT_TRUE(res);
+
+    std::string name4(128, 't');
+    res = instance.SetWatermark(name4, pixelmap);
+    EXPECT_TRUE(res);
+
+    std::string name5(129, 't');
+    res = instance.SetWatermark(name5, pixelmap);
     EXPECT_FALSE(res);
 
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
