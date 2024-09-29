@@ -68,7 +68,7 @@ public:
 
     void SetParentPid(const int32_t parentPid);
 
-    uint32_t GetTransactionDataIndex();
+    uint32_t GetTransactionDataIndex() const;
 
 private:
     RSTransactionProxy();

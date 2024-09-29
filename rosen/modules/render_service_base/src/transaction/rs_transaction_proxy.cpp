@@ -143,7 +143,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     }
 }
 
-uint32_t RSTransactionProxy::GetTransactionDataIndex()
+uint32_t RSTransactionProxy::GetTransactionDataIndex() const
 {
     return transactionDataIndex_;
 }
