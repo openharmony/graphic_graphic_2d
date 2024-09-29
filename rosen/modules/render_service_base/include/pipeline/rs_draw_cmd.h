@@ -255,6 +255,7 @@ private:
     void DrawWithVulkan(Canvas* canvas);
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
+    Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
