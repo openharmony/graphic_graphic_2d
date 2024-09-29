@@ -480,41 +480,41 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
 
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteString(name)) {
-        return WRITE_PARCEL_ERR;
+        return INVALID_SCREEN_ID;
     }
     if (!data.WriteUint32(width)) {
-        return WRITE_PARCEL_ERR;
+        return INVALID_SCREEN_ID;
     }
     if (!data.WriteUint32(height)) {
-        return WRITE_PARCEL_ERR;
+        return INVALID_SCREEN_ID;
     }
     if (surface != nullptr) {
         auto producer = surface->GetProducer();
         if (producer != nullptr) {
             if (!data.WriteBool(true)) {
-                return WRITE_PARCEL_ERR;
+                return INVALID_SCREEN_ID;
             }
             if (!data.WriteRemoteObject(producer->AsObject())) {
-                return WRITE_PARCEL_ERR;
+                return INVALID_SCREEN_ID;
             }
         } else {
             if (!data.WriteBool(false)) {
-                return WRITE_PARCEL_ERR;
+                return INVALID_SCREEN_ID;
             }
         }
     } else {
         if (!data.WriteBool(false)) {
-            return WRITE_PARCEL_ERR;
+            return INVALID_SCREEN_ID;
         }
     }
     if (!data.WriteUint64(mirrorId)) {
-        return WRITE_PARCEL_ERR;
+        return INVALID_SCREEN_ID;
     }
     if (!data.WriteInt32(flags)) {
-        return WRITE_PARCEL_ERR;
+        return INVALID_SCREEN_ID;
     }
     if (!data.WriteUInt64Vector(whiteList)) {
-        return WRITE_PARCEL_ERR;
+        return INVALID_SCREEN_ID;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
