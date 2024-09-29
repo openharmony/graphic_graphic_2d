@@ -464,7 +464,7 @@ private:
     void RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output);
     void HandleDefaultScreenDisConnectedLocked();
     void ForceRefreshOneFrame() const;
-    std::vector<ScreenHotPlugEvent> pendingHotPlugEvents_;
+    std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents_;
 
     void GetVirtualScreenResolutionLocked(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const;
     void GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& screenModeInfo) const;

@@ -2367,7 +2367,8 @@ HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_002, TestSize.Level1
 
     screenManagerImpl.isHwcDead_ = false;
     impl::ScreenHotPlugEvent screenHotPlugEvent;
-    screenManagerImpl.pendingHotPlugEvents_.push_back(screenHotPlugEvent);
+    ScreenId id = 1;
+    screenManagerImpl.pendingHotPlugEvents_[id] = screenHotPlugEvent;
     ASSERT_FALSE(screenManager->TrySimpleProcessHotPlugEvents());
 }
 

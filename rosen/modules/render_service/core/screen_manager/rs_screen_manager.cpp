@@ -320,7 +320,12 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool co
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        pendingHotPlugEvents_.emplace_back(ScreenHotPlugEvent{output, connected});
+
+        ScreenId id = ToScreenId(output->GetScreenId());
+        if (pendingHotPlugEvents_.find(id) != pendingHotPlugEvents_.end()) {
+            RS_LOGE("RSScreenManager %{public}s: screen %{public}" PRIu64 "is covered.", __func__, id);
+        }
+        pendingHotPlugEvents_[id] = ScreenHotPlugEvent{output, connected};
     }
 
     // This func would be called in main thread first time immediately after calling composer_->RegScreenHotplug,
@@ -477,7 +482,7 @@ bool RSScreenManager::TrySimpleProcessHotPlugEvents()
 void RSScreenManager::ProcessScreenHotPlugEvents()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (auto &event : pendingHotPlugEvents_) {
+    for (auto& [_, event] : pendingHotPlugEvents_) {
         if (event.connected) {
             ProcessScreenConnectedLocked(event.output);
             AddScreenToHgm(event.output);
