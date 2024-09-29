@@ -209,25 +209,37 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
+    bool useBatchRemoving = RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(renderNodeMap_, [pid, useBatchRemoving](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {
             return false;
         }
         if (pair.second == nullptr) {
             return true;
         }
-        // remove nodes from tree in batch
-        RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(pair.second);
+        if (useBatchRemoving) {
+            RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(pair.second);
+        } else {
+            if (auto parent = pair.second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(pair.second->GetId());
+            }
+            pair.second->RemoveFromTree(false);
+        }
         pair.second->GetAnimationManager().FilterAnimationByPid(pid);
         return true;
     });
 
-    EraseIf(surfaceNodeMap_, [pid, this](const auto& pair) -> bool {
+    EraseIf(surfaceNodeMap_, [pid, useBatchRemoving, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid);
-        if (pair.second && shouldErase) {
-            pair.second->RemoveFromTree(false);
+        if (shouldErase) {
             RemoveUIExtensionSurfaceNode(pair.second);
+        }
+        if (shouldErase && pair.second && useBatchRemoving) {
+            if (auto parent = pair.second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(pair.second->GetId());
+            }
+            pair.second->RemoveFromTree(false);
         }
         return shouldErase;
     });
