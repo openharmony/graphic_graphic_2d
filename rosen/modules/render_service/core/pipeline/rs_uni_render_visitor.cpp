@@ -1879,9 +1879,14 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
         }
         return;
     }
-    auto dst = hwcNode->GetDstRect();
+    auto absBound = RectI();
+    if (auto geo = hwcNode->GetRenderProperties().GetBoundsGeometry()) {
+        absBound = geo->GetAbsRect();
+    } else {
+        return;
+    }
     if (hwcNode->GetAncoForceDoDirect() || !isIntersectWithRoundCorner) {
-        hwcRects.emplace_back(dst);
+        hwcRects.emplace_back(absBound);
         return;
     }
     for (const auto& rect : hwcRects) {
@@ -1900,7 +1905,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
             }
         }
     }
-    hwcRects.emplace_back(dst);
+    hwcRects.emplace_back(absBound);
 }
 
 void RSUniRenderVisitor::UpdateSurfaceOcclusionInfo()
