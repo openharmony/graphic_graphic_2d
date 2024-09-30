@@ -342,55 +342,27 @@ std::unique_ptr<ColorPickerAsyncContext> ColorPickerNapi::InitializeAsyncContext
     return asyncContext;
 }
 
-void ColorPickerNapi::ProcessCallbackAndCoordinates(
-    napi_env env, napi_value* argValue, size_t argCount, std::unique_ptr<ColorPickerAsyncContext>& asyncContext)
+bool ColorPickerNapi::ProcessCallbackAndCoordinates(napi_env env, napi_value* argValue, size_t argCount,
+    napi_value& result, std::unique_ptr<ColorPickerAsyncContext>& asyncContext)
 {
     int32_t refCount = 1;
 
     if (argCount >= NUM_2) {
-        if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[argCount - 1]) == napi_function) {
-            napi_create_reference(env, argValue[argCount - 1], refCount, &asyncContext->callbackRef);
-        }
         if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_1]) != napi_function) {
             if (!GetRegionCoordinates(env, argValue[NUM_1], asyncContext)) {
-                EFFECT_LOG_E("fail to parse coordinates");
+                BuildMsgOnError(env, asyncContext, false, "fail to parse coordinates");
+                return false;
             }
             asyncContext->regionFlag = true;
         }
+        if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[argCount - 1]) == napi_function) {
+            napi_create_reference(env, argValue[argCount - 1], refCount, &asyncContext->callbackRef);
+        }
     }
-}
-
-napi_value ColorPickerNapi::CreatePromiseOrHandleError(
-    napi_env env, napi_status status, std::unique_ptr<ColorPickerAsyncContext>& asyncContext, ImageType imgType)
-{
-    napi_value result = nullptr;
-
     if (asyncContext->callbackRef == nullptr) {
         napi_create_promise(env, &(asyncContext->deferred), &result);
     }
-
-    if (asyncContext->errorMsg != nullptr) {
-        EffectKitNapiUtils::GetInstance().CreateAsyncWork(
-            env, status, "CreateColorPickerError", [](napi_env env, void* data) {}, CreateColorPickerErrorComplete,
-            asyncContext, asyncContext->work);
-    } else if (imgType == ImageType::TYPE_PIXEL_MAP) {
-        EffectKitNapiUtils::GetInstance().CreateAsyncWork(env, status, "CreateColorPickerFromPixelMap",
-            CreateColorPickerFromPixelmapExecute, CreateColorPickerFromPixelmapComplete, asyncContext,
-            asyncContext->work);
-    }
-
-    if (status != napi_ok) {
-        if (asyncContext->callbackRef != nullptr) {
-            napi_delete_reference(env, asyncContext->callbackRef);
-        }
-        if (asyncContext->deferred != nullptr) {
-            napi_create_string_utf8(env, "fail to create async work", NAPI_AUTO_LENGTH, &result);
-            napi_reject_deferred(env, asyncContext->deferred, result);
-        }
-        EFFECT_LOG_E("fail to create async work");
-    }
-
-    return result;
+    return true;
 }
 
 napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info info)
@@ -411,8 +383,9 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
     if (asyncContext == nullptr) {
         return result;
     }
-
-    ProcessCallbackAndCoordinates(env, argValue, argCount, asyncContext);
+    if (!ProcessCallbackAndCoordinates(env, argValue, argCount, result, asyncContext)) {
+        return result;
+    }
 
     if (asyncContext->errorMsg != nullptr) {
         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
@@ -420,9 +393,23 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
             asyncContext, asyncContext->work);
     } else {
         imgType = ParserArgumentType(env, argValue[NUM_1 - 1]); // Re-evaluate image type if necessary
-        result = CreatePromiseOrHandleError(env, status, asyncContext, imgType);
+        if (imgType == ImageType::TYPE_PIXEL_MAP) {
+            EffectKitNapiUtils::GetInstance().CreateAsyncWork(env, status, "CreateColorPickerFromPixelMap",
+                CreateColorPickerFromPixelmapExecute, CreateColorPickerFromPixelmapComplete, asyncContext,
+                asyncContext->work);
+        }
     }
 
+    if (status != napi_ok) {
+        if (asyncContext->callbackRef != nullptr) {
+            napi_delete_reference(env, asyncContext->callbackRef);
+        }
+        if (asyncContext->deferred != nullptr) {
+            napi_create_string_utf8(env, "fail to create async work", NAPI_AUTO_LENGTH, &result);
+            napi_reject_deferred(env, asyncContext->deferred, result);
+        }
+        EFFECT_LOG_E("fail to create async work");
+    }
     return result;
 }
 

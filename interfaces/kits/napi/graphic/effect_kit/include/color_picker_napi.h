@@ -50,10 +50,8 @@ private:
     // static mothod
     static std::unique_ptr<ColorPickerAsyncContext> InitializeAsyncContext(
         napi_env env, napi_status& status, napi_value* argValue, size_t argCount);
-    static void ProcessCallbackAndCoordinates(
-        napi_env env, napi_value* argValue, size_t argCount, std::unique_ptr<ColorPickerAsyncContext>& asyncContext);
-    static napi_value CreatePromiseOrHandleError(
-        napi_env env, napi_status status, std::unique_ptr<ColorPickerAsyncContext>& asyncContext, ImageType imgType);
+    static bool ProcessCallbackAndCoordinates(napi_env env, napi_value* argValue, size_t argCount,
+        napi_value& result, std::unique_ptr<ColorPickerAsyncContext>& asyncContext);
     static napi_value CreateColorPicker(napi_env env, napi_callback_info info);
     static void CreateColorPickerFromPixelmapComplete(napi_env env, napi_status status, void* data);
     static napi_value GetScaledPixelMap(napi_env env, napi_callback_info info);
