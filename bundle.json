@@ -97,8 +97,8 @@
           "libuv",
           "icu",
           "libpng",
-          "ffrt",
           "libxml2",
+          "ffrt",
           "skia"
         ],
         "third_party": [

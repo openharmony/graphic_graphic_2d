@@ -235,8 +235,6 @@ public:
     static bool GetHDRImageEnable();
     static bool GetLayerCursorEnable();
     static bool IsForceClient();
-    static bool GetUnmarshParallelFlag();
-    static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
 
     static bool GetDrmMarkedFilterEnabled();

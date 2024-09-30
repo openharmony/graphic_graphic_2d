@@ -20,7 +20,6 @@
 #include <unordered_map>
 
 #include "event_handler.h"
-#include "ffrt_inner.h"
 #include "message_parcel.h"
 
 #include "transaction/rs_transaction_data.h"
@@ -34,7 +33,6 @@ public:
     void RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0);
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();
-    void Wait();
 
     bool ReportTransactionDataStatistics(pid_t pid, RSTransactionData* transactionData,
         bool isNonSystemAppCalling = false);
@@ -61,7 +59,6 @@ private:
     bool willHaveCachedData_ = false;
     int unmarshalTid_ = -1;
     int unmarshalLoad_ = 0;
-    std::vector<ffrt::dependence> cachedDeps_;
 
     std::mutex statisticsMutex_;
     std::unordered_map<pid_t, size_t> transactionDataStatistics_;
