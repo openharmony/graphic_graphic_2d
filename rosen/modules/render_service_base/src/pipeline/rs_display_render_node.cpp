@@ -417,7 +417,6 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
         }
         currentChildrenList_->emplace_back(child);
     }
-    isFullChildrenListValid_ = false;
     return std::atomic_load_explicit(&currentChildrenList_, std::memory_order_acquire);
 }
 
