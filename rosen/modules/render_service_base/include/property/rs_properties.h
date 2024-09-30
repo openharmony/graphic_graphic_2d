@@ -29,7 +29,6 @@
 #include "effect/runtime_blender_builder.h"
 #include "modifier/rs_modifier_type.h"
 #include "property/rs_properties_def.h"
-#include "render/rs_aibar_filter.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
