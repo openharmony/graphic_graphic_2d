@@ -732,6 +732,13 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 #endif
 }
 
+Drawing::BitmapFormat DrawSurfaceBufferOpItem::CreateBitmapFormat(int32_t bufferFormat)
+{
+    bool isRgbx = bufferFormat == OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888;
+    return { isRgbx ? Drawing::ColorType::COLORTYPE_RGB_888X : Drawing::ColorType::COLORTYPE_RGBA_8888,
+        isRgbx ? Drawing::AlphaType::ALPHATYPE_OPAQUE : Drawing::AlphaType::ALPHATYPE_PREMUL };
+}
+
 void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
 {
 #ifdef RS_ENABLE_VK
@@ -745,8 +752,7 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw gpu context is nullptr");
         return;
     }
-    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
-        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat bitmapFormat = CreateBitmapFormat(surfaceBufferInfo_.surfaceBuffer_->GetFormat());
     auto image = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture.GetTextureInfo().GetVKTextureInfo();
     if (!vkTextureInfo || !image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(),
@@ -782,8 +788,7 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(texId_);
     externalTextureInfo.SetFormat(GL_RGBA8_OES);
-    Drawing::BitmapFormat bitmapFormat = { Drawing::ColorType::COLORTYPE_RGBA_8888,
-        Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat bitmapFormat = CreateBitmapFormat(surfaceBufferInfo_.surfaceBuffer_->GetFormat());
     if (!canvas->GetGPUContext()) {
         LOGE("DrawSurfaceBufferOpItem::Draw: gpu context is nullptr");
         return;
