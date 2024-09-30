@@ -2399,11 +2399,14 @@ void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSR
 
 void RSRenderNode::ApplyModifiers()
 {
-    RS_LOGI_IF(DEBUG_NODE,
-        "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d childrenHasSharedTransition_:%{public}d",
-        isFullChildrenListValid_, childrenHasSharedTransition_);
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
+        " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
+        isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
     if (UNLIKELY(!isFullChildrenListValid_)) {
         GenerateFullChildrenList();
+        AddDirtyType(RSModifierType::CHILDREN);
+    } else if (UNLIKELY(!isChildrenSorted_)) {
+        ResortChildren();
         AddDirtyType(RSModifierType::CHILDREN);
     } else if (UNLIKELY(childrenHasSharedTransition_)) {
         // if children has shared transition, force regenerate RSChildrenDrawable
@@ -2481,7 +2484,7 @@ void RSRenderNode::MarkParentNeedRegenerateChildren() const
     if (parent == nullptr) {
         return;
     }
-    parent->isFullChildrenListValid_ = false;
+    parent->isChildrenSorted_ = false;
 }
 
 void RSRenderNode::UpdateDrawableVec()
@@ -3429,6 +3432,7 @@ void RSRenderNode::GenerateFullChildrenList()
     if (children_.empty() && disappearingChildren_.empty()) {
         auto prevFullChildrenList = fullChildrenList_;
         isFullChildrenListValid_ = true;
+        isChildrenSorted_ = true;
         std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
         return;
     }
@@ -3486,6 +3490,34 @@ void RSRenderNode::GenerateFullChildrenList()
 
     // Update the flag to indicate that children are now valid and sorted
     isFullChildrenListValid_ = true;
+    isChildrenSorted_ = true;
+
+    // Move the fullChildrenList to fullChildrenList_ atomically
+    ChildrenListSharedPtr constFullChildrenList = std::move(fullChildrenList);
+    std::atomic_store_explicit(&fullChildrenList_, constFullChildrenList, std::memory_order_release);
+}
+
+void RSRenderNode::ResortChildren()
+{
+    // Make a copy of the fullChildrenList for sorting
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(*fullChildrenList_);
+
+    // temporary fix for wrong z-order
+    for (auto& child : *fullChildrenList) {
+        child->ApplyPositionZModifier();
+    }
+
+    // Sort the children by their z-order
+    std::stable_sort(
+        fullChildrenList->begin(), fullChildrenList->end(), [](const auto& first, const auto& second) -> bool {
+        return first->GetRenderProperties().GetPositionZ() < second->GetRenderProperties().GetPositionZ();
+    });
+
+    // Keep a reference to fullChildrenList_ to prevent its deletion when swapping it
+    auto prevFullChildrenList = fullChildrenList_;
+
+    // Update the flag to indicate that children are now sorted
+    isChildrenSorted_ = true;
 
     // Move the fullChildrenList to fullChildrenList_ atomically
     ChildrenListSharedPtr constFullChildrenList = std::move(fullChildrenList);
