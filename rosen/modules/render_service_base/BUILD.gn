@@ -246,7 +246,6 @@ ohos_source_set("render_service_base_src") {
     "src/drawable/rs_render_node_shadow_drawable.cpp",
 
     #render
-    "src/render/rs_aibar_filter.cpp",
     "src/render/rs_aibar_shader_filter.cpp",
     "src/render/rs_attraction_effect_filter.cpp",
     "src/render/rs_blur_filter.cpp",
@@ -266,7 +265,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_kawase_blur.cpp",
     "src/render/rs_kawase_blur_shader_filter.cpp",
     "src/render/rs_light_up_effect_filter.cpp",
-    "src/render/rs_linear_gradient_blur_filter.cpp",
     "src/render/rs_linear_gradient_blur_shader_filter.cpp",
     "src/render/rs_magnifier_shader_filter.cpp",
     "src/render/rs_mask.cpp",
