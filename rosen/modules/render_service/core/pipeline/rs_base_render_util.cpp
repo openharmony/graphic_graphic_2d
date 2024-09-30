@@ -970,11 +970,11 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, 
         surfaceBuffer->acquireFence = returnValue.fence;
         surfaceBuffer->timestamp = returnValue.timestamp;
         RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
-            "presentWhen = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 " .",
-            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp);
+            "presentWhen = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
+            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
         RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, "
-            "presentWhen = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
-            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp);
+            "presentWhen = %" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
+            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
         // The damages of buffer will be merged here, only single damage is supported so far
         Rect damageAfterMerge = MergeBufferDamages(returnValue.damages);
         if (damageAfterMerge.h <= 0 || damageAfterMerge.w <= 0) {
