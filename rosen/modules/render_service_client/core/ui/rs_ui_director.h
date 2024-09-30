@@ -72,7 +72,7 @@ public:
     int32_t GetCurrentRefreshRateMode();
     int32_t GetAnimateExpectedRate() const;
 
-    uint32_t GetIndex();
+    uint32_t GetIndex() const;
 
 private:
     void AttachSurface();
