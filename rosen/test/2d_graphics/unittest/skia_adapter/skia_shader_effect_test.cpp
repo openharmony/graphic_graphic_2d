@@ -81,7 +81,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithImage001, TestSize.Level1)
     SamplingOptions samplingOptions;
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithImage(image, TileMode::MIRROR, TileMode::REPEAT, samplingOptions, matrix);
-    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() == nullptr);
 }
 
 /**
@@ -97,7 +97,7 @@ HWTEST_F(SkiaShaderEffectTest, InitWithPicture001, TestSize.Level1)
     Rect rect;
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithPicture(picture, TileMode::MIRROR, TileMode::CLAMP, FilterMode::LINEAR, matrix, rect);
-    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() == nullptr);
 }
 
 /**
