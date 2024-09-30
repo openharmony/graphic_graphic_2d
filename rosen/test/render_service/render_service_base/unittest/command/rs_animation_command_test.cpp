@@ -48,6 +48,7 @@ HWTEST_F(RSAnimationCommandTest, TestRSAnimationCommand001, TestSize.Level1)
     AnimationCallbackEvent event = static_cast<AnimationCallbackEvent>(1);
     AnimationCommandHelper::SetAnimationCallbackProcessor(TestProcessor);
     AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
+    ASSERT_EQ(targetId, -1);
 }
 
 /**

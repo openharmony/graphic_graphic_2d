@@ -412,6 +412,6 @@ HWTEST_F(RSMaterialFilterTest, GetDetailedDescription001, TestSize.Level1)
     MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
     RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
 
-    rsMaterialFilter.GetDetailedDescription();
+    ASSERT_NE(rsMaterialFilter.GetDetailedDescription(), "");
 }
 } // namespace OHOS::Rosen

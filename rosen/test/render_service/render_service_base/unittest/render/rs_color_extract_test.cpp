@@ -54,12 +54,16 @@ HWTEST_F(RSColorExtractTest, testInterface, TestSize.Level1)
     size_t rowBytes = 1;
     auto pixelmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
     auto colorExtract = std::make_shared<RSColorExtract>(pixelmap);
+    ASSERT_TRUE(colorExtract != nullptr);
 
     double coordinates[4] = {1.f, 1.f, 1.f, 1.f};
     auto ohterColorExtract = std::make_shared<RSColorExtract>(pixelmap, coordinates);
+    ASSERT_TRUE(ohterColorExtract != nullptr);
 
     auto nullColorExtract1 = std::make_shared<RSColorExtract>(nullptr);
     auto nullColorExtract2 = std::make_shared<RSColorExtract>(nullptr, nullptr);
+    ASSERT_TRUE(nullColorExtract1 != nullptr);
+    ASSERT_TRUE(nullColorExtract2 != nullptr);
 }
 
 /**

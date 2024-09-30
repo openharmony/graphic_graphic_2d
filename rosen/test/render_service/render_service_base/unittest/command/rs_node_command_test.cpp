@@ -70,6 +70,7 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand003, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
+    ASSERT_EQ(nodeId, -1);
 }
 
 /**

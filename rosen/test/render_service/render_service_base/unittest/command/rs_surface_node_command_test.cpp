@@ -485,6 +485,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
     std::string name = "name";             // for test
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
     SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, windowType);
+    ASSERT_TRUE(context.GetMutableNodeMap().renderNodeMap_.count(1));
 }
 
 /**
