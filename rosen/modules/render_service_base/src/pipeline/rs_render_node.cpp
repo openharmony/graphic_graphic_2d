@@ -1536,7 +1536,7 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_
     parentDirty = parentDirty || (dirtyStatus_ != NodeDirty::CLEAN);
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
     bool dirty = GetMutableRenderProperties().UpdateGeometry(parentProperties, parentDirty, offset);
-    if ((IsDirty() || dirty) && 
+    if ((IsDirty() || dirty) &&
         (renderContent_->drawCmdModifiers_.find(RSModifierType::GEOMETRYTRANS) !=
         renderContent_->drawCmdModifiers_.end())) {
         RSModifierContext context = { GetMutableRenderProperties() };
