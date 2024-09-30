@@ -264,11 +264,9 @@ public:
         return preFirstLevelNodeIdSet_;
     }
 
-    void AddPreFirstLevelNodeIdSet(const std::set<NodeId>& preSet)
+    inline void AddPreFirstLevelNodeIdSet(const std::set<NodeId>& preSet)
     {
-        for (const auto& it : preSet) {
-            preFirstLevelNodeIdSet_.insert(it);
-        }
+        preFirstLevelNodeIdSet_.insert(preSet.begin(), preSet.end());
     }
 
     // only use for ARKTS_CARD
