@@ -362,6 +362,7 @@ bool ColorPickerNapi::ProcessCallbackAndCoordinates(napi_env env, napi_value* ar
     if (asyncContext->callbackRef == nullptr) {
         napi_create_promise(env, &(asyncContext->deferred), &result);
     }
+    return true;
 }
 
 napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info info)
