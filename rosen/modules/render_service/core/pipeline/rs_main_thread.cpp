@@ -3752,19 +3752,11 @@ void RSMainThread::UpdateUIFirstSwitch()
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
-    auto screenManager_ = CreateOrGetScreenManager();
-    if (!screenManager_) {
-        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-        return;
-    }
-    uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
     if (deviceType_ != DeviceType::PC) {
         if (hasProtectedLayer_) {
             isUiFirstOn_ = false;
-        } else if (isFoldScreenDevice_) {
-            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == FOLD_DEVICE_SCREEN_NUMBER);
         } else {
-            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == 1);
+            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
         }
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
