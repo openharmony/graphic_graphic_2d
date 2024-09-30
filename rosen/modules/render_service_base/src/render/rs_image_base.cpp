@@ -319,6 +319,10 @@ void RSImageBase::IncreaseCacheRefCount(uint64_t uniqueId, bool useSkImage, std:
 bool RSImageBase::Marshalling(Parcel& parcel) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+        ROSEN_LOGE("RSImageBase::Marshalling, failed to write begin position");
+        return false;
+    }
     uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, srcRect_) &&
@@ -327,16 +331,23 @@ bool RSImageBase::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, versionId) &&
                    RSMarshallingHelper::Marshalling(parcel, image_) &&
                    RSMarshallingHelper::Marshalling(parcel, pixelMap_);
+    if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+        ROSEN_LOGE("RSImageBase::Marshalling, failed to write end position");
+        return false;
+    }
     return success;
 }
 
 RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
 {
+    if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
+        RS_LOGE("RSImageBase::Unmarshalling, CheckReadPosition begin failed");
+    }
     uint64_t uniqueId;
     RectF srcRect;
     RectF dstRect;
     if (!UnmarshallingIdAndRect(parcel, uniqueId, srcRect, dstRect)) {
-        RS_LOGE("RSImage::Unmarshalling UnmarshalIdAndSize fail");
+        RS_LOGE("RSImageBase::Unmarshalling UnmarshalIdAndSize fail");
         return nullptr;
     }
 
@@ -347,7 +358,9 @@ RSImageBase* RSImageBase::Unmarshalling(Parcel& parcel)
     if (!UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSkImage, img, pixelMap, imagepixelAddr)) {
         return nullptr;
     }
-
+    if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
+        RS_LOGE("RSImageBase::Unmarshalling, CheckReadPosition end failed");
+    }
     RSImageBase* rsImage = new RSImageBase();
     rsImage->SetImage(img);
     rsImage->SetImagePixelAddr(imagepixelAddr);

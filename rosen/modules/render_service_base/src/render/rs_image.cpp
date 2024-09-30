@@ -606,6 +606,10 @@ bool RSImage::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
     RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
+    if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+        ROSEN_LOGE("RSImage::Marshalling, failed to write begin position");
+        return false;
+    }
     uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
@@ -622,11 +626,18 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, scale_) &&
                    parcel.WriteBool(fitMatrix_.has_value()) &&
                    fitMatrix_.has_value() ? RSMarshallingHelper::Marshalling(parcel, fitMatrix_.value()) : true;
+    if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+        ROSEN_LOGE("RSImage::Marshalling, failed to write end position");
+        return false;
+    }
     return success;
 }
 
 RSImage* RSImage::Unmarshalling(Parcel& parcel)
 {
+    if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
+        RS_LOGE("RSImage::Unmarshalling, CheckReadPosition begin failed");
+    }
     uint64_t uniqueId;
     int width;
     int height;
@@ -654,6 +665,9 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     Drawing::Matrix fitMatrix;
     if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale, hasFitMatrix, fitMatrix)) {
         return nullptr;
+    }
+    if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
+        RS_LOGE("RSImage::Unmarshalling, CheckReadPosition end failed");
     }
     RSImage* rsImage = new RSImage();
     rsImage->SetImage(img);
