@@ -192,9 +192,10 @@ bool RSRenderNode::IsPureContainer() const
 bool RSRenderNode::IsContentNode() const
 {
     auto& drawCmdModifiers_ = renderContent_->drawCmdModifiers_;
-    return ((drawCmdModifiers_.size() == 1 && drawCmdModifiers_.count(RSModifierType::CONTENT_STYLE)) ||
-               drawCmdModifiers_.empty()) &&
-           !GetRenderProperties().isDrawn_;
+    return ((drawCmdModifiers_.size() == 1 &&
+        (drawCmdModifiers_.find(RSModifierType::CONTENT_STYLE) != drawCmdModifiers_.end())) ||
+        drawCmdModifiers_.empty()) &&
+        !GetRenderProperties().isDrawn_;
 }
 
 namespace {
@@ -1357,7 +1358,8 @@ const RectI& RSRenderNode::GetAbsDrawRect() const
 
 bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr)
 {
-    if (!renderContent_->drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
+    if (renderContent_->drawCmdModifiers_.find(RSModifierType::GEOMETRYTRANS) ==
+        renderContent_->drawCmdModifiers_.end()) {
         return false;
     }
     RSModifierContext context = { GetMutableRenderProperties() };
@@ -1534,7 +1536,9 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_
     parentDirty = parentDirty || (dirtyStatus_ != NodeDirty::CLEAN);
     auto parentProperties = parent ? &parent->GetRenderProperties() : nullptr;
     bool dirty = GetMutableRenderProperties().UpdateGeometry(parentProperties, parentDirty, offset);
-    if ((IsDirty() || dirty) && renderContent_->drawCmdModifiers_.count(RSModifierType::GEOMETRYTRANS)) {
+    if ((IsDirty() || dirty) &&
+        (renderContent_->drawCmdModifiers_.find(RSModifierType::GEOMETRYTRANS) !=
+        renderContent_->drawCmdModifiers_.end())) {
         RSModifierContext context = { GetMutableRenderProperties() };
         for (auto& modifier : renderContent_->drawCmdModifiers_[RSModifierType::GEOMETRYTRANS]) {
             modifier->Apply(context);
