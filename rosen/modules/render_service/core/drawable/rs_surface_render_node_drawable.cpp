@@ -363,6 +363,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetId(), name_.c_str(), surfaceParams->GetOcclusionVisible(),
         surfaceParams->GetBounds().ToString().c_str());
 
+    RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
+        surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
+        return;
+    }
+
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
         return;
     }
@@ -521,6 +527,11 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
+        surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
+        return;
+    }
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!uniParam)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture uniParam is nullptr");
