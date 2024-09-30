@@ -107,6 +107,8 @@ public:
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
     void SetTextureExport(bool isTextureExportNode) override;
+    void SetGlobalPositionEnabled(bool isEnabled);
+    bool GetGlobalPositionEnabled() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
@@ -183,6 +185,7 @@ private:
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    bool isGlobalPositionEnabled_ = false;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

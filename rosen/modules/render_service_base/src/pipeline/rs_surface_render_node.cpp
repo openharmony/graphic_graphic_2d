@@ -757,6 +757,30 @@ bool RSSurfaceRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
+void RSSurfaceRenderNode::SetGlobalPositionEnabled(bool isEnabled)
+{
+    if (isGlobalPositionEnabled_ == isEnabled) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        ROSEN_LOGE("RSSurfaceRenderNode::SetGlobalPositionEnabled failed! surfaceParams is null. id:%{public}"
+            "" PRIu64 ", isEnabled:%{public}d", GetId(), isEnabled);
+        return;
+    }
+    surfaceParams->SetGlobalPositionEnabled(isEnabled);
+    AddToPendingSyncList();
+
+    isGlobalPositionEnabled_ = isEnabled;
+    ROSEN_LOGI("RSSurfaceRenderNode::SetGlobalPositionEnabled id:%{public}" PRIu64 ", isEnabled:%{public}d",
+        GetId(), isEnabled);
+}
+
+bool RSSurfaceRenderNode::GetGlobalPositionEnabled() const
+{
+    return isGlobalPositionEnabled_;
+}
+
 void RSSurfaceRenderNode::SetForceHardwareAndFixRotation(bool flag)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());

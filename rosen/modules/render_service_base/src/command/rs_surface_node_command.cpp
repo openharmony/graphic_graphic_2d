@@ -240,6 +240,13 @@ void SurfaceNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
     }
 }
 
+void SurfaceNodeCommandHelper::SetGlobalPositionEnabled(RSContext& context, NodeId nodeId, bool isEnabled)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetGlobalPositionEnabled(isEnabled);
+    }
+}
+
 #ifdef USE_SURFACE_TEXTURE
 void SurfaceNodeCommandHelper::CreateSurfaceExt(RSContext& context, NodeId id,
     const std::shared_ptr<RSSurfaceTexture>& surfaceExt)

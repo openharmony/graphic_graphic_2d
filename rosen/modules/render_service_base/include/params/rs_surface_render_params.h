@@ -341,6 +341,9 @@ public:
     void SetIsSubSurfaceNode(bool isSubSurfaceNode);
     bool IsSubSurfaceNode() const;
 
+    void SetGlobalPositionEnabled(bool isEnabled);
+    bool GetGlobalPositionEnabled() const;
+
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
     bool IsNodeToBeCaptured() const;
 
@@ -536,6 +539,7 @@ private:
     bool animateState_ = false;
     bool isRotating_ = false;
     bool isSubSurfaceNode_ = false;
+    bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
     std::set<NodeId> skipLayerIds_= {};

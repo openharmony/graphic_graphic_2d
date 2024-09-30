@@ -142,6 +142,10 @@ protected:
     thread_local static inline int opincRootTotalCount_ = 0;
     static inline RectI screenRectInfo_ = {0, 0, 0, 0};
 
+    static inline int32_t offsetX_ = 0;
+    static inline int32_t offsetY_ = 0;
+    static inline ScreenId curDisplayScreenId_ = INVALID_SCREEN_ID;
+
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
     DrawableCacheType GetCacheType() const;

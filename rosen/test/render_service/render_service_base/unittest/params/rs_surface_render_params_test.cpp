@@ -255,4 +255,20 @@ HWTEST_F(RSSurfaceRenderParamsTest, BrightnessRatioTest, TestSize.Level1)
     params.SetBrightnessRatio(SET_BRIGHTNESS_RATIO);
     EXPECT_EQ(params.GetBrightnessRatio(), SET_BRIGHTNESS_RATIO);
 }
+
+/**
+ * @tc.name: SetGlobalPositionEnabled
+ * @tc.desc: SetGlobalPositionEnabled and GetGlobalPositionEnabled test
+ * @tc.type:FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetGlobalPositionEnabled, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(112);
+    params.SetGlobalPositionEnabled(false);
+    EXPECT_EQ(params.GetGlobalPositionEnabled(), false);
+
+    params.SetGlobalPositionEnabled(true);
+    EXPECT_EQ(params.GetGlobalPositionEnabled(), true);
+}
 }

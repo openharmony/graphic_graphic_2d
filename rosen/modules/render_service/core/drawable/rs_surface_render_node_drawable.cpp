@@ -92,6 +92,14 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
 {
     auto bounds = surfaceParams.GetFrameRect();
 
+    if (surfaceParams.GetGlobalPositionEnabled()) {
+        auto matrix = surfaceParams.GetTotalMatrix();
+        matrix.Translate(-offsetX_, -offsetY_);
+        canvas.ConcatMatrix(matrix);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnGeneralProcess Translate screenId=[%" PRIu64 "] "
+            "offsetX=%d offsetY=%d", curDisplayScreenId_, offsetX_, offsetY_);
+    }
+
     // 1. draw background
     DrawBackground(canvas, bounds);
 
@@ -830,6 +838,15 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
     bool useDmaBuffer = UseDmaBuffer();
+    if (surfaceParams.GetGlobalPositionEnabled() &&
+        surfaceParams.GetUifirstUseStarting() == INVALID_NODEID && !useDmaBuffer) {
+        auto matrix = surfaceParams.GetTotalMatrix();
+        matrix.Translate(-offsetX_, -offsetY_);
+        canvas.ConcatMatrix(matrix);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DealWithUIFirstCache Translate screenId=[%" PRIu64 "] "
+            "offsetX=%d offsetY=%d", curDisplayScreenId_, offsetX_, offsetY_);
+    }
+
     DrawBackground(canvas, bounds);
     bool drawCacheSuccess = true;
     if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {

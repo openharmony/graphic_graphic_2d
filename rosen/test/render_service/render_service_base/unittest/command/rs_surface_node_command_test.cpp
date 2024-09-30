@@ -343,6 +343,22 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetBootAnimation001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetGlobalPositionEnabled001
+ * @tc.desc: SetGlobalPositionEnabled test.
+ * @tc.type: FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetGlobalPositionEnabled001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(-1);
+    SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id, false);
+    NodeId id2 = 10;
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id2, true);
+}
+
+/**
  * @tc.name: AttachToDisplay001
  * @tc.desc: AttachToDisplay test.
  * @tc.type: FUNC

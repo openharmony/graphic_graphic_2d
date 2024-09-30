@@ -1213,6 +1213,22 @@ HWTEST_F(RSSurfaceNodeTest, SetBootAnimationTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetGlobalPositionEnabled Test
+ * @tc.desc: SetGlobalPositionEnabled and GetGlobalPositionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabled, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetGlobalPositionEnabled(true);
+    ASSERT_EQ(true, surfaceNode->GetGlobalPositionEnabled());
+    surfaceNode->SetGlobalPositionEnabled(false);
+    ASSERT_EQ(false, surfaceNode->GetGlobalPositionEnabled());
+}
+
+/**
  * @tc.name: IsBufferAvailableTest Test
  * @tc.desc: test results of IsBufferAvailable
  * @tc.type: FUNC

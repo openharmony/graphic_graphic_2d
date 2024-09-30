@@ -54,6 +54,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_DETACH_TO_DISPLAY,
     SURFACE_NODE_SET_FORCE_HARDWARE_AND_FIX_ROTATION,
     SURFACE_NODE_SET_BOOT_ANIMATION,
+    SURFACE_NODE_SET_GLOBAL_POSITION_ENABLED,
     SURFACE_NODE_CREATE_SURFACE_EXT,
     SURFACE_NODE_SET_FOREGROUND,
     SURFACE_NODE_SET_SURFACE_ID,
@@ -96,6 +97,7 @@ public:
     static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
+    static void SetGlobalPositionEnabled(RSContext& context, NodeId nodeId, bool isEnabled);
     static void SetForceHardwareAndFixRotation(RSContext& context, NodeId nodeId, bool flag);
 #ifdef USE_SURFACE_TEXTURE
     static void CreateSurfaceExt(RSContext& context, NodeId id, const std::shared_ptr<RSSurfaceTexture>& surfaceExt);
@@ -125,6 +127,8 @@ ADD_COMMAND(RSSurfaceNodeSetHardwareAndFixRotation, ARG(SURFACE_NODE, SURFACE_NO
     SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetBootAnimation,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_BOOT_ANIMATION, SurfaceNodeCommandHelper::SetBootAnimation, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetGlobalPositionEnabled, ARG(SURFACE_NODE, SURFACE_NODE_SET_GLOBAL_POSITION_ENABLED,
+    SurfaceNodeCommandHelper::SetGlobalPositionEnabled, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER, SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipLayer,

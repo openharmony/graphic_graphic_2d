@@ -713,6 +713,28 @@ bool RSSurfaceNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
+void RSSurfaceNode::SetGlobalPositionEnabled(bool isEnabled)
+{
+    if (isGlobalPositionEnabled_ == isEnabled) {
+        return;
+    }
+
+    isGlobalPositionEnabled_ = isEnabled;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetGlobalPositionEnabled>(GetId(), isEnabled);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGI("RSSurfaceNode::SetGlobalPositionEnabled, surfaceNodeId:[%" PRIu64 "] isEnabled:%s",
+        GetId(), isEnabled ? "true" : "false");
+}
+
+bool RSSurfaceNode::GetGlobalPositionEnabled() const
+{
+    return isGlobalPositionEnabled_;
+}
+
 #ifdef USE_SURFACE_TEXTURE
 void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
 {

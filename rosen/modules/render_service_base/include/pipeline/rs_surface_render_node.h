@@ -442,6 +442,9 @@ public:
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
 
+    void SetGlobalPositionEnabled(bool isEnabled);
+    bool GetGlobalPositionEnabled() const;
+
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
@@ -1272,6 +1275,7 @@ private:
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
     bool specialLayerChanged_ = false;
+    bool isGlobalPositionEnabled_ = false;
 
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
