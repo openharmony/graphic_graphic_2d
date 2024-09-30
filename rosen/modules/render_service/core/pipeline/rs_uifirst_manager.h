@@ -205,7 +205,7 @@ private:
     void ConvertPendingNodeToDrawable();
     void CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node);
     void ResetCurrentFrameDeletedCardNodes();
-    bool IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> node);
+    bool IsPreFirstLevelNodeDoingAndTryClear(std::shared_ptr<RSRenderNode> node);
     SkipSyncState CollectSkipSyncNodeWithDrawableState(const std::shared_ptr<RSRenderNode> &node);
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
     bool IsVMSurfaceName(std::string surfaceName);
