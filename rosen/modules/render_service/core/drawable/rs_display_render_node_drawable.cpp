@@ -463,6 +463,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         screenManager->ForceRefreshOneFrameIfNoRNV();
         return;
     }
+    if (curScreenInfo.skipFrameInterval > 1) {
+        virtualDirtyRefresh_ = true;
+    }
 
     auto screenInfo = params->GetScreenInfo();
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
@@ -769,6 +772,9 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     ScreenInfo mainScreenInfo = screenManager->QueryScreenInfo(mirrorParams->GetScreenId());
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(params.GetScreenId());
+    if (curScreenInfo.skipFrameInterval > 1) {
+        return mappedDamageRegionRects;
+    }
 
     int32_t bufferAge = virtualProcesser->GetBufferAge();
     int32_t actualAge = curScreenInfo.skipFrameInterval ?
