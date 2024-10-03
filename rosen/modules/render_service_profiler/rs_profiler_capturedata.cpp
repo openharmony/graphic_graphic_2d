@@ -53,52 +53,52 @@ const std::string& RSCaptureData::GetProperty(const std::string& name) const
 
 float RSCaptureData::GetPropertyFloat(const std::string& name) const
 {
-    return std::stof(GetProperty(name));
+    return Utils::ToFp32(GetProperty(name));
 }
 
 double RSCaptureData::GetPropertyDouble(const std::string& name) const
 {
-    return std::stod(GetProperty(name));
+    return Utils::ToFp64(GetProperty(name));
 }
 
 int8_t RSCaptureData::GetPropertyInt8(const std::string& name) const
 {
-    return static_cast<int8_t>(std::stoi(GetProperty(name)));
+    return Utils::ToInt8(GetProperty(name));
 }
 
 uint8_t RSCaptureData::GetPropertyUint8(const std::string& name) const
 {
-    return static_cast<uint8_t>(std::stoul(GetProperty(name)));
+    return Utils::ToUint8(GetProperty(name));
 }
 
 int16_t RSCaptureData::GetPropertyInt16(const std::string& name) const
 {
-    return static_cast<int16_t>(std::stoi(GetProperty(name)));
+    return Utils::ToInt16(GetProperty(name));
 }
 
 uint16_t RSCaptureData::GetPropertyUint16(const std::string& name) const
 {
-    return static_cast<uint16_t>(std::stoul(GetProperty(name)));
+    return Utils::ToUint16(GetProperty(name));
 }
 
 int32_t RSCaptureData::GetPropertyInt32(const std::string& name) const
 {
-    return static_cast<int32_t>(std::stol(GetProperty(name)));
+    return Utils::ToInt32(GetProperty(name));
 }
 
 uint32_t RSCaptureData::GetPropertyUint32(const std::string& name) const
 {
-    return static_cast<uint32_t>(std::stoul(GetProperty(name)));
+    return Utils::ToUint32(GetProperty(name));
 }
 
 int64_t RSCaptureData::GetPropertyInt64(const std::string& name) const
 {
-    return static_cast<int64_t>(std::stoll(GetProperty(name)));
+    return Utils::ToInt64(GetProperty(name));
 }
 
 uint64_t RSCaptureData::GetPropertyUint64(const std::string& name) const
 {
-    return static_cast<uint64_t>(std::stoull(GetProperty(name)));
+    return Utils::ToUint64(GetProperty(name));
 }
 
 void RSCaptureData::Serialize(std::vector<char>& out)
