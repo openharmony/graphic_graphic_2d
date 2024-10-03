@@ -2437,6 +2437,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         UpdateDstRect(*hwcNodePtr, rect, prepareClipRect_);
         UpdateSrcRect(*hwcNodePtr, matrix, rect);
         UpdateHwcNodeByTransform(*hwcNodePtr);
+        UpdateHwcNodeEnableByBackgroundAlpha(*hwcNodePtr);
         UpdateHwcNodeEnableBySrcRect(*hwcNodePtr);
         UpdateHwcNodeEnableByBufferSize(*hwcNodePtr);
         hwcNodePtr->SetTotalMatrix(matrix);
