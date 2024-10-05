@@ -1597,7 +1597,8 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
-    auto itr = std::find_if(children->begin(), children->end(), [](const std::shared_ptr<RSRenderNode>& child) -> bool {
+    auto itr = std::find_if(children->begin(), children->end(),
+        [deviceType = deviceType_](const std::shared_ptr<RSRenderNode>& child) -> bool {
             if (child == nullptr) {
                 return false;
             }
@@ -1609,7 +1610,18 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 // wired projection case
                 return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
             }
-            return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+            if (deviceType != DeviceType::PC) {
+                return displayNodeSp->GetCompositeType() ==
+                    RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+            }
+            auto screenManager = CreateOrGetScreenManager();
+            if (!screenManager) {
+                return false;
+            }
+            RSScreenType screenType;
+            screenManager->GetScreenType(displayNodeSp->GetScreenId(), screenType);
+            // For PC expand physical screen.
+            return displayNodeSp->GetScreenId() != 0 && screenType != RSScreenType::VIRTUAL_TYPE_SCREEN;
     });
 
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
