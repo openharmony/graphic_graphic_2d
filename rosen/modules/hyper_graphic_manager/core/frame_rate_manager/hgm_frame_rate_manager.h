@@ -189,6 +189,7 @@ private:
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
+    void HandleMainScreenChange();
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     void MarkVoteChange(const std::string& voter = "");
@@ -244,6 +245,7 @@ private:
 
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     ScreenId curScreenId_ = 0;
+    std::map<ScreenId, ScreenPowerStatus> screensPowerStatus_{};
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
     int32_t idleFps_ = OLED_60_HZ;
