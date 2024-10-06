@@ -1559,7 +1559,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
     auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(rootId);
     if (!uifirstRootNodeDrawable || uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
-        RS_LOGE("uifirst invalid uifirstrootNodeId %" PRIu64, rootId);
+        RS_LOGE("uifirst invalid uifirstrootNodeId %{public}" PRIu64, rootId);
         return false;
     }
     auto uifirstRootSurfaceNodeDrawable =
@@ -1578,7 +1578,8 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     notifyCv_.wait_for(lock, TIME_OUT, pred);
     auto ret = pred();
     if (!ret) {
-        RS_LOGE("uifirst nodeId %" PRIu64" wait uifirstrootNodeId %" PRIu64" until timeout", params.GetId(), rootId);
+        RS_LOGE("uifirst nodeId %{public}" PRIu64
+            " wait uifirstrootNodeId %{public}" PRIu64 " until timeout", params.GetId(), rootId);
     }
     return ret;
 }
