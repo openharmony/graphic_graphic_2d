@@ -110,7 +110,7 @@ public:
         return renderThreadParams_;
     }
 
-    void RenderServiceTreeDump(std::string& dumpString) const;
+    void RenderServiceTreeDump(std::string& dumpString);
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
 

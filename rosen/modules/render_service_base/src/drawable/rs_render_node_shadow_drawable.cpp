@@ -58,4 +58,13 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
         nodeDrawable_->drawCmdList_[i](&canvas, &rect);
     }
 }
+
+void RSRenderNodeShadowDrawable::DumpDrawableTree(int32_t depth, std::string &out, const RSContext &context) const
+{
+    for (int32_t i = 0; i < depth; ++i) {
+        out += "  ";
+    }
+    RSRenderNode::DumpNodeType(nodeType_, out);
+    out += "[" + std::to_string(nodeId_) + "] Draw Shadow Only\n";
+}
 } // namespace OHOS::Rosen::DrawableV2

@@ -26,7 +26,7 @@ public:
     ~RSRenderNodeShadowDrawable() override = default;
 
     void Draw(Drawing::Canvas& canvas) override;
-
+    void DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const override;
 private:
     RSRenderNodeDrawableAdapter::SharedPtr nodeDrawable_;
 };

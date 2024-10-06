@@ -1413,33 +1413,24 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
     if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
         return;
     }
-    // update dirty region information that depends on geoPtr.
+    // update OVERLAY_RECT
     auto& properties = GetRenderProperties();
-    if (auto& geoPtr = properties.GetBoundsGeometry()) {
-        // drawRegion can be nullptr if not set.
-        if (auto drawRegion = properties.GetDrawRegion()) {
+    if (auto drawRegion = properties.GetDrawRegion()) {
+        if (auto& geoPtr = properties.GetBoundsGeometry()) {
             dirtyManager.UpdateDirtyRegionInfoForDfx(
                 GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, geoPtr->MapAbsRect(*drawRegion));
         }
+    } else {
         dirtyManager.UpdateDirtyRegionInfoForDfx(
-            GetId(), GetType(), DirtyRegionType::SHADOW_RECT, geoPtr->MapAbsRect(localShadowRect_.ConvertTo<float>()));
-        dirtyManager.UpdateDirtyRegionInfoForDfx(GetId(),
-            GetType(), DirtyRegionType::OUTLINE_RECT, geoPtr->MapAbsRect(localOutlineRect_.ConvertTo<float>()));
+            GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, RectI());
     }
-
-    // update dirty region information in abs Coords.
+    // update UPDATE_DIRTY_REGION
     dirtyManager.UpdateDirtyRegionInfoForDfx(
         GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
-    dirtyManager.UpdateDirtyRegionInfoForDfx(
-        GetId(), GetType(), DirtyRegionType::FILTER_RECT, filterRegion_);
-    if (LastFrameSubTreeSkipped()) {
-        dirtyManager.UpdateDirtyRegionInfoForDfx(
-            GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_RECT, subTreeDirtyRegion_);
-    }
-    if (properties.GetClipToBounds() || properties.GetClipToFrame()) {
-        dirtyManager.UpdateDirtyRegionInfoForDfx(
-            GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, GetAbsDrawRect());
-    }
+    DirtyRegionInfoForDFX dirtyRegionInfo;
+    dirtyRegionInfo.oldDirty = oldDirty_;
+    dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
+    stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,
@@ -4162,49 +4153,6 @@ void RSRenderNode::SetChildrenHasUIExtension(bool childrenHasUIExtension)
     if (parent && parent->ChildrenHasUIExtension() != childrenHasUIExtension) {
         parent->SetChildrenHasUIExtension(childrenHasUIExtension);
     }
-}
-
-void RSRenderNode::DumpDrawableTree(int32_t depth, std::string& out) const
-{
-    for (int32_t i = 0; i < depth; ++i) {
-        out += "  ";
-    }
-    RSRenderNode::DumpNodeType(Type, out);
-    out += "[" + std::to_string(id_) + "]";
-    DumpSubClassNode(out);
-
-    if (renderDrawable_) {
-        out += ", DrawableVec:[" + DumpDrawableVec() + "]";
-        renderDrawable_->DumpDrawableTree(out);
-    } else {
-        out += ", drawable null";
-    }
-
-    auto childList = GetChildren();
-    if (childList) {
-        for (auto childNode : *childList) {
-            if (childNode) {
-                childNode->DumpDrawableTree(depth + 1, out);
-            }
-        }
-    }
-}
-
-std::string RSRenderNode::DumpDrawableVec() const
-{
-    std::string str;
-    for (uint8_t i = 0; i < drawableVec_.size(); ++i) {
-        if (drawableVec_[i]) {
-            str += std::to_string(i) + ", ";
-        }
-    }
-    // str has more than 2 chars
-    if (str.length() > 2) {
-        str.pop_back();
-        str.pop_back();
-    }
-
-    return str;
 }
 
 bool SharedTransitionParam::UpdateHierarchyAndReturnIsLower(const NodeId nodeId)

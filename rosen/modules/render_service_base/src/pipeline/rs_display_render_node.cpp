@@ -332,7 +332,7 @@ void RSDisplayRenderNode::UpdateRotation()
     if (boundsGeoPtr == nullptr) {
         return;
     }
-    lastRotationChanged_ = IsRotationChanged();
+    lastRotationChanged = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
     preRotationStatus_ = curRotationStatus_;
     curRotationStatus_ = IsRotationChanged();
