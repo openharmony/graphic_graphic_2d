@@ -1095,6 +1095,27 @@ const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMall
     return data;
 }
 
+bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
+{
+    bool isClientEnabled = false;
+    if (!parcel.ReadBool(isClientEnabled)) {
+        return false;
+    }
+    if (!isClientEnabled) {
+        return false;
+    }
+
+    [[maybe_unused]] const uint64_t id = parcel.ReadUint64();
+ 
+    if (g_mode == Mode::READ) {
+        constexpr uint32_t skipBytes = 24u;
+        parcel.SkipBytes(skipBytes);
+        return true;
+    }
+
+    return false;
+}
+
 uint32_t RSProfiler::GetNodeDepth(const std::shared_ptr<RSRenderNode> node)
 {
     uint32_t depth = 0;

@@ -1486,6 +1486,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
 
 bool RSMarshallingHelper::SkipPixelMap(Parcel& parcel)
 {
+    if (RS_PROFILER_SKIP_PIXELMAP(parcel)) {
+        return true;
+    }
     auto size = parcel.ReadInt32();
     if (size != -1) {
         parcel.SkipBytes(size);
@@ -2218,6 +2221,9 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
     if (static_cast<unsigned int>(bufferSize) < MIN_DATA_SIZE ||
         (!g_useSharedMem && g_tid == std::this_thread::get_id())) {
         parcel.SkipBytes(size);
+        return true;
+    }
+    if (RS_PROFILER_SKIP_PARCEL_DATA(parcel, size)) {
         return true;
     }
     // read from ashmem

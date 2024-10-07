@@ -586,6 +586,16 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
     return PixelMapHelper::Unmarshal(parcel);
 }
 
+bool RSProfiler::SkipPixelMap(Parcel& parcel)
+{
+    if (RSProfiler::IsEnabled() && RSProfiler::GetMode() == Mode::WRITE) {
+        std::shared_ptr<Media::PixelMap> pixelMap;
+        RSMarshallingHelper::Unmarshalling(parcel, pixelMap);
+        return true;
+    }
+    return false;
+}
+
 bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map)
 {
     if (!map) {

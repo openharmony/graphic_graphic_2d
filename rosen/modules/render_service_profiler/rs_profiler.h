@@ -46,10 +46,12 @@
 #define RS_PROFILER_EXECUTE_COMMAND(command) RSProfiler::ExecuteCommand(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) RSProfiler::MarshalPixelMap(parcel, map)
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) RSProfiler::UnmarshalPixelMap(parcel)
+#define RS_PROFILER_SKIP_PIXELMAP(parcel) RSProfiler::SkipPixelMap(parcel)
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData) RSProfiler::MarshalDrawingImage(image, compressData)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion) RSProfiler::SetDirtyRegion(dirtyRegion)
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel) RSProfiler::WriteParcelData(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSProfiler::ReadParcelData(parcel, size, isMalloc)
+#define RS_PROFILER_SKIP_PARCEL_DATA(parcel, size) RSProfiler::SkipParcelData(parcel, size)
 #define RS_PROFILER_GET_FRAME_NUMBER() RSProfiler::GetFrameNumber()
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN() RSProfiler::OnParallelRenderBegin()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber) RSProfiler::OnParallelRenderEnd(renderFrameNumber)
@@ -78,10 +80,12 @@
 #define RS_PROFILER_EXECUTE_COMMAND(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) (map)->Marshalling(parcel)
 #define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) Media::PixelMap::Unmarshalling(parcel)
+#define RS_PROFILER_SKIP_PIXELMAP(parcel) false
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc)
+#define RS_PROFILER_SKIP_PARCEL_DATA(parcel, size, retCode) false
 #define RS_PROFILER_GET_FRAME_NUMBER() 0
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
@@ -173,13 +177,14 @@ public:
     RSB_EXPORT static void ExecuteCommand(const RSCommand* command);
     RSB_EXPORT static bool MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map);
     RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel);
+    RSB_EXPORT static bool SkipPixelMap(Parcel& parcel);
     RSB_EXPORT static void MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image,
         std::shared_ptr<Drawing::Data>& compressData);
     RSB_EXPORT static void SetDirtyRegion(const Occlusion::Region& dirtyRegion);
 
     RSB_EXPORT static void WriteParcelData(Parcel& parcel);
     RSB_EXPORT static const void* ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc);
-
+    RSB_EXPORT static bool SkipParcelData(Parcel& parcel, size_t size);
     RSB_EXPORT static uint32_t GetFrameNumber();
     RSB_EXPORT static bool ShouldBlockHWCNode();
 
