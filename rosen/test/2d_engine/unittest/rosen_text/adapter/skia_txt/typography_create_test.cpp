@@ -35,8 +35,10 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest001, Te
 {
     OHOS::Rosen::TypographyStyle typographyStyle;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
+    EXPECT_NE(fontCollection, nullptr);
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
         typographyStyle, fontCollection);
+    EXPECT_NE(typographyCreate, nullptr);
 }
 
 /*
