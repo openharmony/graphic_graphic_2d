@@ -97,14 +97,11 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest001, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(nodeId);
     auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
     ASSERT_NE(drawable, nullptr);
-    Drawing::Canvas canvas;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->OnCapture(canvas);
     ASSERT_FALSE(drawable->ShouldPaint());
-
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas();
-    paintFilterCanvas->canvas_ = drawingCanvas;
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
     ASSERT_TRUE(drawable->ShouldPaint());
@@ -114,7 +111,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest001, TestSize.Level1)
     param.isMirror_ = false;
     RSUniRenderThread::SetCaptureParam(param);
     drawable->OnCapture(canvas);
-    ASSERT_FALSE(drawable->ShouldPaint());
+    ASSERT_TRUE(drawable->ShouldPaint());
 }
 
 /**
@@ -129,10 +126,8 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(nodeId);
     auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
     ASSERT_NE(drawable, nullptr);
-    Drawing::Canvas canvas;
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas();
-    paintFilterCanvas->canvas_ = drawingCanvas;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
     drawable->isDrawingCacheEnabled_ = false;
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
@@ -157,10 +152,8 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest003, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(nodeId);
     auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
     ASSERT_NE(drawable, nullptr);
-    Drawing::Canvas canvas;
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas();
-    paintFilterCanvas->canvas_ = drawingCanvas;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->renderParams_->shouldPaint_ = true;
