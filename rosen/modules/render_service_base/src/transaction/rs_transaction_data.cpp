@@ -42,6 +42,10 @@ RSTransactionData* RSTransactionData::Unmarshalling(Parcel& parcel)
         // Do not process future data, limit data timestamps to a maximum of 1 second in advance
         uint64_t now = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
+        if (transactionData->timestamp_ > now + MAX_ADVANCE_TIME) {
+            ROSEN_LOGW("RSTransactionData Unmarshalling limit timestamps from %{public}" PRIu64 " to "
+                "%{public}" PRIu64 " ", transactionData->timestamp_, now + MAX_ADVANCE_TIME);
+        }
         transactionData->timestamp_ = std::min(now + MAX_ADVANCE_TIME, transactionData->timestamp_);
         return transactionData;
     }
