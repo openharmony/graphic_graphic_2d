@@ -102,7 +102,7 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context, config.isTextureExportNode), name_(config.name), bundleName_(config.bundleName),
+    : RSRenderNode(config.id, context, config.isTextureExportNode), name_(config.name),
       nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
@@ -2796,16 +2796,6 @@ bool RSSurfaceRenderNode::GetSkipDraw() const
 const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtensionNodes()
 {
     return secUIExtensionNodes_;
-}
-
-void RSSurfaceRenderNode::SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
-{
-    rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
-    if (stagingRenderParams_ == nullptr) {
-        RS_LOGE("%{public}s displayParams is nullptr", __func__);
-        return;
-    }
-    stagingRenderParams_->SetRootIdOfCaptureWindow(rootIdOfCaptureWindow);
 }
 } // namespace Rosen
 } // namespace OHOS

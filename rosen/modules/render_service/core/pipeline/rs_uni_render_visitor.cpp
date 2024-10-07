@@ -1513,25 +1513,12 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     dirtyFlag_ = dirtyFlag;
 
     PrepareForUIFirstNode(node);
-    PrepareForCapsuleWindowNode(node);
     node.OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
-}
-
-void RSUniRenderVisitor::PrepareForCapsuleWindowNode(RSSurfaceRenderNode& node)
-{
-    if (UNLIKELY(!curDisplayNode_)) {
-        RS_LOGE("RSUniRenderVisitor::PrepareForCapsuleWindowNode curDisplayNode is nullptr");
-        return;
-    }
-    if (node.GetName().find("CapsuleWindow") == std::string::npos) {
-        return;
-    }
-    node.SetRootIdOfCaptureWindow(FindInstanceChildOfDisplay(node.GetParent().lock()));
 }
 
 void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)

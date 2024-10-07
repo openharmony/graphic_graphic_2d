@@ -305,7 +305,6 @@ private:
     void UpdateHwcNodeEnable();
     void PrevalidateHwcNode();
 
-    void PrepareForCapsuleWindowNode(RSSurfaceRenderNode& node);
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
     void PrepareForUIFirstNode(RSSurfaceRenderNode& node);
 

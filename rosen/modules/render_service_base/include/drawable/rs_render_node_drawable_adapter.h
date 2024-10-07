@@ -37,6 +37,7 @@ class RSRenderParams;
 class RSDisplayRenderNode;
 class RSSurfaceRenderNode;
 class RSSurfaceHandler;
+class RSContext;
 namespace Drawing {
 class Canvas;
 }
@@ -81,12 +82,18 @@ public:
     using WeakPtr = std::weak_ptr<RSRenderNodeDrawableAdapter>;
 
     virtual void Draw(Drawing::Canvas& canvas) = 0;
-    virtual void DumpDrawableTree(std::string& out) const {};
+    virtual void DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const;
+
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
     static SharedPtr OnGenerateShadowDrawable(
         const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
+    static void ClearResource();
+    using DrawableVec = std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>>;
+    static void AddToClearDrawables(DrawableVec &vec);
+    using CmdListVec = std::vector<std::shared_ptr<Drawing::DrawCmdList>>;
+    static void AddToClearCmdList(CmdListVec &vec);
     inline const std::unique_ptr<RSRenderParams>& GetRenderParams() const
     {
         return renderParams_;
@@ -143,6 +150,7 @@ public:
 
 protected:
     // Util functions
+    std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect() const;
     int GetCountOfClipHoleForCache(const RSRenderParams& params) const;
@@ -183,7 +191,7 @@ protected:
         }
     };
 
-    const RSRenderNodeType nodeType_;
+    RSRenderNodeType nodeType_;
     // deprecated
     std::weak_ptr<const RSRenderNode> renderNode_;
     NodeId nodeId_;
@@ -209,6 +217,8 @@ private:
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
+    static DrawableVec toClearDrawableVec_;
+    static CmdListVec toClearCmdListVec_;
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
     int filterRectSize_ = 0;
