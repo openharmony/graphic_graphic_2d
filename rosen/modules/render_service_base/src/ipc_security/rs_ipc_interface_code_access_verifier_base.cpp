@@ -167,6 +167,16 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& calli
     return isSystemCalling;
 }
 
+bool RSInterfaceCodeAccessVerifierBase::IsAncoCalling(const std::string& callingCode) const
+{
+    static constexpr uint32_t ANCO_UID = 5557;
+    bool isAncoCalling = (OHOS::IPCSkeleton::GetCallingUid() == ANCO_UID);
+    if (!isAncoCalling) {
+        RS_LOGE("%{public}s ipc interface code access denied: not anco calling", callingCode.c_str());
+    }
+    return isAncoCalling;
+}
+
 bool RSInterfaceCodeAccessVerifierBase::IsFoundationCalling(const std::string& callingCode) const
 {
     static constexpr uint32_t FOUNDATION_UID = 5523;
@@ -209,6 +219,11 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* ca
 }
 
 bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code) const
+{
+    return true;
+}
+
+bool RSInterfaceCodeAccessVerifierBase::IsAncoCalling(const std::string& callingCode) const
 {
     return true;
 }

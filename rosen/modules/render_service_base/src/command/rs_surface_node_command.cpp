@@ -281,10 +281,10 @@ void SurfaceNodeCommandHelper::SetForceUIFirst(RSContext& context, NodeId nodeId
     }
 }
 
-void SurfaceNodeCommandHelper::SetAncoForceDoDirect(RSContext& context, NodeId nodeId, bool ancoForceDoDirect)
+void SurfaceNodeCommandHelper::SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetAncoForceDoDirect(ancoForceDoDirect);
+        node->SetAncoFlags(flags);
     }
 }
 

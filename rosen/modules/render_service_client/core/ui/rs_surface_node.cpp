@@ -791,10 +791,10 @@ void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
     }
 }
 
-void RSSurfaceNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
+void RSSurfaceNode::SetAncoForceDoDirect(uint32_t flags)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetAncoForceDoDirect>(GetId(), ancoForceDoDirect);
+        std::make_unique<RSSurfaceNodeSetAncoFlags>(GetId(), flags);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);

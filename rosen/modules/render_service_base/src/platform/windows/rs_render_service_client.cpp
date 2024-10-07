@@ -583,6 +583,11 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     return {};
 }
 
+bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
+{
+    return false;
+}
+
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     return false;

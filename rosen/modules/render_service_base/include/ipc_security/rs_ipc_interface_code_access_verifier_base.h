@@ -67,6 +67,7 @@ protected:
 
     static bool IsSystemApp();
 #endif
+    bool IsAncoCalling(const std::string& callingCode) const;
     bool IsFoundationCalling(const std::string& callingCode) const;
     bool CheckPermission(CodeUnderlyingType code) const;
 

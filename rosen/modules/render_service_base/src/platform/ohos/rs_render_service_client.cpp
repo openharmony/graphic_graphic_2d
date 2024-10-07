@@ -1473,6 +1473,16 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     return renderService->RegisterUIExtensionCallback(userId, cb);
 }
 
+bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->SetAncoForceDoDirect(direct);
+    }
+    ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is nullptr!");
+    return false;
+}
+
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

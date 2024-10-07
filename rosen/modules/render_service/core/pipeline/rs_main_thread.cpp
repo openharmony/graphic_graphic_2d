@@ -3936,11 +3936,10 @@ void RSMainThread::RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<
     uiExtensionListenners_[pid] = std::pair<uint64_t, sptr<RSIUIExtensionCallback>>(userId, callback);
 }
 
-void RSMainThread::UnRegisterUIExtensionCallback(pid_t pid)
+void RSMainThread::SetAncoForceDoDirect(bool direct)
 {
-    std::lock_guard<std::mutex> lock(uiExtensionMutex_);
-    RS_LOGI("RSMainThread::UnRegisterUIExtensionCallback for PID: %{public}d.", pid);
-    uiExtensionListenners_.erase(pid);
+    RS_LOGI("RSMainThread::SetAncoForceDoDirect %{public}d.", direct);
+    RSSurfaceRenderNode::SetAncoForceDoDirect(direct);
 }
 
 void RSMainThread::UIExtensionNodesTraverseAndCallback()

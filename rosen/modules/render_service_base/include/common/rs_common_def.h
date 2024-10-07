@@ -398,6 +398,10 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
     return oldSize - container.size();
 }
 
+enum class AncoFlags : uint32_t {
+    IS_ANCO_NODE = 0x0001
+};
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H

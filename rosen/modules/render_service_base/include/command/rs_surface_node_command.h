@@ -57,7 +57,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_FOREGROUND,
     SURFACE_NODE_SET_SURFACE_ID,
     SURFACE_NODE_SET_FORCE_UIFIRST,
-    SURFACE_NODE_SET_ANCO_FORCE_DO_DIRECT,
+    SURFACE_NODE_SET_ANCO_FLAGS,
     SURFACE_NODE_SET_HDR_PRESENT,
     SURFACE_NODE_SET_SKIP_DRAW,
 };
@@ -99,7 +99,7 @@ public:
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
-    static void SetAncoForceDoDirect(RSContext& context, NodeId nodeId, bool forceUIFirst);
+    static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
 };
@@ -171,9 +171,8 @@ ADD_COMMAND(RSSurfaceNodeSetForeground,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND, SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST, SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
-ADD_COMMAND(RSSurfaceNodeSetAncoForceDoDirect,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_FORCE_DO_DIRECT, SurfaceNodeCommandHelper::SetAncoForceDoDirect,
-    NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetAncoFlags,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_Flags, SurfaceNodeCommandHelper::SetAncoFlags, NodeId, uint32_t))
 ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT, SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,

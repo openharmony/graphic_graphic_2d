@@ -967,13 +967,24 @@ bool RSSurfaceRenderNode::GetForceUIFirstChanged()
     return forceUIFirstChanged_;
 }
 
-void RSSurfaceRenderNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
+void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
 {
-    ancoForceDoDirect_ = ancoForceDoDirect;
+    ancoForceDoDirect_.store(direct);
 }
+
 bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
 {
-    return ancoForceDoDirect_;
+    return (ancoForceDoDirect_.load() && (GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)));
+}
+
+void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
+{
+    ancoFlags_.store(flags);
+}
+
+int32_t RSSurfaceRenderNode::GetAncoFlags() const
+{
+    return ancoFlags_.load();
 }
 
 void RSSurfaceRenderNode::RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)
