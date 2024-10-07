@@ -711,17 +711,22 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 uniParam->SetOpDropped(false);
             }
             bool needOffscreen = params->GetNeedOffscreen() || isHdrOn;
-            if (needOffscreen) {
+            if (params->GetNeedOffscreen()) {
                 uniParam->SetOpDropped(false);
-                // draw black background in rotation for camera
-                curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-                PrepareOffscreenRender(*this, true);
             }
 
             if (uniParam->IsOpDropped()) {
                 uniParam->SetClipRegion(clipRegion);
                 ClipRegion(*curCanvas_, clipRegion);
+            } else if (params->GetNeedOffscreen()) {
+                // draw black background in rotation for camera
+                curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
             } else {
+                curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            }
+
+            if (needOffscreen) {
+                PrepareOffscreenRender(*this, true);
                 curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             }
 
