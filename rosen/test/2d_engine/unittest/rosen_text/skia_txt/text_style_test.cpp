@@ -23,22 +23,20 @@ using namespace OHOS::Rosen::SPText;
 namespace txt {
 class TextStyleTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    static inline std::shared_ptr<TextStyle> textStyle_ = nullptr;
+    void SetUp() override;
+    void TearDown() override;
+
+private:
+    std::shared_ptr<TextStyle> textStyle_;
 };
 
-void TextStyleTest::SetUpTestCase()
+void TextStyleTest::SetUp()
 {
     textStyle_ = std::make_shared<TextStyle>();
-    if (!textStyle_) {
-        std::cout << "TextStyleTest::SetUpTestCase error textStyle_ is nullptr" << std::endl;
-    }
+    ASSERT_NE(textStyle_, nullptr);
 }
 
-void TextStyleTest::TearDownTestCase()
-{
-}
+void TextStyleTest::TearDown() {}
 
 /*
  * @tc.name: TextStyleTest001
@@ -47,9 +45,8 @@ void TextStyleTest::TearDownTestCase()
  */
 HWTEST_F(TextStyleTest, TextStyleTest001, TestSize.Level1)
 {
-    EXPECT_EQ(textStyle_ != nullptr, true);
-    TextStyle textStyle;
-    EXPECT_EQ((*textStyle_) == textStyle, true);
+    TextStyle textStyleCompare;
+    EXPECT_EQ((*textStyle_), textStyleCompare);
 }
 
 /*
@@ -59,12 +56,13 @@ HWTEST_F(TextStyleTest, TextStyleTest001, TestSize.Level1)
  */
 HWTEST_F(TextStyleTest, TextStyleTest002, TestSize.Level1)
 {
-    EXPECT_EQ(textStyle_ != nullptr, true);
     FontFeatures fontFeatures;
     fontFeatures.SetFeature("tag", 0);
     textStyle_->fontFeatures = fontFeatures;
-    EXPECT_EQ(textStyle_->fontFeatures.GetFeatureSettings().empty(), false);
-    EXPECT_EQ(textStyle_->fontFeatures.GetFontFeatures().size() > 0, true);
+    ASSERT_EQ(textStyle_->fontFeatures.GetFontFeatures().size(), 1);
+    EXPECT_EQ(textStyle_->fontFeatures.GetFontFeatures().at(0).first, fontFeatures.GetFontFeatures().at(0).first);
+    EXPECT_EQ(textStyle_->fontFeatures.GetFontFeatures().at(0).second, fontFeatures.GetFontFeatures().at(0).second);
+    EXPECT_EQ(textStyle_->fontFeatures.GetFeatureSettings(), "tag=0");
 }
 
 /*
@@ -74,11 +72,11 @@ HWTEST_F(TextStyleTest, TextStyleTest002, TestSize.Level1)
  */
 HWTEST_F(TextStyleTest, TextStyleTest003, TestSize.Level1)
 {
-    EXPECT_EQ(textStyle_ != nullptr, true);
     FontVariations fontVariations;
     fontVariations.SetAxisValue("tag", 0.0);
     textStyle_->fontVariations = fontVariations;
-    EXPECT_EQ(textStyle_->fontVariations.GetAxisValues().size() > 0, true);
+    ASSERT_EQ(textStyle_->fontVariations.GetAxisValues().size(), 1);
+    EXPECT_EQ(textStyle_->fontVariations.GetAxisValues().at("tag"), fontVariations.GetAxisValues().at("tag"));
 }
 
 /*
@@ -88,20 +86,18 @@ HWTEST_F(TextStyleTest, TextStyleTest003, TestSize.Level1)
  */
 HWTEST_F(TextStyleTest, TextStyleTest004, TestSize.Level1)
 {
-    EXPECT_EQ(textStyle_ != nullptr, true);
     TextShadow textShadowDefault;
     SkColor color = 255; // 255 just fot test
-    SkPoint offset{0, 0};
+    SkPoint offset { 0, 0 };
     TextShadow textShadow(color, offset, 0.0);
-    EXPECT_EQ(textShadowDefault == textShadow, false);
-    EXPECT_EQ(textShadowDefault != textShadow, true);
-    EXPECT_EQ(textShadow.HasShadow(), false);
+    EXPECT_NE(textShadowDefault, textShadow);
+    EXPECT_FALSE(textShadow.HasShadow());
 
     std::vector<TextShadow> textShadows;
     textShadows.emplace_back(textShadowDefault);
     textShadows.emplace_back(textShadow);
     textStyle_->textShadows = textShadows;
-    EXPECT_EQ(textStyle_->textShadows.size() > 0, true);
+    EXPECT_EQ(textStyle_->textShadows.size(), 2);
 }
 
 /*
@@ -111,46 +107,38 @@ HWTEST_F(TextStyleTest, TextStyleTest004, TestSize.Level1)
  */
 HWTEST_F(TextStyleTest, TextStyleTest005, TestSize.Level1)
 {
-    EXPECT_EQ(textStyle_ != nullptr, true);
-    RectStyle backgroundRect = {0, 1.0f, 0.0f, 0.0f, 0.0f};
-    EXPECT_EQ(textStyle_->backgroundRect != backgroundRect, true);
+    RectStyle backgroundRect = { 0, 1.0f, 0.0f, 0.0f, 0.0f };
+    EXPECT_NE(textStyle_->backgroundRect, backgroundRect);
     textStyle_->backgroundRect = backgroundRect;
-    EXPECT_EQ(textStyle_->backgroundRect == backgroundRect, true);
+    EXPECT_EQ(textStyle_->backgroundRect, backgroundRect);
 }
 
 /*
  * @tc.name: TextStyleTest006
- * @tc.desc: get default font feature is empty
+ * @tc.desc: test font features' GetFeatureSettings
  * @tc.type: FUNC
  */
 HWTEST_F(TextStyleTest, TextStyleTest006, TestSize.Level1)
 {
     FontFeatures fontFeatures;
     EXPECT_TRUE(fontFeatures.GetFeatureSettings().empty());
+    fontFeatures.SetFeature("a", 0);
+    fontFeatures.SetFeature("b", 1);
+    EXPECT_EQ(fontFeatures.GetFeatureSettings(), "a=0,b=1");
 }
 
 /*
  * @tc.name: TextStyleTest007
- * @tc.desc: get multi font features
+ * @tc.desc: text shadow equal test
  * @tc.type: FUNC
  */
 HWTEST_F(TextStyleTest, TextStyleTest007, TestSize.Level1)
 {
-    FontFeatures fontFeatures;
-    fontFeatures.SetFeature("a", 0);
-    fontFeatures.SetFeature("b", 1);
-    EXPECT_FALSE(fontFeatures.GetFeatureSettings().empty());
-}
-
-/*
- * @tc.name: TextStyleTest008
- * @tc.desc: text shadow equal test
- * @tc.type: FUNC
- */
-HWTEST_F(TextStyleTest, TextStyleTest008, TestSize.Level1)
-{
     TextShadow shadowA;
     TextShadow shadowB;
-    EXPECT_TRUE(shadowA == shadowB);
+    EXPECT_EQ(shadowA, shadowB);
+    // 0.2 is just for test
+    shadowB.blurSigma = 0.2;
+    EXPECT_NE(shadowA, shadowB);
 }
 } // namespace txt

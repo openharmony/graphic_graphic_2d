@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "font_collection.h"
+#include "modules/skparagraph/src/ParagraphBuilderImpl.h"
 #include "paragraph_builder.h"
 #include "paragraph_builder_impl.h"
 #include "paragraph_style.h"
@@ -26,27 +27,27 @@ using namespace OHOS::Rosen::SPText;
 namespace txt {
 class ParagraphBuilderTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    static inline std::shared_ptr<ParagraphBuilder> paragraphBuilder_ = nullptr;
+    void SetUp() override;
+    void TearDown() override;
+
+private:
+    std::shared_ptr<ParagraphBuilderImpl> paragraphBuilder_;
 };
 
-void ParagraphBuilderTest::SetUpTestCase()
+
+void ParagraphBuilderTest::SetUp()
 {
     ParagraphStyle paragraphStyle;
     std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
-    if (!fontCollection) {
-        std::cout << "ParagraphBuilderTest::SetUpTestCase error fontCollection is nullptr" << std::endl;
-        return;
-    }
-    paragraphBuilder_ = ParagraphBuilder::Create(paragraphStyle, fontCollection);
-    if (!paragraphBuilder_) {
-        std::cout << "ParagraphBuilderTest::SetUpTestCase error paragraphBuilder_ is nullptr" << std::endl;
-    }
+    paragraphBuilder_ = std::make_shared<ParagraphBuilderImpl>(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder_, nullptr);
+    ASSERT_NE(paragraphBuilder_->builder_, nullptr);
 }
 
-void ParagraphBuilderTest::TearDownTestCase()
+
+void ParagraphBuilderTest::TearDown()
 {
+    paragraphBuilder_.reset();
 }
 
 /*
@@ -56,9 +57,22 @@ void ParagraphBuilderTest::TearDownTestCase()
  */
 HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest001, TestSize.Level1)
 {
-    EXPECT_EQ(paragraphBuilder_ != nullptr, true);
     TextStyle style;
     paragraphBuilder_->PushStyle(style);
+    auto peekStyle = paragraphBuilder_->builder_->peekStyle();
+    EXPECT_EQ(peekStyle.fFontSize, style.fontSize);
+    EXPECT_EQ(peekStyle.fHeight, style.height);
+    EXPECT_EQ(peekStyle.fHeightOverride, style.heightOverride);
+    EXPECT_EQ(peekStyle.fBaselineShift, style.baseLineShift);
+    EXPECT_EQ(peekStyle.fHalfLeading, style.halfLeading);
+    EXPECT_EQ(peekStyle.fBackgroundRect.color, style.backgroundRect.color);
+    EXPECT_EQ(peekStyle.fStyleId, style.styleId);
+    EXPECT_EQ(peekStyle.fLetterSpacing, style.letterSpacing);
+    EXPECT_EQ(peekStyle.fWordSpacing, style.wordSpacing);
+    EXPECT_EQ(static_cast<int>(peekStyle.fTextBaseline), static_cast<int>(style.baseline));
+    EXPECT_EQ(peekStyle.fColor, style.color);
+    EXPECT_EQ(peekStyle.fHasBackground, style.background.has_value());
+    EXPECT_EQ(peekStyle.fIsPlaceholder, style.isPlaceholder);
 }
 
 /*
@@ -68,8 +82,14 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest001, TestSize.Level1)
  */
 HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest002, TestSize.Level1)
 {
-    EXPECT_EQ(paragraphBuilder_ != nullptr, true);
+    TextStyle style;
+    // 10 is just for test
+    style.styleId = 10;
+    paragraphBuilder_->PushStyle(style);
+    TextStyle style1;
+    paragraphBuilder_->PushStyle(style1);
     paragraphBuilder_->Pop();
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().fStyleId, style.styleId);
 }
 
 /*
@@ -79,9 +99,10 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest002, TestSize.Level1)
  */
 HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest004, TestSize.Level1)
 {
-    EXPECT_EQ(paragraphBuilder_ != nullptr, true);
-    std::u16string text(u"text");
+    std::u16string text = u"text";
     paragraphBuilder_->AddText(text);
+    auto skText = paragraphBuilder_->builder_->getText();
+    EXPECT_EQ(std::string(skText.data()), std::string(text.begin(), text.end()));
 }
 
 /*
@@ -91,24 +112,19 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest004, TestSize.Level1)
  */
 HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest005, TestSize.Level1)
 {
-    EXPECT_EQ(paragraphBuilder_ != nullptr, true);
     PlaceholderRun placeholderRunDefault;
     // 50 just for test
-    PlaceholderRun placeholderRun(50, 50, PlaceholderAlignment::BASELINE,
-        TextBaseline::ALPHABETIC, 0.0);
+    PlaceholderRun placeholderRun(50, 50, PlaceholderAlignment::BASELINE, TextBaseline::ALPHABETIC, 0.0);
     paragraphBuilder_->AddPlaceholder(placeholderRunDefault);
     paragraphBuilder_->AddPlaceholder(placeholderRun);
-}
-
-/*
- * @tc.name: ParagraphBuilderTest006
- * @tc.desc: test for Build
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest006, TestSize.Level1)
-{
-    EXPECT_EQ(paragraphBuilder_ != nullptr, true);
-    EXPECT_EQ(paragraphBuilder_->Build() != nullptr, true);
+    paragraphBuilder_->AddText(u"text");
+    auto builder = static_cast<skia::textlayout::ParagraphBuilderImpl*>(paragraphBuilder_->builder_.get());
+    // only two placeholders, because we add two placeholders before
+    EXPECT_EQ(builder->fPlaceholders.size(), 2);
+    EXPECT_EQ(builder->fPlaceholders[0].fStyle.fHeight, placeholderRunDefault.height);
+    EXPECT_EQ(builder->fPlaceholders[0].fStyle.fWidth, placeholderRunDefault.width);
+    EXPECT_EQ(builder->fPlaceholders[1].fStyle.fHeight, placeholderRun.height);
+    EXPECT_EQ(builder->fPlaceholders[1].fStyle.fWidth, placeholderRun.width);
 }
 
 /*
@@ -118,22 +134,14 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest006, TestSize.Level1)
  */
 HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest007, TestSize.Level1)
 {
-    static const std::string localeZh = "zh-Hans";
-    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
-    ParagraphStyle paragraphStyle;
-    paragraphStyle.locale = "";
-    EXPECT_EQ(ParagraphBuilder::Create(paragraphStyle, fontCollection) != nullptr, true);
-    paragraphStyle.locale = localeZh;
-    EXPECT_EQ(ParagraphBuilder::Create(paragraphStyle, fontCollection) != nullptr, true);
-
-    auto builder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    std::string localeEN = "en-US";
     TextStyle textStyle;
-    textStyle.locale = "";
-    builder->PushStyle(textStyle);
-    EXPECT_EQ(builder->Build() != nullptr, true);
-    textStyle.locale = localeZh;
-    builder->PushStyle(textStyle);
-    EXPECT_EQ(builder->Build() != nullptr, true);
+    textStyle.locale = localeEN;
+
+    paragraphBuilder_->PushStyle(textStyle);
+    paragraphBuilder_->AddText(u"text");
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().fLocale, SkString(localeEN));
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().getLocale(), SkString(localeEN));
 }
 
 /*
@@ -146,6 +154,8 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest008, TestSize.Level1)
     TextStyle textStyle;
     textStyle.fontStyle = FontStyle::ITALIC;
     paragraphBuilder_->PushStyle(textStyle);
+    paragraphBuilder_->AddText(u"text");
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().fFontStyle.GetSlant(), RSFontStyle::Slant::ITALIC_SLANT);
 }
 
 /*
@@ -158,6 +168,8 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest009, TestSize.Level1)
     TextStyle textStyle;
     textStyle.fontStyle = FontStyle::OBLIQUE;
     paragraphBuilder_->PushStyle(textStyle);
+    paragraphBuilder_->AddText(u"text");
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().fFontStyle.GetSlant(), RSFontStyle::Slant::OBLIQUE_SLANT);
 }
 
 /*
@@ -168,8 +180,11 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest009, TestSize.Level1)
 HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest010, TestSize.Level1)
 {
     TextStyle textStyle;
+    // 999 is not a valid value, so the default value should be used
     textStyle.fontStyle = static_cast<FontStyle>(999);
     paragraphBuilder_->PushStyle(textStyle);
+    paragraphBuilder_->AddText(u"text");
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().fFontStyle.GetSlant(), RSFontStyle::Slant::UPRIGHT_SLANT);
 }
 
 /*
@@ -180,13 +195,15 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest010, TestSize.Level1)
 HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest011, TestSize.Level1)
 {
     TextStyle textStyle;
-    textStyle.textShadows.clear();
-    SkColor color = 255;
-    SkPoint offset{0, 0};
-    TextShadow shadow(color, offset, 0.0);
-    textStyle.textShadows.emplace_back(shadow);
+    textStyle.textShadows.emplace_back();
     EXPECT_EQ(textStyle.textShadows.size(), 1);
     paragraphBuilder_->PushStyle(textStyle);
+    paragraphBuilder_->AddText(u"text");
+    // builder should have one shadow, because we only push one shadow
+    ASSERT_EQ(textStyle.textShadows.size(), 1);
+    ASSERT_EQ(textStyle.textShadows.size(), paragraphBuilder_->builder_->peekStyle().fTextShadows.size());
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().fTextShadows.at(0).fColor, textStyle.textShadows.at(0).color);
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().fTextShadows.at(0).fOffset, textStyle.textShadows.at(0).offset);
 }
 
 /*
@@ -199,5 +216,7 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest012, TestSize.Level1)
     TextStyle textStyle;
     textStyle.isPlaceholder = true;
     paragraphBuilder_->PushStyle(textStyle);
+    paragraphBuilder_->AddText(u"text");
+    EXPECT_EQ(paragraphBuilder_->builder_->peekStyle().isPlaceholder(), textStyle.isPlaceholder);
 }
 } // namespace txt
