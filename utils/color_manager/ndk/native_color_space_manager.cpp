@@ -18,52 +18,54 @@
 #include "ndk_color_space.h"
 #include "platform/common/rs_log.h"
 
-const std::map<ColorSpaceName, OHOS::ColorManager::ColorSpaceName> OH_TO_NATIVE_COLOR_SPACE_NAME_MAP {
-    { ColorSpaceName::NONE, OHOS::ColorManager::ColorSpaceName::NONE },
-    { ColorSpaceName::ADOBE_RGB, OHOS::ColorManager::ColorSpaceName::ADOBE_RGB },
-    { ColorSpaceName::DCI_P3, OHOS::ColorManager::ColorSpaceName::DCI_P3 },
-    { ColorSpaceName::DISPLAY_P3, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3 },
-    { ColorSpaceName::SRGB, OHOS::ColorManager::ColorSpaceName::SRGB },
-    { ColorSpaceName::BT709, OHOS::ColorManager::ColorSpaceName::BT709 },
-    { ColorSpaceName::BT601_EBU, OHOS::ColorManager::ColorSpaceName::BT601_EBU },
-    { ColorSpaceName::BT601_SMPTE_C, OHOS::ColorManager::ColorSpaceName::BT601_SMPTE_C },
-    { ColorSpaceName::BT2020_HLG, OHOS::ColorManager::ColorSpaceName::BT2020_HLG },
-    { ColorSpaceName::BT2020_PQ, OHOS::ColorManager::ColorSpaceName::BT2020_PQ },
-    { ColorSpaceName::P3_HLG, OHOS::ColorManager::ColorSpaceName::P3_HLG },
-    { ColorSpaceName::P3_PQ, OHOS::ColorManager::ColorSpaceName::P3_PQ },
-    { ColorSpaceName::ADOBE_RGB_LIMIT, OHOS::ColorManager::ColorSpaceName::ADOBE_RGB_LIMIT },
-    { ColorSpaceName::DISPLAY_P3_LIMIT, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_LIMIT },
-    { ColorSpaceName::SRGB_LIMIT, OHOS::ColorManager::ColorSpaceName::SRGB_LIMIT },
-    { ColorSpaceName::BT709_LIMIT, OHOS::ColorManager::ColorSpaceName::BT709_LIMIT },
-    { ColorSpaceName::BT601_EBU_LIMIT, OHOS::ColorManager::ColorSpaceName::BT601_EBU_LIMIT },
-    { ColorSpaceName::BT601_SMPTE_C_LIMIT, OHOS::ColorManager::ColorSpaceName::BT601_SMPTE_C_LIMIT },
-    { ColorSpaceName::BT2020_HLG_LIMIT, OHOS::ColorManager::ColorSpaceName::BT2020_HLG_LIMIT },
-    { ColorSpaceName::BT2020_PQ_LIMIT, OHOS::ColorManager::ColorSpaceName::BT2020_PQ_LIMIT },
-    { ColorSpaceName::P3_HLG_LIMIT, OHOS::ColorManager::ColorSpaceName::P3_HLG_LIMIT },
-    { ColorSpaceName::P3_PQ_LIMIT, OHOS::ColorManager::ColorSpaceName::P3_PQ_LIMIT },
-    { ColorSpaceName::LINEAR_P3, OHOS::ColorManager::ColorSpaceName::LINEAR_P3 },
-    { ColorSpaceName::LINEAR_SRGB, OHOS::ColorManager::ColorSpaceName::LINEAR_SRGB },
-    { ColorSpaceName::LINEAR_BT709, OHOS::ColorManager::ColorSpaceName::LINEAR_BT709 },
-    { ColorSpaceName::LINEAR_BT2020, OHOS::ColorManager::ColorSpaceName::LINEAR_BT2020 },
-    { ColorSpaceName::DISPLAY_SRGB, OHOS::ColorManager::ColorSpaceName::DISPLAY_SRGB },
-    { ColorSpaceName::DISPLAY_P3_SRGB, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_SRGB },
-    { ColorSpaceName::DISPLAY_P3_HLG, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_HLG },
-    { ColorSpaceName::DISPLAY_P3_PQ, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_PQ },
-    { ColorSpaceName::CUSTOM, OHOS::ColorManager::ColorSpaceName::CUSTOM },
-};
+namespace {
+    const std::map<ColorSpaceName, OHOS::ColorManager::ColorSpaceName> OH_TO_NATIVE_COLOR_SPACE_NAME_MAP {
+        { ColorSpaceName::NONE, OHOS::ColorManager::ColorSpaceName::NONE },
+        { ColorSpaceName::ADOBE_RGB, OHOS::ColorManager::ColorSpaceName::ADOBE_RGB },
+        { ColorSpaceName::DCI_P3, OHOS::ColorManager::ColorSpaceName::DCI_P3 },
+        { ColorSpaceName::DISPLAY_P3, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3 },
+        { ColorSpaceName::SRGB, OHOS::ColorManager::ColorSpaceName::SRGB },
+        { ColorSpaceName::BT709, OHOS::ColorManager::ColorSpaceName::BT709 },
+        { ColorSpaceName::BT601_EBU, OHOS::ColorManager::ColorSpaceName::BT601_EBU },
+        { ColorSpaceName::BT601_SMPTE_C, OHOS::ColorManager::ColorSpaceName::BT601_SMPTE_C },
+        { ColorSpaceName::BT2020_HLG, OHOS::ColorManager::ColorSpaceName::BT2020_HLG },
+        { ColorSpaceName::BT2020_PQ, OHOS::ColorManager::ColorSpaceName::BT2020_PQ },
+        { ColorSpaceName::P3_HLG, OHOS::ColorManager::ColorSpaceName::P3_HLG },
+        { ColorSpaceName::P3_PQ, OHOS::ColorManager::ColorSpaceName::P3_PQ },
+        { ColorSpaceName::ADOBE_RGB_LIMIT, OHOS::ColorManager::ColorSpaceName::ADOBE_RGB_LIMIT },
+        { ColorSpaceName::DISPLAY_P3_LIMIT, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_LIMIT },
+        { ColorSpaceName::SRGB_LIMIT, OHOS::ColorManager::ColorSpaceName::SRGB_LIMIT },
+        { ColorSpaceName::BT709_LIMIT, OHOS::ColorManager::ColorSpaceName::BT709_LIMIT },
+        { ColorSpaceName::BT601_EBU_LIMIT, OHOS::ColorManager::ColorSpaceName::BT601_EBU_LIMIT },
+        { ColorSpaceName::BT601_SMPTE_C_LIMIT, OHOS::ColorManager::ColorSpaceName::BT601_SMPTE_C_LIMIT },
+        { ColorSpaceName::BT2020_HLG_LIMIT, OHOS::ColorManager::ColorSpaceName::BT2020_HLG_LIMIT },
+        { ColorSpaceName::BT2020_PQ_LIMIT, OHOS::ColorManager::ColorSpaceName::BT2020_PQ_LIMIT },
+        { ColorSpaceName::P3_HLG_LIMIT, OHOS::ColorManager::ColorSpaceName::P3_HLG_LIMIT },
+        { ColorSpaceName::P3_PQ_LIMIT, OHOS::ColorManager::ColorSpaceName::P3_PQ_LIMIT },
+        { ColorSpaceName::LINEAR_P3, OHOS::ColorManager::ColorSpaceName::LINEAR_P3 },
+        { ColorSpaceName::LINEAR_SRGB, OHOS::ColorManager::ColorSpaceName::LINEAR_SRGB },
+        { ColorSpaceName::LINEAR_BT709, OHOS::ColorManager::ColorSpaceName::LINEAR_BT709 },
+        { ColorSpaceName::LINEAR_BT2020, OHOS::ColorManager::ColorSpaceName::LINEAR_BT2020 },
+        { ColorSpaceName::DISPLAY_SRGB, OHOS::ColorManager::ColorSpaceName::DISPLAY_SRGB },
+        { ColorSpaceName::DISPLAY_P3_SRGB, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_SRGB },
+        { ColorSpaceName::DISPLAY_P3_HLG, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_HLG },
+        { ColorSpaceName::DISPLAY_P3_PQ, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_PQ },
+        { ColorSpaceName::CUSTOM, OHOS::ColorManager::ColorSpaceName::CUSTOM },
+    };
 
-void OHPrimariesToColorSpacePrimaries(
-    const ColorSpacePrimaries& primaries, OHOS::ColorManager::ColorSpacePrimaries& csPrimaries)
-{
-    csPrimaries.rX = primaries.rX;
-    csPrimaries.rY = primaries.rY;
-    csPrimaries.gX = primaries.gX;
-    csPrimaries.gY = primaries.gY;
-    csPrimaries.bX = primaries.bX;
-    csPrimaries.bY = primaries.bY;
-    csPrimaries.wX = primaries.wX;
-    csPrimaries.wY = primaries.wY;
-}
+    void OHPrimariesToColorSpacePrimaries(
+        const ColorSpacePrimaries& primaries, OHOS::ColorManager::ColorSpacePrimaries& csPrimaries)
+    {
+        csPrimaries.rX = primaries.rX;
+        csPrimaries.rY = primaries.rY;
+        csPrimaries.gX = primaries.gX;
+        csPrimaries.gY = primaries.gY;
+        csPrimaries.bX = primaries.bX;
+        csPrimaries.bY = primaries.bY;
+        csPrimaries.wX = primaries.wX;
+        csPrimaries.wY = primaries.wY;
+    }
+};
 
 static NativeColorSpaceManager* OHNativeColorSpaceManagerToNativeColorSpaceManager(
     OH_NativeColorSpaceManager* nativeColorSpaceManager)
