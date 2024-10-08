@@ -753,7 +753,6 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     if (!RSSystemProperties::GetHDRImageEnable()) {
         hasUniRenderHdrSurface_ = false;
     }
-    RS_LOGD("SetHDRPresent: [%{public}d] prepare", hasHdrpresent_);
     auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
     if (!stagingDisplayParams) {
         RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get StagingRenderParams failed.");
@@ -2601,7 +2600,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
     std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner)
 {
     if (hwcNode->IsHardwareForcedDisabled()) {
-        if (RSMainThread::CheckIsHdrSurface()) {
+        if (RSMainThread::CheckIsHdrSurface(*hwcNode)) {
             hasUniRenderHdrSurface_ = true;
         }
         return;
