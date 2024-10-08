@@ -40,7 +40,7 @@ Func GetEglApi(const char* procname)
     return nullptr;
 }
 static GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("GetHookTable");
-static GetGlHookTableKeyFunc g_pfnGetGlHookTableKey = GetEglApi<GetGlHookTableFunc>("GetHookTableKey");
+static GetGlHookTableKeyFunc g_pfnGetGlHookTableKey = GetEglApi<GetGlHookTableKeyFunc>("GetHookTableKey");
 
 static pthread_key_t g_glHookTableKey = -1;
 
