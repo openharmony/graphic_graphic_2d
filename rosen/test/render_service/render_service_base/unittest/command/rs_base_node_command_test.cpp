@@ -71,8 +71,10 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand003, TestSize.Level1)
     NodeId childNodeId = static_cast<NodeId>(-2);
     int32_t index = static_cast<int32_t>(1);
     BaseNodeCommandHelper::MoveChild(context, nodeId, childNodeId, index);
-    ASSERT_EQ(nodeId, -1);
-    ASSERT_EQ(childNodeId, -2);
+    auto nodeChild = context.GetNodeMap().GetRenderNode(nodeId).children_;
+    auto nodeChildIter = context.GetNodeMap().GetRenderNode(nodeId).children_.begin();
+    std::advance(nodeChildIter, index);
+    ASSERT_EQ(*nodeChildIter, childNodeId);
 }
 
 /**

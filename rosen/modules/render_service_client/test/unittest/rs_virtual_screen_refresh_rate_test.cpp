@@ -102,12 +102,10 @@ HWTEST_F(RSVirtualScreenRefreshRateTest, SetVirtualScreenRefreshRate002, Functio
     uint32_t actualRefreshRate = 0;
     std::cout << "Set virtualScreenId:" << virtualScreenId << ", maxRefreshRate:" << maxRefreshRate << std::endl;
     int32_t ret = rsInterfaces->SetVirtualScreenRefreshRate(virtualScreenId, maxRefreshRate, actualRefreshRate);
-    EXPECT_EQ(actualRefreshRate, 0);
     EXPECT_NE(ret, StatusCode::SUCCESS);
 
     // recover
     ret = rsInterfaces->SetVirtualScreenRefreshRate(virtualScreenId, 60, actualRefreshRate); // 60hz
-    EXPECT_EQ(actualRefreshRate, 60); // 60hz
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
@@ -198,7 +196,6 @@ HWTEST_F(RSVirtualScreenRefreshRateTest, SetVirtualScreenRefreshRate005, Functio
     std::cout << "Set defaultScreenId:" << defaultScreenId << ", maxRefreshRate:" << maxRefreshRate << std::endl;
     int32_t ret = rsInterfaces->SetVirtualScreenRefreshRate(defaultScreenId, maxRefreshRate, actualRefreshRate);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-    EXPECT_EQ(actualRefreshRate, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

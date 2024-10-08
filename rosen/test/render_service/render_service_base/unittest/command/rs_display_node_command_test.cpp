@@ -128,13 +128,21 @@ HWTEST_F(RSDisplayNodeCommandTest, Create001, TestSize.Level1)
 HWTEST_F(RSDisplayNodeCommandTest, AddDisplayNodeToTree001, TestSize.Level1)
 {
     RSContext context;
+    auto renderNodeChildren = context.GetGlobalRootRenderNode().children_;
+    auto nodeMap = context.GetMutableNodeMap();
+
     NodeId id = static_cast<NodeId>(1);
     DisplayNodeCommandHelper::AddDisplayNodeToTree(context, id);
-    ASSERT_EQ(id, 1);
+    auto find =
+        std::find(renderNodeChildren.begin(), renderNodeChildren.end(), nodeMap.GetRenderNode<RSDisplayRenderNode>(id));
+    ASSERT_NE(find, nullptr);
 
     NodeId id2 = static_cast<NodeId>(2);
     DisplayNodeCommandHelper::AddDisplayNodeToTree(context, id2);
-    ASSERT_EQ(id2, 2);
+    auto find2 =
+        std::find(renderNodeChildren.begin(), renderNodeChildren.end(),
+            nodeMap.GetRenderNode<RSDisplayRenderNode>(id2));
+    ASSERT_NE(find2, nullptr);
 }
 
 /**

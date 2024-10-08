@@ -73,7 +73,8 @@ HWTEST_F(RSFrameRateLinkerCommandTest, UpdateRange001, TestSize.Level1)
     std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkerId);
     context.GetMutableFrameRateLinkerMap().RegisterFrameRateLinker(linkerPtr);
     RSFrameRateLinkerCommandHelper::UpdateRange(context, linkerId, range, false);
-    ASSERT_TRUE(linkerPtr != nullptr);
+
+    ASSERT_EQ(context.GetMutableFrameRateLinkerMap().GetFrameRateLinker(linkerId)->GetExpectedRange(), range);
 }
 
 /**

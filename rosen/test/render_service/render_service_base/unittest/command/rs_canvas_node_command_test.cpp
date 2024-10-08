@@ -59,7 +59,7 @@ HWTEST_F(RSCanvasNodeCommandTest, TestRSCanvasNodeCommand002, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     RSCanvasNodeCommandHelper::ClearRecording(context, nodeId);
-    ASSERT_EQ(nodeId, -1);
+    ASSERT_EQ(context.modifiers_.begin(), context.modifiers_.end());
 }
 
 /**
