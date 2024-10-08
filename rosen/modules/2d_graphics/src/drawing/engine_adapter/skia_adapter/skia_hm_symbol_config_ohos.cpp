@@ -62,7 +62,7 @@ DrawingSymbolLayersGroups SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t
 DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting(AnimationSetting setting)
 {
     DrawingAnimationSetting drawingSetting;
-    for (size_t i = 0; i <setting.animationTypes.size(); i++) {
+    for (size_t i = 0; i < setting.animationTypes.size(); i++) {
         DrawingAnimationType animationType = static_cast<DrawingAnimationType>(setting.animationTypes[i]);
         drawingSetting.animationTypes.push_back(animationType);
     }
