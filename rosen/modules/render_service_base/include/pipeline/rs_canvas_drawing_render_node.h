@@ -96,12 +96,12 @@ private:
     bool isGpuSurface_ = true;
 #endif
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
+    std::mutex drawCmdListsMutex_;
     ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     std::mutex taskMutex_;
     std::atomic<bool> isNeedProcess_ = false;
     pid_t threadId_ = 0;
-    std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
 
     // Used in uni render thread.

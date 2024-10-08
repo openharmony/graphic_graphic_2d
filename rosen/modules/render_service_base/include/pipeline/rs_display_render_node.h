@@ -259,10 +259,6 @@ public:
     {
         return curAllSurfaces_;
     }
-    std::vector<RSBaseRenderNode::SharedPtr>& GetCurAllSurfaces(bool onlyFirstLevel)
-    {
-        return onlyFirstLevel ? curAllFirstLevelSurfaces_ : curAllSurfaces_;
-    }
 
     void UpdateRenderParams() override;
     void UpdatePartialRenderParams();
@@ -270,6 +266,10 @@ public:
     void UpdateOffscreenRenderParams(bool needOffscreen);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
+    std::vector<RSBaseRenderNode::SharedPtr>& GetCurAllSurfaces(bool onlyFirstLevel)
+    {
+        return onlyFirstLevel ? curAllFirstLevelSurfaces_ : curAllSurfaces_;
+    }
 
     void UpdateRotation();
     bool IsRotationChanged() const;

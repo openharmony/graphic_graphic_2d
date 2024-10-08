@@ -254,7 +254,7 @@ void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%{public}" PRIu64 "] isSecurityLayer:%{public}s",
+    ROSEN_LOGI("RSSurfaceNode::SetSecurityLayer, surfaceNodeId:[%{public}" PRIu64 "] isSecurityLayer:%{public}s",
         GetId(), isSecurityLayer ? "true" : "false");
 }
 
@@ -617,13 +617,6 @@ RSSurfaceNode::~RSSurfaceNode()
         return;
     }
 
-    // both divided and unirender need to unregister listener when surfaceNode destroy
-    auto renderServiceClient =
-        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-    if (renderServiceClient != nullptr) {
-        renderServiceClient->UnregisterBufferAvailableListener(GetId());
-    }
-
     // For abilityComponent and remote window, we should destroy the corresponding render node in RenderThread
     // The destructor of render node in RenderService should controlled by application
     // Command sent only in divided render
@@ -631,6 +624,12 @@ RSSurfaceNode::~RSSurfaceNode()
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(GetId());
         transactionProxy->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, GetId());
         return;
+    }
+
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient != nullptr) {
+        renderServiceClient->UnregisterBufferAvailableListener(GetId());
     }
 
     // For self-drawing surfaceNode, we should destroy the corresponding render node in RenderService

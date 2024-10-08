@@ -2150,7 +2150,7 @@ std::vector<RectI> RSSurfaceRenderNode::GetChildrenNeedFilterRectsWithoutCacheVa
         }
     }
     return childrenFilterRectsWithoutCacheValid;
-};
+}
 
 // manage abilities' nodeid info
 void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)

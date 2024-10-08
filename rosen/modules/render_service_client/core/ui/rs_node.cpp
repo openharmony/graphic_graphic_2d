@@ -1563,7 +1563,6 @@ void RSNode::SetFgBrightnessFract(const float& fract)
 
 void RSNode::SetBgBrightnessParams(const RSDynamicBrightnessPara& params)
 {
-    ROSEN_LOGE("LJQDEBUG: params.saturation_ %{public}f", params.saturation_);
     // Compatible with original interfaces
     SetBgBrightnessRates(params.rates_);
     SetBgBrightnessSaturation(params.saturation_);
@@ -2073,8 +2072,8 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
             return;
         }
         auto deleteType = modifier->GetModifierType();
-        bool isExist = false;
         modifiers_.erase(iter);
+        bool isExist = false;
         for (auto [id, value] : modifiers_) {
             if (value && value->GetModifierType() == deleteType) {
                 modifiersTypeMap_.emplace((int16_t)deleteType, value);
