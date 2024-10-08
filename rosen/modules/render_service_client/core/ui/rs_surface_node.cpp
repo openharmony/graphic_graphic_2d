@@ -791,7 +791,7 @@ void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
     }
 }
 
-void RSSurfaceNode::SetAncoForceDoDirect(uint32_t flags)
+void RSSurfaceNode::SetAncoFlags(uint32_t flags)
 {
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetAncoFlags>(GetId(), flags);
