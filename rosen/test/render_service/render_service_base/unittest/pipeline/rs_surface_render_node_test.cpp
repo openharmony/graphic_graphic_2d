@@ -536,6 +536,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalPositionEnabledTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     node->SetGlobalPositionEnabled(true);
     ASSERT_EQ(node->GetGlobalPositionEnabled(), true);
     node->SetGlobalPositionEnabled(false);

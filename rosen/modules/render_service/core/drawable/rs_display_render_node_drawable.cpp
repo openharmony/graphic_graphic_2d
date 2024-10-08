@@ -532,8 +532,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     offsetX_ = params->GetDisplayOffsetX();
     offsetY_ = params->GetDisplayOffsetY();
     curDisplayScreenId_ = paramScreenId;
-    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::OnDraw curScreenId=[%" PRIu64 "], offsetX=%d, offsetY=%d",
-        paramScreenId, offsetX_, offsetY_);
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw curScreenId=[%{public}" PRIu64 "], "
+        "offsetX=%{public}d, offsetY=%{public}d", paramScreenId, offsetX_, offsetY_);
 
     if (RSSystemProperties::IsFoldScreenFlag() && paramScreenId == 0) {
         screenRotation = static_cast<ScreenRotation>((static_cast<int>(screenRotation) + 1) % ROTATION_NUM);
@@ -666,7 +666,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSDirtyRectsDfx rsDirtyRectsDfx(*this);
     std::vector<RectI> damageRegionrects;
     Drawing::Region clipRegion;
-    if (uniParam->IsPartialRenderEnabled() && paramScreenId == 0) {
+    if (uniParam->IsPartialRenderEnabled() &&
+        (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC || paramScreenId == 0)) {
         damageRegionrects = MergeDirtyHistory(*this, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx, *params);
         uniParam->Reset();
         clipRegion = GetFlippedRegion(damageRegionrects, screenInfo);
@@ -707,7 +708,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             Drawing::AutoCanvasRestore acr(*curCanvas_, true);
 
             bool isOpDropped = uniParam->IsOpDropped();
-            if (paramScreenId != 0) {
+            if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && paramScreenId != 0) {
                 uniParam->SetOpDropped(false);
             }
             bool needOffscreen = params->GetNeedOffscreen() || isHdrOn;
@@ -751,7 +752,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                     RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw canvasBackup_ is nullptr");
                 }
             }
-            if (paramScreenId != 0) {
+            if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && paramScreenId != 0) {
                 uniParam->SetOpDropped(isOpDropped);
             }
             // watermark and color filter should be applied after offscreen render.

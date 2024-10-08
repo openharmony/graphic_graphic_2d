@@ -96,8 +96,8 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
         auto matrix = surfaceParams.GetTotalMatrix();
         matrix.Translate(-offsetX_, -offsetY_);
         canvas.ConcatMatrix(matrix);
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnGeneralProcess Translate screenId=[%" PRIu64 "] "
-            "offsetX=%d offsetY=%d", curDisplayScreenId_, offsetX_, offsetY_);
+        RS_LOGD("RSSurfaceRenderNodeDrawable::OnGeneralProcess Translate screenId=[%{public}" PRIu64 "] "
+            "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
     }
 
     // 1. draw background
@@ -843,8 +843,8 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         auto matrix = surfaceParams.GetTotalMatrix();
         matrix.Translate(-offsetX_, -offsetY_);
         canvas.ConcatMatrix(matrix);
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DealWithUIFirstCache Translate screenId=[%" PRIu64 "] "
-            "offsetX=%d offsetY=%d", curDisplayScreenId_, offsetX_, offsetY_);
+        RS_LOGD("RSSurfaceRenderNodeDrawable::DealWithUIFirstCache Translate screenId=[%{public}" PRIu64 "] "
+            "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
     }
 
     DrawBackground(canvas, bounds);
