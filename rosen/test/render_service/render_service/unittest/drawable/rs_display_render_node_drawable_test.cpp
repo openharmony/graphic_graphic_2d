@@ -178,7 +178,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
     ASSERT_NE(displayDrawable_, nullptr);
     auto& rtThread = RSUniRenderThread::Instance();
     if (!rtThread.GetRSRenderThreadParams()) {
-        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+        rtThread.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     }
     NodeId id = 1;
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(id);
@@ -207,6 +207,9 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawCurtainScreen, TestSize.Level1)
     displayDrawable_->DrawCurtainScreen();
     ASSERT_TRUE(!RSUniRenderThread::Instance().IsCurtainScreenOn());
 
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->isCurtainScreenOn_ = true;
+    RSUniRenderThread::Instance().Sync(move(params));
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->isCurtainScreenOn_ = true;
     displayDrawable_->DrawCurtainScreen();
     ASSERT_TRUE(RSUniRenderThread::Instance().IsCurtainScreenOn());
@@ -423,6 +426,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     auto result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 

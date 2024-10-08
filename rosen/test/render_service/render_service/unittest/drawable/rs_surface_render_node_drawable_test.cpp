@@ -539,6 +539,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsHardwareEnabled, TestSize.Level1)
     auto nodePtr = std::make_shared<RSRenderNode>(0);
     ASSERT_NE(nodePtr, nullptr);
     auto rsSurfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr);
+    RSUniRenderThread::Instance().renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
         rsSurfaceRenderNode);
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
