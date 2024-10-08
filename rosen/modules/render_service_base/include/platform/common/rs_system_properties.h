@@ -257,7 +257,7 @@ public:
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
     static bool GetSkipDisplayIfScreenOffEnabled();
-
+    static bool GetBatchRemovingOnRemoteDiedEnabled();
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();
 #endif
