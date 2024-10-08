@@ -29,7 +29,7 @@ void ThreadPrivateDataCtl::KeyInit()
         return;
     }
     if (pthread_key_create(&tableKey_, nullptr) != 0) {
-        WLOGE("Failed to creat thread key.")
+        WLOGE("Failed to creat thread key.");
         return;
     }
     WLOGD("pthread_key_create. key = %{public}d", key_);
