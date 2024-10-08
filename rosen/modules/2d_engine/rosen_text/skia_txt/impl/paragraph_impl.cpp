@@ -285,7 +285,7 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    
+
     TextStyle txt;
     txt.color = skStyle.getColor();
     txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());

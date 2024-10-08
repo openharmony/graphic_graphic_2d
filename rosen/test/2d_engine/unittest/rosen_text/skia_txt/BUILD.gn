@@ -28,6 +28,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
       "paragraph_builder_test.cpp",
       "paragraph_test.cpp",
       "run_test.cpp",
+      "text_bundle_config_parser_test.cpp",
       "text_line_base_test.cpp",
       "text_style_test.cpp",
       "typeface_font_asset_provider_test.cpp",
@@ -75,6 +76,17 @@ ohos_unittest("rosen_text_skia_txt_test") {
   ]
 
   external_deps = [ "hilog:libhilog" ]
+
+  if (platform == "ohos" || platform == "ohos_ng") {
+    external_deps += [
+      "bundle_framework:appexecfwk_base",
+      "bundle_framework:appexecfwk_core",
+      "c_utils:utils",
+      "ipc:ipc_core",
+      "samgr:samgr_proxy",
+    ]
+    defines += [ "OHOS_TEXT_ENABLE" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
