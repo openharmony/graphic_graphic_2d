@@ -21,6 +21,7 @@
 #include "hdi_layer_info.h"
 #include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
+#include "rs_uni_render_util.h"
 #include "string_utils.h"
 #include "surface_type.h"
 
@@ -206,7 +207,8 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
     if (params.GetIsProtectedLayer() == false) {
         return false;
     }
-    if (params.GetAnimateState() == true) {
+    if (params.GetAnimateState() == true ||
+        RSUniRenderUtil::GetRotationDegreeFromMatrix(params.GetTotalMatrix()) % RS_ROTATION_90 != 0) {
         return true;
     }
     bool forceClientForDRM = false;
