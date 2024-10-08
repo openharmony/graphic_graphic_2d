@@ -113,6 +113,8 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
         CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
     }
+    bool isFitMatrixValid = !isBackground && imageFit_ == ImageFit::MATRIX &&
+                                fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         Drawing::AutoCanvasRestore acr(canvas, HasRadius());
@@ -123,8 +125,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             ApplyImageFit();
             ApplyCanvasClip(canvas);
         }
-        bool isFitMatrixValid = !isBackground && imageFit_ == ImageFit::MATRIX &&
-                                fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
         if (isFitMatrixValid) {
             canvas.Save();
             canvas.ConcatMatrix(fitMatrix_.value());
@@ -134,10 +134,15 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             canvas.Restore();
         }
     } else {
-        Drawing::AutoCanvasRestore acr(canvas, HasRadius());
+        bool needCanvasRestore = HasRadius() ||
+                                 (pixelMap_ != nullptr && pixelMap_->IsAstc()) ||
+                                 isFitMatrixValid;
+        Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            canvas.Save();
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
+        }
+        if (isFitMatrixValid) {
+            canvas.ConcatMatrix(fitMatrix_.value());
         }
         if (image_) {
             if (!isBackground) {
@@ -151,9 +156,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                 canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
                     Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
             }
-        }
-        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            canvas.Restore();
         }
     }
     lastRect_ = rect;
