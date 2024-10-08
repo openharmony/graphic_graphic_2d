@@ -19,11 +19,16 @@
 namespace OHOS {
 constexpr int32_t PTHREAD_KEY_T_NOT_INITIALIZED = -1;
 pthread_key_t ThreadPrivateDataCtl::key_ = PTHREAD_KEY_T_NOT_INITIALIZED;
+pthread_key_t ThreadPrivateDataCtl::tableKey_ = PTHREAD_KEY_T_NOT_INITIALIZED;
 pthread_once_t ThreadPrivateDataCtl::onceCtl_ = PTHREAD_ONCE_INIT;
 
 void ThreadPrivateDataCtl::KeyInit()
 {
     if (pthread_key_create(&key_, nullptr) != 0) {
+        WLOGE("Failed to create thread key.");
+        return;
+    }
+    if (pthread_key_create(&tableKey_, nullptr) != 0) {
         WLOGE("Failed to create thread key.");
         return;
     }
@@ -54,6 +59,9 @@ void ThreadPrivateDataCtl::ClearPrivateData()
             pthread_setspecific(key_, nullptr);
             delete data;
         }
+    }
+    if (tableKey_ != static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
+        pthread_setspecific(tableKey_, nullptr);
     }
 }
 
@@ -114,20 +122,15 @@ EGLContext ThreadPrivateDataCtl::GetContext()
 void ThreadPrivateDataCtl::SetGlHookTable(GlHookTable *table)
 {
     ValidateKey();
-    GetPrivateData()->table = table;
+    pthread_setspecific(tableKey_, table);
 }
 
 GlHookTable *ThreadPrivateDataCtl::GetGlHookTable()
 {
-    if (key_ == static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
+    if (tableKey_ == static_cast<pthread_key_t>(PTHREAD_KEY_T_NOT_INITIALIZED)) {
         return nullptr;
     }
-
-    ThreadPrivateData *data = static_cast<ThreadPrivateData *>(pthread_getspecific(key_));
-    if (!data) {
-        return nullptr;
-    }
-
-    return data->table;
+    return static_cast<GlHookTable *>(pthread_getspecific(tableKey_));
 }
+
 } // namespace OHOS
