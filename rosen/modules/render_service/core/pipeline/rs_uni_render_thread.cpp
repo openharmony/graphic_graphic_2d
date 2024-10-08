@@ -697,7 +697,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
         } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
             TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
-            uint32_t pid = static_cast<uint32_t>(std::stoll(type));
+            uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
             Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
