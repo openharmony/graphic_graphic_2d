@@ -931,6 +931,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions permissions)
 {
     if (!mainThread_) {
+        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
     std::function<void()> captureTask = [id, callback, captureConfig,

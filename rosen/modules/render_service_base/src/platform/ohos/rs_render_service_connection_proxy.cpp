@@ -1197,7 +1197,7 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
-        ROSEN_LOGE("RSRenderServiceProxy: callback == nullptr\n");
+        ROSEN_LOGE("%{public}s callback == nullptr", __func__);
         return;
     }
 
@@ -1206,20 +1206,23 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s write id failed", __func__);
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("%{public}s write callback failed", __func__);
         return;
     }
     if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync)) {
+        ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");
+        ROSEN_LOGE("%{public}s Remote()->SendRequest() error[%{public}d]", __func__, err);
         return;
     }
 }
