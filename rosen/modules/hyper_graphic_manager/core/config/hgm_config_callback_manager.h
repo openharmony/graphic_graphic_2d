@@ -36,6 +36,7 @@ public:
     void RegisterHgmRefreshRateModeChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
     void RegisterHgmRefreshRateUpdateCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
     void SyncHgmConfigChangeCallback();
+    void SyncHgmConfigChangeCallback(const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& pids);
     void SyncRefreshRateModeChangeCallback(int32_t refreshRateMode);
     void SyncRefreshRateUpdateCallback(int32_t refreshRate);
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
@@ -46,6 +47,7 @@ private:
     static std::once_flag createFlag_;
     static sptr<HgmConfigCallbackManager> instance_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> animDynamicCfgCallbacks_;
+    std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> pendingAnimDynamicCfgCallbacks_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> refreshRateModeCallbacks_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> refreshRateUpdateCallbacks_;
 };

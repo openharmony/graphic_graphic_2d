@@ -18,6 +18,7 @@
 #include <limits>
 
 #include "common/rs_common_hook.h"
+#include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "rs_trace.h"
@@ -60,6 +61,9 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
             foregroundPidAppMap_[pid] = { appType, pkgName };
             backgroundPid_.Erase(pid);
         }
+    }
+    if (auto configCallbackManager = HgmConfigCallbackManager::GetInstance(); configCallbackManager != nullptr) {
+        configCallbackManager->SyncHgmConfigChangeCallback(foregroundPidAppMap_);
     }
 
     CalcVote();

@@ -749,6 +749,8 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
     }
     if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
         sceneStack_.clear();
+        gameScenes_.clear();
+        ancoScenes_.clear();
     }
     UpdateAppSupportedState();
 }
