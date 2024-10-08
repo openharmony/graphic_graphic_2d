@@ -123,14 +123,17 @@ ohos_executable("render_service_client_modifier_demo") {
   sources = [ "render_service_client_modifier_demo.cpp" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   public_external_deps = [ "$public_deps_skia" ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
@@ -220,11 +223,14 @@ ohos_executable("render_service_client_ui_capture_demo") {
   sources = [ "render_service_client_ui_capture_demo.cpp" ]
 
   deps = [
-    "../../render_service_base:librender_service_base",
-    "../../render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -360,8 +366,8 @@ ohos_executable("render_service_client_uni_render_demo") {
   sources = [ "render_service_client_uni_render_demo.cpp" ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   public_external_deps = [
@@ -370,6 +376,9 @@ ohos_executable("render_service_client_uni_render_demo") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hilog:libhilog",
     "safwk:system_ability_fwk",
@@ -407,6 +416,9 @@ ohos_executable("rs_uni_render_pixelmap_demo") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

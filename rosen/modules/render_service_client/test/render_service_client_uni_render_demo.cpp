@@ -18,6 +18,9 @@
 
 #include "window.h"
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
 #include "transaction/rs_transaction.h"
@@ -52,8 +55,30 @@ static void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int heig
     rsUiDirector->SetRoot(rootNode->GetId());
 }
 
+void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "rs_uni_render_pixelmap_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
 int main()
 {
+    InitNativeTokenInfo();
+
     std::cout << "rs uni render demo start!" << std::endl;
     RSSystemProperties::GetUniRenderEnabled();
     sptr<WindowOption> option = new WindowOption();
@@ -63,6 +88,7 @@ int main()
     auto window = Window::Create("uni_render_demo", option);
 
     window->Show();
+    sleep(2);
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         std::cout << "rs uni render demo create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
