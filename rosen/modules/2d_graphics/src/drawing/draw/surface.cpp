@@ -135,6 +135,19 @@ void Surface::Flush(FlushInfo *drawingflushInfo)
     impl_->Flush(drawingflushInfo);
 }
 
+#ifdef RS_ENABLE_GL
+void Surface::Wait(const std::vector<GrGLsync>& syncs)
+{
+    if (!SystemProperties::IsUseGl()) {
+        return;
+    }
+    if (!impl_) {
+        return;
+    }
+    impl_->Wait(syncs);
+}
+#endif
+
 #ifdef RS_ENABLE_VK
 void Surface::Wait(int32_t time, const VkSemaphore& semaphore)
 {

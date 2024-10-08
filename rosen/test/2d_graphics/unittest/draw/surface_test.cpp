@@ -233,6 +233,22 @@ HWTEST_F(SurfaceTest, GetImageSnapshot005, TestSize.Level1)
     auto ret = surface->GetImageSnapshot(bounds);
     ASSERT_TRUE(ret == nullptr);
 }
+
+#ifdef RS_ENABLE_GL
+/**
+ * @tc.name: Wait006
+ * @tc.desc: Test wait for the surface.
+ * @tc.type: FUNC
+ * @tc.require:IALEIN
+ */
+HWTEST_F(SurfaceTest, Wait006, TestSize.Level1)
+{
+    auto surface = std::make_unique<Surface>();
+    ASSERT_TRUE(surface != nullptr);
+    std::vector<GrGLsync> syncs;
+    surface->Wait(syncs);
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

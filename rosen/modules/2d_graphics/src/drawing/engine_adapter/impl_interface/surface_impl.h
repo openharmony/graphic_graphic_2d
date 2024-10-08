@@ -16,9 +16,14 @@
 #ifndef DRAWING_SURFACE_IMPL_H
 #define DRAWING_SURFACE_IMPL_H
 
+#include <vector>
+
 #include "base_impl.h"
 #include "image/image_info.h"
 #include "utils/rect.h"
+#ifdef RS_ENABLE_GL
+#include "include/gpu/gl/GrGLTypes.h"
+#endif
 #ifdef RS_ENABLE_VK
 #include "vulkan/vulkan.h"
 #endif
@@ -53,6 +58,9 @@ public:
     virtual BackendTexture GetBackendTexture(BackendAccess access) const = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;
     virtual void Flush(FlushInfo *drawingflushInfo = nullptr) = 0;
+#ifdef RS_ENABLE_GL
+    virtual void Wait(const std::vector<GrGLsync>& syncs) {};
+#endif
 #ifdef RS_ENABLE_VK
     virtual void Wait(int32_t time, const VkSemaphore& semaphore) = 0;
     virtual void SetDrawingArea(const std::vector<RectI>& rects) = 0;
