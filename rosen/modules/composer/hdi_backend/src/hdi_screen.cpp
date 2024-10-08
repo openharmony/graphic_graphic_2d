@@ -86,14 +86,7 @@ bool HdiScreen::Init()
         return false;
     }
 
-    ret = device_->SetScreenVsyncEnabled(screenId_, true);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("SetScreenVsyncEnabled failed, ret is %{public}d", ret);
-        return false;
-    }
-
     HLOGI("Init hdiScreen succeed");
-
     return true;
 }
 
