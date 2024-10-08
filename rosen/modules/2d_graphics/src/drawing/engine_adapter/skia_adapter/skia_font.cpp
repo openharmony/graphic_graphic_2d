@@ -243,7 +243,17 @@ int SkiaFont::TextToGlyphs(const void* text, size_t byteLength, TextEncoding enc
 scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const
 {
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
-    return skFont_.measureText(text, byteLength, skEncoding, reinterpret_cast<SkRect*>(bounds));
+    if (bounds) {
+        SkRect rect;
+        scalar width = skFont_.measureText(text, byteLength, skEncoding, &rect);
+        bounds->SetLeft(rect.fLeft);
+        bounds->SetTop(rect.fTop);
+        bounds->SetRight(rect.fRight);
+        bounds->SetBottom(rect.fBottom);
+        return width;
+    } else {
+        return skFont_.measureText(text, byteLength, skEncoding);
+    }
 }
 
 int SkiaFont::CountText(const void* text, size_t byteLength, TextEncoding encoding) const
