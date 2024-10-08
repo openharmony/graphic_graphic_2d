@@ -1479,7 +1479,7 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
     if (renderService != nullptr) {
         return renderService->SetAncoForceDoDirect(direct);
     }
-    ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is nullptr!");
+    ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is null");
     return false;
 }
 

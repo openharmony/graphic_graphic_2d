@@ -982,7 +982,7 @@ void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
     ancoFlags_.store(flags);
 }
 
-int32_t RSSurfaceRenderNode::GetAncoFlags() const
+uint32_t RSSurfaceRenderNode::GetAncoFlags() const
 {
     return ancoFlags_.load();
 }
