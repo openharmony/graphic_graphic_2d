@@ -211,7 +211,7 @@ template("graphics2d_source_set") {
       ]
       defines += [ "ACE_ENABLE_GPU" ]
 
-      if (!is_emulator && !build_ohos_sdk) {
+      if (is_emulator && !build_ohos_sdk) {
         external_deps += [ "qos_manager:qos" ]
         defines += [ "SKIA_PRIO_SCHED_ENABLE" ]
       }
