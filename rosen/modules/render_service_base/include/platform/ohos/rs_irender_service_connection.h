@@ -291,6 +291,8 @@ public:
 
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
+    virtual bool SetAncoForceDoDirect(bool direct) = 0;
+
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
 
 #ifdef TP_FEATURE_ENABLE

@@ -705,6 +705,11 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
 }
 
+bool RSInterfaces::SetAncoForceDoDirect(bool direct)
+{
+    return renderServiceClient_->SetAncoForceDoDirect(direct);
+}
+
 bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);

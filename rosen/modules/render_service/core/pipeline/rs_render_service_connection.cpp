@@ -1934,6 +1934,13 @@ int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, 
     return StatusCode::SUCCESS;
 }
 
+bool RSRenderServiceConnection::SetAncoForceDoDirect(bool direct)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    mainThread_->SetAncoForceDoDirect(direct);
+    return true;
+}
+
 bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     RS_LOGD("RSRenderServiceConnection::SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",

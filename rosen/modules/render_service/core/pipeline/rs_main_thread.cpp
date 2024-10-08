@@ -3945,6 +3945,12 @@ void RSMainThread::UnRegisterUIExtensionCallback(pid_t pid)
     uiExtensionListenners_.erase(pid);
 }
 
+void RSMainThread::SetAncoForceDoDirect(bool direct)
+{
+    RS_LOGI("RSMainThread::SetAncoForceDoDirect %{public}d.", direct);
+    RSSurfaceRenderNode::SetAncoForceDoDirect(direct);
+}
+
 void RSMainThread::UIExtensionNodesTraverseAndCallback()
 {
     std::lock_guard<std::mutex> lock(uiExtensionMutex_);

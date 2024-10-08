@@ -2727,6 +2727,28 @@ int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
     }
 }
 
+bool RSRenderServiceConnectionProxy::SetAncoForceDoDirect(bool direct)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (data.WriteBool(direct)) {
+        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT);
+        int32_t err = Remote()->SendRequest(code, data, reply, option);
+        if (err != NO_ERROR) {
+            return false;
+        }
+        bool result = reply.ReadBool();
+        return result;
+    } else {
+        return false;
+    }
+}
+
 bool RSRenderServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     MessageParcel data;
