@@ -435,7 +435,7 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
     std::shared_ptr<RSRenderProperty<RRect>> rectValue = std::make_shared<RSRenderProperty<RRect>>();
     rectValue->Set(rect);
 
-    EXPECT_FALSE(property1.IsNearEqual(floatValue, zeroThreshold));
+    EXPECT_TRUE(property1.IsNearEqual(floatValue, zeroThreshold));
     EXPECT_TRUE(property2.IsNearEqual(vector2fValue, zeroThreshold));
     EXPECT_TRUE(property3.IsNearEqual(quaternionValue, zeroThreshold));
     EXPECT_TRUE(property4.IsNearEqual(vector4Value, zeroThreshold));

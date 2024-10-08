@@ -642,6 +642,12 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     out += "[" + std::to_string(GetId()) + "], instanceRootNodeId" + "[" +
         std::to_string(GetInstanceRootNodeId()) + "]";
     if (auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>()) {
+#if defined(ROSEN_OHOS)
+        if (surfaceNode->GetRSSurfaceHandler() && surfaceNode->GetRSSurfaceHandler()->GetConsumer()) {
+            out +=
+                ", uniqueId[" + std::to_string(surfaceNode->GetRSSurfaceHandler()->GetConsumer()->GetUniqueId()) + "]";
+        }
+#endif
         if (surfaceNode->HasSubSurfaceNodes()) {
             out += surfaceNode->SubSurfaceNodesDump();
         }
