@@ -1202,12 +1202,6 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
-    NodeId GetRootIdOfCaptureWindow() const
-    {
-        return rootIdOfCaptureWindow_;
-    }
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow);
-
     bool GetIsIntersectWithRoundCorner() const
     {
         return isIntersectWithRoundCorner_;
@@ -1482,8 +1476,6 @@ private:
     bool isSkipDraw_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
-
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
 
     bool arsrTag_ = true;
 

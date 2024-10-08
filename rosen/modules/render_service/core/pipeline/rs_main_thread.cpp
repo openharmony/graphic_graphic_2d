@@ -426,6 +426,7 @@ void RSMainThread::Init()
             renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
         }
         RenderFrameStart(timestamp_);
+        RSRenderNodeGC::Instance().SetGCTaskEnable(true);
 #if defined(RS_ENABLE_UNI_RENDER)
         WaitUntilSurfaceCapProcFinished();
 #endif
@@ -532,11 +533,6 @@ void RSMainThread::Init()
     if (ret != 0) {
         RS_LOGW("Add watchdog thread failed");
     }
-    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
-        AppExecFwk::EventQueue::Priority priority) {
-        RSMainThread::Instance()->PostTask(task, name, delayTime, priority);
-    };
-    RSRenderNodeGC::Instance().SetMainTask(PostTaskProxy);
 #ifdef RES_SCHED_ENABLE
     SubScribeSystemAbility();
 #endif
@@ -552,6 +548,15 @@ void RSMainThread::Init()
         renderEngine_ = std::make_shared<RSRenderEngine>();
         renderEngine_->Init();
     }
+    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+        AppExecFwk::EventQueue::Priority priority) {
+        RSMainThread::Instance()->PostTask(task, name, delayTime, priority);
+    };
+    RSRenderNodeGC::Instance().SetMainTask(PostTaskProxy);
+    auto GCNotifyTaskProxy = [](bool isEnable) {
+        RSRenderNodeGC::Instance().SetGCTaskEnable(isEnable);
+    };
+    conn->SetGCNotifyTask(GCNotifyTaskProxy);
 #ifdef RS_ENABLE_GL
     /* move to render thread ? */
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -3782,19 +3787,11 @@ void RSMainThread::UpdateUIFirstSwitch()
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
-    auto screenManager_ = CreateOrGetScreenManager();
-    if (!screenManager_) {
-        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-        return;
-    }
-    uint32_t actualScreensNum = screenManager_->GetActualScreensNum();
     if (deviceType_ != DeviceType::PC) {
         if (hasProtectedLayer_) {
             isUiFirstOn_ = false;
-        } else if (isFoldScreenDevice_) {
-            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == FOLD_DEVICE_SCREEN_NUMBER);
         } else {
-            isUiFirstOn_ = (RSSystemProperties::GetUIFirstEnabled() && actualScreensNum == 1);
+            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
         }
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;

@@ -58,7 +58,7 @@ void RSRenderNodeGC::ReleaseNodeBucket()
         toDele.swap(nodeBucket_.front());
         nodeBucket_.pop();
     }
-    RS_TRACE_NAME_FMT("ReleaseNodeMemory %d", toDele.size());
+    RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu", toDele.size());
     for (auto ptr : toDele) {
         if (ptr) {
             delete ptr;
@@ -76,9 +76,12 @@ void RSRenderNodeGC::ReleaseNodeMemory()
         }
     }
     if (mainTask_) {
-        auto task = []() {
-            RSRenderNodeGC::Instance().ReleaseNodeBucket();
-            RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        auto task = [this]() {
+            if (isEnable_.load() == false) {
+                return;
+            }
+            ReleaseNodeBucket();
+            ReleaseNodeMemory();
         };
         mainTask_(task, DELETE_NODE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
     } else {

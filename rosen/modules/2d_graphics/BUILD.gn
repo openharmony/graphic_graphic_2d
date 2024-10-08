@@ -187,15 +187,6 @@ template("graphics2d_source_set") {
             [ "$drawing_core_src_dir/utils/system_graphic_properties.cpp" ]
       }
     }
-
-    if (ace_enable_gpu) {
-      sources += [
-        "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
-        "$drawing_core_src_dir/image/gpu_context.cpp",
-      ]
-
-      defines += [ "ACE_ENABLE_GPU" ]
-    }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]
     }
@@ -212,6 +203,33 @@ template("graphics2d_source_set") {
       "$rosen_root/modules/texgine/texgine_drawing/src",
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
     ]
+
+    if (ace_enable_gpu) {
+      sources += [
+        "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
+        "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_task_executor.cpp",
+        "$drawing_core_src_dir/image/gpu_context.cpp",
+      ]
+      defines += [ "ACE_ENABLE_GPU" ]
+
+      if (!is_emulator && !build_ohos_sdk) {
+        external_deps += [ "qos_manager:qos" ]
+        defines += [ "SKIA_PRIO_SCHED_ENABLE" ]
+      }
+
+      if (!build_ohos_sdk && !is_arkui_x) {
+        defines += [ "RES_SCHED_ENABLE" ]
+        include_dirs += [ "$rosen_root/modules/frame_report/include" ]
+        if (rosen_is_ohos) {
+          sources +=
+              [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
+        } else {
+          sources += [
+            "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp",
+          ]
+        }
+      }
+    }
 
     if (is_arkui_x) {
       configs = [ "//third_party/jsoncpp:jsoncpp_public_config" ]

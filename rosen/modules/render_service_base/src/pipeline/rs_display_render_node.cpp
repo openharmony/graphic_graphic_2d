@@ -332,7 +332,7 @@ void RSDisplayRenderNode::UpdateRotation()
     if (boundsGeoPtr == nullptr) {
         return;
     }
-    lastRotationChanged_ = IsRotationChanged();
+    lastRotationChanged = IsRotationChanged();
     lastRotation_ = boundsGeoPtr->GetRotation();
     preRotationStatus_ = curRotationStatus_;
     curRotationStatus_ = IsRotationChanged();
@@ -417,7 +417,6 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
         }
         currentChildrenList_->emplace_back(child);
     }
-    isFullChildrenListValid_ = false;
     return std::atomic_load_explicit(&currentChildrenList_, std::memory_order_acquire);
 }
 
@@ -438,6 +437,11 @@ Occlusion::Region RSDisplayRenderNode::GetDisappearedSurfaceRegionBelowCurrent(N
         result.OrSelf(disappearedSurface);
     }
     return result;
+}
+
+bool RSDisplayRenderNode::IsZoomStateChange() const
+{
+    return preZoomState_ != curZoomState_;
 }
 } // namespace Rosen
 } // namespace OHOS

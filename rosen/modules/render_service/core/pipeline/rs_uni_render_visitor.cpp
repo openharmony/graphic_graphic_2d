@@ -1232,7 +1232,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         CheckCurtainScreenUsingStatusChange() ||
         IsFirstFrameOfPartialRender() ||
         IsWatermarkFlagChanged() ||
-        IsDisplayZoomIn() ||
+        IsDisplayZoomStateChange() ||
         CheckLuminanceStatusChange();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
@@ -1286,13 +1286,15 @@ bool RSUniRenderVisitor::IsWatermarkFlagChanged() const
     }
 }
 
-bool RSUniRenderVisitor::IsDisplayZoomIn() const
+bool RSUniRenderVisitor::IsDisplayZoomStateChange() const
 {
     if (!curDisplayNode_) {
         return false;
     }
     auto scale = curDisplayNode_->GetRenderProperties().GetScale();
-    return scale.x_ > 1.f || scale.y_ > 1.f;
+    bool curZoomState = scale.x_ > 1.f || scale.y_ > 1.f;
+    curDisplayNode_->UpdateZoomState(curZoomState);
+    return curZoomState || curDisplayNode_->IsZoomStateChange();
 }
 
 void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node)
@@ -1506,25 +1508,12 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     dirtyFlag_ = dirtyFlag;
 
     PrepareForUIFirstNode(node);
-    PrepareForCapsuleWindowNode(node);
     node.OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
-}
-
-void RSUniRenderVisitor::PrepareForCapsuleWindowNode(RSSurfaceRenderNode& node)
-{
-    if (UNLIKELY(!curDisplayNode_)) {
-        RS_LOGE("RSUniRenderVisitor::PrepareForCapsuleWindowNode curDisplayNode is nullptr");
-        return;
-    }
-    if (node.GetName().find("CapsuleWindow") == std::string::npos) {
-        return;
-    }
-    node.SetRootIdOfCaptureWindow(FindInstanceChildOfDisplay(node.GetParent().lock()));
 }
 
 void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)
@@ -2521,7 +2510,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfac
     if (hwcNode->IsHardwareForcedDisabled() && hwcNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed()) {
         appNode->GetDirtyManager()->MergeDirtyRect(hwcNode->GetOldDirtyInSurface());
     }
-    if (hasMirrorDisplay_ && hwcNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed()) {
+    if (hasMirrorDisplay_ && hwcNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
+        !appNode->GetVisibleRegion().IsEmpty()) {
         // merge hwc node dst rect for virtual screen dirty, in case the main display node skip
         curDisplayDirtyManager_->MergeHwcDirtyRect(hwcNode->GetDstRect());
     }
@@ -3230,20 +3220,17 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             }
         }
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
-        if (!(hwcNodePtr->GetTotalMatrix() == matrix) ||
-            surfaceHandler->GetBufferSizeChanged() || surfaceHandler->CheckScalingModeChanged()) {
-            const auto& properties = hwcNodePtr->GetRenderProperties();
-            Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
-            Drawing::Rect absRect;
-            matrix.MapRect(absRect, bounds);
-            RectI rect = {std::round(absRect.left_), std::round(absRect.top_),
-                std::round(absRect.GetWidth()), std::round(absRect.GetHeight())};
-            UpdateDstRect(*hwcNodePtr, rect, prepareClipRect_);
-            UpdateSrcRect(*hwcNodePtr, matrix, rect);
-            UpdateHwcNodeByTransform(*hwcNodePtr);
-            UpdateHwcNodeEnableBySrcRect(*hwcNodePtr);
-            UpdateHwcNodeEnableByBufferSize(*hwcNodePtr);
-        }
+        const auto& properties = hwcNodePtr->GetRenderProperties();
+        Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
+        Drawing::Rect absRect;
+        matrix.MapRect(absRect, bounds);
+        RectI rect = {std::round(absRect.left_), std::round(absRect.top_),
+            std::round(absRect.GetWidth()), std::round(absRect.GetHeight())};
+        UpdateDstRect(*hwcNodePtr, rect, prepareClipRect_);
+        UpdateSrcRect(*hwcNodePtr, matrix, rect);
+        UpdateHwcNodeByTransform(*hwcNodePtr);
+        UpdateHwcNodeEnableBySrcRect(*hwcNodePtr);
+        UpdateHwcNodeEnableByBufferSize(*hwcNodePtr);
         hwcNodePtr->SetTotalMatrix(matrix);
     }
 }

@@ -274,7 +274,7 @@ public:
     void UpdateRotation();
     bool IsRotationChanged() const;
     bool IsLastRotationChanged() const {
-        return lastRotationChanged_;
+        return lastRotationChanged;
     }
     bool GetPreRotationStatus() const {
         return preRotationStatus_;
@@ -309,8 +309,6 @@ public:
     void SetOffScreenCacheImgForCapture(std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture) {
         offScreenCacheImgForCapture_ = offScreenCacheImgForCapture;
     }
-
-    void SetMainAndLeashSurfaceDirty(bool isDirty);
 
     void SetHDRPresent(bool hdrPresent);
 
@@ -381,6 +379,8 @@ public:
         return iter->second;
     }
 
+    void SetMainAndLeashSurfaceDirty(bool isDirty);
+
     // Use in MultiLayersPerf
     size_t GetSurfaceCountForMultiLayersPerf() const
     {
@@ -400,6 +400,7 @@ public:
         oldScbPids_ = oldScbPids;
         currentScbPid_ = currentScbPid;
         isNeedWaitNewScbPid_ = true;
+        isFullChildrenListValid_ = false;
     }
 
     std::vector<int32_t> GetOldScbPids() const
@@ -416,6 +417,13 @@ public:
 
     Occlusion::Region GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const;
 
+    void UpdateZoomState(bool state)
+    {
+        preZoomState_ = curZoomState_;
+        curZoomState_ = state;
+    }
+
+    bool IsZoomStateChange() const;
 protected:
     void OnSync() override;
 private:
@@ -440,7 +448,7 @@ private:
     float lastRotation_ = 0.f;
     bool preRotationStatus_ = false;
     bool curRotationStatus_ = false;
-    bool lastRotationChanged_ = false;
+    bool lastRotationChanged = false;
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
@@ -485,6 +493,9 @@ private:
 
     friend class DisplayNodeCommandHelper;
     int64_t lastRefreshTime_ = 0;
+
+    bool curZoomState_ = false;
+    bool preZoomState_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
