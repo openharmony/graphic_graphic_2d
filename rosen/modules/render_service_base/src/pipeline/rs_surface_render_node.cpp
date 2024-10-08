@@ -2051,6 +2051,31 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
     return true;
 }
 
+void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const
+{
+    auto begin = cornerRadius.GetData();
+    auto end = begin + Vector4<int>::V4SIZE;
+    switch (rotationDegree) {
+        case RS_ROTATION_90: {
+            constexpr int moveTime = 1;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        case RS_ROTATION_180: {
+            constexpr int moveTime = 2;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        case RS_ROTATION_270: {
+            constexpr int moveTime = 3;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
     const bool isFocusWindow)
 {
@@ -2061,6 +2086,16 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
                                 static_cast<int>(std::round(tmpCornerRadius.y_)),
                                 static_cast<int>(std::round(tmpCornerRadius.z_)),
                                 static_cast<int>(std::round(tmpCornerRadius.w_)));
+    auto boundsGeometry = GetRenderProperties().GetBoundsGeometry();
+    if (boundsGeometry) {
+        const auto& absMatrix = boundsGeometry->GetAbsMatrix();
+        auto rotationDegree = static_cast<int>(-round(atan2(absMatrix.Get(Drawing::Matrix::SKEW_X),
+            absMatrix.Get(Drawing::Matrix::SCALE_X)) * (RS_ROTATION_180 / PI)));
+        if (rotationDegree < 0) {
+            rotationDegree += RS_ROTATION_360;
+        }
+        RotateCorner(rotationDegree, cornerRadius);
+    }
 
     bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.absRect_ == absRect &&
