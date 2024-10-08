@@ -1476,10 +1476,10 @@ void RSUniRenderVisitor::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNo
             alpha *= parentProperty.GetAlpha();
         },
         [&totalMatrix](std::shared_ptr<RSRenderNode> parent) {
-            auto& parentProperty = parent->GetRenderProperties();
-            auto parentGeo = parentProperty.GetBoundsGeometry();
-            if (parentGeo) {
-                totalMatrix.PostConcat(parentGeo->GetMatrix());
+            if (auto opt = RSUniRenderUtil::GetMatrix(parent)) {
+                totalMatrix.PostConcat(opt.value());
+            } else {
+                return;
             }
         },
         [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
@@ -2408,11 +2408,12 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         auto parent = hwcNodePtr->GetParent().lock();
         bool findInRoot = parent ? parent->GetId() == rootNode.GetId() : false;
         while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
-            const auto& parentGeoPtr = parent->GetRenderProperties().GetBoundsGeometry();
-            if (!parentGeoPtr) {
+            if (auto opt = RSUniRenderUtil::GetMatrix(parent)) {
+                matrix.PostConcat(opt.value());
+            } else {
                 break;
             }
-            matrix.PostConcat(parentGeoPtr->GetMatrix());
+
             parent = parent->GetParent().lock();
             if (!parent) {
                 break;
