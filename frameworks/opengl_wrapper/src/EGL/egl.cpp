@@ -50,10 +50,16 @@ extern "C" {
 OHOS::GlHookTable *GetHookTable()
 {
     auto hookTable = OHOS::ThreadPrivateDataCtl::GetGlHookTable();
-    if (hookTable == nullptr) {
+    if (__builtin_expect(hookTable == nullptr, 0)) {
+        OHOS::ThreadPrivateDataCtl::SetGlHookTable(&OHOS::gWrapperHook.gl);
         return &OHOS::gWrapperHook.gl;
     }
     return hookTable;
+}
+
+pthread_key_t GetHookTableKey()
+{
+    return OHOS::ThreadPrivateDataCtl::GetGlHookTableKey();
 }
 
 #pragma GCC diagnostic warning "-Wunused-parameter"
