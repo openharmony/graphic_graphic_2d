@@ -199,10 +199,6 @@ private:
 
     RSRenderThreadParamsManager renderParamsManager_;
 
-#ifdef RES_SCHED_ENABLE
-    void SubScribeSystemAbility();
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-#endif
     // used for blocking renderThread before displayNode has no freed buffer to request
     mutable std::mutex displayNodeBufferReleasedMutex_;
     bool displayNodeBufferReleased_ = false;
@@ -244,6 +240,10 @@ private:
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     uint32_t vmaCacheCount_ = 0;
     std::mutex vmaCacheCountMutex_;
+#ifdef RES_SCHED_ENABLE
+    void SubScribeSystemAbility();
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS
