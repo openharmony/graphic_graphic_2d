@@ -53,6 +53,9 @@ bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
     if (child->IsInstanceOf<RSRootRenderNode>()) {
         auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
+        // when rootnode is occluded, its applymodifiers will be skipped
+        // need to applymodifiers to update its properties here
+        rootNode->ApplyModifiers();
         const auto& property = rootNode->GetRenderProperties();
         if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 && rootNode->GetEnableRender()) {
             return true;
