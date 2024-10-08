@@ -82,6 +82,10 @@ public:
     virtual bool Marshalling(Parcel& parcel) = 0;
     [[nodiscard]] static RSRenderModifier* Unmarshalling(Parcel& parcel);
 
+    virtual std::shared_ptr<Drawing::DrawCmdList> GetPropertyDrawCmdList() const
+    {
+        return nullptr;
+    }
     virtual uint64_t GetDrawCmdListId() const
     {
         return 0;
@@ -158,6 +162,10 @@ public:
         }
     }
 
+    std::shared_ptr<Drawing::DrawCmdList> GetPropertyDrawCmdList() const override
+    {
+        return property_->Get();
+    }
     uint64_t GetDrawCmdListId() const override
     {
         Drawing::DrawCmdListPtr drawCmd = property_->Get();

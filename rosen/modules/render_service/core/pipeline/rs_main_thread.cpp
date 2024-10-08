@@ -709,6 +709,8 @@ void RSMainThread::Start()
 
 void RSMainThread::ProcessCommand()
 {
+    RSUnmarshalThread::Instance().ClearTransactionDataStatistics();
+
     // To improve overall responsiveness, we make animations start on LAST frame instead of THIS frame.
     // If last frame is too far away (earlier than 1 vsync from now), we use currentTimestamp_ - REFRESH_PERIOD as
     // 'virtual' last frame timestamp.
