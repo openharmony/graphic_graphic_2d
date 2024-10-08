@@ -172,7 +172,7 @@ ADD_COMMAND(RSSurfaceNodeSetForeground,
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST, SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetAncoFlags,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_Flags, SurfaceNodeCommandHelper::SetAncoFlags, NodeId, uint32_t))
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_FLAGS, SurfaceNodeCommandHelper::SetAncoFlags, NodeId, uint32_t))
 ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT, SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
