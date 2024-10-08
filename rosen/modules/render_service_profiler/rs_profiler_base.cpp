@@ -893,6 +893,9 @@ std::string RSProfiler::GetCommandParcelList(double recordStartTime)
     std::string retStr;
 
     uint16_t cmdCount = g_commandLoop[index].cmdCount;
+    if (cmdCount > COMMAND_PARSE_LIST_SIZE) {
+        cmdCount = COMMAND_PARSE_LIST_SIZE;
+    }
     if (cmdCount > 0) {
         uint16_t copyBytes = sizeof(PacketParsedCommandList) - (COMMAND_PARSE_LIST_SIZE - cmdCount) * sizeof(uint32_t);
         retStr.resize(copyBytes, ' ');
