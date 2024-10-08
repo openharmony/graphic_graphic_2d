@@ -2568,6 +2568,42 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSkipDraw001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: RotateCorner001
+ * @tc.desc: test results of RotateCorner
+ * @tc.type:FUNC
+ * @tc.require:issueIAIAQ0
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, RotateCorner001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    constexpr int firstCornerRadius{1};
+    constexpr int secondCornerRadius{2};
+    constexpr int thirdCornerRadius{3};
+    constexpr int fourthCornerRadius{4};
+
+    Vector4<int> cornerRadius1{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
+    node->RotateCorner(RS_ROTATION_0, cornerRadius1);
+    EXPECT_TRUE(cornerRadius1 == Vector4<int>(
+        firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius));
+    
+    Vector4<int> cornerRadius2{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
+    node->RotateCorner(RS_ROTATION_90, cornerRadius2);
+    EXPECT_TRUE(cornerRadius2 == Vector4<int>(
+        fourthCornerRadius, firstCornerRadius, secondCornerRadius, thirdCornerRadius));
+    
+    Vector4<int> cornerRadius3{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
+    node->RotateCorner(RS_ROTATION_180, cornerRadius3);
+    EXPECT_TRUE(cornerRadius3 == Vector4<int>(
+        thirdCornerRadius, fourthCornerRadius, firstCornerRadius, secondCornerRadius));
+    
+    Vector4<int> cornerRadius4{firstCornerRadius, secondCornerRadius, thirdCornerRadius, fourthCornerRadius};
+    node->RotateCorner(RS_ROTATION_270, cornerRadius4);
+    EXPECT_TRUE(cornerRadius4 == Vector4<int>(
+        secondCornerRadius, thirdCornerRadius, fourthCornerRadius, firstCornerRadius));
+}
+
+/**
  * @tc.name: MarkBlurIntersectDRMTest
  * @tc.desc: test if node could be marked BlurIntersectWithDRM correctly
  * @tc.type: FUNC

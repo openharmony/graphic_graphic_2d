@@ -1232,6 +1232,10 @@ protected:
     void OnSync() override;
     void OnSkipSync() override;
 
+    // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
+    // of corner radius loops one element to the right
+    void RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const;
+
 private:
     explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
