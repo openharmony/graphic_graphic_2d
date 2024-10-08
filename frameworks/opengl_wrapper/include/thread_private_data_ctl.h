@@ -22,10 +22,9 @@
 #include "hook.h"
 namespace OHOS {
 struct ThreadPrivateData {
-    ThreadPrivateData() : error(EGL_SUCCESS), ctx(nullptr), table(nullptr) {}
+    ThreadPrivateData() : error(EGL_SUCCESS), ctx(nullptr) {}
     EGLint      error;
     EGLContext  ctx;
-    GlHookTable *table;
 };
 
 class ThreadPrivateDataCtl {
