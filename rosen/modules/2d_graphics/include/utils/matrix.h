@@ -116,6 +116,16 @@ public:
     void PostScale(scalar sx, scalar sy);
 
     /**
+     * @brief         Sets Matrix to Matrix constructed from scaling by (sx, sy)
+     *                about pivot point(px,py), multiplied by Matrix.
+     * @param sx      horizontal scale factor
+     * @param sy      vertical scale factor
+     * @param px      pivot on x-axis
+     * @param px      pivot on y-axis
+     */
+    void PostScale(scalar sx, scalar sy, scalar px, scalar py);
+
+    /**
      * @brief     Sets Matrix to Matrix multiplied by Matrix constructed
      *            from skewing by (kx, ky) about pivot point (0, 0).
      * @param kx  Horizontal skew factor.
@@ -150,16 +160,6 @@ public:
      * @param ky      pivot on y-axis
      */
     void PostSkew(scalar kx, scalar ky, scalar px, scalar py);
-    
-    /**
-     * @brief         Sets Matrix to Matrix constructed from scaling by (sx, sy)
-     *                about pivot point(px,py), multiplied by Matrix.
-     * @param sx      horizontal scale factor
-     * @param sy      vertical scale factor
-     * @param px      pivot on x-axis
-     * @param px      pivot on y-axis
-     */
-    void PostScale(scalar sx, scalar sy, scalar px, scalar py);
 
     /**
      * @brief         Sets Matrix to Matrix other multiplied by Matrix.

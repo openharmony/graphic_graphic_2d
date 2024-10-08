@@ -51,9 +51,7 @@ bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContext
 
 void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const
 {
-    if (impl_ != nullptr) {
-        impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
-    }
+    impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
 void GPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
