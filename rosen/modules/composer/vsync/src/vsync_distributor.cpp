@@ -990,10 +990,7 @@ VsyncError VSyncDistributor::SetHighPriorityVSyncRate(int32_t highPriorityRate, 
 
 VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& pid)
 {
-    if (name.find("WM") == std::string::npos) {
-        return VSYNC_ERROR_INVALID_ARGUMENTS;
-    }
-    if (name.find("NWeb") != std::string::npos) {
+    if (name.find("WM") == std::string::npos && name.find("NWeb") == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::string::size_type pos = name.find("_");

@@ -1861,7 +1861,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             //planning:the QuickPrepare will be replaced by Prepare
             rootNode->QuickPrepare(uniVisitor);
             uniVisitor->SurfaceOcclusionCallbackToWMS();
-            SetUniVSyncRateByVisibleLevel(uniVisitor);
         } else {
             rootNode->Prepare(uniVisitor);
         }
@@ -2039,9 +2038,9 @@ void RSMainThread::Render()
     }
     if (!isUniRender_) {
         CallbackDrawContextStatusToWMS();
+        CheckSystemSceneStatus();
         PerfForBlurIfNeeded();
     }
-    CheckSystemSceneStatus();
     UpdateLuminance();
 }
 
@@ -2352,12 +2351,9 @@ void RSMainThread::CalcOcclusion()
     SurfaceOcclusionCallback();
 }
 
-void RSMainThread::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
+bool RSMainThread::CheckSurfaceVisChanged(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
-    if (!vsyncControlEnabled_ || appVSyncDistributor_ == nullptr) {
-        return;
-    }
     if (!systemAnimatedScenesList_.empty()) {
         visMapForVsyncRate.clear();
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -2369,91 +2365,46 @@ void RSMainThread::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& 
         }
         isReduceVSyncBySystemAnimatedScenes_ = true;
     }
-    NotifyVSyncRates(visMapForVsyncRate);
-}
-
-void RSMainThread::SetUniVSyncRateByVisibleLevel(const std::shared_ptr<RSUniRenderVisitor>& uniRenderVisitor)
-{
-    if (!vsyncControlEnabled_ || appVSyncDistributor_ == nullptr) {
-        return;
-    }
-    if (uniRenderVisitor == nullptr) {
-        RS_LOGE("RSMainThread::SetUniVSyncRateByVisibleLevel GetUniRenderVisitor fail");
-        return;
-    }
-    const std::vector<NodeId>& curSurfaceIds = uniRenderVisitor->GetAllMainAndLeashWindowNodesIds();
-    bool surfaceIdsChanged = lastSurfaceIds_ != curSurfaceIds;
-    bool vsyncRatesChanged = uniRenderVisitor->GetVSyncRatesChanged();
-    bool focusChanged = lastFocusNodeId_ != uniRenderVisitor->GetFocusedNodeId();
-    bool needRefresh = isReduceVSyncBySystemAnimatedScenes_ && systemAnimatedScenesList_.empty();
-    RS_LOGD("SetUniVSyncRate needRefresh=%{public}d, ratesC=%{public}d, surfaceIdsC=%{public}d, focusIdC=%{public}d,"
-        " sysAnimated=%{public}d", needRefresh, vsyncRatesChanged, surfaceIdsChanged, focusChanged,
-        !systemAnimatedScenesList_.empty());
-    RS_TRACE_NAME_FMT("SetUniVSyncRate needRefresh=%d, ratesC=%d, surfaceIdsC=%d, focusIdC=%d, sysAnimated=%d",
-        needRefresh, vsyncRatesChanged, surfaceIdsChanged, focusChanged, !systemAnimatedScenesList_.empty());
-    if (!(vsyncRatesChanged || surfaceIdsChanged || focusChanged || needRefresh)) {
-        return;
-    }
-    if (surfaceIdsChanged) {
-        lastSurfaceIds_ = curSurfaceIds;
-    }
-    if (focusChanged) {
-        lastFocusNodeId_ = uniRenderVisitor->GetFocusedNodeId();
-    }
-    if (needRefresh) {
-        isReduceVSyncBySystemAnimatedScenes_ = false;
-    }
-    if (!systemAnimatedScenesList_.empty()) {
-        isReduceVSyncBySystemAnimatedScenes_ = true;
-    }
-    NotifyVSyncRates(uniRenderVisitor->GetVisMapForVSyncRate());
-}
-
-void RSMainThread::NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates)
-{
-    RS_TRACE_NAME_FMT("NotifyVSyncRates vSyncRates.size=[%lu]", vSyncRates.size());
-    if (vSyncRates.empty()) {
-        return;
-    }
-    auto notifyVsyncFunc = [distributor = appVSyncDistributor_] (NodeId nodeId, RSVisibleLevel level) {
-        bool isSysAnimate = false;
-        int32_t rate = DEFAULT_RATE;
-        if (level == RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE) {
-            rate = SIMI_VISIBLE_RATE;
-        } else if (level == RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE) {
-            isSysAnimate = true;
-            rate = SYSTEM_ANIMATED_SCENES_RATE;
-        } else if (level == RSVisibleLevel::RS_INVISIBLE) {
-            rate = INVISBLE_WINDOW_RATE;
-        } else {
-            rate = DEFAULT_RATE;
-        }
-        distributor->SetQosVSyncRate(nodeId, rate, isSysAnimate);
-        RS_OPTIONAL_TRACE_NAME_FMT("NotifyVSyncRates nodeId=%" PRIu64 " rate=%d isSysAnimate=%d", nodeId, rate,
-            isSysAnimate);
-    };
-
-    bool isVisibleChanged = lastVisMapForVsyncRate_.size() != vSyncRates.size();
+    bool isVisibleChanged = visMapForVsyncRate.size() != visMapForVsyncRate.size();
     if (!isVisibleChanged) {
-        auto iterCur = vSyncRates.begin();
+        auto iterCur = visMapForVsyncRate.begin();
         auto iterLast = lastVisMapForVsyncRate_.begin();
-        for (; iterCur != vSyncRates.end(); iterCur++, iterLast++) {
-            if (iterCur->first != iterLast->first || iterCur->second != iterLast->second) {
+        for (; iterCur != visMapForVsyncRate.end(); iterCur++, iterLast++) {
+            if (iterCur->first != iterLast->first ||
+                iterCur->second != iterLast->second) {
                 isVisibleChanged = true;
-                notifyVsyncFunc(iterCur->first, iterCur->second);
+                break;
             }
         }
-        if (isVisibleChanged) {
-            lastVisMapForVsyncRate_ = vSyncRates;
-        }
-    } else {
-        lastVisMapForVsyncRate_.clear();
-        for (const auto &[nodeId, visLevel] : vSyncRates) {
-            notifyVsyncFunc(nodeId, visLevel);
-            lastVisMapForVsyncRate_.emplace(nodeId, visLevel);
+    }
+
+    if (isVisibleChanged) {
+        lastVisMapForVsyncRate_ = visMapForVsyncRate;
+    }
+    return isVisibleChanged;
+}
+
+void RSMainThread::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
+    std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
+{
+    if (!vsyncControlEnabled_ || !CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces) ||
+        appVSyncDistributor_ == nullptr) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("%s visMapForVsyncRateSize[%lu]", __func__, visMapForVsyncRate.size());
+    for (auto iter:visMapForVsyncRate) {
+        if (iter.second == RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE) {
+            appVSyncDistributor_->SetQosVSyncRate(iter.first, SIMI_VISIBLE_RATE);
+        } else if (iter.second == RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE) {
+            appVSyncDistributor_->SetQosVSyncRate(iter.first, SYSTEM_ANIMATED_SCENES_RATE, true);
+        } else if (iter.second == RSVisibleLevel::RS_INVISIBLE) {
+            appVSyncDistributor_->SetQosVSyncRate(iter.first, INVISBLE_WINDOW_RATE);
+        } else {
+            appVSyncDistributor_->SetQosVSyncRate(iter.first, DEFAULT_RATE);
         }
     }
 }
+
 
 void RSMainThread::CallbackToWMS(VisibleData& curVisVec)
 {

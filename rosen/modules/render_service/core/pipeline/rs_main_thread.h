@@ -353,11 +353,6 @@ public:
 
     void SetAncoForceDoDirect(bool direct);
 
-    bool IsSystemAnimatedScenesListEmpty() const
-    {
-        return systemAnimatedScenesList_.empty();
-    }
-
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -387,10 +382,10 @@ private:
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
         std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
     void CalcOcclusion();
+    bool CheckSurfaceVisChanged(std::map<NodeId, RSVisibleLevel>& pidVisMap,
+        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
     void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
-    void SetUniVSyncRateByVisibleLevel(const std::shared_ptr<RSUniRenderVisitor>& visitor);
-    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
     void InitRSEventDetector();

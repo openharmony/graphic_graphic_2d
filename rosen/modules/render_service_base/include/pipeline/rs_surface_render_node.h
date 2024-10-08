@@ -603,11 +603,6 @@ public:
         return abilityBgAlpha_;
     }
 
-    bool GetQosCal()
-    {
-        return qosPidCal_;
-    }
-
     void setQosCal(bool qosPidCal)
     {
         qosPidCal_ = qosPidCal;

@@ -3229,6 +3229,22 @@ HWTEST_F(RSMainThreadTest, ProcessScreenHotPlugEvents, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckSurfaceVisChanged001
+ * @tc.desc: Test CheckSurfaceVisChanged, systemAnimatedScenesList is empty
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
+{
+auto mainThread = RSMainThread::Instance();
+ASSERT_NE(mainThread, nullptr);
+std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
+std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+mainThread->systemAnimatedScenesList_.clear();
+mainThread->CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces);
+}
+
+/**
  * @tc.name: CheckSystemSceneStatus001
  * @tc.desc: Test CheckSystemSceneStatus, APPEAR_MISSION_CENTER
  * @tc.type: FUNC
