@@ -18,6 +18,9 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 #include "display_type.h"
 #include "draw/canvas.h"
 #include "draw/color.h"
@@ -154,7 +157,7 @@ void DrawSurfaceNode(shared_ptr<RSSurfaceNode> surfaceNode)
         cout << "canvas is nullptr" << endl;
         return;
     }
-    canvas->Сlear(SK_ColorWHITE);
+    canvas->Clear(SK_ColorWHITE);
 
     Brush brush;
     brush.SetColor(SK_ColorGREEN);
@@ -230,8 +233,30 @@ public:
     }
 };
 
+void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "rs_uni_render_pixelmap_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
 int main()
 {
+    InitNativeTokenInfo();
+
     cout << "rs local surface capture demo" << endl;
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
@@ -241,6 +266,7 @@ int main()
     auto window = Window::Create(demoName, option);
 
     window->Show();
+    sleep(2);
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         cout << "rs local surface demo create window failed: " << rect.width_ << " " << rect.height_ << endl;
