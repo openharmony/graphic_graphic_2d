@@ -25,6 +25,8 @@
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_typeface.h"
 #include "utils/log.h"
+#include "utils/text_log.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -87,10 +89,10 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
 {
     auto dynamicFontMgr = static_cast<txt::DynamicFontManager*>(skFontMgr_.get());
     if (dynamicFontMgr == nullptr) {
-        LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
+        TEXT_LOGE("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
         return nullptr;
     }
-    if (familyName.empty() || data == nullptr) {
+    if (familyName.empty() || data == nullptr || dataLength == 0) {
         dynamicFontMgr->font_provider().RegisterTypeface(nullptr, themeName);
         return nullptr;
     } else {
