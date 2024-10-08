@@ -2022,7 +2022,7 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
     }
     // force update if no next vsync when skip-frame enabled
     if (!needRequestNextVsync && filterDrawable->IsSkippingFrame()) {
-        filterDrawable->ForceClearCacheWithLastFrame();
+        filterDrawable->MarkForceClearCacheWithLastFrame();
         return;
     }
 
@@ -2038,17 +2038,17 @@ void RSRenderNode::CheckFilterCacheAndUpdateDirtySlots(
     if (filterDrawable == nullptr) {
         return;
     }
-    filterDrawable->ClearCacheIfNeeded();
+    filterDrawable->MarkNeedClearFilterCache();
     UpdateDirtySlotsAndPendingNodes(slot);
 }
 
-void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
+void RSRenderNode::MarkForceClearFilterCacheWithInvisible()
 {
     if (GetRenderProperties().GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->ClearCacheIfNeeded();
+            filterDrawable->MarkNeedClearFilterCache();
             UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
         }
     }
@@ -2056,7 +2056,7 @@ void RSRenderNode::MarkForceClearFilterCacheWhenWithInvisible()
         auto filterDrawable = GetFilterDrawable(true);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->ClearCacheIfNeeded();
+            filterDrawable->MarkNeedClearFilterCache();
             UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COMPOSITING_FILTER);
         }
     }
@@ -2606,7 +2606,7 @@ void RSRenderNode::UpdateShouldPaint()
                    sharedTransitionParam_;
     if (!shouldPaint_ && HasBlurFilter()) { // force clear blur cache
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] is invisible", GetId());
-        MarkForceClearFilterCacheWhenWithInvisible();
+        MarkForceClearFilterCacheWithInvisible();
     }
 }
 
@@ -3280,7 +3280,7 @@ void RSRenderNode::OnTreeStateChanged()
     }
     if (!isOnTheTree_ && HasBlurFilter()) { // force clear blur cache
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] off the tree", GetId());
-        MarkForceClearFilterCacheWhenWithInvisible();
+        MarkForceClearFilterCacheWithInvisible();
     }
 }
 
@@ -3978,6 +3978,9 @@ void RSRenderNode::OnSync()
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
     }
+
+    renderDrawable_->backgroundFilterDrawable_ = GetFilterDrawable(false);
+    renderDrawable_->compositingFilterDrawable_ = GetFilterDrawable(true);
 
     if (stagingRenderParams_->NeedSync()) {
         stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
