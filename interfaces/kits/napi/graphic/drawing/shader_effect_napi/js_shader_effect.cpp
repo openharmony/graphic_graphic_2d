@@ -444,16 +444,16 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
     return JsShaderEffect::Create(env, twoPointConicalGradient);
 }
 
-napi_value JsShaderEffect::Create(napi_env env, const std::shared_ptr<ShaderEffect> shaderEffect)
+napi_value JsShaderEffect::Create(napi_env env, const std::shared_ptr<ShaderEffect> gradient)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
-    if (objValue == nullptr || shaderEffect == nullptr) {
+    if (objValue == nullptr || gradient == nullptr) {
         ROSEN_LOGE("[NAPI]Object or JsShaderEffect is null!");
         return nullptr;
     }
 
-    std::unique_ptr<JsShaderEffect> jsShaderEffect = std::make_unique<JsShaderEffect>(shaderEffect);
+    std::unique_ptr<JsShaderEffect> jsShaderEffect = std::make_unique<JsShaderEffect>(gradient);
     napi_wrap(env, objValue, jsShaderEffect.release(), JsShaderEffect::Finalizer, nullptr, nullptr);
 
     if (objValue == nullptr) {

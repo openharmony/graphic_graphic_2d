@@ -38,7 +38,7 @@
 #include "skia_adapter/skia_path_effect.h"
 #include "skia_adapter/skia_picture.h"
 #include "skia_adapter/skia_region.h"
-#include "skia_adapter/skia_resourece_holder.h"
+#include "skia_adapter/skia_resource_holder.h"
 #include "skia_adapter/skia_shader_effect.h"
 #include "skia_adapter/skia_runtime_blender_builder.h"
 #include "skia_adapter/skia_runtime_effect.h"
