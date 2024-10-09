@@ -85,7 +85,7 @@ HWTEST_F(MotionBlurFilterTest, DisableMotionBlurTest, TestSize.Level1)
     std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(10.f, anchor); // 10.f radius
     auto filter = std::make_shared<RSMotionBlurFilter>(para);
     ASSERT_EQ(filter->motionBlurPara_, para);
-    ASSERT_EQ(filter->type_, FilterType::MOTION_BLUR);
+    ASSERT_EQ(filter->type_, RSDrawingFilterOriginal::FilterType::MOTION_BLUR);
 
     bool isDisableMotionBlur = true;
     filter->DisableMotionBlur(isDisableMotionBlur);

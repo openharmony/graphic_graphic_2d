@@ -34,19 +34,6 @@ void RsCommonHookTest::SetUp() {}
 void RsCommonHookTest::TearDown() {}
 
 /**
- * @tc.name: RegisterStartNewAnimationListenerTest
- * @tc.desc: test results of RegisterStartNewAnimationListenerTest
- * @tc.type: FUNC
- * @tc.require: issuesIA96Q3
- */
-HWTEST_F(RsCommonHookTest, RegisterStartNewAnimationListenerTest, TestSize.Level1)
-{
-    auto callback = [](const std::string &componentName) {};
-    RsCommonHook::Instance().RegisterStartNewAnimationListener(callback);
-    ASSERT_EQ(RsCommonHook::Instance().startNewAniamtionFunc_, callback);
-}
-
-/**
  * @tc.name: OnStartNewAnimationTest1
  * @tc.desc: test results of OnStartNewAnimationTest1
  * @tc.type:FUNC

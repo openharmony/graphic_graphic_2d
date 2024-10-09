@@ -280,23 +280,31 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPair001, TestSize.Level1)
     NodeId inNodeId = 0;
     NodeId outNodeId = 0;
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_.inNode_, inNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_.outNodeId_, outNodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_->inNodeId_,
+        inNodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_->outNodeId_,
+        outNodeId);
 
     inNodeId = 1;
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_.inNode_, inNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_.outNodeId_, outNodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_->inNodeId_,
+        inNodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_->outNodeId_,
+        outNodeId);
 
     outNodeId = 1;
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_.inNode_, inNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_.outNodeId_, outNodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_->inNodeId_,
+        inNodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_->outNodeId_,
+        outNodeId);
 
     inNodeId = 0;
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_.inNode_, inNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_.outNodeId_, outNodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_->inNodeId_,
+        inNodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_->outNodeId_,
+        outNodeId);
 }
 
 /**

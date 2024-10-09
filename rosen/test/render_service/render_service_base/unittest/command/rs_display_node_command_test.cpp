@@ -129,7 +129,7 @@ HWTEST_F(RSDisplayNodeCommandTest, AddDisplayNodeToTree001, TestSize.Level1)
 {
     RSContext context;
     auto renderNodeChildren = context.GetGlobalRootRenderNode().children_;
-    auto nodeMap = context.GetMutableNodeMap();
+    auto& nodeMap = context.GetMutableNodeMap();
 
     NodeId id = static_cast<NodeId>(1);
     DisplayNodeCommandHelper::AddDisplayNodeToTree(context, id);
