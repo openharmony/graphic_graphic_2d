@@ -39,7 +39,7 @@ namespace {
 static int GetProcessUniqueId()
 {
     static std::atomic<int> g_counter { 0 };
-    return g_counter.fetch_add(1);
+    return g_counter.fetch_add(1, std::memory_order_relaxed);
 }
 }
 
