@@ -115,7 +115,7 @@ void HdiFramebufferSurface::OnBufferAvailable()
     sptr<SurfaceBuffer> buffer = nullptr;
     int64_t timestamp = 0;
     Rect damage = {0};
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     SurfaceError ret = consumerSurface_->AcquireBuffer(buffer, acquireFence,
                                                        timestamp, damage);
     if (ret != SURFACE_ERROR_OK || buffer == nullptr) {

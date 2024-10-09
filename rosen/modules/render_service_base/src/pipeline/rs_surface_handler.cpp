@@ -56,7 +56,7 @@ void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
 {
     auto consumer = GetConsumer();
     if (consumer != nullptr && buffer.buffer != nullptr) {
-        auto ret = consumer->ReleaseBuffer(buffer.buffer, SyncFence::INVALID_FENCE);
+        auto ret = consumer->ReleaseBuffer(buffer.buffer, SyncFence::InvalidFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 GetNodeId(), ret);

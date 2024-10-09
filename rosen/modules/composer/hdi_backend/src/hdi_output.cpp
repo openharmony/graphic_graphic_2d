@@ -633,7 +633,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
             // reset prevBuffer if we release it successfully,
             // to avoid releasing the same buffer next frame in some situations.
             buffer = nullptr;
-            releaseFence = SyncFence::INVALID_FENCE;
+            releaseFence = SyncFence::InvalidFence();
         }
     };
     const auto layersReleaseFence = GetLayersReleaseFenceLocked();
@@ -647,7 +647,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
             }
             auto preBuffer = layer->GetLayerInfo()->GetPreBuffer();
             auto consumer = layer->GetLayerInfo()->GetSurface();
-            releaseBuffer(preBuffer, SyncFence::INVALID_FENCE, consumer);
+            releaseBuffer(preBuffer, SyncFence::InvalidFence(), consumer);
         }
         HLOGD("HdiOutput::ReleaseLayers: no layer needs to release");
     }

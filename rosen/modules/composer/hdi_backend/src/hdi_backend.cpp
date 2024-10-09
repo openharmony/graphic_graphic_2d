@@ -180,7 +180,7 @@ void HdiBackend::Repaint(const OutputPtr &output)
         return;
     }
 
-    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> fbFence = SyncFence::InvalidFence();
     ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
