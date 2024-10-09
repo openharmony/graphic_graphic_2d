@@ -3208,8 +3208,12 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
         auto transactionData = std::make_shared<RSTransactionData>();
         for (auto id : nodeIds) {
             auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId, "");
-            transactionData->GetPayload().emplace_back(id, FollowType::NONE, std::move(command));
+            transactionData->AddCommand(std::move(command), id, FollowType::NONE);
             task.count++;
+            RS_TRACE_NAME_FMT("DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "]",
+                taskId, pid, id);
+            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "]",
+                taskId, pid, id);
         }
         iter->second->OnTransaction(transactionData);
     }
@@ -3220,10 +3224,13 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
 void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout)
 {
     std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
-    nodeTreeDumpCondVar_.wait_for(lock, std::chrono::milliseconds(timeout), [this, taskId] () {
-        const auto& task = nodeTreeDumpTasks_[taskId];
-        return task.completionCount == task.count;
-    });
+    {
+        RS_TRACE_NAME_FMT("DumpClientNodeTree wait task[%u]", taskId);
+        nodeTreeDumpCondVar_.wait_for(lock, std::chrono::milliseconds(timeout), [this, taskId] () {
+            const auto& task = nodeTreeDumpTasks_[taskId];
+            return task.completionCount == task.count;
+        });
+    }
 
     const auto& task = nodeTreeDumpTasks_[taskId];
     size_t completed = task.completionCount;
