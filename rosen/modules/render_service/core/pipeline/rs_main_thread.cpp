@@ -2657,6 +2657,7 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     if (context_->animatingNodeList_.empty()) {
         doWindowAnimate_ = false;
+        context_->SetRequestedNextVsyncAnimate(false);
         return;
     }
     UpdateAnimateNodeFlag();
@@ -2752,6 +2753,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     } else if (isUniRender_) {
         renderThreadParams_->SetImplicitAnimationEnd(true);
     }
+    context_->SetRequestedNextVsyncAnimate(needRequestNextVsync);
 
     PerfAfterAnim(needRequestNextVsync);
 }
