@@ -150,7 +150,7 @@ HWTEST_F(RSAnimationRateDeciderTest, GetFrameRateRange, TestSize.Level1)
     RSAnimationRateDecider rsAnimationRateDecider;
     FrameRateRange frame;
     frame = rsAnimationRateDecider.GetFrameRateRange();
-    EXPECT_EQ(frame, frame);
+    EXPECT_EQ(frame.preferred_, 0);
 }
 
 /**

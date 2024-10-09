@@ -107,7 +107,8 @@ HWTEST_F(RSAnimationFractionTest, SetLastFrameTimeTest001, TestSize.Level1)
     RSAnimationFraction rsAnimationFraction;
     int64_t lastFrameTime = 0;
     rsAnimationFraction.SetLastFrameTime(lastFrameTime);
-    EXPECT_EQ(lastFrameTime, 0);
+    int64_t res = rsAnimationFraction.GetLastFrameTime();
+    EXPECT_EQ(lastFrameTime, res);
 }
 
 /**

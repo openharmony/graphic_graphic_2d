@@ -195,9 +195,10 @@ HWTEST_F(RSRenderKeyframeAnimationTest, ParseDurationKeyframesParamTest, Level1)
 HWTEST_F(RSRenderKeyframeAnimationTest, OnAnimateTest, Level1)
 {
     auto originValue = std::make_shared<RSRenderPropertyBase>();
+    EXPECT_NE(originValue, nullptr);
+
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
     float fraction = 0.0f;
     rsRenderKeyframeAnimation.OnAnimate(fraction);
-    EXPECT_EQ(fraction, 0.0f);
 }
 }
