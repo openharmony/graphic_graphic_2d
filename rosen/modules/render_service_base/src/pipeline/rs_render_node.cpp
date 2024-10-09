@@ -247,6 +247,13 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+    } else {
+        if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+            ROSEN_LOGI("RSRenderNode:: add child surfaceNode[id:%{public}" PRIu64 " name:%{public}s]"
+            " parent'S isOnTheTree_:%{public}d", surfaceNode->GetId(), surfaceNode->GetNodeName().c_str(),
+            isOnTheTree_);
+        }
     }
     ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node add child", GetId());
     SetContentDirty();
@@ -1013,6 +1020,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     }
     CheckDrawingCacheType();
     if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE) {
+        RS_LOGD("RSRenderNode::UpdateDrawingCacheInfoBC drawingCacheType is %{public}d", GetDrawingCacheType());
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfo id:%llu contentDirty:%d subTreeDirty:%d nodeGroupType:%d",
@@ -1023,6 +1031,9 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 
 void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
 {
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
+        " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
+        IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
     if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
