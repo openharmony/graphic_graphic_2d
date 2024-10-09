@@ -573,13 +573,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto mirrorParams = mirrorDrawable ? mirrorDrawable->GetRenderParams().get() : nullptr;
     if (mirrorParams || params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-        if (renderEngine == nullptr) {
-            RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RenderEngine is null!");
-            return;
-        }
-
         if (!processor->InitForRenderThread(*this,
             mirrorParams ? mirrorParams->GetScreenId() : INVALID_SCREEN_ID, renderEngine)) {
+            syncDirtyManager_->ResetDirtyAsSurfaceSize();
+            syncDirtyManager_->UpdateDirty(false);
             RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
