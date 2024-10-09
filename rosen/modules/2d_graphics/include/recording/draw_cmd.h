@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <ctime>
 #include <functional>
-#include <mutex>
+#include <shared_mutex>
 #include <stack>
 #include <unordered_map>
 #include <utility>
@@ -30,7 +30,7 @@
 #include "recording/cmd_list.h"
 
 #define REGISTER_UNMARSHALLING_FUNC(name, type, func) \
-    bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingHelper::Instance().RegisterFunc(type, func)
+    static bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingHelper::Instance().RegisterFunc(type, func)
 
 namespace OHOS {
 namespace Rosen {
@@ -137,7 +137,7 @@ private:
     UnmarshallingHelper& operator=(const UnmarshallingHelper& other) = delete;
     UnmarshallingHelper& operator=(const UnmarshallingHelper&& other) = delete;
 
-    std::mutex UnmarshallingFuncMapMutex_;
+    std::shared_mutex mtx_;
     std::unordered_map<uint32_t, UnmarshallingFunc> opUnmarshallingFuncLUT_;
 };
 

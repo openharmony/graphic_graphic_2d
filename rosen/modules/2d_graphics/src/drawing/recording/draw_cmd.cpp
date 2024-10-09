@@ -332,13 +332,13 @@ UnmarshallingHelper& UnmarshallingHelper::Instance()
 
 bool UnmarshallingHelper::RegisterFunc(uint32_t type, UnmarshallingHelper::UnmarshallingFunc func)
 {
-    std::unique_lock<std::mutex> lock(UnmarshallingFuncMapMutex_);
+    std::unique_lock lck(mtx_);
     return opUnmarshallingFuncLUT_.emplace(type, func).second;
 }
 
 UnmarshallingHelper::UnmarshallingFunc UnmarshallingHelper::GetFunc(uint32_t type)
 {
-    std::unique_lock<std::mutex> lock(UnmarshallingFuncMapMutex_);
+    std::shared_lock lck(mtx_);
     auto it = opUnmarshallingFuncLUT_.find(type);
     if (it == opUnmarshallingFuncLUT_.end()) {
         return nullptr;
@@ -354,7 +354,7 @@ std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, vo
         return nullptr;
     }
 
-    auto func = UnmarshallingHelper::Instance().GetFunc(type);
+    const auto& func = UnmarshallingHelper::Instance().GetFunc(type);
     if (func == nullptr) {
         return nullptr;
     }
