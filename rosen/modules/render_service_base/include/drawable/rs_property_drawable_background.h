@@ -69,16 +69,6 @@ private:
     int stagingColorStrategy_ = 0;
 };
 
-class RSMaskShadowDrawable : public RSPropertyDrawable {
-public:
-    RSMaskShadowDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList)
-        : RSPropertyDrawable(std::move(drawCmdList))
-    {}
-    RSMaskShadowDrawable() = default;
-    bool OnUpdate(const RSRenderNode& node) override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
-};
-
 class RSMaskDrawable : public RSPropertyDrawable {
 public:
     RSMaskDrawable(std::shared_ptr<Drawing::DrawCmdList>&& drawCmdList) : RSPropertyDrawable(std::move(drawCmdList)) {}
