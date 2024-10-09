@@ -181,26 +181,6 @@ public:
 
     static void ClearRenderGroupCache();
 
-    const std::vector<NodeId>& GetAllMainAndLeashWindowNodesIds()
-    {
-        return curAllMainAndLeashWindowNodesIds_;
-    }
-
-    const std::map<NodeId, RSVisibleLevel>& GetVisMapForVSyncRate()
-    {
-        return visMapForVSyncRate_;
-    }
-
-    bool GetVSyncRatesChanged() const
-    {
-        return vSyncRatesChanged_;
-    }
-
-    NodeId GetFocusedNodeId() const
-    {
-        return currentFocusedNodeId_;
-    }
-
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     /* Prepare relevant calculation */
@@ -466,7 +446,6 @@ private:
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
-    void CollectVSyncRate(RSSurfaceRenderNode& node, RSVisibleLevel visibleLevel);
     void CollectEffectInfo(RSRenderNode& node);
 
     void UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node);
@@ -616,14 +595,12 @@ private:
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
-    std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;
     // vector of last frame mainwindow surface visible info
     static inline VisibleData allLastVisVec_;
-    bool vSyncRatesChanged_ = false;
     std::mutex occlusionMutex_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
@@ -721,8 +698,6 @@ private:
 
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
-
-    std::map<NodeId, RSVisibleLevel> visMapForVSyncRate_;
 };
 } // namespace Rosen
 } // namespace OHOS
