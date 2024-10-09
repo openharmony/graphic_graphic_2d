@@ -1218,7 +1218,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWithWindowCache, TestSize.Level1)
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(drawingCanvas);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     ASSERT_FALSE(surfaceDrawable_->DrawWithWindowCache(canvas, *surfaceParams));
 
     surfaceDrawable_->cacheWindowImage_ = std::make_shared<Drawing::Image>();

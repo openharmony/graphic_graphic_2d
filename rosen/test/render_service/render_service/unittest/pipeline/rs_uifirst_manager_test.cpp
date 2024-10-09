@@ -1454,7 +1454,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     surfaceNode->isChildSupportUifirst_ = true;
     surfaceNode->firstLevelNodeId_ = surfaceNode->GetId();
-    surfaceNode->forceUiFirst_ = true;
+    surfaceNode->forceUIFirst_ = true;
     surfaceNode->hasSharedTransitionNode_ = false;
     surfaceNode->hasFilter_ = false;
     surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;

@@ -1064,7 +1064,7 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcessAndCache(RSPaintFilterCanvas& 
     cacheWindowImage_ = windowSurface->GetImageSnapshot();
     if (cacheWindowImage_ == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnGeneralProcessAndCache snapshot nullptr.");
-        OnGeneralProcess(*windowCanvas, surfaceParams, isSelfDrawingSurface);
+        OnGeneralProcess(canvas, surfaceParams, isSelfDrawingSurface);
         return;
     }
     Drawing::Brush paint;
