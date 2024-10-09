@@ -102,9 +102,10 @@ HWTEST_F(RSAnimationManagerTest, CancelAnimationByPropertyIdTest001, TestSize.Le
 HWTEST_F(RSAnimationManagerTest, FilterAnimationByPidTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
+    auto animationPid = rsAnimationManager.GetAnimationPid();
     pid_t pid = 0;
     rsAnimationManager.FilterAnimationByPid(pid);
-    EXPECT_EQ(pid, 0);
+    EXPECT_EQ(animationPid, pid);
 }
 
 /**
@@ -327,7 +328,7 @@ HWTEST_F(RSAnimationManagerTest, UnregisterParticleAnimationTest001, TestSize.Le
     auto animation = std::make_shared<RSRenderAnimation>();
     rsAnimationManager.AddAnimation(animation);
     rsAnimationManager.UnregisterParticleAnimation(propertyId, animId);
-    EXPECT_EQ(propertyId, 0);
+    ASSERT_NE(animation, nullptr);
 }
 
 /**
@@ -338,7 +339,8 @@ HWTEST_F(RSAnimationManagerTest, UnregisterParticleAnimationTest001, TestSize.Le
 HWTEST_F(RSAnimationManagerTest, GetParticleAnimationsTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
-    auto res = rsAnimationManager.GetParticleAnimations();
-    EXPECT_EQ(res, res);
+    auto particleAnimations = rsAnimationManager.GetParticleAnimations();
+    bool isEmpty = particleAnimations.empty();
+    EXPECT_EQ(isEmpty, true);
 }
 }
