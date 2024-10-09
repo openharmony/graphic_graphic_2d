@@ -560,6 +560,7 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
             RS_LOGW("RSScreenManager failed to add screen : %{public}" PRIu64 "", thisId);
             return;
         }
+        hgmCore.SetActiveScreenId(thisId);
 
         // for each supported mode, use the index as modeId to add the detailed mode to hgm
         int32_t modeId = 0;
@@ -582,7 +583,7 @@ void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output)
     }
 
     RS_LOGI("RSScreenManager RemoveScreenFromHgm");
-    HgmTaskHandleThread::Instance().PostSyncTask([id = ToScreenId(output->GetScreenId())] () {
+    HgmTaskHandleThread::Instance().PostTask([id = ToScreenId(output->GetScreenId())] () {
         auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
         RS_LOGD_IF(DEBUG_SCREEN, "RSScreenManager remove screen, id: %{public}" PRIu64 "", id);
         if (hgmCore.RemoveScreen(id)) {

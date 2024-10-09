@@ -397,9 +397,6 @@ int32_t HgmCore::RemoveScreen(ScreenId id)
             break;
         }
     }
-    if (hgmFrameRateMgr_ != nullptr) {
-        hgmFrameRateMgr_->HandleScreenPowerStatus(id, ScreenPowerStatus::POWER_STATUS_OFF);
-    }
     return EXEC_SUCCESS;
 }
 

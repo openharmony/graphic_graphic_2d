@@ -45,7 +45,6 @@ namespace {
     constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 20;
     constexpr int32_t LAST_TOUCH_CNT = 1;
-    constexpr int32_t MAX_SCREENS_POWER_STATUS_SIZE = 100;
 
     constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
@@ -848,90 +847,48 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
 
 void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
+    // hgm warning: strategy for screen off
     HGM_LOGI("curScreen:%{public}d status:%{public}d", static_cast<int>(id), static_cast<int>(status));
     if (status == ScreenPowerStatus::POWER_STATUS_ON) {
         ReportHiSysEvent({.voterName = "SCREEN_POWER", .extInfo = "ON"});
     } else if (status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
         ReportHiSysEvent({.voterName = "SCREEN_POWER", .extInfo = "OFF"});
     }
-    // return when status has not changed
-    if (auto iter = screensPowerStatus_.find(id); iter != screensPowerStatus_.end() && iter->second == status) {
+    static ScreenId lastScreenId = 12345; // init value diff with any real screen id
+    if (status != ScreenPowerStatus::POWER_STATUS_ON || lastScreenId == id) {
         return;
     }
-    // return when the screen is not a physical screen
-    auto &hgmCore = HgmCore::Instance();
-    auto screenList = HgmCore::Instance().GetScreenIds();
-    if (std::find(screenList.begin(), screenList.end(), id) == screenList.end()) {
-        return;
-    }
-    if (screensPowerStatus_.size() > MAX_SCREENS_POWER_STATUS_SIZE) {
-        // limit screensPowerStatus_ map size
-        for (auto iter = screensPowerStatus_.begin(); iter != screensPowerStatus_.end();) {
-            if (iter->second != ScreenPowerStatus::POWER_STATUS_ON ||
-                std::find(screenList.begin(), screenList.end(), iter->first) == screenList.end()) {
-                iter = screensPowerStatus_.erase(iter);
-            } else {
-                ++iter;
-            }
-        }
-        if (screensPowerStatus_.size() > MAX_SCREENS_POWER_STATUS_SIZE) {
-            HGM_LOGE("more than %{public}d screens are on", MAX_SCREENS_POWER_STATUS_SIZE);
-            // keep the first element
-            auto delFrontIter = screensPowerStatus_.begin();
-            ++delFrontIter;
-            screensPowerStatus_.erase(delFrontIter, screensPowerStatus_.end());
-        }
-    }
-    screensPowerStatus_[id] = status;
-    if (id == curScreenId_ && status == ScreenPowerStatus::POWER_STATUS_ON) {
-        return;
-    }
-    HandleMainScreenChange();
-}
+    lastScreenId = id;
 
-void HgmFrameRateManager::HandleMainScreenChange()
-{
-    auto &hgmCore = HgmCore::Instance();
-    auto configData = hgmCore.GetPolicyConfigData();
-    if (configData == nullptr) {
+    auto& hgmCore = HgmCore::Instance();
+    auto screenList = hgmCore.GetScreenIds();
+    auto screenPos = find(screenList.begin(), screenList.end(), id);
+    auto lastCurScreenId = curScreenId_;
+    curScreenId_ = (screenPos == screenList.end()) ? 0 : id;
+    if (lastCurScreenId == curScreenId_) {
         return;
     }
+    HGM_LOGI("HandleScreenPowerStatus curScreen:%{public}d", static_cast<int>(curScreenId_));
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    bool isLtpo = false;
-    std::string curScreenName = "";
-    auto firstValidIter = std::find_if(screensPowerStatus_.begin(), screensPowerStatus_.end(), [&] (const auto& pair) {
-        if (pair.second != ScreenPowerStatus::POWER_STATUS_ON) {
-            return false;
+    isLtpo_ = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_));
+    std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
+
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData != nullptr) {
+        if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
+            curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
         }
-        isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(pair.first));
-        curScreenName = "screen" + std::to_string(pair.first) + "_" + (isLtpo ? "LTPO" : "LTPS");
-        return configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end();
-    });
-    if (firstValidIter == screensPowerStatus_.end()) {
-        return;
+        if (curScreenStrategyId_.empty()) {
+            curScreenStrategyId_ = "LTPO-DEFAULT";
+        }
+        multiAppStrategy_.UpdateXmlConfigCache();
+        UpdateEnergyConsumptionConfig();
     }
 
-    if (curScreenId_ == firstValidIter->first) {
-        return;
-    }
-    curScreenId_ = firstValidIter->first;
-    hgmCore.SetActiveScreenId(curScreenId_);
-    isLtpo_ = isLtpo;
-    curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
-    if (curScreenStrategyId_.empty()) {
-        curScreenStrategyId_ = "LTPO-DEFAULT";
-    }
-    HGM_LOGI("Change Main Screen:%{public}d(%{public}s), screenStrategy:%{public}s", static_cast<int>(curScreenId_),
-        isLtpo_ ? "LTPO" : "LTPS", curScreenStrategyId_.c_str());
-
-    multiAppStrategy_.UpdateXmlConfigCache();
-    UpdateEnergyConsumptionConfig();
     multiAppStrategy_.CalcVote();
     hgmCore.SetLtpoConfig();
     MarkVoteChange();
-    if (auto configCallbackManager = HgmConfigCallbackManager::GetInstance(); configCallbackManager != nullptr) {
-        configCallbackManager->SyncHgmConfigChangeCallback();
-    }
+    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
 
     // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready
     if (curScreenStrategyId_.find("LTPO") == std::string::npos) {
