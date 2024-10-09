@@ -322,7 +322,7 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
 {
     auto ptr = std::static_pointer_cast<const RSBeginBlenderDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas.GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
+        if (canvas->GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
             return;
         }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
