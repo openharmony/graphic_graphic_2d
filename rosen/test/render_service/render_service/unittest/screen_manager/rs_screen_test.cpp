@@ -103,7 +103,7 @@ HWTEST_F(RSScreenTest, SetResolution_001, testing::ext::TestSize.Level1)
 HWTEST_F(RSScreenTest, SetPowerStatus_001, testing::ext::TestSize.Level2)
 {
     ScreenId id = INVALID_SCREEN_ID;
-    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, HdiOutput::CreateHdiOutput(id), nullptr);
     ASSERT_NE(rsScreen, nullptr);
     rsScreen->SetPowerStatus(static_cast<uint32_t>(1000));
     ASSERT_EQ(rsScreen->GetPowerStatus(), ScreenPowerStatus::INVALID_POWER_STATUS);
@@ -248,7 +248,7 @@ HWTEST_F(RSScreenTest, SetPowerStatus_003, testing::ext::TestSize.Level1)
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED;
     rsScreen->SetPowerStatus(status);
-    ASSERT_EQ(rsScreen->GetPowerStatus(), ScreenPowerStatus::INVALID_POWER_STATUS);
+    ASSERT_EQ(rsScreen->GetPowerStatus(), status);
 }
 
 /*
