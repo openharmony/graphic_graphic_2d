@@ -227,8 +227,10 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         if (IsInAdaptiveMode(output)) {
             RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers PostTask in Adaptive Mode");
             PostTask(task);
+            isLastAdaptive_ = true;
             return;
         }
+        isLastAdaptive_ = false;
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
         int64_t pipelineOffset = hgmCore.GetPipelineOffset();
         uint64_t expectCommitTime = static_cast<uint64_t>(param.frameTimestamp +
@@ -276,15 +278,16 @@ bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
         if (isAdaptive) {
             if (isSamplerEnabled) {
-                // enter adaptive sync mode must disable vsync sampler
+                // when phone enter game adaptive sync mode must disable vsync sampler
                 hdiBackend_->SetVsyncSamplerEnabled(output, false);
             }
             return true;
         }
     }
-    if (!isSamplerEnabled) {
-        // exit adaptive sync mode must restore vsync sampler
+    if (isLastAdaptive_ && !isSamplerEnabled) {
+        // exit adaptive sync mode must restore vsync sampler, and startSample immediately
         hdiBackend_->SetVsyncSamplerEnabled(output, true);
+        hdiBackend_->StartSample(output);
     }
 
     return false;
