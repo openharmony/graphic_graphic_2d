@@ -98,7 +98,7 @@ public:
 
     /**
      * @brief Replaces PixelRef with pixels, preserving ImageInfo and GetRowBytes().
-     * Sets SkPixelRef origin to (0, 0). If pixels is nullptr, or if GetImageInfo().GetColorType()
+     * Sets pixel pointer to (0,0). If pixels is nullptr, or if GetImageInfo().GetColorType()
      * equals COLORTYPE_UNKNOWN; release reference to PixelRef, and set PixelRef to nullptr.
      * Caller is responsible for handling ownership pixel memory for the lifetime of Bitmap and PixelRef.
      *
@@ -206,13 +206,13 @@ public:
     void SetInfo(const ImageInfo& info);
 
     /**
-     * @brief Gets Image info which contains width, height, AlphaType, ColorType, and ColorSpace.
+     * @brief  Gets Image info which contains width, height, AlphaType, ColorType, and ColorSpace.
      * @return Returns ImageInfo describing this Bitmap
      */
     ImageInfo GetImageInfo() const;
 
     /**
-     * @brief Gets a constant reference to the Pixmap holding the Bitmap pixel
+     * @brief  Gets a constant reference to the Pixmap holding the Bitmap pixel
      * address, row bytes, and ImageInfo.
      * @return Returns Pixmap describing this Bitmap
      */
