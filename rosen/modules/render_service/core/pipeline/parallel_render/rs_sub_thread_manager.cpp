@@ -402,6 +402,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
             return;
         }
         std::unique_ptr<RSRenderThreadParams> uniParamUnique(uniParam);
+        /* Task run in SubThread, the uniParamUnique which is copyed frome uniRenderThread will sync to SubTread */
         RSUniRenderThread::Instance().Sync(std::move(uniParamUnique));
         nodeDrawable->SetLastFrameUsedThreadIndex(tid);
         nodeDrawable->SetTaskFrameCount(submittedFrameCount);
