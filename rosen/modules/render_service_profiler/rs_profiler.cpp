@@ -259,7 +259,7 @@ void RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_
     if (IsLoadSaveFirstScreenInProgress()) {
         // saving screen right now
     }
-    if (IsPlaying()) {
+    if (IsPlaying() && !g_playbackShouldBeTerminated) {
         SetTransactionTimeCorrection(g_playbackStartTime, g_playbackFile.GetWriteTime());
         SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
         SetMode(Mode::READ);
@@ -813,6 +813,13 @@ void RSProfiler::HiddenSpaceTurnOff()
         for (const auto& child : g_childOfDisplayNodes) {
             displayNode->AddChild(child);
         }
+        auto& listPostponed = RSProfiler::GetChildOfDisplayNodesPostponed();
+        for (const auto& childWeak : listPostponed) {
+            if (auto child = childWeak.lock()) {
+                displayNode->AddChild(child);
+            }
+        }
+        listPostponed.clear();
         FilterMockNode(*g_context);
         RSTypefaceCache::Instance().ReplayClear();
         g_childOfDisplayNodes.clear();
@@ -1696,10 +1703,11 @@ void RSProfiler::PlaybackStop(const ArgList& args)
     if (g_childOfDisplayNodes.empty()) {
         return;
     }
+    SetMode(Mode::NONE);
+    g_playbackShouldBeTerminated = true;
     HiddenSpaceTurnOff();
     FilterMockNode(*g_context);
     RSTypefaceCache::Instance().ReplayClear();
-    g_playbackShouldBeTerminated = true;
     g_replayLastPauseTimeReported = 0;
 
     Respond("Playback stop");
