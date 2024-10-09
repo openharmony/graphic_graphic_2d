@@ -15,9 +15,6 @@
 
 #include <cstdint>
 #include <functional>
-#ifdef ROSEN_OHOS
-#include "parameters.h"
-#endif
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
@@ -120,8 +117,7 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
 #ifdef ROSEN_OHOS
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return false;
     }
     if (renderServiceClient_ == nullptr) {
