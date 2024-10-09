@@ -1695,7 +1695,14 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
     Drawing::Brush* drawingBrushPtr = nullptr;
     if (valueType == napi_object) {
         JsBrush* jsBrush = nullptr;
-        GET_UNWRAP_PARAM(ARGC_ONE, jsBrush);
+        napi_status status = napi_unwrap(env, argv[ARGC_ONE], reinterpret_cast<void**>(&jsBrush));
+        if (status != napi_ok || jsBrush == nullptr) {
+            if (drawingRectPtr != nullptr) {
+                delete drawingRectPtr;
+            }
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(ARGC_ONE) + " type.");
+        }
         if (jsBrush != nullptr) {
             drawingBrushPtr = jsBrush->GetBrush();
         }
