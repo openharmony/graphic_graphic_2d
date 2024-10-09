@@ -636,8 +636,6 @@ public:
     int32_t coldDownCounter_ = 0;
 #endif
 
-    const std::shared_ptr<RSRenderContent> GetRenderContent() const;
-
     void MarkParentNeedRegenerateChildren() const;
 
     void ResetChildUifirstSupportFlag()

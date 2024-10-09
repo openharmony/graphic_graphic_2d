@@ -1170,11 +1170,6 @@ bool RSRenderNode::SetAccumulatedClipFlag(bool clipChange)
     return isAccumulatedClipFlagChanged_;
 }
 
-const std::shared_ptr<RSRenderContent> RSRenderNode::GetRenderContent() const
-{
-    return renderContent_;
-}
-
 std::unique_ptr<RSRenderParams>& RSRenderNode::GetStagingRenderParams()
 {
     return stagingRenderParams_;
