@@ -147,6 +147,11 @@ public:
         return isSecurityLayer_;
     }
 
+    inline LeashPersistId GetLeashPersistId() const
+    {
+        return leashPersistId_;
+    }
+
     inline bool IsSkipLayer() const
     {
         return isSkipLayer_;
@@ -364,6 +369,7 @@ private:
     bool freezeFlag_ = false;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    LeashPersistId leashPersistId_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

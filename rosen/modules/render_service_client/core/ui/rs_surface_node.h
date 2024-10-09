@@ -77,6 +77,8 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+    void SetLeashPersistId(LeashPersistId leashPersistId);
+    LeashPersistId GetLeashPersistId() const;
     void SetSkipLayer(bool isSkipLayer);
     bool GetSkipLayer() const;
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
@@ -186,6 +188,7 @@ private:
     bool isSkipDraw_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isGlobalPositionEnabled_ = false;
+    LeashPersistId leashPersistId_ = 0;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

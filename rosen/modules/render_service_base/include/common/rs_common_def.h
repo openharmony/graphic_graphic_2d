@@ -36,6 +36,7 @@ using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
 using SurfaceId = uint64_t;
 using InteractiveImplictAnimatorId = uint64_t;
+using LeashPersistId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;

@@ -587,9 +587,9 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRend
     }
     // Check black list.
     const auto& blackList = RSUniRenderThread::Instance().GetBlackList();
-    if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
+    if (surfaceParams.IsLeashWindow() && blackList.find(surfaceParams.GetLeashPersistId()) != blackList.end()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
-            (id:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
+            (id:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetLeashPersistId());
         return true;
     }
     // Check white list.
