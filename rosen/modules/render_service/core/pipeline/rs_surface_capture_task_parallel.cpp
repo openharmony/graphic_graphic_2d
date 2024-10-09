@@ -98,7 +98,7 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
         std::make_shared<RSSurfaceCaptureTaskParallel>(id, captureConfig);
     if (captureHandle == nullptr) {
-        RS_LOGD("RSSurfaceCaptureTaskParallel::Capture captureHandle is nullptr!");
+        RS_LOGE("RSSurfaceCaptureTaskParallel::Capture captureHandle is nullptr!");
         callback->OnSurfaceCapture(id, nullptr);
         return;
     }
@@ -143,10 +143,12 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             }
         }
         if (!curNode->ShouldPaint()) {
-            RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: Node should not paint!");
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode should not paint!");
             return false;
         }
-
+        if (curNode->GetSortedChildren()->size() == 0) {
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
+        }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
         pixelMap_ = CreatePixelMapBySurfaceNode(curNode);

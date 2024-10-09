@@ -740,11 +740,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture remoteObject is nullptr");
                 break;
             }
             sptr<RSISurfaceCaptureCallback> cb = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
             if (cb == nullptr) {
                 ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture cb is nullptr");
                 break;
             }
             RSSurfaceCaptureConfig captureConfig;
