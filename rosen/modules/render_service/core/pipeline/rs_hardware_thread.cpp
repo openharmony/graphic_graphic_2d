@@ -61,6 +61,7 @@
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
+#include "ressched_event_listener.h"
 #endif
 
 namespace OHOS::Rosen {
@@ -168,6 +169,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     delayTime_ = 0;
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
+#ifdef RES_SCHED_ENABLE
+    ResschedEventListener::GetInstance()->ReportFrameToRSS();
+#endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
         if (output == nullptr || hdiBackend_ == nullptr) {
             return;
