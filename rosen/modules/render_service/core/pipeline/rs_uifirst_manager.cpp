@@ -254,6 +254,56 @@ void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool wait)
     }
 }
 
+void RSUifirstManager::CollectSkipSyncBuffer(std::vector<std::function<void()>>& tasks, NodeId id)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto& buffersToRelease = RSMainThread::Instance()->GetContext().GetMutableSkipSyncBuffer();
+    if (buffersToRelease.empty()) {
+        return;
+    }
+    for (auto item = buffersToRelease.begin(); item != buffersToRelease.end();) {
+        if (item->id == id) {
+            if (!item->buffer || !item->consumer) {
+                item = buffersToRelease.erase(item);
+                continue;
+            }
+            auto releaseTask = [buffer = item->buffer, consumer = item->consumer,
+                useReleaseFence = item->useFence]() mutable {
+                auto ret = consumer->ReleaseBuffer(buffer, RSHardwareThread::Instance().releaseFence_);
+                if (ret != OHOS::SURFACE_ERROR_OK) {
+                    RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
+                }
+            };
+            tasks.emplace_back(releaseTask);
+            item = buffersToRelease.erase(item);
+            RS_LOGD("ReleaseSkipSyncBuffer fId[%" PRIu64"]", id);
+        } else {
+            ++item;
+        }
+    }
+#endif
+}
+
+void RSUifirstManager::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (tasks.empty()) {
+        return;
+    }
+    auto releaseBufferTask = [tasks]() {
+        for (const auto& task : tasks) {
+            task();
+        }
+    };
+    auto delayTime = RSHardwareThread::Instance().delayTime_;
+    if (delayTime > 0) {
+        RSHardwareThread::Instance().PostDelayTask(releaseBufferTask, delayTime);
+    } else {
+        RSHardwareThread::Instance().PostTask(releaseBufferTask);
+    }
+#endif
+}
+
 void RSUifirstManager::ProcessDoneNodeInner()
 {
     std::vector<NodeId> tmp;
@@ -266,6 +316,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
         subthreadProcessDoneNode_.clear();
     }
     RS_TRACE_NAME_FMT("ProcessDoneNode num%d", tmp.size());
+    std::vector<std::function<void()>> releaseTasks;
     for (auto& id : tmp) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);
@@ -278,8 +329,12 @@ void RSUifirstManager::ProcessDoneNodeInner()
         }
         NotifyUIStartingWindow(id, false);
         subthreadProcessingNode_.erase(id);
+        // Done node release prebuffer
+        CollectSkipSyncBuffer(releaseTasks, id);
     }
+    ReleaseSkipSyncBuffer(releaseTasks);
 }
+
 void RSUifirstManager::ProcessDoneNode()
 {
     SetHasDoneNodeFlag(false);
@@ -646,7 +701,7 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
     if (!uifirstRootNode) {
         RS_TRACE_NAME_FMT("uifirstRootNode %" PRIu64 " null and curNodeId %" PRIu64 " skip sync",
             node->GetFirstLevelNodeId(), node->GetId());
-        return true;
+        return false;
     }
 
     auto ret = CollectSkipSyncNodeWithDrawableState(node);

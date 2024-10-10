@@ -589,16 +589,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    ScreenId screenId = curScreenInfo.id;
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
     curCanvas_->SetScreenId(screenId);
-    if (isHdrOn) {
-        // 0 means defalut hdrBrightnessRatio
-        float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
-        curCanvas_->SetBrightnessRatio(hdrBrightnessRatio);
-        curCanvas_->SetHDRPresent(isHdrOn);
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (autoCacheEnable_) {
+        screenRectInfo_ = {0, 0, screenInfo.width, screenInfo.height};
     }
-
+#endif
     // canvas draw
     {
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);

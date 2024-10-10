@@ -103,6 +103,7 @@ private:
     int64_t delayTime_ = 0;
 
     friend class RSUniRenderThread;
+    friend class RSUifirstManager;
 };
 }
 #endif // RS_HARDWARE_THREAD_H

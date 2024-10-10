@@ -140,6 +140,7 @@ protected:
     static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
     thread_local static inline bool isOpincDropNodeExt_ = true;
     thread_local static inline int opincRootTotalCount_ = 0;
+    static inline RectI screenRectInfo_ = {0, 0, 0, 0};
 
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
@@ -202,12 +203,13 @@ private:
     bool isOpincRootNode_ = false;
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
-    bool isOpincMarkCached_ = false;
     bool OpincGetCachedMark() const
     {
         return isOpincMarkCached_;
     }
     static thread_local bool isOffScreenWithClipHole_;
+    bool isOpincMarkCached_ = false;
+    bool IsOpincNodeInScreenRect(RSRenderParams& params);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
