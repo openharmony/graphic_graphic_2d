@@ -93,10 +93,10 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
 
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
-    SharedTextureContext* sharedContext = new SharedTextureContext(image);
     auto context = canvas.GetGPUContext();
     if (!context || !sharedTexture->BuildFromTexture(*context, sharedBackendTexture.GetTextureInfo(),
-        origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
+        origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext,
+        new SharedTextureContext(image))) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture is nullptr");
         return false;
     }
