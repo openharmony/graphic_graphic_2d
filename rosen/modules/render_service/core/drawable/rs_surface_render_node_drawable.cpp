@@ -1052,7 +1052,7 @@ bool RSSurfaceRenderNodeDrawable::DrawWithWindowCache(RSPaintFilterCanvas& canva
 
 bool RSSurfaceRenderNodeDrawable::PrepareWindowCache(RSPaintFilterCanvas& canvas, Drawing::Rect& bounds)
 {
-    windowSurface_ = canvas.GetSurface()->MakeSurface(rect.GetWidth(), rect.GetHeight());
+    windowSurface_ = canvas.GetSurface()->MakeSurface(bounds.GetWidth(), bounds.GetHeight());
     if (windowSurface_ == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::PrepareWindowCache surface nullptr.");
         return false;
@@ -1079,7 +1079,7 @@ void RSSurfaceRenderNodeDrawable::FinishWindowCache(RSPaintFilterCanvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::FinishWindowCache surface nullptr.");
         return;
     }
-    cacheWindowImage_ = windowCanvas_->GetImageSnapshot();
+    cacheWindowImage_ = windowSurface_->GetImageSnapshot();
     if (cacheWindowImage_ == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::FinishWindowCache snapshot nullptr.");
         return;
