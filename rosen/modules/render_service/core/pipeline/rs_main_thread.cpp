@@ -650,7 +650,7 @@ void RSMainThread::Init()
     SubscribeAppState();
     PrintCurrentStatus();
     RSLuminanceControl::Get().Init();
-    if (deviceType_ == DeviceType::PHONE) {
+    if (deviceType_ == DeviceType::PHONE || deviceType_ == DeviceType::TABLET) {
         MemoryManager::InitMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     }
 }
