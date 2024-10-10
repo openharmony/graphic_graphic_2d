@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "../nativetest/graphic_2d/graphic_test"
+module_output_path = "graphic_2d/graphic_test/graphic_test"
 
 drawing_engine_sources = []
 hardware_manager_sources = []
@@ -67,12 +67,6 @@ group("test") {
 
 ## Build RSGraphicTest
 ohos_unittest("RSGraphicTest") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
   module_out_path = module_output_path
   sources = []
   sources += drawing_engine_sources

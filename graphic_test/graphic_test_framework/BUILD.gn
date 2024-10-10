@@ -34,11 +34,6 @@ ohos_source_set("rs_graphic_test_src") {
   defines = []
   defines += gpu_defines
 
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   testonly = true
 
   sources = [
@@ -92,12 +87,6 @@ ohos_source_set("rs_graphic_test_src") {
 }
 
 ohos_shared_library("rs_graphic_test") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   testonly = true
 
   public_deps = [
@@ -110,12 +99,6 @@ ohos_shared_library("rs_graphic_test") {
 }
 
 ohos_static_library("rs_graphic_test_main") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
   testonly = true
 
   sources = [ "src/rs_graphic_test_main.cpp" ]
