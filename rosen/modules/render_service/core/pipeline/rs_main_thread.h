@@ -352,6 +352,11 @@ public:
     void UnRegisterUIExtensionCallback(pid_t pid);
 
     void SetAncoForceDoDirect(bool direct);
+    
+    bool IsFirstFrameOfOverdrawSwitch() const
+    {
+        return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
+    }
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -657,6 +662,10 @@ private:
     bool lastFrameUIExtensionDataEmpty_ = false;
     // <pid, <uid, callback>>
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
+
+    // overDraw
+    bool isOverDrawEnabledOfCurFrame_ = false;
+    bool isOverDrawEnabledOfLastFrame_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

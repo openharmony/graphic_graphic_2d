@@ -1235,7 +1235,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsFirstFrameOfPartialRender() ||
         IsWatermarkFlagChanged() ||
         IsDisplayZoomStateChange() ||
-        CheckLuminanceStatusChange();
+        CheckLuminanceStatusChange() ||
+        IsFirstFrameOfOverdrawSwitch();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -1275,6 +1276,15 @@ bool RSUniRenderVisitor::IsFirstFrameOfPartialRender() const
         return false;
     }
     RS_LOGD("FirstFrameOfPartialRender");
+    return true;
+}
+
+bool RSUniRenderVisitor::IsFirstFrameOfOverdrawSwitch() const
+{
+    if (!RSMainThread::Instance()->IsFirstFrameOfOverdrawSwitch()) {
+        return false;
+    }
+    RS_LOGD("IsFirstFrameOfOverdrawSwitch");
     return true;
 }
 

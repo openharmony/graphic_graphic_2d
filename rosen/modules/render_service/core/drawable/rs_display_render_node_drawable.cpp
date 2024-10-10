@@ -103,7 +103,12 @@ class RSOverDrawDfx {
 public:
     explicit RSOverDrawDfx(std::shared_ptr<RSPaintFilterCanvas> curCanvas)
     {
-        enable_ = RSOverdrawController::GetInstance().IsEnabled() && curCanvas != nullptr;
+        bool isEnabled = false;
+        auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+        if (LIKELY(uniParam)) {
+            isEnabled = uniParam->IsOverDrawEnabled();
+        }
+        enable_ = isEnabled && curCanvas != nullptr;
         curCanvas_ = curCanvas;
         StartOverDraw();
     }
