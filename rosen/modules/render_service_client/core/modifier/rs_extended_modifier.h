@@ -63,6 +63,11 @@ protected:
         property_->SetIsCustom(true);
     }
 
+    RSPropertyModifierType GetPropertyModifierType() const override
+    {
+        return RSPropertyModifierType::CUSTOM;
+    }
+
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override
     {
         auto node = property_->target_.lock();
