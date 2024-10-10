@@ -119,10 +119,6 @@ public:
     {
         return isSpherizeValid_;
     }
-    bool IsAttractionValid() const
-    {
-        return isAttractionValid_;
-    }
     bool NeedBilinearInterpolation() const
     {
         return needBilinearInterpolation_;
@@ -445,7 +441,6 @@ private:
     float alpha_ = 0;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
-    bool isAttractionValid_ = false;
     bool isParentScaling_ = false;
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;

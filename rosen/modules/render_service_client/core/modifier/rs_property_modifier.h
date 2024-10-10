@@ -856,24 +856,6 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-class RSC_EXPORT RSAttractionFractionModifier : public RSAppearanceModifier {
-public:
-    explicit RSAttractionFractionModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSAttractionFractionModifier() = default;
-protected:
-    RSModifierType GetModifierType() const override;
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
-class RSC_EXPORT RSAttractionDstPointModifier : public RSAppearanceModifier {
-public:
-    explicit RSAttractionDstPointModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSAttractionDstPointModifier() = default;
-protected:
-    RSModifierType GetModifierType() const override;
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
 class RSC_EXPORT RSShadowColorModifier : public RSBackgroundModifier {
 public:
     explicit RSShadowColorModifier(const std::shared_ptr<RSPropertyBase>& property);

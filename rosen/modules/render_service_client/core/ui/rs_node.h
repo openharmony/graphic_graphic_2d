@@ -338,10 +338,6 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
-    void SetAttractionEffect(float fraction, const Vector2f& destinationPoint);
-    void SetAttractionEffectFraction(float fraction);
-    void SetAttractionEffectDstPoint(Vector2f destinationPoint);
-
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);

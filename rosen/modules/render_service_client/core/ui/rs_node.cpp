@@ -1878,24 +1878,6 @@ void RSNode::SetSpherizeDegree(float spherizeDegree)
     SetProperty<RSSpherizeModifier, RSAnimatableProperty<float>>(RSModifierType::SPHERIZE, spherizeDegree);
 }
 
-void RSNode::SetAttractionEffect(float fraction, const Vector2f& destinationPoint)
-{
-    SetAttractionEffectFraction(fraction);
-    SetAttractionEffectDstPoint(destinationPoint);
-}
-
-void RSNode::SetAttractionEffectFraction(float fraction)
-{
-    SetProperty<RSAttractionFractionModifier, RSAnimatableProperty<float>>(RSModifierType::ATTRACTION_FRACTION,
-        fraction);
-}
-
-void RSNode::SetAttractionEffectDstPoint(Vector2f destinationPoint)
-{
-    SetProperty<RSAttractionDstPointModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::ATTRACTION_DSTPOINT,
-        destinationPoint);
-}
-
 void RSNode::SetLightUpEffectDegree(float LightUpEffectDegree)
 {
     SetProperty<RSLightUpEffectModifier, RSAnimatableProperty<float>>(

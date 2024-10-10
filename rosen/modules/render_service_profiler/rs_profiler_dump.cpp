@@ -305,14 +305,7 @@ void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, Js
     if (!ROSEN_EQ(properties.GetSpherize(), 0.f)) {
         out["Spherize"] = properties.GetSpherize();
     }
-    if (!ROSEN_EQ(properties.GetAttractionFraction(), 0.f)) {
-        out["AttractFraction"] = properties.GetAttractionFraction();
-    }
-    Vector2f attractionDstpoint = properties.GetAttractionDstPoint();
-    if ((!ROSEN_EQ(attractionDstpoint[0], 0.f) || !ROSEN_EQ(attractionDstpoint[1], 0.f))) {
-        out["AttractionDstPoint"] = { attractionDstpoint[0], attractionDstpoint[1] };
-    }
-    
+
     if (!ROSEN_EQ(properties.GetForegroundColor(), RgbPalette::Transparent())) {
         out["ForegroundColor"] = "#" + Hex(properties.GetForegroundColor().AsArgbInt()) + " (ARGB)";
     }
