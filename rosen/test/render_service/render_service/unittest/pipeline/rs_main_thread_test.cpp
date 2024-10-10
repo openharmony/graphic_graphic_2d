@@ -1843,6 +1843,9 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes003, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
 {
 #ifndef ROSEN_CROSS_PLATFORM
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        return;
+    }
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     bool isUniRender = mainThread->isUniRender_;
