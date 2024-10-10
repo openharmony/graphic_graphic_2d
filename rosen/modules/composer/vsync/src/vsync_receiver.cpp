@@ -61,12 +61,15 @@ VsyncError VSyncCallBackListener::ReadFdInternal(int32_t fd, int64_t (&data)[3],
         // only take the latest timestamp
         ret = read(fd, data, sizeof(data));
         if (ret == 0) {
+            VLOGE("ReadFdInternal, ret is 0, read fd:%{public}d failed, errno:%{public}d", fd, errno);
             return VSYNC_ERROR_OK;
         }
         if (ret == -1) {
             if (errno == EINTR) {
                 ret = 0;
                 continue;
+            } else if (errno != EAGAIN) {
+                VLOGE("ReadFdInternal, read fd:%{public}d failed, errno:%{public}d", fd, errno);
             }
         } else {
             dataCount += ret;
