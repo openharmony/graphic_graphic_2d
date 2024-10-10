@@ -233,7 +233,7 @@ bool RSCustomClipToFrameRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property_);
     return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::CUSTOM_CLIP_TO_FRAME)) &&
-            RSMarshallingHelper::Marshalling(parcel, renderProperty);
+        RSMarshallingHelper::Marshalling(parcel, renderProperty);
 }
 
 void RSCustomClipToFrameRenderModifier::Apply(RSModifierContext& context) const

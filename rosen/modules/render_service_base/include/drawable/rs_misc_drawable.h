@@ -181,8 +181,6 @@ protected:
     Vector4f stagingBoundsRect_;
 };
 
-// ============================================================================
-// CustomClipToFrame
 class RSCustomClipToFrameDrawable : public RSDrawable {
 public:
     explicit RSCustomClipToFrameDrawable() = default;
