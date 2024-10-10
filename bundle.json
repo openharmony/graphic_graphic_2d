@@ -448,6 +448,7 @@
           "//foundation/graphic/graphic_2d:graphic_common_test",
           "//foundation/graphic/graphic_2d/frameworks/surfaceimage/test/unittest:unittest",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:test",
+          "//foundation/graphic/graphic_2d/rosen/modules/ressched/test/unittest:unittest",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics:test",
           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test",
