@@ -1421,8 +1421,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
         return parcel.WriteInt32(-1);
     }
     auto position = parcel.GetWritePosition();
-    if (!(parcel.WriteInt32(1) && RS_PROFILER_MARSHAL_PIXELMAP(parcel, val))) {
+    if (!parcel.WriteInt32(1)) {
         ROSEN_LOGE("failed RSMarshallingHelper::Marshalling Media::PixelMap");
+        return false;
+    }
+    if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling PixelMap, failed to write begin position");
+        return false;
+    }
+    if (!RS_PROFILER_MARSHAL_PIXELMAP(parcel, val)) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling failed to write PixelMap");
+        return false;
+    }
+    if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling PixelMap, failed to write end position");
         return false;
     }
     // correct pixelmap size recorded in Parcel
@@ -1442,6 +1454,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         val = nullptr;
         return true;
     }
+    if (!CheckReadPosition(parcel)) {
+        RS_LOGE("RSMarshallingHelper::Unmarshalling PixelMap, CheckReadPosition begin failed");
+    }
     auto readPosition = parcel.GetReadPosition();
     val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel));
     if (val == nullptr) {
@@ -1457,6 +1472,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         }
         
         return false;
+    }
+    if (!CheckReadPosition(parcel)) {
+        RS_LOGE("RSMarshallingHelper::Unmarshalling PixelMap, CheckReadPosition end failed");
     }
     MemoryInfo info = {
         val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType()
@@ -2242,6 +2260,18 @@ bool RSMarshallingHelper::GetUseSharedMem(std::thread::id tid)
 {
     if (tid == g_tid) {
         return g_useSharedMem;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
+{
+    auto curPosition = parcel.GetReadPosition();
+    auto positionRead = parcel.ReadUint32();
+    if (positionRead != static_cast<uint32_t>(curPosition)) {
+        RS_LOGE("RSMarshallingHelper::CheckReadPosition failed, curPosition:%{public}zu, positionRead:%{public}u",
+            curPosition, positionRead);
+        return false;
     }
     return true;
 }
