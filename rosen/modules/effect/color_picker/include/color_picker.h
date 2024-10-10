@@ -41,8 +41,6 @@ struct HSV {
 
 class ColorPicker : public ColorExtract {
 public:
-    ColorPicker(std::shared_ptr<Media::PixelMap> pixmap);
-    ColorPicker(std::shared_ptr<Media::PixelMap> pixmap, double* coordinates);
     ~ColorPicker() {}
     static std::shared_ptr<Media::PixelMap> CreateScaledPixelMap(const std::shared_ptr<Media::PixelMap>& pixmap);
     NATIVEEXPORT static std::shared_ptr<ColorPicker> CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
@@ -60,6 +58,8 @@ public:
     NATIVEEXPORT std::vector<ColorManager::Color> GetTopProportionColors(uint32_t colorsNum) const;
 
 private:
+    ColorPicker(std::shared_ptr<Media::PixelMap> pixmap);
+    ColorPicker(std::shared_ptr<Media::PixelMap> pixmap, double* coordinates);
     bool IsEquals(double val1, double val2) const;
     HSV RGB2HSV(uint32_t rgb) const;
     void AdjustHSVToDefinedIterval(HSV& hsv) const;

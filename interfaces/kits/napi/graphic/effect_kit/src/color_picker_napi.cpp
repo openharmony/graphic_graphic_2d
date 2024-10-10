@@ -16,7 +16,7 @@
 #include "effect_kit_napi_utils.h"
 #include "effect_errors.h"
 #include "color_picker.h"
-
+#include "color.h"
 #include "pixel_map_napi.h"
 #include "hilog/log.h"
 #include "effect_utils.h"
@@ -38,6 +38,22 @@ static const std::string CLASS_NAME = "ColorPicker";
 thread_local napi_ref ColorPickerNapi::sConstructor_ = nullptr;
 thread_local std::shared_ptr<ColorPicker> ColorPickerNapi::sColorPicker_ = nullptr;
 
+// context
+struct ColorPickerAsyncContext {
+    napi_env env;
+    napi_async_work work;
+    napi_deferred deferred;
+    napi_ref callbackRef;
+    uint32_t status;
+    // build error msg
+    napi_value errorMsg = {nullptr};
+    ColorPickerNapi *nConstructor = {nullptr};
+    std::shared_ptr<ColorPicker> rColorPicker = {nullptr};
+    std::shared_ptr<Media::PixelMap> rPixelMap = {nullptr};
+    ColorManager::Color color;
+    bool regionFlag = {false};
+    double coordinatesBuffer[4];
+};
 static void BuildMsgOnError(napi_env env,
                             const std::unique_ptr<ColorPickerAsyncContext>& context,
                             bool assertion,
@@ -55,7 +71,7 @@ static void CommonCallbackRoutine(napi_env env, ColorPickerAsyncContext* &asyncC
     napi_get_undefined(env, &result[NUM_1]);
 
     if (asyncContext == nullptr) {
-        EFFECT_LOG_E("Failed to delete asyncContext, asyncContext is nullptr");
+        EFFECT_LOG_E("CommonCallback asyncContext is nullptr");
         return;
     }
     if (asyncContext->status == SUCCESS) {
@@ -80,18 +96,23 @@ static void CommonCallbackRoutine(napi_env env, ColorPickerAsyncContext* &asyncC
 
     napi_delete_async_work(env, asyncContext->work);
 
+    if (asyncContext == nullptr) {
+        EFFECT_LOG_E("Failed to delete asyncContext, asyncContext is nullptr");
+    } else {
+        delete asyncContext;
+    }
     asyncContext = nullptr;
 }
 
 ColorPickerNapi::ColorPickerNapi()
     :env_(nullptr), wrapper_(nullptr)
 {
-    EFFECT_LOG_I("ColorPickerNapi::ColorPickerNapi");
+    EFFECT_LOG_D("ColorPickerNapi::ColorPickerNapi");
 }
 
 ColorPickerNapi::~ColorPickerNapi()
 {
-    EFFECT_LOG_I("ColorPickerNapi::~ColorPickerNapi");
+    EFFECT_LOG_D("ColorPickerNapi::~ColorPickerNapi");
     if (nativeColorPicker_ != nullptr) {
         nativeColorPicker_ = nullptr;
     }
@@ -181,7 +202,7 @@ napi_value ColorPickerNapi::Constructor(napi_env env, napi_callback_info info)
 
 void ColorPickerNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 {
-    EFFECT_LOG_I("ColorPickerNapi::Destructor");
+    EFFECT_LOG_D("ColorPickerNapi::Destructor");
     ColorPickerNapi *pColorPickerNapi = reinterpret_cast<ColorPickerNapi*>(nativeObject);
 
     if (EFFECT_NOT_NULL(pColorPickerNapi)) {

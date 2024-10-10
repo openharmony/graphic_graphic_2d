@@ -19,7 +19,7 @@
 #include "effect_type.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
-#include "color.h"
+
 namespace OHOS {
 
 namespace Media {
@@ -33,8 +33,6 @@ enum class ImageType {
     TYPE_IMAGE_SOURCE,
 };
 
-
-// context
 struct ColorPickerAsyncContext;
 class ColorPickerNapi {
 public:
@@ -76,22 +74,6 @@ private:
     // native var
     std::shared_ptr<ColorPicker> nativeColorPicker_;
 };
-struct ColorPickerAsyncContext {
-    napi_env env;
-    napi_async_work work;
-    napi_deferred deferred;
-    napi_ref callbackRef;
-    uint32_t status;
-    // build error msg
-    napi_value errorMsg = {nullptr};
-    ColorPickerNapi *nConstructor = {nullptr};
-    std::shared_ptr<ColorPicker> rColorPicker = {nullptr};
-    std::shared_ptr<Media::PixelMap> rPixelMap = {nullptr};
-    ColorManager::Color color;
-    bool regionFlag = {false};
-    double coordinatesBuffer[4];
-};
-
 } // namespace Rosen
 } // namespace OHOS
 #endif /* COLOR_PICKER_NAPI_H */
