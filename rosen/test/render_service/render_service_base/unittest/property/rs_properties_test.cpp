@@ -1998,6 +1998,22 @@ HWTEST_F(RSPropertiesTest, NeedFilterNClip001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NeedBlurFuzed001
+ * @tc.desc: test results of NeedBlurFuzed
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, NeedBlurFuzed001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.NeedBlurFuzed(), false);
+    // 1.0f: valid mesa blur params
+    Vector2f vectorValue = { 1.0f, 1.0f };
+    properties.greyCoef_ = vectorValue;
+    EXPECT_EQ(properties.NeedBlurFuzed(), true);
+}
+
+/**
  * @tc.name: Dirty001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -2349,6 +2365,12 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundBlurFilter001, TestSize.Level1)
     properties.GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
+    // 0.0f, 1.0f: valid mesa blur params
+    Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
+    properties.pixelStretch_ = pixelStretchTest;
+    properties.GenerateBackgroundBlurFilter();
+    EXPECT_EQ(vectorValue.x_, 1.f);
+
     properties.greyCoef_ = vectorValue;
     properties.GenerateBackgroundBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
@@ -2364,6 +2386,12 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundMaterialBlurFilter001, TestSize.Lev
 {
     RSProperties properties;
     Vector2f vectorValue = { 1.f, 1.f };
+    properties.GenerateBackgroundMaterialBlurFilter();
+    EXPECT_EQ(vectorValue.x_, 1.f);
+
+    // 0.0f, 1.0f: valid mesa blur params
+    Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
+    properties.pixelStretch_ = pixelStretchTest;
     properties.GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 

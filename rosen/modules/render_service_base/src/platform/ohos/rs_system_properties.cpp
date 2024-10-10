@@ -580,6 +580,13 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return hpsBlurEnabled && !forceHpsBlurDisabled_;
 }
 
+bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    static bool blurPixelStretchEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.mesaBlurFuzedEnable", "1")).c_str()) != 0;
+    return blurPixelStretchEnabled;
+}
+
 float RSSystemProperties::GetKawaseRandomColorFactor()
 {
     static float randomFactor =

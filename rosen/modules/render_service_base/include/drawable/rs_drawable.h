@@ -149,6 +149,8 @@ public:
     // Step 2, for every dirtySlot, update or generate RSDrawable
     static bool UpdateDirtySlots(
         const RSRenderNode& node, Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots);
+    // Step 2-1 (optional), fuze some drawables
+    static bool FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec);
     // Step 3, insert necessary Clip/Save/Restore into drawableVec
     static void UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus);
 };

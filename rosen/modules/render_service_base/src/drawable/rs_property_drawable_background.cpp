@@ -540,6 +540,16 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+bool RSBackgroundFilterDrawable::FuzePixelStretch(const RSRenderNode& node)
+{
+    return RSPropertyDrawableUtils::RSFilterSetPixelStretch(node.GetRenderProperties(), stagingFilter_);
+}
+
+void RSBackgroundFilterDrawable::RemovePixelStretch()
+{
+    RSPropertyDrawableUtils::RSFilterRemovePixelStretch(stagingFilter_);
+}
+
 bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 {
     nodeId_ = node.GetId();

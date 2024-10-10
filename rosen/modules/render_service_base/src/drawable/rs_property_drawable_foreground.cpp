@@ -340,6 +340,11 @@ bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+void RSPixelStretchDrawable::SetPixelStretch(const std::optional<Vector4f>& pixelStretch)
+{
+    stagingPixelStretch_ = pixelStretch;
+}
+
 void RSPixelStretchDrawable::OnSync()
 {
     if (!needSync_) {
