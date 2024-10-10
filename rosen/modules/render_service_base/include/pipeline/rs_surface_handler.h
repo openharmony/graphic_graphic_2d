@@ -63,16 +63,16 @@ public:
                 bufferDeleteCb_(buffer->GetSeqNum());
             }
             buffer = nullptr;
-            acquireFence = SyncFence::INVALID_FENCE;
-            releaseFence = SyncFence::INVALID_FENCE;
+            acquireFence = SyncFence::InvalidFence();
+            releaseFence = SyncFence::InvalidFence();
             damageRect = Rect {0, 0, 0, 0};
 #endif
             timestamp = 0;
         }
 #ifndef ROSEN_CROSS_PLATFORM
         sptr<SurfaceBuffer> buffer;
-        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-        sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+        sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
         Rect damageRect = {0, 0, 0, 0};
         OnDeleteBufferFunc bufferDeleteCb_ = nullptr;
 #endif

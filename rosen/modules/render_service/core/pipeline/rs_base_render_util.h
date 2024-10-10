@@ -45,7 +45,7 @@ struct ComposeInfo {
     GraphicLayerAlpha alpha;
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
     GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
     int32_t sdrNit { 0 };
@@ -61,7 +61,7 @@ constexpr float DEFAULT_BRIGHTNESS_RATIO = 1.0f;
 #endif
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
 
     Drawing::Matrix matrix; // for moving canvas to layer(surface)'s leftTop point.
     Drawing::Rect srcRect; // surface's bufferSize

@@ -206,7 +206,7 @@ private:
     bool postImageReleaseTaskFlag_ = false;
     int imageReleaseCount_ = 0;
 
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
 
     // vma cache
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag

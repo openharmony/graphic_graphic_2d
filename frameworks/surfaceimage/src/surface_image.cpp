@@ -132,7 +132,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
 
     // acquire buffer
     sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp;
     Rect damage;
     ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
@@ -407,7 +407,7 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp;
     Rect damage;
     SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
