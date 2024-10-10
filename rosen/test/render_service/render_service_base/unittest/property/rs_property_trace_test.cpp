@@ -74,13 +74,13 @@ HWTEST_F(RSPropertyTraceTest, TracePropertiesByNodeName001, TestSize.Level1)
     RSProperties properties;
     std::string nodeName = "";
     RSPropertyTrace::GetInstance().TracePropertiesByNodeName(id, nodeName, properties);
-    EXPECT_EQ(id, 1);
+    EXPECT_TRUE(!RSPropertyTrace::GetInstance().IsNeedPropertyTrace(nodeName));
 
     nodeName = "node";
     std::string info = "NODE_NAME:";
     RSPropertyTrace::GetInstance().DealNodeNameConfig(info);
     RSPropertyTrace::GetInstance().TracePropertiesByNodeName(id, nodeName, properties);
-    EXPECT_EQ(id, 1);
+    EXPECT_TRUE(RSPropertyTrace::GetInstance().IsNeedPropertyTrace(nodeName));
 }
 
 /**
@@ -114,7 +114,7 @@ HWTEST_F(RSPropertyTraceTest, DealConfigInputInfo001, TestSize.Level1)
 
     info = "PROPERTY:0,1,2";
     RSPropertyTrace::GetInstance().DealConfigInputInfo(info);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(RSPropertyTrace::GetInstance().needWriteAllNode_);
 }
 
 /**

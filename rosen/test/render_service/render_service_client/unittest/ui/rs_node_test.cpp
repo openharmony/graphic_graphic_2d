@@ -2723,7 +2723,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowColorStrategy001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
     rsNode->SetShadowColorStrategy(shadowColorStrategy);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy));
+    ASSERT_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy);
 }
 
 /**
@@ -5245,7 +5245,7 @@ HWTEST_F(RSNodeTest, SetEnvForegroundColor, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     uint32_t colorValue = 1; // for test
     rsNode->SetEnvForegroundColor(colorValue);
-    EXPECT_EQ(colorValue, 1);
+    ASSERT_EQ(rsNode->GetInstanceId(), -1);
 }
 
 /**
@@ -7173,7 +7173,7 @@ HWTEST_F(RSNodeTest, SetWaterRippleParams, TestSize.Level1)
     };
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetWaterRippleParams(rs_water_ripple_param, progress);
-    EXPECT_EQ(waveCount, 2);
+    ASSERT_EQ(rsNode->GetInstanceId(), -1);
 }
 
 /**
