@@ -223,12 +223,6 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
     return dump;
 }
 
-void RSSurfaceRenderNode::ResetRenderParams()
-{
-    stagingRenderParams_.reset();
-    renderDrawable_->renderParams_.reset();
-}
-
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     // Save the current state of the canvas before modifying it.
@@ -366,8 +360,6 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     if (!IsOnTheTree()) {
         if (auto context = GetContext().lock()) {
             RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
-                GetId(), GetName().c_str());
-            RS_LOGD("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
                 GetId(), GetName().c_str());
             if (IsLeashWindow()) {
                 context->MarkNeedPurge(ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE, RSContext::PurgeType::GENTLY);
