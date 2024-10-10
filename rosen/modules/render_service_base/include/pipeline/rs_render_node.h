@@ -529,7 +529,7 @@ public:
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
     bool IsFilterCacheValid() const;
     bool IsAIBarFilterCacheValid() const;
-    void MarkForceClearFilterCacheWhenWithInvisible();
+    void MarkForceClearFilterCacheWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
