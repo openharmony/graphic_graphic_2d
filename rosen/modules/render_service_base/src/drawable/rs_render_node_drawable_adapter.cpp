@@ -33,6 +33,8 @@
 namespace OHOS::Rosen::DrawableV2 {
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
+RSRenderNodeDrawableAdapter::DrawableVec RSRenderNodeDrawableAdapter::toClearDrawableVec_;
+RSRenderNodeDrawableAdapter::CmdListVec RSRenderNodeDrawableAdapter::toClearCmdListVec_;
 #ifdef ROSEN_OHOS
 thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
 #else
@@ -458,6 +460,14 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
+}
+
+void RSRenderNodeDrawableAdapter::ClearResource()
+{
+    RS_TRACE_NAME_FMT("ClearResource count drawable %d, cmdList %d",
+        toClearDrawableVec_.size(), toClearCmdListVec_.size());
+    toClearDrawableVec_.clear();
+    toClearCmdListVec_.clear();
 }
 
 int RSRenderNodeDrawableAdapter::GetCountOfClipHoleForCache(const RSRenderParams& params) const

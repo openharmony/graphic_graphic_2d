@@ -56,6 +56,7 @@ public:
     void PostRTTask(const std::function<void()>& task);
     void PostImageReleaseTask(const std::function<void()>& task);
     void RunImageReleaseTask();
+    void ClearResource();
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::HIGH);
     void PostSyncTask(const std::function<void()>& task);
@@ -78,6 +79,7 @@ public:
     void AsyncFreeVMAMemoryBetweenFrames();
     void ResetClearMemoryTask();
     bool GetClearMemoryFinished() const;
+    void SetClearMemoryFinished();
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
