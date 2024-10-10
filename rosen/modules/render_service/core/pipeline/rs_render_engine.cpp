@@ -31,6 +31,10 @@ constexpr float GAMMA2_2 = 2.2f;
 void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
     BufferDrawParam& params, PreProcessFunc preProcess, PostProcessFunc postProcess)
 {
+    if (!params.useCPU) {
+        RegisterDeleteBufferListener(node.GetRSSurfaceHandler()->GetConsumer());
+    }
+
     auto nodePreProcessFunc = [&preProcess, &node](RSPaintFilterCanvas& canvas, BufferDrawParam& params) {
         // call the preprocess func passed in first.
         if (preProcess != nullptr) {
