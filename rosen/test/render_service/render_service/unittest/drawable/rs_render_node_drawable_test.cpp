@@ -773,11 +773,95 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     drawable->TraverseSubTreeAndDrawFilterWithClip(canvas, params);
-    ASSERT_TRUE(drawable->filterRects_.empty());
+    ASSERT_TRUE(drawable->filterInfoVec_.empty());
 
     Drawing::RectI rect;
-    drawable->filterRects_.push_back(rect);
+    Drawing::Matrix matrix;
+    drawable->filterInfoVec_.emplace_back(RSRenderNodeDrawableAdapter::FilterNodeInfo(0, matrix, { rect }));
     drawable->TraverseSubTreeAndDrawFilterWithClip(canvas, params);
-    ASSERT_FALSE(drawable->filterRects_.empty());
+    ASSERT_FALSE(drawable->filterInfoVec_.empty());
+}
+
+/**
+ * @tc.name: DrawWithoutNodeGroupCache
+ * @tc.desc: Test If DrawWithoutNodeGroupCache Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAVPAJ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    DrawableCacheType originalCacheType = DrawableCacheType::CONTENT;
+    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
+    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+
+    NodeId id = 1;
+    auto rootRenderNode = std::make_shared<RSRenderNode>(id);
+    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
+    drawable->drawBlurForCache_ = true;
+    drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
+    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+}
+
+/**
+ * @tc.name: CheckRegionAndDrawWithoutFilter
+ * @tc.desc: Test If CheckRegionAndDrawWithoutFilter Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAVPAJ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithoutFilter, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    Drawing::RectI rect;
+    Drawing::Matrix matrix;
+    std::vector<RSRenderNodeDrawableAdapter::FilterNodeInfo> filterInfoVec = {
+        RSRenderNodeDrawableAdapter::FilterNodeInfo(0, matrix, { rect })
+    };
+    drawable->filterInfoVec_ = filterInfoVec;
+    drawable->CheckRegionAndDrawWithoutFilter(filterInfoVec, canvas, params);
+    ASSERT_FALSE(drawable->filterInfoVec_.empty());
+
+    NodeId id = 1;
+    auto rootRenderNode = std::make_shared<RSRenderNode>(id);
+    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
+    drawable->curDrawingCacheRoot_ = rootDrawable;
+
+    drawable->CheckRegionAndDrawWithoutFilter(filterInfoVec, canvas, params);
+    ASSERT_FALSE(drawable->filterInfoVec_.empty());
+}
+
+/**
+ * @tc.name: CheckRegionAndDrawWithFilter
+ * @tc.desc: Test If CheckRegionAndDrawWithFilter Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAVPAJ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    Drawing::RectI rect;
+    Drawing::Matrix matrix;
+    const std::vector<RSRenderNodeDrawableAdapter::FilterNodeInfo> filterInfoVec = {
+        RSRenderNodeDrawableAdapter::FilterNodeInfo(0, matrix, { rect })
+    };
+    drawable->filterInfoVec_ = filterInfoVec;
+    auto begin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
+        [nodeId = 0](const auto& item) -> bool { return item.nodeId_ == nodeId; });
+    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
+    ASSERT_FALSE(drawable->filterInfoVec_.empty());
+
+    NodeId id = 1;
+    auto rootRenderNode = std::make_shared<RSRenderNode>(id);
+    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
+    drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
+    ASSERT_FALSE(drawable->filterInfoVec_.empty());
 }
 }
