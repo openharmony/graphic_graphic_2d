@@ -37,7 +37,6 @@
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_spherize_effect_filter.h"
-#include "render/rs_attraction_effect_filter.h"
 #include "src/core/SkOpts.h"
 #include "render/rs_water_ripple_shader_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
@@ -60,7 +59,6 @@ constexpr int32_t INDEX_18 = 18;
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
-constexpr float ATTRACTION_VALID_EPSILON = 0.001f; // used to judge if attraction valid
 constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
 constexpr int BORDER_NUM = 4;
 constexpr int16_t BORDER_TRANSPARENT = 255;
@@ -194,8 +192,6 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetForegroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT); }, // FOREGROUND_BLUR_COLORMODE
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusX(0.f); },     // FOREGROUND_BLUR_RADIUS_X
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusY(0.f); },     // FOREGROUND_BLUR_RADIUS_Y
-    [](RSProperties* prop) { prop->SetAttractionFraction(0.f); },        // ATTRACTION_FRACTION
-    [](RSProperties* prop) { prop->SetAttractionDstPoint({}); },         // ATTRACTION_DSTPOINT
 };
 
 // Check if g_propertyResetterLUT size match and is fully initialized (the last element should never be nullptr)
@@ -2365,57 +2361,6 @@ void RSProperties::CreateFlyOutShaderFilter()
     foregroundFilter_ = flyOutShaderFilter;
 }
 
-void RSProperties::CreateAttractionEffectFilter()
-{
-    float canvasWidth = GetBoundsRect().GetWidth();
-    float canvasHeight = GetBoundsRect().GetHeight();
-    Vector2f destinationPoint = GetAttractionDstPoint();
-    float windowLeftPoint = GetFramePositionX();
-    float windowTopPoint = GetFramePositionY();
-    auto attractionEffectFilter = std::make_shared<RSAttractionEffectFilter>(attractFraction_);
-    attractionEffectFilter->CalculateWindowStatus(canvasWidth, canvasHeight, destinationPoint);
-    attractionEffectFilter->UpdateDirtyRegion(windowLeftPoint, windowTopPoint);
-    attractionEffectCurrentDirtyRegion_ = attractionEffectFilter->GetAttractionDirtyRegion();
-    foregroundFilter_ = attractionEffectFilter;
-}
-
-RectI RSProperties::GetAttractionEffectCurrentDirtyRegion() const
-{
-    return attractionEffectCurrentDirtyRegion_;
-}
-
-float RSProperties::GetAttractionFraction() const
-{
-    return attractFraction_;
-}
-
-void RSProperties::SetAttractionDstPoint(Vector2f dstPoint)
-{
-    attractDstPoint_ = dstPoint;
-}
-
-Vector2f  RSProperties::GetAttractionDstPoint() const
-{
-    return attractDstPoint_;
-}
-
-void RSProperties::SetAttractionFraction(float fraction)
-{
-    attractFraction_ = fraction;
-    isAttractionValid_ = attractFraction_ > ATTRACTION_VALID_EPSILON;
-    if (isAttractionValid_) {
-        isDrawn_ = true;
-    }
-    filterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-}
-
-bool RSProperties::IsAttractionValid() const
-{
-    return isAttractionValid_;
-}
-
 void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
 {
     lightUpEffectDegree_ = lightUpEffectDegree;
@@ -2740,7 +2685,7 @@ std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float
     float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
     cm.GetArray(cmArray);
     std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO);
     return filterCompose;
 }
 
@@ -3377,7 +3322,7 @@ void RSProperties::GenerateColorFilter()
         matrix[1] = matrix[INDEX_6] = matrix[INDEX_11] = 0.7152f * grayScale; // 0.7152 : gray scale coefficient
         matrix[INDEX_2] = matrix[INDEX_7] = matrix[INDEX_12] = 0.0722f * grayScale; // 0.0722 : gray scale coefficient
         matrix[INDEX_18] = 1.0 * grayScale;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3390,7 +3335,7 @@ void RSProperties::GenerateColorFilter()
         brightness = brightness - 1;
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = matrix[INDEX_18] = 1.0f;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = brightness;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3404,7 +3349,7 @@ void RSProperties::GenerateColorFilter()
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = contrast;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = contrastValue128 * (1 - contrast) / contrastValue255;
         matrix[INDEX_18] = 1.0f;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3420,7 +3365,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_6] = 0.6094f * (1 - saturate) + saturate; // 0.6094 : saturate coefficient
         matrix[INDEX_12] = 0.0820f * (1 - saturate) + saturate; // 0.0820 : saturate coefficient
         matrix[INDEX_18] = 1.0f;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3441,7 +3386,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_11] = 0.534f * sepia;
         matrix[INDEX_12] = 0.131f * sepia;
         matrix[INDEX_18] = 1.0f * sepia;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3459,7 +3404,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_18] = 1.0f;
         // invert = 0.5 -> RGB = (0.5, 0.5, 0.5) -> image completely gray
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = invert;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3494,7 +3439,7 @@ void RSProperties::GenerateColorFilter()
             default:
                 break;
         }
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3556,7 +3501,7 @@ std::string RSProperties::Dump() const
     }
 
     // Pivot
-    std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
+    std::unique_ptr<RSTransform> defaultTrans = std::make_unique<RSTransform>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
         return "Failed to memset_s for Pivot, ret=" + std::to_string(ret);
@@ -3684,28 +3629,6 @@ std::string RSProperties::Dump() const
     }
     if (!ROSEN_EQ(GetSpherize(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Spherize[%.1f]", GetSpherize()) != -1) {
-        dumpInfo.append(buffer);
-    }
-
-    // AttractFraction
-    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (ret != EOK) {
-        return "Failed to memset_s for AttractFraction, ret=" + std::to_string(ret);
-    }
-    if (!ROSEN_EQ(GetAttractionFraction(), 0.f) &&
-        sprintf_s(buffer, UINT8_MAX, ", MiniFraction[%.1f]",  GetAttractionFraction()) != -1) {
-        dumpInfo.append(buffer);
-    }
-
-    // Attraction Destination Position
-    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (ret != EOK) {
-        return "Failed to memset_s for MiniDstpoint, ret=" + std::to_string(ret);
-    }
-    Vector2f attractionDstpoint = GetAttractionDstPoint();
-    if ((!ROSEN_EQ(attractionDstpoint[0], 0.f) || !ROSEN_EQ(attractionDstpoint[1], 0.f)) &&
-        sprintf_s(buffer, UINT8_MAX, ", AttractionFraction DstPointY[%.1f,%.1f]",
-        attractionDstpoint[0], attractionDstpoint[1]) != -1) {
         dumpInfo.append(buffer);
     }
 
@@ -4159,8 +4082,6 @@ void RSProperties::UpdateForegroundFilter()
         }
     } else if (IsSpherizeValid()) {
         CreateSphereEffectFilter();
-    } else if (IsAttractionValid()) {
-        CreateAttractionEffectFilter();
     } else if (IsFlyOutValid()) {
         CreateFlyOutShaderFilter();
     } else if (GetShadowMask()) {

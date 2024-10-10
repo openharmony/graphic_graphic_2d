@@ -167,6 +167,14 @@ constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
+constexpr float DEFAULT_SCALER = 4.5f;
+constexpr float DEFAULT_HDR_RATIO = 1.0f;
+constexpr float REFERENCE_WHITE = 203.0f;
+constexpr float CAMERA_WHITE_MIN = 500.0f;
+constexpr float CAMERA_WHITE_MAX = 510.0f;
+constexpr float CAMERA_HDR_RATIO = 2.5f;
+constexpr float HDR_WHITE = 1000.0f;
+constexpr float GAMMA2_2 = 2.2f;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* MEM_MGR = "MemMgr";
@@ -230,6 +238,66 @@ void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<Rc
         );
     }
 }
+
+float CalScaler(const float& maxContentLightLevel)
+{
+    if (ROSEN_LE(maxContentLightLevel, 0.0f) || ROSEN_LNE(maxContentLightLevel, REFERENCE_WHITE)) {
+        return DEFAULT_HDR_RATIO;
+    } else if (ROSEN_GE(maxContentLightLevel, CAMERA_WHITE_MIN) && ROSEN_LE(maxContentLightLevel, CAMERA_WHITE_MAX)) {
+        return CAMERA_HDR_RATIO;
+    } else if (ROSEN_LE(maxContentLightLevel, HDR_WHITE)) {
+        return HDR_WHITE / REFERENCE_WHITE;
+    } else {
+        return maxContentLightLevel / REFERENCE_WHITE;
+    }
+}
+
+void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRenderNode& surfaceNode, bool isHdrSurface)
+{
+    std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+    auto displayLock = surfaceNode.GetAncestorDisplayNode().lock();
+    if (displayLock != nullptr) {
+        ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
+    }
+    if (ancestor == nullptr) {
+        RS_LOGD("RSMainThread UpdateSurfaceNodeNit GetAncestorDisplayNode() return nullptr");
+        return;
+    }
+    auto screenId = ancestor->GetScreenId();
+
+    if (!isHdrSurface) {
+        surfaceNode.SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
+        return;
+    }
+
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    std::vector<uint8_t> hdrStaticMetadataVec;
+    if (MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadataVec) != GSERROR_OK) {
+        RS_LOGE("MetadataHelper GetHDRStaticMetadata failed");
+        return;
+    }
+    float scaler = DEFAULT_SCALER;
+    if (hdrStaticMetadataVec.size() != sizeof(hdrStaticMetadataVec) || hdrStaticMetadataVec.data() == nullptr) {
+        RS_LOGD("hdrStaticMetadataVec is invalid");
+    } else {
+        const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
+        scaler = CalScaler(data.cta861.maxContentLightLevel);
+    }
+
+    auto& rsLuminance = RSLuminanceControl::Get();
+    float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
+    float displayNits = rsLuminance.GetDisplayNits(screenId);
+
+    float layerNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
+    surfaceNode.SetDisplayNit(layerNits);
+    surfaceNode.SetSdrNit(sdrNits);
+    if (ROSEN_LNE(displayNits, 0.0f)) {
+        surfaceNode.SetBrightnessRatio(DEFAULT_HDR_RATIO);
+    } else {
+        surfaceNode.SetBrightnessRatio(std::pow(layerNits / displayNits, 1.0f / GAMMA2_2)); // gamma 2.2
+    }
+}
+
 std::string g_dumpStr = "";
 std::mutex g_dumpMutex;
 std::condition_variable g_dumpCond_;
@@ -1222,7 +1290,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             surfaceNode->ResetIsOnlyBasicGeoTransform();
         }
         if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
-            ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, consume and update all nodes", surfaceNode->GetId());
             surfaceNode->SetContentDirty(); // screen recording capsule force mark dirty
         }
         if (surfaceNode->IsHardwareEnabledType()
@@ -1243,8 +1310,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->GetName(), surfaceHandler.GetDamageRegion());
             }
             if (surfaceHandler.IsCurrentFrameBufferConsumed() && !surfaceNode->IsHardwareEnabledType()) {
-                ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, current frame buffer consumed",
-                    surfaceNode->GetId());
                 surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
                 RS_OPTIONAL_TRACE_NAME_FMT(
@@ -1274,8 +1339,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
                     RS_OPTIONAL_TRACE_NAME(surfaceNode->GetName() +
                         " SetContentDirty for UIFirst assigning to subthread");
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, current frame buffer consumed",
-                        surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", pc uifirst on",
@@ -1302,6 +1365,12 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (!hasHdrVideo) {
             hasHdrVideo = CheckIsHdrSurface(*surfaceNode);
         }
+        if ((*surfaceNode).GetRSSurfaceHandler() == nullptr) {
+            RS_LOGE("surfaceNode.GetRSSurfaceHandler is NULL");
+            return;
+        }
+        UpdateSurfaceNodeNit((*surfaceNode).GetRSSurfaceHandler()->GetBuffer(),
+            *surfaceNode, CheckIsHdrSurface(*surfaceNode));
     });
     RSLuminanceControl::Get().SetHdrStatus(0, hasHdrVideo, HDR_TYPE::VIDEO);
     if (needRequestNextVsync) {
@@ -1396,13 +1465,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (isHardwareForcedDisabled_) {
                 // buffer updated or hwc -> gpu
                 if (surfaceHandler->IsCurrentFrameBufferConsumed() || surfaceNode->GetIsLastFrameHwcEnabled()) {
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, buffer updated or hardware change to gpu",
-                        surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                 }
             } else if (!surfaceNode->GetIsLastFrameHwcEnabled()) { // gpu -> hwc
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, gpu change to hardware", surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT(
@@ -1418,7 +1484,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 // self-drawing node don't set content dirty when gpu -> hwc
                 // so first frame in hwc -> hwc, should set content dirty
                 if (surfaceNode->GetHwcDelayDirtyFlag()) {
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, hardware to hardware", surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                     surfaceNode->SetHwcDelayDirtyFlag(false);
                     doDirectComposition_ = false;

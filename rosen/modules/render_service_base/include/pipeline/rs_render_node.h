@@ -530,7 +530,7 @@ public:
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
     bool IsFilterCacheValid() const;
     bool IsAIBarFilterCacheValid() const;
-    void MarkForceClearFilterCacheWhenWithInvisible();
+    void MarkForceClearFilterCacheWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
@@ -621,6 +621,11 @@ public:
     void SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread);
     bool GetLastIsNeedAssignToSubThread() const;
 
+    inline const std::shared_ptr<RSRenderContent> GetRenderContent() const
+    {
+        return renderContent_;
+    }
+
     void SetIsTextureExportNode(bool isTextureExportNode)
     {
         isTextureExportNode_ = isTextureExportNode;
@@ -636,8 +641,6 @@ public:
 #define MAX_COLD_DOWN_NUM 20
     int32_t coldDownCounter_ = 0;
 #endif
-
-    const std::shared_ptr<RSRenderContent> GetRenderContent() const;
 
     void MarkParentNeedRegenerateChildren() const;
 

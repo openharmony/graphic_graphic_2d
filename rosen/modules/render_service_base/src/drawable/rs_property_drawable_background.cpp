@@ -529,7 +529,7 @@ RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
-    nodeId_ = node.GetId();
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -542,7 +542,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 
 bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 {
-    nodeId_ = node.GetId();
+    stagingNodeId_ = node.GetId();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -569,7 +569,7 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         Drawing::AutoCanvasRestore acr(*canvas, true);
         paintFilterCanvas->ClipRect(*rect);
-        RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->nodeId_);
+        RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
             paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_);
     };

@@ -553,30 +553,6 @@ bool DoModifier010(const uint8_t* data, size_t size)
     shadowColorStrategymodifier->CreateRenderModifier();
     return true;
 }
-
-bool DoModifier011(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    float value = GetData<float>();
-    auto property = std::make_shared<RSAnimatableProperty<float>>(value);
-    auto attractionFractionModifier = std::make_shared<RSAttractionFractionModifier>(property);
-    attractionFractionModifier->GetModifierType();
-    attractionFractionModifier->CreateRenderModifier();
-    auto attractionDstPointModifier = std::make_shared<RSAttractionDstPointModifier>(property);
-    attractionDstPointModifier->GetModifierType();
-    attractionDstPointModifier->CreateRenderModifier();
-    return true;
-}
-
 } // namespace Rosen
 } // namespace OHOS
 
@@ -594,7 +570,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoModifier008(data, size);
     OHOS::Rosen::DoModifier009(data, size);
     OHOS::Rosen::DoModifier010(data, size);
-    OHOS::Rosen::DoModifier011(data, size);
     return 0;
 }
 

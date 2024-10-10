@@ -253,7 +253,7 @@ void RSProfiler::DumpNodePropertiesTransform(const RSProperties& properties, Jso
     if (!ROSEN_EQ(properties.GetPositionZ(), 0.f)) {
         out["PositionZ"] = properties.GetPositionZ();
     }
-    Transform defaultTransform;
+    RSTransform defaultTransform;
     Vector2f pivot = properties.GetPivot();
     if ((!ROSEN_EQ(pivot[0], defaultTransform.pivotX_) || !ROSEN_EQ(pivot[1], defaultTransform.pivotY_))) {
         out["Pivot"] = { pivot[0], pivot[1] };
@@ -305,14 +305,7 @@ void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, Js
     if (!ROSEN_EQ(properties.GetSpherize(), 0.f)) {
         out["Spherize"] = properties.GetSpherize();
     }
-    if (!ROSEN_EQ(properties.GetAttractionFraction(), 0.f)) {
-        out["AttractFraction"] = properties.GetAttractionFraction();
-    }
-    Vector2f attractionDstpoint = properties.GetAttractionDstPoint();
-    if ((!ROSEN_EQ(attractionDstpoint[0], 0.f) || !ROSEN_EQ(attractionDstpoint[1], 0.f))) {
-        out["AttractionDstPoint"] = { attractionDstpoint[0], attractionDstpoint[1] };
-    }
-    
+
     if (!ROSEN_EQ(properties.GetForegroundColor(), RgbPalette::Transparent())) {
         out["ForegroundColor"] = "#" + Hex(properties.GetForegroundColor().AsArgbInt()) + " (ARGB)";
     }

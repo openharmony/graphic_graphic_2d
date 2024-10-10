@@ -358,7 +358,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
-    targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
     targetSurfaceParams->isParentScaling_ = isParentScaling_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
@@ -406,6 +405,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     targetSurfaceParams->rootIdOfCaptureWindow_ = rootIdOfCaptureWindow_;
+    targetSurfaceParams->sdrNit_ = sdrNit_;
+    targetSurfaceParams->displayNit_ = displayNit_;
+    targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
     RSRenderParams::OnSync(target);
 }
 
@@ -416,7 +418,6 @@ std::string RSSurfaceRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(int(selfDrawingType_));
     ret += RENDER_BASIC_PARAM_TO_STRING(alpha_);
     ret += RENDER_BASIC_PARAM_TO_STRING(isSpherizeValid_);
-    ret += RENDER_BASIC_PARAM_TO_STRING(isAttractionValid_);
     ret += RENDER_BASIC_PARAM_TO_STRING(needBilinearInterpolation_);
     ret += RENDER_BASIC_PARAM_TO_STRING(backgroundColor_.GetAlpha());
     ret += RENDER_RECT_PARAM_TO_STRING(absDrawRect_);

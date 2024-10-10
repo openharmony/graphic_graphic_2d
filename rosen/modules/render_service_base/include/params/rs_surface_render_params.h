@@ -119,10 +119,6 @@ public:
     {
         return isSpherizeValid_;
     }
-    bool IsAttractionValid() const
-    {
-        return isAttractionValid_;
-    }
     bool NeedBilinearInterpolation() const
     {
         return needBilinearInterpolation_;
@@ -433,6 +429,48 @@ public:
         return false;
     }
 
+    void SetSdrNit(int32_t sdrNit)
+    {
+        if (ROSEN_EQ(sdrNit_, sdrNit)) {
+            return;
+        }
+        sdrNit_ = sdrNit;
+        needSync_ = true;
+    }
+
+    int32_t GetSdrNit() const
+    {
+        return sdrNit_;
+    }
+
+    void SetDisplayNit(int32_t displayNit)
+    {
+        if (ROSEN_EQ(displayNit_, displayNit)) {
+            return;
+        }
+        displayNit_ = displayNit;
+        needSync_ = true;
+    }
+
+    int32_t GetDisplayNit() const
+    {
+        return displayNit_;
+    }
+
+    void SetBrightnessRatio(float brightnessRatio)
+    {
+        if (ROSEN_EQ(brightnessRatio_, brightnessRatio)) {
+            return;
+        }
+        brightnessRatio_ = brightnessRatio;
+        needSync_ = true;
+    }
+
+    float GetBrightnessRatio() const
+    {
+        return brightnessRatio_;
+    }
+
     void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) override;
     NodeId GetRootIdOfCaptureWindow() const override;
 protected:
@@ -445,7 +483,6 @@ private:
     float alpha_ = 0;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
-    bool isAttractionValid_ = false;
     bool isParentScaling_ = false;
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
@@ -507,6 +544,10 @@ private:
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
+    // hdr
+    int32_t sdrNit_ = 500; // default sdrNit
+    int32_t displayNit_ = 500; // default displayNit_
+    float brightnessRatio_ = 1.0; // 1.0f means no discount.
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

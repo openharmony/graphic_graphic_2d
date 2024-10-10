@@ -78,6 +78,7 @@ private:
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
+    void ReportFrameToRSS();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -99,7 +100,7 @@ private:
     RSVBlankIdleCorrector vblankIdleCorrector_;
 
     std::map<uint32_t, uint64_t> refreshRateCounts_;
-    sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
     int64_t delayTime_ = 0;
 
     friend class RSUniRenderThread;

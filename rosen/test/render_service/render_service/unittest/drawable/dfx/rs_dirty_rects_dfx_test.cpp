@@ -291,35 +291,4 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawDirtyRectForDFX, TestSize.Level1)
     rsDirtyRectsDfx_->DrawDirtyRectForDFX(dirtyRect, color, fillType, alpha, edgeWidth);
     ASSERT_TRUE(rsDirtyRectsDfx_->canvas_);
 }
-
-/**
- * @tc.name: DrawDetailedTypesOfDirtyRegionForDFX
- * @tc.desc: Test If DrawDetailedTypesOfDirtyRegionForDFX Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDirtyRectsDFXTest, DrawDetailedTypesOfDirtyRegionForDFX, TestSize.Level1)
-{
-    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    std::shared_ptr<RSSurfaceRenderNode> renderNode;
-    RSRenderNodeDrawableAdapter* drawable = nullptr;
-    RSSurfaceRenderNodeDrawable* surfaceDrawable = nullptr;
-    renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
-    if (drawable) {
-        drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
-        surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
-    }
-    surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
-    auto drawingCanvas = std::make_unique<Drawing::Canvas>();
-    rsDirtyRectsDfx_->canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    bool res = rsDirtyRectsDfx_->DrawDetailedTypesOfDirtyRegionForDFX(*surfaceDrawable);
-    ASSERT_FALSE(res);
-
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->dirtyRegionDebugType_ =
-        DirtyRegionDebugType::SUBTREE_SKIP_RECT;
-    res = rsDirtyRectsDfx_->DrawDetailedTypesOfDirtyRegionForDFX(*surfaceDrawable);
-    ASSERT_TRUE(res);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
-}
 }

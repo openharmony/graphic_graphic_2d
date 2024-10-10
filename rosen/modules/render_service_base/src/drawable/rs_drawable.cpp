@@ -157,8 +157,6 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X
     RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y
-    RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_FRACTION
-    RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_DSTPOINT
     RSDrawableSlot::INVALID,                       // CUSTOM
     RSDrawableSlot::INVALID,                       // EXTENDED
     RSDrawableSlot::TRANSITION,                    // TRANSITION

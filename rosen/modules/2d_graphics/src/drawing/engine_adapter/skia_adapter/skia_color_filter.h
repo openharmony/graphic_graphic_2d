@@ -36,12 +36,12 @@ public:
     }
 
     void InitWithBlendMode(ColorQuad c, BlendMode mode) override;
-    void InitWithColorMatrix(const ColorMatrix& m) override;
-    void InitWithColorFloat(const float f[20]) override;
+    void InitWithColorMatrix(const ColorMatrix& m, Clamp clamp = Clamp::YES) override;
+    void InitWithColorFloat(const float f[20], Clamp clamp = Clamp::YES) override;
     void InitWithLinearToSrgbGamma() override;
     void InitWithSrgbGammaToLinear() override;
     void InitWithCompose(const ColorFilter& f1, const ColorFilter& f2) override;
-    void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE]) override;
+    void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp = Clamp::YES) override;
     void Compose(const ColorFilter& f) override;
     void InitWithLuma() override;
     void InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COLOR_NUM]) override;

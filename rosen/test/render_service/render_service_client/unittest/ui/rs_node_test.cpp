@@ -4102,19 +4102,6 @@ HWTEST_F(RSNodeTest, SetandGetSpherizeDegree001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetandGetSetAttractionEffectDstPoint001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetSetAttractionEffectDstPoint001, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    Vector2f attractionDstPoint = { 100.0, 100.0 };
-    rsNode->SetAttractionEffectDstPoint(attractionDstPoint);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetAttractionDstPointValue(), attractionDstPoint));
-}
-
-/**
  * @tc.name: SetandGetLightUpEffectDegree001
  * @tc.desc:
  * @tc.type:FUNC
@@ -5840,20 +5827,6 @@ HWTEST_F(RSNodeTest, SetSpherizeDegree, TestSize.Level1)
     float spherizeDegree = 1.f; // for test
     rsNode->SetSpherizeDegree(spherizeDegree);
     EXPECT_NE(spherizeDegree, 0.f);
-}
-
-/**
- * @tc.name: SetAttractionEffectDstPoint
- * @tc.desc: test results of SetAttractionEffectDstPoint
- * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
- */
-HWTEST_F(RSNodeTest, SetAttractionEffectDstPoint, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    Vector2f attractionDstPoint = { 100.0, 100.0 };
-    rsNode->SetAttractionEffectDstPoint(attractionDstPoint);
-    EXPECT_NE(attractionDstPoint.x_, 0.f);
 }
 
 /**

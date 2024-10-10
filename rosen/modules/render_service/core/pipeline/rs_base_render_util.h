@@ -45,9 +45,10 @@ struct ComposeInfo {
     GraphicLayerAlpha alpha;
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
     GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
+    int32_t sdrNit { 0 };
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };
 };
@@ -56,10 +57,11 @@ class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
+constexpr float DEFAULT_BRIGHTNESS_RATIO = 1.0f;
 #endif
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
 
     Drawing::Matrix matrix; // for moving canvas to layer(surface)'s leftTop point.
     Drawing::Rect srcRect; // surface's bufferSize
@@ -84,7 +86,11 @@ struct BufferDrawParam {
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
     uint32_t threadIndex = UNI_MAIN_THREAD_INDEX; // use to decide eglimage unmap thread index
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float sdrNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float tmoNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float displayNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
+    bool isHdrRedraw = false;
 #endif
 };
 

@@ -354,7 +354,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
-        nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_);
+        nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_, nodeDrawable->GetHDRPresent());
         cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     }
 
@@ -372,8 +372,6 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetIsParallelCanvas(true);
     rscanvas->SetDisableFilterCache(true);
     rscanvas->SetParallelThreadIdx(threadIndex_);
-    rscanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
-    rscanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
     rscanvas->SetScreenId(nodeDrawable->GetScreenId());
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
@@ -417,8 +415,6 @@ void RSSubThread::DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRend
     rsCanvas->SetIsParallelCanvas(true);
     rsCanvas->SetDisableFilterCache(true);
     rsCanvas->SetParallelThreadIdx(threadIndex_);
-    rsCanvas->SetHDRPresent(nodeDrawable->GetHDRPresent());
-    rsCanvas->SetBrightnessRatio(nodeDrawable->GetBrightnessRatio());
     rsCanvas->SetScreenId(nodeDrawable->GetScreenId());
     rsCanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
     nodeDrawable->ClipRoundRect(*rsCanvas);

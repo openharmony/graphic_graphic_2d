@@ -542,6 +542,17 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isHdrOn = params->GetHDRPresent();
+    ScreenId screenId = curScreenInfo.id;
+    // 0 means defalut hdrBrightnessRatio
+    float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
+    if (!isHdrOn) {
+        params->SetBrightnessRatio(hdrBrightnessRatio);
+        hdrBrightnessRatio = 1.0f;
+    }
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR content in UniRender:%{public}d, BrightnessRatio:%{public}f",
+        isHdrOn, hdrBrightnessRatio);
+
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor)) {
         RSMainThread::Instance()->SetFrameIsRender(false);
         SetDisplayNodeSkipFlag(*uniParam, true);
@@ -550,8 +561,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     SetDisplayNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
 
-    bool isHdrOn = params->GetHDRPresent();
-    RS_LOGD("SetHDRPresent: %{public}d OnDraw", isHdrOn);
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR isHdrOn: %{public}d", isHdrOn);
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
@@ -596,6 +606,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         screenRectInfo_ = {0, 0, screenInfo.width, screenInfo.height};
     }
 #endif
+
     // canvas draw
     {
         RSOverDrawDfx rsOverDrawDfx(curCanvas_);
@@ -604,7 +615,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             Drawing::AutoCanvasRestore acr(*curCanvas_, true);
 
             bool isOpDropped = uniParam->IsOpDropped();
-            bool needOffscreen = params->GetNeedOffscreen();
+            bool needOffscreen = params->GetNeedOffscreen() || isHdrOn;
             if (needOffscreen) {
                 uniParam->SetOpDropped(false);
                 // draw black background in rotation for camera
@@ -619,7 +630,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             }
 
-            if (!needOffscreen) {
+            if (!params->GetNeedOffscreen()) {
                 curCanvas_->ConcatMatrix(params->GetMatrix());
             }
 
@@ -629,10 +640,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (needOffscreen) {
                 if (canvasBackup_ != nullptr) {
                     Drawing::AutoCanvasRestore acr(*canvasBackup_, true);
-                    canvasBackup_->ConcatMatrix(params->GetMatrix());
+                    if (params->GetNeedOffscreen()) {
+                        canvasBackup_->ConcatMatrix(params->GetMatrix());
+                    }
                     ClearTransparentBeforeSaveLayer();
-                    FinishOffscreenRender(
-                        Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE));
+                    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST,
+                        Drawing::MipmapMode::NONE), hdrBrightnessRatio);
                     uniParam->SetOpDropped(isOpDropped);
                 } else {
                     RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw canvasBackup_ is nullptr");
@@ -819,6 +832,8 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         RS_LOGE("RSDisplayRenderNodeDrawable::DrawMirror failed to get canvas.");
         return;
     }
+    // for HDR
+    curCanvas_->SetCapture(true);
     curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
     curCanvas_->SetDisableFilterCache(true);
     auto mirroedDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
@@ -1164,8 +1179,6 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             rscanvas->ConcatMatrix(params->GetMatrix());
         }
 
-        // Currently, capture do not support HDR display
-        rscanvas->SetCapture(true);
         RSRenderNodeDrawable::OnCapture(canvas);
         DrawWatermarkIfNeed(*params, *rscanvas);
     } else {
@@ -1444,6 +1457,24 @@ void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
     }
 }
 
+void RSDisplayRenderNodeDrawable::PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight)
+{
+    RS_LOGD("HDR PrepareHdrDraw");
+    offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
+}
+
+void RSDisplayRenderNodeDrawable::FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio)
+{
+    RS_LOGD("HDR FinishHdrDraw");
+    Drawing::Filter filter = paint.GetFilter();
+    Drawing::ColorMatrix luminanceMatrix;
+    luminanceMatrix.SetScale(hdrBrightnessRatio, hdrBrightnessRatio, hdrBrightnessRatio, 1.0f);
+    auto luminanceColorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX,
+        luminanceMatrix);
+    filter.SetColorFilter(luminanceColorFilter);
+    paint.SetFilter(filter);
+}
+
 void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
     bool useFixedSize)
 {
@@ -1480,14 +1511,17 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
         RS_LOGE("RSDisplayRenderNodeDrawable::PrepareOffscreenRender, current surface is nullptr");
         return;
     }
-    // create offscreen surface and canvas
-    if (useFixedOffscreenSurfaceSize_) {
-        if (!offscreenSurface_) {
-            RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
+    if (!(params->GetNeedOffscreen() && useFixedOffscreenSurfaceSize_ && offscreenSurface_ != nullptr)) {
+        RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
+        if (!params->GetNeedOffscreen() && params->GetHDRPresent()) {
+            offscreenWidth = curCanvas_->GetWidth();
+            offscreenHeight = curCanvas_->GetHeight();
+        }
+        if (params->GetHDRPresent()) {
+            PrepareHdrDraw(offscreenWidth, offscreenHeight);
+        } else {
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
         }
-    } else {
-        offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
     }
     
     if (offscreenSurface_ == nullptr) {
@@ -1506,7 +1540,8 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     canvasBackup_ = std::exchange(curCanvas_, offscreenCanvas);
 }
 
-void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingOptions& sampling)
+void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
+    float hdrBrightnessRatio)
 {
     if (canvasBackup_ == nullptr) {
         RS_LOGE("RSDisplayRenderNodeDrawable::FinishOffscreenRender, canvasBackup_ is nullptr");
@@ -1523,8 +1558,10 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     }
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
+    if (ROSEN_LNE(hdrBrightnessRatio, 1.0f)) {
+        FinishHdrDraw(paint, hdrBrightnessRatio);
+    }
     paint.SetAntiAlias(true);
-    paint.SetForceBrightnessDisable(true);
     canvasBackup_->AttachBrush(paint);
     canvasBackup_->DrawImage(*image, 0, 0, sampling);
     canvasBackup_->DetachBrush();

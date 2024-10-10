@@ -175,7 +175,6 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
         targetManager->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
         targetManager->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
-        targetManager->mergedDirtyRegions_ = mergedDirtyRegions_;
     }
     // To avoid the impact of the remaining surface dirty on global dirty when nodes are skipped the next frame.
     Clear();

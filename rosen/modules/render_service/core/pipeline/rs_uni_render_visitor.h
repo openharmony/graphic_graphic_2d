@@ -283,8 +283,10 @@ private:
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateHwcNodeEnable();
+    void UpdateHwcNodeEnableByNodeBelow();
     void PrevalidateHwcNode();
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -300,7 +302,6 @@ private:
     void CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyByShadowChanged(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyBySurfaceChanged() const;
-    void CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty);
@@ -505,7 +506,6 @@ private:
     bool isSecurityDisplay_ = false;
 
     bool hasFingerprint_ = false;
-    bool hasHdrpresent_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool mirrorAutoRotate_ = false;
 

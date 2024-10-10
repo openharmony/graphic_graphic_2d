@@ -153,8 +153,6 @@ enum class RSModifierType : int16_t {
     FOREGROUND_BLUR_COLOR_MODE,
     FOREGROUND_BLUR_RADIUS_X,
     FOREGROUND_BLUR_RADIUS_Y,
-    ATTRACTION_FRACTION,
-    ATTRACTION_DSTPOINT,
     CUSTOM,
     EXTENDED,
     TRANSITION,
@@ -170,7 +168,18 @@ enum class RSModifierType : int16_t {
     MAX_RS_MODIFIER_TYPE,
 };
 
+enum class RSPropertyModifierType : uint8_t {
+    GEOMETRY = 0,
+    BACKGROUND,
+    CONTENT,
+    FOREGROUND,
+    OVERLAY,
+    APPEARANCE,
+    CUSTOM,
+};
+
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
+
 enum class RSRenderPropertyType : int16_t {
     INVALID = 0,
     PROPERTY_FLOAT,
