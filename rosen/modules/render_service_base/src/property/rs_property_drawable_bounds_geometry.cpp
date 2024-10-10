@@ -583,7 +583,7 @@ void RSColorfulShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilte
     // draw node content as shadow
     // [PLANNING]: maybe we should also draw background color / image here, and we should cache the shadow image
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(node_.lock())) {
-        node->InternalDrawContent(canvas);
+        node->InternalDrawContent(canvas, false);
     }
 }
 
