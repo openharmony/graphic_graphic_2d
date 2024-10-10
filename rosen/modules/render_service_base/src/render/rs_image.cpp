@@ -41,6 +41,15 @@ constexpr float CENTER_ALIGNED_FACTOR = 2.f;
 RSImage::~RSImage()
 {}
 
+inline void ReMapPixelMap(std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef ROSEN_OHOS
+    if (pixelMap && pixelMap->IsUnMap()) {
+        pixelMap->ReMap();
+    }
+#endif
+}
+
 bool RSImage::IsEqual(const RSImage& other) const
 {
     bool radiusEq = true;
@@ -144,6 +153,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
         if (isFitMatrixValid) {
             canvas.ConcatMatrix(fitMatrix_.value());
         }
+        ReMapPixelMap(pixelMap_);
         if (image_) {
             if (!isBackground) {
                 ApplyCanvasClip(canvas);
@@ -418,6 +428,7 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 {
+    ReMapPixelMap(pixelMap_);
     int minX = 0;
     int minY = 0;
     int maxX = 0;
@@ -516,6 +527,7 @@ void RSImage::SetCompressData(const std::shared_ptr<Drawing::Data> compressData)
 {
     isDrawn_ = false;
     compressData_ = compressData;
+    canPurgeShareMemFlag_ = CanPurgeFlag::DISABLED;
 }
 #endif
 

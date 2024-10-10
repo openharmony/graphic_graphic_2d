@@ -19,6 +19,7 @@
 #include <memory>
 #include <map>
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -88,6 +89,8 @@ public:
 
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
+    static std::vector<RSRenderNodeDrawableAdapter::SharedPtr> GetDrawableVectorById(
+        const std::unordered_set<NodeId>& ids);
     static SharedPtr OnGenerateShadowDrawable(
         const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
@@ -164,6 +167,13 @@ public:
     }
 
     NodeId lastDrawnFilterNodeId_ = 0;
+
+    virtual void Purge()
+    {
+        if (purgeFunc_) {
+            purgeFunc_();
+        }
+    }
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -224,6 +234,7 @@ protected:
     size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> compositingFilterDrawable_ = nullptr;
+    std::function<void()> purgeFunc_;
 #ifdef ROSEN_OHOS
     static thread_local RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #else

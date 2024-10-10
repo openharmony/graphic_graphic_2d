@@ -68,6 +68,14 @@ public:
 
     void ConvertPixelMapToDrawingImage(bool parallelUpload = false);
 
+    void Purge();
+    enum class CanPurgeFlag : int8_t {
+        UNINITED = -1,
+        DISABLED = 0,
+        ENABLED = 1,
+    };
+    CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
+
 protected:
     void GenUniqueId(uint32_t id);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))

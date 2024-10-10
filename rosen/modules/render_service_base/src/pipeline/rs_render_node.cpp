@@ -325,6 +325,18 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     if (flag == isOnTheTree_) {
         return;
     }
+
+    if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+        auto context = GetContext().lock();
+        if (context) {
+            if (flag) {
+                context->GetMutableNodeMap().RemoveOffTreeNode(id_);
+            } else {
+                context->GetMutableNodeMap().AddOffTreeNode(id_);
+            }
+        }
+    }
+
     isNewOnTree_ = flag && !isOnTheTree_;
     isOnTheTree_ = flag;
     if (isOnTheTree_) {
@@ -1122,6 +1134,11 @@ RSRenderNode::~RSRenderNode()
             completedSurfaceThreadIndex_);
     }
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(GetId());
+    if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+        if (auto context = GetContext().lock()) {
+            context->GetMutableNodeMap().RemoveOffTreeNode(id_);
+        }
+    }
     ClearCacheSurface();
     auto context = GetContext().lock();
     if (!context) {
@@ -4110,6 +4127,14 @@ void RSRenderNode::OnSync()
         std::swap(stagingDrawCmdList_, renderDrawable_->drawCmdList_);
         stagingDrawCmdList_.clear();
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
+        if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+            std::shared_ptr<RSDrawable> drawable = drawableVec_[static_cast<int32_t>(RSDrawableSlot::CONTENT_STYLE)];
+            if (drawable) {
+                renderDrawable_->purgeFunc_ = [drawable]() {
+                    drawable->OnPurge();
+                };
+            }
+        }
         drawCmdListNeedSync_ = false;
     }
 

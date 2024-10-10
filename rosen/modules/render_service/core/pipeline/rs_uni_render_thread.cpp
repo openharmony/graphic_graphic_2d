@@ -795,8 +795,20 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
+        if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+            auto purgeDrawables =
+                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
+            for (auto& drawable : purgeDrawables) {
+                drawable->Purge();
+            }
+        }
+        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
+        } else {
+            if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+                grContext->PurgeUnlockedResources(false);
+            }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->exitedPidSet_.clear();
@@ -811,8 +823,15 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
-void RSUniRenderThread::ResetClearMemoryTask()
+void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids)
 {
+    for (auto [nodeId, purgeFlag] : ids) {
+        if (purgeFlag) {
+            nodesNeedToBeClearMemory_.insert(nodeId);
+        } else {
+            nodesNeedToBeClearMemory_.erase(nodeId);
+        }
+    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
         ClearMemoryCache(clearMoment_, clearMemDeeply_);
