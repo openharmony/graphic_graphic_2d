@@ -262,6 +262,12 @@ void RSUniRenderThread::RunImageReleaseTask()
     }
 }
 
+void RSUniRenderThread::ClearResource()
+{
+    RunImageReleaseTask();
+    DrawableV2::RSRenderNodeDrawableAdapter::ClearResource();
+}
+
 void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
     AppExecFwk::EventQueue::Priority priority)
 {

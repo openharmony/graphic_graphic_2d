@@ -30,10 +30,6 @@ namespace Rosen {
 class RSRcdSurfaceRenderNode;
 class RSDisplayRenderParams;
 class RSSurfaceRenderParams;
-namespace DrawableV2 {
-class RSDisplayRenderNodeDrawable;
-class RSSurfaceRenderNodeDrawable;
-}
 class RSProcessor : public std::enable_shared_from_this<RSProcessor> {
 public:
     static inline constexpr RSProcessorType Type = RSProcessorType::RS_PROCESSOR;
@@ -49,7 +45,7 @@ public:
     void operator=(const RSProcessor&) = delete;
     virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
-    virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
+    virtual void CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}
     virtual void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
         RSSurfaceRenderParams& params) {}
     virtual void ProcessSurface(RSSurfaceRenderNode& node) = 0;

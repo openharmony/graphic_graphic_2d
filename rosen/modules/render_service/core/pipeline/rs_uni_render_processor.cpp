@@ -42,7 +42,7 @@ RSUniRenderProcessor::RSUniRenderProcessor()
 {
 }
 
-RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
+RSUniRenderProcessor::~RSUniRenderProcessor()
 {
 }
 
@@ -83,7 +83,7 @@ void RSUniRenderProcessor::PostProcess()
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
-void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
+void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
     auto buffer = surfaceHandler->GetBuffer();
