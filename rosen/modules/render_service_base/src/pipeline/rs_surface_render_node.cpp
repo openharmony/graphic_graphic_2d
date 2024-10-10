@@ -2831,5 +2831,32 @@ const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtension
 {
     return secUIExtensionNodes_;
 }
+
+void RSSurfaceRenderNode::SetSdrNit(int32_t sdrNit)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetSdrNit(sdrNit);
+    }
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetDisplayNit(int32_t displayNit)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetDisplayNit(displayNit);
+    }
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetBrightnessRatio(brightnessRatio);
+    }
+    AddToPendingSyncList();
+}
 } // namespace Rosen
 } // namespace OHOS

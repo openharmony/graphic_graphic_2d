@@ -419,6 +419,24 @@ std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
     return drawingSurface;
 }
 
+std::shared_ptr<Surface> SkiaSurface::MakeSurface(const ImageInfo& imageInfo) const
+{
+    if (skSurface_ == nullptr) {
+        LOGD("skSurface is nullptr");
+        return nullptr;
+    }
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    auto surface = skSurface_->makeSurface(skImageInfo);
+    if (surface == nullptr) {
+        LOGD("SkiaSurface::MakeSurface failed");
+        return nullptr;
+    }
+
+    auto drawingSurface = std::make_shared<Surface>();
+    drawingSurface->GetImpl<SkiaSurface>()->SetSkSurface(surface);
+    return drawingSurface;
+}
+
 void SkiaSurface::SetSkSurface(const sk_sp<SkSurface>& skSurface)
 {
     skSurface_ = skSurface;

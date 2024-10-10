@@ -635,22 +635,19 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
         RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
     }
 
-    // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
-    if (hdrMetadataType == CM_VIDEO_HDR_VIVID) {
-        parameter.tmoNits = params.screenBrightnessNits;
-        parameter.currentDisplayNits = params.screenBrightnessNits;
-    } else {
-        constexpr float SDR_SCREEN_LIGHT = 500.0f;
-        parameter.tmoNits = SDR_SCREEN_LIGHT;
-        parameter.currentDisplayNits = SDR_SCREEN_LIGHT;
-    }
+    parameter.width = params.buffer->GetWidth();
+    parameter.height = params.buffer->GetHeight();
+    parameter.tmoNits = params.tmoNits;
+    parameter.currentDisplayNits = params.displayNits;
+    parameter.sdrNits = params.sdrNits;
 
     RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inputColorSpace.colorSpaceInfo.primaries = %{public}u, \
             inputColorSpace.metadataType = %{public}u, outputColorSpace.colorSpaceInfo.primaries = %{public}u, \
-            outputColorSpace.metadataType = %{public}u, tmoNits = %{public}f, currentDisplayNits = %{public}f",
+            outputColorSpace.metadataType = %{public}u, tmoNits = %{public}f, currentDisplayNits = %{public}f, \
+            sdrNits = %{public}f",
             parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
             parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
-            parameter.tmoNits, parameter.currentDisplayNits);
+            parameter.tmoNits, parameter.currentDisplayNits, paramter.sdrNits);
 
     return true;
 }
@@ -690,6 +687,10 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         RS_OPTIONAL_TRACE_END();
         return;
     }
+    if (params.isHdrRedraw || RSUniRenderThread::GetCaptureParam().IsSnapshot_ ||
+        RSUniRenderThread::GetCaptureParam().isMirror_) {
+        parameter.disableHeadRoom = true;
+    }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
     auto convRet = colorSpaceConverterDisplay_->Process(inputShader, outputShader, parameter);
@@ -702,10 +703,6 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         RS_LOGE("RSBaseRenderEngine::ColorSpaceConvertor outputShader is nullptr.");
         RS_OPTIONAL_TRACE_END();
         return;
-    }
-    if (parameter.inputColorSpace.colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
-        parameter.inputColorSpace.colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG) {
-        params.paint.SetHdr(true);
     }
     params.paint.SetShaderEffect(outputShader);
     RS_OPTIONAL_TRACE_END();
@@ -783,6 +780,18 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
     GSError ret = MetadataHelper::GetColorSpaceInfo(params.buffer, parameter.inputColorSpace.colorSpaceInfo);
+
+    // For sdr brightness ratio
+    if (ROSEN_LNE(params.brightnessRatio, DEFAULT_BRIGHTNESS_RATIO) && !params.isHdrRedraw) {
+        Drawing::Filter filter = params.paint.GetFilter();
+        Drawing::ColorMatrix luminanceMatrix;
+        luminanceMatrix.SetScale(params.brightnessRatio, params.brightnessRatio, params.brightnessRatio, 1.0f);
+        auto luminanceColorFilter =
+            std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX, luminanceMatrix);
+        filter.SetColorFilter(luminanceColorFilter);
+        params.paint.SetFilter(filter);
+    }
+
     if (ret != GSERROR_OK) {
         RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.", ret);
         DrawImageRect(canvas, image, params, samplingOptions);
@@ -836,6 +845,25 @@ void RSBaseRenderEngine::DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_
     canvas.DrawImageRect(*image, params.srcRect, params.dstRect, samplingOptions,
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
+}
+
+bool RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer)
+{
+    if (surfaceBuffer == nullptr) {
+        return false;
+    }
+    if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
+        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        return false;
+    }
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_ColorSpaceInfo colorSpaceInfo;
+    if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) == GSERROR_OK) {
+        if (colorSpaceInfo.transfunc == TRANSFUNC_PQ || colorSpaceInfo.transfunc == TRANSFUNC_HLG) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)

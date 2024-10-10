@@ -72,7 +72,17 @@ float RSLuminanceControl::GetHdrTmoNits(ScreenId screenId, int mode)
     return HDR_DEFAULT_TMO_NIT;
 }
 
+float RSLuminanceControl::GetSdrDisplayNits(ScreenId screenId)
+{
+    return HDR_DEFAULT_TMO_NIT;
+}
+
 float RSLuminanceControl::GetHdrDisplayNits(ScreenId screenId)
+{
+    return HDR_DEFAULT_TMO_NIT;
+}
+
+float RSLuminanceControl::GetDisplayNits(ScreenId screenId)
 {
     return HDR_DEFAULT_TMO_NIT;
 }

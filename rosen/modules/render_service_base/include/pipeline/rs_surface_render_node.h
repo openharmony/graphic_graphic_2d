@@ -1152,26 +1152,6 @@ public:
         return doDirectComposition_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
-    {
-        displayNit_ = displayNit;
-    }
-
-    int32_t GetDisplayNit() const
-    {
-        return displayNit_;
-    }
-
-    void SetBrightnessRatio(float brightnessRatio)
-    {
-        brightnessRatio_ = brightnessRatio;
-    }
-
-    float GetBrightnessRatio() const
-    {
-        return brightnessRatio_;
-    }
-
     void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
     {
         isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
@@ -1185,6 +1165,9 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
+    void SetSdrNit(int32_t sdrNit);
+    void SetDisplayNit(int32_t displayNit);
+    void SetBrightnessRatio(float brightnessRatio);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
     {

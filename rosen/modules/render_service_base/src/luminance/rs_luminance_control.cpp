@@ -55,7 +55,9 @@ void RSLuminanceControl::CloseLibrary()
     setNowHdrLuminance_ = nullptr;
     isNeedUpdateLuminance_ = nullptr;
     getHdrTmoNits_ = nullptr;
+    getSdrDisplayNits_ = nullptr;
     getHdrDisplayNits_ = nullptr;
+    getDisplayNits_ = nullptr;
     getNonlinearRatio_ = nullptr;
 }
 
@@ -157,9 +159,19 @@ bool RSLuminanceControl::LoadTmoControl()
         RS_LOGE("LumCtr link GetHdrTmoNits error!");
         return false;
     }
+    getSdrDisplayNits_ = reinterpret_cast<GetSdrDisplayNitsFunc>(dlsym(extLibHandle_, "GetSdrDisplayNits"));
+    if (getSdrDisplayNits_ == nullptr) {
+        RS_LOGE("LumCtr link GetSdrDisplayNits error!");
+        return false;
+    }
     getHdrDisplayNits_ = reinterpret_cast<GetHdrDisplayNitsFunc>(dlsym(extLibHandle_, "GetHdrDisplayNits"));
     if (getHdrDisplayNits_ == nullptr) {
         RS_LOGE("LumCtr link GetHdrDisplayNits error!");
+        return false;
+    }
+    getDisplayNits_ = reinterpret_cast<GetDisplayNitsFunc>(dlsym(extLibHandle_, "GetDisplayNits"));
+    if (getDisplayNits_ == nullptr) {
+        RS_LOGE("LumCtr link GetDisplayNits error!");
         return false;
     }
     getNonlinearRatio_ = reinterpret_cast<GetNonlinearRatioFunc>(dlsym(extLibHandle_, "GetNonlinearRatio"));
@@ -221,9 +233,19 @@ float RSLuminanceControl::GetHdrTmoNits(ScreenId screenId, int32_t mode)
     return (initStatus_ && getHdrTmoNits_ != nullptr) ? getHdrTmoNits_(screenId, mode) : HDR_DEFAULT_TMO_NIT;
 }
 
+float RSLuminanceControl::GetSdrDisplayNits(ScreenId screenId)
+{
+    return (initStatus_ && getSdrDisplayNits_ != nullptr) ? getSdrDisplayNits_(screenId) : HDR_DEFAULT_TMO_NIT;
+}
+
 float RSLuminanceControl::GetHdrDisplayNits(ScreenId screenId)
 {
     return (initStatus_ && getHdrDisplayNits_ != nullptr) ? getHdrDisplayNits_(screenId) : HDR_DEFAULT_TMO_NIT;
+}
+
+float RSLuminanceControl::GetDisplayNits(ScreenId screenId)
+{
+    return (initStatus_ && getDisplayNits_ != nullptr) ? getDisplayNits_(screenId) : HDR_DEFAULT_TMO_NIT;
 }
 
 double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int32_t mode)
