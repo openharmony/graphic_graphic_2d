@@ -3129,7 +3129,7 @@ void RSMainThread::SendCommands()
         fr.RenderEnd();
     }
     if (!context_->needSyncFinishAnimationList_.empty()) {
-        for (const auto [nodeId, animationId] : context_->needSyncFinishAnimationList_) {
+        for (const auto& [nodeId, animationId] : context_->needSyncFinishAnimationList_) {
             RS_LOGI("RSMainThread::SendCommands sync finish animation node is %{public}" PRIu64 ","
                 " animation is %{public}" PRIu64, nodeId, animationId);
             std::unique_ptr<RSCommand> command =
