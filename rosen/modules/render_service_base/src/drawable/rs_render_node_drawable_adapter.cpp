@@ -306,6 +306,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     auto backgroundIndex = drawCmdIndex_.backgroundEndIndex_;
     auto bounds = params.GetBounds();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    curDrawingCacheRoot_->allCachedNodeMatrixMap_[GetId()] = curCanvas->GetTotalMatrix();
     for (auto index = 0; index < backgroundIndex; ++index) {
         if (index == drawCmdIndex_.shadowIndex_) {
             if (!params.GetShadowRect().IsEmpty()) {
@@ -318,13 +319,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());
                 curCanvas->ClipRect(shadowRect);
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-                if (curDrawingCacheRoot_ != nullptr) {
-                    if (curDrawingCacheRoot_->filterRectMap_.count(GetId()) > 0) {
-                        curDrawingCacheRoot_->filterRectMap_[GetId()].emplace_back(curCanvas->GetDeviceClipBounds());
-                    } else {
-                        curDrawingCacheRoot_->filterRectMap_[GetId()] = {curCanvas->GetDeviceClipBounds()};
-                    }
-                }
+                UpdateFilterInfoForNodeGroup(curCanvas);
             } else {
                 drawCmdList_[index](&canvas, &bounds);
             }
@@ -336,15 +331,24 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             Drawing::AutoCanvasRestore arc(*curCanvas, true);
             curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-            if (curDrawingCacheRoot_ != nullptr) {
-                if (curDrawingCacheRoot_->filterRectMap_.count(GetId()) > 0) {
-                    curDrawingCacheRoot_->filterRectMap_[GetId()].emplace_back(curCanvas->GetDeviceClipBounds());
-                } else {
-                    curDrawingCacheRoot_->filterRectMap_[GetId()] = {curCanvas->GetDeviceClipBounds()};
-                }
-            }
+            UpdateFilterInfoForNodeGroup(curCanvas);
         } else {
             drawCmdList_[index](&canvas, &bounds);
+        }
+    }
+}
+
+void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas)
+{
+    if (curDrawingCacheRoot_ != nullptr) {
+        auto iter = std::find_if(curDrawingCacheRoot_->filterInfoVec_.begin(),
+            curDrawingCacheRoot_->filterInfoVec_.end(),
+            [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });
+        if (iter != curDrawingCacheRoot_->filterInfoVec_.end()) {
+            iter->rectVec_.emplace_back(curCanvas->GetDeviceClipBounds());
+        } else {
+            curDrawingCacheRoot_->filterInfoVec_.emplace_back(
+                FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { curCanvas->GetDeviceClipBounds() }));
         }
     }
 }
