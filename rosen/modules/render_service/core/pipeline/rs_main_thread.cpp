@@ -621,7 +621,14 @@ void RSMainThread::Init()
 #endif
 
     auto delegate = RSFunctionalDelegate::Create();
-    delegate->SetRepaintCallback([]() { RSMainThread::Instance()->RequestNextVSync(); });
+    delegate->SetRepaintCallback([this]() {
+        bool isOverDrawEnabled = RSOverdrawController::GetInstance().IsEnabled();
+        PostTask([this, isOverDrawEnabled]() {
+            SetDirtyFlag();
+            isOverDrawEnabledOfCurFrame_ = isOverDrawEnabled;
+            RequestNextVSync("OverDrawUpdate");
+        });
+    });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
     frameRateMgr_ = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
@@ -1933,6 +1940,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         }
         renderThreadParams_->selfDrawingNodes_ = std::move(selfDrawingNodes_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
+        renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
@@ -1957,6 +1965,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         lastWatermarkFlag_ = watermarkFlag_;
         isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
         isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();
+        isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
