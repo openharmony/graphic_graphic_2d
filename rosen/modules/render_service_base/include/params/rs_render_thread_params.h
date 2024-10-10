@@ -381,6 +381,11 @@ public:
         return isOverDrawEnabled_;
     }
 
+    bool IsAceDebugBoundaryEnabled() const
+    {
+        return isAceDebugBoundaryEnabled_;
+    }
+
 private:
     mutable std::mutex mutex_;
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
@@ -429,6 +434,7 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
+    bool isAceDebugBoundaryEnabled_ = false;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
