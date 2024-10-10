@@ -620,6 +620,11 @@ public:
     void SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread);
     bool GetLastIsNeedAssignToSubThread() const;
 
+    inline const std::shared_ptr<RSRenderContent> GetRenderContent() const
+    {
+        return renderContent_;
+    }
+
     void SetIsTextureExportNode(bool isTextureExportNode)
     {
         isTextureExportNode_ = isTextureExportNode;
