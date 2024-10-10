@@ -1808,7 +1808,8 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         // 1. calculate abs dirtyrect and update partialRenderParams
         // currently only sync visible region info
         surfaceNode->UpdatePartialRenderParams();
-        if (dirtyManager && dirtyManager->IsCurrentFrameDirty()) {
+        if (dirtyManager && dirtyManager->IsCurrentFrameDirty() &&
+            surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion())) {
             hasMainAndLeashSurfaceDirty = true;
         }
         if (surfaceNode->IsMainWindowType() && IfSkipInCalcGlobalDirty(*surfaceNode)) {
