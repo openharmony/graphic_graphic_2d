@@ -582,8 +582,8 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         paintFilterCanvas->ClipRect(*rect);
         Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
         canvas->GetTotalMatrix().MapRect(absRect, *rect);
-        Drawing::RectI bounds(absRect.GetLeft(), absRect.GetTop(), absRect.GetRight() - absRect.GetLeft(),
-            absRect.GetBottom() - absRect.GetTop());
+        Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetRight()),
+            std::ceil(absRect.GetBottom()));
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
             paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_, bounds);
