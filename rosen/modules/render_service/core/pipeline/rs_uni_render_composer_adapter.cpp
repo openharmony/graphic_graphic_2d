@@ -100,9 +100,8 @@ void RSUniRenderComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& l
 
 void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const
 {
-    auto& preBuffer = surfaceHandler.GetPreBuffer();
-    info.preBuffer = preBuffer.buffer;
-    preBuffer.Reset();
+    info.preBuffer = surfaceHandler.GetPreBuffer();
+    surfaceHandler.ResetPreBuffer();
 }
 
 // private func, for RSDisplayRenderNode
