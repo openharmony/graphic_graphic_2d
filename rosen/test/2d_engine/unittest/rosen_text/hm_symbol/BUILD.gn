@@ -66,7 +66,10 @@ ohos_unittest("hm_symbol_engine_test") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "skia:skia_canvaskit",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

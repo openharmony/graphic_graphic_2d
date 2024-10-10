@@ -39,6 +39,7 @@ ohos_fuzztest("RuntimeEffectFuzzTest") {
   ]
 
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  external_deps = [ "skia:skia_canvaskit" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
