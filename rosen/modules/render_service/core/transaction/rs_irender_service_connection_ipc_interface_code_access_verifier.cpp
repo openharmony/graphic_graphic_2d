@@ -353,6 +353,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO");
+            break;
+        }
         default: {
             break;
         }
