@@ -46,11 +46,15 @@ public:
 
     inline static std::unique_ptr<char[]> ttfData_;
     inline static size_t ttfLen_;
+    std::string familyName_ = { 0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73 };
 };
 
 void TypefaceTest::SetUpTestCase()
 {
-    std::ifstream ttfFile("/system/fonts/Roboto-Regular.ttf", std::ios::in | std::ios::binary);
+    // ttf file path
+    std::string ttfName = { 0x2F, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6D, 0x2F, 0x66, 0x6F, 0x6E, 0x74, 0x73, 0x2F, 0x48,
+        0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x5F, 0x53, 0x61, 0x6E, 0x73, 0x2E, 0x74, 0x74, 0x66 };
+    std::ifstream ttfFile(ttfName, std::ios::in | std::ios::binary);
     ASSERT_TRUE(ttfFile.is_open());
     ttfFile.seekg(0, std::ios::end);
     ttfLen_ = ttfFile.tellg();
@@ -81,7 +85,7 @@ HWTEST_F(TypefaceTest, MakeFromStream001, TestSize.Level1)
     ASSERT_NE(stream, nullptr);
     auto typeface = Typeface::MakeFromStream(std::move(stream));
     ASSERT_NE(typeface, nullptr);
-    EXPECT_EQ(typeface->GetFamilyName(), "Roboto");
+    EXPECT_EQ(typeface->GetFamilyName(), familyName_);
 }
 
 /**
@@ -133,8 +137,8 @@ HWTEST_F(TypefaceTest, GetTableSize001, TestSize.Level1)
 
     auto typeface = Typeface::MakeFromStream(std::move(stream));
     ASSERT_NE(typeface, nullptr);
-    // 'cmap' table size is 4678
-    EXPECT_EQ(typeface->GetTableSize(HB_TAG('c', 'm', 'a', 'p')), 4678);
+    // 'cmap' table size is 2516
+    EXPECT_EQ(typeface->GetTableSize(HB_TAG('c', 'm', 'a', 'p')), 2516);
 }
 
 /**
@@ -172,7 +176,7 @@ HWTEST_F(TypefaceTest, Deserialize001, TestSize.Level1)
     ASSERT_NE(serialized, nullptr);
     auto deserialized = Typeface::Deserialize(serialized->GetData(), serialized->GetSize());
     ASSERT_NE(deserialized, nullptr);
-    EXPECT_EQ(deserialized->GetFamilyName(), "Roboto");
+    EXPECT_EQ(deserialized->GetFamilyName(), familyName_);
 }
 
 /**
