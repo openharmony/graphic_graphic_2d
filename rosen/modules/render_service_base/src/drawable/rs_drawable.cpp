@@ -120,7 +120,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COLOR_FILTER,                  // HUE_ROTATE
     RSDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE
-    RSDrawableSlot::SHADOW,                       // SHADOW_IS_FILLED
+    RSDrawableSlot::SHADOW,                        // SHADOW_IS_FILLED
     RSDrawableSlot::OUTLINE,                       // OUTLINE_COLOR
     RSDrawableSlot::OUTLINE,                       // OUTLINE_WIDTH
     RSDrawableSlot::OUTLINE,                       // OUTLINE_STYLE
