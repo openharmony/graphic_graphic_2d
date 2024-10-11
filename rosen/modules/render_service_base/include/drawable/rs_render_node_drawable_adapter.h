@@ -144,11 +144,25 @@ public:
             --filterNodeSize_;
         }
     }
+    struct FilterNodeInfo {
+        FilterNodeInfo(NodeId nodeId, Drawing::Matrix matrix, std::vector<Drawing::RectI> rectVec)
+            : nodeId_(nodeId), matrix_(matrix), rectVec_(rectVec) {};
+        NodeId nodeId_ = 0;
+        // Here, matrix_ and rectVec_ represent the transformation and FilterRect of the node relative to the off-screen
+        Drawing::Matrix matrix_;
+        std::vector<Drawing::RectI> rectVec_;
+    };
 
-    const std::unordered_map<NodeId, std::vector<Drawing::RectI>>& GetFilterRectMap() const
+    const std::vector<FilterNodeInfo>& GetfilterInfoVec() const
     {
-        return filterRectMap_;
+        return filterInfoVec_;
     }
+    const std::unordered_map<NodeId, Drawing::Matrix>& GetAllCachedNodeMatrixMap() const
+    {
+        return allCachedNodeMatrixMap_;
+    }
+
+    NodeId lastDrawnFilterNodeId_ = 0;
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -176,6 +190,7 @@ protected:
     void DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
@@ -203,7 +218,8 @@ protected:
     std::unique_ptr<RSRenderParams> uifirstRenderParams_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
-    std::unordered_map<NodeId, std::vector<Drawing::RectI>> filterRectMap_;
+    std::vector<FilterNodeInfo> filterInfoVec_;
+    std::unordered_map<NodeId, Drawing::Matrix> allCachedNodeMatrixMap_;
     size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> compositingFilterDrawable_ = nullptr;
