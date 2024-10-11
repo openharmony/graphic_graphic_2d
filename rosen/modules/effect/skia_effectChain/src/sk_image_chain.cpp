@@ -50,6 +50,7 @@ SKImageChain::~SKImageChain()
     cpuSurface_ = nullptr;
     image_ = nullptr;
 }
+
 void SKImageChain::InitWithoutCanvas()
 {
     if (srcPixelMap_ == nullptr) {

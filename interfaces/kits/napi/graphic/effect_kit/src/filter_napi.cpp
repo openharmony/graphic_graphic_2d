@@ -427,7 +427,7 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
     if (ctx->callback == nullptr) {
         napi_create_promise(env, &(ctx->deferred), &result);
     }
-    
+
     {
         std::unique_lock<std::shared_mutex> lock(filterNapiManagerMutex);
         filterNapiManager[ctx->filterNapi].store(false);

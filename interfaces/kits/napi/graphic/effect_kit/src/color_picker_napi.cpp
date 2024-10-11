@@ -63,6 +63,10 @@ static napi_value BuildJsColor(napi_env env, ColorManager::Color color);
 
 static void CommonCallbackRoutine(napi_env env, ColorPickerAsyncContext* &asyncContext, const napi_value &valueParam)
 {
+    if (asyncContext == nullptr) {
+        EFFECT_LOG_E("CommonCallback asyncContext is nullptr");
+        return;
+    }
     napi_value result[NUM_2] = {0};
     napi_value retVal;
     napi_value callback = nullptr;
@@ -70,10 +74,6 @@ static void CommonCallbackRoutine(napi_env env, ColorPickerAsyncContext* &asyncC
     napi_get_undefined(env, &result[NUM_0]);
     napi_get_undefined(env, &result[NUM_1]);
 
-    if (asyncContext == nullptr) {
-        EFFECT_LOG_E("CommonCallback asyncContext is nullptr");
-        return;
-    }
     if (asyncContext->status == SUCCESS) {
         result[NUM_1] = valueParam;
     } else if (asyncContext->errorMsg != nullptr) {
@@ -345,11 +345,6 @@ std::unique_ptr<ColorPickerAsyncContext> ColorPickerNapi::InitializeAsyncContext
     napi_env env, napi_status& status, napi_value* argValue, size_t argCount)
 {
     auto asyncContext = std::make_unique<ColorPickerAsyncContext>();
-    if (asyncContext == nullptr) {
-        EFFECT_LOG_E("ColorPickerNapi::CreateColorPicker asyncContext is nullptr");
-        return nullptr;
-    }
-
     if (argCount >= NUM_1) {
         ImageType imgType = ParserArgumentType(env, argValue[NUM_1 - 1]);
         if (imgType == ImageType::TYPE_PIXEL_MAP) {

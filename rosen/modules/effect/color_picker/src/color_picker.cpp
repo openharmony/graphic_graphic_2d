@@ -77,13 +77,6 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
         return nullptr;
     }
     std::shared_ptr<ColorPicker> colorPicker = std::make_shared<ColorPicker>(scaledPixelMap);
-
-    if (colorPicker == nullptr) {
-        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with pixmap.");
-        errorCode = ERR_EFFECT_INVALID_VALUE;
-        return nullptr;
-    }
-
     errorCode = SUCCESS;
     return colorPicker;
 }
@@ -99,13 +92,6 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
 
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
     std::shared_ptr<ColorPicker> colorPicker = std::make_shared<ColorPicker>(scaledPixelMap, coordinates);
-
-    if (colorPicker == nullptr) {
-        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with pixmap.");
-        errorCode = ERR_EFFECT_INVALID_VALUE;
-        return nullptr;
-    }
-
     errorCode = SUCCESS;
     return colorPicker;
 }
