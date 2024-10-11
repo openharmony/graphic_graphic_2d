@@ -269,7 +269,7 @@ public:
     }
 
     static int GetRSNodeLimit();
-    static bool GetMemoryOverTreminateEnabled();
+    static std::string GetVersionType();
 
 private:
     RSSystemProperties() = default;

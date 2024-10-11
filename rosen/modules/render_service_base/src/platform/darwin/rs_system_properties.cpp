@@ -488,9 +488,9 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+std::string RSSystemProperties::GetVersionType()
 {
-    return false;
+    return "";
 }
 
 bool RSSystemProperties::GetLayerCursorEnable()

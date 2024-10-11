@@ -647,6 +647,9 @@ void RSMainThread::Init()
     SubscribeAppState();
     PrintCurrentStatus();
     RSLuminanceControl::Get().Init();
+    if (deviceType_ == DeviceType::PHONE) {
+        MemoryManager::InitMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+    }
 }
 
 void RSMainThread::RsEventParamDump(std::string& dumpString)
