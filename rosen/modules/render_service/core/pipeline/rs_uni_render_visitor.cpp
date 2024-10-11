@@ -257,8 +257,13 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node)
 {
+    if (!node.IsOnTheTree()) {
+        RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) is not on the tree",
+            node.GetName().c_str());
+        return;
+    }
     if (!node.IsHardwareForcedDisabled()) {
-        RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) is hwc node",
+        RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) is hardware-enabled",
             node.GetName().c_str());
         return;
     }
@@ -271,18 +276,20 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
     }
 }
 
-void RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc()
+void RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node)
 {
     const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
-    if (selfDrawingNodes.empty()) {
-        return;
-    }
     for (const auto& selfDrawingNode : selfDrawingNodes) {
         if (newColorSpace_ == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
             RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc: newColorSpace is already DISPLAY_P3.");
             return;
         }
-        if (selfDrawingNode != nullptr) {
+        if (!selfDrawingNode || !selfDrawingNode->GetAncestorDisplayNode().lock()) {
+            RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc selfDrawingNode or ancestorNode is nullptr");
+            continue;
+        }
+        auto ancestor = selfDrawingNode->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (ancestor != nullptr && node.GetId() == ancestor->GetId()) {
             CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode);
         }
     }
@@ -670,7 +677,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     screenRenderParams.hasCaptureWindow = std::move(hasCaptureWindow_);
     curDisplayNode_->UpdateScreenRenderParams(screenRenderParams);
     curDisplayNode_->UpdateOffscreenRenderParams(curDisplayNode_->IsRotationChanged());
-    UpdateColorSpaceAfterHwcCalc();
+    UpdateColorSpaceAfterHwcCalc(node);
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
     if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {

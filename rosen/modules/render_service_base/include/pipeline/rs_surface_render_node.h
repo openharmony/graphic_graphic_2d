@@ -1294,7 +1294,7 @@ private:
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     // This variable can be set in two cases:
     // 1. The upper-layer IPC interface directly sets window colorspace.
-    // 2. If it is a self-drawing node, the colorspace will be refreshed after hwc calculation.
+    // 2. If it is a self-drawing node, the colorspace will be refreshed after hardware-enable calculation.
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;

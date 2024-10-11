@@ -1304,7 +1304,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckColorSpaceWithSelfDrawingNode002, TestSize
 {
     auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(selfDrawingNode, nullptr);
-    selfDrawingNode->SetHardwareForcedDisabledState(false);
+    selfDrawingNode->SetProtectedLayer(true);
     selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -1379,11 +1379,16 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceAfterHwcCalc_001, TestSize.Leve
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(selfDrawingNode, nullptr);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    selfDrawingNode->SetAncestorDisplayNode(displayNode);
     selfDrawingNode->SetHardwareForcedDisabledState(true);
     selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     RSMainThread::Instance()->selfDrawingNodes_.emplace_back(selfDrawingNode);
 
-    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc();
+    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
     ASSERT_EQ(rsUniRenderVisitor->newColorSpace_, selfDrawingNode->GetColorSpace());
 }
 
