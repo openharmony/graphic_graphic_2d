@@ -299,6 +299,7 @@ public:
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
         const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
+    void UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
 

@@ -683,6 +683,26 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (IsPureContainer()) {
         out += ", IsPureContainer: true";
     }
+    if (!oldDirty_.IsEmpty()) {
+        out += ", oldDirty: " + oldDirty_.ToString();
+    }
+    if (!localShadowRect_.IsEmpty()) {
+        out += ", localShadowRect: " + localShadowRect_.ToString();
+    }
+    if (!localOutlineRect_.IsEmpty()) {
+        out += ", localOutlineRect: " + localOutlineRect_.ToString();
+    }
+    if (!localPixelStretchRect_.IsEmpty()) {
+        out += ", localPixelStretchRect: " + localPixelStretchRect_.ToString();
+    }
+    if (!localForegroundEffectRect_.IsEmpty()) {
+        out += ", localForegroundEffectRect: " + localForegroundEffectRect_.ToString();
+    }
+    if (auto drawRegion = GetRenderProperties().GetDrawRegion()) {
+        if (!drawRegion->IsEmpty()) {
+            out += ", drawRegion: " + drawRegion->ToString();
+        }
+    }
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
@@ -836,7 +856,8 @@ void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManag
     if (geoUpdateDelay_) {
         if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             auto absChildrenRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
-            dirtyManager.MergeDirtyRect(absChildrenRect.IntersectRect(oldClipRect_));
+            subTreeDirtyRegion_ = absChildrenRect.IntersectRect(oldClipRect_);
+            dirtyManager.MergeDirtyRect(subTreeDirtyRegion_);
         }
     }
     lastFrameSubTreeSkipped_ = false;
@@ -855,8 +876,9 @@ void RSRenderNode::SubTreeSkipPrepare(
         auto oldDirtyRectClip = oldDirtyRect.IntersectRect(oldClipRect_);
         auto dirtyRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
         auto dirtyRectClip = dirtyRect.IntersectRect(clipRect);
-        dirtyRectClip = dirtyRect.JoinRect(oldDirtyRectClip);
+        dirtyRectClip = dirtyRectClip.JoinRect(oldDirtyRectClip);
         dirtyManager.MergeDirtyRect(dirtyRectClip);
+        UpdateSubTreeSkipDirtyForDFX(dirtyManager, dirtyRectClip);
     }
     SetGeoUpdateDelay(accumGeoDirty);
     UpdateSubTreeInfo(clipRect);
@@ -1437,6 +1459,15 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
     dirtyRegionInfo.oldDirty = oldDirty_;
     dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
     stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
+}
+
+void RSRenderNode::UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect)
+{
+    if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
+        return;
+    }
+    dirtyManager.UpdateDirtyRegionInfoForDfx(
+        GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_OUT_OF_PARENT_RECT, rect);
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,

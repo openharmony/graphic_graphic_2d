@@ -517,6 +517,7 @@ private:
     bool doAnimate_ = false;
     bool isSurfaceRotationChanged_ = false;
     bool isPartialRenderEnabled_ = false;
+    bool isCompleteRenderEnabled_ = false;
     bool isOpDropped_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;

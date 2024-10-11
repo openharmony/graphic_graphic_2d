@@ -49,6 +49,7 @@ static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
     { DirtyRegionType::RENDER_PROPERTIES_RECT, "RENDER_PROPERTIES_RECT" },
     { DirtyRegionType::CANVAS_NODE_SKIP_RECT, "CANVAS_NODE_SKIP_RECT" },
     { DirtyRegionType::OUTLINE_RECT, "OUTLINE_RECT" },
+    { DirtyRegionType::SUBTREE_SKIP_OUT_OF_PARENT_RECT, "SUBTREE_SKIP_OUT_OF_PARENT_RECT" },
 };
 
 void RSDirtyRectsDfx::OnDraw(std::shared_ptr<RSPaintFilterCanvas> canvas)
@@ -312,6 +313,7 @@ bool RSDirtyRectsDfx::DrawDetailedTypesOfDirtyRegionForDFX(
         { DirtyRegionDebugType::RENDER_PROPERTIES_RECT, DirtyRegionType::RENDER_PROPERTIES_RECT },
         { DirtyRegionDebugType::CANVAS_NODE_SKIP_RECT, DirtyRegionType::CANVAS_NODE_SKIP_RECT },
         { DirtyRegionDebugType::OUTLINE_RECT, DirtyRegionType::OUTLINE_RECT },
+        { DirtyRegionDebugType::SUBTREE_SKIP_OUT_OF_PARENT_RECT, DirtyRegionType::SUBTREE_SKIP_OUT_OF_PARENT_RECT },
     };
     auto matchType = DIRTY_REGION_DEBUG_TYPE_MAP.find(dirtyRegionDebugType);
     if (matchType != DIRTY_REGION_DEBUG_TYPE_MAP.end()) {
@@ -382,7 +384,7 @@ void RSDirtyRectsDfx::DrawTargetSurfaceDirtyRegionForDFX() const
             for (auto& rect : visibleDirtyRects) {
                 rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
             }
-            const auto& visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
+            const auto visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
             auto displayDirtyRegion = dirtyManager->GetDirtyRegion();
             for (auto& rect : visibleRects) {
                 auto visibleRect = RectI(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
@@ -407,7 +409,7 @@ void RSDirtyRectsDfx::DrawTargetSurfaceVisibleRegionForDFX() const
             continue;
         }
         if (CheckIfSurfaceTargetedForDFX(surfaceParams->GetName())) {
-            const auto& visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
+            const auto visibleRects = surfaceParams->GetVisibleRegion().GetRegionRects();
             std::vector<RectI> rects;
             for (auto& rect : visibleRects) {
                 rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);

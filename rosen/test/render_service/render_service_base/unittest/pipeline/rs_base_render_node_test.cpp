@@ -23,6 +23,10 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+    const RectI DEFAULT_RECT = {0, 0, 100, 100};
+} // namespace
+
 class RSBaseRenderNodeTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -985,18 +989,38 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveSubSurfaceNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpTree
+ * @tc.name: DumpTree001
  * @tc.desc: test results of DumpTree
  * @tc.type:FUNC
  * @tc.require: issueI9KBCZ
  */
-HWTEST_F(RSBaseRenderNodeTest, DumpTree, TestSize.Level1)
+HWTEST_F(RSBaseRenderNodeTest, DumpTree001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     int32_t depth = 0;
     std::string out = "string";
     node->DumpTree(depth, out);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DumpTree002
+ * @tc.desc: test results of DumpTree
+ * @tc.type:FUNC
+ * @tc.require: issueIAHLNR
+ */
+HWTEST_F(RSBaseRenderNodeTest, DumpTree002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    int32_t depth = 0;
+    std::string out = "";
+    node->oldDirty_ = DEFAULT_RECT;
+    node->localShadowRect_ = DEFAULT_RECT;
+    node->localOutlineRect_ = DEFAULT_RECT;
+    node->localPixelStretchRect_ = DEFAULT_RECT;
+    node->localForegroundEffectRect_ = DEFAULT_RECT;
+    node->DumpTree(depth, out);
+    ASSERT_TRUE(out.length() > 0);
 }
 
 /**
