@@ -589,7 +589,6 @@ bool HdiOutput::GetVsyncSamplerEnabled()
     return enableVsyncSample_.load();
 }
 
-
 int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
 {
     if (currFrameBuffer_ == nullptr) {
