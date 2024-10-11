@@ -21,7 +21,6 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "utils/text_log.h"
-
 #endif
 
 namespace OHOS {

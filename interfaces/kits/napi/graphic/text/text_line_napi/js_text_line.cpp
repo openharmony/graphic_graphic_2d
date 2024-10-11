@@ -226,8 +226,8 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
     }
     double x = 0.0;
     double y = 0.0;
-    if(!(argv[ARGC_ONE] != nullptr && ConvertFromJsValue(env, argv[ARGC_ONE], x) &&
-        argv[ARGC_TWO] !=nullptr && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
+    if (!(argv[ARGC_ONE] != nullptr && ConvertFromJsValue(env, argv[ARGC_ONE], x) &&
+        argv[ARGC_TWO] != nullptr && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
         return NapiGetUndefined(env);
     }
     textLine_->Paint(jsCanvas->GetCanvas(), x, y);

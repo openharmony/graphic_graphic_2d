@@ -71,7 +71,7 @@ const std::vector<struct JsEnumInt> TEXT_DIRECTION = {
     { "LTR", static_cast<size_t>(TextDirection::LTR) },
 };
 
-const std::vector<struct JsEnumInt> WORD_BREAK_STYLE = {
+const std::vector<struct JsEnumInt> WORD_BREAK_TYPE = {
     { "NORMAL", static_cast<size_t>(WordBreakType::NORMAL) },
     { "BREAK_ALL", static_cast<size_t>(WordBreakType::BREAK_ALL) },
     { "BREAK_WORD", static_cast<size_t>(WordBreakType::BREAK_WORD) },
@@ -150,7 +150,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> IN
     { "FontStyle", FONT_STYLE },
     { "TextBaseline", TEXT_BASE_LINE },
     { "TextDirection", TEXT_DIRECTION },
-    { "WordBreak", WORD_BREAK_STYLE },
+    { "WordBreak", WORD_BREAK_TYPE },
     { "BreakStrategy", BREAK_STRATEGY },
     { "EllipsisMode", ELLIPSIS_MODAL },
     { "TextDecorationType", TEXT_DECORATION },
