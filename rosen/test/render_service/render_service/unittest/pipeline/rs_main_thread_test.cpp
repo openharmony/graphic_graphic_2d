@@ -2183,6 +2183,21 @@ HWTEST_F(RSMainThreadTest, SendCommands, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SendCommands001
+ * @tc.desc: SendCommands Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SendCommands001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    AnimationId animationId = 1;
+    mainThread->context_->AddSyncFinishAnimationList(id, animationId);
+    mainThread->SendCommands();
+}
+
+/**
  * @tc.name: ClearTransactionDataPidInfo001
  * @tc.desc: ClearTransactionDataPidInfo Test, remotePid = 0
  * @tc.type: FUNC

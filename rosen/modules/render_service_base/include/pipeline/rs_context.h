@@ -167,6 +167,8 @@ public:
         return requestedNextVsyncAnimate_;
     }
 
+    // save some need sync finish to client animations in list
+    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId);
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -178,6 +180,7 @@ private:
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
+    std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
     // This flag indicates that a request for the next Vsync is needed when moving to the animation fallback node.
     bool requestedNextVsyncAnimate_ = false;
     PurgeType purgeType_ = PurgeType::NONE;
