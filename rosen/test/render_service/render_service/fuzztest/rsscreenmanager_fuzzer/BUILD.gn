@@ -38,6 +38,10 @@ ohos_fuzztest("RSScreenManagerFuzzTest") {
     "../../../../../modules/render_service_client:librender_service_client",
   ]
 
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps = [ "sensor:sensor_interface_native" ]
+  }
+
   cflags = [
     "-g",
     "-O0",
