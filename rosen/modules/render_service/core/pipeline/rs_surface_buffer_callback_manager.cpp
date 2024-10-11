@@ -20,6 +20,23 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    static auto prevPrintTime = std::chrono::steady_clock::now();
+    static std::ostringstream oss;
+}
+
+template<class... Args>
+void LogMessage(Args&&... args) {
+    (oss << ... << args);
+    auto currTime = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastPrintTime);
+    if (duration.count() >= 1) {
+        RS_LOGE("TextureViewLog: %{public}s", oss.str().c_str());
+        oss.str("");
+        oss.clear();
+    }
+}
+
 RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
 {
     static RSSurfaceBufferCallbackManager surfaceBufferCallbackMgr;
@@ -123,6 +140,9 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
             auto callback = GetSurfaceBufferCallback(pid, uid);
             if (callback) {
                 callback->OnFinish(uid, bufferIds);
+                LogMessage("TextureView::Release Buffers: ", Serialize(bufferIds));
+            } else {
+                LogMessage("TextureView::Lose Buffers: ", Serialize(bufferIds));
             }
         }
     });
