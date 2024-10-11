@@ -224,17 +224,13 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
-        // if in game adaptive vsync mode and do direct composition,send layer immediately
-        auto frameRateMgr = hgmCore.GetFrameRateMgr();
-        if (frameRateMgr != nullptr) {
-            bool isAdaptive = frameRateMgr->IsAdaptive();
-            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
-            if (isAdaptive) {
-                RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers PostTask in Adaptive Mode");
-                PostTask(task);
-                return;
-            }
+        if (IsInAdaptiveMode(output)) {
+            RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers PostTask in Adaptive Mode");
+            PostTask(task);
+            isLastAdaptive_ = true;
+            return;
         }
+        isLastAdaptive_ = false;
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
         int64_t pipelineOffset = hgmCore.GetPipelineOffset();
         uint64_t expectCommitTime = static_cast<uint64_t>(param.frameTimestamp +
@@ -254,6 +250,38 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             PostDelayTask(task, delayTime_);
         }
     }
+}
+
+bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
+{
+    if (hdiBackend_ == nullptr) {
+        RS_LOGE("RSHardwareThread::IsInAdaptiveMode hdiBackend_ is nullptr");
+        return false;
+    }
+
+    bool isSamplerEnabled = hdiBackend_->GetVsyncSamplerEnabled(output);
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+
+    // if in game adaptive vsync mode and do direct composition,send layer immediately
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr != nullptr) {
+        bool isAdaptive = frameRateMgr->IsAdaptive();
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
+        if (isAdaptive) {
+            if (isSamplerEnabled) {
+                // when phone enter game adaptive sync mode must disable vsync sampler
+                hdiBackend_->SetVsyncSamplerEnabled(output, false);
+            }
+            return true;
+        }
+    }
+    if (isLastAdaptive_ && !isSamplerEnabled) {
+        // exit adaptive sync mode must restore vsync sampler, and startSample immediately
+        hdiBackend_->SetVsyncSamplerEnabled(output, true);
+        hdiBackend_->StartSample(output);
+    }
+
+    return false;
 }
 
 RefreshRateParam RSHardwareThread::GetRefreshRateParam()
