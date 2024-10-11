@@ -29,12 +29,24 @@ template<class... Args>
 void LogMessage(Args&&... args) {
     (oss << ... << args);
     auto currTime = std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastPrintTime);
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(currTime - prevPrintTime);
     if (duration.count() >= 1) {
         RS_LOGE("TextureViewLog: %{public}s", oss.str().c_str());
         oss.str("");
         oss.clear();
     }
+}
+
+std::string Serialize(const std::vector<uint32_t>& vec)
+{
+    std::string str = {};
+    str += "{";
+    for (const auto& elem : vec) {
+        str += elem;
+        str += ",";
+    }
+    str += "}";
+    return str;
 }
 
 RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
