@@ -12,7 +12,6 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
-import("//foundation/graphic/graphic_2d/utils/wmlayout/wmlayout.gni")
 import("graphic_config.gni")
 
 group("default") {
