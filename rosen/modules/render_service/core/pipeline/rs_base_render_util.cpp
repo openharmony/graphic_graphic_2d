@@ -1027,9 +1027,9 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
         return false;
     }
 
-    auto& preBuffer = surfaceHandler.GetPreBuffer();
-    if (preBuffer.buffer != nullptr) {
-        auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
+    auto preBuffer = surfaceHandler.GetPreBuffer();
+    if (preBuffer != nullptr) {
+        auto ret = consumer->ReleaseBuffer(preBuffer, surfaceHandler.GetPreBufferReleaseFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
@@ -1037,7 +1037,7 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
         }
         // reset prevBuffer if we release it successfully,
         // to avoid releasing the same buffer next frame in some situations.
-        preBuffer.Reset();
+        surfaceHandler.ResetPreBuffer();
     }
 
     return true;

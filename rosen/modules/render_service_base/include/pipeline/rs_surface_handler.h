@@ -70,7 +70,7 @@ public:
             timestamp = 0;
         }
 #ifndef ROSEN_CROSS_PLATFORM
-        sptr<SurfaceBuffer> buffer;
+        sptr<SurfaceBuffer> buffer = nullptr;
         sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
         Rect damageRect = {0, 0, 0, 0};
@@ -120,7 +120,7 @@ public:
         const Rect& damage,
         const int64_t timestamp)
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         preBuffer_.Reset();
         preBuffer_ = buffer_;
         buffer_.buffer = buffer;
@@ -131,45 +131,47 @@ public:
 
     const sptr<SurfaceBuffer> GetBuffer() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         return buffer_.buffer;
     }
 
     uint64_t GetBufferUsage() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         if (!buffer_.buffer) {
             return 0;
         }
         return buffer_.buffer->GetUsage();
     }
 
-    const sptr<SyncFence>& GetAcquireFence() const
+    const sptr<SyncFence> GetAcquireFence() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         return buffer_.acquireFence;
     }
 
-    const Rect& GetDamageRegion() const
+    const Rect GetDamageRegion() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         return buffer_.damageRect;
     }
 
     void SetCurrentReleaseFence(sptr<SyncFence> fence)
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         buffer_.releaseFence = fence;
     }
 
     void SetReleaseFence(sptr<SyncFence> fence)
     {
         // The fence which get from hdi is preBuffer's releaseFence now.
+        std::lock_guard<std::mutex> lock(mutex_);
         preBuffer_.releaseFence = std::move(fence);
     }
 
     void SetBufferSizeChanged(const sptr<SurfaceBuffer>& buffer)
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         if (preBuffer_.buffer == nullptr) {
             return;
         }
@@ -184,22 +186,41 @@ public:
 
     bool CheckScalingModeChanged()
     {
-        if (!HasConsumer() || buffer_.buffer == nullptr) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (consumer_ == nullptr || buffer_.buffer == nullptr) {
             return false;
         }
 
         ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-
         consumer_->GetScalingMode(buffer_.buffer->GetSeqNum(), scalingMode);
         bool ScalingModeChanged_ = scalingMode != scalingModePre;
         scalingModePre = scalingMode;
         return ScalingModeChanged_;
     }
+
+    sptr<SurfaceBuffer> GetPreBuffer()
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return preBuffer_.buffer;
+    }
+
+    sptr<SyncFence> GetPreBufferAcquireFence()
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return preBuffer_.acquireFence;
+    }
+
+    sptr<SyncFence> GetPreBufferReleaseFence()
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return preBuffer_.releaseFence;
+    }
 #endif
 
-    SurfaceBufferEntry& GetPreBuffer()
+    void ResetPreBuffer()
     {
-        return preBuffer_;
+        std::lock_guard<std::mutex> lock(mutex_);
+        preBuffer_.Reset();
     }
 
     int32_t GetAvailableBufferCount() const
@@ -209,19 +230,14 @@ public:
 
     int64_t GetTimestamp() const
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         return buffer_.timestamp;
     }
 
     void CleanCache()
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         buffer_.Reset();
-        preBuffer_.Reset();
-    }
-
-    void CleanPreBuffer()
-    {
         preBuffer_.Reset();
     }
 
@@ -235,6 +251,7 @@ public:
 
     bool GetBufferSizeChanged()
     {
+        std::lock_guard<std::mutex> lock(mutex_);
         return bufferSizeChanged_;
     }
 
@@ -267,13 +284,12 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void RegisterDeleteBufferListener(OnDeleteBufferFunc bufferDeleteCb)
     {
-        std::lock_guard<std::mutex> lock(bufMutex_);
         if (bufferDeleteCb != nullptr) {
+            std::lock_guard<std::mutex> lock(mutex_);
             buffer_.RegisterDeleteBufferListener(bufferDeleteCb);
             preBuffer_.RegisterDeleteBufferListener(bufferDeleteCb);
         }
     }
-    void ReleaseBuffer(SurfaceBufferEntry& buffer);
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
     void CacheBuffer(SurfaceBufferEntry buffer);
     RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
@@ -283,16 +299,19 @@ public:
 
 protected:
 #ifndef ROSEN_CROSS_PLATFORM
-    sptr<IConsumerSurface> consumer_;
+    sptr<IConsumerSurface> consumer_ = nullptr;
 #endif
     bool isCurrentFrameBufferConsumed_ = false;
 
 private:
+    void ReleaseBuffer(SurfaceBufferEntry& buffer);
+
 #ifndef ROSEN_CROSS_PLATFORM
     ScalingMode scalingModePre = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
 #endif
     NodeId id_ = 0;
-    mutable std::mutex bufMutex_;
+    // mutex buffer_ & preBuffer_ & bufferCache_
+    mutable std::mutex mutex_;
     SurfaceBufferEntry buffer_;    //GUARDED BY bufMutex_
     SurfaceBufferEntry preBuffer_; //GUARDED BY bufMutex_
     float globalZOrder_ = 0.0f;
