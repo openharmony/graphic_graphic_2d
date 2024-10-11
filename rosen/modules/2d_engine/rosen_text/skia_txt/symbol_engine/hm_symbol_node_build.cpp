@@ -14,6 +14,7 @@
  */
 #include "hm_symbol_node_build.h"
 #include "include/pathops/SkPathOps.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -159,7 +160,7 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
 }
 
 void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
-    std::vector<RSGroupSetting> &groupSettings,
+    const std::vector<RSGroupSetting> &groupSettings,
     std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
 {
     std::vector<RSPath> paths;
@@ -174,7 +175,7 @@ void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const
     }
 
     // Splitting animation nodes information
-    for (auto& groupSetting: groupSettings) {
+    for (const auto& groupSetting: groupSettings) {
         TextEngine::SymbolNode symbolNode;
         TextEngine::NodeLayerInfo maskPath;
         bool isMask = IsMaskLayer(maskPath.path, groupSetting.groupInfos, pathLayers);
@@ -210,9 +211,11 @@ void SymbolNodeBuild::ClearAnimation()
 bool SymbolNodeBuild::DecomposeSymbolAndDraw()
 {
     if (symbolData_.symbolInfo_.renderGroups.size() <= 0) {
+        LOGD("[%{public}s] HmSymbol: symbolInfo_.renderGroups is empty\n", __func__);
         return false;
     }
     if (animationFunc_ == nullptr) {
+        LOGD("[%{public}s] HmSymbol: animationFunc_ is nullprt\n", __func__);
         return false;
     }
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
