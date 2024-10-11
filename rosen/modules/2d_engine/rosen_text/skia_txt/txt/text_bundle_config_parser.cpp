@@ -20,6 +20,7 @@
 #include "hap_module_info.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
+#include "utils/text_log.h"
 
 #endif
 
@@ -31,6 +32,7 @@ bool TextBundleConfigParser::IsMetaDataExistInEntryModule(const std::string& met
 {
     auto bundleMgr = GetSystemAbilityManager();
     if (bundleMgr == nullptr) {
+        TEXT_LOGE("Bundle manager is nullptr");
         return false;
     }
 
@@ -40,6 +42,7 @@ bool TextBundleConfigParser::IsMetaDataExistInEntryModule(const std::string& met
         static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_METADATA),
         bundleInfo);
     if (FAILED(errCode)) {
+        TEXT_LOGE("Get bundle info for self failed, errcode: %{public}x", errCode);
         return false;
     }
 
@@ -48,6 +51,7 @@ bool TextBundleConfigParser::IsMetaDataExistInEntryModule(const std::string& met
             return info.moduleType == AppExecFwk::ModuleType::ENTRY;
         });
     if (infoIter == bundleInfo.hapModuleInfos.end()) {
+        TEXT_LOGD("Entry module not found");
         return false;
     }
 
@@ -62,11 +66,13 @@ sptr<AppExecFwk::IBundleMgr> TextBundleConfigParser::GetSystemAbilityManager()
 {
     auto systemAbilityManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
+        TEXT_LOGE("System ability manager is nullptr");
         return nullptr;
     }
 
     sptr<IRemoteObject> remoteObject = systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
     if (remoteObject == nullptr) {
+        TEXT_LOGE("Remote object is nullptr");
         return nullptr;
     }
 
@@ -80,6 +86,7 @@ bool TextBundleConfigParser::IsAdapterTextHeightEnabled()
     static bool adapterTextHeight = []() {
         const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_text_height";
         auto enabled = IsMetaDataExistInEntryModule(ADAPTER_TEXT_HEIGHT_META_DATA);
+        TEXT_LOGD("Adapter text height enabled: %{public}d", enabled);
         return enabled;
     }();
     return adapterTextHeight;
