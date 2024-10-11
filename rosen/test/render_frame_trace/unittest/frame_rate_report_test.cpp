@@ -65,7 +65,7 @@ HWTEST_F(FrameRateReportTest, SendFrameRatesToRss001, TestSize.Level1)
     rates[1008] = 60;
     rates[-1] = 120;
     FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
-    SUCCEED();
+    EXPECT_TRUE(nullptr != FrameRateReport::GetInstance());
 }
 } // namespace Rosen
 } // namespace OHOS
