@@ -107,6 +107,7 @@ public:
         auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
         if (LIKELY(uniParam)) {
             isEnabled = uniParam->IsOverDrawEnabled();
+            isAceDebugBoundaryEnabled_ = uniParam->IsAceDebugBoundaryEnabled();
         }
         enable_ = isEnabled && curCanvas != nullptr;
         curCanvas_ = curCanvas;
@@ -122,17 +123,21 @@ private:
         if (!enable_) {
             return;
         }
-        auto gpuContext = curCanvas_->GetGPUContext();
-        if (gpuContext == nullptr) {
-            RS_LOGE("RSOverDrawDfx::StartOverDraw failed: need gpu canvas");
-            return;
-        }
 
         auto width = curCanvas_->GetWidth();
         auto height = curCanvas_->GetHeight();
         Drawing::ImageInfo info =
             Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-        overdrawSurface_ = Drawing::Surface::MakeRaster(info);
+        if (!isAceDebugBoundaryEnabled_) {
+            auto gpuContext = curCanvas_->GetGPUContext();
+            if (gpuContext == nullptr) {
+                RS_LOGE("RSOverDrawDfx::StartOverDraw failed: need gpu canvas");
+                return;
+            }
+            overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+        } else {
+            overdrawSurface_ = Drawing::Surface::MakeRaster(info);
+        }
         if (!overdrawSurface_) {
             RS_LOGE("RSOverDrawDfx::StartOverDraw failed: surface is nullptr");
             return;
@@ -166,6 +171,7 @@ private:
     }
 
     bool enable_;
+    bool isAceDebugBoundaryEnabled_ = false;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
     std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
     std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
