@@ -134,7 +134,6 @@ public:
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
     static GSError DropFrameProcess(RSSurfaceHandler& node);
-    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool ConsumeAndUpdateBuffer(
         RSSurfaceHandler& surfaceHandler, bool isDisplaySurface, uint64_t vsyncTimestamp = 0);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
@@ -172,6 +171,7 @@ public:
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
 
