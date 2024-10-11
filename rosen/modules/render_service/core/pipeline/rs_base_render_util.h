@@ -148,8 +148,10 @@ public:
      *
      * @param colorFilterMode SkBlendMode applied to SKPaint
      * @param paint color matrix applied to SKPaint
+     * @param brightnessRatio hdr brightness ratio
      */
-    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint);
+    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint,
+        float hdrBrightnessRatio = 1.f);
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);

@@ -230,7 +230,7 @@ Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vect
         BYBy * B.x_, BY, BYBy * (1 - B.x_ - B.y_)
     };
 }
-static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
+static const std::shared_ptr<Drawing::ColorFilter> InvertColorMat(float hdrBrightnessRatio)
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
@@ -238,6 +238,15 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
         -0.599, -1.175, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
+    if (!ROSEN_EQ(hdrBrightnessRatio, 1.f)) {
+        const Drawing::scalar brightnessMatrixArray[MATRIX_SIZE] = {
+            1.0, 0.0, 0.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0, 1.0, 0.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0, 0.0, 1.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0, 0.0
+        };
+        return Drawing::ColorFilter::CreateComposeColorFilter(brightnessMatrixArray, colorMatrixArray);
+    }
     static auto invertColorMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertColorMat;
 }
@@ -1065,12 +1074,13 @@ bool RSBaseRenderUtil::IsColorFilterModeValid(ColorFilterMode mode)
     return valid;
 }
 
-void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint)
+void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode,
+    Drawing::Brush& paint, float hdrBrightnessRatio)
 {
     Drawing::Filter filter;
     switch (colorFilterMode) {
         case ColorFilterMode::INVERT_COLOR_ENABLE_MODE:
-            filter.SetColorFilter(Detail::InvertColorMat());
+            filter.SetColorFilter(Detail::InvertColorMat(hdrBrightnessRatio));
             break;
         case ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE:
             filter.SetColorFilter(Detail::ProtanomalyMat());

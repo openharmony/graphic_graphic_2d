@@ -658,7 +658,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             // watermark and color filter should be applied after offscreen render.
             DrawWatermarkIfNeed(*params, *curCanvas_);
-            SwitchColorFilter(*curCanvas_);
+            SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
         }
         rsDirtyRectsDfx.OnDraw(curCanvas_);
         if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
@@ -1284,7 +1284,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledTopNodesMissedInCacheImage(
     }
 }
 
-void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas) const
+void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio) const
 {
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
@@ -1301,7 +1301,7 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas)
     RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::SetColorFilterModeToPaint mode:%d",
         static_cast<int32_t>(colorFilterMode));
     Drawing::Brush brush;
-    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush);
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush, hdrBrightnessRatio);
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
 #ifdef NEW_RENDER_CONTEXT
     RSTagTracker tagTracker(
