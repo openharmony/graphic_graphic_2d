@@ -4217,14 +4217,14 @@ void RSMainThread::UpdateLuminance()
             }
 
             auto screenId = displayNode->GetScreenId();
-            if (rsLuminance.IsDimmingOn(screenId)) {
-                rsLuminance.DimmingIncrease(screenId);
-                isNeedRefreshAll = true;
-            }
             if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
                 uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
                 screenManager->SetScreenBacklight(screenId, newLevel);
                 rsLuminance.SetNowHdrLuminance(screenId, newLevel);
+            }
+            if (rsLuminance.IsDimmingOn(screenId)) {
+                rsLuminance.DimmingIncrease(screenId);
+                isNeedRefreshAll = true;
             }
         }
     }
