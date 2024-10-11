@@ -74,12 +74,14 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
         auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
         for (auto& [id, weakPtr] : pendingSyncNodes) {
-            if (auto node = weakPtr.lock()) {
-                if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
-                    node->Sync();
-                } else {
-                    node->SkipSync();
-                }
+            auto node = weakPtr.lock();
+            if (node == nullptr) {
+                continue;
+            }
+            if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
+                node->Sync();
+            } else {
+                node->SkipSync();
             }
         }
         pendingSyncNodes.clear();
