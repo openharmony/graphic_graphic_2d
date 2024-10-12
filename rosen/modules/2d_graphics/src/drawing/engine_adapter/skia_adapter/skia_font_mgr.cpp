@@ -61,14 +61,17 @@ bool ConvertToUTF16BE(uint8_t* data, uint32_t dataLen, FontByteArray& fullname)
     if (data == nullptr || dataLen == 0) {
         return false;
     }
-    // If the encoding format of data is UTF-16, copy it directly
-    if (strlen(reinterpret_cast<char*>(data)) < dataLen || !IsUtf8(reinterpret_cast<const char*>(data))) {
-        fullname.strData = std::make_unique<uint8_t[]>(dataLen);
-        if (memcpy_s(fullname.strData.get(), dataLen, data, dataLen) == EOK) {
-            fullname.strLen = dataLen;
-            return true;
-        }
+    std::unique_ptr<uint8_t[]> newData = std::make_unique<uint8_t[]>(dataLen + 1);
+    if (memcpy_s(newData.get(), dataLen + 1, data, dataLen) != EOK) {
         return false;
+    }
+    newData[dataLen] = '\0';
+    // If the encoding format of data is UTF-16, copy it directly
+    if (strlen(reinterpret_cast<char*>(newData.get())) < dataLen ||
+        !IsUtf8(reinterpret_cast<const char*>(newData.get()), dataLen)) {
+        fullname.strData = std::move(newData);
+        fullname.strLen = dataLen;
+        return true;
     }
     // If the data format is utf-8, create a converter from UTF-8 to UTF-16
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
