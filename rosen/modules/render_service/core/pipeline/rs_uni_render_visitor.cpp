@@ -257,6 +257,11 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node)
 {
+    if (!node.IsOnTheTree()) {
+        RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) is not on the tree",
+            node.GetName().c_str());
+        return;
+    }
     if (!node.IsHardwareForcedDisabled()) {
         RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) is hardware-enabled",
             node.GetName().c_str());
