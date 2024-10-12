@@ -1193,6 +1193,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessAndCache, TestSize.Lev
     ASSERT_NE(surface, nullptr);
     RSPaintFilterCanvas canvas(surface.get());
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, false);
-    ASSERT_TRUE(surfaceDrawable_->.drawWindowCache_.HasCache());
+    ASSERT_TRUE(surfaceDrawable_->.drawWindowCache.HasCache());
 }
 }

@@ -51,7 +51,7 @@ public:
      * @param surfaceParams Indicates the render params
      * @return true if success, otherwise false
     */
-    bool DealWithCachedWindow(DrawableV2::RSRenderNodeDrawable* surfaceDrawable,
+    bool DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 private:
     bool HasCache() const;

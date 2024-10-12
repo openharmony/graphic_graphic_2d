@@ -137,7 +137,7 @@ void RSDrawWindowCache::ClearCache()
     image_ = nullptr;
 }
 
-void RSDrawWindowCache::HasCache() const
+bool RSDrawWindowCache::HasCache() const
 {
     return image_ != nullptr;
 }
