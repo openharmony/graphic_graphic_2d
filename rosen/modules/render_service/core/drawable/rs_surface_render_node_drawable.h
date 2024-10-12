@@ -243,9 +243,6 @@ public:
     {
         return cacheSurface_ ? true : false;
     }
-
-    // Watermark
-    void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(
@@ -275,6 +272,9 @@ private:
     void DrawDmaBufferWithGPU(RSPaintFilterCanvas& canvas);
     void DrawSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas,
         const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
+
+    // Watermark
+    void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
@@ -341,6 +341,7 @@ private:
     bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
 
     RSDrawWindowCache drawWindowCache_;
+    friend class OHOS::Rosen::RSDrawWindowCache;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
