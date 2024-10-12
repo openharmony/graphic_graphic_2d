@@ -85,7 +85,7 @@
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc)
-#define RS_PROFILER_SKIP_PARCEL_DATA(parcel, size, retCode) false
+#define RS_PROFILER_SKIP_PARCEL_DATA(parcel, size) false
 #define RS_PROFILER_GET_FRAME_NUMBER() 0
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
