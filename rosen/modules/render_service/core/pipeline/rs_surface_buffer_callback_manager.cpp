@@ -21,8 +21,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    static auto prevPrintTime = std::chrono::steady_clock::now();
-    static auto sendBufferCnt = 0;
+    auto prevPrintTime = std::chrono::steady_clock::now();
+    auto sendBufferCnt = 0;
 }
 
 void LogMessage() {
