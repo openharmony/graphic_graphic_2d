@@ -86,7 +86,7 @@ void RSDrawWindowCache::DrawAndCacheWindowContent(DrawableV2::RSSurfaceRenderNod
     canvas.DetachBrush();
 }
 
-bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSRenderNodeDrawable* surfaceDrawable,
+bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
     if (surfaceDrawable == nullptr ||
