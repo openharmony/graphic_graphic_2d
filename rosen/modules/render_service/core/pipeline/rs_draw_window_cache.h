@@ -31,7 +31,7 @@ namespace DrawableV2 {
 class RSDrawWindowCache {
 public:
     RSDrawWindowCache() = default;
-    ~RSDrawWindowCache() noexcept;
+    ~RSDrawWindowCache();
 
     /**
      * @brief Draw and cache window content/children by offscreen buffer and draw back to target canvas
