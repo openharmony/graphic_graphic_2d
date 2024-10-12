@@ -5936,7 +5936,7 @@ HWTEST_F(RSNodeTest, SetDistortionK, TestSize.Level1)
     // for test
     float distortionK = 0.5f;
     rsNode->SetDistortionK(distortionK);
-    EXPECT_EQ(distortionK, 0.5f);
+    ASSERT_TRUE(rsNode != nullptr);
 }
 
 /**
