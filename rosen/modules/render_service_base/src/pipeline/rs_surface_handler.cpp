@@ -108,8 +108,11 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
             buffer = iter->second;
             iter = bufferCache_.erase(iter);
         } else {
-            RS_LOGE("RSSurfaceHandler::GetBufferFromCache: bufferTime(%{public}" PRId64 ") >= vsyncTime(%{public}"
-                PRId64 "), nodeId=%{public}" PRId64, iter->first, vsyncTimestamp, GetNodeId());
+            // 100000000 means 100 milliseconds
+            if (iter->first - vsyncTimestamp > 100000000) {
+                RS_LOGE("RSSurfaceHandler::GetBufferFromCache: bufferTime(%{public}" PRId64 ") >= vsyncTime(%{public}"
+                    PRId64 "), nodeId=%{public}" PRId64, iter->first, vsyncTimestamp, GetNodeId());
+            }
             break;
         }
     }
