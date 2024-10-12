@@ -342,7 +342,20 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
     canvas.DetachBrush();
 }
 
-void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
+void RSDrawingFilter::UpdateAlphaForOnScreenDraw(RSPaintFilterCanvas& paintFilterCanvas)
+{
+    // if canvas alpha is 1.0 or 0.0 - result is same
+    float canvasAlpha = paintFilterCanvas.GetAlpha();
+    std::shared_ptr<RSShaderFilter> maskColorShaderFilter = GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
+    if (maskColorShaderFilter != nullptr) {
+        auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
+        float postAlpha = maskColorFilter->GetPostProcessAlpha();
+        float newAlpha = (1.0f - postAlpha) / (1.0f - postAlpha  * canvasAlpha);
+        paintFilterCanvas.MultiplyAlpha(newAlpha);
+    }
+}
+
+void RSDrawingFilter::DrawImageRectInternal(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
     const Drawing::Rect& src, const Drawing::Rect& dst, bool discardCanvas)
 {
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
@@ -363,6 +376,20 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
         canvas.Discard();
     }
     ApplyImageEffect(canvas, image, visualEffectContainer, src, dst);
+}
+
+void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
+    const Drawing::Rect& src, const Drawing::Rect& dst, const DrawImageRectParams params)
+{
+    float canvasAlpha = canvas.GetAlpha();
+    if (params.offscreenDraw || ROSEN_EQ(canvasAlpha, 1.0f) || ROSEN_EQ(canvasAlpha, 0.0f)) {
+        DrawImageRectInternal(canvas, image, src, dst, params.discardCanvas);
+        return;
+    }
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    RSAutoCanvasRestore autoCanvasRestore(paintFilterCanvas, RSPaintFilterCanvas::kAlpha);
+    UpdateAlphaForOnScreenDraw(*paintFilterCanvas);
+    DrawImageRectInternal(canvas, image, src, dst, params.discardCanvas);
 }
 
 void RSDrawingFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)

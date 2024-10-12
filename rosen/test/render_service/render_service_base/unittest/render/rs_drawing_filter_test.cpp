@@ -15,9 +15,11 @@
 
 #include "gtest/gtest.h"
 
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_mesa_blur_shader_filter.h"
 using namespace testing;
 using namespace testing::ext;
@@ -233,11 +235,64 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     auto image = std::make_shared<Drawing::Image>();
     Drawing::Rect src;
     Drawing::Rect dst;
-    drawingFilter.DrawImageRect(canvas, image, src, dst);
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
+    EXPECT_TRUE(image != nullptr);
+
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
     EXPECT_TRUE(image != nullptr);
 
     filterPtr->type_ = RSShaderFilter::NONE;
-    drawingFilter.DrawImageRect(canvas, image, src, dst);
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
     EXPECT_TRUE(image != nullptr);
+
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
+    EXPECT_TRUE(image != nullptr);
+}
+
+/**
+ * @tc.name: UpdateAlphaForOnScreenDraw001
+ * @tc.desc: test results of UpdateAlphaForOnScreenDraw
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDrawingFilterTest, UpdateAlphaForOnScreenDraw001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSShaderFilter>();
+    filterPtr->type_ = RSShaderFilter::KAWASE;
+    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    float canvasAlpha = 0.5f;
+
+    paintFilterCanvas.SetAlpha(canvasAlpha);
+    drawingFilter.UpdateAlphaForOnScreenDraw(paintFilterCanvas);
+    // no RSMaskColorShaderFilter, no impact on canvas alpha
+    EXPECT_TRUE(ROSEN_EQ(paintFilterCanvas.GetAlpha(), canvasAlpha));
+
+    auto colorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(0, RSColor());
+    colorShaderFilter->maskColor_.SetAlpha(102);
+    drawingFilter.InsertShaderFilter(colorShaderFilter);
+
+    canvasAlpha = 1.0f;
+    paintFilterCanvas.SetAlpha(canvasAlpha);
+    drawingFilter.UpdateAlphaForOnScreenDraw(paintFilterCanvas);
+    // canvas alpha is 1.0 - no impact on canvas alpha
+    EXPECT_TRUE(ROSEN_EQ(paintFilterCanvas.GetAlpha(), canvasAlpha));
+
+    canvasAlpha = 0.0f;
+    paintFilterCanvas.SetAlpha(canvasAlpha);
+    drawingFilter.UpdateAlphaForOnScreenDraw(paintFilterCanvas);
+    // canvas alpha is 0.0 - no impact on canvas alpha
+    EXPECT_TRUE(ROSEN_EQ(paintFilterCanvas.GetAlpha(), canvasAlpha));
+
+    canvasAlpha = 0.5f;
+    paintFilterCanvas.SetAlpha(canvasAlpha);
+    drawingFilter.UpdateAlphaForOnScreenDraw(paintFilterCanvas);
+    // canvas alpha is updated
+    EXPECT_TRUE(ROSEN_EQ(paintFilterCanvas.GetAlpha(), 0.375f));
 }
 } // namespace OHOS::Rosen

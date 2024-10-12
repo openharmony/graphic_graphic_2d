@@ -44,8 +44,14 @@ public:
     std::string GetDescription() override;
     std::string GetDetailedDescription() override;
     Drawing::Brush GetBrush() const;
+
+    struct DrawImageRectParams {
+        bool discardCanvas;
+        bool offscreenDraw;
+    };
+
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
-        const Drawing::Rect& src, const Drawing::Rect& dst, bool discardCanvas = false);
+        const Drawing::Rect& src, const Drawing::Rect& dst, const DrawImageRectParams params = { false, false });
     std::vector<std::shared_ptr<RSShaderFilter>> GetShaderFilters() const;
     void InsertShaderFilter(std::shared_ptr<RSShaderFilter> shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
@@ -92,6 +98,10 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst);
 
 private:
+    void DrawImageRectInternal(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
+        const Drawing::Rect& src, const Drawing::Rect& dst, bool discardCanvas);
+    void UpdateAlphaForOnScreenDraw(RSPaintFilterCanvas& paintFilterCanvas);
+
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer, const Drawing::Rect& src,
         const Drawing::Rect& dst);

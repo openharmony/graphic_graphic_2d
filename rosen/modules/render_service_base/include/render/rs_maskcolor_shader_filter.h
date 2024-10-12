@@ -34,6 +34,7 @@ public:
     int GetColorMode() const;
     RSColor GetMaskColor() const;
     void CaclMaskColor(std::shared_ptr<Drawing::Image>& image);
+    float GetPostProcessAlpha() const;
     virtual void PreProcess(std::shared_ptr<Drawing::Image>& image) override;
     virtual void PostProcess(Drawing::Canvas& canvas) override;
     static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> image);
