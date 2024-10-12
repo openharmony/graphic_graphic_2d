@@ -42,6 +42,7 @@ public:
     virtual bool CanSkipFrame() const { return false; };
     virtual void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight) {};
     virtual void IsOffscreenCanvas(bool isOffscreenCanvas) {};
+    virtual void DisableMotionBlur(bool isDisableMotionBlur) {};
 
 protected:
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
