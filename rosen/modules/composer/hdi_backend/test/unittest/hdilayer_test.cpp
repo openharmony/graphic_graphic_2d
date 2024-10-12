@@ -136,12 +136,12 @@ HWTEST_F(HdiLayerTest, Init001, Function | MediumTest| Level1)
 HWTEST_F(HdiLayerTest, GetReleaseFence001, Function | MediumTest| Level1)
 {
     ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(), GRAPHIC_DISPLAY_FAILURE);
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->GetReleaseFence(), SyncFence::INVALID_FENCE);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->GetReleaseFence().GetRefPtr()->Get(), -1);
     HdiLayerTest::hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     HdiLayerTest::hdiLayer_->UpdateLayerInfo(layerInfo_);
     HdiLayerTest::hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     HdiLayerTest::hdiLayer_->RecordPresentTime(0);
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->GetReleaseFence(), SyncFence::INVALID_FENCE);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->GetReleaseFence().GetRefPtr()->Get(), -1);
 }
 
 /*
