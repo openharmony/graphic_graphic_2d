@@ -846,7 +846,7 @@ void RSSurfaceRenderNode::SetLeashPersistId(NodeId leashPersistId)
     leashPersistId_ = leashPersistId;
     SetDirty();
 
-    ROSEN_LOGI("RSSurfaceRenderNode::SetLeashPersistId, Node id: %{public}" PRIu64 ", leashPersistId:%{public}"
+    ROSEN_LOGD("RSSurfaceRenderNode::SetLeashPersistId, Node id: %{public}" PRIu64 ", leashPersistId:%{public}"
         "" PRIu64, GetId(), leashPersistId);
 }
 
@@ -2877,8 +2877,8 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetSkipDraw(isSkipDraw_);
     surfaceParams->visibleFilterChild_ = GetVisibleFilterChild();
     surfaceParams->isTransparent_ = IsTransparent();
-    surfaceParams->SetNeedSync(true);
     surfaceParams->leashPersistId_ = leashPersistId_;
+    surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();
 }

@@ -88,7 +88,7 @@ void SurfaceNodeCommandHelper::SetSecurityLayer(RSContext& context, NodeId id, b
     }
 }
 
-void SurfaceNodeCommandHelper::SetLeashPersistId(RSContext& context, NodeId id, uint64_t leashPersistId)
+void SurfaceNodeCommandHelper::SetLeashPersistId(RSContext& context, NodeId id, LeashPersistId leashPersistId)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         node->SetLeashPersistId(leashPersistId);

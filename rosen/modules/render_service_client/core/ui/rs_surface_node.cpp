@@ -248,13 +248,14 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
 
 void RSSurfaceNode::SetLeashPersistId(LeashPersistId leashPersistId)
 {
+    leashPersistId_ = leashPersistId;
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSurfaceNodeSetLeashPersistId>(GetId(), leashPersistId);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGI("RSSurfaceNode::SetLeashPersistId, \
+    ROSEN_LOGD("RSSurfaceNode::SetLeashPersistId, \
                 surfaceNodeId:[%{public}" PRIu64 "] leashPersistId:[%{public}" PRIu64 "]", GetId(), leashPersistId);
 }
 

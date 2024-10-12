@@ -513,7 +513,7 @@ private:
     Occlusion::Region transparentRegion_;
     Occlusion::Region opaqueRegion_;
 
-    LeashPersistId leashPersistId_ = 0;
+    LeashPersistId leashPersistId_ = INVALID_LEASH_PERSISTID;
 
     bool surfaceCacheContentStatic_ = false;
     bool preSurfaceCacheContentStatic_ = false;
