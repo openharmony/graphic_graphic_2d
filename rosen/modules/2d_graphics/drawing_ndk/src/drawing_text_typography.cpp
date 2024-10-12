@@ -164,11 +164,11 @@ void OH_Drawing_SetTypographyTextAlign(OH_Drawing_TypographyStyle* style, int al
 
 void OH_Drawing_SetTypographyTextMaxLines(OH_Drawing_TypographyStyle* style, int lineNumber)
 {
-#ifndef USE_GRAPHIC_TEXT_GINE
-    ConvertToOriginalText<TypographyStyle>(style)->maxLines_ = static_cast<size_t>(lineNumber);
-#else
+    if (!style) {
+        return;
+    }
+    lineNumber = lineNumber < 0 ? 0 : lineNumber;
     ConvertToOriginalText<TypographyStyle>(style)->maxLines = static_cast<size_t>(lineNumber);
-#endif
 }
 
 OH_Drawing_TextStyle* OH_Drawing_CreateTextStyle(void)
@@ -1637,7 +1637,7 @@ void OH_Drawing_SetTypographyTextFontSize(OH_Drawing_TypographyStyle* style, dou
 void OH_Drawing_SetTypographyTextFontHeight(OH_Drawing_TypographyStyle* style, double fontHeight)
 {
     if (style) {
-        ConvertToOriginalText<TypographyStyle>(style)->heightScale = fontHeight;
+        ConvertToOriginalText<TypographyStyle>(style)->heightScale = fontHeight < 0 ? 0 : fontHeight;
         ConvertToOriginalText<TypographyStyle>(style)->heightOnly = true;
     }
 }
