@@ -2413,7 +2413,6 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             } else {
                 break;
             }
-
             parent = parent->GetParent().lock();
             if (!parent) {
                 break;

@@ -1934,6 +1934,9 @@ void RSUniRenderUtil::FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap)
 std::optional<Drawing::Matrix> RSUniRenderUtil::GetMatrix(
     std::shared_ptr<RSRenderNode> hwcNode)
 {
+    if (!hwcNode) {
+        return std::nullopt;
+    }
     auto relativeMat = Drawing::Matrix();
     auto& property = hwcNode->GetRenderProperties();
     if (auto geo = property.GetBoundsGeometry()) {
