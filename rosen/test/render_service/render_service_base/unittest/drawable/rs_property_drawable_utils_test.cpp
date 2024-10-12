@@ -224,7 +224,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
     std::shared_ptr<RSFilter> rsFilter = nullptr;
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
-    Drawing::RectI bounds(0.0, 0.0, 400.0, 400.0);
+    Drawing::RectI bounds(0, 0, 400, 400);
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     rsFilter = std::make_shared<RSFilter>();
     rsFilter->type_ = RSFilter::NONE;
@@ -236,8 +236,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     paintFilterCanvas.canvas_ = &canvasTest2;
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     paintFilterCanvas.SetDisableFilterCache(true);
-    auto surfaceTwo = Drawing::Surface::MakeRasterN32Premul(10, 10);
-    paintFilterCanvas.surface_ = surfaceTwo.get();
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     int lastBlurCnt = rsPropertyDrawableUtils->g_blurCnt;
     ASSERT_NE(lastBlurCnt, 0);

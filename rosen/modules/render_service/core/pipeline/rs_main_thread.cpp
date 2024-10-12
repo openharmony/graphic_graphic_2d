@@ -1334,7 +1334,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             surfaceNode->ResetIsOnlyBasicGeoTransform();
         }
         if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
-            ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, consume and update all nodes", surfaceNode->GetId());
             surfaceNode->SetContentDirty(); // screen recording capsule force mark dirty
         }
         if (surfaceNode->IsHardwareEnabledType()
@@ -1363,8 +1362,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->GetName(), surfaceHandler.GetDamageRegion());
             }
             if (surfaceHandler.IsCurrentFrameBufferConsumed() && !surfaceNode->IsHardwareEnabledType()) {
-                ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, current frame buffer consumed",
-                    surfaceNode->GetId());
                 surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
                 RS_OPTIONAL_TRACE_NAME_FMT(
@@ -1394,8 +1391,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 && surfaceNode->IsHardwareEnabledType() && surfaceNode->IsHardwareForcedDisabledByFilter()) {
                     RS_OPTIONAL_TRACE_NAME(surfaceNode->GetName() +
                         " SetContentDirty for UIFirst assigning to subthread");
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, current frame buffer consumed",
-                        surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", pc uifirst on",
@@ -1523,13 +1518,10 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (isHardwareForcedDisabled_) {
                 // buffer updated or hwc -> gpu
                 if (surfaceHandler->IsCurrentFrameBufferConsumed() || surfaceNode->GetIsLastFrameHwcEnabled()) {
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, buffer updated or hardware change to gpu",
-                        surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                 }
             } else if (!surfaceNode->GetIsLastFrameHwcEnabled()) { // gpu -> hwc
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, gpu change to hardware", surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                     doDirectComposition_ = false;
                     RS_OPTIONAL_TRACE_NAME_FMT(
@@ -1545,7 +1537,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 // self-drawing node don't set content dirty when gpu -> hwc
                 // so first frame in hwc -> hwc, should set content dirty
                 if (surfaceNode->GetHwcDelayDirtyFlag()) {
-                    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, hardware to hardware", surfaceNode->GetId());
                     surfaceNode->SetContentDirty();
                     surfaceNode->SetHwcDelayDirtyFlag(false);
                     doDirectComposition_ = false;
@@ -1963,7 +1954,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
-    rsVsyncRateReduceManager_.ResetFrameValues();
+    rsVsyncRateReduceManager_.ResetFrameValues(rsVSyncDistributor_->GetRefreshRate());
 
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
@@ -2013,7 +2004,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
         rootNode->QuickPrepare(uniVisitor);
         uniVisitor->SurfaceOcclusionCallbackToWMS();
-        rsVsyncRateReduceManager_.SetUniVSyncRateByVisibleLevel(uniVisitor);
+        rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
@@ -3129,7 +3120,7 @@ void RSMainThread::SendCommands()
         fr.RenderEnd();
     }
     if (!context_->needSyncFinishAnimationList_.empty()) {
-        for (const auto [nodeId, animationId] : context_->needSyncFinishAnimationList_) {
+        for (const auto& [nodeId, animationId] : context_->needSyncFinishAnimationList_) {
             RS_LOGI("RSMainThread::SendCommands sync finish animation node is %{public}" PRIu64 ","
                 " animation is %{public}" PRIu64, nodeId, animationId);
             std::unique_ptr<RSCommand> command =
@@ -4229,14 +4220,14 @@ void RSMainThread::UpdateLuminance()
             }
 
             auto screenId = displayNode->GetScreenId();
-            if (rsLuminance.IsDimmingOn(screenId)) {
-                rsLuminance.DimmingIncrease(screenId);
-                isNeedRefreshAll = true;
-            }
             if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
                 uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
                 screenManager->SetScreenBacklight(screenId, newLevel);
                 rsLuminance.SetNowHdrLuminance(screenId, newLevel);
+            }
+            if (rsLuminance.IsDimmingOn(screenId)) {
+                rsLuminance.DimmingIncrease(screenId);
+                isNeedRefreshAll = true;
             }
         }
     }

@@ -836,6 +836,7 @@ HWTEST_F(DrawCmdTest, UpdateNodeIdToPicture001, TestSize.Level1)
     drawCmdList->AddDrawOp(nullptr);
     Brush brush;
     drawCmdList->AddDrawOp(std::make_shared<DrawBackgroundOpItem>(brush));
+    EXPECT_TRUE(!drawCmdList->IsEmpty());
     drawCmdList->UpdateNodeIdToPicture(nodeId);
 }
 

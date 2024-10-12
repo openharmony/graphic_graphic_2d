@@ -294,6 +294,8 @@ public:
     float GetBrightnessRatio() const;
     void SetBrightnessRatio(float brightnessRatio);
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
+    bool GetHdrOn() const;
+    void SetHdrOn(bool isHdrOn);
 
 protected:
     using Env = struct {
@@ -361,6 +363,7 @@ private:
     bool recordingState_ = false;
     bool recordDrawable_ = false;
     bool isCapture_ = false;
+    bool isHdrOn_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

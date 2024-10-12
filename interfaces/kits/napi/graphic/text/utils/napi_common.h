@@ -533,7 +533,7 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
 
 void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textStyle);
 
-bool SetStrutStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
+bool SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle);
 
 void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle);
 

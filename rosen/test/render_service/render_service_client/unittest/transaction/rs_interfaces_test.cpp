@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
-#include "parameters.h"
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
 
@@ -385,8 +384,7 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
 {
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return;
     }
     RSInterfaces& instance = RSInterfaces::GetInstance();
@@ -408,8 +406,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 {
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return;
     }
     RSInterfaces& instance = RSInterfaces::GetInstance();

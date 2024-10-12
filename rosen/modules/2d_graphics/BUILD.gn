@@ -399,7 +399,7 @@ if (!is_arkui_x) {
       "bounds_checking_function:libsec_static",
       "hilog:libhilog",
     ]
-
+    public_external_deps = [ "skia:skia_canvaskit" ]
     public_configs = [ ":export_config" ]
 
     if (platform == "ohos") {

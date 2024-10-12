@@ -172,7 +172,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     // If rt buffer switches to be available
     // set its SurfaceRenderNode's render dirty
     if (!node.IsNotifyRTBufferAvailablePre() && node.IsNotifyRTBufferAvailable()) {
-        ROSEN_LOGD("Node id %{public}" PRIu64 "NotifyRTBufferAvailable and set node dirty", node.GetId());
+        ROSEN_LOGD("NotifyRTBufferAvailable and set it dirty");
         node.SetDirty();
     }
     auto rect = nodeParent->GetRenderProperties().GetBoundsRect();

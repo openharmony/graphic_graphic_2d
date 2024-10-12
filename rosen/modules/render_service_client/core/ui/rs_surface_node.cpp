@@ -18,9 +18,6 @@
 
 #include <algorithm>
 #include <string>
-#ifdef ROSEN_OHOS
-#include "parameters.h"
-#endif
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -863,8 +860,7 @@ bool RSSurfaceNode::GetSkipDraw() const
 void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
 #ifdef ROSEN_OHOS
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return;
     }
     if (name.empty() || name.length() > WATERMARK_NAME_LENGTH_LIMIT) {

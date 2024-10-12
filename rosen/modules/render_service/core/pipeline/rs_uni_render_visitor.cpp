@@ -850,6 +850,7 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
     }
     node.SetOcclusionInSpecificScenes(false);
     CollectOcclusionInfoForWMS(node);
+    RSMainThread::Instance()->GetRSVsyncRateReduceManager().CollectSurfaceVsyncInfo(screenInfo_, node);
 }
 
 void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)
@@ -860,8 +861,6 @@ void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)
     // collect mainWindow occlusion visibleLevel
     Occlusion::Region selfDrawRegion { node.GetSurfaceOcclusionRect(true) };
     auto visibleLevel = GetRegionVisibleLevel(node.GetVisibleRegion(), selfDrawRegion);
-    // collect surface node visibleLevel for dynamic Vsync Rate.
-    RSMainThread::Instance()->GetRSVsyncRateReduceManager().CollectVSyncRate(node, visibleLevel);
 
     // wms default all visible about sefdrawing node and AbilityComponent node
     auto instanceNode = node.GetInstanceRootNode() ?
@@ -1742,8 +1741,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     if (pointSurfaceHandler) {
         // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
         pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
-        pointWindow->SetHardwareForcedDisabledState(!IsHardwareComposerEnabled() || !pointWindow->ShouldPaint() ||
-            hasUniRenderHdrSurface_);
+        pointWindow->SetHardwareForcedDisabledState(!IsHardwareComposerEnabled() || !pointWindow->ShouldPaint());
         auto transform = RSUniRenderUtil::GetLayerTransform(*pointWindow, screenInfo_);
         pointWindow->UpdateHwcNodeLayerInfo(transform);
         if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
@@ -2637,10 +2635,12 @@ void RSUniRenderVisitor::UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRender
         UpdateDstRect(*subSurfaceNodePtr, subSurfaceRect, prepareClipRect_);
         subSurfaceNodePtr->SetCalcRectInPrepare(true);
         if (subSurfaceNodePtr->IsLeashOrMainWindow()) {
+            auto& rateReduceManager = RSMainThread::Instance()->GetRSVsyncRateReduceManager();
             curMainAndLeashWindowNodesIds_.push(subSurfaceNodePtr->GetId());
-            RSMainThread::Instance()->GetRSVsyncRateReduceManager().PushWindowNodeId(subSurfaceNodePtr->GetId());
+            rateReduceManager.PushWindowNodeId(subSurfaceNodePtr->GetId());
             curDisplayNode_->RecordMainAndLeashSurfaces(subSurfaceNodePtr);
             CollectOcclusionInfoForWMS(*subSurfaceNodePtr);
+            rateReduceManager.CollectSurfaceVsyncInfo(screenInfo_, *subSurfaceNodePtr);
         }
     }
     ResetSubSurfaceNodesCalState(allSubSurfaceNodes);

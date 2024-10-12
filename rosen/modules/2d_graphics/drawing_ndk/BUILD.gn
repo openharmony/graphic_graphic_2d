@@ -215,6 +215,7 @@ if (!is_arkui_x) {
     }
     public_configs = [ ":export_config" ]
     deps = [ "$drawing_root/drawing_ndk:drawing_ndk_source_$platform" ]
+    public_external_deps = [ "skia:skia_canvaskit" ]
 
     if (platform == "ohos") {
       version_script = "$drawing_root/2d_graphics.versionscript"

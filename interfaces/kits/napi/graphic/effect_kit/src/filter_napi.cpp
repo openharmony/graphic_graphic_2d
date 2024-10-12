@@ -111,17 +111,22 @@ static void FilterAsyncCommonComplete(napi_env env, const FilterAsyncContext* ct
         }
     }
 
+    if (ctx == nullptr) {
+        EFFECT_LOG_E("Failed to delete ctx, ctx is nullptr");
+    } else {
+        delete ctx;
+    }
     ctx = nullptr;
 }
 
 FilterNapi::FilterNapi() : env_(nullptr), wrapper_(nullptr)
 {
-    EFFECT_LOG_I("FilterNapi");
+    EFFECT_LOG_D("FilterNapi");
 }
 
 FilterNapi::~FilterNapi()
 {
-    EFFECT_LOG_I("~FilterNapi");
+    EFFECT_LOG_D("~FilterNapi");
     napi_delete_reference(env_, wrapper_);
 }
 
@@ -129,7 +134,7 @@ void FilterNapi::Destructor(napi_env env,
                             void* nativeObject,
                             void* finalize_hint)
 {
-    EFFECT_LOG_I("FilterNapi::Destructor");
+    EFFECT_LOG_D("FilterNapi::Destructor");
     FilterNapi* obj = static_cast<FilterNapi *>(nativeObject);
 
     std::shared_lock<std::shared_mutex> lock(filterNapiManagerMutex);
@@ -294,8 +299,9 @@ DrawError FilterNapi::Render(bool forceCPU)
     DrawError ret = skImage.Draw();
     if (ret == DrawError::ERR_OK) {
         dstPixelMap_ = skImage.GetPixelMap();
+    } else {
+        EFFECT_LOG_E("skImage.Draw() = %{public}d", ret);
     }
-    EFFECT_LOG_I("skImage.Draw() = %{public}d", ret);
     return ret;
 }
 
@@ -421,8 +427,12 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
     if (ctx->callback == nullptr) {
         napi_create_promise(env, &(ctx->deferred), &result);
     }
-    std::unique_lock<std::shared_mutex> lock(filterNapiManagerMutex);
-    filterNapiManager[ctx->filterNapi].store(false);
+
+    {
+        std::unique_lock<std::shared_mutex> lock(filterNapiManagerMutex);
+        filterNapiManager[ctx->filterNapi].store(false);
+    }
+
     if (ctx->errorMsg != nullptr) {
         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
             env, status, "GetPixelMapAsyncError",

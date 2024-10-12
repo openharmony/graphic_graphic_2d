@@ -2246,6 +2246,18 @@ bool RSMarshallingHelper::GetUseSharedMem(std::thread::id tid)
     return true;
 }
 
+bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
+{
+    auto curPosition = parcel.GetReadPosition();
+    auto positionRead = parcel.ReadUint32();
+    if (positionRead != static_cast<uint32_t>(curPosition)) {
+        RS_LOGE("RSMarshallingHelper::CheckReadPosition failed, curPosition:%{public}zu, positionRead:%{public}u",
+            curPosition, positionRead);
+        return false;
+    }
+    return true;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return RSRenderPropertyBase::Marshalling(parcel, val);

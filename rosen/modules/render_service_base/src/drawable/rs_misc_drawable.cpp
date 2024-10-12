@@ -490,8 +490,6 @@ Drawing::RecordingCanvas::DrawFunc RSEnvFGColorStrategyDrawable::CreateDrawFunc(
     };
 }
 
-// ============================================================================
-// CustomClipToFrame
 RSDrawable::Ptr RSCustomClipToFrameDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (auto ret = std::make_shared<RSCustomClipToFrameDrawable>(); ret->OnUpdate(node)) {
@@ -499,6 +497,7 @@ RSDrawable::Ptr RSCustomClipToFrameDrawable::OnGenerate(const RSRenderNode& node
     }
     return nullptr;
 }
+
 bool RSCustomClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
@@ -513,6 +512,7 @@ bool RSCustomClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
     needSync_ = true;
     return true;
 }
+
 void RSCustomClipToFrameDrawable::OnSync()
 {
     if (!needSync_) {
@@ -521,6 +521,7 @@ void RSCustomClipToFrameDrawable::OnSync()
     customClipRect_ = stagingCustomClipRect_;
     needSync_ = false;
 }
+
 Drawing::RecordingCanvas::DrawFunc RSCustomClipToFrameDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSCustomClipToFrameDrawable>(shared_from_this());

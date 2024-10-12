@@ -73,6 +73,7 @@ private:
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
+    bool IsInAdaptiveMode(const OutputPtr &output);
 
     RefreshRateParam GetRefreshRateParam();
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
@@ -104,6 +105,7 @@ private:
     std::map<uint32_t, uint64_t> refreshRateCounts_;
     sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
     int64_t delayTime_ = 0;
+    bool isLastAdaptive_ = false;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;

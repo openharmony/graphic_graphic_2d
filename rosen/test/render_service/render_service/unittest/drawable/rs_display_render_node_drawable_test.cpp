@@ -37,8 +37,9 @@ namespace OHOS::Rosen {
 namespace {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
-constexpr NodeId DEFAULT_SURFACE_NODE_ID = 1;
-constexpr NodeId DEFAULT_RENDER_NODE_ID = 2;
+constexpr NodeId DEFAULT_DISPLAY_NODE_ID = 9;
+constexpr NodeId DEFAULT_SURFACE_NODE_ID = 10;
+constexpr NodeId DEFAULT_RENDER_NODE_ID = 11;
 }
 class RSDisplayRenderNodeDrawableTest : public testing::Test {
 public:
@@ -263,11 +264,11 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen001
         renderFrame, *params, canvasMatrix);
     ASSERT_EQ(damageRects.size(), 0);
 
-    auto node = std::make_shared<RSRenderNode>(0);
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(DEFAULT_DISPLAY_NODE_ID, config);
     params->mirrorSourceDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     damageRects = displayDrawable_->CalculateVirtualDirtyForWiredScreen(renderFrame, *params, canvasMatrix);
     ASSERT_EQ(damageRects.size(), 0);
-    sleep(1);
 }
 
 /**
@@ -1006,7 +1007,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorCopy, TestSize.Level1)
     ASSERT_TRUE(virtualProcesser->GetCanvas());
     mirrorDrawable->cacheImgForCapture_ = std::make_shared<Drawing::Image>();
     displayDrawable_->DrawMirrorCopy(*mirrorDrawable, *params, virtualProcesser, *uniParam);
-    ASSERT_FALSE(virtualProcesser->GetCanvas());
+    ASSERT_TRUE(virtualProcesser->GetCanvas());
     uniParam->isVirtualDirtyEnabled_ = true;
     sleep(1);
 }

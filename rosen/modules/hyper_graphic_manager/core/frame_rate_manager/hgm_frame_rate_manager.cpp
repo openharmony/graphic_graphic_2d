@@ -66,7 +66,7 @@ namespace {
         "VOTER_IDLE"
     };
 
-    constexpr int ADAPTIVE_SYNC_PROPERTY = 2;
+    constexpr int ADAPTIVE_SYNC_PROPERTY = 3;
     constexpr int DISPLAY_SUCCESS = 1;
 }
 

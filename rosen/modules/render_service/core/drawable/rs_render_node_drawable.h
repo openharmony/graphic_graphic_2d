@@ -198,6 +198,14 @@ private:
     void DrawWithoutNodeGroupCache(
         Drawing::Canvas& canvas, const RSRenderParams& params, DrawableCacheType originalCacheType);
     void DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params);
+
+    void CheckRegionAndDrawWithoutFilter(
+        const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params);
+    void CheckRegionAndDrawWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
+        const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params);
+    bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
+        const std::vector<FilterNodeInfo>& filterInfoVec,
+        Drawing::RectI& dstRect);
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;

@@ -26,7 +26,6 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
 constexpr int PARAM_TWO = 2;
-constexpr int MAX_LIGHT_SOURCES = 12;
 } // namespace
 
 const bool FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
@@ -544,7 +543,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     float lightPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
     float viewPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
     float lightColorArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
-    float lightIntensityArray[MAX_LIGHT_SOURCES] = { 0 };
+    std::array<float, MAX_LIGHT_SOURCES> lightIntensityArray = { 0 };
 
     auto iter = lightSourcesAndPosVec_.begin();
     auto cnt = 0;
@@ -591,7 +590,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
         return phongShaderBuilder;
     }
     std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
-    std::string lightString(R"(
+    const static std::string lightString(R"(
         uniform vec4 lightPos[12];
         uniform vec4 viewPos[12];
         uniform vec4 specularLightColor[12];
@@ -638,7 +637,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
 
 void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
-    const float lightIntensityArray[]) const
+    const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {
     constexpr float contentIntensityCoefficient = 0.3f;
     float specularStrengthArr[MAX_LIGHT_SOURCES] = { 0 };
@@ -667,9 +666,13 @@ void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
 
 void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
-    const float lightIntensityArray[]) const
+    const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {
-    lightBuilder->SetUniform("specularStrength", lightIntensityArray, MAX_LIGHT_SOURCES);
+    float specularStrengthArr[MAX_LIGHT_SOURCES] = { 0 };
+    for (int i = 0; i < MAX_LIGHT_SOURCES; i++) {
+        specularStrengthArr[i] = lightIntensityArray[i];
+    }
+    lightBuilder->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
     pen.SetShaderEffect(shader);
     float borderWidth = std::ceil(borderWidth_);
