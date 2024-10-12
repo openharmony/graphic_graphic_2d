@@ -483,6 +483,11 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetVersionType()
 {
     return "";
