@@ -314,7 +314,6 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, render node remove child", GetId());
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
