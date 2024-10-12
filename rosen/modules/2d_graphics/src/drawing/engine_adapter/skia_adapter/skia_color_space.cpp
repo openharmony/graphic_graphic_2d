@@ -130,6 +130,27 @@ bool SkiaColorSpace::Deserialize(std::shared_ptr<Data> data)
     return true;
 }
 
+bool SkiaColorSpace::IsSRGB() const
+{
+    if (colorSpace_ == nullptr) {
+        LOGD("SkiaColorSpace::IsSRGB, colorSpace_ is nullptr!");
+        return false;
+    }
+    return colorSpace_->isSRGB();
+}
+
+bool SkiaColorSpace::Equals(const std::shared_ptr<ColorSpace>& colorSpace) const
+{
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr) {
+        auto skiaColorSpace = colorSpace->GetImpl<SkiaColorSpace>();
+        if (skiaColorSpace != nullptr) {
+            skColorSpace = skiaColorSpace->colorSpace_;
+        }
+    }
+    return SkColorSpace::Equals(colorSpace_.get(), skColorSpace.get());
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
