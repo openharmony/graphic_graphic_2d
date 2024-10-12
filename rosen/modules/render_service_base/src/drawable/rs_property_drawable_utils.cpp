@@ -501,19 +501,10 @@ void RSPropertyDrawableUtils::DrawColorFilter(
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawColorFilter surface is null");
         return;
     }
-    auto clipBounds = canvas->GetDeviceClipBounds();
-    auto imageSnapshot = surface->GetImageSnapshot(clipBounds);
-    if (imageSnapshot == nullptr) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::DrawColorFilter image is null");
-        return;
-    }
-    imageSnapshot->HintCacheGpuResource();
-    Drawing::AutoCanvasRestore acr(*canvas, true);
-    canvas->ResetMatrix();
-    Drawing::SamplingOptions options(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
-    canvas->AttachBrush(brush);
-    canvas->DrawImageRect(*imageSnapshot, clipBounds, options);
-    canvas->DetachBrush();
+    auto clipBounds = canvas->GetLocalClipBounds();
+    Drawing::AutoCanvasRestore acr(*canvas, false);
+    Drawing::SaveLayerOps slo(&clipBounds, &brush, Drawing::SaveLayerOps::Flags::INIT_WITH_PREVIOUS);
+    canvas->SaveLayer(slo);
 }
 
 void RSPropertyDrawableUtils::DrawLightUpEffect(Drawing::Canvas* canvas, const float lightUpEffectDegree)
