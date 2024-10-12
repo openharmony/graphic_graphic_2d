@@ -63,9 +63,9 @@ public:
         MOTION_BLUR,
         SPHERIZE_EFFECT,
         COLORFUL_SHADOW,
+        MAGNIFIER,
         WATER_RIPPLE,
         COMPOUND_EFFECT,
-        MAGNIFIER,
         FLY_OUT,
     };
     FilterType GetFilterType() const
