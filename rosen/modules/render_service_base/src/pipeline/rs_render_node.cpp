@@ -3959,6 +3959,10 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
     stagingRenderParams_->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
     stagingRenderParams_->SetNeedFilter(GetRenderProperties().NeedFilter());
+    stagingRenderParams_->SetHasBlurFilter(HasBlurFilter());
+    stagingRenderParams_->SetNodeType(GetType());
+    stagingRenderParams_->SetEffectNodeShouldPaint(EffectNodeShouldPaint());
+    stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()
@@ -3967,11 +3971,10 @@ bool RSRenderNode::UpdateLocalDrawRect()
     return stagingRenderParams_->SetLocalDrawRect(drawRect);
 }
 
-void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius, bool isSubNodeInSurface)
+void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)
 {
-    if (!isSubNodeInSurface) {
-        Vector4f::Max(GetRenderProperties().GetCornerRadius(), curCornerRadius, curCornerRadius);
-    }
+    Vector4f::Max(GetRenderProperties().GetCornerRadius(), curCornerRadius, curCornerRadius);
+    globalCornerRadius_ = curCornerRadius;
 }
 
 void RSRenderNode::ResetChangeState()

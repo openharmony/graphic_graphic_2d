@@ -402,6 +402,91 @@ void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& u
     uniParam.SetForceMirrorScreenDirty(isDisplayNodeSkipStatusChanged_ && isDisplayNodeSkip_);
 }
 
+void RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect)
+{
+    surfaceParams.SetFilterCacheFullyCovered(false);
+    bool dirtyBelowContainsFilterNode = false;
+    for (auto& filterNodeId : surfaceParams.GetVisibleFilterChild()) {
+        auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(filterNodeId);
+        if (drawableAdapter == nullptr) {
+            continue;
+        }
+        auto filterNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(drawableAdapter);
+        if (filterNodeDrawable == nullptr) {
+            RS_LOGD("CheckFilterCacheFullyCovered filter node drawable is nullptr, Name[%{public}s],"
+                "NodeId[%" PRIu64 "]", surfaceParams.GetName().c_str(), filterNodeId);
+            continue;
+        }
+        auto filterParams = static_cast<RSRenderParams*>(filterNodeDrawable->GetRenderParams().get());
+        if (filterParams == nullptr || !filterParams->HasBlurFilter()) {
+            RS_LOGD("CheckFilterCacheFullyCovered filter params is nullptr or has no blur, Name[%{public}s],"
+                "NodeId[%" PRIu64 "]", surfaceParams.GetName().c_str(), filterNodeId);
+            continue;
+        }
+        // Filter cache occlusion need satisfy:
+        // 1.The filter node global alpha equals 1;
+        // 2.There is no invalid filter cache node below, which should take snapshot;
+        // 3.The filter node has no global corner;
+        // 4.The surfaceNode is transparent, the opaque surfaceNode can occlude without filter cache;
+        // 5.The node type is not EFFECT_NODE;
+        if (ROSEN_EQ(filterParams->GetGlobalAlpha(), 1.f) && !dirtyBelowContainsFilterNode &&
+            !filterParams->HasGlobalCorner() && surfaceParams.IsTransparent() &&
+            filterParams->GetType() != RSRenderNodeType::EFFECT_NODE) {
+            surfaceParams.CheckValidFilterCacheFullyCoverTarget(
+                filterNodeDrawable->IsFilterCacheValidForOcclusion(),
+                filterNodeDrawable->GetFilterCachedRegion(), screenRect);
+        }
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], globalAlpha: %f,"
+            "hasInvalidFilterCacheBefore: %d, hasNoCorner: %d, isTransparent: %d, isNodeTypeCorrect: %d,"
+            "isCacheValid: %d, cacheRect: %s", filterNodeId, filterParams->GetGlobalAlpha(),
+            !dirtyBelowContainsFilterNode, !filterParams->HasGlobalCorner(), surfaceParams.IsTransparent(),
+            filterParams->GetType() != RSRenderNodeType::EFFECT_NODE,
+            filterNodeDrawable->IsFilterCacheValidForOcclusion(),
+            filterNodeDrawable->GetFilterCachedRegion().ToString().c_str());
+        if (filterParams->GetEffectNodeShouldPaint() && !filterNodeDrawable->IsFilterCacheValidForOcclusion()) {
+            dirtyBelowContainsFilterNode = true;
+        }
+    }
+}
+
+void RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(
+    RSDisplayRenderParams& params, ScreenInfo& screenInfo)
+{
+    if (!RSSystemParameters::GetFilterCacheOcculusionEnabled()) {
+        return;
+    }
+    bool isScreenOccluded = false;
+    RectI screenRect = {0, 0, screenInfo.width, screenInfo.height};
+    // top-down traversal all mainsurface
+    // if upper surface reuse filter cache which fully cover whole screen
+    // mark lower layers for process skip
+    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
+    for (auto it = curAllSurfaceDrawables.begin(); it != curAllSurfaceDrawables.end(); ++it) {
+        if (*it == nullptr || (*it)->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+            RS_LOGD("CheckAndUpdateFilterCacheOcclusion adapter is nullptr or error type");
+            continue;
+        }
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (surfaceNodeDrawable == nullptr) {
+            RS_LOGD("CheckAndUpdateFilterCacheOcclusion surfaceNodeDrawable is nullptr");
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        if (surfaceParams == nullptr) {
+            RS_LOGD("CheckAndUpdateFilterCacheOcclusion surface params is nullptr");
+            continue;
+        }
+
+        CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+        if (surfaceParams->IsMainWindowType()) {
+            // reset occluded status for all mainwindow
+            surfaceParams->SetOccludedByFilterCache(isScreenOccluded);
+        }
+        isScreenOccluded = isScreenOccluded || surfaceParams->GetFilterCacheFullyCovered();
+    }
+}
+
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     // canvas will generate in every request frame
@@ -572,6 +657,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     SetDisplayNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
 
+    CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR isHdrOn: %{public}d", isHdrOn);
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);

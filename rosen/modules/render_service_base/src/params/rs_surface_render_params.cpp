@@ -99,6 +99,36 @@ bool RSSurfaceRenderParams::GetOccludedByFilterCache() const
     return isOccludedByFilterCache_;
 }
 
+void RSSurfaceRenderParams::SetFilterCacheFullyCovered(bool val)
+{
+    isFilterCacheFullyCovered_ = val;
+}
+
+bool RSSurfaceRenderParams::GetFilterCacheFullyCovered() const
+{
+    return isFilterCacheFullyCovered_;
+}
+
+const std::vector<NodeId>& RSSurfaceRenderParams::GetVisibleFilterChild() const
+{
+    return visibleFilterChild_;
+}
+
+bool RSSurfaceRenderParams::IsTransparent() const
+{
+    return isTransparent_;
+}
+
+void RSSurfaceRenderParams::CheckValidFilterCacheFullyCoverTarget(
+    bool isFilterCacheValidForOcclusion, const RectI& filterCachedRect, const RectI& targetRect)
+{
+    if (isFilterCacheFullyCovered_ || !isFilterCacheValidForOcclusion) {
+        return;
+    }
+    // AbsRect may not update here, so use filterCachedRegion to occlude
+    isFilterCacheFullyCovered_ = targetRect.IsInsideOf(filterCachedRect);
+}
+
 void RSSurfaceRenderParams::SetLayerInfo(const RSLayerInfo& layerInfo)
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -402,6 +432,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
+    targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
+    targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
     targetSurfaceParams->rootIdOfCaptureWindow_ = rootIdOfCaptureWindow_;
