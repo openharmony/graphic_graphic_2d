@@ -25,7 +25,8 @@ namespace {
     static auto sendBufferCnt = 0;
 }
 
-void LogMessage() {
+void LogMessage()
+{
     ++sendBufferCnt;
     auto currTime = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(currTime - prevPrintTime);
