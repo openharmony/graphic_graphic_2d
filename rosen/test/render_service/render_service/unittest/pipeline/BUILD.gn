@@ -80,8 +80,8 @@ group("unittest") {
   }
   if (graphic_2d_feature_product == "pc") {
     deps += [
-      ":RSPointerWindowManagerTest",
       ":RSDrawWindowCacheTest",
+      ":RSPointerWindowManagerTest",
     ]
   }
 }
