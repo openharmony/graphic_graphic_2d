@@ -112,7 +112,6 @@ HWTEST_F(RSDrawWindowCacheTest, DrawAndCacheWindowContent, TestSize.Level1)
 {
     RSDrawWindowCache drawWindowCache;
     DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable = nullptr;
-    RSSurfaceRenderParams surfaceParams(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     int32_t canvasSize = 100;
