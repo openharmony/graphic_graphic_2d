@@ -21,19 +21,18 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    auto prevPrintTime = std::chrono::steady_clock::now();
-    auto sendBufferCnt = 0;
-}
-
-void LogMessage()
-{
-    ++sendBufferCnt;
-    auto currTime = std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(currTime - prevPrintTime);
-    if (duration.count() >= 1) {
-        RS_LOGE("TextureViewLog: %{public}d", sendBufferCnt);
-        prevPrintTime = std::chrono::steady_clock::now();
-        sendBufferCnt = 0;
+    auto g_prevPrintTime = std::chrono::steady_clock::now();
+    auto g_sendBufferCnt = 0;
+    void LogMessage()
+    {
+        ++g_sendBufferCnt;
+        auto currTime = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(currTime - g_prevPrintTime);
+        if (duration.count() >= 1) {
+            RS_LOGE("TextureViewLog: %{public}d", g_sendBufferCnt);
+            g_prevPrintTime = std::chrono::steady_clock::now();
+            g_sendBufferCnt = 0;
+        }
     }
 }
 
