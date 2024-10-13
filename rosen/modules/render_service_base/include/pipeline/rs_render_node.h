@@ -161,6 +161,10 @@ public:
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID);
+    void SetIsOntheTreeOnlyFlag(bool flag)
+    {
+        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+    }
     inline bool IsOnTheTree() const
     {
         return isOnTheTree_;

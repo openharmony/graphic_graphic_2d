@@ -427,7 +427,14 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
         auto childPid = ExtractPid(child->GetId());
         auto pidIter = std::find(oldScbPids.begin(), oldScbPids.end(), childPid);
         if (pidIter != oldScbPids.end()) {
+            if (child) {
+                child->SetIsOntheTreeOnlyFlag(false);
+            }
             continue;
+        } else if (childPid == currentScbPid) {
+            if (child) {
+                child->SetIsOntheTreeOnlyFlag(true);
+            }
         }
         currentChildrenList_->emplace_back(child);
     }
