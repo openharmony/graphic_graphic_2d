@@ -70,6 +70,11 @@ void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
 
 void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
 {
+    ConsumeAndUpdateBufferInner(buffer);
+}
+
+void RSSurfaceHandler::ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer)
+{
     if (!buffer.buffer) {
         return;
     }
@@ -78,6 +83,21 @@ void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
     SetCurrentFrameBufferConsumed();
     RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "\
         "buffer timestamp = %{public}" PRId64 " .", GetNodeId(), buffer.timestamp);
+}
+
+void RSSurfaceHandler::ConsumeAndUpdateBuffer(const uint64_t& vsyncTimestamp)
+{
+    mutex_.lock();
+    if (bufferCache_.empty()) {
+        mutex_.unlock();
+        return;
+    }
+
+    RSSurfaceHandler::SurfaceBufferEntry buffer;
+    GetBufferFromCacheLocked(vsyncTimestamp, buffer);
+    mutex_.unlock();
+
+    ConsumeAndUpdateBufferInner(buffer);
 }
 
 void RSSurfaceHandler::CacheBuffer(SurfaceBufferEntry buffer)
@@ -102,6 +122,14 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RSSurfaceHandler::SurfaceBufferEntry buffer;
+    GetBufferFromCacheLocked(vsyncTimestamp, buffer);
+    return buffer;
+}
+
+/* must call GetBufferFromCacheLocked with mutex_ lock */
+void RSSurfaceHandler::GetBufferFromCacheLocked(
+    const uint64_t& vsyncTimestamp, SurfaceBufferEntry& buffer)
+{
     for (auto iter = bufferCache_.begin(); iter != bufferCache_.end();) {
         if (iter->first < vsyncTimestamp) {
             ReleaseBuffer(buffer);
@@ -117,7 +145,6 @@ RSSurfaceHandler::SurfaceBufferEntry RSSurfaceHandler::GetBufferFromCache(uint64
             GetNodeId(), buffer.timestamp, bufferCache_.size());
         RS_TRACE_INT("RSSurfaceHandler buffer cache", static_cast<int>(bufferCache_.size()));
     }
-    return buffer;
 }
 
 void RSSurfaceHandler::ClearBufferCache()

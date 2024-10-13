@@ -943,10 +943,10 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         // this node has no new buffer, try use cache.
         // if don't have cache, will not update and use old buffer.
         // display surface don't have cache, always use old buffer.
-        surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
+        surfaceHandler.ConsumeAndUpdateBuffer(vsyncTimestamp);
         return true;
     }
-    auto consumer = surfaceHandler.GetConsumer();
+    const auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         return false;
     }
@@ -1006,7 +1006,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
             "vysnc timestamp = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
             surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
         surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
-        surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
+        surfaceHandler.ConsumeAndUpdateBuffer(vsyncTimestamp);
     }
     surfaceHandler.ReduceAvailableBuffer();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
@@ -1222,7 +1222,7 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     if (type != GraphicTransformType::GRAPHIC_FLIP_H && type != GraphicTransformType::GRAPHIC_FLIP_V) {
         return;
     }
-     
+
     const int angle = 180;
     Drawing::Camera3D camera3D;
     switch (type) {
