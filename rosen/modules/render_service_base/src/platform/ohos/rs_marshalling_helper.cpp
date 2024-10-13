@@ -1613,18 +1613,26 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         return ret;
     }
 #ifdef ROSEN_OHOS
-    std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
-    uint32_t surfaceBufferSize = val->GetAllSurfaceBuffer(surfaceBufferVec);
+    std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
+    uint32_t surfaceBufferSize = val->GetAllSurfaceBufferEntry(surfaceBufferEntryVec);
     ret = parcel.WriteUint32(surfaceBufferSize);
     if (surfaceBufferSize > 0) {
-        for (const auto& object : surfaceBufferVec) {
+        for (const auto& object : surfaceBufferEntryVec) {
             if (!object) {
                 ROSEN_LOGE("RSMarshallingHelper::Marshalling DrawCmdList surfaceBufferVec has null object");
                 return false;
             }
+            auto surfaceBuffer = object->surfaceBuffer_;
             MessageParcel* parcelSurfaceBuffer =  static_cast<MessageParcel*>(&parcel);
             WriteSurfaceBufferImpl(
-                *parcelSurfaceBuffer, object->GetSeqNum(), object);
+                *parcelSurfaceBuffer, surfaceBuffer->GetSeqNum(), surfaceBuffer);
+            auto acquireFence = object->acquireFence_;
+            if (acquireFence) {
+                parcel.WriteBool(true);
+                acquireFence->WriteToMessageParcel(*parcelSurfaceBuffer);
+            } else {
+                parcel.WriteBool(false);
+            }
         }
     }
 #endif
@@ -1768,13 +1776,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return ret;
     }
 #ifdef ROSEN_OHOS
-    uint32_t surfaceBufferSize = parcel.ReadUint32();
-    if (surfaceBufferSize > 0) {
-        if (surfaceBufferSize > PARTICLE_UPPER_LIMIT) {
+    uint32_t surfaceBufferEntrySize = parcel.ReadUint32();
+    if (surfaceBufferEntrySize > 0) {
+        if (surfaceBufferEntrySize > PARTICLE_UPPER_LIMIT) {
             return false;
         }
-        std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
-        for (uint32_t i = 0; i < surfaceBufferSize; ++i) {
+        std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
+        for (uint32_t i = 0; i < surfaceBufferEntrySize; ++i) {
             sptr<SurfaceBuffer> surfaceBuffer;
             MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
             uint32_t sequence = 0U;
@@ -1784,9 +1792,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
                     "RSMarshallingHelper::Unmarshalling failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
                 return false;
             }
-            surfaceBufferVec.emplace_back(surfaceBuffer);
+            sptr<SyncFence> acquireFence = nullptr;
+            bool hasAcquireFence = parcel.ReadBool();
+            if (hasAcquireFence) {
+                acquireFence = SyncFence::ReadFromMessageParcel(*parcelSurfaceBuffer);
+            }
+            std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry =
+                std::make_shared<Drawing::SurfaceBufferEntry>(surfaceBuffer, acquireFence);
+            surfaceBufferEntryVec.emplace_back(surfaceBufferEntry);
         }
-        val->SetupSurfaceBuffer(surfaceBufferVec);
+        val->SetupSurfaceBufferEntry(surfaceBufferEntryVec);
     }
 #endif
     val->UnmarshallingDrawOps();

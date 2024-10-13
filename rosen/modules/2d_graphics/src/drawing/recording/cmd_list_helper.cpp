@@ -849,15 +849,16 @@ std::shared_ptr<BlurDrawLooper> CmdListHelper::GetBlurDrawLooperFromCmdList(cons
 }
 
 #ifdef ROSEN_OHOS
-uint32_t CmdListHelper::AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& surfaceBuffer)
+uint32_t CmdListHelper::AddSurfaceBufferEntryToCmdList(
+    CmdList& cmdList, const std::shared_ptr<SurfaceBufferEntry>& surfaceBuffer)
 {
-    return cmdList.AddSurfaceBuffer(surfaceBuffer);
+    return cmdList.AddSurfaceBufferEntry(surfaceBuffer);
 }
 
-sptr<SurfaceBuffer> CmdListHelper::GetSurfaceBufferFromCmdList(
+std::shared_ptr<SurfaceBufferEntry> CmdListHelper::GetSurfaceBufferEntryFromCmdList(
     const CmdList& cmdList, uint32_t surfaceBufferHandle)
 {
-    return (const_cast<CmdList&>(cmdList)).GetSurfaceBuffer(surfaceBufferHandle);
+    return (const_cast<CmdList&>(cmdList)).GetSurfaceBufferEntry(surfaceBufferHandle);
 }
 #endif
 
