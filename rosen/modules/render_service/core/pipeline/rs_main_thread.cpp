@@ -1157,10 +1157,10 @@ void RSMainThread::ProcessCommandForDividedRender()
         }
         for (auto& [surfaceNodeId, commandMap] : cachedCommands_) {
             auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
-            auto bufferTimestamp = bufferTimestamps_.find(surfaceNodeId);
+            auto bufferTimestamp = dividedRenderbufferTimestamps_.find(surfaceNodeId);
             std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>>::iterator effectIter;
 
-            if (!node || !node->IsOnTheTree() || bufferTimestamp == bufferTimestamps_.end()) {
+            if (!node || !node->IsOnTheTree() || bufferTimestamp == dividedRenderbufferTimestamps_.end()) {
                 // If node has been destructed or is not on the tree or has no valid buffer,
                 // for all command cached in commandMap should be executed immediately
                 effectIter = commandMap.end();
@@ -1284,7 +1284,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     bool needRequestNextVsync = false;
     bool hasHdrVideo = false;
-    bufferTimestamps_.clear();
+    if (!isUniRender_) {
+        dividedRenderbufferTimestamps_.clear();
+    }
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
         [this, &needRequestNextVsync, &hasHdrVideo](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
@@ -1316,7 +1318,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         surfaceHandler.ResetCurrentFrameBufferConsumed();
         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, false, timestamp_)) {
-            this->bufferTimestamps_[surfaceNode->GetId()] = static_cast<uint64_t>(surfaceHandler.GetTimestamp());
+            if (!isUniRender_) {
+                this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
+                    static_cast<uint64_t>(surfaceHandler.GetTimestamp());
+            }
             if (surfaceHandler.IsCurrentFrameBufferConsumed() && surfaceNode->IsHardwareEnabledType()) {
                 GpuDirtyRegionCollection::GetInstance().UpdateActiveDirtyInfoForDFX(surfaceNode->GetId(),
                     surfaceNode->GetName(), surfaceHandler.GetDamageRegion());
