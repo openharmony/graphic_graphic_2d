@@ -28,6 +28,7 @@
 #include "utils/extend_object.h"
 #ifdef ROSEN_OHOS
 #include "surface_buffer.h"
+#include "sync_fence.h"
 #endif
 
 namespace OHOS {
@@ -58,6 +59,17 @@ public:
     virtual ~ExtendDrawFuncObj () = default;
     virtual void Playback(Canvas* canvas, const Rect* rect) = 0;
 };
+
+#ifdef ROSEN_OHOS
+struct SurfaceBufferEntry {
+    SurfaceBufferEntry() = default;
+    SurfaceBufferEntry(const sptr<SurfaceBuffer> surfaceBuffer, const sptr<SyncFence> acquireFence)
+        : surfaceBuffer_(surfaceBuffer), acquireFence_(acquireFence)
+    {}
+    sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
+    sptr<SyncFence> acquireFence_ = nullptr;
+};
+#endif
 
 class DRAWING_API CmdList {
 public:
@@ -243,24 +255,24 @@ public:
 
 #ifdef ROSEN_OHOS
     /*
-     * @brief  return surfaceBuffer index, negative is error.
+     * @brief  return surfaceBufferEntry index, negative is error.
      */
-    uint32_t AddSurfaceBuffer(const sptr<SurfaceBuffer>& surfaceBuffer);
+    uint32_t AddSurfaceBufferEntry(const std::shared_ptr<SurfaceBufferEntry>& surfaceBufferEntry);
 
     /*
-     * @brief  get surfaceBuffer by index.
+     * @brief  get surfaceBufferEntry by index.
      */
-    sptr<SurfaceBuffer> GetSurfaceBuffer(uint32_t id);
+    std::shared_ptr<SurfaceBufferEntry> GetSurfaceBufferEntry(uint32_t id);
 
     /*
-     * @brief  return surfaceBuffer size, 0 is no surfaceBuffer.
+     * @brief  return surfaceBufferEntry size, 0 is no surfaceBuffer.
      */
-    uint32_t GetAllSurfaceBuffer(std::vector<sptr<SurfaceBuffer>>& objectList);
+    uint32_t GetAllSurfaceBufferEntry(std::vector<std::shared_ptr<SurfaceBufferEntry>>& objectList);
 
     /*
-     * @brief  return real setup surfaceBuffer size.
+     * @brief  return real setup surfaceBufferEntry size.
      */
-    uint32_t SetupSurfaceBuffer(const std::vector<sptr<SurfaceBuffer>>& objectList);
+    uint32_t SetupSurfaceBufferEntry(const std::vector<std::shared_ptr<SurfaceBufferEntry>>& objectList);
 #endif
 
 protected:
@@ -282,8 +294,8 @@ protected:
     std::vector<std::shared_ptr<ExtendObject>> extendObjectVec_;
     std::mutex extendObjectMutex_;
 #ifdef ROSEN_OHOS
-    std::vector<sptr<SurfaceBuffer>> surfaceBufferVec_;
-    std::mutex surfaceBufferMutex_;
+    std::vector<std::shared_ptr<SurfaceBufferEntry>> surfaceBufferEntryVec_;
+    std::mutex surfaceBufferEntryMutex_;
 #endif
     std::vector<std::shared_ptr<ExtendDrawFuncObj>> drawFuncObjVec_;
     std::mutex drawFuncObjMutex_;

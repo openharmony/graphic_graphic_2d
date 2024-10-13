@@ -33,7 +33,7 @@ CmdList::CmdList(const CmdListData& cmdListData)
 CmdList::~CmdList()
 {
 #ifdef ROSEN_OHOS
-    surfaceBufferVec_.clear();
+    surfaceBufferEntryVec_.clear();
 #endif
 }
 
@@ -326,38 +326,38 @@ uint32_t CmdList::GetOpCnt() const
 }
 
 #ifdef ROSEN_OHOS
-uint32_t CmdList::AddSurfaceBuffer(const sptr<SurfaceBuffer>& surfaceBuffer)
+uint32_t CmdList::AddSurfaceBufferEntry(const std::shared_ptr<SurfaceBufferEntry>& surfaceBufferEntry)
 {
-    std::lock_guard<std::mutex> lock(surfaceBufferMutex_);
-    surfaceBufferVec_.emplace_back(surfaceBuffer);
-    return static_cast<uint32_t>(surfaceBufferVec_.size()) - 1;
+    std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+    surfaceBufferEntryVec_.emplace_back(surfaceBufferEntry);
+    return static_cast<uint32_t>(surfaceBufferEntryVec_.size()) - 1;
 }
 
-sptr<SurfaceBuffer> CmdList::GetSurfaceBuffer(uint32_t id)
+std::shared_ptr<SurfaceBufferEntry> CmdList::GetSurfaceBufferEntry(uint32_t id)
 {
-    std::lock_guard<std::mutex> lock(surfaceBufferMutex_);
-    if (id >= surfaceBufferVec_.size()) {
+    std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+    if (id >= surfaceBufferEntryVec_.size()) {
         return nullptr;
     }
-    return surfaceBufferVec_[id];
+    return surfaceBufferEntryVec_[id];
 }
 
-uint32_t CmdList::GetAllSurfaceBuffer(std::vector<sptr<SurfaceBuffer>>& objectList)
+uint32_t CmdList::GetAllSurfaceBufferEntry(std::vector<std::shared_ptr<SurfaceBufferEntry>>& objectList)
 {
-    std::lock_guard<std::mutex> lock(surfaceBufferMutex_);
-    for (const auto &object : surfaceBufferVec_) {
+    std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+    for (const auto &object : surfaceBufferEntryVec_) {
         objectList.emplace_back(object);
     }
     return static_cast<uint32_t>(objectList.size());
 }
 
-uint32_t CmdList::SetupSurfaceBuffer(const std::vector<sptr<SurfaceBuffer>>& objectList)
+uint32_t CmdList::SetupSurfaceBufferEntry(const std::vector<std::shared_ptr<SurfaceBufferEntry>>& objectList)
 {
-    std::lock_guard<std::mutex> lock(surfaceBufferMutex_);
+    std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
     for (const auto &object : objectList) {
-        surfaceBufferVec_.emplace_back(object);
+        surfaceBufferEntryVec_.emplace_back(object);
     }
-    return static_cast<uint32_t>(surfaceBufferVec_.size());
+    return static_cast<uint32_t>(surfaceBufferEntryVec_.size());
 }
 #endif
 
