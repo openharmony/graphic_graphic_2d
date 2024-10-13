@@ -221,9 +221,14 @@ public:
     virtual const RSLayerInfo& GetLayerInfo() const;
     virtual const RectI& GetAbsDrawRect() const
     {
-        static const RectI defaultRect = {};
-        return defaultRect;
+        return absDrawRect_;
     }
+
+    void SetAbsDrawRect(RectI& absRect)
+    {
+        absDrawRect_ = absRect;
+    }
+
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
     virtual bool IsLeashWindow() const { return true; }
@@ -298,6 +303,7 @@ private:
     float alpha_ = 1.0f;
     // this rect should map display coordination
     RectF localDrawRect_;
+    RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
 

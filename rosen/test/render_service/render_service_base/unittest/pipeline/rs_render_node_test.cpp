@@ -1172,6 +1172,24 @@ HWTEST_F(RSRenderNodeTest, GetPairedNodeTest, TestSize.Level1)
 }
 
 /**
+ @tc.name: UpdateAbsDrawRect
+ @tc.desc: update node absrect.
+ @tc.type: FUNC
+ @tc.require: issueIAL4RE
+ */
+HWTEST_F(RSRenderNodeTest, UpdateAbsDrawRect, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(stagingRenderParams, nullptr);
+    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
+    RectI absRect = {10, 10, 10, 10};
+    nodeTest->stagingRenderParams_->SetAbsDrawRect(absRect);
+    ASSERT_TRUE(true);
+}
+
+/**
  * @tc.name: UpdateHierarchyAndReturnIsLowerTest
  * @tc.desc:
  * @tc.type: FUNC

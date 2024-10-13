@@ -294,6 +294,7 @@ public:
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     const RectF& GetSelfDrawRect() const;
     const RectI& GetAbsDrawRect() const;
+    void UpdateAbsDrawRect();
 
     void ResetChangeState();
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
