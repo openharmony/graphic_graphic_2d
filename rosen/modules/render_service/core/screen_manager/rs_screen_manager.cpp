@@ -616,14 +616,6 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
 
     screens_[id] = std::make_unique<RSScreen>(id, isVirtual, output, nullptr);
 
-    auto vsyncSampler = CreateVSyncSampler();
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        RegSetScreenVsyncEnabledCallbackForMainThread(id);
-    } else {
-        RegSetScreenVsyncEnabledCallbackForHardwareThread(id);
-    }
-
     if (screens_[id]->GetCapability().type == GraphicInterfaceType::GRAPHIC_DISP_INTF_MIPI) {
         if (!mipiCheckInFirstHotPlugEvent_) {
             defaultScreenId_ = id;
@@ -631,6 +623,20 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
         mipiCheckInFirstHotPlugEvent_ = true;
     } else if (defaultScreenId_ == INVALID_SCREEN_ID) {
         defaultScreenId_ = id;
+    }
+
+    ScreenId vsyncEnabledScreenId = id;
+    if (RSSystemProperties::IsPcType() || RSSystemProperties::IsTabletType()) {
+        vsyncEnabledScreenId = defaultScreenId_;
+        if (defaultScreenId_ == id) {
+            screens_[id]->SetScreenVsyncEnabled(true);
+        }
+    }
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RegSetScreenVsyncEnabledCallbackForMainThread(vsyncEnabledScreenId);
+    } else {
+        RegSetScreenVsyncEnabledCallbackForHardwareThread(vsyncEnabledScreenId);
     }
 
     RS_LOGI("RSScreenManager %{public}s: A new screen(id %{public}" PRIu64 ") connected.", __func__, id);
@@ -664,9 +670,10 @@ void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput>
     }
 
     ScreenId vsyncEnabledScreenId = INVALID_SCREEN_ID;
-    auto it = screens_.end();
-    if (screens_.size() != 0) {
-        vsyncEnabledScreenId = (--it)->first;
+    if (RSSystemProperties::IsPcType() || RSSystemProperties::IsTabletType()) {
+        vsyncEnabledScreenId = defaultScreenId_;
+    } else if (screens_.size() != 0) {
+        vsyncEnabledScreenId = screens_.rbegin()->first;
     }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
