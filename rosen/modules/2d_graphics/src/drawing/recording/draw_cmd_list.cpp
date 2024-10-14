@@ -354,7 +354,7 @@ void DrawCmdList::GenerateCache(Canvas* canvas, const Rect* rect)
 #endif
 }
 
-bool DrawCmdList::GetIsCache()
+bool DrawCmdList::GetIsCache() const
 {
     return isCached_;
 }
@@ -364,7 +364,7 @@ void DrawCmdList::SetIsCache(bool isCached)
     isCached_ = isCached;
 }
 
-bool DrawCmdList::GetCachedHighContrast()
+bool DrawCmdList::GetCachedHighContrast() const
 {
     return cachedHighContrast_;
 }
@@ -455,6 +455,12 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
         bool replaceSuccess = player.GenerateCachedOpItem(curOpItemPtr->GetType(), itemPtr);
         if (replaceSuccess) {
             replacedOpListForBuffer_.push_back({offset, lastOpItemOffset_.value()});
+            itemPtr = opAllocator_.OffsetToAddr(offset);
+            curOpItemPtr = static_cast<OpItem*>(itemPtr);
+            if (curOpItemPtr == nullptr) {
+                LOGE("DrawCmdList::GenerateCache failed, opItem is nullptr");
+                break;
+            }
         }
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0 && offset < maxOffset);
