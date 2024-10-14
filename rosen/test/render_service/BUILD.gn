@@ -71,6 +71,7 @@ group("test") {
     "render_service_base/fuzztest/rsrenderframeratelinkermap_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrendernodemap_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsrenderparams_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderserviceconnecthub_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderserviceconnectionproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderserviceconnectionproxy_fuzzer:fuzztest",
