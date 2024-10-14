@@ -958,26 +958,22 @@ napi_value JsFont::OnCreatePathForText(napi_env env, napi_callback_info info)
 
     std::string text = "";
     if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
-        ROSEN_LOGE("Argv[ARGC_ZERO] is invalid, The text input must be string");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the first parameter");
     }
 
     uint32_t byteLength = 0;
     if (!ConvertFromJsNumber(env, argv[ARGC_ONE], byteLength)) {
-        ROSEN_LOGE("Argv[ARGC_ONE] is invalid, The byteLength input must be valid");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the second parameter");
     }
 
     double x = 0.0;
     if (!ConvertFromJsNumber(env, argv[ARGC_TWO], x)) {
-        ROSEN_LOGE("Argv[ARGC_TWO] is invalid, The x input must be valid");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the third parameter");
     }
 
     double y = 0.0;
     if (!ConvertFromJsNumber(env, argv[ARGC_THREE], y)) {
-        ROSEN_LOGE("Argv[ARGC_THREE] is invalid, The y input must be valid");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the fourth parameter");
     }
 
     Path* path = new Path();
