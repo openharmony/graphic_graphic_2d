@@ -236,7 +236,7 @@ private:
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> stagingPixelStretch_;
     int pixelStretchTileMode_ = 0;
-    int stagingPixelStretchTileMode_ = 0;
+    int stagePixelStretchTileMode_ = 0;
     bool boundsGeoValid_ = false;
     bool stagingBoundsGeoValid_ = false;
     RectF boundsRect_;
