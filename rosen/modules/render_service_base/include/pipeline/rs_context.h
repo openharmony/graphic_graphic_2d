@@ -50,8 +50,9 @@ public:
 
 #ifndef ROSEN_CROSS_PLATFORM
     struct BufferInfo {
-        const sptr<SurfaceBuffer> buffer;
-        const sptr<IConsumerSurface> consumer;
+        NodeId id = INVALID_NODEID;
+        sptr<SurfaceBuffer> buffer;
+        sptr<IConsumerSurface> consumer;
         bool useFence = false;
     };
 #endif

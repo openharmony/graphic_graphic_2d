@@ -162,7 +162,6 @@ private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
-    void ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks);
     void PerfForBlurIfNeeded();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

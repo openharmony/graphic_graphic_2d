@@ -540,6 +540,16 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+bool RSBackgroundFilterDrawable::FuzePixelStretch(const RSRenderNode& node)
+{
+    return RSPropertyDrawableUtils::RSFilterSetPixelStretch(node.GetRenderProperties(), stagingFilter_);
+}
+
+void RSBackgroundFilterDrawable::RemovePixelStretch()
+{
+    RSPropertyDrawableUtils::RSFilterRemovePixelStretch(stagingFilter_);
+}
+
 bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 {
     stagingNodeId_ = node.GetId();
@@ -562,10 +572,6 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
 {
     auto ptr = std::static_pointer_cast<const RSBackgroundEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas == nullptr || rect == nullptr) {
-            RS_LOGE("RSBackgroundEffectDrawable::DrawBackgroundEffect data error");
-            return;
-        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         Drawing::AutoCanvasRestore acr(*canvas, true);
         paintFilterCanvas->ClipRect(*rect);

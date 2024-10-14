@@ -483,6 +483,7 @@ private:
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
+    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Color backgroundColor_ = RgbPalette::Transparent();
 
     RectI dstRect_;
@@ -490,7 +491,6 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
-    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region opaqueRegion_;
 
@@ -511,7 +511,6 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
-    sptr<SurfaceBuffer> preBufferFence_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
 #endif

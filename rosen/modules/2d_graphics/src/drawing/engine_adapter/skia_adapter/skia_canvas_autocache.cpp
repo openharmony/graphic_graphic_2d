@@ -221,6 +221,7 @@ void SkiaCanvasAutoCache::ShowDrawResult(const SkRect& bound)
         SkRect &rect = drawAreaRects[i];
         LOGD("opinc rect[%u], [%.2f %.2f %.2f %.2f]", i, rect.x(), rect.y(), rect.width(), rect.height());
     }
+
     int j = 0;
     for (auto& iter : debugNotSupportOps_) {
         LOGD("opinc ops[%d] [%s %d]", j, iter.first.c_str(), iter.second);
@@ -270,8 +271,8 @@ bool SkiaCanvasAutoCache::RecordDrawArea(const SkRect& bounds, const SkPaint& pa
 
     if (PaintCanCache(paint) && paint.canComputeFastBounds()) {
         SkRect oriBound = matrix ? matrix->mapRect(bounds) : bounds;
-        SkRect devRect = getTotalMatrix().mapRect(paint.computeFastBounds(oriBound, &oriBound));
-        if (!devRect.isEmpty()) {
+        SkRect devRect  = getTotalMatrix().mapRect(paint.computeFastBounds(oriBound, &oriBound));
+        if (!devRect .isEmpty()) {
             drawAreaRects_.push_back(devRect);
             totalOpNums_++;
             totalDrawAreas_ += std::min(std::max(static_cast<int>(devRect.width()), 0), MAX_DRAW_RECT) *

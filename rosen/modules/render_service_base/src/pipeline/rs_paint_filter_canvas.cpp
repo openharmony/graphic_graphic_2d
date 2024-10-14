@@ -366,7 +366,7 @@ bool RSPaintFilterCanvasBase::OpCalculateBefore(const Matrix& matrix)
     return false;
 }
 
-std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Rect& bound)
+std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Drawing::Rect& bound)
 {
     if (canvas_ != nullptr && OnFilter()) {
         return canvas_->OpCalculateAfter(bound);

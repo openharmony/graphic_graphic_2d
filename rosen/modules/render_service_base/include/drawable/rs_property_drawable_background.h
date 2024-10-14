@@ -118,6 +118,7 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 private:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat);
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
     void ReleaseNativeWindowBuffer();
     void SetCompressedDataForASTC();
@@ -140,6 +141,8 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    void RemovePixelStretch();
+    bool FuzePixelStretch(const RSRenderNode& node);
 };
 
 class RSBackgroundEffectDrawable : public RSFilterDrawable {

@@ -2119,7 +2119,8 @@ void RSRenderNode::SetOccludedStatus(bool occluded)
 void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
-        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(), GetRenderProperties());
+        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(),
+            std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry()));
         RSPropertyTrace::GetInstance().TracePropertiesByNodeName(GetId(), GetNodeName(), GetRenderProperties());
     }
 }
@@ -2451,6 +2452,8 @@ void RSRenderNode::UpdateDrawableVecV2()
     }
     // Step 2: Update or regenerate drawable if needed
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
+    // Step 2.1 (optional): fuze some drawables
+    RSDrawable::FuzeDrawableSlots(*this, drawableVec_);
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
@@ -3969,6 +3972,12 @@ bool RSRenderNode::UpdateLocalDrawRect()
 {
     auto drawRect = selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>());
     return stagingRenderParams_->SetLocalDrawRect(drawRect);
+}
+
+void RSRenderNode::UpdateAbsDrawRect()
+{
+    auto absRect = GetAbsDrawRect();
+    stagingRenderParams_->SetAbsDrawRect(absRect);
 }
 
 void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)

@@ -291,6 +291,7 @@ public:
         }
     }
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
+    void ConsumeAndUpdateBuffer(const uint64_t& vsyncTimestamp);
     void CacheBuffer(SurfaceBufferEntry buffer);
     RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
     bool HasBufferCache() const;
@@ -305,6 +306,8 @@ protected:
 
 private:
     void ReleaseBuffer(SurfaceBufferEntry& buffer);
+    void ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer);
+    void GetBufferFromCacheLocked(const uint64_t& vsyncTimestamp, RSSurfaceHandler::SurfaceBufferEntry& buffer);
 
 #ifndef ROSEN_CROSS_PLATFORM
     ScalingMode scalingModePre = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
