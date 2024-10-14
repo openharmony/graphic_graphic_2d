@@ -649,6 +649,7 @@ CacheProcessStatus& RSUifirstManager::GetUifirstCachedState(NodeId id)
 RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawableState(
     const std::shared_ptr<RSRenderNode>& node)
 {
+    auto isPreDoing = IsPreFirstLevelNodeDoingAndTryClear(node);
     auto drawable = node->GetRenderDrawable();
     if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
         RS_LOGE("RSUifirstManager::CollectSkipSyncNode drawable/params nullptr");
@@ -667,7 +668,7 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
 
     if (curRootIdState == CacheProcessStatus::DOING || curRootIdState == CacheProcessStatus::WAITING ||
         /* unknow state to check prefirstLevelNode */
-        (uifirstRootId == INVALID_NODEID && IsPreFirstLevelNodeDoing(node))) {
+        (uifirstRootId == INVALID_NODEID && isPreDoing)) {
         pendingSyncForSkipBefore_[uifirstRootId].push_back(node);
         auto isUifirstRootNode = (uifirstRootId == node->GetId());
         RS_OPTIONAL_TRACE_NAME_FMT("%s %" PRIu64 " root%" PRIu64,
@@ -782,7 +783,7 @@ void RSUifirstManager::ForceClearSubthreadRes()
     RSSubThreadManager::Instance()->ReleaseTexture();
 }
 
-bool RSUifirstManager::IsPreFirstLevelNodeDoing(std::shared_ptr<RSRenderNode> node)
+bool RSUifirstManager::IsPreFirstLevelNodeDoingAndTryClear(std::shared_ptr<RSRenderNode> node)
 {
     if (!node) {
         return true;
@@ -804,7 +805,7 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
     bool isFocusNodeFound = false;
     for (auto& item : pendingNode) {
         auto const& [id, value] = item;
-        if (IsPreFirstLevelNodeDoing(value)) {
+        if (IsPreFirstLevelNodeDoingAndTryClear(value)) {
             continue;
         }
         auto drawable = GetSurfaceDrawableByID(id);
