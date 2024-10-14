@@ -140,6 +140,8 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    void RemovePixelStretch();
+    bool FuzePixelStretch(const RSRenderNode& node);
 };
 
 class RSBackgroundEffectDrawable : public RSFilterDrawable {

@@ -612,6 +612,17 @@ HWTEST_F(RSSystemPropertiesTest, GetKawaseEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetMESABlurFuzedEnabled
+ * @tc.desc: GetMESABlurFuzedEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetMESABlurFuzedEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetMESABlurFuzedEnabled());
+}
+
+/**
  * @tc.name: SetForceHpsBlurDisabled
  * @tc.desc: SetForceHpsBlurDisabled Test
  * @tc.type:FUNC

@@ -2452,6 +2452,8 @@ void RSRenderNode::UpdateDrawableVecV2()
     }
     // Step 2: Update or regenerate drawable if needed
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
+    // Step 2.1 (optional): fuze some drawables
+    RSDrawable::FuzeDrawableSlots(*this, drawableVec_);
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
