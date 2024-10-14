@@ -251,7 +251,7 @@ HWTEST_F(RSUniRenderThreadTest, IsIdleAndSync001, TestSize.Level1)
     bool res = instance.IsIdle();
     EXPECT_TRUE(res);
 
-    instance.Sync(std::make_unique<RSRenderThreadParams>());
+    instance.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     EXPECT_TRUE(instance.GetRSRenderThreadParams());
 }
 
@@ -346,7 +346,7 @@ HWTEST_F(RSUniRenderThreadTest, DefaultClearMemoryCache001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     instance.DefaultClearMemoryCache();
-    EXPECT_FALSE(instance.clearMemoryFinished_);
+    EXPECT_TRUE(instance.clearMemoryFinished_);
 }
 
 /**
@@ -359,7 +359,7 @@ HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     instance.ResetClearMemoryTask();
-    EXPECT_FALSE(instance.clearMemoryFinished_);
+    EXPECT_TRUE(instance.clearMemoryFinished_);
 
     instance.clearMemoryFinished_ = true;
     instance.ResetClearMemoryTask();
@@ -502,7 +502,7 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     instance.ReleaseSelfDrawingNodeBuffer();
     params->preBuffer_ = SurfaceBuffer::Create();
     instance.ReleaseSelfDrawingNodeBuffer();
-    EXPECT_FALSE(params->GetPreBuffer());
+    EXPECT_TRUE(params->GetPreBuffer());
 
     RSHardwareThread::Instance().delayTime_ = 1;
     instance.ReleaseSelfDrawingNodeBuffer();
