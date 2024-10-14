@@ -201,9 +201,7 @@ bool SkiaImage::BuildFromCompressed(GPUContext& gpuContext, const std::shared_pt
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
         auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
-        // If current colorSpace is null, we use SRGB as default.
-        skColorSpace = colorSpaceImpl ? (colorSpaceImpl->GetColorSpace() ?
-            colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB()) : SkColorSpace::MakeSRGB();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     }
     skiaImage_ = SkImage::MakeTextureFromCompressed(grContext_.get(),
         skData, width, height, static_cast<SkImage::CompressionType>(type),
@@ -234,9 +232,7 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
         auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
-        // If current colorSpace is null, we use SRGB as default.
-        skColorSpace = colorSpaceImpl ? (colorSpaceImpl->GetColorSpace() ?
-            colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB()) : SkColorSpace::MakeSRGB();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     } else {
         skColorSpace = SkColorSpace::MakeSRGB();
     }

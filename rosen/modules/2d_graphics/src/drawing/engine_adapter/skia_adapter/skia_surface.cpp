@@ -197,9 +197,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
         auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
-        // If current colorSpace is null, we use SRGB as default.
-        skColorSpace = colorSpaceImpl ? (colorSpaceImpl->GetColorSpace() ?
-            colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB()) : SkColorSpace::MakeSRGB();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     } else {
         skColorSpace = SkColorSpace::MakeSRGB();
     }
@@ -232,9 +230,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
         auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
-        // If current colorSpace is null, we use SRGB as default.
-        skColorSpace = colorSpaceImpl ? (colorSpaceImpl->GetColorSpace() ?
-            colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB()) : SkColorSpace::MakeSRGB();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
     } else {
         skColorSpace = SkColorSpace::MakeSRGB();
     }
