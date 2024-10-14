@@ -63,20 +63,6 @@ static void SetThreadHighPriority()
     sched_setscheduler(0, SCHED_FIFO, &param);
 }
 
-static uint32_t CalculateRefreshRate(int64_t period)
-{
-    if (period > 30000000 && period < 35000000) { // 30000000ns, 35000000ns
-        return 30; // 30hz
-    } else if (period > 15000000 && period < 18000000) { // 15000000ns, 18000000ns
-        return 60; // 60hz
-    } else if (period > 10000000 && period < 12000000) { // 10000000ns, 12000000ns
-        return 90; // 90hz
-    } else if (period > 7500000 && period < 9000000) { // 7500000ns, 9000000ns
-        return 120; // 120hz
-    }
-    return 0;
-}
-
 static bool IsPcType()
 {
     static bool isPc = (system::GetParameter("const.product.devicetype", "pc") == "pc") ||
@@ -94,6 +80,25 @@ static bool IsPCRefreshRateLock60()
 
 std::once_flag VSyncGenerator::createFlag_;
 sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::instance_ = nullptr;
+
+uint32_t CalculateRefreshRate(int64_t period)
+{
+    static struct {
+        int min;
+        int max;
+        int refreshRate;
+    } rateSections[] = {
+        {30000000, 35000000, 30}, // 30000000ns, 35000000ns
+        {15000000, 18000000, 60}, // 15000000ns, 18000000ns
+        {10000000, 12000000, 90}, // 10000000ns, 12000000ns
+        {7500000, 9000000, 120}}; // 7500000ns, 9000000ns
+    for (const auto& rateSection : rateSections) {
+        if (period > rateSection.min && period < rateSection.max) {
+            return rateSection.refreshRate;
+        }
+    }
+    return 0;
+}
 
 sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::GetInstance() noexcept
 {
