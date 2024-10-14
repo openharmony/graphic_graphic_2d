@@ -497,10 +497,10 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckAndUpdateFilterCacheOcclusionTest
     vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> allSurfaceDrawable{surfaceDrawableAdapter};
     params->SetAllMainAndLeashSurfaceDrawables(allSurfaceDrawable);
 
-    surfaceParams->isMainWindowType_ = false;
+    surfaceParams->windowInfo.isMainWindowType_ = false;
     RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
 
-    surfaceParams->isMainWindowType_ = true;
+    surfaceParams->windowInfo.isMainWindowType_ = true;
     RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
 }
 
