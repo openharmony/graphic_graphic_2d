@@ -62,7 +62,6 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
     const ScreenInfo& screenInfo)
 #endif
 {
-    std::vector<std::pair<NodeId, RoundCornerDisplayManager::RCDLayerType>> rcdLayerInfoList;
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -72,15 +71,8 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             continue;
         }
         auto layerSurface = layer->GetSurface();
-        if (layerSurface != nullptr) {
-            auto rcdlayerInfo = RSRcdManager::GetInstance().GetNodeId(layerSurface->GetName());
-            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
-                rcdLayerInfoList.push_back(rcdlayerInfo);
-                continue;
-            }
-        } else {
-            RS_LOGE("RSUniRenderEngine::DrawLayers layerSurface is nullptr");
-            continue;
+        if (layerSurface == nullptr || RSRcdManager::GetInstance().CheckLayerIsRCD(layerSurface->GetName())) {
+            continue; // current flow skip rcd layer wich not have resource to canvas draw
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
         auto dstRect = layer->GetLayerSize();
@@ -133,10 +125,6 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
     }
 
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
-
-    if (RSRcdManager::GetInstance().GetRcdEnable()) {
-        RSRcdManager::GetInstance().DrawRoundCorner(rcdLayerInfoList, &canvas);
-    }
 }
 
 void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,

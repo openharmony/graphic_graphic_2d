@@ -1651,13 +1651,15 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     prevalidLayers.insert(prevalidLayers.end(), uiFirstLayers.begin(), uiFirstLayers.end());
     // add rcd layer
     RequestLayerInfo rcdLayer;
-    auto rcdSurface = RSRcdRenderManager::GetInstance().GetBackgroundSurfaceNodes(curDisplayNode_->GetId());
-    if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(rcdSurface, screenInfo_, curFps, rcdLayer)) {
-        prevalidLayers.emplace_back(rcdLayer);
-    }
-    rcdSurface = RSRcdRenderManager::GetInstance().GetContentSurfaceNodes(curDisplayNode_->GetId());
-    if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(rcdSurface, screenInfo_, curFps, rcdLayer)) {
-        prevalidLayers.emplace_back(rcdLayer);
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        auto rcdSurface = RSRcdRenderManager::GetInstance().GetBottomSurfaceNode(curDisplayNode_->GetId());
+        if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(rcdSurface, screenInfo_, curFps, rcdLayer)) {
+            prevalidLayers.emplace_back(rcdLayer);
+        }
+        rcdSurface = RSRcdRenderManager::GetInstance().GetTopSurfaceNode(curDisplayNode_->GetId());
+        if (RSUniHwcPrevalidateUtil::GetInstance().CreateRCDLayerInfo(rcdSurface, screenInfo_, curFps, rcdLayer)) {
+            prevalidLayers.emplace_back(rcdLayer);
+        }
     }
     std::map<uint64_t, RequestCompositionType> strategy;
     if (!RSUniHwcPrevalidateUtil::GetInstance().PreValidate(screenInfo_.id, prevalidLayers, strategy)) {

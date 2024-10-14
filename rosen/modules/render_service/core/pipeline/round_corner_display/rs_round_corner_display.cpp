@@ -37,6 +37,7 @@ RoundCornerDisplay::~RoundCornerDisplay()
 
 bool RoundCornerDisplay::Init()
 {
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
     LoadConfigFile();
     SeletedLcdModel(rs_rcd::ATTR_DEFAULT);
     LoadImgsbyResolution(displayWidth_, displayHeight_);
@@ -263,7 +264,6 @@ void RoundCornerDisplay::UpdateHardwareResourcePrepared(bool prepared)
         hardInfo_.resourcePreparing = false;
         hardInfo_.resourceChanged = !prepared;
     }
-    resourceDesyncCnt = 0;
 }
 
 void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag)
@@ -285,12 +285,6 @@ void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag
         hardInfo_.resourceChanged = resourceChanged; // output
         hardInfo_.resourcePreparing = false; // output
         resourceChanged = false; // reset
-
-        resourceDesyncCnt++;
-        const int desyncAlertThreshold = 2;
-        if (resourceDesyncCnt == desyncAlertThreshold) {
-            RS_LOGI("[%{public}s] Resource desync appeared \n", __func__);
-        }
     } else {
         RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] Status is not changed \n", __func__);
     }
