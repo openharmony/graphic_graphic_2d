@@ -7083,7 +7083,7 @@ HWTEST_F(RSNodeTest, UpdateGlobalGeometry, TestSize.Level1)
     rsNode->globalGeometry_ = parentGlobalGeometry;
     rsNode->UpdateGlobalGeometry(parentGlobalGeometry);
     EXPECT_NE(rsNode->GetGlobalGeometry(), nullptr);
-    EXPECT_EQ(rsNode->GetGlobalPositionX(), 0.f);
-    EXPECT_EQ(rsNode->GetGlobalPositionY(), 0.f);
+    EXPECT_EQ(rsNode->GetGlobalPositionX(), -INFINITY);
+    EXPECT_EQ(rsNode->GetGlobalPositionY(), -INFINITY);
 }
 } // namespace OHOS::Rosen
