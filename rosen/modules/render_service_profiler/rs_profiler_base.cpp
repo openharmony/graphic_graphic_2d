@@ -85,7 +85,6 @@ constexpr size_t GetParcelMaxCapacity()
 
 bool RSProfiler::IsEnabled()
 {
-    static const bool ENABLED = RSSystemProperties::GetProfilerEnabled();
     return false || testing_; // temporarily disable profiler
 }
 
