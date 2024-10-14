@@ -573,10 +573,6 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
 {
     auto ptr = std::static_pointer_cast<const RSBackgroundEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas == nullptr || rect == nullptr) {
-            RS_LOGE("RSBackgroundEffectDrawable::DrawBackgroundEffect data error");
-            return;
-        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         Drawing::AutoCanvasRestore acr(*canvas, true);
         paintFilterCanvas->ClipRect(*rect);
