@@ -113,9 +113,9 @@ public:
         return timestamp_;
     }
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
-        return selfDrawingNodes_;
+        return selfDrawables_;
     }
 
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
@@ -416,7 +416,7 @@ private:
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
