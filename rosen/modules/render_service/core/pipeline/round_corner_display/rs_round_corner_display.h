@@ -84,7 +84,6 @@ public:
 
     void RunHardwareTask(const std::function<void()>& task)
     {
-        std::lock_guard<std::mutex> lock(resourceMut_);
         if (!supportHardware_) {
             return;
         }
@@ -162,7 +161,6 @@ private:
 
     // load single image as Drawingimage
     static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
-
     static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
     bool SetHardwareLayerSize();
 
