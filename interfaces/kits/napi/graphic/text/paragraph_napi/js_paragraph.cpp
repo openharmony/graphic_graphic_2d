@@ -88,6 +88,7 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getFontMetricsByTextStyle", JsParagraph::GetFontMetricsByTextStyle),
         DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
         DECLARE_NAPI_FUNCTION("layout", JsParagraph::LayoutAsync),
+        DECLARE_NAPI_FUNCTION("isStrutStyleEqual", JsParagraph::IsStrutStyleEqual),
     };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
@@ -833,5 +834,31 @@ napi_value JsParagraph::OnLayoutAsync(napi_env env, napi_callback_info info)
         output = NapiGetUndefined(env);
     };
     return NapiAsyncWork::Enqueue(env, context, "onLayoutAsync", executor, complete);
+}
+
+napi_value JsParagraph::IsStrutStyleEqual(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_TWO;
+    napi_value argv[ARGC_TWO] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_TWO) {
+        TEXT_LOGE("Argc is invalid: %{public}zu", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+    }
+
+    TypographyStyle styleFrom;
+    if (!SetStrutStyleFromJS(env, argv[0], styleFrom)) {
+        TEXT_LOGE("Argv[0] is invalid");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+    }
+
+    TypographyStyle styleTo;
+    if (!SetStrutStyleFromJS(env, argv[1], styleTo)) {
+        TEXT_LOGE("Argv[1] is invalid");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+    }
+
+    bool equal = (styleFrom == styleTo);
+    return CreateJsValue(env, equal);
 }
 } // namespace OHOS::Rosen
