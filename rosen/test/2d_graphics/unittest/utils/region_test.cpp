@@ -259,6 +259,34 @@ HWTEST_F(RegionTest, OpTest007, TestSize.Level1)
     other.SetRect(otherRectI);
     EXPECT_TRUE(region->Op(other, RegionOp::REPLACE));
 }
+
+/**
+ * @tc.name: CloneTest001
+ * @tc.desc: test for clone func
+ * @tc.type: FUNC
+ * @tc.require: I766AZ
+ */
+HWTEST_F(RegionTest, CloneTest001, TestSize.Level1)
+{
+    Region region;
+    // rect, left: 0, top: 0, right: 2, bottom: 2
+    RectI rectI(0, 0, 2, 2);
+    region.SetRect(rectI);
+    // point(1, 1) is inside rect
+    EXPECT_TRUE(region.Contains(1, 1));
+    Region other(region);
+    EXPECT_TRUE(other.Contains(1, 1));
+
+    Region region2;
+    // rect, left: 10, top: 10, right: 20, bottom: 20
+    RectI rectI2(10, 10, 20, 20);
+    region2.SetRect(rectI2);
+    // point(15, 15) is inside rect
+    EXPECT_TRUE(region2.Contains(15, 15));
+    Region other2;
+    other2 = region2;
+    EXPECT_TRUE(region2.Contains(15, 15));
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
