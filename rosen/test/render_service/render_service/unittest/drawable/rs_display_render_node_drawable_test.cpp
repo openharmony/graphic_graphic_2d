@@ -28,6 +28,7 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "platform/drawing/rs_surface_converter.h"
+#include "pipeline/rs_render_engine.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -634,9 +635,9 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff002, TestSize.Le
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
     ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_TRUE(displayDrawable_->SkipDisplayIfScreenOff());
+    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_TRUE(displayDrawable_->SkipDisplayIfScreenOff());
+    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
 }
 
 /**
@@ -666,10 +667,10 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff003, TestSize.Le
 
     screenManager->ResetPowerOffNeedProcessOneFrame();
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_TRUE(displayDrawable_->SkipDisplayIfScreenOff());
+    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
     screenManager->ResetPowerOffNeedProcessOneFrame();
     screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_TRUE(displayDrawable_->SkipDisplayIfScreenOff());
+    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
 }
 
 /**
@@ -1006,6 +1007,12 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilter, TestSize.Level1)
 
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
     displayDrawable_->SwitchColorFilter(canvas);
+    displayDrawable_->SwitchColorFilter(canvas, 0.6);
+
+    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_ENABLE_MODE;
+    displayDrawable_->SwitchColorFilter(canvas);
+    displayDrawable_->SwitchColorFilter(canvas, 0.6);
+
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
