@@ -86,7 +86,7 @@ constexpr size_t GetParcelMaxCapacity()
 bool RSProfiler::IsEnabled()
 {
     static const bool ENABLED = RSSystemProperties::GetProfilerEnabled();
-    return ENABLED || testing_;
+    return false || testing_; // temporarily disable profiler
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -954,7 +954,7 @@ void RSProfiler::EnableBetaRecord()
 
 bool RSProfiler::IsBetaRecordEnabled()
 {
-    return RSSystemProperties::GetBetaRecordingMode() != 0;
+    return false; // temporarily disable profiler beta record
 }
 
 bool RSProfiler::IsBetaRecordSavingTriggered()
