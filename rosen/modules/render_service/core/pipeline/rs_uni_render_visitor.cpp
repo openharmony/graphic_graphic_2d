@@ -1231,8 +1231,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         CheckCurtainScreenUsingStatusChange() ||
         IsFirstFrameOfPartialRender() ||
         IsWatermarkFlagChanged() ||
+        zoomStateChange_ ||
         isCompleteRenderEnabled_ ||
-        IsDisplayZoomStateChange() ||
         CheckLuminanceStatusChange() ||
         IsFirstFrameOfOverdrawSwitch();
     if (ret) {
@@ -1296,15 +1296,15 @@ bool RSUniRenderVisitor::IsWatermarkFlagChanged() const
     }
 }
 
-bool RSUniRenderVisitor::IsDisplayZoomStateChange() const
+void RSUniRenderVisitor::UpdateDisplayZoomState()
 {
     if (!curDisplayNode_) {
-        return false;
+        return;
     }
     auto scale = curDisplayNode_->GetRenderProperties().GetScale();
     bool curZoomState = scale.x_ > 1.f || scale.y_ > 1.f;
     curDisplayNode_->UpdateZoomState(curZoomState);
-    return curZoomState || curDisplayNode_->IsZoomStateChange();
+    zoomStateChange_ = curZoomState || curDisplayNode_->IsZoomStateChange();
 }
 
 void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node)
@@ -1358,11 +1358,12 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     if (!InitDisplayInfo(node)) {
         return;
     }
+    UpdateDisplayZoomState();
     SendRcdMessage(node);
     UpdateVirtualScreenSecurityExemption(node);
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
-    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_;
+    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_;
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
