@@ -471,8 +471,6 @@ public:
         return brightnessRatio_;
     }
 
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) override;
-    NodeId GetRootIdOfCaptureWindow() const override;
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -548,7 +546,6 @@ private:
     int32_t sdrNit_ = 500; // default sdrNit
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;
