@@ -59,6 +59,9 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height, DrawCmdList::UnmarshalMo
 
 DrawCmdList::~DrawCmdList()
 {
+    if (drawOpItems_.size() == 0) {
+        UnmarshallingDrawOps();
+    }
     ClearOp();
 }
 
