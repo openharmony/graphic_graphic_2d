@@ -448,7 +448,6 @@ public:
     void SetSpherize(float spherizeDegree);
     float GetSpherize() const;
     bool IsSpherizeValid() const;
-    void CreateSphereEffectFilter();
 
     void SetLightUpEffect(float lightUpEffectDegree);
     float GetLightUpEffect() const;

@@ -2344,16 +2344,6 @@ bool RSProperties::IsSpherizeValid() const
     return isSpherizeValid_;
 }
 
-void RSProperties::CreateSphereEffectFilter()
-{
-    auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
-    if (IS_UNI_RENDER) {
-        foregroundFilterCache_ = spherizeEffectFilter;
-    } else {
-        foregroundFilter_ = spherizeEffectFilter;
-    }
-}
-
 void RSProperties::CreateFlyOutShaderFilter()
 {
     uint32_t flyMode = flyOutParams_->flyMode;
@@ -4081,7 +4071,12 @@ void RSProperties::UpdateForegroundFilter()
             foregroundFilter_ = foregroundEffectFilter;
         }
     } else if (IsSpherizeValid()) {
-        CreateSphereEffectFilter();
+        auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
+        if (IS_UNI_RENDER) {
+            foregroundFilterCache_ = spherizeEffectFilter;
+        } else {
+            foregroundFilter_ = spherizeEffectFilter;
+        }
     } else if (IsFlyOutValid()) {
         CreateFlyOutShaderFilter();
     } else if (GetShadowMask()) {
