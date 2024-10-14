@@ -30,6 +30,7 @@
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "surface_buffer.h"
+#include "sync_fence.h"
 #include "external_window.h"
 #endif
 #ifdef RS_ENABLE_VK
@@ -42,9 +43,9 @@ namespace Rosen {
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
-        pid_t pid = {}, uint64_t uid = {})
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr)
         : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
-          pid_(pid), uid_(uid)
+          pid_(pid), uid_(uid), acquireFence_(acquireFence)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     int offSetX_ = 0;
@@ -53,6 +54,7 @@ struct DrawingSurfaceBufferInfo {
     int height_ = 0;
     pid_t pid_ = {};
     uint64_t uid_ = {};
+    sptr<SyncFence> acquireFence_ = nullptr;
 };
 #endif
 
@@ -232,7 +234,7 @@ public:
         ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
             pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid),
+            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr),
             paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;
