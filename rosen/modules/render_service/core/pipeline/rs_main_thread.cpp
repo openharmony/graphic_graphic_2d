@@ -2813,12 +2813,8 @@ void RSMainThread::Animate(uint64_t timestamp)
     RSRenderAnimation::isCalcAnimateVelocity_ = isRateDeciderEnabled;
     uint32_t totalAnimationSize = 0;
     uint32_t animatingNodeSize = context_->animatingNodeList_.size();
-    bool needPrintAnimationDFX = false;
+    bool needPrintAnimationDFX = IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP) ? true : false;
     std::set<pid_t> animationPids;
-    if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
-        auto screenManager = CreateOrGetScreenManager();
-        needPrintAnimationDFX = screenManager != nullptr && screenManager->IsAllScreensPowerOff();
-    }
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
         [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled, &totalAnimationSize,
