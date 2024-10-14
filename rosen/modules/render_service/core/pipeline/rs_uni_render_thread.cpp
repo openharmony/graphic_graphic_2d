@@ -296,9 +296,9 @@ bool RSUniRenderThread::IsIdle() const
     return handler_ ? handler_->IsIdle() : false;
 }
 
-void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams)
+void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams)
 {
-    renderThreadParams_ = std::move(stagingRenderThreadParams);
+    renderParamsManager_.SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
 }
 
 void RSUniRenderThread::Render()
@@ -324,11 +324,12 @@ void RSUniRenderThread::Render()
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
-    if (!renderThreadParams_) {
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    if (!renderThreadParams) {
         return;
     }
     std::vector<std::function<void()>> releaseTasks;
-    for (const auto& drawable : renderThreadParams_->GetSelfDrawables()) {
+    for (const auto& drawable : renderThreadParams->GetSelfDrawables()) {
         if (UNLIKELY(!drawable)) {
             continue;
         }
@@ -406,17 +407,20 @@ void RSUniRenderThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& su
 
 uint64_t RSUniRenderThread::GetCurrentTimestamp() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetCurrentTimestamp() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetCurrentTimestamp() : 0;
 }
 
 uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetPendingScreenRefreshRate() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetPendingScreenRefreshRate() : 0;
 }
 
 uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetPendingConstraintRelativeTime() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetPendingConstraintRelativeTime() : 0;
 }
 
 #ifdef RES_SCHED_ENABLE
@@ -557,17 +561,20 @@ uint32_t RSUniRenderThread::GetRefreshRate() const
 
 std::shared_ptr<Drawing::Image> RSUniRenderThread::GetWatermarkImg()
 {
-    return renderThreadParams_ ? renderThreadParams_->GetWatermarkImg() : nullptr;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetWatermarkImg() : nullptr;
 }
 
 bool RSUniRenderThread::GetWatermarkFlag() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetWatermarkFlag() : false;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetWatermarkFlag() : false;
 }
 
 bool RSUniRenderThread::IsCurtainScreenOn() const
 {
-    return renderThreadParams_ ? renderThreadParams_->IsCurtainScreenOn() : false;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->IsCurtainScreenOn() : false;
 }
 
  std::string FormatNumber(size_t number)

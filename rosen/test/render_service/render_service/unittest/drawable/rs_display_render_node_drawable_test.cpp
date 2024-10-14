@@ -160,8 +160,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
 {
     ASSERT_NE(displayDrawable_, nullptr);
     auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     }
     NodeId id = 1;
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(id);
@@ -170,8 +170,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(id);
     auto drawable2 = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode2);
     surfaceNode2->InitRenderParams();
-    rtThread.renderThreadParams_->hardwareEnabledTypeDrawables_.push_back(drawable1);
-    rtThread.renderThreadParams_->hardwareEnabledTypeDrawables_.push_back(drawable2);
+    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(drawable1);
+    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(drawable2);
     ASSERT_NE(renderNode_, nullptr);
     renderNode_->GetMutableRenderProperties().SetFrameWidth(DEFAULT_CANVAS_SIZE);
     renderNode_->GetMutableRenderProperties().SetFrameHeight(DEFAULT_CANVAS_SIZE);
@@ -189,11 +189,13 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawCurtainScreen, TestSize.Level1)
     ASSERT_NE(displayDrawable_, nullptr);
     displayDrawable_->DrawCurtainScreen();
     ASSERT_TRUE(!RSUniRenderThread::Instance().IsCurtainScreenOn());
-
-    RSUniRenderThread::Instance().renderThreadParams_->isCurtainScreenOn_ = true;
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->isCurtainScreenOn_ = true;
+    RSUniRenderThread::Instance().Sync(move(params));
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isCurtainScreenOn_ = true;
     displayDrawable_->DrawCurtainScreen();
     ASSERT_TRUE(RSUniRenderThread::Instance().IsCurtainScreenOn());
-    RSUniRenderThread::Instance().renderThreadParams_->isCurtainScreenOn_ = false;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isCurtainScreenOn_ = false;
 }
 
 /**
@@ -212,15 +214,15 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed, TestSize.Level1)
         displayDrawable_->DrawWatermarkIfNeed(*params, *canvas_);
     }
 
-    ASSERT_TRUE(RSUniRenderThread::Instance().renderThreadParams_);
+    ASSERT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams());
 
-    RSUniRenderThread::Instance().renderThreadParams_->watermarkFlag_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->watermarkFlag_ = true;
     displayDrawable_->DrawWatermarkIfNeed(*params, *canvas_);
 
-    RSUniRenderThread::Instance().renderThreadParams_->watermarkImg_ = std::make_shared<Drawing::Image>();
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->watermarkImg_ = std::make_shared<Drawing::Image>();
     displayDrawable_->DrawWatermarkIfNeed(*params, *canvas_);
-    RSUniRenderThread::Instance().renderThreadParams_->watermarkFlag_ = false;
-    RSUniRenderThread::Instance().renderThreadParams_->watermarkImg_ = nullptr;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->watermarkFlag_ = false;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->watermarkImg_ = nullptr;
 }
 
 /**
@@ -268,8 +270,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen002
     Drawing::Matrix canvasMatrix;
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto& rtThread = RSUniRenderThread::Instance();
-    if (rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_->isVirtualDirtyEnabled_ = false;
+    if (rtThread.GetRSRenderThreadParams()) {
+        rtThread.GetRSRenderThreadParams()->isVirtualDirtyEnabled_ = false;
     }
     auto damageRects = displayDrawable_->CalculateVirtualDirtyForWiredScreen(
         renderFrame, *params, canvasMatrix);
@@ -295,8 +297,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen003
     Drawing::Matrix canvasMatrix;
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto& rtThread = RSUniRenderThread::Instance();
-    if (rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_->isVirtualDirtyEnabled_ = true;
+    if (rtThread.GetRSRenderThreadParams()) {
+        rtThread.GetRSRenderThreadParams()->isVirtualDirtyEnabled_ = true;
     }
     auto damageRects = displayDrawable_->CalculateVirtualDirtyForWiredScreen(
         renderFrame, *params, canvasMatrix);
@@ -322,8 +324,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen004
     Drawing::Matrix canvasMatrix;
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto& rtThread = RSUniRenderThread::Instance();
-    if (rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_->isVirtualDirtyEnabled_ = true;
+    if (rtThread.GetRSRenderThreadParams()) {
+        rtThread.GetRSRenderThreadParams()->isVirtualDirtyEnabled_ = true;
     }
     displayDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>(false);
     const Drawing::scalar scale = 100.0f;
@@ -352,8 +354,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen005
     Drawing::Matrix canvasMatrix;
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto& rtThread = RSUniRenderThread::Instance();
-    if (rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_->isVirtualDirtyEnabled_ = true;
+    if (rtThread.GetRSRenderThreadParams()) {
+        rtThread.GetRSRenderThreadParams()->isVirtualDirtyEnabled_ = true;
     }
     displayDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>(false);
     displayDrawable_->syncDirtyManager_->dirtyRegion_ = RectI(0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
@@ -380,9 +382,9 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen006
     Drawing::Matrix canvasMatrix;
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     auto& rtThread = RSUniRenderThread::Instance();
-    if (rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_->isVirtualDirtyEnabled_ = true;
-        rtThread.renderThreadParams_->isVirtualDirtyDfxEnabled_ = true;
+    if (rtThread.GetRSRenderThreadParams()) {
+        rtThread.GetRSRenderThreadParams()->isVirtualDirtyEnabled_ = true;
+        rtThread.GetRSRenderThreadParams()->isVirtualDirtyDfxEnabled_ = true;
     }
     displayDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>(false);
     auto damageRects = displayDrawable_->CalculateVirtualDirtyForWiredScreen(
@@ -432,6 +434,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     auto result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
@@ -496,10 +499,10 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorScreenTest, TestSize.Level1)
     ASSERT_NE(mirroredNode_, nullptr);
 
     auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
-    rtThread.renderThreadParams_->isVirtualDirtyEnabled_ = true;
+    rtThread.GetRSRenderThreadParams()->isVirtualDirtyEnabled_ = true;
     CaptureParam param;
     param.isSingleSurface_ = true;
     rtThread.SetCaptureParam(param);
@@ -527,8 +530,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Le
     ASSERT_NE(mirroredNode_, nullptr);
 
     auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
@@ -694,8 +697,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, GetSpecialLayerType, TestSize.Level1)
     displayDrawable_->currentBlackList_.insert(0);
     result = displayDrawable_->GetSpecialLayerType(*params);
     ASSERT_EQ(result, 1);
-    auto uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams().get();
-    uniParam->whiteList_.insert(0);
+    RSUniRenderThread::Instance().whiteList_.insert(0);
     result = displayDrawable_->GetSpecialLayerType(*params);
     ASSERT_EQ(result, 1);
 
@@ -708,7 +710,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, GetSpecialLayerType, TestSize.Level1)
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
     params->hasHdrPresent_ = false;
     displayDrawable_->currentBlackList_.clear();
-    uniParam->whiteList_.clear();
+    RSUniRenderThread::Instance().whiteList_.clear();
 }
 
 /**
@@ -813,8 +815,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorCopy, TestSize.Level1)
         mirrorDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
     }
     auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
     if (mirroredNode_->GetRenderDrawable() == nullptr) {
         mirroredNode_->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
@@ -1043,7 +1045,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     displayDrawable_->FindHardwareEnabledNodes(*params);
-    ASSERT_EQ(RSUniRenderThread::Instance().renderThreadParams_->hardwareEnabledTypeDrawables_.size(), 2);
+    ASSERT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.size(), 2);
 }
 
 /**
