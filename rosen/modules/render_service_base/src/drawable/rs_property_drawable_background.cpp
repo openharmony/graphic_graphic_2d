@@ -421,11 +421,11 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
 void RSBackgroundImageDrawable::SetCompressedDataForASTC()
 {
     std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
-    std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-    if (!pixelMap || !fileData || !pixelMap->GetFd()) {
+    if (!pixelMap || !pixelMap->GetFd()) {
         RS_LOGE("SetCompressedDataForASTC fail, data is null");
         return;
     }
+    std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
     // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
     if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
         RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
@@ -441,8 +441,9 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
     } else {
         const void* data = pixelMap->GetPixels();
         if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
-            (data == nullptr || !fileData->BuildWithoutCopy((void*)((char*) data + ASTC_HEADER_SIZE),
-            pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
+            (data == nullptr || !fileData->BuildWithoutCopy(
+                reinterpret_cast<const void *>(reinterpret_cast<const char *>(data) + ASTC_HEADER_SIZE),
+                pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
             RS_LOGE("SetCompressedDataForASTC data BuildWithoutCopy fail");
             return;
         }
