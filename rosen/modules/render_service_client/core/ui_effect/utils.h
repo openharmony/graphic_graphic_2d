@@ -26,8 +26,8 @@ namespace Rosen {
 namespace UIEffect {
 inline bool IsParaSameSign(Vector4f para)
 {
-    return (ROSEN_GNE(para.x_, 0.f) && ROSEN_GNE(para.y_, 0.f) && ROSEN_GNE(para.z_, 0.f) && ROSEN_GNE(para.w_, 0.f)) ||
-        (ROSEN_LNE(para.x_, 0.f) && ROSEN_LNE(para.y_, 0.f) && ROSEN_LNE(para.z_, 0.f) && ROSEN_LNE(para.w_, 0.f));
+    return (ROSEN_GE(para.x_, 0.f) && ROSEN_GE(para.y_, 0.f) && ROSEN_GE(para.z_, 0.f) && ROSEN_GE(para.w_, 0.f)) ||
+        (ROSEN_LE(para.x_, 0.f) && ROSEN_LE(para.y_, 0.f) && ROSEN_LE(para.z_, 0.f) && ROSEN_LE(para.w_, 0.f));
 }
 
 inline float GetLimitedPara(float para, std::pair<float, float> limits = {-INFINITY, INFINITY})
