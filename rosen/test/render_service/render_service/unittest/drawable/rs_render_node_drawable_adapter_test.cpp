@@ -594,7 +594,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, AddToClearTest, TestSize.Level1)
     auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
     std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> drawableVec;
     auto nodeTwo = std::make_shared<RSRenderNode>(0);
-    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> nodeDrawable = 
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> nodeDrawable =
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(nodeTwo);
     drawableVec.emplace_back(nodeDrawable);
     adapter->AddToClearDrawables(drawableVec);
