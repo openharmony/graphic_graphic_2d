@@ -80,7 +80,7 @@ private:
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event);
-    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
+    static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId);
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED);
     static void PostDelayTask(
         const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED);

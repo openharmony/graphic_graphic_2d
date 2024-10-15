@@ -625,9 +625,9 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     RSNode::SharedPtr rsNode = RSCanvasNode::Create();
-    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0, "");
+    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0);
     const NodeId invalidId = 1;
-    director->DumpNodeTreeProcessor(invalidId, 0, 0, "");
+    director->DumpNodeTreeProcessor(invalidId, 0, 0);
     SUCCEED();
 }
 
