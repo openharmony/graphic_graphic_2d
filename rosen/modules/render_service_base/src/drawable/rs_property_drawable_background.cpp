@@ -323,7 +323,7 @@ RSDrawable::Ptr RSBackgroundImageDrawable::OnGenerate(const RSRenderNode& node)
 };
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
+Drawing::ColorType RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {

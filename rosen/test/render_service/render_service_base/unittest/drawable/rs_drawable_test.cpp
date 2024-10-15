@@ -21,7 +21,7 @@
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -84,6 +84,21 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
         ASSERT_TRUE(drawable);
     }
     ASSERT_FALSE(RSDrawable::UpdateDirtySlots(node, drawableVec, dirtySlots));
+    node.GetMutableRenderProperties().SetBackgroundShader(nullptr);
+    ASSERT_TRUE(RSDrawable::UpdateDirtySlots(node, drawableVec, dirtySlots));
+
+    NodeId idTwo = 2;
+    RSRenderNode nodeTwo(idTwo);
+    RSDrawable::Vec drawableVecTwo;
+    ModifierDirtyTypes dirtyTypesTwo;
+    dirtyTypesTwo.set();
+    std::unordered_set<RSDrawableSlot> dirtySlotsTwo = RSDrawable::CalculateDirtySlots(dirtyTypesTwo, drawableVecTwo);
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); i++) {
+        drawableVecTwo[i] = nullptr;
+    }
+    ASSERT_FALSE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
+    nodeTwo.GetMutableRenderProperties().SetBackgroundColor(Color(255, 255, 255, 255));
+    ASSERT_TRUE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
 }
 
 /**
@@ -120,16 +135,19 @@ HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateSaveRestore
+ * @tc.name: UpdateSaveRestore001
  * @tc.desc: Test UpdateSaveRestore
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
-HWTEST_F(RSDrawableTest, UpdateSaveRestore, TestSize.Level1)
+HWTEST_F(RSDrawableTest, UpdateSaveRestore001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSSurfaceRenderNode node(id, context);
+    RSEffectRenderNode node(id);
     RSDrawable::Vec drawableVec;
+    uint8_t drawableVecStatus = 0;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 0);
     auto& properties = node.GetMutableRenderProperties();
     properties.clipToBounds_ = true;
     RectF rect = {1.0, 2.0, 3.0, 4.0};
@@ -139,6 +157,14 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore, TestSize.Level1)
     properties.colorBlendMode_ = 1;
     properties.fgBrightnessParams_ = std::make_optional<RSDynamicBrightnessPara>();
     properties.fgBrightnessParams_->fraction_ = 0;
+
+    drawableVecStatus = 49;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 1);
+    drawableVecStatus = 8;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 1);
+
     node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     drawableVec[static_cast<size_t>(RSDrawableSlot::CONTENT_BEGIN)] = drawable;
@@ -146,7 +172,6 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore, TestSize.Level1)
     drawableVec[static_cast<size_t>(RSDrawableSlot::FG_PROPERTIES_BEGIN)] = drawable;
     drawableVec[static_cast<size_t>(RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN)] = drawable;
     drawableVec[static_cast<size_t>(RSDrawableSlot::EXTRA_PROPERTIES_BEGIN)] = drawable;
-    uint8_t drawableVecStatus = 0;
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
     ASSERT_EQ(drawableVecStatus, 63);
     drawableVecStatus = 53;
@@ -158,5 +183,49 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore, TestSize.Level1)
     drawableVecStatus = 49;
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
     ASSERT_EQ(drawableVecStatus, 63);
+    drawableVecStatus = 8;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 63);
+}
+
+/**
+ * @tc.name: UpdateSaveRestore002
+ * @tc.desc: Test UpdateSaveRestore
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSDrawableTest, UpdateSaveRestore002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSEffectRenderNode node(id);
+    RSDrawable::Vec drawableVec;
+    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
+    uint8_t drawableVecStatus = 2;
+    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
+    drawableVec[static_cast<size_t>(RSDrawableSlot::CONTENT_BEGIN)] = drawable;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 48);
+    drawableVec[static_cast<size_t>(RSDrawableSlot::CONTENT_BEGIN)] = nullptr;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::BG_PROPERTIES_BEGIN)] = drawable;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 42);
+    drawableVec[static_cast<size_t>(RSDrawableSlot::BG_PROPERTIES_BEGIN)] = nullptr;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::FG_PROPERTIES_BEGIN)] = drawable;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 36);
+    drawableVec[static_cast<size_t>(RSDrawableSlot::FG_PROPERTIES_BEGIN)] = nullptr;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN)] = drawable;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 32);
+    drawableVec[static_cast<size_t>(RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN)] = nullptr;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::EXTRA_PROPERTIES_BEGIN)] = drawable;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 32);
+    drawableVec[static_cast<size_t>(RSDrawableSlot::CONTENT_BEGIN)] = drawable;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::BG_PROPERTIES_BEGIN)] = drawable;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::FG_PROPERTIES_BEGIN)] = drawable;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::TRANSITION_PROPERTIES_BEGIN)] = drawable;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
+    ASSERT_EQ(drawableVecStatus, 62);
 }
 } // namespace OHOS::Rosen
