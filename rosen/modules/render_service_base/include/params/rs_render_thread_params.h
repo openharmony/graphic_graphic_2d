@@ -201,6 +201,16 @@ public:
         return isForceCommitLayer_;
     }
 
+    void SetCacheEnabledForRotation(bool flag)
+    {
+        cacheEnabledForRotation_ = flag;
+    }
+
+    bool GetCacheEnabledForRotation() const
+    {
+        return cacheEnabledForRotation_;
+    }
+
     void SetRequestNextVsyncFlag(bool flag)
     {
         needRequestNextVsyncAnimate_ = flag;
@@ -405,6 +415,7 @@ private:
     bool isVirtualDirtyEnabled_ = false;
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
+    bool cacheEnabledForRotation_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
