@@ -58,6 +58,7 @@ ohos_source_set("windows") {
     "$rosen_root/modules/platform:ipc_core",
     "$rosen_root/modules/platform:utils",
   ]
+  public_external_deps = [ "egl:libEGL" ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -65,7 +66,6 @@ ohos_source_set("windows") {
   }
 
   external_deps = [
-    "egl:libEGL",
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
