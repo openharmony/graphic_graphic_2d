@@ -567,11 +567,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 
 void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
 {
-#ifndef ROSEN_CROSS_PLATFORM
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessCanvasRenderNode nodeId is %" PRIu64
                                " GetIsTextureExportNode is %d properties is %s",
         node.GetId(), node.GetIsTextureExportNode(), node.GetRenderProperties().Dump().c_str());
-#endif
     if (!node.ShouldPaint()) {
         return;
     }
