@@ -882,6 +882,9 @@ void RSRenderNode::SubTreeSkipPrepare(
         dirtyManager.MergeDirtyRect(dirtyRectClip);
         UpdateSubTreeSkipDirtyForDFX(dirtyManager, dirtyRectClip);
     }
+    if (isDirty && GetChildrenCount() == 0) {
+        ResetChildRelevantFlags();
+    }
     SetGeoUpdateDelay(accumGeoDirty);
     UpdateSubTreeInfo(clipRect);
     lastFrameSubTreeSkipped_ = true;
