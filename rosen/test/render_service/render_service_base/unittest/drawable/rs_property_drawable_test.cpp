@@ -184,7 +184,6 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest006, TestSize.Level1)
 {
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_EQ(filterDrawable->cacheManager_, nullptr);
 
     filterDrawable->needSync_ = true;
     filterDrawable->stagingFilter_ = nullptr;
@@ -201,12 +200,8 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest006, TestSize.Level1)
     filterDrawable->filter_->type_ = RSFilter::LINEAR_GRADIENT_BLUR;
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
     EXPECT_NE(cacheManager, nullptr);
-    filterDrawable->cacheManager_ = std::move(cacheManager);
-    Drawing::Canvas canvas;
-    Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
-    filterDrawable->CreateDrawFunc()(&canvas, &rect);
     filterDrawable->MarkEffectNode();
-    EXPECT_TRUE(filterDrawable->isEffectNode_);
+    EXPECT_TRUE(filterDrawable->stagingIsEffectNode_);
 }
 
 /**
@@ -280,15 +275,15 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     // RSProperties::FilterCacheEnabled is true
     filterDrawable->ClearFilterCache();
     filterDrawable->filterType_ = RSFilter::AIBAR;
-    filterDrawable->isOccluded_ = true;
+    filterDrawable->stagingIsOccluded_ = true;
     filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->filter_ = std::make_shared<RSFilter>();
     filterDrawable->ClearFilterCache();
     filterDrawable->renderIsEffectNode_ = true;
     filterDrawable->ClearFilterCache();
-    filterDrawable->isOccluded_ = false;
-    filterDrawable->filterRegionChanged_ = true;
-    filterDrawable->clearType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    filterDrawable->stagingIsOccluded_ = false;
+    filterDrawable->stagingFilterRegionChanged_ = true;
+    filterDrawable->stagingClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
     filterDrawable->cacheManager_->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     filterDrawable->ClearFilterCache();
 
@@ -307,12 +302,12 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->filterType_ = RSFilter::AIBAR;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 1);
-    filterDrawable->isAIBarInteractWithHWC_ = true;
+    filterDrawable->stagingIsAIBarInteractWithHWC_ = true;
     filterDrawable->cacheUpdateInterval_ = 0;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 0);
     filterDrawable->cacheUpdateInterval_ = 3;
-    filterDrawable->isAIBarInteractWithHWC_ = true;
+    filterDrawable->stagingIsAIBarInteractWithHWC_ = true;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 2);
 }
