@@ -520,4 +520,35 @@ HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest003, TestSize.Level1)
     director->SetRequestVsyncCallback(callback);
     EXPECT_TRUE(nullptr == director->requestVsyncCallback_);
 }
+
+/**
+ * @tc.name: DumpNodeTreeProcessor001
+ * @tc.desc: DumpNodeTreeProcessor Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    RSNode::SharedPtr rsNode = RSCanvasNode::Create();
+    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0);
+    const NodeId invalidId = 1;
+    director->DumpNodeTreeProcessor(invalidId, 0, 0);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: GetIndexTest001
+ * @tc.desc: GetIndex Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->SendMessages();
+    uint32_t index = director->GetIndex();
+    EXPECT_TRUE(index != 0);
+}
 } // namespace OHOS::Rosen
