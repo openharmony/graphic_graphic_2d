@@ -314,23 +314,6 @@ int main()
 {
     InitNativeTokenInfo();
 
-    uint64_t tokenId;
-    const char *perms[1];
-    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
-    NativeTokenInfoParams infoInstance = {
-        .dcapsNum = 0,
-        .permsNum = 1,
-        .aclsNum = 0,
-        .dcaps = NULL,
-        .perms = perms,
-        .acls = NULL,
-        .processName = "client_modifier_demo",
-        .aplStr = "system_basic",
-    };
-    tokenId = GetAccessTokenId(&infoInstance);
-    SetSelfTokenID(tokenId);
-    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
-
     int cnt = 0;
 
     // Init demo env
