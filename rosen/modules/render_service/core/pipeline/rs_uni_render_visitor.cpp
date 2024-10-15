@@ -316,6 +316,7 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
     if (stagingDisplayParams) {
         stagingDisplayParams->SetNewColorSpace(newColorSpace_);
     }
+    newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
 }
 
 void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
