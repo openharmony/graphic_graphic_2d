@@ -103,7 +103,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
 }
 
 void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
-                                                  std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr)
+                                                   std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr)
 {
     auto id = node->GetId();
     switch (node->GetType()) {
@@ -120,8 +120,8 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::CANVAS_DRAWING_NODE:
-            sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
+            sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(id);
+            sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(id);
             break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(id);
@@ -475,6 +475,7 @@ bool RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec)
     for (auto &drawable: vec) {
         toClearDrawableVec_.push_back(drawable);
     }
+    vec.clear();
 }
 
 bool RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
@@ -482,6 +483,7 @@ bool RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
     for (auto &cmdList: vec) {
         toClearCmdListVec_.push_back(cmdList);
     }
+    vec.clear();
 }
 
 int RSRenderNodeDrawableAdapter::GetCountOfClipHoleForCache(const RSRenderParams& params) const
