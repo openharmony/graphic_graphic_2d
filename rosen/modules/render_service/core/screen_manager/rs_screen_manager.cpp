@@ -1345,18 +1345,21 @@ void RSScreenManager::GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInf
 
 void RSScreenManager::ReleaseScreenDmaBuffer(uint64_t screenId)
 {
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer RSScreenManager is nullptr!");
-        return;
-    }
-    auto output = screenManager->GetOutput(screenId);
-    if (output == nullptr) {
-        RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer HdiOutput is nullptr!");
-        return;
-    }
-    std::vector<LayerInfoPtr> layer;
-    output->SetLayerInfo(layer);
+    RSHardwareThread::Instance().PostTask([screenId]() {
+        RS_TRACE_NAME("RSScreenManager ReleaseScreenDmaBuffer");
+        auto screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer RSScreenManager is nullptr!");
+            return;
+        }
+        auto output = screenManager->GetOutput(screenId);
+        if (output == nullptr) {
+            RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer HdiOutput is nullptr!");
+            return;
+        }
+        std::vector<LayerInfoPtr> layer;
+        output->SetLayerInfo(layer);
+    });
 }
 
 std::vector<RSScreenModeInfo> RSScreenManager::GetScreenSupportedModes(ScreenId id) const
