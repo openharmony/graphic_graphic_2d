@@ -249,25 +249,5 @@ HWTEST_F(RSDistortionFilterTest, IsValid002, TestSize.Level1)
     bool isValid3 = effectFilter.IsValid();
     EXPECT_FALSE(isValid3);
 }
-
-/**
- * @tc.name: GetDirtyExtensiontest
- * @tc.desc: test GetDirtyExtension
- * @tc.type: FUNC
- * @tc.require: issueIAS8IM
- */
-HWTEST_F(RSDistortionFilterTest, GetDirtyExtensiontest, TestSize.Level1)
-{
-    RSDistortionFilter effectFilter(0.5f); // 0.5 is k of value in distortion
-    float width = 200.0f; // set width 200
-    float height = 200.0f; // set width 200
-    auto distortE = effectFilter.GetDirtyExtension(width, height);
-    EXPECT_TRUE(distortE.x_ > 0);
-
-    // if distortK < 0
-    effectFilter.distortionK_ = -0.5f; // -0.5 is k of value in distortion
-    distortE = effectFilter.GetDirtyExtension(width, height);
-    EXPECT_FALSE(distortE.x_ > 0);
-}
 } // namespace Rosen
 } // namespace OHOS

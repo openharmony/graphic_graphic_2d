@@ -913,30 +913,16 @@ void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEff
 void RSPropertiesPainter::GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect,
     const RSProperties& properties, const bool isAbsCoordinate)
 {
-    // checker the distort filter
-    std::shared_ptr<RSFilter> foregroundFilter = properties.GetForegroundFilter();
-    if (!foregroundFilter || foregroundFilter->GetFilterType() != RSFilter::DISTORT) {
-        return;
+    // if the DistortionK > 0, set the dirty bounds to its maximum range value
+    auto distortionK = properties.GetDistortionK();
+    if (distortionK.has_value() && *distortionK > 0) {
+        int dirtyWidth = std::numeric_limits<int>::max();
+        int dirtyBeginpoint = std::numeric_limits<int>::min() / PARAM_DOUBLE;
+        dirtyDistortionEffect.left_ = dirtyBeginpoint;
+        dirtyDistortionEffect.top_ = dirtyBeginpoint;
+        dirtyDistortionEffect.width_ = dirtyWidth;
+        dirtyDistortionEffect.height_ = dirtyWidth;
     }
-
-    // calculate the dirty extension of the bounds after distortion
-    auto boundsRect = properties.GetBoundsRect();
-    auto dirty = std::static_pointer_cast<RSDistortionFilter>(foregroundFilter)->GetDirtyExtension(boundsRect.width_,
-        boundsRect.height_);
-    Vector4f dirtyExtension(dirty.x_, dirty.y_, dirty.x_, dirty.y_);
-    auto scaledBounds = boundsRect.MakeOutset(dirtyExtension);
-
-    // the dirty bounds map to the transform maxtrix of properties
-    auto& geoPtr = properties.GetBoundsGeometry();
-    Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
-    auto drawingRect = Rect2DrawingRect(scaledBounds);
-    matrix.MapRect(drawingRect, drawingRect);
-
-    // the float value to the int value of dirty area
-    dirtyDistortionEffect.left_ = std::floor(drawingRect.GetLeft());
-    dirtyDistortionEffect.top_ = std::floor(drawingRect.GetTop());
-    dirtyDistortionEffect.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
-    dirtyDistortionEffect.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
 }
 
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)

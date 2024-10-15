@@ -94,22 +94,6 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSDistortionFilter::MakeDistortio
     return distortBuilder;
 }
 
-Vector2f RSDistortionFilter::GetDirtyExtension(float width, float height) const
-{
-    Vector2f dirtyExtension(0.0, 0.0);
-    if (distortionK_ > 0) {
-        float distortionKScale = distortionK_ * DISTORTION_SCALE;
-        float x = width * 0.5f; // 0.5: move the center point to the 0 on x-axis
-        float y = height * 0.5f; // 0.5: move the center point to the 0 on y-axis
-        float r = x * x + y * y;
-        float finalX = (1 + distortionKScale * r) * x;
-        float finalY = (1 + distortionKScale * r) * x;
-        dirtyExtension.x_ = fabs(finalX - width);
-        dirtyExtension.y_ = fabs(finalY - height);
-    }
-    return dirtyExtension;
-}
-
 void RSDistortionFilter::DrawDistortion(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
