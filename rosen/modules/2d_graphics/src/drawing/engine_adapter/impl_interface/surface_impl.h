@@ -36,7 +36,7 @@ class Canvas;
 class Image;
 class Surface;
 struct FlushInfo;
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 struct FrameBuffer;
 class ImageInfo;
 class GPUContext;
@@ -49,7 +49,7 @@ public:
     ~SurfaceImpl() override {};
 
     virtual bool Bind(const Bitmap& bitmap) = 0;
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     virtual bool Bind(const Image& image) = 0;
     virtual bool Bind(const FrameBuffer& frameBuffer) = 0;
 #endif

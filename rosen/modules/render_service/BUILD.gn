@@ -282,8 +282,8 @@ ohos_shared_library("librender_service") {
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
   }

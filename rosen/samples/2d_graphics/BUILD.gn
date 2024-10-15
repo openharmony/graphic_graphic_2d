@@ -46,7 +46,7 @@ ohos_executable("drawing_engine_sample") {
     "drawing_engine/software_render_backend.cpp",
   ]
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     if (graphic_2d_feature_enable_vulkan) {
       sources += [
         "drawing_engine/drawing_surface/surface_frame_ohos_vulkan.cpp",

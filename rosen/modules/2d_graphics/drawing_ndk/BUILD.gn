@@ -102,8 +102,8 @@ template("drawing_ndk_source_set") {
     if (is_arkui_x) {
       defines += [ "CROSS_PLATFORM" ]
     }
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]

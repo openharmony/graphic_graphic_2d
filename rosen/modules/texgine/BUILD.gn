@@ -98,8 +98,8 @@ ohos_source_set("libtexgine_source") {
     }
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
-      if (ace_enable_gpu) {
-        defines += [ "ACE_ENABLE_GPU" ]
+      if (rs_enable_gpu) {
+        defines += [ "RS_ENABLE_GPU" ]
       }
     }
     if (enable_text_gine) {

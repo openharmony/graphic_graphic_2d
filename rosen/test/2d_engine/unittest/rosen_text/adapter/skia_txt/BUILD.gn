@@ -59,8 +59,8 @@ ohos_unittest("rosen_text_adapt_test") {
       "USE_ROSEN_DRAWING",
       "USE_SKIA_TXT",
     ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
   }
 

@@ -75,7 +75,7 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_surface_ohos.cpp",
   ]
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     if (graphic_2d_feature_enable_vulkan) {
       sources += [
         "backend/native_buffer_utils.cpp",

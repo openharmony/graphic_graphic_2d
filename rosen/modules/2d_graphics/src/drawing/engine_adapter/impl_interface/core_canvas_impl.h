@@ -29,7 +29,7 @@
 #include "draw/OpListHandle.h"
 #include "image/bitmap.h"
 #include "image/image_info.h"
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "image/gpu_context.h"
 #endif
 #include "image/image.h"
@@ -71,7 +71,7 @@ public:
     virtual Rect GetLocalClipBounds() const = 0;
     virtual RectI GetDeviceClipBounds() const = 0;
     virtual RectI GetRoundInDeviceClipBounds() const = 0;
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     virtual std::shared_ptr<GPUContext> GetGPUContext() const = 0;
 #endif
     virtual int32_t GetWidth() const = 0;
