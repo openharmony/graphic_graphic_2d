@@ -209,7 +209,8 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
-    bool useBatchRemoving = RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
+    bool useBatchRemoving =
+        RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     EraseIf(renderNodeMap_, [pid, useBatchRemoving](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {
