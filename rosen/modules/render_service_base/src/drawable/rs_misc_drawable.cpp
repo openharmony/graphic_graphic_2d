@@ -48,13 +48,13 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
             if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
                 continue;
             }
-            auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)
+            auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child);
             if (!childDrawable) {
                 continue;
             }
             if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
-                    childDrawable->SetSkip(SkipType::NONE);
-                }
+                childDrawable->SetSkip(SkipType::NONE);
+            }
             stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     } else {
@@ -130,7 +130,7 @@ void RSChildrenDrawable::OnSync()
         return;
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
-    RSRenderNodeDrawableAdapter::AddToClearCmdList(stagingChildrenDrawableVec_;)
+    RSRenderNodeDrawableAdapter::AddToClearDrawables(stagingChildrenDrawableVec_);
     needSync_ = false;
 }
 
@@ -201,7 +201,7 @@ void RSCustomModifierDrawable::OnSync()
     gravity_ = stagingGravity_;
     isCanvasNode_ = stagingIsCanvasNode_;
     std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
-    RSRenderNodeDrawableAdapter::AddToClearCmdList(stagingDrawCmdListVec_;)
+    RSRenderNodeDrawableAdapter::AddToClearCmdList(stagingDrawCmdListVec_);
     needSync_ = false;
 }
 
