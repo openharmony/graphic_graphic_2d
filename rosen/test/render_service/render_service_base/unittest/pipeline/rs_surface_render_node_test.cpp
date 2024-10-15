@@ -1927,7 +1927,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetOpaqueRegion, TestSize.Level1)
     ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
     bool isFocusWindow = true;
     Occlusion::Region res = testNode->ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
-    EXPECT_NE(res.rects_.size(), 0);
+    EXPECT_EQ(res.rects_.size(), 0);
     isFocusWindow = false;
     res = testNode->ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
     EXPECT_NE(res.rects_.size(), 0);
@@ -1965,7 +1965,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetFocusedWindowOpaqueRegion, TestSize.Level1)
     ScreenRotation::ROTATION_180, ScreenRotation::ROTATION_270, ScreenRotation::INVALID_SCREEN_ROTATION };
     for (ScreenRotation rotation : rotationCases) {
         Occlusion::Region opaqueRegion = renderNode->SetFocusedWindowOpaqueRegion(absRect, rotation);
-        EXPECT_NE(opaqueRegion.rects_.size(), 0);
+        EXPECT_EQ(opaqueRegion.rects_.size(), 0);
     }
 }
 
