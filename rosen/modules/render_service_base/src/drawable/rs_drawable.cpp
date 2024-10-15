@@ -127,6 +127,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_WIDTH
     RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_GAP
     RSDrawableSlot::OUTLINE,                       // OUTLINE_RADIUS
+    RSDrawableSlot::CHILDREN,                      // USE_SHADOW_BATCHING
     RSDrawableSlot::INVALID,                       // GREY_COEF
     RSDrawableSlot::POINT_LIGHT,                   // LIGHT_INTENSITY
     RSDrawableSlot::POINT_LIGHT,                   // LIGHT_COLOR
@@ -134,11 +135,10 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_BORDER_WIDTH
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_TYPE
     RSDrawableSlot::POINT_LIGHT,                   // BLOOM
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
-    RSDrawableSlot::CHILDREN,                      // USE_SHADOW_BATCHING
-    RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_EMITTER_UPDATER
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_NOISE_FIELD
+    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
+    RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_DEGREE
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_PARAMS
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
