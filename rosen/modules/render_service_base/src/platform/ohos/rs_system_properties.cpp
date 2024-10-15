@@ -1070,6 +1070,14 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return ConvertToInt(num, 1) != 0;
 }
 
+bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.batchRemovingOnRemoteDied.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return isUniRenderEnabled_ && ConvertToInt(num, 1) != 0;
+}
+
 std::string RSSystemProperties::GetVersionType()
 {
     static std::string versionType = system::GetParameter("const.logsystem.versiontype", "");

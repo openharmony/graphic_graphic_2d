@@ -34,7 +34,13 @@ public:
 void RSRenderNodeGCTest::SetUpTestCase() {}
 void RSRenderNodeGCTest::TearDownTestCase() {}
 void RSRenderNodeGCTest::SetUp() {}
-void RSRenderNodeGCTest::TearDown() {}
+void RSRenderNodeGCTest::TearDown()
+{
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    while (nodeGC.offTreeBucket_.size() > 0) {
+        nodeGC.offTreeBucket_.pop();
+    }
+}
 
 /**
  * @tc.name: NodeDestructor001
@@ -113,6 +119,61 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseDrawableMemory001, TestSize.Level1)
     node.DrawableDestructorInner(ptrToNode);
     node.ReleaseDrawableMemory();
     EXPECT_TRUE(node.drawableBucket_.size() == 0);
+}
+
+/**
+ * @tc.name: AddToOffTreeNodeBucket001
+ * @tc.desc: test results of AddToOffTreeNodeBucket, while bucket queue is empty.
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, AddToOffTreeNodeBucket001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    NodeId id = 1;
+    auto node = std::make_shared<RSBaseRenderNode>(id);
+    nodeGC.AddToOffTreeNodeBucket(node);
+    ASSERT_EQ(nodeGC.offTreeBucket_.size(), 1);
+}
+
+/**
+ * @tc.name: AddToOffTreeNodeBucket002
+ * @tc.desc: test results of AddToOffTreeNodeBucket, while bucket is full.
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, AddToOffTreeNodeBucket002, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    NodeId id = 1;
+    auto node = std::make_shared<RSBaseRenderNode>(id);
+    nodeGC.offTreeBucket_.push(std::vector<std::shared_ptr<RSBaseRenderNode>>(OFF_TREE_BUCKET_MAX_SIZE, nullptr));
+    nodeGC.AddToOffTreeNodeBucket(node);
+    ASSERT_EQ(nodeGC.offTreeBucket_.size(), 2);
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeBucket
+ * @tc.desc: test results of ReleaseOffTreeNodeBucket, expect node off tree and queue is empty
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    NodeId id = 1;
+    auto parent = std::make_shared<RSBaseRenderNode>(id);
+    auto child = std::make_shared<RSBaseRenderNode>(++id);
+    parent->AddChild(child);
+    parent->GenerateFullChildrenList();
+    parent->SetIsOnTheTree(true);
+    child->SetIsOnTheTree(true);
+    nodeGC.AddToOffTreeNodeBucket(parent);
+    nodeGC.AddToOffTreeNodeBucket(child);
+    ASSERT_EQ(parent->fullChildrenList_->size(), 1);
+    nodeGC.ReleaseOffTreeNodeBucket();
+    ASSERT_EQ(parent->fullChildrenList_->size(), 0);
+    ASSERT_EQ(child->GetParent().lock(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS
