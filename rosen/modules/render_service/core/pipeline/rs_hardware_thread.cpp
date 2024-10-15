@@ -22,6 +22,7 @@
 #include "hdi_backend.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "hisysevent.h"
 #include "parameters.h"
 #include "rs_realtime_refresh_rate_manager.h"
 #include "rs_trace.h"
@@ -67,6 +68,9 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+constexpr uint32_t HARD_JANK_TWO = 2;
+constexpr int64_t REFRESH_PERIOD = 16667; // 16667us == 16.667ms
+constexpr int64_t INTERVAL_TIME = 500000; // 5s == 5000000us
 }
 
 RSHardwareThread& RSHardwareThread::Instance()
@@ -175,9 +179,13 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
+        // start
+        auto startCurTime = std::chrono::system_clock::now().time_since_epoch();
+        int64_t startTime = std::chrono::duration_cast<std::chrono::microseconds>(startCurTime).count();
         if (output == nullptr || hdiBackend_ == nullptr) {
             return;
         }
+
         int64_t startTimeNs = 0;
         int64_t endTimeNs = 0;
         bool hasGameScene = FrameReport::GetInstance().HasGameScene();
@@ -213,6 +221,21 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             " HARDWARE_THREAD_TASK_NUM:%{public}d", unExecuteTaskNum_.load(), HARDWARE_THREAD_TASK_NUM);
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
+        }
+        // end
+        auto endCurTime = std::chrono::system_clock::now().time_since_epoch();
+        int64_t endTime = std::chrono::duration_cast<std::chrono::microseconds>(startCurTime).count();
+        RS_LOGE("startCurTime:%{public}" PRIu64 " endCurTime:%{public}" PRIu64 "", startTime, endTime);
+        uint64_t frameTime = endTime - startTime;
+        uint32_t missedFrames = frameTime / REFRESH_PERIOD;
+        uint16_t frameRate = currentRate;
+        if (missedFrames >= HARD_JANK_TWO && endTime - intervalTimePoints > INTERVAL_TIME) {
+            RS_LOGI("hardware jank frameTime: %{public}" PRIu64 "missedFrame: %{public}" PRIu32
+                " frameRate:%{public}" PRIu16 "", frameTime, missedFrames, frameRate);
+            intervalTimePoints = endTime;
+            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_HARDWARE_THREAD_LOAD_WARNING",
+                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "FRAME_RATE", frameRate, "MISSED_FRAMES",
+                missedFrames, "FRAME_TIME", frameTime);
         }
     };
     RSBaseRenderUtil::IncAcquiredBufferCount();
