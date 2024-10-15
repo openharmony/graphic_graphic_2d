@@ -130,7 +130,7 @@ void RSChildrenDrawable::OnSync()
         return;
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
-    stagingChildrenDrawableVec_.clear();
+    RSRenderNodeDrawableAdapter::AddToClearCmdList(stagingChildrenDrawableVec_;)
     needSync_ = false;
 }
 
@@ -201,7 +201,7 @@ void RSCustomModifierDrawable::OnSync()
     gravity_ = stagingGravity_;
     isCanvasNode_ = stagingIsCanvasNode_;
     std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
-    stagingDrawCmdListVec_.clear();
+    RSRenderNodeDrawableAdapter::AddToClearCmdList(stagingDrawCmdListVec_;)
     needSync_ = false;
 }
 
@@ -324,7 +324,7 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
 {
     auto ptr = std::static_pointer_cast<const RSBeginBlenderDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas->GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
+        if (canvas->GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
             return;
         }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
