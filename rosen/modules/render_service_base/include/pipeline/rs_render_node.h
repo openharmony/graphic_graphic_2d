@@ -834,7 +834,7 @@ protected:
     ModifierDirtyTypes curDirtyTypes_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
     bool lastFrameSynced_ = true;
-    bool clipAbsDrawRectChange_ = false;
+    bool absDrawRectChange_ = false;
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
@@ -1009,7 +1009,7 @@ private:
 
     void SetParent(WeakPtr parent);
     void ResetParent();
-    void UpdateClipAbsDrawRectChangeState(const RectI& clipRect);
+    void UpdateAbsDrawRectChangeState();
     bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
