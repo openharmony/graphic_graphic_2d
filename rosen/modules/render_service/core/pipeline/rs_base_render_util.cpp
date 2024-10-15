@@ -1378,6 +1378,8 @@ bool RSBaseRenderUtil::CreateNewColorGamutBitmap(sptr<OHOS::SurfaceBuffer> buffe
     }
 }
 
+pid_t RSBaseRenderUtil::lastSendingPid_ = 0;
+
 std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(MessageParcel& parcel)
 {
     RS_TRACE_NAME("UnMarsh RSTransactionData: data size:" + std::to_string(parcel.GetDataSize()));
@@ -1387,7 +1389,8 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(Messag
         RS_LOGE("UnMarsh RSTransactionData fail!");
         return nullptr;
     }
-    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(transactionData->GetSendingPid()));
+    lastSendingPid_ = transactionData->GetSendingPid();
+    RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(lastSendingPid_));
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;
 }
@@ -1771,6 +1774,11 @@ void RSBaseRenderUtil::DecAcquiredBufferCount()
 {
     --acquiredBufferCount_;
     RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
+}
+
+pid_t RSBaseRenderUtil::GetLastSendingPid()
+{
+    return lastSendingPid_;
 }
 
 } // namespace Rosen

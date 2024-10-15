@@ -1627,7 +1627,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             const auto& globalDirtyRegionInfo = GetGlobalDirtyRegionInfo();
             if (!reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber) ||
-                !reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber)) {
+                !reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.mostSendingPidWhenDisplayNodeSkip)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
