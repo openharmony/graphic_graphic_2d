@@ -188,20 +188,18 @@ HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | 
         .minRefreshRate = 60,
         .maxRefreshRate = 60,
     };
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo1);
-    if (DelayedSingleton<RSFrameRateVote>::GetInstance())
+    if (DelayedSingleton<RSFrameRateVote>::GetInstance() == nullptr)
     {
-        ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
+       return;
     }
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo1);
+    ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
     EventInfo eventInfo2 = {
         .eventName = "VOTER_VIDEO",
         .eventStatus = false,
     };
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
-    if (DelayedSingleton<RSFrameRateVote>::GetInstance())
-    {
-        ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
-    }
+    ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
 }
 } // namespace Rosen
