@@ -188,9 +188,8 @@ HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | 
         .minRefreshRate = 60,
         .maxRefreshRate = 60,
     };
-    if (DelayedSingleton<RSFrameRateVote>::GetInstance() == nullptr)
-    {
-       return;
+    if (DelayedSingleton<RSFrameRateVote>::GetInstance() == nullptr){
+        return;
     }
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo1);
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
