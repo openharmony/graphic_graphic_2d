@@ -90,12 +90,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     ASSERT_TRUE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
 
     canvas.recordingState_ = true;
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());;
     drawable->OnDraw(canvas);
-    RSUniRenderThread::Instance().renderThreadParams_->isOpDropped_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams() = true;
     drawable->OnDraw(canvas);
     ASSERT_NE(drawable->renderParams_, nullptr);
-    RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
+    RSUniRenderThread::Instance().Sync(nullptr);
 }
 
 /**
@@ -115,7 +115,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     drawable->surface_ = std::make_unique<Drawing::Surface>();
     drawable->surface_->cachedCanvas_ = std::make_unique<Drawing::Canvas>(0, 0);
     drawable->image_ = std::make_shared<Drawing::Image>();
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     drawable->DrawRenderContent(canvas, dst);
 }
 

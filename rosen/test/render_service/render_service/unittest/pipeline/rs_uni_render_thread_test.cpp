@@ -251,9 +251,8 @@ HWTEST_F(RSUniRenderThreadTest, IsIdleAndSync001, TestSize.Level1)
     bool res = instance.IsIdle();
     EXPECT_TRUE(res);
 
-    std::unique_ptr<RSRenderThreadParams> stagingRenderThreadParams = std::make_unique<RSRenderThreadParams>();
-    instance.Sync(stagingRenderThreadParams);
-    EXPECT_TRUE(instance.renderThreadParams_);
+    instance.Sync(std::make_unique<RSRenderThreadParams>());
+    EXPECT_TRUE(instance.renderParamsManager_.renderThreadParams_);
 }
 
 /**
@@ -494,7 +493,7 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     auto surfaceDrawable =
         std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceRenderNode->renderDrawable_);
     surfaceDrawable->consumerOnDraw_ = IConsumerSurface::Create();
-    instance.renderThreadParams_->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
+    instance.renderParamsManager_.renderThreadParams_->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->GetRenderParams().get());
     instance.ReleaseSelfDrawingNodeBuffer();
     EXPECT_FALSE(params->GetPreBuffer());

@@ -164,7 +164,7 @@ void RSDrawFrame::Sync()
     }
     pendingSyncNodes.clear();
 
-    unirenderInstance_.Sync(stagingRenderThreadParams_);
+    unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 }
 
 void RSDrawFrame::UnblockMainThread()
