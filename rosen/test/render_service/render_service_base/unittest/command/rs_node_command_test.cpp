@@ -316,7 +316,7 @@ HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
 {
     RSContext context;
     bool flag = false;
-    auto func = [&] (NodeId, pid_t, uint32_t, const std::string&) { flag = true; };
+    auto func = [&flag] (NodeId, pid_t, uint32_t, const std::string&) { flag = true; };
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(func);
     RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, "");
     ASSERT_TRUE(flag);
