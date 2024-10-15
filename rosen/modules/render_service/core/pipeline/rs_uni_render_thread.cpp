@@ -262,6 +262,12 @@ void RSUniRenderThread::RunImageReleaseTask()
     }
 }
 
+void RSUniRenderThread::ClearResource()
+{
+    RunImageReleaseTask();
+    DrawableV2::RSRenderNodeDrawableAdapter::ClearResource();
+}
+
 void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
     AppExecFwk::EventQueue::Priority priority)
 {
@@ -316,39 +322,13 @@ void RSUniRenderThread::Render()
     PerfForBlurIfNeeded();
 }
 
-void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    auto& bufferToRelease = RSMainThread::Instance()->GetContext().GetMutableSkipSyncBuffer();
-    if (bufferToRelease.empty()) {
-        return;
-    }
-    for (const auto& item : bufferToRelease) {
-        if (!item.buffer || !item.consumer) {
-            continue;
-        }
-        auto releaseTask = [buffer = item.buffer, consumer = item.consumer,
-            useReleaseFence = item.useFence, acquireFence = acquireFence_]() mutable {
-            auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
-                RSHardwareThread::Instance().releaseFence_ : acquireFence);
-            if (ret != OHOS::SURFACE_ERROR_OK) {
-                RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
-            }
-        };
-        tasks.emplace_back(releaseTask);
-    }
-    bufferToRelease.clear();
-#endif
-}
-
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
     if (!renderThreadParams_) {
         return;
     }
     std::vector<std::function<void()>> releaseTasks;
-    for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
-        auto drawable = surfaceNode->GetRenderDrawable();
+    for (const auto& drawable : renderThreadParams_->GetSelfDrawables()) {
         if (UNLIKELY(!drawable)) {
             continue;
         }
@@ -392,7 +372,6 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             }
         }
     }
-    ReleaseSkipSyncBuffer(releaseTasks);
     if (releaseTasks.empty()) {
         return;
     }

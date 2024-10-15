@@ -103,8 +103,8 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
 
     double dy = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, dy);
-    int32_t argb[ARGC_FOUR] = {0};
 
+    int32_t argb[ARGC_FOUR] = {0};
     if (!ConvertFromJsColor(env, argv[ARGC_THREE], argb, ARGC_FOUR)) {
         ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,

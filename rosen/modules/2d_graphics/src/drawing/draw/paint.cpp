@@ -44,7 +44,6 @@ Paint::Paint(const Paint& other) noexcept
     blender_ = other.blender_;
     blenderEnabled_ = other.blenderEnabled_;
     blurDrawLooper_ = other.blurDrawLooper_;
-    hdrImage_ = other.hdrImage_;
 }
 
 Paint::Paint(const Color& c, std::shared_ptr<ColorSpace> colorSpace) noexcept
@@ -73,7 +72,6 @@ Paint& Paint::operator=(const Paint& other)
     blender_ = other.blender_;
     blenderEnabled_ = other.blenderEnabled_;
     blurDrawLooper_ = other.blurDrawLooper_;
-    hdrImage_ = other.hdrImage_;
     return *this;
 }
 
@@ -238,11 +236,6 @@ void Paint::SetAntiAlias(bool aa)
     antiAlias_ = aa;
 }
 
-void Paint::SetHDRImage(bool hdrImage)
-{
-    hdrImage_ = hdrImage;
-}
-
 void Paint::Reset()
 {
     antiAlias_ = false;
@@ -255,7 +248,6 @@ void Paint::Reset()
     cap_ = Pen::CapStyle::DEFAULT_CAP;
 
     hasFilter_ = false;
-    hdrImage_ = false;
     filter_.Reset();
 
     colorSpace_ = nullptr;

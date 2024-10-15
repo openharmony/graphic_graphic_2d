@@ -33,11 +33,11 @@ enum class DirtyRegionDebugType {
     MULTI_HISTORY,
     CURRENT_SUB_AND_WHOLE,
     CURRENT_WHOLE_AND_MULTI_HISTORY,
-    EGL_DAMAGE, // all dirty region infomation, includes detailed app dirty region and global dirty.
-    DISPLAY_DIRTY, // detailed global dirty (before merge rect).
+    EGL_DAMAGE,
+    DISPLAY_DIRTY,
     CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
-    UPDATE_DIRTY_REGION, // dirty region for each node.
-    OVERLAY_RECT,   // drawRegion
+    UPDATE_DIRTY_REGION,
+    OVERLAY_RECT,
     FILTER_RECT,
     SHADOW_RECT,
     PREPARE_CLIP_RECT,
@@ -45,7 +45,7 @@ enum class DirtyRegionDebugType {
     RENDER_PROPERTIES_RECT,
     CANVAS_NODE_SKIP_RECT,
     OUTLINE_RECT,
-    SUBTREE_SKIP_RECT, // dirty region of the subtree if subtree is skipped in preparation.
+    SUBTREE_SKIP_OUT_OF_PARENT_RECT, // dirty region of the subtree when subtree is out of parent
 };
 
 enum class SurfaceRegionDebugType {
@@ -55,11 +55,12 @@ enum class SurfaceRegionDebugType {
 };
 
 enum class PartialRenderType {
-    DISABLED = 0,                               // 0, disable partial render
+    DISABLED = 0,                               // 0, disable partial render, including set damage region
     SET_DAMAGE,                                 // 1, set damageregion, without draw_op dropping
     SET_DAMAGE_AND_DROP_OP,                     // 2, drop draw_op if node is not in dirty region
     SET_DAMAGE_AND_DROP_OP_OCCLUSION,           // 3, drop draw_op if node is not in visible region (unirender)
-    SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY     // 4, drop draw_op if node is not in visible dirty region (unirender)
+    SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY,    // 4, drop draw_op if node is not in visible dirty region (unirender)
+    SET_DAMAGE_BUT_COMPLETE_RENDER,             // 5, set full screen dirty region and set damage
 };
 
 enum class DumpSurfaceType {
@@ -162,6 +163,7 @@ public:
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
     static bool GetRSScreenRoundCornerEnable();
+    static bool GetAceDebugBoundaryEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -185,6 +187,7 @@ public:
     static bool GetKawaseEnabled();
     static void SetForceHpsBlurDisabled(bool flag);
     static bool GetHpsBlurEnabled();
+    static bool GetMESABlurFuzedEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
     static bool GetImageReleaseUsingPostTask();
@@ -235,8 +238,6 @@ public:
     static bool GetHDRImageEnable();
     static bool GetLayerCursorEnable();
     static bool IsForceClient();
-    static bool GetUnmarshParallelFlag();
-    static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
 
     static bool GetDrmMarkedFilterEnabled();
@@ -256,6 +257,8 @@ public:
     static bool GetDumpUIPixelmapEnabled();
     static bool GetDumpImgEnabled();
 
+    static bool GetTransactionTerminateEnabled();
+
     static int GetVirtualScreenScaleModeDFX();
     static bool GetTextBlobAsPixelMap();
     static inline GpuApiType GetGpuApiType()
@@ -269,7 +272,7 @@ public:
     }
 
     static int GetRSNodeLimit();
-    static bool GetMemoryOverTreminateEnabled();
+    static std::string GetVersionType();
 
 private:
     RSSystemProperties() = default;

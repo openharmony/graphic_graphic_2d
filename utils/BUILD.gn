@@ -25,48 +25,12 @@ group("scoped_bytrace") {
   public_deps = [ "scoped_bytrace:scoped_bytrace" ]
 }
 
-group("promise") {
-  public_deps = [ "promise:promise" ]
-}
-
-group("semaphore") {
-  public_deps = [ "semaphore:semaphore" ]
-}
-
 group("socketpair") {
   public_deps = [ "socketpair:socketpair" ]
 }
 
 group("test_header") {
   public_deps = [ "test_header:test_header" ]
-}
-
-group("option_parser") {
-  public_deps = [ "option_parser:option_parser" ]
-}
-
-group("libgslogger") {
-  public_deps = [ "gslogger:libgslogger" ]
-}
-
-group("matrix") {
-  public_deps = [ "matrix:matrix" ]
-}
-
-group("raw_parser") {
-  public_deps = [ "raw_parser:raw_parser" ]
-}
-
-group("cpudraw") {
-  public_deps = [ "cpudraw:cpudraw" ]
-}
-
-group("gl_utils") {
-  public_deps = [ "gl_utils:gl_utils" ]
-}
-
-group("raw_maker") {
-  public_deps = [ "raw_maker:raw_maker" ]
 }
 
 group("sandbox_utils") {
@@ -95,18 +59,11 @@ ohos_shared_library("libgraphic_utils") {
 
   deps = [
     ":color_manager",
-    ":cpudraw",
-    ":gl_utils",
-    ":libgslogger",
-    ":matrix",
-    ":option_parser",
-    ":promise",
-    ":raw_maker",
-    ":raw_parser",
     ":sandbox_utils",
     ":scoped_bytrace",
-    ":semaphore",
     ":test_header",
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
   ]
 
   part_name = "graphic_2d"

@@ -31,11 +31,12 @@ public:
     }
     
     RSUniRenderProcessor();
-    ~RSUniRenderProcessor() noexcept override;
+    ~RSUniRenderProcessor() override;
 
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
-    void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) override;
+    void CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) override;
+    void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable, RSSurfaceRenderParams& params) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
@@ -47,15 +48,11 @@ public:
     // called by render thread
     bool InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& node, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
-    void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable, RSSurfaceRenderParams& params) override;
     void CreateLayerForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
     void ProcessSurfaceForRenderThread(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) override;
     void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
 
 private:
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    void DealWithHdr(RSSurfaceRenderNode& node, LayerInfoPtr& layer, sptr<SurfaceBuffer> buffer);
-#endif
     LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;

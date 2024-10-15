@@ -29,8 +29,13 @@ public:
 
     void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params,
         PreProcessFunc preProcess, PostProcessFunc postProcess) override;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+        const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) override;
+#else
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}) override;
+#endif
     void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override {}
 
 private:
@@ -44,7 +49,7 @@ private:
 
     // These 2 functions can only be called in DrawLayers().
     void ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node);
-    void DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, bool forceCPU = false);
+    void DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params);
 
     void SetColorFilterModeToPaint(Drawing::Brush& paint);
 };

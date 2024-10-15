@@ -35,7 +35,6 @@ int main(int argc, const char *argv[])
     param.sched_priority = 1;
     if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
         RS_LOGE("RSRenderService Couldn't set SCHED_FIFO.");
-        return -1;
     } else {
         RS_LOGE("RSRenderService set SCHED_FIFO succeed.");
     }

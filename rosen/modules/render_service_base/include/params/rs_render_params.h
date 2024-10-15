@@ -221,9 +221,14 @@ public:
     virtual const RSLayerInfo& GetLayerInfo() const;
     virtual const RectI& GetAbsDrawRect() const
     {
-        static const RectI defaultRect = {};
-        return defaultRect;
+        return absDrawRect_;
     }
+
+    void SetAbsDrawRect(RectI& absRect)
+    {
+        absDrawRect_ = absRect;
+    }
+
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
     virtual bool IsLeashWindow() const { return true; }
@@ -281,8 +286,6 @@ public:
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
     virtual bool GetSecurityDisplay() const { return true; }
-    virtual void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) {}
-    virtual NodeId GetRootIdOfCaptureWindow() const { return INVALID_NODEID; }
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
@@ -298,6 +301,7 @@ private:
     float alpha_ = 1.0f;
     // this rect should map display coordination
     RectF localDrawRect_;
+    RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
 

@@ -55,43 +55,14 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-GraphicColorGamut RSUniRenderEngine::ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers)
-{
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
-    for (auto& layer : layers) {
-        if (layer == nullptr) {
-            continue;
-        }
-        auto buffer = layer->GetBuffer();
-        if (buffer == nullptr) {
-            RS_LOGW("RSUniRenderEngine::ComputeTargetColorGamut The buffer of layer is nullptr");
-            continue;
-        }
-
-        CM_ColorSpaceInfo colorSpaceInfo;
-        if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-            RS_LOGD("RSUniRenderEngine::ComputeTargetColorGamut Get color space failed");
-            continue;
-        }
-
-        if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
-            colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-            break;
-        }
-    }
-
-    return colorGamut;
-}
-#endif
-
+void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+    const ScreenInfo& screenInfo, GraphicColorGamut colorGamut)
+#else
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
     const ScreenInfo& screenInfo)
+#endif
 {
     std::map<std::string, bool> rcdLayersEnableMap = {{RCD_TOP_LAYER_NAME, false}, {RCD_BOTTOM_LAYER_NAME, false}};
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
-#endif
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -124,10 +95,15 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         params.targetColorGamut = colorGamut;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager != nullptr) {
-            params.screenBrightnessNits = layer->GetDisplayNit();
+            params.sdrNits = layer->GetSdrNit();
+            params.tmoNits = layer->GetDisplayNit();
+            params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
         }
-        canvas.SetHDRPresent(RSLuminanceControl::Get().IsHdrOn(screenInfo.id));
-        canvas.SetBrightnessRatio(layer->GetBrightnessRatio());
+        if (!CheckIsHdrSurfaceBuffer(layer->GetBuffer())) {
+            params.brightnessRatio = layer->GetBrightnessRatio();
+        } else {
+            params.isHdrRedraw = true;
+        }
 #endif
         DrawHdiLayerWithParams(canvas, layer, params);
         // Dfx for redraw region

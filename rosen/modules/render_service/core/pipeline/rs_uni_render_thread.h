@@ -56,6 +56,7 @@ public:
     void PostRTTask(const std::function<void()>& task);
     void PostImageReleaseTask(const std::function<void()>& task);
     void RunImageReleaseTask();
+    void ClearResource();
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::HIGH);
     void PostSyncTask(const std::function<void()>& task);
@@ -78,6 +79,7 @@ public:
     void AsyncFreeVMAMemoryBetweenFrames();
     void ResetClearMemoryTask();
     bool GetClearMemoryFinished() const;
+    void SetClearMemoryFinished();
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
@@ -160,7 +162,6 @@ private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
-    void ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks);
     void PerfForBlurIfNeeded();
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -206,7 +207,7 @@ private:
     bool postImageReleaseTaskFlag_ = false;
     int imageReleaseCount_ = 0;
 
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
 
     // vma cache
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag

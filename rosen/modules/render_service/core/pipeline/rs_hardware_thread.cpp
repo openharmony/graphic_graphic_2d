@@ -61,6 +61,7 @@
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
+#include "ressched_event_listener.h"
 #endif
 
 namespace OHOS::Rosen {
@@ -168,6 +169,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     delayTime_ = 0;
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
+#ifdef RES_SCHED_ENABLE
+    ResschedEventListener::GetInstance()->ReportFrameToRSS();
+#endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
         if (output == nullptr || hdiBackend_ == nullptr) {
             return;
@@ -479,7 +483,12 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #endif
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo, colorGamut);
+#else
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
+#endif
+
     renderFrame->Flush();
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }
@@ -535,6 +544,10 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
     using namespace HDI::Display::Graphic::Common::V1_0;
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
     for (auto& layer : layers) {
+        if (layer == nullptr) {
+            RS_LOGE("RSHardwareThread::ComputeTargetColorGamut layer is nullptr");
+            continue;
+        }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
             RS_LOGW("RSHardwareThread::ComputeTargetColorGamut The buffer of layer is nullptr");

@@ -230,7 +230,7 @@ Matrix3f GenRGBToXYZMatrix(const std::array<Vector2f, 3>& basePoints, const Vect
         BYBy * B.x_, BY, BYBy * (1 - B.x_ - B.y_)
     };
 }
-static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
+static const std::shared_ptr<Drawing::ColorFilter> InvertColorMat(float hdrBrightnessRatio)
 {
     static const Drawing::scalar colorMatrixArray[MATRIX_SIZE] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
@@ -238,6 +238,15 @@ static const std::shared_ptr<Drawing::ColorFilter>& InvertColorMat()
         -0.599, -1.175, 0.772,  1.0, 0.0,
         0.0,    0.0,    0.0,    1.0, 0.0
     };
+    if (!ROSEN_EQ(hdrBrightnessRatio, 1.f)) {
+        const Drawing::scalar brightnessMatrixArray[MATRIX_SIZE] = {
+            1.0, 0.0, 0.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0, 1.0, 0.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0, 0.0, 1.0, hdrBrightnessRatio - 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0, 0.0
+        };
+        return Drawing::ColorFilter::CreateComposeColorFilter(brightnessMatrixArray, colorMatrixArray);
+    }
     static auto invertColorMat = Drawing::ColorFilter::CreateFloatColorFilter(colorMatrixArray);
     return invertColorMat;
 }
@@ -884,7 +893,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
         RS_TRACE_NAME("DropFrame");
         OHOS::sptr<SurfaceBuffer> cbuffer;
         Rect damage;
-        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
         int64_t timestamp = 0;
         auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
         if (ret != OHOS::SURFACE_ERROR_OK) {
@@ -893,7 +902,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
             return OHOS::GSERROR_NO_BUFFER;
         }
 
-        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::INVALID_FENCE);
+        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::InvalidFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
                     "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
@@ -943,10 +952,10 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
         // this node has no new buffer, try use cache.
         // if don't have cache, will not update and use old buffer.
         // display surface don't have cache, always use old buffer.
-        surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
+        surfaceHandler.ConsumeAndUpdateBuffer(vsyncTimestamp);
         return true;
     }
-    auto consumer = surfaceHandler.GetConsumer();
+    const auto& consumer = surfaceHandler.GetConsumer();
     if (consumer == nullptr) {
         return false;
     }
@@ -1006,7 +1015,7 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(
             "vysnc timestamp = %" PRIu64 ", buffer timestamp = %" PRId64 " .",
             surfaceHandler.GetNodeId(), vsyncTimestamp, surfaceBuffer->timestamp);
         surfaceHandler.CacheBuffer(*(surfaceBuffer.get()));
-        surfaceHandler.ConsumeAndUpdateBuffer(surfaceHandler.GetBufferFromCache(vsyncTimestamp));
+        surfaceHandler.ConsumeAndUpdateBuffer(vsyncTimestamp);
     }
     surfaceHandler.ReduceAvailableBuffer();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
@@ -1027,9 +1036,9 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
         return false;
     }
 
-    auto& preBuffer = surfaceHandler.GetPreBuffer();
-    if (preBuffer.buffer != nullptr) {
-        auto ret = consumer->ReleaseBuffer(preBuffer.buffer, preBuffer.releaseFence);
+    auto preBuffer = surfaceHandler.GetPreBuffer();
+    if (preBuffer != nullptr) {
+        auto ret = consumer->ReleaseBuffer(preBuffer, surfaceHandler.GetPreBufferReleaseFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
@@ -1037,7 +1046,7 @@ bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
         }
         // reset prevBuffer if we release it successfully,
         // to avoid releasing the same buffer next frame in some situations.
-        preBuffer.Reset();
+        surfaceHandler.ResetPreBuffer();
     }
 
     return true;
@@ -1065,12 +1074,13 @@ bool RSBaseRenderUtil::IsColorFilterModeValid(ColorFilterMode mode)
     return valid;
 }
 
-void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint)
+void RSBaseRenderUtil::SetColorFilterModeToPaint(ColorFilterMode colorFilterMode,
+    Drawing::Brush& paint, float hdrBrightnessRatio)
 {
     Drawing::Filter filter;
     switch (colorFilterMode) {
         case ColorFilterMode::INVERT_COLOR_ENABLE_MODE:
-            filter.SetColorFilter(Detail::InvertColorMat());
+            filter.SetColorFilter(Detail::InvertColorMat(hdrBrightnessRatio));
             break;
         case ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE:
             filter.SetColorFilter(Detail::ProtanomalyMat());
@@ -1134,20 +1144,38 @@ GraphicTransformType RSBaseRenderUtil::GetSurfaceBufferTransformType(
     return transformType;
 }
 
-Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds)
+Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(
+    GraphicTransformType rotationTransform, const RectF &bounds, const RectF &bufferBounds, Gravity gravity)
 {
     Drawing::Matrix matrix;
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
+    const float bufferHeight = bufferBounds.GetHeight();
+    float heightAdjust = boundsHeight;
+
+    static std::unordered_set<Gravity> resizeGravities = {Gravity::RESIZE,
+        Gravity::RESIZE_ASPECT,
+        Gravity::RESIZE_ASPECT_TOP_LEFT,
+        Gravity::RESIZE_ASPECT_BOTTOM_RIGHT,
+        Gravity::RESIZE_ASPECT_FILL,
+        Gravity::RESIZE_ASPECT_FILL_TOP_LEFT,
+        Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT};
+    if (resizeGravities.find(gravity) != resizeGravities.end()) {
+        heightAdjust = boundsHeight;
+    } else if (bufferHeight > 0) {
+        heightAdjust = std::min(bufferHeight, boundsHeight);
+    }
+
     switch (rotationTransform) {
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            matrix.PreTranslate(0, boundsHeight);
-            matrix.PreRotate(-90); // rotate 90 degrees anti-clockwise at last.
+            matrix.PreTranslate(0, heightAdjust);
+            matrix.PreRotate(-90);  // rotate 90 degrees anti-clockwise at last.
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            matrix.PreTranslate(boundsWidth, boundsHeight);
-            matrix.PreRotate(-180); // rotate 180 degrees anti-clockwise at last.
+            matrix.PreTranslate(boundsWidth, heightAdjust);
+            matrix.PreRotate(-180);  // rotate 180 degrees anti-clockwise at last.
+
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
@@ -1187,7 +1215,7 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 }
 
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-    RectF localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams)
+    RectF &localBounds, BufferDrawParam &params, RSSurfaceRenderParams *nodeParams)
 {
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
@@ -1201,7 +1229,19 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     }
     rotationTransform = static_cast<GraphicTransformType>(
         (rotationTransform + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
-    params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
+
+    RectF bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f};
+    if (params.buffer != nullptr) {
+        bufferBounds = {0.0f, 0.0f, params.buffer->GetSurfaceBufferWidth(), params.buffer->GetSurfaceBufferHeight()};
+        if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+            rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
+            std::swap(bufferBounds.width_, bufferBounds.height_);
+        }
+    }
+
+    params.matrix.PreConcat(
+        RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds, bufferBounds, gravity));
+
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
@@ -1222,7 +1262,7 @@ void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawPara
     if (type != GraphicTransformType::GRAPHIC_FLIP_H && type != GraphicTransformType::GRAPHIC_FLIP_V) {
         return;
     }
-     
+
     const int angle = 180;
     Drawing::Camera3D camera3D;
     switch (type) {

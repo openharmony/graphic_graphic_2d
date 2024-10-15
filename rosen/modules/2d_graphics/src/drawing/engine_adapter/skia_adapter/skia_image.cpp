@@ -252,7 +252,8 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
     } else {
         PostSkImgToTargetThread();
-        skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
+        skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),
+            SkiaTextureInfo::ConvertToGrBackendTexture(info),
             SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
@@ -623,7 +624,6 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
 
     SkReadBuffer reader(data->GetData(), data->GetSize());
     bool type = reader.readBool();
-
     if (type) {
         PostSkImgToTargetThread();
         skiaImage_ = reader.readImage();

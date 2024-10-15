@@ -353,16 +353,6 @@ float RSModifierExtractor::GetSpherizeDegree() const
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SPHERIZE, 0.f, =);
 }
 
-float RSModifierExtractor::GetAttractionFractionValue() const
-{
-    GET_PROPERTY_FROM_MODIFIERS(float, ATTRACTION_FRACTION, 0.f, =);
-}
-
-Vector2f RSModifierExtractor::GetAttractionDstPointValue() const
-{
-    GET_PROPERTY_FROM_MODIFIERS(Vector2f, ATTRACTION_DSTPOINT, Vector2f(0.f, 0.f), =);
-}
-
 float RSModifierExtractor::GetLightUpEffectDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_UP_EFFECT, 0.f, =);

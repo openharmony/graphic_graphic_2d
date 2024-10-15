@@ -53,6 +53,7 @@ class RSCommand;
 class RSImplicitAnimParam;
 class RSImplicitAnimator;
 class RSModifier;
+class RSObjAbsGeometry;
 
 class RSC_EXPORT RSNode : public std::enable_shared_from_this<RSNode> {
 public:
@@ -337,10 +338,6 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
     void SetLightUpEffectDegree(float LightUpEffectDegree);
 
-    void SetAttractionEffect(float fraction, const Vector2f& destinationPoint);
-    void SetAttractionEffectFraction(float fraction);
-    void SetAttractionEffectDstPoint(Vector2f destinationPoint);
-
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
@@ -448,6 +445,18 @@ public:
         return isTextureExportNode_;
     }
 
+    bool IsGeometryDirty() const;
+    bool IsAppearanceDirty() const;
+    void MarkDirty(NodeDirtyType type, bool isDirty);
+
+    float GetGlobalPositionX() const;
+    float GetGlobalPositionY() const;
+
+    std::shared_ptr<RSObjAbsGeometry> GetLocalGeometry() const;
+    std::shared_ptr<RSObjAbsGeometry> GetGlobalGeometry() const;
+    void UpdateLocalGeometry();
+    void UpdateGlobalGeometry(const std::shared_ptr<RSObjAbsGeometry>& parentGlobalGeometry);
+
     std::mutex childrenNodeLock_; // lock for map operation
     // key: symbolSpanID, value:nodeid and symbol animation node list
     std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
@@ -463,7 +472,7 @@ public:
         return instanceId_;
     }
 
-    const std::string& GetNodeName() const
+    const std::string GetNodeName() const
     {
         return nodeName_;
     }
@@ -543,6 +552,14 @@ private:
 
     // Planning: refactor RSUIAnimationManager and remove this method
     void ClearAllModifiers();
+
+    uint32_t dirtyType_ = static_cast<uint32_t>(NodeDirtyType::NOT_DIRTY);
+
+    std::shared_ptr<RSObjAbsGeometry> localGeometry_;
+    std::shared_ptr<RSObjAbsGeometry> globalGeometry_;
+
+    float globalPositionX_ = 0.f;
+    float globalPositionY_ = 0.f;
 
     pid_t implicitAnimatorTid_ = 0;
     bool extendModifierIsDirty_ { false };

@@ -25,7 +25,6 @@ namespace Rosen {
 void RSRenderPropertyBase::OnChange() const
 {
     if (auto node = node_.lock()) {
-        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, property changed", node->GetId());
         node->SetDirty();
         node->AddDirtyType(modifierType_);
         if (modifierType_ < RSModifierType::BOUNDS || modifierType_ > RSModifierType::TRANSLATE_Z ||

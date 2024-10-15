@@ -51,9 +51,7 @@ bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContext
 
 void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const
 {
-    if (impl_ != nullptr) {
-        impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
-    }
+    impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
 void GPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
@@ -164,6 +162,11 @@ void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
 void GPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
 {
     impl_->GetUpdatedMemoryMap(out);
+}
+
+void GPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size)
+{
+    impl_->InitGpuMemoryLimit(callback, size);
 }
 
 void GPUContext::ResetContext()

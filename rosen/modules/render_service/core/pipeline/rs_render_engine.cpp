@@ -25,9 +25,16 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr float GAMMA2_2 = 2.2f;
+}
 void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
     BufferDrawParam& params, PreProcessFunc preProcess, PostProcessFunc postProcess)
 {
+    if (!params.useCPU) {
+        RegisterDeleteBufferListener(node.GetRSSurfaceHandler()->GetConsumer());
+    }
+
     auto nodePreProcessFunc = [&preProcess, &node](RSPaintFilterCanvas& canvas, BufferDrawParam& params) {
         // call the preprocess func passed in first.
         if (preProcess != nullptr) {
@@ -56,10 +63,18 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSu
     DrawWithParams(canvas, params, nodePreProcessFunc, nodePostProcessFunc);
 }
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+    const ScreenInfo& screenInfo, GraphicColorGamut colorGamut)
+#else
 void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
     const ScreenInfo& screenInfo)
+#endif
 {
     (void) screenInfo;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    (void) colorGamut;
+#endif
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -90,7 +105,18 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
                 RS_LOGD("RSRenderEngine::DrawLayers SrcRect[%{public}d %{public}d %{public}d %{public}d]",
                     iter->x, iter->y, iter->w, iter->h);
             }
-            DrawSurfaceNode(canvas, node, forceCPU);
+            auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+            params.tmoNits = layer->GetDisplayNit();
+            params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+            if (node.GetRSSurfaceHandler() != nullptr &&
+                !CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer())) {
+                params.brightnessRatio = layer->GetBrightnessRatio();
+            } else {
+                params.isHdrRedraw = true;
+            }
+#endif
+            DrawSurfaceNode(canvas, node, params);
         } else {
             // Probably never reach this branch.
             RS_LOGE("RSRenderEngine::DrawLayers: unexpected node type!");
@@ -153,11 +179,9 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
         Drawing::Rect(0, 0, params.srcRect.GetWidth(), params.srcRect.GetHeight()));
 }
 
-void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, bool forceCPU)
+void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
+    BufferDrawParam& params)
 {
-    // prepare BufferDrawParam
-    auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU); // in display's coordinate.
-
     DrawSurfaceNodeWithParams(canvas, node, params, nullptr, nullptr);
 }
 

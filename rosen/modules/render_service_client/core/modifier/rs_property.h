@@ -161,6 +161,8 @@ protected:
 
     void MarkModifierDirty();
 
+    void MarkNodeDirty();
+
     void UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node);
 
     virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty()
@@ -264,6 +266,7 @@ public:
             return;
         }
 
+        MarkNodeDirty();
         UpdateExtendModifierForGeometry(node);
         if (isCustom_) {
             MarkModifierDirty();
@@ -352,6 +355,7 @@ public:
             return;
         }
 
+        RSProperty<T>::MarkNodeDirty();
         RSProperty<T>::UpdateExtendModifierForGeometry(node);
         auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
         if (implicitAnimator && implicitAnimator->NeedImplicitAnimation()) {

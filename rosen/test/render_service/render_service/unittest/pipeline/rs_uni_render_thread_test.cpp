@@ -273,28 +273,6 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
     EXPECT_TRUE(instance.rootNodeDrawable_);
 }
 
-/**
- * @tc.name: ReleaseSkipSyncBuffer001
- * @tc.desc: Test ReleaseSkipSyncBuffer
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RSUniRenderThreadTest, ReleaseSkipSyncBuffer001, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    std::function<void()> task = []() {};
-    std::vector<std::function<void()>> tasks;
-    tasks.push_back(task);
-    instance.ReleaseSkipSyncBuffer(tasks);
-    EXPECT_TRUE(instance.rootNodeDrawable_);
-
-    RSContext::BufferInfo bufferInfo;
-    RSMainThread::Instance()->context_ = std::make_shared<RSContext>();
-    RSMainThread::Instance()->context_->skipSyncBuffer_.push_back(bufferInfo);
-    instance.ReleaseSkipSyncBuffer(tasks);
-    EXPECT_TRUE(instance.rootNodeDrawable_);
-}
-
 #ifdef RES_SCHED_ENABLE
 /**
  * @tc.name: SubScribeSystemAbility001
@@ -516,7 +494,7 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     auto surfaceDrawable =
         std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceRenderNode->renderDrawable_);
     surfaceDrawable->consumerOnDraw_ = IConsumerSurface::Create();
-    instance.renderThreadParams_->selfDrawingNodes_.push_back(surfaceRenderNode);
+    instance.renderThreadParams_->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->GetRenderParams().get());
     instance.ReleaseSelfDrawingNodeBuffer();
     EXPECT_FALSE(params->GetPreBuffer());

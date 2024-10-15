@@ -251,17 +251,6 @@ public:
     void SwapBackMainScreenData();
     void SavePCanvasList();
     void RestorePCanvasList();
-    void StoreCanvas()
-    {
-        if (storeMainCanvas_ == nullptr) {
-            storeMainCanvas_ = canvas_;
-        }
-    }
-
-    Drawing::Canvas* GetOriginalCanvas()
-    {
-        return storeMainCanvas_;
-    }
 
     // canvas status relate
     struct CanvasStatus {
@@ -279,12 +268,23 @@ public:
     {
         return offscreenDataList_;
     }
+
+    void StoreCanvas()
+    {
+        if (storeMainCanvas_ == nullptr) {
+            storeMainCanvas_ = canvas_;
+        }
+    }
+
+    Drawing::Canvas* GetOriginalCanvas()
+    {
+        return storeMainCanvas_;
+    }
+
     Drawing::DrawingType GetDrawingType() const override
     {
         return Drawing::DrawingType::PAINT_FILTER;
     }
-    bool GetHDRPresent() const;
-    void SetHDRPresent(bool hasHdrPresent);
     bool IsCapture() const;
     void SetCapture(bool isCapture);
     ScreenId GetScreenId() const;
@@ -293,8 +293,6 @@ public:
     void SetTargetColorGamut(GraphicColorGamut colorGamut);
     float GetBrightnessRatio() const;
     void SetBrightnessRatio(float brightnessRatio);
-    template <typename T>
-    void PaintFilter(T& paint);
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
 
 protected:
@@ -347,7 +345,7 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
-    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas_
+    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
 
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
@@ -362,7 +360,6 @@ private:
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
     bool recordDrawable_ = false;
-    bool hasHdrPresent_ = false;
     bool isCapture_ = false;
 };
 

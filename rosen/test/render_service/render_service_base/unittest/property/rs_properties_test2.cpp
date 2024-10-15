@@ -231,19 +231,9 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
 
-    properties.foregroundEffectRadius_ = -0.1f;
-    properties.isAttractionValid_ = true;
-    properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
-
-    properties.isAttractionValid_ = false;
-    properties.shadow_->imageMask_ = true;
-    properties.UpdateFilter();
-    EXPECT_TRUE(properties.foregroundFilter_);
-
     properties.shadow_->imageMask_ = false;
     properties.UpdateFilter();
-    EXPECT_FALSE(!properties.foregroundFilter_);
+    EXPECT_TRUE(!properties.foregroundFilter_);
 
     Vector2f scaleAnchor = Vector2f(0.f, 0.f);
     properties.motionBlurPara_ = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);

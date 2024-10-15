@@ -71,6 +71,14 @@ public:
     void TearDown() override;
 };
 
+class ConcreteRSRenderNodeDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit ConcreteRSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node))
+    {}
+    void Draw(Drawing::Canvas& canvas) {}
+};
+
 void RSRenderNodeDrawableAdapterTest::SetUpTestCase() {}
 void RSRenderNodeDrawableAdapterTest::TearDownTestCase() {}
 void RSRenderNodeDrawableAdapterTest::SetUp() {}
@@ -237,7 +245,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableVecTest, TestSize.Level1)
     renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_STYLE)] = std::move(foregroundStyle);
     adapter->renderNode_ = renderNode;
     retStr = adapter->DumpDrawableVec(node);
-    EXPECT_GT(retStr.length(), 2);
+    EXPECT_LE(retStr.length(), 2);
 }
 
 /**
@@ -519,4 +527,37 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetSkipIndexTest, TestSize.Level1)
     ret = adapter->GetSkipIndex();
     EXPECT_EQ(ret, adapter->drawCmdIndex_.shadowIndex_);
 }
+
+/**
+ * @tc.name: IsFilterCacheValidForOcclusionTest
+ * @tc.desc: Test IsFilterCacheValidForOcclusion
+ * @tc.type: FUNC
+ * @tc.require: issueIALKED
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForOcclusionTest, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    EXPECT_FALSE(adapter->IsFilterCacheValidForOcclusion());
+}
+
+/**
+ * @tc.name: GetFilterCachedRegionTest
+ * @tc.desc: Test GetFilterCachedRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIALKED
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, GetFilterCachedRegionTest, TestSize.Level1)
+{
+    NodeId id = 19;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    EXPECT_EQ(adapter->GetFilterCachedRegion(), RectI());
+}
+
 } // namespace OHOS::Rosen

@@ -35,12 +35,13 @@ public:
     enum ShaderFilterType {
         NONE = 0,
         KAWASE,
+        MESA,
         GREY,
         AIBAR,
         LINEAR_GRADIENT_BLUR,
         MASK_COLOR,
-        WATER_RIPPLE,
         MAGNIFIER,
+        WATER_RIPPLE,
     };
 
     ShaderFilterType GetShaderFilterType() const
@@ -54,7 +55,7 @@ public:
     {
         return image;
     }
-    
+
     virtual void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) {};
     virtual void PostProcess(Drawing::Canvas& canvas) {};
 

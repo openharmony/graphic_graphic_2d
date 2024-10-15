@@ -611,7 +611,7 @@ void HdiLayer::SetReleaseFence(const sptr<SyncFence> &layerReleaseFence)
 sptr<SyncFence> HdiLayer::GetReleaseFence() const
 {
     if (currBufferInfo_ == nullptr) {
-        return SyncFence::INVALID_FENCE;
+        return SyncFence::InvalidFence();
     }
     return currBufferInfo_->releaseFence_;
 }

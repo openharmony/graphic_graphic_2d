@@ -294,11 +294,13 @@ public:
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     const RectF& GetSelfDrawRect() const;
     const RectI& GetAbsDrawRect() const;
+    void UpdateAbsDrawRect();
 
     void ResetChangeState();
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
         const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
+    void UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
 
@@ -529,7 +531,7 @@ public:
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
     bool IsFilterCacheValid() const;
     bool IsAIBarFilterCacheValid() const;
-    void MarkForceClearFilterCacheWhenWithInvisible();
+    void MarkForceClearFilterCacheWithInvisible();
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
@@ -620,6 +622,11 @@ public:
     void SetLastIsNeedAssignToSubThread(bool lastIsNeedAssignToSubThread);
     bool GetLastIsNeedAssignToSubThread() const;
 
+    inline const std::shared_ptr<RSRenderContent> GetRenderContent() const
+    {
+        return renderContent_;
+    }
+
     void SetIsTextureExportNode(bool isTextureExportNode)
     {
         isTextureExportNode_ = isTextureExportNode;
@@ -635,8 +642,6 @@ public:
 #define MAX_COLD_DOWN_NUM 20
     int32_t coldDownCounter_ = 0;
 #endif
-
-    const std::shared_ptr<RSRenderContent> GetRenderContent() const;
 
     void MarkParentNeedRegenerateChildren() const;
 
@@ -726,8 +731,8 @@ public:
     virtual bool FirstFrameHasEffectChildren() const { return false; }
     virtual void MarkClearFilterCacheIfEffectChildrenChanged() {}
     bool HasBlurFilter() const;
-    void SetChildrenHasSharedTransition(bool hasSharedTransition);
     virtual bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval) { return false; }
+    void SetChildrenHasSharedTransition(bool hasSharedTransition);
     void RemoveChildFromFulllist(NodeId nodeId);
     void SetStartingWindowFlag(bool startingFlag);
     bool GetStartingWindowFlag() const
@@ -1018,6 +1023,7 @@ private:
     RectI localForegroundEffectRect_;
     // map parentMatrix
     RectI absDrawRect_;
+    pid_t appPid_ = 0;
 
     bool isTextureExportNode_ = false;
 
@@ -1034,7 +1040,6 @@ private:
     void UpdateDisplayList();
     void UpdateShadowRect();
     std::map<NodeId, std::vector<WeakPtr>> subSurfaceNodes_;
-    pid_t appPid_ = 0;
 
     const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 

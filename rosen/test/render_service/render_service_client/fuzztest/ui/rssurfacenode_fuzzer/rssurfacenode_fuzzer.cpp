@@ -591,7 +591,7 @@ bool DoSetForceUIFirst(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetAncoForceDoDirect(const uint8_t* data, size_t size)
+bool DoSetAncoFlags(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -605,8 +605,8 @@ bool DoSetAncoForceDoDirect(const uint8_t* data, size_t size)
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    bool ancoForceDoDirect = GetData<bool>();
-    surfaceNode->SetAncoForceDoDirect(ancoForceDoDirect);
+    uint32_t flags = GetData<uint32_t>();
+    surfaceNode->SetAncoFlags(flags);
     return true;
 }
 
@@ -800,7 +800,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #endif
     OHOS::Rosen::DoSetForeground(data, size);
     OHOS::Rosen::DoSetForceUIFirst(data, size);
-    OHOS::Rosen::DoSetAncoForceDoDirect(data, size);
+    OHOS::Rosen::DoSetAncoFlags(data, size);
     OHOS::Rosen::DoSetHDRPresent(data, size);
     OHOS::Rosen::DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(data, size);
     OHOS::Rosen::DoRSSurfaceNode(data, size);

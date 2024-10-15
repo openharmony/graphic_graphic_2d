@@ -113,9 +113,9 @@ public:
         return timestamp_;
     }
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
-        return selfDrawingNodes_;
+        return selfDrawables_;
     }
 
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
@@ -376,6 +376,16 @@ public:
         return isSecurityExemption_;
     }
 
+    bool IsOverDrawEnabled() const
+    {
+        return isOverDrawEnabled_;
+    }
+
+    bool IsAceDebugBoundaryEnabled() const
+    {
+        return isAceDebugBoundaryEnabled_;
+    }
+
 private:
     mutable std::mutex mutex_;
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
@@ -406,7 +416,7 @@ private:
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
@@ -416,6 +426,7 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
 
     bool needRequestNextVsyncAnimate_ = false;
+    bool isOverDrawEnabled_ = false;
 
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
@@ -423,6 +434,7 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
+    bool isAceDebugBoundaryEnabled_ = false;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;

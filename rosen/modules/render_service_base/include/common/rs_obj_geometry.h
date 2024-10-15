@@ -21,11 +21,11 @@
 #include "common/rs_vector4.h"
 namespace OHOS {
 namespace Rosen {
-class Transform {
+class RSTransform {
 public:
-    Transform() = default;
-    Transform(const Transform& other) = default;
-    ~Transform() = default;
+    RSTransform() = default;
+    RSTransform(const RSTransform& other) = default;
+    ~RSTransform() = default;
     float pivotX_ { 0.5f };
     float pivotY_ { 0.5f };
     float pivotZ_ { 0.0f };
@@ -89,21 +89,21 @@ public:
     void SetPivotX(float x)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->pivotX_ = x;
     }
     void SetPivotY(float y)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->pivotY_ = y;
     }
     void SetPivotZ(float z)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->pivotZ_ = z;
     }
@@ -115,14 +115,14 @@ public:
     void SetScaleX(float x)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->scaleX_ = x;
     }
     void SetScaleY(float y)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->scaleY_ = y;
     }
@@ -134,14 +134,14 @@ public:
     void SetSkewX(float x)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->skewX_ = x;
     }
     void SetSkewY(float y)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->skewY_ = y;
     }
@@ -153,14 +153,14 @@ public:
     void SetPerspX(float x)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->perspX_ = x;
     }
     void SetPerspY(float y)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->perspY_ = y;
     }
@@ -172,42 +172,42 @@ public:
     void SetRotation(float rotation)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->rotation_ = rotation;
     }
     void SetRotationX(float rotationX)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->rotationX_ = rotationX;
     }
     void SetRotationY(float rotationY)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->rotationY_ = rotationY;
     }
     void SetTranslateX(float translateX)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->translateX_ = translateX;
     }
     void SetTranslateY(float translateY)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->translateY_ = translateY;
     }
     void SetTranslateZ(float translateZ)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         if (!ROSEN_EQ(trans_->translateZ_, translateZ)) {
             trans_->translateZ_ = translateZ;
@@ -216,14 +216,14 @@ public:
     void SetCameraDistance(float cameraDistance)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->cameraDistance_ = cameraDistance;
     }
     void SetQuaternion(const Quaternion& quaternion)
     {
         if (!trans_) {
-            trans_ = std::make_optional<Transform>();
+            trans_ = std::make_optional<RSTransform>();
         }
         trans_->quaternion_ = quaternion;
     }
@@ -341,7 +341,7 @@ protected:
     float z_;
     float width_;
     float height_;
-    std::optional<Transform> trans_;
+    std::optional<RSTransform> trans_;
 };
 } // namespace Rosen
 } // namespace OHOS

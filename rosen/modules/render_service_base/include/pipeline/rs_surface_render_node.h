@@ -22,14 +22,13 @@
 #include <tuple>
 #include <queue>
 
-#include "surface_type.h"
+#include "memory/rs_memory_track.h"
 
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
-#include "memory/rs_memory_track.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
@@ -39,7 +38,7 @@
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_occlusion_data.h"
-
+#include "surface_type.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
 #include "sync_fence.h"
@@ -78,8 +77,6 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
     }
-
-    void ResetRenderParams();
 
     bool IsAbilityComponent() const
     {
@@ -490,8 +487,10 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
-    void SetAncoForceDoDirect(bool ancoForceDoDirect);
+    static void SetAncoForceDoDirect(bool direct);
     bool GetAncoForceDoDirect() const;
+    void SetAncoFlags(uint32_t flags);
+    uint32_t GetAncoFlags() const;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -600,11 +599,6 @@ public:
     uint8_t GetAbilityBgAlpha() const
     {
         return abilityBgAlpha_;
-    }
-
-    bool GetQosCal()
-    {
-        return qosPidCal_;
     }
 
     void setQosCal(bool qosPidCal)
@@ -1156,26 +1150,6 @@ public:
         return doDirectComposition_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
-    {
-        displayNit_ = displayNit;
-    }
-
-    int32_t GetDisplayNit() const
-    {
-        return displayNit_;
-    }
-
-    void SetBrightnessRatio(float brightnessRatio)
-    {
-        brightnessRatio_ = brightnessRatio;
-    }
-
-    float GetBrightnessRatio() const
-    {
-        return brightnessRatio_;
-    }
-
     void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
     {
         isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
@@ -1189,6 +1163,9 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetNeedOffscreen(bool needOffscreen);
+    void SetSdrNit(int32_t sdrNit);
+    void SetDisplayNit(int32_t displayNit);
+    void SetBrightnessRatio(float brightnessRatio);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
     {
@@ -1231,6 +1208,10 @@ public:
 protected:
     void OnSync() override;
     void OnSkipSync() override;
+
+    // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
+    // of corner radius loops one element to the right
+    void RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const;
 
 private:
     explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
@@ -1481,7 +1462,9 @@ private:
     bool forceUIFirstChanged_ = false;
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
 
-    bool ancoForceDoDirect_ = false;
+    std::atomic<int32_t> ancoFlags_ = 0;
+    static inline std::atomic<bool> ancoForceDoDirect_ = false;
+
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     Vector4f overDrawBufferNodeCornerRadius_;
 

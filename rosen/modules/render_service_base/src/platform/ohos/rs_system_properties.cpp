@@ -271,6 +271,14 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return (strcmp(enable, "true") == 0);
+}
+
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     static bool hardwareComposerEnabled = system::GetParameter(
@@ -580,6 +588,13 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return hpsBlurEnabled && !forceHpsBlurDisabled_;
 }
 
+bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    static bool blurPixelStretchEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.mesaBlurFuzedEnable", "1")).c_str()) != 0;
+    return blurPixelStretchEnabled;
+}
+
 float RSSystemProperties::GetKawaseRandomColorFactor()
 {
     static float randomFactor =
@@ -716,6 +731,13 @@ bool RSSystemProperties::GetDumpImgEnabled()
     static bool dumpImgEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0")).c_str()) != 0;
     return dumpImgEnabled;
+}
+
+bool RSSystemProperties::GetTransactionTerminateEnabled()
+{
+    static bool terminateEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.transactionTerminateEnabled", "0")).c_str()) != 0;
+    return terminateEnabled;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
@@ -1027,20 +1049,6 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     return pixelMapEnabled;
 }
 
-bool RSSystemProperties::GetUnmarshParallelFlag()
-{
-    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "0") != "0";
-    return flag;
-}
-
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
-{
-    static uint32_t size =
-        static_cast<uint32_t>(std::atoi(
-            (system::GetParameter("rosen.graphic.UnmashParallelSize", "102400")).c_str())); // 100K
-    return size;
-}
-
 int RSSystemProperties::GetRSNodeLimit()
 {
     static int rsNodeLimit =
@@ -1062,11 +1070,10 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return ConvertToInt(num, 1) != 0;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+std::string RSSystemProperties::GetVersionType()
 {
-    static bool flag =
-        std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
-    return flag;
+    static std::string versionType = system::GetParameter("const.logsystem.versiontype", "");
+    return versionType;
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()

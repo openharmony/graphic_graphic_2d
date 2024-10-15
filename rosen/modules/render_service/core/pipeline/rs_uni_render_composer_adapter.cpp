@@ -100,9 +100,8 @@ void RSUniRenderComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& l
 
 void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const
 {
-    auto& preBuffer = surfaceHandler.GetPreBuffer();
-    info.preBuffer = preBuffer.buffer;
-    preBuffer.Reset();
+    info.preBuffer = surfaceHandler.GetPreBuffer();
+    surfaceHandler.ResetPreBuffer();
 }
 
 // private func, for RSDisplayRenderNode
@@ -736,8 +735,13 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
     info.boundRect = { 0, 0,
         static_cast<int32_t>(property.GetBoundsWidth()), static_cast<int32_t>(property.GetBoundsHeight())};
 
-    info.displayNit = node.GetDisplayNit();
-    info.brightnessRatio = node.GetBrightnessRatio();
+    const auto& renderParam = static_cast<RSSurfaceRenderParams*>(params.get());
+    if (renderParam == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::BuildComposeInfo fail, node params is nullptr");
+        return info;
+    }
+    info.displayNit = renderParam->GetDisplayNit();
+    info.brightnessRatio = renderParam->GetBrightnessRatio();
     return info;
 }
 
@@ -784,8 +788,13 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSSurfaceRe
     info.boundRect = { 0, 0,
         static_cast<int32_t>(params->GetBounds().GetWidth()), static_cast<int32_t>(params->GetBounds().GetHeight())};
 
-    info.displayNit = surfaceDrawable.GetDisplayNit();
-    info.brightnessRatio = surfaceDrawable.GetBrightnessRatio();
+    const auto& curRenderParam = static_cast<RSSurfaceRenderParams*>(params.get());
+    if (curRenderParam == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::curRenderParam is nullptr");
+        return info;
+    }
+    info.displayNit = curRenderParam->GetDisplayNit();
+    info.brightnessRatio = curRenderParam->GetBrightnessRatio();
     return info;
 }
 

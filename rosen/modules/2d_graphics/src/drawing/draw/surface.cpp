@@ -111,6 +111,11 @@ std::shared_ptr<Surface> Surface::MakeSurface(int width, int height) const
     return impl_->MakeSurface(width, height);
 }
 
+std::shared_ptr<Surface> Surface::MakeSurface(const ImageInfo& imageinfo) const
+{
+    return impl_->MakeSurface(imageinfo);
+}
+
 ImageInfo Surface::GetImageInfo()
 {
     std::shared_ptr<Canvas> canvas = GetCanvas();
@@ -134,6 +139,19 @@ void Surface::Flush(FlushInfo *drawingflushInfo)
     }
     impl_->Flush(drawingflushInfo);
 }
+
+#ifdef RS_ENABLE_GL
+void Surface::Wait(const std::vector<GrGLsync>& syncs)
+{
+    if (!SystemProperties::IsUseGl()) {
+        return;
+    }
+    if (!impl_) {
+        return;
+    }
+    impl_->Wait(syncs);
+}
+#endif
 
 #ifdef RS_ENABLE_VK
 void Surface::Wait(int32_t time, const VkSemaphore& semaphore)

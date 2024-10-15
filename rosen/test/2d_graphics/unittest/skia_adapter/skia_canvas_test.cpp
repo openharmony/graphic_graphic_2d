@@ -989,9 +989,9 @@ HWTEST_F(SkiaCanvasTest, DrawImageLattice001, TestSize.Level1)
 
 /**
  * @tc.name: OpCalculateBeforeTest001
- * @tc.desc: Test OpCalculateBefore
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, OpCalculateBeforeTest001, TestSize.Level1)
 {
@@ -1002,9 +1002,9 @@ HWTEST_F(SkiaCanvasTest, OpCalculateBeforeTest001, TestSize.Level1)
 
 /**
  * @tc.name: OpCalculateAfterTest001
- * @tc.desc: Test OpCalculateAfter
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest001, TestSize.Level1)
 {
@@ -1016,9 +1016,9 @@ HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest001, TestSize.Level1)
 
 /**
  * @tc.name: OpCalculateAfterTest002
- * @tc.desc: Test OpCalculateAfter
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest002, TestSize.Level1)
 {
@@ -1032,9 +1032,9 @@ HWTEST_F(SkiaCanvasTest, OpCalculateAfterTest002, TestSize.Level1)
 
 /**
  * @tc.name: GetOpsNumTest001
- * @tc.desc: Test GetOpsNum
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, GetOpsNumTest001, TestSize.Level1)
 {
@@ -1051,9 +1051,9 @@ HWTEST_F(SkiaCanvasTest, GetOpsNumTest001, TestSize.Level1)
 
 /**
  * @tc.name: GetOpsPercentTest001
- * @tc.desc: Test GetOpsPercent
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: I9B0X4
+ * @tc.author:
  */
 HWTEST_F(SkiaCanvasTest, GetOpsPercentTest001, TestSize.Level1)
 {
@@ -1067,7 +1067,6 @@ HWTEST_F(SkiaCanvasTest, GetOpsPercentTest001, TestSize.Level1)
     tmp->Init(m->ExportSkiaMatrix());
     ASSERT_EQ(tmp->GetOpsPercent(), 0);
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

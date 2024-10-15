@@ -24,7 +24,7 @@
 #include "text/font_metrics.h"
 #include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
-#include "utils/txt_log.h"
+#include "utils/text_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -285,7 +285,7 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    
+
     TextStyle txt;
     txt.color = skStyle.getColor();
     txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
@@ -393,7 +393,7 @@ void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
 {
     pthread_t currenetThreadId = pthread_self();
     if (threadId_ != currenetThreadId) {
-        TXT_LOGD("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
+        TEXT_LOGE_LIMIT3_HOUR("New pthread access paragraph builder, old %{public}lu, caller %{public}s",
             threadId_, caller);
         threadId_ = currenetThreadId;
     }

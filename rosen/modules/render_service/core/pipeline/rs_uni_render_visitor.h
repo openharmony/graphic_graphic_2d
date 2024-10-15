@@ -181,26 +181,6 @@ public:
 
     static void ClearRenderGroupCache();
 
-    const std::vector<NodeId>& GetAllMainAndLeashWindowNodesIds()
-    {
-        return curAllMainAndLeashWindowNodesIds_;
-    }
-
-    const std::map<NodeId, RSVisibleLevel>& GetVisMapForVSyncRate()
-    {
-        return visMapForVSyncRate_;
-    }
-
-    bool GetVSyncRatesChanged() const
-    {
-        return vSyncRatesChanged_;
-    }
-
-    NodeId GetFocusedNodeId() const
-    {
-        return currentFocusedNodeId_;
-    }
-
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     /* Prepare relevant calculation */
@@ -265,6 +245,7 @@ private:
     bool CheckCurtainScreenUsingStatusChange() const;
     bool CheckLuminanceStatusChange();
     bool IsFirstFrameOfPartialRender() const;
+    bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsWatermarkFlagChanged() const;
     bool IsDisplayZoomStateChange() const;
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
@@ -294,6 +275,8 @@ private:
     void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes, bool& ancoHasGpu);
     void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
@@ -301,8 +284,10 @@ private:
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateHwcNodeEnable();
+    void UpdateHwcNodeEnableByNodeBelow();
     void PrevalidateHwcNode();
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -318,7 +303,6 @@ private:
     void CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyByShadowChanged(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyBySurfaceChanged() const;
-    void CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty);
@@ -464,7 +448,6 @@ private:
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& node);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
-    void CollectVSyncRate(RSSurfaceRenderNode& node, RSVisibleLevel visibleLevel);
     void CollectEffectInfo(RSRenderNode& node);
 
     void UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node);
@@ -524,7 +507,6 @@ private:
     bool isSecurityDisplay_ = false;
 
     bool hasFingerprint_ = false;
-    bool hasHdrpresent_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool mirrorAutoRotate_ = false;
 
@@ -535,6 +517,7 @@ private:
     bool doAnimate_ = false;
     bool isSurfaceRotationChanged_ = false;
     bool isPartialRenderEnabled_ = false;
+    bool isCompleteRenderEnabled_ = false;
     bool isOpDropped_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;
@@ -614,14 +597,12 @@ private:
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
-    std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;
     // vector of last frame mainwindow surface visible info
     static inline VisibleData allLastVisVec_;
-    bool vSyncRatesChanged_ = false;
     std::mutex occlusionMutex_;
     float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
 
@@ -719,8 +700,6 @@ private:
 
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
-
-    std::map<NodeId, RSVisibleLevel> visMapForVSyncRate_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -18,10 +18,12 @@
 #include "include/gpu/GrBackendSemaphore.h"
 
 #include "draw/surface.h"
+#include "include/gpu/GrBackendSemaphore.h"
 #include "utils/log.h"
 
 #include "skia_bitmap.h"
 #include "skia_canvas.h"
+#include "skia_image_info.h"
 #ifdef ACE_ENABLE_GPU
 #include "skia_gpu_context.h"
 #endif
@@ -238,7 +240,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     sk_sp<SkSurface> skSurface = nullptr;
     SkSurfaceProps surfaceProps(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
         GrVkImageInfo image_info;
         SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
         GrBackendTexture backendRenderTarget(info.GetWidth(), info.GetHeight(), image_info);
@@ -249,7 +251,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     }
 #endif
 #ifdef RS_ENABLE_GL
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         GrBackendTexture glBackendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
         skSurface = SkSurface::MakeFromBackendTexture(grContext.get(),
             glBackendTexture, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
@@ -417,6 +419,24 @@ std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
     return drawingSurface;
 }
 
+std::shared_ptr<Surface> SkiaSurface::MakeSurface(const ImageInfo& imageInfo) const
+{
+    if (skSurface_ == nullptr) {
+        LOGD("skSurface is nullptr");
+        return nullptr;
+    }
+    SkImageInfo skImageInfo = SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    auto surface = skSurface_->makeSurface(skImageInfo);
+    if (surface == nullptr) {
+        LOGD("SkiaSurface::MakeSurface failed");
+        return nullptr;
+    }
+
+    auto drawingSurface = std::make_shared<Surface>();
+    drawingSurface->GetImpl<SkiaSurface>()->SetSkSurface(surface);
+    return drawingSurface;
+}
+
 void SkiaSurface::SetSkSurface(const sk_sp<SkSurface>& skSurface)
 {
     skSurface_ = skSurface;
@@ -458,13 +478,41 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
     skSurface_->flush();
 }
 
+#ifdef RS_ENABLE_GL
+void SkiaSurface::Wait(const std::vector<GrGLsync>& syncs)
+{
+    if (!SystemProperties::IsUseGl()) {
+        return;
+    }
+
+    if (skSurface_ == nullptr) {
+        LOGD("skSurface is nullptr");
+        return;
+    }
+
+    uint32_t count = syncs.size();
+    if (count == 0) {
+        LOGD("GrGLsync count is zero");
+        return;
+    } else {
+        std::vector<GrBackendSemaphore> semaphores;
+        semaphores.reserve(count);
+        for (auto& sync : syncs) {
+            GrBackendSemaphore backendSemaphore;
+            backendSemaphore.initGL(sync);
+            semaphores.emplace_back(backendSemaphore);
+        }
+        skSurface_->wait(count, semaphores.data());
+    }
+}
+#endif
+
 #ifdef RS_ENABLE_VK
 void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
 {
     if (!SystemProperties::IsUseVulkan()) {
         return;
     }
-
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
         return;
@@ -493,6 +541,10 @@ void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
 
 void SkiaSurface::ClearDrawingArea()
 {
+    if (SystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        SystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
         return;

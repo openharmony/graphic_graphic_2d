@@ -366,7 +366,7 @@ bool RSPaintFilterCanvasBase::OpCalculateBefore(const Matrix& matrix)
     return false;
 }
 
-std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Rect& bound)
+std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Drawing::Rect& bound)
 {
     if (canvas_ != nullptr && OnFilter()) {
         return canvas_->OpCalculateAfter(bound);
@@ -929,12 +929,12 @@ bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const D
 #ifdef ENABLE_RECORDING_DCL
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {
-            result |= (*iter)->DrawBlurImage(image, blurParams);
+            result = ((*iter)->DrawBlurImage(image, blurParams) || result);
         }
     }
 #else
     if (canvas_ != nullptr) {
-        result |= canvas_->DrawBlurImage(image, blurParams);
+        result = canvas_->DrawBlurImage(image, blurParams);
     }
 #endif
     return result;
@@ -983,10 +983,6 @@ CoreCanvas& RSPaintFilterCanvas::AttachPen(const Pen& pen)
     }
 
     Pen p(pen);
-    if (hasHdrPresent_ && !isCapture_) {
-        RS_LOGD("hdr PaintFilter %{public}d AttachPen", targetColorGamut_);
-        PaintFilter(p);
-    }
     if (p.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
         p.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
@@ -1022,10 +1018,6 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
     }
 
     Brush b(brush);
-    if (hasHdrPresent_ && !isCapture_ && !brush.IsForceBrightnessDisable() && !b.IsHdr()) {
-        RS_LOGD("hdr PaintFilter %{public}d AttachBrush", targetColorGamut_);
-        PaintFilter(b);
-    }
     if (b.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
         b.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
@@ -1054,25 +1046,6 @@ CoreCanvas& RSPaintFilterCanvas::AttachBrush(const Brush& brush)
     return *this;
 }
 
-template <typename T>
-void RSPaintFilterCanvas::PaintFilter(T& paint)
-{
-    Filter filter = paint.GetFilter();
-
-    ColorMatrix luminanceMatrix;
-    luminanceMatrix.SetScale(brightnessRatio_, brightnessRatio_, brightnessRatio_, 1.0f);
-    auto luminanceColorFilter = std::make_shared<ColorFilter>(ColorFilter::FilterType::MATRIX, luminanceMatrix);
-
-    auto colorFilter = filter.GetColorFilter();
-    if (colorFilter) {
-        RS_LOGD("hdr PaintFilter has colorFilter");
-        luminanceColorFilter->Compose(*colorFilter.get());
-    }
-    filter.SetColorFilter(luminanceColorFilter);
-
-    paint.SetFilter(filter);
-}
-
 CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
 {
     if (canvas_ == nullptr) {
@@ -1080,10 +1053,6 @@ CoreCanvas& RSPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
     }
 
     Paint p(paint);
-    if (hasHdrPresent_ && !isCapture_ && !paint.IsHDRImage()) {
-        RS_LOGD("hdr AttachPaint %{public}d AttachPaint", targetColorGamut_);
-        PaintFilter(p);
-    }
     if (p.GetColor() == 0x00000001) { // foreground color and foreground color strategy identification
         p.SetColor(envStack_.top().envForegroundColor_.AsArgbInt());
     }
@@ -1300,7 +1269,6 @@ bool RSPaintFilterCanvas::IsDirtyRegionStackEmpty()
 
 void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
 {
-    hasHdrPresent_ = other.hasHdrPresent_;
     brightnessRatio_ = other.brightnessRatio_;
     screenId_ = other.screenId_;
     targetColorGamut_ = other.targetColorGamut_;
@@ -1509,15 +1477,6 @@ void RSPaintFilterCanvas::SaveLayer(const Drawing::SaveLayerOps& saveLayerOps)
 {
     envStack_.top().hasOffscreenLayer_ = true;
     RSPaintFilterCanvasBase::SaveLayer(saveLayerOps);
-}
-bool RSPaintFilterCanvas::GetHDRPresent() const
-{
-    return hasHdrPresent_;
-}
-
-void RSPaintFilterCanvas::SetHDRPresent(bool hasHdrPresent)
-{
-    hasHdrPresent_ = hasHdrPresent;
 }
 
 bool RSPaintFilterCanvas::IsCapture() const

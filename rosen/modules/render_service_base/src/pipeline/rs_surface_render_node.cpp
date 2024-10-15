@@ -223,12 +223,6 @@ std::string RSSurfaceRenderNode::DirtyRegionDump() const
     return dump;
 }
 
-void RSSurfaceRenderNode::ResetRenderParams()
-{
-    stagingRenderParams_.reset();
-    renderDrawable_->renderParams_.reset();
-}
-
 void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas)
 {
     // Save the current state of the canvas before modifying it.
@@ -366,8 +360,6 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     if (!IsOnTheTree()) {
         if (auto context = GetContext().lock()) {
             RS_TRACE_NAME_FMT("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
-                GetId(), GetName().c_str());
-            RS_LOGD("need purgeUnlockedResources this SurfaceNode isn't on the tree Id:%" PRIu64 " Name:%s",
                 GetId(), GetName().c_str());
             if (IsLeashWindow()) {
                 context->MarkNeedPurge(ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE, RSContext::PurgeType::GENTLY);
@@ -695,7 +687,6 @@ void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>&
         return;
     }
     contextMatrix_ = matrix;
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, context matrix changed", GetId());
     SetContentDirty();
     AddDirtyType(RSModifierType::SCALE);
     AddDirtyType(RSModifierType::SKEW);
@@ -715,7 +706,6 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
         return;
     }
     contextAlpha_ = alpha;
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, node context alpha changed", GetId());
     SetContentDirty();
     AddDirtyType(RSModifierType::ALPHA);
     if (!sendMsg) {
@@ -732,7 +722,6 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
         return;
     }
     contextClipRect_ = clipRegion;
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, node context clip region changed", GetId());
     SetContentDirty();
     AddDirtyType(RSModifierType::BOUNDS);
     if (!sendMsg) {
@@ -798,7 +787,6 @@ void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
     }
     specialLayerChanged_ = true;
     isSecurityLayer_ = isSecurityLayer;
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set security layer", GetId());
     SetDirty();
     if (isSecurityLayer) {
         securityLayerIds_.insert(GetId());
@@ -815,7 +803,6 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
     }
     specialLayerChanged_ = true;
     isSkipLayer_ = isSkipLayer;
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set skip layer", GetId());
     SetDirty();
     if (isSkipLayer) {
         skipLayerIds_.insert(GetId());
@@ -832,7 +819,6 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
     }
     specialLayerChanged_ = true;
     isProtectedLayer_ = isProtectedLayer;
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, set protected layer", GetId());
     SetDirty();
     if (isProtectedLayer) {
         protectedLayerIds_.insert(GetId());
@@ -912,8 +898,6 @@ void RSSurfaceRenderNode::SyncProtectedInfoToFirstLevelNode()
         auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
         // firstLevelNode is the nearest app window / leash node
         if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
-            ROSEN_LOGD("Node id %{public}" PRIu64
-                " set dirty, first level node of protected info to be synced", firstLevelNode->GetId());
             firstLevelNode->SetDirty();
             // should always sync protectedLayerIds_ to firstLevelNode
             if (isProtectedLayer_ && IsOnTheTree()) {
@@ -967,13 +951,24 @@ bool RSSurfaceRenderNode::GetForceUIFirstChanged()
     return forceUIFirstChanged_;
 }
 
-void RSSurfaceRenderNode::SetAncoForceDoDirect(bool ancoForceDoDirect)
+void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
 {
-    ancoForceDoDirect_ = ancoForceDoDirect;
+    ancoForceDoDirect_.store(direct);
 }
+
 bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
 {
-    return ancoForceDoDirect_;
+    return (ancoForceDoDirect_.load() && (GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)));
+}
+
+void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
+{
+    ancoFlags_.store(flags);
+}
+
+uint32_t RSSurfaceRenderNode::GetAncoFlags() const
+{
+    return ancoFlags_.load();
 }
 
 void RSSurfaceRenderNode::RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)
@@ -1070,9 +1065,11 @@ void RSSurfaceRenderNode::OnSkipSync()
         }
         auto context = GetContext().lock();
         if (context && !surfaceParams->GetHardwareEnabled()) {
-            context->GetMutableSkipSyncBuffer().push_back(
-                { preBuffer, GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
+            context->GetMutableSkipSyncBuffer().push_back({ GetFirstLevelNodeId(), preBuffer,
+                GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
             surfaceParams->SetPreBuffer(nullptr);
+            RS_LOGD("CollectSkipSyncBuffer fId[%" PRIu64"], sId[%" PRIu64"]",
+                GetFirstLevelNodeId(), surfaceParams->GetId());
         }
     }
 #endif
@@ -1104,11 +1101,11 @@ void RSSurfaceRenderNode::NeedClearBufferCache()
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     std::set<int32_t> bufferCacheSet;
-    if (surfaceHandler_->GetBuffer()) {
-        bufferCacheSet.insert(surfaceHandler_->GetBuffer()->GetSeqNum());
+    if (auto buffer = surfaceHandler_->GetBuffer()) {
+        bufferCacheSet.insert(buffer->GetSeqNum());
     }
-    if (surfaceHandler_->GetPreBuffer().buffer) {
-        bufferCacheSet.insert(surfaceHandler_->GetPreBuffer().buffer->GetSeqNum());
+    if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
+        bufferCacheSet.insert(preBuffer->GetSeqNum());
     }
     surfaceParams->SetBufferClearCacheSet(bufferCacheSet);
     AddToPendingSyncList();
@@ -1204,7 +1201,6 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
         RSRTRefreshCallback::Instance().ExecuteRefresh();
     }
     if (isTextureExportNode) {
-        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, texture export node notify buffer available", GetId());
         SetContentDirty();
     }
 
@@ -1291,7 +1287,6 @@ void RSSurfaceRenderNode::SetStartAnimationFinished()
 bool RSSurfaceRenderNode::UpdateDirtyIfFrameBufferConsumed()
 {
     if (surfaceHandler_ && surfaceHandler_->IsCurrentFrameBufferConsumed()) {
-        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, frame buffer consumed", GetId());
         SetContentDirty();
         return true;
     }
@@ -2040,6 +2035,31 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
     return true;
 }
 
+void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const
+{
+    auto begin = cornerRadius.GetData();
+    auto end = begin + Vector4<int>::V4SIZE;
+    switch (rotationDegree) {
+        case RS_ROTATION_90: {
+            constexpr int moveTime = 1;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        case RS_ROTATION_180: {
+            constexpr int moveTime = 2;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        case RS_ROTATION_270: {
+            constexpr int moveTime = 3;
+            std::rotate(begin, end - moveTime, end);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, const ScreenRotation screenRotation,
     const bool isFocusWindow)
 {
@@ -2050,6 +2070,16 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
                                 static_cast<int>(std::round(tmpCornerRadius.y_)),
                                 static_cast<int>(std::round(tmpCornerRadius.z_)),
                                 static_cast<int>(std::round(tmpCornerRadius.w_)));
+    auto boundsGeometry = GetRenderProperties().GetBoundsGeometry();
+    if (boundsGeometry) {
+        const auto& absMatrix = boundsGeometry->GetAbsMatrix();
+        auto rotationDegree = static_cast<int>(-round(atan2(absMatrix.Get(Drawing::Matrix::SKEW_X),
+            absMatrix.Get(Drawing::Matrix::SCALE_X)) * (RS_ROTATION_180 / PI)));
+        if (rotationDegree < 0) {
+            rotationDegree += RS_ROTATION_360;
+        }
+        RotateCorner(rotationDegree, cornerRadius);
+    }
 
     bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.absRect_ == absRect &&
@@ -2139,7 +2169,7 @@ std::vector<RectI> RSSurfaceRenderNode::GetChildrenNeedFilterRectsWithoutCacheVa
         }
     }
     return childrenFilterRectsWithoutCacheValid;
-};
+}
 
 // manage abilities' nodeid info
 void RSSurfaceRenderNode::UpdateAbilityNodeIds(NodeId id, bool isAdded)
@@ -2683,7 +2713,6 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     auto& properties = GetRenderProperties();
     surfaceParams->alpha_ = properties.GetAlpha();
     surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
-    surfaceParams->isAttractionValid_ = properties.IsAttractionValid();
     surfaceParams->rsSurfaceNodeType_ = GetSurfaceNodeType();
     surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
     surfaceParams->rrect_ = properties.GetRRect();
@@ -2784,7 +2813,6 @@ void RSSurfaceRenderNode::SetUifirstUseStarting(NodeId id)
 void RSSurfaceRenderNode::SetSkipDraw(bool skip)
 {
     isSkipDraw_ = skip;
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, skip draw", GetId());
     SetDirty();
 }
 
@@ -2796,6 +2824,33 @@ bool RSSurfaceRenderNode::GetSkipDraw() const
 const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtensionNodes()
 {
     return secUIExtensionNodes_;
+}
+
+void RSSurfaceRenderNode::SetSdrNit(int32_t sdrNit)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetSdrNit(sdrNit);
+    }
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetDisplayNit(int32_t displayNit)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetDisplayNit(displayNit);
+    }
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetBrightnessRatio(brightnessRatio);
+    }
+    AddToPendingSyncList();
 }
 } // namespace Rosen
 } // namespace OHOS

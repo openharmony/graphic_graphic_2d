@@ -27,6 +27,7 @@ namespace Rosen {
 namespace {
 static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
 static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CPACITY
+static constexpr uint64_t MAX_ADVANCE_TIME = 1000000000; // one second advance most
 }
 
 std::function<void(uint64_t, int, int)> RSTransactionData::alarmLogFunc = [](uint64_t nodeId, int count, int num) {
@@ -38,6 +39,14 @@ RSTransactionData* RSTransactionData::Unmarshalling(Parcel& parcel)
 {
     auto transactionData = new RSTransactionData();
     if (transactionData->UnmarshallingCommand(parcel)) {
+        // Do not process future data, limit data timestamps to a maximum of 1 second in advance
+        uint64_t now = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        if (transactionData->timestamp_ > now + MAX_ADVANCE_TIME) {
+            ROSEN_LOGW("RSTransactionData Unmarshalling limit timestamps from %{public}" PRIu64 " to "
+                "%{public}" PRIu64 " ", transactionData->timestamp_, now + MAX_ADVANCE_TIME);
+        }
+        transactionData->timestamp_ = std::min(now + MAX_ADVANCE_TIME, transactionData->timestamp_);
         return transactionData;
     }
     ROSEN_LOGE("RSTransactionData Unmarshalling Failed");
@@ -85,11 +94,12 @@ void RSTransactionData::AlarmRsNodeLog() const
 
 bool RSTransactionData::Marshalling(Parcel& parcel) const
 {
+    bool success = true;
     parcel.SetMaxCapacity(PARCEL_MAX_CPACITY);
     // to correct actual marshaled command size later, record its position in parcel
     size_t recordPosition = parcel.GetWritePosition();
     std::unique_lock<std::mutex> lock(commandMutex_);
-    bool success = parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
+    success = success && parcel.WriteInt32(static_cast<int32_t>(payload_.size()));
     size_t marshaledSize = 0;
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
     success = success && parcel.WriteBool(isUniRender);
@@ -116,9 +126,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         }
         ++marshallingIndex_;
         ++marshaledSize;
-        if ((RSSystemProperties::GetUnmarshParallelFlag() &&
-            parcel.GetDataSize() > RSSystemProperties::GetUnMarshParallelSize()) ||
-            parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
+        if (parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
             break;
         }
     }

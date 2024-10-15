@@ -122,6 +122,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
+{
+    return false;
+}
+
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return {};
@@ -297,6 +302,11 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    return false;
+}
+
 float RSSystemProperties::GetKawaseRandomColorFactor()
 {
     return 0.f;
@@ -428,6 +438,11 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetTransactionTerminateEnabled()
+{
+    return false;
+}
+
 int RSSystemProperties::GetVirtualScreenScaleModeDFX()
 {
     return {};
@@ -468,16 +483,6 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     return false;
 }
 
-bool RSSystemProperties::GetUnmarshParallelFlag()
-{
-    return false;
-}
-
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
-{
-    return UINT32_MAX;
-}
-
 bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
     return false;
@@ -488,9 +493,9 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+std::string RSSystemProperties::GetVersionType()
 {
-    return false;
+    return "";
 }
 
 bool RSSystemProperties::GetLayerCursorEnable()

@@ -33,6 +33,8 @@
 namespace OHOS::Rosen::DrawableV2 {
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
+RSRenderNodeDrawableAdapter::DrawableVec RSRenderNodeDrawableAdapter::toClearDrawableVec_;
+RSRenderNodeDrawableAdapter::CmdListVec RSRenderNodeDrawableAdapter::toClearCmdListVec_;
 #ifdef ROSEN_OHOS
 thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
 #else
@@ -209,7 +211,7 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
             return;
         }
     }
-    
+
     drawCmdList_[index](&canvas, &rect);
 }
 
@@ -460,6 +462,14 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
            drawCmdIndex_.useEffectIndex_ != -1;
 }
 
+void RSRenderNodeDrawableAdapter::ClearResource()
+{
+    RS_TRACE_NAME_FMT("ClearResource count drawable %d, cmdList %d",
+        toClearDrawableVec_.size(), toClearCmdListVec_.size());
+    toClearDrawableVec_.clear();
+    toClearCmdListVec_.clear();
+}
+
 int RSRenderNodeDrawableAdapter::GetCountOfClipHoleForCache(const RSRenderParams& params) const
 {
     int count = drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty() ? 1 : 0;
@@ -516,4 +526,40 @@ void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& ca
         drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
     }
 }
+
+bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
+{
+    if (!RSSystemProperties::GetBlurEnabled() || !RSSystemProperties::GetFilterCacheEnabled() ||
+        !RSUniRenderJudgement::IsUniRender()) {
+        ROSEN_LOGD("blur is disabled or filter cache is disabled.");
+        return false;
+    }
+
+    bool val = false;
+    if (backgroundFilterDrawable_) {
+        val = val || backgroundFilterDrawable_->IsFilterCacheValidForOcclusion();
+    }
+    if (compositingFilterDrawable_) {
+        val = val || compositingFilterDrawable_->IsFilterCacheValidForOcclusion();
+    }
+    return val;
+}
+
+const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
+{
+    RectI rect{0, 0, 0, 0};
+    if (!RSSystemProperties::GetBlurEnabled()) {
+        ROSEN_LOGD("blur is disabled");
+        return rect;
+    }
+
+    if (compositingFilterDrawable_) {
+        return compositingFilterDrawable_->GetFilterCachedRegion();
+    } else if (backgroundFilterDrawable_) {
+        return backgroundFilterDrawable_->GetFilterCachedRegion();
+    } else {
+        return rect;
+    }
+}
+
 } // namespace OHOS::Rosen::DrawableV2

@@ -17,9 +17,9 @@
 #define RS_UNMARSHAL_THREAD_H
 
 #include <mutex>
+#include <unordered_map>
 
 #include "event_handler.h"
-#include "ffrt_inner.h"
 #include "message_parcel.h"
 
 #include "transaction/rs_transaction_data.h"
@@ -33,7 +33,10 @@ public:
     void RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0);
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();
-    void Wait();
+
+    bool ReportTransactionDataStatistics(pid_t pid, RSTransactionData* transactionData,
+        bool isNonSystemAppCalling = false);
+    void ClearTransactionDataStatistics();
 
 private:
     RSUnmarshalThread() = default;
@@ -43,6 +46,7 @@ private:
     RSUnmarshalThread& operator=(const RSUnmarshalThread&);
     RSUnmarshalThread& operator=(const RSUnmarshalThread&&);
 
+    bool IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const;
     void SetFrameLoad(int load);
     void SetFrameParam(int requestId, int load, int frameNum, int value);
     static constexpr uint32_t MIN_PENDING_REQUEST_SYNC_DATA_SIZE = 32 * 1024;
@@ -55,7 +59,9 @@ private:
     bool willHaveCachedData_ = false;
     int unmarshalTid_ = -1;
     int unmarshalLoad_ = 0;
-    std::vector<ffrt::dependence> cachedDeps_;
+
+    std::mutex statisticsMutex_;
+    std::unordered_map<pid_t, size_t> transactionDataStatistics_;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H

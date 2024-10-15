@@ -1488,6 +1488,20 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsFirstFrameOfOverdrawSwitch
+ * @tc.desc: test IsFirstFrameOfOverdrawSwitch
+ * @tc.type: FUNC
+ * @tc.require: issueIAKQC3
+ */
+HWTEST_F(RSMainThreadTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isOverDrawEnabledOfCurFrame_ = true;
+    ASSERT_TRUE(mainThread->IsFirstFrameOfOverdrawSwitch());
+}
+
+/**
  * @tc.name: Render
  * @tc.desc: Render test
  * @tc.type: FUNC
@@ -1843,6 +1857,9 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes003, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
 {
 #ifndef ROSEN_CROSS_PLATFORM
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        return;
+    }
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     bool isUniRender = mainThread->isUniRender_;
@@ -2148,6 +2165,21 @@ HWTEST_F(RSMainThreadTest, SendCommands, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    mainThread->SendCommands();
+}
+
+/**
+ * @tc.name: SendCommands001
+ * @tc.desc: SendCommands Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SendCommands001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    AnimationId animationId = 1;
+    mainThread->context_->AddSyncFinishAnimationList(id, animationId);
     mainThread->SendCommands();
 }
 
@@ -3226,6 +3258,22 @@ HWTEST_F(RSMainThreadTest, ProcessScreenHotPlugEvents, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->ProcessScreenHotPlugEvents();
+}
+
+/**
+ * @tc.name: CheckSurfaceVisChanged001
+ * @tc.desc: Test CheckSurfaceVisChanged, systemAnimatedScenesList is empty
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, CheckSurfaceVisChanged001, TestSize.Level1)
+{
+auto mainThread = RSMainThread::Instance();
+ASSERT_NE(mainThread, nullptr);
+std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
+std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
+mainThread->systemAnimatedScenesList_.clear();
+mainThread->CheckSurfaceVisChanged(visMapForVsyncRate, curAllSurfaces);
 }
 
 /**

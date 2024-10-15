@@ -45,9 +45,10 @@ struct ComposeInfo {
     GraphicLayerAlpha alpha;
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
     GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
+    int32_t sdrNit { 0 };
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };
 };
@@ -56,10 +57,11 @@ class RSSurfaceRenderParams;
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
+constexpr float DEFAULT_BRIGHTNESS_RATIO = 1.0f;
 #endif
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
 
     Drawing::Matrix matrix; // for moving canvas to layer(surface)'s leftTop point.
     Drawing::Rect srcRect; // surface's bufferSize
@@ -84,7 +86,11 @@ struct BufferDrawParam {
     GraphicHDRMetaDataSet metaDataSet; // dynamic meta datas for HDR10+, HDR VIVID
     uint32_t threadIndex = UNI_MAIN_THREAD_INDEX; // use to decide eglimage unmap thread index
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    float screenBrightnessNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float sdrNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float tmoNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float displayNits = DEFAULT_SCREEN_LIGHT_NITS;
+    float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
+    bool isHdrRedraw = false;
 #endif
 };
 
@@ -121,14 +127,14 @@ public:
 
     static GraphicTransformType GetSurfaceBufferTransformType(
         const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer);
-    static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds);
+    static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bounds,
+        const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
     static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
     static GSError DropFrameProcess(RSSurfaceHandler& node);
-    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool ConsumeAndUpdateBuffer(
         RSSurfaceHandler& surfaceHandler, bool isDisplaySurface, uint64_t vsyncTimestamp = 0);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
@@ -142,8 +148,10 @@ public:
      *
      * @param colorFilterMode SkBlendMode applied to SKPaint
      * @param paint color matrix applied to SKPaint
+     * @param brightnessRatio hdr brightness ratio
      */
-    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint);
+    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint,
+        float hdrBrightnessRatio = 1.f);
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
@@ -152,7 +160,7 @@ public:
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-        RectF localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
+        RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
     static void FlipMatrix(GraphicTransformType transform, BufferDrawParam& params);
 
     // GraphicTransformType has two attributes: rotation and flip, it take out one of the attributes separately
@@ -166,6 +174,7 @@ public:
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
 

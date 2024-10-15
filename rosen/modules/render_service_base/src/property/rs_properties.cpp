@@ -21,6 +21,7 @@
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "render/rs_mesa_blur_shader_filter.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
@@ -37,7 +38,6 @@
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_spherize_effect_filter.h"
-#include "render/rs_attraction_effect_filter.h"
 #include "src/core/SkOpts.h"
 #include "render/rs_water_ripple_shader_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
@@ -60,7 +60,6 @@ constexpr int32_t INDEX_18 = 18;
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
-constexpr float ATTRACTION_VALID_EPSILON = 0.001f; // used to judge if attraction valid
 constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
 constexpr int BORDER_NUM = 4;
 constexpr int16_t BORDER_TRANSPARENT = 255;
@@ -194,8 +193,6 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetForegroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT); }, // FOREGROUND_BLUR_COLORMODE
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusX(0.f); },     // FOREGROUND_BLUR_RADIUS_X
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusY(0.f); },     // FOREGROUND_BLUR_RADIUS_Y
-    [](RSProperties* prop) { prop->SetAttractionFraction(0.f); },        // ATTRACTION_FRACTION
-    [](RSProperties* prop) { prop->SetAttractionDstPoint({}); },         // ATTRACTION_DSTPOINT
 };
 
 // Check if g_propertyResetterLUT size match and is fully initialized (the last element should never be nullptr)
@@ -1649,12 +1646,12 @@ std::optional<RSDynamicBrightnessPara> RSProperties::GetBgBrightnessParams() con
 
 bool RSProperties::IsFgBrightnessValid() const
 {
-    return fgBrightnessParams_.has_value() && ROSEN_LNE(fgBrightnessParams_->fraction_, 1.0);
+    return fgBrightnessParams_.has_value() && fgBrightnessParams_->IsValid();
 }
 
 bool RSProperties::IsBgBrightnessValid() const
 {
-    return bgBrightnessParams_.has_value() && ROSEN_LNE(bgBrightnessParams_->fraction_, 1.0);
+    return bgBrightnessParams_.has_value() && bgBrightnessParams_->IsValid();
 }
 
 std::string RSProperties::GetFgBrightnessDescription() const
@@ -2348,72 +2345,11 @@ bool RSProperties::IsSpherizeValid() const
     return isSpherizeValid_;
 }
 
-void RSProperties::CreateSphereEffectFilter()
-{
-    auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
-    if (IS_UNI_RENDER) {
-        foregroundFilterCache_ = spherizeEffectFilter;
-    } else {
-        foregroundFilter_ = spherizeEffectFilter;
-    }
-}
-
 void RSProperties::CreateFlyOutShaderFilter()
 {
     uint32_t flyMode = flyOutParams_->flyMode;
     auto flyOutShaderFilter = std::make_shared<RSFlyOutShaderFilter>(flyOutDegree_, flyMode);
     foregroundFilter_ = flyOutShaderFilter;
-}
-
-void RSProperties::CreateAttractionEffectFilter()
-{
-    float canvasWidth = GetBoundsRect().GetWidth();
-    float canvasHeight = GetBoundsRect().GetHeight();
-    Vector2f destinationPoint = GetAttractionDstPoint();
-    float windowLeftPoint = GetFramePositionX();
-    float windowTopPoint = GetFramePositionY();
-    auto attractionEffectFilter = std::make_shared<RSAttractionEffectFilter>(attractFraction_);
-    attractionEffectFilter->CalculateWindowStatus(canvasWidth, canvasHeight, destinationPoint);
-    attractionEffectFilter->UpdateDirtyRegion(windowLeftPoint, windowTopPoint);
-    attractionEffectCurrentDirtyRegion_ = attractionEffectFilter->GetAttractionDirtyRegion();
-    foregroundFilter_ = attractionEffectFilter;
-}
-
-RectI RSProperties::GetAttractionEffectCurrentDirtyRegion() const
-{
-    return attractionEffectCurrentDirtyRegion_;
-}
-
-float RSProperties::GetAttractionFraction() const
-{
-    return attractFraction_;
-}
-
-void RSProperties::SetAttractionDstPoint(Vector2f dstPoint)
-{
-    attractDstPoint_ = dstPoint;
-}
-
-Vector2f  RSProperties::GetAttractionDstPoint() const
-{
-    return attractDstPoint_;
-}
-
-void RSProperties::SetAttractionFraction(float fraction)
-{
-    attractFraction_ = fraction;
-    isAttractionValid_ = attractFraction_ > ATTRACTION_VALID_EPSILON;
-    if (isAttractionValid_) {
-        isDrawn_ = true;
-    }
-    filterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-}
-
-bool RSProperties::IsAttractionValid() const
-{
-    return isAttractionValid_;
 }
 
 void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
@@ -2740,7 +2676,7 @@ std::shared_ptr<Drawing::ColorFilter> RSProperties::GetMaterialColorFilter(float
     float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
     cm.GetArray(cmArray);
     std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO_CLAMP);
     return filterCompose;
 }
 
@@ -2750,6 +2686,23 @@ void RSProperties::GenerateBackgroundBlurFilter()
         backgroundBlurRadiusX_, backgroundBlurRadiusY_, Drawing::TileMode::CLAMP, nullptr);
     uint32_t hash = SkOpts::hash(&backgroundBlurRadiusX_, sizeof(backgroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
+
+    // fuse grey-adjustment and pixel-stretch with blur filter
+    if (NeedBlurFuzed()) {
+        std::shared_ptr<RSMESABlurShaderFilter> mesaBlurShaderFilter;
+        if (greyCoef_.has_value()) {
+            mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(backgroundBlurRadiusX_,
+                greyCoef_->x_, greyCoef_->y_);
+        } else {
+            mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(backgroundBlurRadiusX_);
+        }
+        originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
+        originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(backgroundBlurRadiusX_));
+        backgroundFilter_ = originalFilter;
+        backgroundFilter_->SetFilterType(RSFilter::BLUR);
+        return;
+    }
+
     if (greyCoef_.has_value()) {
         std::shared_ptr<RSGreyShaderFilter> greyShaderFilter =
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
@@ -2788,6 +2741,13 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
         Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, backgroundBlurRadius_, backgroundBlurRadius_);
 
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
+
+    // fuse grey-adjustment and pixel-stretch with blur filter
+    if (NeedBlurFuzed()) {
+        GenerateBackgroundMaterialFuzedBlurFilter();
+        return;
+    }
+
     if (greyCoef_.has_value()) {
         std::shared_ptr<RSGreyShaderFilter> greyShaderFilter =
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
@@ -2823,6 +2783,23 @@ void RSProperties::GenerateForegroundBlurFilter()
         foregroundBlurRadiusX_, foregroundBlurRadiusY_, Drawing::TileMode::CLAMP, nullptr);
     uint32_t hash = SkOpts::hash(&foregroundBlurRadiusX_, sizeof(foregroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
+
+    // fuse grey-adjustment and pixel-stretch with blur filter
+    if (NeedBlurFuzed()) {
+        std::shared_ptr<RSMESABlurShaderFilter> mesaBlurShaderFilter;
+        if (greyCoef_.has_value()) {
+            mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(foregroundBlurRadiusX_,
+                greyCoef_->x_, greyCoef_->y_);
+        } else {
+            mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(foregroundBlurRadiusX_);
+        }
+        originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
+        originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(foregroundBlurRadiusX_));
+        filter_ = originalFilter;
+        filter_->SetFilterType(RSFilter::BLUR);
+        return;
+    }
+
     if (greyCoef_.has_value()) {
         std::shared_ptr<RSGreyShaderFilter> greyShaderFilter =
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
@@ -2861,6 +2838,12 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
 
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
+    // fuse grey-adjustment and pixel-stretch with blur filter
+    if (NeedBlurFuzed()) {
+        GenerateCompositingMaterialFuzedBlurFilter();
+        return;
+    }
+
     if (greyCoef_.has_value()) {
         std::shared_ptr<RSGreyShaderFilter> greyShaderFilter =
             std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
@@ -2886,6 +2869,54 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(foregroundBlurRadius_));
     originalFilter->SetSaturationForHPS(foregroundBlurSaturation_);
     originalFilter->SetBrightnessForHPS(foregroundBlurBrightness_);
+    filter_ = originalFilter;
+    filter_->SetFilterType(RSFilter::MATERIAL);
+}
+
+void RSProperties::GenerateBackgroundMaterialFuzedBlurFilter()
+{
+    std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
+    std::shared_ptr<RSMESABlurShaderFilter> mesaBlurShaderFilter;
+    if (greyCoef_.has_value()) {
+        mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(backgroundBlurRadius_,
+            greyCoef_->x_, greyCoef_->y_);
+    } else {
+        mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(backgroundBlurRadius_);
+    }
+    originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
+    uint32_t hash = SkOpts::hash(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
+    std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
+        backgroundBlurSaturation_, backgroundBlurBrightness_);
+    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
+    originalFilter = originalFilter->Compose(colorImageFilter, hash);
+    std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
+        backgroundColorMode_, backgroundMaskColor_);
+    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(backgroundBlurRadius_));
+    backgroundFilter_ = originalFilter;
+    backgroundFilter_->SetFilterType(RSFilter::MATERIAL);
+}
+
+void RSProperties::GenerateCompositingMaterialFuzedBlurFilter()
+{
+    std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
+    std::shared_ptr<RSMESABlurShaderFilter> mesaBlurShaderFilter;
+    if (greyCoef_.has_value()) {
+        mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(foregroundBlurRadius_,
+            greyCoef_->x_, greyCoef_->y_);
+    } else {
+        mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(foregroundBlurRadius_);
+    }
+    originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
+    uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
+    std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
+        foregroundBlurSaturation_, foregroundBlurBrightness_);
+    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
+    originalFilter = originalFilter->Compose(colorImageFilter, hash);
+    std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
+        foregroundColorMode_, foregroundMaskColor_);
+    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(foregroundBlurRadius_));
     filter_ = originalFilter;
     filter_->SetFilterType(RSFilter::MATERIAL);
 }
@@ -3377,7 +3408,7 @@ void RSProperties::GenerateColorFilter()
         matrix[1] = matrix[INDEX_6] = matrix[INDEX_11] = 0.7152f * grayScale; // 0.7152 : gray scale coefficient
         matrix[INDEX_2] = matrix[INDEX_7] = matrix[INDEX_12] = 0.0722f * grayScale; // 0.0722 : gray scale coefficient
         matrix[INDEX_18] = 1.0 * grayScale;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3390,7 +3421,7 @@ void RSProperties::GenerateColorFilter()
         brightness = brightness - 1;
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = matrix[INDEX_18] = 1.0f;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = brightness;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3404,7 +3435,7 @@ void RSProperties::GenerateColorFilter()
         matrix[0] = matrix[INDEX_6] = matrix[INDEX_12] = contrast;
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = contrastValue128 * (1 - contrast) / contrastValue255;
         matrix[INDEX_18] = 1.0f;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3420,7 +3451,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_6] = 0.6094f * (1 - saturate) + saturate; // 0.6094 : saturate coefficient
         matrix[INDEX_12] = 0.0820f * (1 - saturate) + saturate; // 0.0820 : saturate coefficient
         matrix[INDEX_18] = 1.0f;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3441,7 +3472,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_11] = 0.534f * sepia;
         matrix[INDEX_12] = 0.131f * sepia;
         matrix[INDEX_18] = 1.0f * sepia;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3459,7 +3490,7 @@ void RSProperties::GenerateColorFilter()
         matrix[INDEX_18] = 1.0f;
         // invert = 0.5 -> RGB = (0.5, 0.5, 0.5) -> image completely gray
         matrix[INDEX_4] = matrix[INDEX_9] = matrix[INDEX_14] = invert;
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3494,7 +3525,7 @@ void RSProperties::GenerateColorFilter()
             default:
                 break;
         }
-        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix);
+        filter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
         if (colorFilter_) {
             filter->Compose(*colorFilter_);
         }
@@ -3556,7 +3587,7 @@ std::string RSProperties::Dump() const
     }
 
     // Pivot
-    std::unique_ptr<Transform> defaultTrans = std::make_unique<Transform>();
+    std::unique_ptr<RSTransform> defaultTrans = std::make_unique<RSTransform>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
         return "Failed to memset_s for Pivot, ret=" + std::to_string(ret);
@@ -3684,28 +3715,6 @@ std::string RSProperties::Dump() const
     }
     if (!ROSEN_EQ(GetSpherize(), 0.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Spherize[%.1f]", GetSpherize()) != -1) {
-        dumpInfo.append(buffer);
-    }
-
-    // AttractFraction
-    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (ret != EOK) {
-        return "Failed to memset_s for AttractFraction, ret=" + std::to_string(ret);
-    }
-    if (!ROSEN_EQ(GetAttractionFraction(), 0.f) &&
-        sprintf_s(buffer, UINT8_MAX, ", MiniFraction[%.1f]",  GetAttractionFraction()) != -1) {
-        dumpInfo.append(buffer);
-    }
-
-    // Attraction Destination Position
-    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
-    if (ret != EOK) {
-        return "Failed to memset_s for MiniDstpoint, ret=" + std::to_string(ret);
-    }
-    Vector2f attractionDstpoint = GetAttractionDstPoint();
-    if ((!ROSEN_EQ(attractionDstpoint[0], 0.f) || !ROSEN_EQ(attractionDstpoint[1], 0.f)) &&
-        sprintf_s(buffer, UINT8_MAX, ", AttractionFraction DstPointY[%.1f,%.1f]",
-        attractionDstpoint[0], attractionDstpoint[1]) != -1) {
         dumpInfo.append(buffer);
     }
 
@@ -4158,9 +4167,12 @@ void RSProperties::UpdateForegroundFilter()
             foregroundFilter_ = foregroundEffectFilter;
         }
     } else if (IsSpherizeValid()) {
-        CreateSphereEffectFilter();
-    } else if (IsAttractionValid()) {
-        CreateAttractionEffectFilter();
+        auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
+        if (IS_UNI_RENDER) {
+            foregroundFilterCache_ = spherizeEffectFilter;
+        } else {
+            foregroundFilter_ = spherizeEffectFilter;
+        }
     } else if (IsFlyOutValid()) {
         CreateFlyOutShaderFilter();
     } else if (GetShadowMask()) {
@@ -4211,6 +4223,14 @@ void RSProperties::CalculatePixelStretch()
         return;
     }
     pixelStretch_ = std::nullopt;
+}
+
+bool RSProperties::NeedBlurFuzed()
+{
+    if (RSSystemProperties::GetMESABlurFuzedEnabled() && greyCoef_.has_value()) {
+        return true;
+    }
+    return false;
 }
 
 void RSProperties::CalculateFrameOffset()

@@ -140,6 +140,7 @@ protected:
     static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
     thread_local static inline bool isOpincDropNodeExt_ = true;
     thread_local static inline int opincRootTotalCount_ = 0;
+    static inline RectI screenRectInfo_ = {0, 0, 0, 0};
 
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
@@ -147,7 +148,8 @@ protected:
     void UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id);
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
-    void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId);
+    void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId, 
+        bool isHdrOn = false);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
     void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
@@ -202,12 +204,13 @@ private:
     bool isOpincRootNode_ = false;
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
-    bool isOpincMarkCached_ = false;
     bool OpincGetCachedMark() const
     {
         return isOpincMarkCached_;
     }
     static thread_local bool isOffScreenWithClipHole_;
+    bool isOpincMarkCached_ = false;
+    bool IsOpincNodeInScreenRect(RSRenderParams& params);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

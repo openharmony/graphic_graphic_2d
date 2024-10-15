@@ -259,11 +259,6 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
     filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst);
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (paintFilterCanvas != nullptr) {
-        offscreenCanvas.SetHDRPresent(paintFilterCanvas->GetHDRPresent());
-        offscreenCanvas.SetBrightnessRatio(paintFilterCanvas->GetBrightnessRatio());
-    }
     filter->PostProcess(offscreenCanvas);
 
     // Update the cache state with the filtered snapshot.
@@ -306,7 +301,6 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
         cachedFilteredSnapshot_->cachedRect_.ToString().c_str(), src.ToString().c_str(), dst.ToString().c_str());
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
-    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*cachedFilteredSnapshot_->cachedImage_, src, dst, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);

@@ -17,12 +17,10 @@
 #define GPU_CONTEXT_H
 #include <functional>
 #include <set>
-
-#include "trace_memory_dump.h"
-
 #include "impl_interface/gpu_context_impl.h"
-#include "utils/data.h"
 #include "utils/drawing_macros.h"
+#include "utils/data.h"
+#include "trace_memory_dump.h"
 
 typedef void* EGLContext;
 namespace OHOS {
@@ -255,6 +253,13 @@ public:
      * @param out               Updated memory map.
      */
     void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out);
+
+    /**
+     * @brief                   Init gpu memory limit.
+     * @param callback          Memory overflow calllback.
+     * @param size              Memory size limit.
+     */
+    void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size);
 
 #ifdef RS_ENABLE_VK
     /**

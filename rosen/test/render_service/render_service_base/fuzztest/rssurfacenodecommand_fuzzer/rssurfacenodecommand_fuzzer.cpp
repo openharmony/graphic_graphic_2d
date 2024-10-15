@@ -96,7 +96,7 @@ bool DoSurfacenodecommand(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetForeground(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetSurfaceId(context, id, surfaceId);
     SurfaceNodeCommandHelper::SetForceUIFirst(context, id, GetData<bool>());
-    SurfaceNodeCommandHelper::SetAncoForceDoDirect(context, id, GetData<bool>());
+    SurfaceNodeCommandHelper::SetAncoFlags(context, id, GetData<uint32_t>());
     SurfaceNodeCommandHelper::SetHDRPresent(context, id, GetData<bool>());
     return true;
 }

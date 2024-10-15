@@ -27,7 +27,7 @@ class EglWrapperDisplay;
 
 class EglWrapperSurface : public EglWrapperObject {
 public:
-    EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf);
+    EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf, NativeWindowType window = nullptr);
     static EglWrapperSurface *GetWrapperSurface(EGLSurface surf);
     inline EGLSurface GetEglSurface() const
     {
@@ -38,14 +38,14 @@ public:
     {
         return window_;
     };
-    
-    static void Init(NativeWindowType window);
-    static void Disconnect();
-    static NativeWindowType window_;
+
+    static void Disconnect(OHNativeWindow *window);
+
 protected:
     ~EglWrapperSurface() override;
 private:
     EGLSurface surf_;
+    NativeWindowType window_;
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_SURFACE_H

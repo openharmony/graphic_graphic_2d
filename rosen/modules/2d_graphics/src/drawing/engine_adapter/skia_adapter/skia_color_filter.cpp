@@ -29,21 +29,26 @@ namespace Rosen {
 namespace Drawing {
 SkiaColorFilter::SkiaColorFilter() noexcept : filter_(nullptr) {}
 
+static SkColorFilters::Clamp ConverToSkClamp(Drawing::Clamp clamp)
+{
+    return (clamp == Drawing::Clamp::YES_CLAMP ? SkColorFilters::Clamp::kYes : SkColorFilters::Clamp::kNo);
+}
+
 void SkiaColorFilter::InitWithBlendMode(ColorQuad c, BlendMode mode)
 {
     filter_ = SkColorFilters::Blend(static_cast<SkColor>(c), static_cast<SkBlendMode>(mode));
 }
 
-void SkiaColorFilter::InitWithColorMatrix(const ColorMatrix& m)
+void SkiaColorFilter::InitWithColorMatrix(const ColorMatrix& m, Clamp clamp)
 {
     scalar dst[ColorMatrix::MATRIX_SIZE];
     m.GetArray(dst);
-    filter_ = SkColorFilters::Matrix(dst);
+    filter_ = SkColorFilters::Matrix(dst, ConverToSkClamp(clamp));
 }
 
-void SkiaColorFilter::InitWithColorFloat(const float f[20])
+void SkiaColorFilter::InitWithColorFloat(const float f[20], Clamp clamp)
 {
-    filter_ = SkColorFilters::Matrix(f);
+    filter_ = SkColorFilters::Matrix(f, ConverToSkClamp(clamp));
 }
 
 void SkiaColorFilter::InitWithLinearToSrgbGamma()
@@ -73,9 +78,10 @@ void SkiaColorFilter::Compose(const ColorFilter& f)
     }
 }
 
-void SkiaColorFilter::InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE])
+void SkiaColorFilter::InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp)
 {
-    filter_ = SkColorFilters::Compose(SkColorFilters::Matrix(f1), SkColorFilters::Matrix(f2));
+    filter_ = SkColorFilters::Compose(SkColorFilters::Matrix(f1, ConverToSkClamp(clamp)),
+        SkColorFilters::Matrix(f2, ConverToSkClamp(clamp)));
 }
 
 void SkiaColorFilter::InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COLOR_NUM])

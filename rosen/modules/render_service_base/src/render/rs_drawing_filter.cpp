@@ -27,6 +27,7 @@
 #include "render/rs_aibar_shader_filter.h"
 #include "render/rs_grey_shader_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
+#include "render/rs_mesa_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
 #include "src/core/SkOpts.h"
@@ -95,6 +96,12 @@ std::string RSDrawingFilter::GetDescription()
                 filterString = filterString + ", radius: " + std::to_string(radius) + " sigma";
                 break;
             }
+            case RSShaderFilter::MESA: {
+                auto filter = std::static_pointer_cast<RSMESABlurShaderFilter>(shaderFilter);
+                int radius = filter->GetRadius();
+                filterString = filterString + ", MESA radius: " + std::to_string(radius) + " sigma";
+                break;
+            }
             case RSShaderFilter::LINEAR_GRADIENT_BLUR: {
                 auto filter4 = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(shaderFilter);
                 float radius2 = filter4->GetLinearGradientBlurRadius();
@@ -126,6 +133,11 @@ std::string RSDrawingFilter::GetDetailedDescription()
                 float greyCoefHigh = filter2->GetGreyCoefHigh();
                 filterString = filterString + ", greyCoef1: " + std::to_string(greyCoefLow);
                 filterString = filterString + ", greyCoef2: " + std::to_string(greyCoefHigh);
+                break;
+            }
+            case RSShaderFilter::MESA: {
+                auto filter = std::static_pointer_cast<RSMESABlurShaderFilter>(shaderFilter);
+                filterString = filterString + filter->GetDetailedDescription();
                 break;
             }
             case RSShaderFilter::MASK_COLOR: {
@@ -270,7 +282,6 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
         filter.SetImageFilter(imageFilter_);
         brush.SetFilter(filter);
     }
-    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*image, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
@@ -327,14 +338,12 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
                 ROSEN_LOGE("RSDrawingFilter::DrawImageRect blurImage is null");
                 return;
             }
-            brush.SetForceBrightnessDisable(true);
             canvas.AttachBrush(brush);
             canvas.DrawImageRect(*blurImage, src, dst, Drawing::SamplingOptions());
             canvas.DetachBrush();
         }
         return;
     }
-    brush.SetForceBrightnessDisable(true);
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
     canvas.DetachBrush();

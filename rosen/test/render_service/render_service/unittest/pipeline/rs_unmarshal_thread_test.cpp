@@ -94,4 +94,28 @@ HWTEST_F(RSUnmarshalThreadTest, RecvParcel002, TestSize.Level1)
     pid_t callingPid = 1111;
     RSUnmarshalThread::Instance().RecvParcel(data, isNonSystemAppCalling, callingPid);
 }
+
+/*
+ * @tc.name: TransactionDataStatistics001
+ * @tc.desc: Test ReportTransactionDataStatistics and ClearTransactionDataStatistics
+ * @tc.type: FUNC
+ * @tc.require: issueIAPMUF
+ */
+HWTEST_F(RSUnmarshalThreadTest, TransactionDataStatistics001, TestSize.Level1)
+{
+    constexpr pid_t callingPid = -1; // invalid pid
+    std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+    constexpr bool isSystemCall = false;
+    auto& instance = RSUnmarshalThread::Instance();
+
+    RSUnmarshalThread::Instance().ClearTransactionDataStatistics();
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), !isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), !isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), !isSystemCall), false);
+
+    RSUnmarshalThread::Instance().ClearTransactionDataStatistics();
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
+    ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), isSystemCall), false);
+}
 }

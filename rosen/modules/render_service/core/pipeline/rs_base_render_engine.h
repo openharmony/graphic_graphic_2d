@@ -218,8 +218,13 @@ public:
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
 
-    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers,
-        bool forceCPU = false, const ScreenInfo& screenInfo = {}) = 0;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
+        const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
+#else
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
+        const ScreenInfo& screenInfo = {}) = 0;
+#endif
 
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
@@ -285,6 +290,7 @@ public:
 #endif
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+    static bool CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceNode);
 
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;

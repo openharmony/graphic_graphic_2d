@@ -119,10 +119,6 @@ public:
     {
         return isSpherizeValid_;
     }
-    bool IsAttractionValid() const
-    {
-        return isAttractionValid_;
-    }
     bool NeedBilinearInterpolation() const
     {
         return needBilinearInterpolation_;
@@ -433,8 +429,48 @@ public:
         return false;
     }
 
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) override;
-    NodeId GetRootIdOfCaptureWindow() const override;
+    void SetSdrNit(int32_t sdrNit)
+    {
+        if (ROSEN_EQ(sdrNit_, sdrNit)) {
+            return;
+        }
+        sdrNit_ = sdrNit;
+        needSync_ = true;
+    }
+
+    int32_t GetSdrNit() const
+    {
+        return sdrNit_;
+    }
+
+    void SetDisplayNit(int32_t displayNit)
+    {
+        if (ROSEN_EQ(displayNit_, displayNit)) {
+            return;
+        }
+        displayNit_ = displayNit;
+        needSync_ = true;
+    }
+
+    int32_t GetDisplayNit() const
+    {
+        return displayNit_;
+    }
+
+    void SetBrightnessRatio(float brightnessRatio)
+    {
+        if (ROSEN_EQ(brightnessRatio_, brightnessRatio)) {
+            return;
+        }
+        brightnessRatio_ = brightnessRatio;
+        needSync_ = true;
+    }
+
+    float GetBrightnessRatio() const
+    {
+        return brightnessRatio_;
+    }
+
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -445,11 +481,11 @@ private:
     float alpha_ = 0;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
-    bool isAttractionValid_ = false;
     bool isParentScaling_ = false;
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
+    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Color backgroundColor_ = RgbPalette::Transparent();
 
     RectI dstRect_;
@@ -457,7 +493,6 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
-    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region opaqueRegion_;
 
@@ -475,8 +510,7 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
-    sptr<SurfaceBuffer> preBufferFence_ = nullptr;
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
 #endif
     bool isHardwareEnabled_ = false;
@@ -508,7 +542,10 @@ private:
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
+    // hdr
+    int32_t sdrNit_ = 500; // default sdrNit
+    int32_t displayNit_ = 500; // default displayNit_
+    float brightnessRatio_ = 1.0; // 1.0f means no discount.
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

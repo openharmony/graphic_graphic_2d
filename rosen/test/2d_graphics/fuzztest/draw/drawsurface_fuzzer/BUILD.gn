@@ -34,6 +34,8 @@ ohos_fuzztest("DrawSurfaceFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
+  defines = [ "RS_ENABLE_GL" ]
+
   include_dirs = [
     "../../../../../modules/2d_graphics/include",
     "../../../../../modules/2d_graphics/src",

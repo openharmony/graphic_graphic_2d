@@ -40,7 +40,7 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     }
 
     sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
     Rect damage;
     auto ret = consumer->AcquireBuffer(buffer, acquireFence, timestamp, damage);
@@ -79,6 +79,7 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRende
 void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
     bool resourceChanged)
 {
+    std::lock_guard<std::mutex> lock(bufferMut_);
     if (uniProcessor_ == nullptr || node.IsInvalidSurface()) {
         RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid!");
         return;

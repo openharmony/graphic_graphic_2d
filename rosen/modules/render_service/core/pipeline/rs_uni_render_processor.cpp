@@ -42,7 +42,7 @@ RSUniRenderProcessor::RSUniRenderProcessor()
 {
 }
 
-RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
+RSUniRenderProcessor::~RSUniRenderProcessor()
 {
 }
 
@@ -83,32 +83,7 @@ void RSUniRenderProcessor::PostProcess()
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-void RSUniRenderProcessor::DealWithHdr(RSSurfaceRenderNode& node, LayerInfoPtr& layer, sptr<SurfaceBuffer> buffer)
-{
-    auto ancestorNode = node.GetAncestorDisplayNode().lock();
-    auto ancestorDisplayNode = ancestorNode ? ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>() : nullptr;
-    if (!ancestorDisplayNode) {
-        RS_LOGE("ancestorDisplayNode return nullptr");
-        return;
-    }
-    auto screenId = ancestorDisplayNode->GetScreenId();
-    if (!RSLuminanceControl::Get().IsHdrOn(screenId)) {
-        return;
-    }
-    Media::VideoProcessingEngine::CM_ColorSpaceInfo colorSpaceInfo;
-    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-        return;
-    }
-    bool isHdrBuffer = colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_PQ ||
-        colorSpaceInfo.transfunc == HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG;
-
-    node.SetDisplayNit(RSLuminanceControl::Get().GetHdrDisplayNits(screenId));
-    node.SetBrightnessRatio(isHdrBuffer ? 1.0f : RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
-}
-#endif
-
-void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
+void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
     auto buffer = surfaceHandler->GetBuffer();
@@ -128,18 +103,16 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
-    auto& preBuffer = surfaceHandler->GetPreBuffer();
+    auto preBuffer = surfaceHandler->GetPreBuffer();
     ScalingMode scalingMode = params.GetPreScalingMode();
     if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
         params.SetPreScalingMode(scalingMode);
     }
     LayerInfoPtr layer = GetLayerInfo(
-        params, buffer, preBuffer.buffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    DealWithHdr(node, layer, buffer);
-#endif
-    layer->SetDisplayNit(node.GetDisplayNit());
-    layer->SetBrightnessRatio(node.GetBrightnessRatio());
+        params, buffer, preBuffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
+    layer->SetSdrNit(params.GetSdrNit());
+    layer->SetDisplayNit(params.GetDisplayNit());
+    layer->SetBrightnessRatio(params.GetBrightnessRatio());
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, surfaceHandler->GetBuffer(), surfaceHandler->GetConsumer());
     layers_.emplace_back(layer);
@@ -174,8 +147,10 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     LayerInfoPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,
         surfaceDrawable.GetConsumerOnDraw(), params.GetAcquireFence());
     layer->SetNodeId(surfaceDrawable.GetId());
-    layer->SetDisplayNit(surfaceDrawable.GetDisplayNit());
-    layer->SetBrightnessRatio(surfaceDrawable.GetBrightnessRatio());
+    auto& renderParams = static_cast<RSSurfaceRenderParams&>(params);
+    layer->SetSdrNit(renderParams.GetSdrNit());
+    layer->SetDisplayNit(renderParams.GetDisplayNit());
+    layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
     layers_.emplace_back(layer);
     params.SetLayerCreated(true);
@@ -197,7 +172,7 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
     buffer = surfaceHandler->GetBuffer();
     auto preBuffer = surfaceHandler->GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(
-        params, buffer, preBuffer.buffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
+        params, buffer, preBuffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     layers_.emplace_back(layer);
     auto& layerInfo = params.layerInfo_;

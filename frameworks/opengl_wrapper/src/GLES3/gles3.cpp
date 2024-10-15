@@ -25,11 +25,11 @@ template<typename Func = void*>
 Func GetEglApi(const char* procname)
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
-    static const char* libegl = "/system/lib64/platformsdk/libEGL.so";
+    static const char* libEGL = "/system/lib64/libEGL.so";
 #else
-    static const char* libegl = "/system/lib/platformsdk/libEGL.so";
+    static const char* libEGL = "/system/lib/platformsdk/libEGL.so";
 #endif
-    void* dlEglHandle = dlopen(libegl, RTLD_NOW | RTLD_GLOBAL);
+    void* dlEglHandle = dlopen(libEGL, RTLD_NOW | RTLD_GLOBAL);
 
     void* func = dlsym(dlEglHandle, procname);
     if (func) {

@@ -224,7 +224,6 @@ void RSUifirstManager::ProcessForceUpdateNode()
         }
     }
     for (auto& node : toDirtyNodes) {
-        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, force update", node->GetId());
         node->SetDirty(true);
     }
     pendingForceUpdateNode_.clear();
@@ -254,6 +253,56 @@ void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool wait)
     }
 }
 
+void RSUifirstManager::CollectSkipSyncBuffer(std::vector<std::function<void()>>& tasks, NodeId id)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto& buffersToRelease = RSMainThread::Instance()->GetContext().GetMutableSkipSyncBuffer();
+    if (buffersToRelease.empty()) {
+        return;
+    }
+    for (auto item = buffersToRelease.begin(); item != buffersToRelease.end();) {
+        if (item->id == id) {
+            if (!item->buffer || !item->consumer) {
+                item = buffersToRelease.erase(item);
+                continue;
+            }
+            auto releaseTask = [buffer = item->buffer, consumer = item->consumer,
+                useReleaseFence = item->useFence]() mutable {
+                auto ret = consumer->ReleaseBuffer(buffer, RSHardwareThread::Instance().releaseFence_);
+                if (ret != OHOS::SURFACE_ERROR_OK) {
+                    RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
+                }
+            };
+            tasks.emplace_back(releaseTask);
+            item = buffersToRelease.erase(item);
+            RS_LOGD("ReleaseSkipSyncBuffer fId[%" PRIu64"]", id);
+        } else {
+            ++item;
+        }
+    }
+#endif
+}
+
+void RSUifirstManager::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (tasks.empty()) {
+        return;
+    }
+    auto releaseBufferTask = [tasks]() {
+        for (const auto& task : tasks) {
+            task();
+        }
+    };
+    auto delayTime = RSHardwareThread::Instance().delayTime_;
+    if (delayTime > 0) {
+        RSHardwareThread::Instance().PostDelayTask(releaseBufferTask, delayTime);
+    } else {
+        RSHardwareThread::Instance().PostTask(releaseBufferTask);
+    }
+#endif
+}
+
 void RSUifirstManager::ProcessDoneNodeInner()
 {
     std::vector<NodeId> tmp;
@@ -266,6 +315,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
         subthreadProcessDoneNode_.clear();
     }
     RS_TRACE_NAME_FMT("ProcessDoneNode num%d", tmp.size());
+    std::vector<std::function<void()>> releaseTasks;
     for (auto& id : tmp) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);
@@ -278,8 +328,12 @@ void RSUifirstManager::ProcessDoneNodeInner()
         }
         NotifyUIStartingWindow(id, false);
         subthreadProcessingNode_.erase(id);
+        // Done node release prebuffer
+        CollectSkipSyncBuffer(releaseTasks, id);
     }
+    ReleaseSkipSyncBuffer(releaseTasks);
 }
+
 void RSUifirstManager::ProcessDoneNode()
 {
     SetHasDoneNodeFlag(false);
@@ -350,13 +404,11 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     ScreenId id = displayParams->GetScreenId();
     drawable->SetHDRPresent(isHdrOn);
     if (isHdrOn) {
-        // 0 means defalut brightnessRatio
-        drawable->SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(id, 0));
         drawable->SetScreenId(id);
         drawable->SetTargetColorGamut(displayParams->GetNewColorSpace());
     }
     RS_LOGD("UIFirstHDR SyncDisplayParam:%{public}d, ratio:%{public}f", drawable->GetHDRPresent(),
-        drawable->GetBrightnessRatio());
+        surfaceParams->GetBrightnessRatio());
 }
 
 bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node)
@@ -407,11 +459,6 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
         SyncHDRDisplayParam(drawable);
-        // Skipping drawing is not allowed when there is an HDR display.
-        if (drawable->GetHDRPresent()) {
-            ++it;
-            continue;
-        }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         auto node = it->second;
         if (!surfaceParams || !node) {
@@ -646,7 +693,7 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
     if (!uifirstRootNode) {
         RS_TRACE_NAME_FMT("uifirstRootNode %" PRIu64 " null and curNodeId %" PRIu64 " skip sync",
             node->GetFirstLevelNodeId(), node->GetId());
-        return true;
+        return false;
     }
 
     auto ret = CollectSkipSyncNodeWithDrawableState(node);
@@ -1277,7 +1324,7 @@ void RSUifirstManager::UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const 
     }
     bool intersect = false;
     for (auto& rect : rects) {
-        if (rect.Intersect(node.GetDstRect())) {
+        if (rect.Intersect(node.GetAbsDrawRect())) {
             intersect = true;
             break;
         }

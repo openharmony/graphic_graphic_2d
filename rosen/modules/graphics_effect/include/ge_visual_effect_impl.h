@@ -33,6 +33,7 @@ public:
     enum class FilterType {
         NONE,
         KAWASE_BLUR,
+        MESA_BLUR,
         GREY, AIBAR,
         LINEAR_GRADIENT_BLUR,
         WATER_RIPPLE,
@@ -65,6 +66,16 @@ public:
     const FilterType& GetFilterType() const
     {
         return filterType_;
+    }
+
+    void MakeMESAParams()
+    {
+        mesaParams_ = std::make_shared<GEMESABlurShaderFilterParams>();
+    }
+
+    const std::shared_ptr<GEMESABlurShaderFilterParams>& GetMESAParams() const
+    {
+        return mesaParams_;
     }
 
     void MakeKawaseParams()
@@ -130,6 +141,7 @@ public:
 private:
     static std::map<const std::string, std::function<void(GEVisualEffectImpl*)>> g_initialMap;
 
+    void SetMESABlurParams(const std::string& tag, float param);
     void SetAIBarParams(const std::string& tag, float param);
     void SetGreyParams(const std::string& tag, float param);
     void SetLinearGradientBlurParams(const std::string& tag, float param);
@@ -140,6 +152,7 @@ private:
     FilterType filterType_ = GEVisualEffectImpl::FilterType::NONE;
 
     std::shared_ptr<GEKawaseBlurShaderFilterParams> kawaseParams_ = nullptr;
+    std::shared_ptr<GEMESABlurShaderFilterParams> mesaParams_ = nullptr;
     std::shared_ptr<GEAIBarShaderFilterParams> aiBarParams_ = nullptr;
     std::shared_ptr<GEGreyShaderFilterParams> greyParams_ = nullptr;
     std::shared_ptr<GELinearGradientBlurShaderFilterParams> linearGradientBlurParams_ = nullptr;
