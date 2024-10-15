@@ -92,10 +92,10 @@ bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code)
         }
         if (!hasPermission) {
             RS_LOGD("%{public}d ipc interface code access denied: HAS NO PERMISSION", code);
-            return false;
+            return false; // will return Permission after defining Permissions for APIs
         }
     }
-    return true;
+    return hasPermission;
 }
 
 std::string RSInterfaceCodeAccessVerifierBase::PermissionEnumToString(PermissionType permission) const
