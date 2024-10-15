@@ -604,7 +604,7 @@ HWTEST_F(SkiaCanvasTest, GetRoundInDeviceClipBoundsTest001, TestSize.Level1)
     auto rect = skiaCanvas->GetRoundInDeviceClipBounds();
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: GetGPUContextTest001
  * @tc.desc: Test for geting gpu context.

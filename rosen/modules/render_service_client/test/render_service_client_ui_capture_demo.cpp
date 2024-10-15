@@ -61,7 +61,7 @@ shared_ptr<RSCanvasNode> canvasNode2;
 shared_ptr<RSSurfaceNode> surfaceNode1;
 shared_ptr<RSSurfaceNode> surfaceNode2;
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     RenderContext* rc_ = nullptr;
 #endif
 
@@ -114,8 +114,8 @@ bool WriteToPng(const string &fileName, const WriteToPngParam &param)
 
 void RenderContextInit()
 {
-#ifdef ACE_ENABLE_GPU
-    cout << "ACE_ENABLE_GPU is true" << endl;
+#ifdef RS_ENABLE_GPU
+    cout << "RS_ENABLE_GPU is true" << endl;
     cout << "Init RenderContext start" << endl;
     rc_ = RenderContextFactory::GetInstance().CreateEngine();
     if (rc_) {
@@ -140,7 +140,7 @@ void DrawSurfaceNode(shared_ptr<RSSurfaceNode> surfaceNode)
         cout << "surface is nullptr" << endl;
         return;
     }
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     if (rc_) {
         rsSurface->SetRenderContext(rc_);
     } else {

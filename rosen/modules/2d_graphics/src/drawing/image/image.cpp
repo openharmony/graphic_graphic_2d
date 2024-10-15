@@ -66,7 +66,7 @@ std::shared_ptr<Image> Image::MakeRasterData(const ImageInfo& info, std::shared_
     return StaticFactory::MakeRasterData(info, pixels, rowBytes);
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<Image> Image::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
 {
     return StaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
