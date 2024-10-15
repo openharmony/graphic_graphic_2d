@@ -38,6 +38,7 @@ namespace Rosen {
 namespace Drawing {
 namespace {
 const uint8_t MOVEBITS = 8;
+const std::string OHOS_THEME_FONT_LOW = "ohosthemefont";
 void SwapBytes(char16_t* srcStr, uint32_t len)
 {
     if (srcStr == nullptr || len == 0) {
@@ -100,6 +101,32 @@ std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDefaultFontMgr()
     return std::make_shared<SkiaFontMgr>(SkFontMgr::RefDefault());
 }
 
+bool SkiaFontMgr::CheckDynamicFontValid(const std::string &familyName, sk_sp<SkTypeface> typeface)
+{
+    if (typeface == nullptr) {
+        TEXT_LOGE("Failed to extract typeface");
+        return false;
+    }
+
+    std::string checkStr = familyName;
+    if (familyName.empty()) {
+        SkString name;
+        typeface->getFamilyName(&name);
+        checkStr.assign(name.c_str(), name.size());
+    }
+
+    std::string lowFamilyName(checkStr.length(), 0);
+    std::transform(checkStr.begin(), checkStr.end(), lowFamilyName.begin(),
+        [](char c) { return (c & 0x80) ? c : ::tolower(c); }); // 0x80用于判断是否在0-127之间
+
+    if (lowFamilyName.compare(OHOS_THEME_FONT_LOW) == 0) {
+        TEXT_LOGE("Prohibited to use OhosThemeFont registered dynamic fonts");
+        return false;
+    }
+
+    return true;
+}
+
 #ifndef USE_TEXGINE
 std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDynamicFontMgr()
 {
@@ -116,13 +143,13 @@ Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint
     }
     auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
     auto typeface = SkTypeface::MakeFromStream(std::move(stream));
+    if (!CheckDynamicFontValid(familyName, typeface)) {
+        return nullptr;
+    }
     if (familyName.empty()) {
         dynamicFontMgr->font_provider().RegisterTypeface(typeface);
     } else {
         dynamicFontMgr->font_provider().RegisterTypeface(typeface, familyName);
-    }
-    if (!typeface) {
-        return nullptr;
     }
     typeface->setIsCustomTypeface(true);
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
