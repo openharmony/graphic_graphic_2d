@@ -361,7 +361,7 @@ double OH_Drawing_TextLineGetOffsetForStringIndex(OH_Drawing_TextLine* line, int
     return lineImpl->GetOffsetForStringIndex(index);
 }
 
-void OH_Drawing_TextLineEnumerateCaretOffsets(OH_Drawing_TextLine* line, CustomCallback callback)
+void OH_Drawing_TextLineEnumerateCaretOffsets(OH_Drawing_TextLine* line, Drawing_CaretOffsetsCallback callback)
 {
     if (line == nullptr || callback == nullptr) {
         return;
