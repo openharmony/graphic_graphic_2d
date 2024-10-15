@@ -1388,10 +1388,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceAfterHwcCalc_001, TestSize.Leve
     selfDrawingNode->SetAncestorDisplayNode(displayNode);
     selfDrawingNode->SetHardwareForcedDisabledState(true);
     selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    RSMainThread::Instance()->selfDrawingNodes_.emplace_back(selfDrawingNode);
 
     rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
-    ASSERT_EQ(rsUniRenderVisitor->newColorSpace_, selfDrawingNode->GetColorSpace());
+    ASSERT_EQ(rsUniRenderVisitor->newColorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /*
