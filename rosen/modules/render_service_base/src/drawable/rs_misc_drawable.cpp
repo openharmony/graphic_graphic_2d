@@ -48,12 +48,14 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
             if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
                 continue;
             }
-            if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
-                if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
+            auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)
+            if (!childDrawable) {
+                continue;
+            }
+            if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
                     childDrawable->SetSkip(SkipType::NONE);
                 }
-                stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
-            }
+            stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     } else {
         // ShadowBatching mode, draw all shadows, then draw all children
