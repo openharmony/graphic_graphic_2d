@@ -131,7 +131,8 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ExtractDrawingImage(
         PixelFormatToDrawingColorType(imageInfo.pixelFormat),
         AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
         ColorSpaceToDrawingColorSpace(pixelMap->InnerGetGrColorSpace().GetColorSpaceName()) };
-    Drawing::Pixmap imagePixmap(drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
+    Drawing::Pixmap imagePixmap(drawingImageInfo,
+        reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
     PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
     auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
     if (!image) {
