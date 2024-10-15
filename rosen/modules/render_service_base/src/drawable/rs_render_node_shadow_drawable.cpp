@@ -59,7 +59,7 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
     }
 }
 
-void RSRenderNodeShadowDrawable::DumpDrawableTree(int32_t depth, std::string &out, const RSContext &context) const
+void RSRenderNodeShadowDrawable::DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const
 {
     for (int32_t i = 0; i < depth; ++i) {
         out += "  ";
