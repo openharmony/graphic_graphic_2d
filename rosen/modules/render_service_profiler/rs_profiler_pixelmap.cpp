@@ -290,6 +290,10 @@ void ImageSource::CacheImage(
         return;
     }
 
+    if (Rosen::RSProfiler::GetMode() != Rosen::Mode::WRITE && Rosen::RSProfiler::GetMode() != Rosen::Mode::WRITE_EMUL) {
+        return;
+    }
+
     Rosen::Image image;
     image.data = data;
 

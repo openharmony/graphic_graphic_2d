@@ -199,6 +199,7 @@ public:
     RSB_EXPORT static bool IsSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
+    RSB_EXPORT static Mode GetMode();
 
     RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
@@ -228,7 +229,6 @@ private:
     static void UpdateDirtyRegionBetaRecord(double currentFrameDirtyRegion);
 
     RSB_EXPORT static void SetMode(Mode mode);
-    RSB_EXPORT static Mode GetMode();
     RSB_EXPORT static bool IsEnabled();
 
     RSB_EXPORT static uint32_t GetCommandCount();
