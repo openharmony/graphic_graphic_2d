@@ -2900,8 +2900,6 @@ void RSUniRenderVisitor::UpdateDisplayDirtyAndExtendVisibleRegion()
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
         [this, &nodeMap](RSBaseRenderNode::SharedPtr& nodePtr) {
-
-
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (surfaceNode == nullptr) {
             RS_LOGE("RSUniRenderVisitor::UpdateDisplayDirtyAndExtendVisibleRegion surfaceNode is nullptr");
@@ -2924,14 +2922,13 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
     const auto& visibleFilterChild = surfaceNode->GetVisibleFilterChild();
     auto visibleRegion = surfaceNode->GetVisibleRegion();
     auto currentFrameDirtyRegion = surfaceNode->GetDirtyManager()->GetCurrentFrameDirtyRegion();
-
-
     auto isTransparent = surfaceNode->IsTransparent();
     for (const auto& child : visibleFilterChild) {
         auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
         if (filterNode == nullptr || !filterNode->HasBlurFilter()) {
             continue;
         }
+        MarkBlurIntersectWithDRM(filterNode);
         auto filterRect = filterNode->GetOldDirtyInSurface();
         auto visibleRects = visibleRegion.GetRegionRectIs();
         auto iter = std::find_if(visibleRects.begin(), visibleRects.end(), [&filterRect](const auto& rect) {
@@ -2946,8 +2943,6 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
         auto filterRegion = Occlusion::Region{ Occlusion::Rect{ filterRect } };
         extendRegion = extendRegion.Or(filterRegion);
         if (!isTransparent && filterRect.Intersect(currentFrameDirtyRegion)) {
-
-
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(filterRect);
         }
     }
