@@ -1570,7 +1570,8 @@ HWTEST_F(RSMainThreadTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, GetRealTimeOffsetOfDvsync, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    mainThread->GetRealTimeOffsetOfDvsync();
+    int64_t time = 1000；
+    mainThread->GetRealTimeOffsetOfDvsync(time);
 }
 
 /**
