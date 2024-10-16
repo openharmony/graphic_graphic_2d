@@ -23,6 +23,9 @@
 namespace OHOS {
 namespace Rosen {
 
+constexpr int32_t ANIMATOR_NOT_RUNNING = -1;
+constexpr int32_t ANIMATOR_NO_EXPECTED_FRAME_RATE = 0;
+
 enum class UIFWKType : int32_t {
     FROM_UNKNOWN = 0,
     FROM_SURFACE = 1,
@@ -67,7 +70,7 @@ public:
 
     void ResetAnimatorExpected()
     {
-        animatorExpected_ = -1;
+        animatorExpected_ = ANIMATOR_NOT_RUNNING;
     }
 
     void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
