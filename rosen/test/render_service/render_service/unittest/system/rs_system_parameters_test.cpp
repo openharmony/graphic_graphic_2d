@@ -89,6 +89,7 @@ HWTEST_F(RSSystemParametersTest, GetQuickSkipPrepareTypeTest, TestSize.Level1)
     auto result = RSSystemParameters::GetQuickSkipPrepareType();
     ASSERT_EQ(result, QuickSkipPrepareType::STATIC_APP_INSTANCE);
 }
+
 /**
  * @tc.name: IsNeedScRGBForP3Test
  * @tc.desc: Test ScRGB For P3 Controller
