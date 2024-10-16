@@ -69,7 +69,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr int64_t REFRESH_PERIOD = 16667; // 16667us == 16.667ms
-constexpr int64_t REPORT_LOAD_WARNING_INTERVAL_TIME = 500000; // 5s == 5000000us
+constexpr int64_t REPORT_LOAD_WARNING_INTERVAL_TIME = 5000000; // 5s == 5000000us
 }
 
 RSHardwareThread& RSHardwareThread::Instance()
