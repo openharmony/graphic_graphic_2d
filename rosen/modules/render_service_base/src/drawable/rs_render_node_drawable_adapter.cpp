@@ -470,6 +470,20 @@ void RSRenderNodeDrawableAdapter::ClearResource()
     toClearCmdListVec_.clear();
 }
 
+void RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec){
+    for(auto &drawable: vec){
+        toClearDrawableVec_.push_back(drawable);
+    }
+    vec.clear();
+}
+
+void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec){
+    for(auto &cmdList: vec){
+        toClearCmdListVec_.push_back(cmdList);
+    }
+    vec.clear();
+}
+
 int RSRenderNodeDrawableAdapter::GetCountOfClipHoleForCache(const RSRenderParams& params) const
 {
     int count = drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty() ? 1 : 0;
