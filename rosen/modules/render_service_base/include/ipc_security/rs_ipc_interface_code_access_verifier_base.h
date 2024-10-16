@@ -34,7 +34,6 @@
 #include "ipc_security/rs_ipc_interface_permission_type.h"
 
 #include "nocopyable.h"
-#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {

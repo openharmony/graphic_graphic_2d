@@ -570,7 +570,6 @@ bool RSDrawable::UpdateDirtySlots(
 {
     // Step 2: Update or generate all dirty slots
     bool drawableAddedOrRemoved = false;
-
     for (const auto& slot : dirtySlots) {
         if (auto& drawable = drawableVec[static_cast<size_t>(slot)]) {
             // If the slot is already created, call OnUpdate
