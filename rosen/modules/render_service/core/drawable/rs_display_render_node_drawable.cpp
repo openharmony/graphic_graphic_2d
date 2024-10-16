@@ -1564,7 +1564,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
             offscreenWidth = curCanvas_->GetWidth();
             offscreenHeight = curCanvas_->GetHeight();
         }
-    if (params->GetHDRPresent() || isScRGBEnable) {
+        if (params->GetHDRPresent() || isScRGBEnable) {
             PrepareHdrDraw(offscreenWidth, offscreenHeight);
         } else {
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);
