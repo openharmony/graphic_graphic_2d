@@ -162,6 +162,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.OnSync();
     return true;
 }
+
 } // namespace Rosen
 } // namespace OHOS
 

@@ -64,7 +64,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     // test
     RSNodeMap::MutableInstance().GetNode(GetData<NodeId>());
     RSNodeMap::MutableInstance().UnregisterNode(GetData<NodeId>());
-
+    RSNodeMap::MutableInstance().RegisterNodeInstanceId(GetData<NodeId>(), 0);
     return true;
 }
 } // namespace Rosen

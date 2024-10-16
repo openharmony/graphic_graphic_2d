@@ -173,6 +173,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetGpuApiType();
     RSSystemProperties::IsUseVulkan();
     RSSystemProperties::GetRSNodeLimit();
+    RSSystemProperties::IsTabletType();
+    
     return true;
 }
 } // namespace Rosen
