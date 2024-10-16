@@ -315,6 +315,8 @@ public:
 
     void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType);
 
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
+
     void SetCacheEnabledForRotation(bool isEnabled);
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);

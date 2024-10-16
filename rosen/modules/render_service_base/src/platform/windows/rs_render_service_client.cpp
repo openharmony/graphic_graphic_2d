@@ -494,6 +494,11 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
 {
 }
 
+uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    return {};
+}
+
 void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
 {
 }

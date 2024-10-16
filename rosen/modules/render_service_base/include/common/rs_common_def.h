@@ -413,6 +413,16 @@ enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001
 };
 
+enum class RSInterfaceErrorCode : uint32_t {
+#undef NO_ERROR
+    NO_ERROR = 0,
+    NONSYSTEM_CALLING,
+    NOT_SELF_CALLING,
+    WRITE_PARCEL_ERROR,
+    UNKNOWN_ERROR,
+    
+};
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
