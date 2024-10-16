@@ -1312,7 +1312,7 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;
-    uint64_t leashPersistId_ = 0;
+    uint64_t leashPersistId_ = INVALID_LEASH_PERSISTID;
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
         visibleRegionForCallBack: appwindow visible region after occlusion (no filtercache occlusion), used in

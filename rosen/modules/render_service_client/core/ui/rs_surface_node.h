@@ -188,7 +188,7 @@ private:
     bool isSkipDraw_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isGlobalPositionEnabled_ = false;
-    LeashPersistId leashPersistId_ = 0;
+    LeashPersistId leashPersistId_ = INVALID_LEASH_PERSISTID;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM
