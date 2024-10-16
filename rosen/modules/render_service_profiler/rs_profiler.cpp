@@ -184,6 +184,9 @@ void RSProfiler::Init(RSRenderService* renderService)
 
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(SYS_KEY_BETARECORDING, OnFlagChangedCallback, nullptr);
+    bool isEnabled = RSSystemProperties::GetProfilerEnabled();
+    bool isBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
+    HRPD("Profiler flags changed enabled=%{public}d beta_record=%{public}d", isEnabled ? 1 : 0, isBetaRecord ? 1 : 0);
 
     if (!IsEnabled()) {
         return;
@@ -367,13 +370,16 @@ void RSProfiler::OnWorkModeChanged()
 {
     if (IsEnabled()) {
         if (IsBetaRecordEnabled()) {
+            HRPD("RSProfiler: Stop network. Start beta-recording.");
             Network::Stop();
             StartBetaRecord();
         } else {
             StopBetaRecord();
             StartNetworkThread();
+            HRPD("RSProfiler: Stop beta-recording (if running). Start network.");
         }
     } else {
+        HRPD("RSProfiler: Stop recording. Stop network.");
         StopBetaRecord();
         RecordStop(ArgList());
         Network::Stop();
@@ -390,6 +396,8 @@ void RSProfiler::ProcessSignalFlag()
     if (!signalFlagChanged_) {
         bool newEnabled = RSSystemProperties::GetProfilerEnabled();
         bool newBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
+        HRPD("Profiler flags changed enabled=%{public}d beta_record=%{public}d", newEnabled ? 1 : 0,
+            newBetaRecord ? 1 : 0);
         if (enabled_ && !newEnabled) {
             const ArgList dummy;
             if (GetMode() == Mode::READ) {
