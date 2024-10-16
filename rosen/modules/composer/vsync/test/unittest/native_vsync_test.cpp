@@ -230,26 +230,13 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback008, Funct
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call OH_NativeVSync_Destroy by abnormal input
-*                  2. check ret
+* CaseDescription: 1. call OH_NativeVSync_Destroy with abnormal input
+*                  2. call OH_NativeVSync_Destroy with normal input
  */
 HWTEST_F(NativeVsyncTest, OH_NativeVSync_Destroy001, Function | MediumTest | Level2)
 {
-    OH_NativeVSync* nativeVsync = nullptr;
-    ASSERT_EQ(nativeVsync, nullptr);
-    OH_NativeVSync_Destroy(nativeVsync);
-}
+    OH_NativeVSync_Destroy(nullptr);
 
-/*
-* Function: OH_NativeVSync_Destroy
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call OH_NativeVSync_Destroy
-*                  2. check ret
- */
-HWTEST_F(NativeVsyncTest, OH_NativeVSync_Destroy002, Function | MediumTest | Level2)
-{
     ASSERT_NE(native_vsync, nullptr);
     OH_NativeVSync_Destroy(native_vsync);
     native_vsync = nullptr;
