@@ -33,7 +33,6 @@ public:
     void SetUp() override;
     void TearDown() override;
 
-    static constexpr int SLEEP_TIME_US = 500;
     static constexpr uint32_t VIRTUAL_SCREEN_WIDTH = 480;
     static constexpr uint32_t VIRTUAL_SCREEN_HEIGHT = 320;
     static constexpr uint32_t LIGHT_LEVEL = 1;
@@ -176,7 +175,7 @@ HWTEST_F(RsScreenManagerTest, CreateVirtualScreen002, TestSize.Level2)
         name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
     ASSERT_NE(INVALID_SCREEN_ID, id);
     screenManager->RemoveVirtualScreen(id);
-    usleep(SLEEP_TIME_US);
+    usleep(500);
 }
 
 /*
@@ -205,7 +204,7 @@ HWTEST_F(RsScreenManagerTest, CreateVirtualScreen003, TestSize.Level2)
         name, width, height, psurface, INVALID_SCREEN_ID, -1, whiteList);
     ASSERT_NE(INVALID_SCREEN_ID, id);
     screenManager->RemoveVirtualScreen(id);
-    usleep(SLEEP_TIME_US);
+    usleep(500);
 }
 
 /*
