@@ -886,9 +886,10 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uin
         return OHOS::GSERROR_NO_CONSUMER;
     }
 
-    int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1;
-    // maxDirtyListSize > 2 means QueueSize >3 too
-    if (maxDirtyListSize > 2 && availableBufferCnt >= maxDirtyListSize) {
+    // maxDirtyListSize should minus one buffer used for displaying, and another one that has just been acquried.
+    int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1 - 1;
+    // maxDirtyListSize > 1 means QueueSize >3 too
+    if (maxDirtyListSize > 1 && availableBufferCnt >= maxDirtyListSize) {
         RS_TRACE_NAME("DropFrame");
         IConsumerSurface::AcquireBufferReturnValue returnValue;
         returnValue.fence = SyncFence::InvalidFence();
