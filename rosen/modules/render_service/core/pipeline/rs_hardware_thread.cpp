@@ -178,8 +178,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
-        auto startCurTime = std::chrono::system_clock::now().time_since_epoch();
-        int64_t startTime = std::chrono::duration_cast<std::chrono::microseconds>(startCurTime).count();
+        int64_t startTime = GetCurTimeCount();
         if (output == nullptr || hdiBackend_ == nullptr) {
             return;
         }
@@ -219,17 +218,16 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
         }
-        auto endCurTime = std::chrono::system_clock::now().time_since_epoch();
-        int64_t endTime = std::chrono::duration_cast<std::chrono::microseconds>(startCurTime).count();
+        int64_t endTime = GetCurTimeCount();
         uint64_t frameTime = endTime - startTime;
         uint32_t missedFrames = frameTime / REFRESH_PERIOD;
         uint16_t frameRate = currentRate;
         if (missedFrames >= HARDWARE_THREAD_TASK_NUM &&
-            endTime - intervalTimePoints > REPORT_LOAD_WARNING_INTERVAL_TIME) {
+            endTime - intervalTimePoints_ > REPORT_LOAD_WARNING_INTERVAL_TIME) {
             RS_LOGI("RSHardwareThread::CommitAndReleaseLayers report load event frameTime: %{public}" PRIu64
                 " missedFrame: %{public}" PRIu32 " frameRate:%{public}" PRIu16 "",
                 frameTime, missedFrames, frameRate);
-            intervalTimePoints = endTime;
+            intervalTimePoints_ = endTime;
             HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_HARDWARE_THREAD_LOAD_WARNING",
                 OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "FRAME_RATE", frameRate, "MISSED_FRAMES",
                 missedFrames, "FRAME_TIME", frameTime);
@@ -270,6 +268,12 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             PostDelayTask(task, delayTime_);
         }
     }
+}
+
+int64_t RSHardwareThread::GetCurTimeCount()
+{
+    auto curTime = std::chrono::system_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::microseconds>(curTime).count();
 }
 
 bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
