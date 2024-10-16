@@ -99,7 +99,6 @@
           "bounds_checking_function",
           "egl",
           "opengles",
-          "node",
           "vulkan-headers",
           "vulkan-loader",
           "cJSON",

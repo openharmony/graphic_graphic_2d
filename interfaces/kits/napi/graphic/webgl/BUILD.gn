@@ -39,7 +39,6 @@ ohos_source_set("webgl_src") {
     "hilog:libhilog",
     "image_framework:image_native",
     "napi:ace_napi",
-    "node:node_header_notice",
   ]
 
   if (rs_enable_gpu) {
