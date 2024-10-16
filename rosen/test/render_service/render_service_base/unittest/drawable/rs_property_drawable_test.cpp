@@ -21,6 +21,8 @@
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_shader_filter.h"
+#include "render/rs_aibar_shader_filter.h"
+#include "render/rs_linear_gradient_blur_shader_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -182,7 +184,6 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest006, TestSize.Level1)
 {
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_EQ(filterDrawable->cacheManager_, nullptr);
 
     filterDrawable->needSync_ = true;
     filterDrawable->stagingFilter_ = nullptr;
@@ -199,10 +200,8 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest006, TestSize.Level1)
     filterDrawable->filter_->type_ = RSFilter::LINEAR_GRADIENT_BLUR;
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
     EXPECT_NE(cacheManager, nullptr);
-    filterDrawable->cacheManager_ = std::move(cacheManager);
-    Drawing::Canvas canvas;
-    Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
-    filterDrawable->CreateDrawFunc()(&canvas, &rect);
+    filterDrawable->MarkEffectNode();
+    EXPECT_TRUE(filterDrawable->stagingIsEffectNode_);
 }
 
 /**
@@ -273,7 +272,19 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->RecordFilterInfos(rsFilter);
     EXPECT_EQ(filterDrawable->stagingCachedFilterHash_, rsFilter->Hash());
 
-    // RSProperties::FilterCacheEnabled is false
+    // RSProperties::FilterCacheEnabled is true
+    filterDrawable->ClearFilterCache();
+    filterDrawable->filterType_ = RSFilter::AIBAR;
+    filterDrawable->stagingIsOccluded_ = true;
+    filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->filter_ = std::make_shared<RSFilter>();
+    filterDrawable->ClearFilterCache();
+    filterDrawable->renderIsEffectNode_ = true;
+    filterDrawable->ClearFilterCache();
+    filterDrawable->stagingIsOccluded_ = false;
+    filterDrawable->stagingFilterRegionChanged_ = true;
+    filterDrawable->stagingClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
+    filterDrawable->cacheManager_->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     filterDrawable->ClearFilterCache();
 
     filterDrawable->pendingPurge_ = true;
@@ -291,6 +302,14 @@ HWTEST_F(RSPropertyDrawableTest, RecordFilterInfosTest008, TestSize.Level1)
     filterDrawable->filterType_ = RSFilter::AIBAR;
     filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
     EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 1);
+    filterDrawable->stagingIsAIBarInteractWithHWC_ = true;
+    filterDrawable->cacheUpdateInterval_ = 0;
+    filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
+    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 0);
+    filterDrawable->cacheUpdateInterval_ = 3;
+    filterDrawable->stagingIsAIBarInteractWithHWC_ = true;
+    filterDrawable->UpdateFlags(FilterCacheType::NONE, true);
+    EXPECT_EQ(filterDrawable->cacheUpdateInterval_, 2);
 }
 
 /**
@@ -312,6 +331,39 @@ HWTEST_F(RSPropertyDrawableTest, IsAIBarCacheValidTest009, TestSize.Level1)
     EXPECT_FALSE(filterDrawable->IsAIBarCacheValid());
     filterDrawable->stagingForceClearCacheForLastFrame_ = false;
     EXPECT_TRUE(filterDrawable->IsAIBarCacheValid());
+}
+
+/**
+ * @tc.name: RSFilterDrawableTest010
+ * @tc.desc: CreateDrawFunc
+ * @tc.type:FUNC
+ * @tc.require: issueI9VSPU
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest010, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    EXPECT_NE(drawable, nullptr);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
+    drawable->CreateDrawFunc()(&canvas, &rect);
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
+    auto shaderFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
+    drawable->filter_ = std::make_shared<RSDrawingFilter>(shaderFilter);;
+    drawable->filter_->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
+    EXPECT_NE(drawable->filter_, nullptr);
+    drawable->CreateDrawFunc()(&canvas, &rect);
+    EXPECT_TRUE(true);
+    auto aiBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    drawable->filter_ = std::make_shared<RSDrawingFilter>(aiBarShaderFilter);
+    drawable->filter_->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
+    EXPECT_NE(drawable->filter_, nullptr);
+    drawable->CreateDrawFunc()(&canvas, &rect);
+    EXPECT_TRUE(true);
+    drawable->filter_->SetFilterType(RSFilter::AIBAR);
+    EXPECT_NE(drawable->filter_, nullptr);
+    drawable->CreateDrawFunc()(&canvas, &rect);
+    EXPECT_TRUE(true);
 }
 
 /**
