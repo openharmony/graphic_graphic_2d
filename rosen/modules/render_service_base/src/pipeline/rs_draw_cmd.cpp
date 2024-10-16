@@ -687,8 +687,10 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
                          handle->surfaceBufferInfo.pid_, handle->surfaceBufferInfo.uid_)
 {
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
-    surfaceBufferInfo_.surfaceBuffer_ = surfaceBufferEntry->surfaceBuffer_;
-    surfaceBufferInfo_.acquireFence_ = surfaceBufferEntry->acquireFence_;
+    if (surfaceBufferEntry) {
+        surfaceBufferInfo_.surfaceBuffer_ = surfaceBufferEntry->surfaceBuffer_;
+        surfaceBufferInfo_.acquireFence_ = surfaceBufferEntry->acquireFence_;
+    }
 }
 
 DrawSurfaceBufferOpItem::~DrawSurfaceBufferOpItem()
