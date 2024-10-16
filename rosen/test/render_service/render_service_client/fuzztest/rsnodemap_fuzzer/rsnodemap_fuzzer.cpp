@@ -64,7 +64,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     // test
     RSNodeMap::MutableInstance().GetNode(GetData<NodeId>());
     RSNodeMap::MutableInstance().UnregisterNode(GetData<NodeId>());
-
+    RSNodeMap::MutableInstance().RegisterNodeInstanceId(GetData<NodeId>(), GetData<int32_t>());
+    RSNodeMap::MutableInstance().RegisterAnimationInstanceId(
+        GetData<AnimationId>(), GetData<NodeId>(), GetData<int32_t>());
+    RSNodeMap::MutableInstance().UnregisterAnimation(GetData<AnimationId>());
+    RSNodeMap::MutableInstance().GetNodeInstanceId(GetData<NodeId>());
+    RSNodeMap::MutableInstance().GetInstanceIdForReleasedNode(GetData<NodeId>());
+    RSNodeMap::MutableInstance().GetAnimationFallbackNode();
     return true;
 }
 } // namespace Rosen
