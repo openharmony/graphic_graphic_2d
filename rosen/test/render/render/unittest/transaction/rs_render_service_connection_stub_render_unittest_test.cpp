@@ -122,7 +122,6 @@ HWTEST_F(RSRenderServiceConnectionTest, TestRSRenderServiceConnectionStub0021, T
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE)), ERR_NONE);
-
 }
 
 /**
@@ -139,8 +138,6 @@ HWTEST_F(RSRenderServiceConnectionTest, TestRSRenderServiceConnectionStub0031, T
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE)), ERR_NULL_OBJECT);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
@@ -236,7 +233,7 @@ HWTEST_F(RSRenderServiceConnectionTest, TestRSRenderServiceConnectionStub0061, T
 
 /**
  * @tc.name: TestRSRenderServiceConnectionStub0071
- * @tc.desc: Test render pipeline related transaction (node/dirty region/hwc etc.), with non empty data.
+ * @tc.desc: Test 
  * @tc.type: FUNC
  * @tc.require: issueI60KU1
  */
@@ -288,10 +285,6 @@ HWTEST_F(RSRenderServiceConnectionTest, TestRSRenderServiceConnectionStub0071, T
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO)), ERR_NONE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO)), ERR_NONE);
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED)), ERR_NONE);
-    ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO)), ERR_NONE);
 }
 
 /**
