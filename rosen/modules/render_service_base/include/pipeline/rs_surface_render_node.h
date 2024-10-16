@@ -459,7 +459,7 @@ public:
 
     // set ability state that surfaceNode belongs to as foreground or background
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
-    RSSurfaceNodeAbilityState GetAbilityState() const;
+    RSSurfaceNodeAbilityState GetAbilityState() const override;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
