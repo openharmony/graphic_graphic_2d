@@ -244,7 +244,7 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
 }
 
 void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func,
-    uint32_t threadIndex, bool isHdrOn)
+    uint32_t threadIndex, bool isNeedFP16)
 {
     if (func) {
         cacheSurfaceThreadIndex_ = threadIndex;
@@ -296,7 +296,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
-        if (isHdrOn) {
+        if (isNeedFP16) {
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
         }
