@@ -73,6 +73,7 @@ void SKResourceManager::DeleteSharedTextureContext(void* context)
 void SKResourceManager::ReleaseResource()
 {
 #ifdef ROSEN_OHOS
+    RS_TRACE_FUNC();
     std::scoped_lock<std::recursive_mutex> lock(mutex_);
     for (auto& images : images_) {
         if (!images.second->IsEmpty()) {
