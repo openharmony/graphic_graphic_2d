@@ -205,7 +205,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             FrameReport::GetInstance().SetLastSwapBufferTime(endTimeNs - startTimeNs);
-            FrameReport::GetInstance().ReportCommitTime(endTimeNs);
         }
 
         unExecuteTaskNum_--;
