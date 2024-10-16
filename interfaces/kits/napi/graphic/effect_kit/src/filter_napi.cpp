@@ -292,16 +292,8 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
 DrawError FilterNapi::Render(bool forceCPU)
 {
     Rosen::SKImageChain skImage(srcPixelMap_);
-    for (auto filter : skFilters_) {
-        skImage.SetFilters(filter);
-    }
-    skImage.ForceCPU(forceCPU);
-    DrawError ret = skImage.Draw();
-    if (ret == DrawError::ERR_OK) {
-        dstPixelMap_ = skImage.GetPixelMap();
-    } else {
-        EFFECT_LOG_E("skImage.Draw() = %{public}d", ret);
-    }
+    DrawError ret = skImage.Render(skFilters_, forceCPU, dstPixelMap_);
+
     return ret;
 }
 
