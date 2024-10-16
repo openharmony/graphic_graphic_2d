@@ -472,7 +472,7 @@ void RSRenderNodeDrawableAdapter::ClearResource()
 
 void RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec)
 {
-    for(auto &drawable: vec){
+    for (auto &drawable: vec) {
         toClearDrawableVec_.push_back(drawable);
     }
     vec.clear();
@@ -480,7 +480,7 @@ void RSRenderNodeDrawableAdapter::AddToClearDrawables(DrawableVec &vec)
 
 void RSRenderNodeDrawableAdapter::AddToClearCmdList(CmdListVec &vec)
 {
-    for(auto &cmdList: vec){
+    for (auto &cmdList: vec) {
         toClearCmdListVec_.push_back(cmdList);
     }
     vec.clear();
