@@ -138,6 +138,7 @@ public:
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
     int64_t GetVsyncCount();
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 
 private:
 
