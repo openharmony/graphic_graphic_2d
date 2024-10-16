@@ -182,11 +182,6 @@ public:
 
     static bool isCalcAnimateVelocity_;
 
-    bool IsFirstFrame() const
-    {
-        return isFirstFrame_;
-    }
-
 protected:
     explicit RSRenderAnimation(AnimationId id);
     RSRenderAnimation() = default;
@@ -254,7 +249,6 @@ private:
     bool needInitialize_ { true };
     RSRenderNode* target_ { nullptr };
     float lastValueFraction_ { 0.0f };
-    bool isFirstFrame_ = false;
 
     friend class RSAnimation;
     friend class RSModifierManager;

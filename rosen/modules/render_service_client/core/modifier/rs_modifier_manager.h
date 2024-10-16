@@ -67,6 +67,7 @@ private:
 
     RSAnimationRateDecider rateDecider_;
     FrameRateGetFunc frameRateGetFunc_;
+    bool hasFirstFrameAnimation_ = false;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderDisplaySync>> displaySyncs_;
     bool isDisplaySyncEnabled_ = false;

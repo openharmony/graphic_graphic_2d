@@ -329,10 +329,8 @@ bool RSRenderAnimation::Animate(int64_t time)
     // set start time and return
     if (needUpdateStartTime_) {
         SetStartTime(time);
-        isFirstFrame_ = true;
         return state_ == AnimationState::FINISHED;
     }
-    isFirstFrame_ = false;
 
     // if time not changed since last frame, return
     if (time == animationFraction_.GetLastFrameTime()) {
