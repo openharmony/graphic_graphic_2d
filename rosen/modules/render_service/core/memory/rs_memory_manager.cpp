@@ -15,10 +15,13 @@
 
 #include "memory/rs_memory_manager.h"
 
+#include <fstream>
 #include <malloc.h>
+#include <sstream>
 #include <string>
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
+#include "third_party/cJSON/cJSON.h"
 
 #include "memory/rs_dfx_string.h"
 #include "skia_adapter/rs_skia_memory_tracer.h"
@@ -51,8 +54,8 @@
 
 namespace OHOS::Rosen {
 namespace {
+const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.json";
 constexpr uint32_t MEMUNIT_RATE = 1024;
-constexpr uint32_t MEMORY_CHECK_KILL = 500 * (1 << 20); // The memory killing threshold is 500mb.
 constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
 constexpr uint32_t FRAME_NUMBER = 10; // Check memory every ten frames.
 constexpr const char* MEM_RS_TYPE = "renderservice";
@@ -64,6 +67,8 @@ constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 std::mutex MemoryManager::mutex_;
 std::unordered_map<pid_t, std::pair<std::string, uint64_t>> MemoryManager::pidInfo_;
 uint32_t MemoryManager::frameCount_ = 0;
+uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
+uint64_t MemoryManager::totalMemoryReportTime_ = 0;
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
 {
@@ -435,6 +440,63 @@ void MemoryManager::DumpMallocStat(std::string& log)
         &log, nullptr);
 }
 
+uint64_t ParseMemoryLimit(const cJSON* json, const char* name)
+{
+    cJSON* jsonItem = cJSON_GetObjectItem(json, name);
+    if (jsonItem != nullptr && cJSON_IsNumber(jsonItem)) {
+        return static_cast<uint64_t>(jsonItem->valueint) * MEMUNIT_RATE * MEMUNIT_RATE;
+    }
+    return UINT64_MAX;
+}
+
+void MemoryManager::InitMemoryLimit(Drawing::GPUContext* gpuContext)
+{
+    std::ifstream configFile;
+    configFile.open(KERNEL_CONFIG_PATH);
+    std::stringstream filterParamsStream;
+    filterParamsStream << configFile.rdbuf();
+    configFile.close();
+    std::string paramsString = filterParamsStream.str();
+
+    cJSON* root = cJSON_Parse(paramsString.c_str());
+    if (root == nullptr) {
+        RS_LOGE("MemoryManager::InitMemoryLimit can not parse config to json");
+        return;
+    }
+    cJSON* kernelLeak = cJSON_GetObjectItem(root, "KernelLeak");
+    if (kernelLeak == nullptr) {
+        RS_LOGE("MemoryManager::InitMemoryLimit can not find kernelLeak");
+        cJSON_Delete(root);
+        return;
+    }
+    cJSON* version = cJSON_GetObjectItem(kernelLeak, RSSystemProperties::GetVersionType().c_str());
+    if (version == nullptr) {
+        RS_LOGE("MemoryManager::InitMemoryLimit can not find version");
+        cJSON_Delete(root);
+        return;
+    }
+    cJSON* rsWatchPoint = cJSON_GetObjectItem(version, "rs_watchpoint");
+    if (rsWatchPoint == nullptr) {
+        RS_LOGE("MemoryManager::InitMemoryLimit can not find rsWatchPoint");
+        cJSON_Delete(root);
+        return;
+    }
+    // warning threshold for total memory of a single process
+    memoryWarning_ = ParseMemoryLimit(rsWatchPoint, "process_warning_threshold");
+    // error threshold for cpu memory of a single process
+    uint64_t cpuMemoryControl = ParseMemoryLimit(rsWatchPoint, "process_cpu_control_threshold");
+    // error threshold for gpu memory of a single process
+    uint64_t gpuMemoryControl = ParseMemoryLimit(rsWatchPoint, "process_gpu_control_threshold");
+    // threshold for the total memory of all processes in renderservice
+    uint64_t totalMemoryWarning = ParseMemoryLimit(rsWatchPoint, "total_threshold");
+    cJSON_Delete(root);
+
+    if (gpuContext != nullptr) {
+        gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl);
+    }
+    MemorySnapshot::Instance().InitMemoryLimit(MemoryOverflow, memoryWarning_, cpuMemoryControl, totalMemoryWarning);
+}
+
 void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -448,12 +510,22 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
 
     auto task = [gpuMemory = std::move(gpuMemory)]() {
         std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
-        MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuMemory, infoMap);
+        bool isTotalOver = false;
+        MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuMemory, infoMap, isTotalOver);
         auto now = std::chrono::steady_clock::now().time_since_epoch();
         uint64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+        // total memory overflow of all processes in renderservice
+        if (isTotalOver && currentTime > totalMemoryReportTime_) {
+            TotalMemoryOverReport(infoMap);
+            totalMemoryReportTime_ = currentTime + MEMORY_REPORT_INTERVAL;
+        }
+
         std::string bundleName;
         bool needReport = false;
         for (const auto& [pid, memoryInfo] : infoMap) {
+            if (memoryInfo.TotalMemory() <= memoryWarning_) {
+                continue;
+            }
             needReport = false;
             {
                 std::lock_guard<std::mutex> lock(mutex_);
@@ -470,15 +542,28 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
                     needReport = true;
                 }
             }
-            if (RSSystemProperties::GetMemoryOverTreminateEnabled() && memoryInfo.TotalMemory() > MEMORY_CHECK_KILL) {
-                KillProcessByPid(pid, memoryInfo, bundleName);
-            } else if (needReport) {
+            if (needReport) {
                 MemoryOverReport(pid, memoryInfo, bundleName, "RENDER_MEMORY_OVER_WARNING");
             }
         }
     };
     RSBackgroundThread::Instance().PostTask(task);
 #endif
+}
+
+void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
+{
+    MemorySnapshotInfo info;
+    MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    if (isGpu) {
+        info.gpuMemory = overflowMemory;
+    }
+    int32_t uid;
+    std::string bundleName;
+    auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    appMgrClient.GetBundleNameByPid(pid, bundleName, uid);
+    MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
+    RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
 
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
@@ -494,15 +579,14 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
         pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
 }
 
-bool MemoryManager::KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName)
+void MemoryManager::TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap)
 {
-    auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
-    if (appMgrClient.KillApplication(bundleName) != AppExecFwk::AppMgrResultCode::RESULT_OK) {
-        RS_LOGW("MemoryManager::KillProcessByPid kill process failed");
-        return false;
+    std::ostringstream oss;
+    for (const auto& info : infoMap) {
+        oss << info.first << '_' << info.second.TotalMemory() << ' ';
     }
-    MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
-    return true;
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RENDER_MEMORY_OVER_TOTAL_ERROR",
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "MEMORY_MSG", oss.str());
 }
 
 void MemoryManager::ErasePidInfo(const std::set<pid_t>& exitedPidSet)

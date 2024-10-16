@@ -362,6 +362,14 @@ void SkiaGPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
     grContext_->getUpdatedMemoryMap(out);
 }
 
+void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::InitGpuMemoryLimit, grContext_ is nullptr");
+        return;
+    }
+    grContext_->initGpuMemoryLimit(callback, size);
+}
 #ifdef RS_ENABLE_VK
 void SkiaGPUContext::StoreVkPipelineCacheData()
 {
