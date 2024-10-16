@@ -106,8 +106,8 @@ Drawing::RoundRect RSPropertiesPainter::RRect2DrawingRRectBorder(const RRect& rr
     constexpr uint32_t NUM_OF_CORNERS_IN_RECT = 4;
     std::vector<Drawing::Point> radii(NUM_OF_CORNERS_IN_RECT);
     for (uint32_t i = 0; i < NUM_OF_CORNERS_IN_RECT; i++) {
-        radii.at(i).SetX(rr.radius_[i].x_);
-        radii.at(i).SetY(rr.radius_[i].y_);
+        radii.at(i).SetX(rr_inner.radius_[i].x_);
+        radii.at(i).SetY(rr_inner.radius_[i].y_);
     }
     return Drawing::RoundRect(rect, radii);
 }
