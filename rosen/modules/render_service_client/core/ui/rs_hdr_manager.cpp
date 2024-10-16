@@ -36,8 +36,8 @@ int RSHDRManager::IncreaseHDRNum()
     std::lock_guard<std::mutex> lockGuard(mutex_);
 
     hdrNum_++;
+    RS_LOGD("RSHDRManager::IncreaseHDRNum HDRClient id: %{public}" PRIu64 ", hdrNum_: %{public}d", nodeId_, hdrNum_);
     if (hdrNum_ == 1 && setHDRPresent_ != nullptr && nodeId_ != INVALID_NODEID) {
-        ROSEN_LOGD("SetHDRPresent true");
         setHDRPresent_(true, nodeId_);
     }
 
@@ -75,11 +75,11 @@ int RSHDRManager::getHDRNum()
 void RSHDRManager::RegisterSetHDRPresent(HDRFunc func, NodeId id)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-
     if (func == nullptr || setHDRPresent_ != nullptr || id == INVALID_NODEID) {
         ROSEN_LOGE("RegisterSetHDRPresent fail");
         return;
     }
+    RS_LOGD("RSHDRManager::RegisterSetHDRPresent HDRClient id: %{public}" PRIu64, id);
     nodeId_ = id;
     setHDRPresent_ = func;
 }

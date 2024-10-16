@@ -1030,6 +1030,18 @@ bool RSSurfaceRenderNode::GetForceUIFirst() const
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 {
     hasHdrPresent_ = hasHdrPresent;
+    if (IsAppWindow()) {
+        return;
+    }
+    RS_LOGD("RSSurfaceRenderNode::SetHDRPresent HDRClient id: %{public}" PRIu64, GetId());
+    auto parentInstance = GetInstanceRootNode();
+    if (!parentInstance) {
+        RS_LOGD("RSSurfaceRenderNode::SetHDRPresent get parent instance root node info failed.");
+        return;
+    }
+    if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+        parentSurface->SetHDRPresent(hasHdrPresent);
+    }
 }
 
 bool RSSurfaceRenderNode::GetHDRPresent() const
