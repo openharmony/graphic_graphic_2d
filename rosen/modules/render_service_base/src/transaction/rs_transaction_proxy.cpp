@@ -66,11 +66,16 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
                                     FollowType followType, NodeId nodeId)
 {
     if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
+        RS_LOGE("RSTransactionProxy::add command fail, (renderServiceClient_ and renderThreadClient_ is nullptr)"
+            " or command is nullptr");
         return;
     }
 
     std::unique_lock<std::mutex> cmdLock(mutex_);
 
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSTransactionProxy::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
+        " followType:%{public}hhu", nodeId, isRenderServiceCommand, followType);
     if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
         AddRemoteCommand(command, nodeId, followType);
         return;
