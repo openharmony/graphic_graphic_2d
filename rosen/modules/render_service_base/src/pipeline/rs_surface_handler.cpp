@@ -58,7 +58,7 @@ void RSSurfaceHandler::ReleaseBuffer(SurfaceBufferEntry& buffer)
     if (consumer != nullptr && buffer.buffer != nullptr) {
         auto ret = consumer->ReleaseBuffer(buffer.buffer, SyncFence::InvalidFence());
         if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
+            RS_LOGE("SurfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer failed(ret: %{public}d)!",
                 GetNodeId(), ret);
         } else {
             RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") ReleaseBuffer success(ret: %{public}d)!",
@@ -136,6 +136,11 @@ void RSSurfaceHandler::GetBufferFromCacheLocked(
             buffer = iter->second;
             iter = bufferCache_.erase(iter);
         } else {
+            // 100000000 means 100 milliseconds
+            if (iter->first - vsyncTimestamp > 100000000) {
+                RS_LOGE("RSSurfaceHandler::GetBufferFromCache: bufferTime(%{public}" PRId64 ") >= vsyncTime(%{public}"
+                    PRId64 "), nodeId=%{public}" PRId64, iter->first, vsyncTimestamp, GetNodeId());
+            }
             break;
         }
     }
