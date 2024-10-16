@@ -75,7 +75,7 @@ int RSHDRManager::getHDRNum()
 void RSHDRManager::RegisterSetHDRPresent(HDRFunc func, NodeId id)
 {
     std::lock_guard<std::mutex> lockGuard(mutex_);
-    if (func == nullptr || setHDRPresent_ != nullptr || id == INVALID_NODEID) {
+    if (func == nullptr || id == INVALID_NODEID) {
         ROSEN_LOGE("RegisterSetHDRPresent fail");
         return;
     }
