@@ -113,7 +113,6 @@
           "skia"
         ],
         "third_party": [
-          "flutter",
           "skia"
         ]
       },
