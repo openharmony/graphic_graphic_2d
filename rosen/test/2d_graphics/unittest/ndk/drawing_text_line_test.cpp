@@ -142,10 +142,6 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest001, TestSize.Level1)
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 3);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-    }
     OH_Drawing_DestroyTextLines(textLines);
 }
 
@@ -163,10 +159,6 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest002, TestSize.Level1)
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 7);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-    }
     OH_Drawing_DestroyTextLines(textLines);
 }
 
@@ -195,10 +187,6 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest004, TestSize.Level1)
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 2);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-    }
     OH_Drawing_DestroyTextLines(textLines);
 }
 
@@ -274,9 +262,9 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest007, TestSize.Level1)
 
         double count = OH_Drawing_TextLineGetGlyphCount(textLine);
         if (index == 3) {
-            EXPECT_GE(count, 0);
+            EXPECT_EQ(count, 0);
         } else if (index == 6) {
-            EXPECT_GE(count, 3);
+            EXPECT_EQ(count, 3);
         } else {
             EXPECT_GE(count, 10);
         }
@@ -431,9 +419,9 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest013, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GE(ascent, 0);
-        EXPECT_GE(descent, 0);
-        EXPECT_GE(leading, 0);
+        EXPECT_GT(ascent, 0);
+        EXPECT_GT(descent, 0);
+        EXPECT_EQ(leading, 0);
         EXPECT_GT(width, 0);
         EXPECT_LE(width, 500.0);
     }
@@ -463,9 +451,9 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest014, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GE(ascent, 0);
-        EXPECT_GE(descent, 0);
-        EXPECT_GE(leading, 0);
+        EXPECT_GT(ascent, 0);
+        EXPECT_GT(descent, 0);
+        EXPECT_EQ(leading, 0);
         if (index == 3) {
             EXPECT_EQ(width, 0);
         } else {
@@ -496,7 +484,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest015, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GE(ascent, 0);
+        EXPECT_GT(ascent, 0);
         EXPECT_GT(descent, 0);
         EXPECT_EQ(leading, 0);
         EXPECT_EQ(width, 0);
@@ -531,7 +519,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest016, TestSize.Level1)
 
     double leading = 0.0;
     width = OH_Drawing_TextLineGetTypographicBounds(textLine, nullptr, nullptr, &leading);
-    EXPECT_EQ(descent, 0);
+    EXPECT_EQ(leading, 0);
     EXPECT_EQ(width, 0);
 
     width = OH_Drawing_TextLineGetTypographicBounds(textLine, nullptr, nullptr, nullptr);
@@ -589,10 +577,11 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest018, TestSize.Level1)
         if (index == 3) {
             EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 0);
             EXPECT_EQ(OH_Drawing_RectGetRight(rect), 0);
+            EXPECT_EQ(OH_Drawing_RectGetBottom(rect), OH_Drawing_RectGetTop(rect));
         } else {
             EXPECT_GT(OH_Drawing_RectGetRight(rect), OH_Drawing_RectGetLeft(rect));
+            EXPECT_GT(OH_Drawing_RectGetBottom(rect), OH_Drawing_RectGetTop(rect));
         }
-        EXPECT_GE(OH_Drawing_RectGetBottom(rect), OH_Drawing_RectGetTop(rect));
         EXPECT_LT(OH_Drawing_RectGetWidth(rect), 500.0);
         EXPECT_LE(OH_Drawing_RectGetHeight(rect), 40);
         OH_Drawing_RectDestroy(rect);
@@ -1162,12 +1151,16 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest037, TestSize.Level1)
         OH_Drawing_TextLineCreateTruncatedLine(textLine, 100, ELLIPSIS_MODAL_HEAD, "...");
         EXPECT_TRUE(truncatedLine != nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 250);
+        double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
+        EXPECT_GT(count, 0);
         OH_Drawing_DestroyTextLine(truncatedLine);
         truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 80, ELLIPSIS_MODAL_MIDDLE, "...");
         EXPECT_TRUE(truncatedLine == nullptr);
         truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 50, ELLIPSIS_MODAL_TAIL, "...");
         EXPECT_TRUE(truncatedLine != nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 550);
+        count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
+        EXPECT_GT(count, 0);
         OH_Drawing_DestroyTextLine(truncatedLine);
     }
     OH_Drawing_DestroyTextLines(textLines);
@@ -1195,10 +1188,22 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest038, TestSize.Level1)
         OH_Drawing_TextLineCreateTruncatedLine(textLine, 30, ELLIPSIS_MODAL_TAIL, "123");
         EXPECT_TRUE(truncatedLine != nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 150);
+        double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
+        if (index == 3) {
+            EXPECT_EQ(count, 0);
+        } else {
+            EXPECT_GT(count, 0);
+        }
         OH_Drawing_DestroyTextLine(truncatedLine);
         truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 30, ELLIPSIS_MODAL_HEAD, "测试");
         EXPECT_TRUE(truncatedLine != nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 300);
+        count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
+        if (index == 3) {
+            EXPECT_EQ(count, 0);
+        } else {
+            EXPECT_GT(count, 0);
+        }
         OH_Drawing_DestroyTextLine(truncatedLine);
     }
     OH_Drawing_DestroyTextLines(textLines);
@@ -1250,10 +1255,10 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest040, TestSize.Level1)
         OH_Drawing_Array *runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
         EXPECT_TRUE(runs != nullptr);
         size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        EXPECT_GE(runsSize, 1);
-        for (size_t runIndex = 0; runIndex < runsSize; runIndex++) {
-            OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, runIndex);
-            EXPECT_TRUE(run != nullptr);
+        if (index == 1) {
+            EXPECT_EQ(runsSize, 1);
+        } else {
+            EXPECT_GT(runsSize, 1);
         }
         OH_Drawing_DestroyRuns(runs);
     }
@@ -1330,10 +1335,13 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest043, TestSize.Level1)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 3);
 
-    OH_Drawing_TextLine* textLine = textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
     EXPECT_TRUE(textLine != nullptr);
 
-    OH_Drawing_Array *runs = OH_Drawing_TextLineGetGlyphRuns(nullptr);
+    OH_Drawing_Array *runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    EXPECT_TRUE(runs == nullptr);
+
+    runs = OH_Drawing_TextLineGetGlyphRuns(nullptr);
     EXPECT_TRUE(runs == nullptr);
 
     OH_Drawing_DestroyTextLines(textLines);
