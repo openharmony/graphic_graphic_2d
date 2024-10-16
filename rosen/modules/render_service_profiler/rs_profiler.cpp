@@ -645,10 +645,13 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
             if (node == nullptr) {
                 return;
             }
+            if (!node->GetSortedChildren()) {
+                return;
+            }
             auto parentPtr = node->GetParent().lock();
             if (parentPtr != nullptr && !rootNode &&
                 Utils::ExtractPid(node->GetId()) != Utils::ExtractPid(parentPtr->GetId()) &&
-                Utils::ExtractPid(node->GetId()) == pid) {
+                Utils::ExtractPid(node->GetId()) == pid && node->GetSortedChildren()->size() > 0) {
                 rootNode = node;
                 Respond("Root node found: " + std::to_string(rootNode->GetId()));
             }
