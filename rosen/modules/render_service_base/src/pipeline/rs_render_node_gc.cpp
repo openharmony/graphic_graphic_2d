@@ -69,6 +69,7 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 
 void RSRenderNodeGC::ReleaseNodeMemory()
 {
+    RS_TRACE_FUNC();
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
         if (nodeBucket_.empty()) {
