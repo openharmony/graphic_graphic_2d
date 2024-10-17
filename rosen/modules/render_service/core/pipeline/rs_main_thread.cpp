@@ -170,12 +170,7 @@ constexpr uint32_t DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE = 100; // ms
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
-constexpr float REFERENCE_WHITE = 203.0f;
-constexpr float CAMERA_WHITE_MIN = 500.0f;
-constexpr float CAMERA_WHITE_MAX = 510.0f;
-constexpr float CAMERA_HDR_RATIO = 2.5f;
-constexpr float HDR_WHITE = 1000.0f;
-constexpr float DEFAULT_SCALER = HDR_WHITE / REFERENCE_WHITE;
+constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -244,19 +239,6 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
     }
 }
 
-float CalScaler(const float& maxContentLightLevel)
-{
-    if (ROSEN_EQ(maxContentLightLevel, REFERENCE_WHITE)) {
-        return DEFAULT_HDR_RATIO;
-    } else if (ROSEN_GE(maxContentLightLevel, CAMERA_WHITE_MIN) && ROSEN_LE(maxContentLightLevel, CAMERA_WHITE_MAX)) {
-        return CAMERA_HDR_RATIO;
-    } else if (ROSEN_LE(maxContentLightLevel, HDR_WHITE)) {
-        return HDR_WHITE / REFERENCE_WHITE;
-    } else {
-        return maxContentLightLevel / REFERENCE_WHITE;
-    }
-}
-
 void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRenderNode& surfaceNode, bool isHdrSurface)
 {
     std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
@@ -265,7 +247,6 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
         ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
     }
     if (ancestor == nullptr) {
-        RS_LOGD("RSMainThread UpdateSurfaceNodeNit GetAncestorDisplayNode() return nullptr");
         return;
     }
     auto screenId = ancestor->GetScreenId();
@@ -281,14 +262,14 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
         RS_LOGD("MetadataHelper GetHDRStaticMetadata failed");
     }
     float scaler = DEFAULT_SCALER;
+    auto& rsLuminance = RSLuminanceControl::Get();
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
-        scaler = CalScaler(data.cta861.maxContentLightLevel);
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel);
     }
 
-    auto& rsLuminance = RSLuminanceControl::Get();
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
 

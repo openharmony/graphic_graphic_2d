@@ -23,6 +23,7 @@
 
 namespace {
 constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;
+constexpr float HDR_DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr int32_t DEFAULT_LEVEL = 255;
 constexpr std::string_view EXT_LIB_PATH = "system/lib64/libluminance_ext.z.so";
 }
@@ -59,6 +60,7 @@ void RSLuminanceControl::CloseLibrary()
     getHdrDisplayNits_ = nullptr;
     getDisplayNits_ = nullptr;
     getNonlinearRatio_ = nullptr;
+    calScaler_ = nullptr;
 }
 
 void RSLuminanceControl::Init()
@@ -179,6 +181,11 @@ bool RSLuminanceControl::LoadTmoControl()
         RS_LOGE("LumCtr link GetHdrBrightnessRatio error!");
         return false;
     }
+    calScaler_ = reinterpret_cast<CalScalerFunc>(dlsym(extLibHandle_, "CalScaler"));
+    if (calScaler_ == nullptr) {
+        RS_LOGE("LumCtr link CalScaler error!");
+        return false;
+    }
     return true;
 }
 
@@ -251,6 +258,11 @@ float RSLuminanceControl::GetDisplayNits(ScreenId screenId)
 double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int32_t mode)
 {
     return (initStatus_ && getNonlinearRatio_ != nullptr) ? getNonlinearRatio_(screenId, mode) : 1.0;
+}
+
+float RSLuminanceControl::CalScaler(const float& maxContentLightLevel)
+{
+    return (initStatus_ && calScaler_ != nullptr) ? calScaler_(maxContentLightLevel) : HDR_DEFAULT_SCALER;
 }
 } // namespace Rosen
 } // namespace OHOS
