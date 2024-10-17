@@ -24,6 +24,137 @@ namespace OHOS {
 namespace Rosen {
 
 /**
+ * @tc.name: Render_CPU_Normal_Process
+ * @tc.desc: render normaly.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, Render_CPU_Normal_Process, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 2048;
+    opts.size.height = 2048;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+
+    auto filterBlur = Rosen::SKImageFilterFactory::Blur(0.5);
+    std::vector<sk_sp<SkImageFilter>> imageFilter;
+    imageFilter.emplace_back(filterBlur);
+
+    std::shared_ptr<Media::PixelMap> dstPixelMap = nullptr;
+    Rosen::SKImageChain skImage(srcPixelMap);
+    DrawError ret = skImage.Render(imageFilter, true, dstPixelMap);
+    ASSERT_EQ(ret, DrawError::ERR_OK);
+}
+
+/**
+ * @tc.name: Render_CPU_Filter_1000_Times
+ * @tc.desc: render filter 1000 times.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, Render_CPU_Filter_1000_Times, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 2048;
+    opts.size.height = 2048;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+
+    std::vector<sk_sp<SkImageFilter>> imageFilter;
+    for (int i = 0; i < 1000; ++i) {
+        auto filterBlur = Rosen::SKImageFilterFactory::Blur(i);
+        imageFilter.emplace_back(filterBlur);
+    }
+
+    std::shared_ptr<Media::PixelMap> dstPixelMap = nullptr;
+    Rosen::SKImageChain skImage(srcPixelMap);
+    DrawError ret = skImage.Render(imageFilter, true, dstPixelMap);
+    ASSERT_EQ(ret, DrawError::ERR_OK);
+}
+
+/**
+ * @tc.name: Render_Options_Size_Is_Negative
+ * @tc.desc: render options Size is negative.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, Render_Options_Size_Is_Negative, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = -1;
+    opts.size.height = -1;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    ASSERT_EQ(uniPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+    ASSERT_EQ(srcPixelMap, nullptr);
+
+    auto filterBlur = Rosen::SKImageFilterFactory::Blur(0.5);
+    std::vector<sk_sp<SkImageFilter>> imageFilter;
+    imageFilter.emplace_back(filterBlur);
+
+    std::shared_ptr<Media::PixelMap> dstPixelMap = nullptr;
+    Rosen::SKImageChain skImage(srcPixelMap);
+    DrawError ret = skImage.Render(imageFilter, true, dstPixelMap);
+    ASSERT_NE(ret, DrawError::ERR_OK);
+}
+
+
+/**
+ * @tc.name: Render_Blur_Radius_Is_Negative
+ * @tc.desc: render blur radius is negative.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, Render_Blur_Radius_Is_Negative, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 2048;
+    opts.size.height = 2048;
+    opts.editable = true;
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+
+    auto filterBlur = Rosen::SKImageFilterFactory::Blur(-10);
+    ASSERT_EQ(filterBlur, nullptr);
+    std::vector<sk_sp<SkImageFilter>> imageFilter;
+    imageFilter.emplace_back(filterBlur);
+
+    std::shared_ptr<Media::PixelMap> dstPixelMap = nullptr;
+    Rosen::SKImageChain skImage(srcPixelMap);
+    DrawError ret = skImage.Render(imageFilter, true, dstPixelMap);
+    ASSERT_EQ(ret, DrawError::ERR_OK);
+}
+
+/**
+ * @tc.name: Render_SKImageChain_srcPixelMap_Is_Null
+ * @tc.desc: render pixelMap is null.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SKImageChainUnittest, Render_SKImageChain_srcPixelMap_Is_Null, TestSize.Level1)
+{
+    auto filterBlur = Rosen::SKImageFilterFactory::Blur(10);
+    std::vector<sk_sp<SkImageFilter>> imageFilter;
+    imageFilter.emplace_back(filterBlur);
+
+    std::shared_ptr<Media::PixelMap> dstPixelMap = nullptr;
+    std::shared_ptr<Media::PixelMap> srcPixelMap = nullptr;
+    Rosen::SKImageChain skImage(srcPixelMap);
+    DrawError ret = skImage.Render(imageFilter, true, dstPixelMap);
+    ASSERT_NE(ret, DrawError::ERR_OK);
+}
+
+/**
  * @tc.name: DrawTest001
  * @tc.desc: draw nothing
  * @tc.type: FUNC
