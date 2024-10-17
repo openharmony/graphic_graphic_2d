@@ -696,6 +696,31 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
+GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams)
+{
+    GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    auto ancestorDrawable = surfaceParams.GetAncestorDisplayDrawable().lock();
+    if (!ancestorDrawable) {
+        RS_LOGE("ancestorDrawable return nullptr");
+        return targetColorGamut;
+    }
+    auto ancestorDisplayDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(ancestorDrawable);
+    if (!ancestorDisplayDrawable) {
+        RS_LOGE("ancestorDisplayDrawable return nullptr");
+        return targetColorGamut;
+    }
+    auto& ancestorParam = ancestorDrawable->GetRenderParams();
+    if (!ancestorParam) {
+        RS_LOGE("ancestorParam return nullptr");
+        return targetColorGamut;
+    }
+
+    auto renderParams = static_cast<RSDisplayRenderParams*>(ancestorParam.get());
+    targetColorGamut = renderParams->GetNewColorSpace();
+    RS_LOGD("params.targetColorGamut is %{public}d in DealWithSelfDrawingNodeBuffer", targetColorGamut);
+    return targetColorGamut;
+}
+
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
@@ -714,7 +739,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     surfaceParams.SetGlobalAlpha(1.0f);
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
-    params.targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.sdrNits = surfaceParams.GetSdrNit();
     params.tmoNits = surfaceParams.GetDisplayNit();

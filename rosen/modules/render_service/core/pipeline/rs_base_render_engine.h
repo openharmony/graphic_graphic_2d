@@ -298,7 +298,8 @@ protected:
 private:
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
+        const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace = nullptr);
 
     static inline std::atomic_bool isHighContrastEnabled_ = false;
 #if defined(NEW_RENDER_CONTEXT)
@@ -322,7 +323,8 @@ private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool SetColorSpaceConverterDisplayParameter(
         const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
-    static bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+    static std::shared_ptr<Drawing::ColorSpace> GetCanvasColorSpace(const RSPaintFilterCanvas& canvas);
+    static bool ConvertDrawingColorSpaceToSpaceInfo(const std::shared_ptr<Drawing::ColorSpace>& colorSpace,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif
