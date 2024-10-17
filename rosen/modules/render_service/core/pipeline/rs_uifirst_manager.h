@@ -309,10 +309,10 @@ public:
     {
         notifyCv_.notify_all();
     }
-    static bool CheckMatchAndWaitNotify(const RSSurfaceRenderParams& params, bool checkMatch = true);
+    static bool CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch = true);
 private:
-    static bool IsCurFirstLevelMatch(const RSSurfaceRenderParams& params);
-    static bool CheckAndWaitPreFirstLevelDrawableNotify(const RSSurfaceRenderParams& params);
+    static bool IsCurFirstLevelMatch(const RSRenderParams& params);
+    static bool CheckAndWaitPreFirstLevelDrawableNotify(const RSRenderParams& params);
 
     static inline std::mutex notifyMutex_;
     static inline std::condition_variable notifyCv_;
