@@ -55,6 +55,7 @@ void RSModifierManager::AddAnimation(const std::shared_ptr<RSRenderAnimation>& a
         return;
     }
     animations_.emplace(key, animation);
+    hasFirstFrameAnimation_ = true;
 
     std::shared_ptr<RSRenderDisplaySync> displaySync = std::make_shared<RSRenderDisplaySync>(animation);
     displaySync->SetExpectedFrameRateRange(animation->GetFrameRateRange());
@@ -116,6 +117,12 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
     rateDecider_.MakeDecision(frameRateGetFunc_);
 
     return hasRunningAnimation;
+}
+
+bool RSModifierManager::HasFirstFrameAnimation()
+{
+    // UI animation need this info to get expected frame rate, each window will call it once per frame
+    return std::exchange(hasFirstFrameAnimation_, false);
 }
 
 void RSModifierManager::FlushStartAnimation(int64_t time)

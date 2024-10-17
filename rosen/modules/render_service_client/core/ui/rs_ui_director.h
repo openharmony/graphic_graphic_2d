@@ -59,6 +59,7 @@ public:
     void SetCacheDir(const std::string& cacheFilePath);
 
     bool FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod = 0);
+    bool HasFirstFrameAnimation();
     void FlushModifier();
     bool HasUIRunningAnimation();
     void FlushAnimationStartTime(uint64_t timeStamp);

@@ -371,12 +371,35 @@ void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strate
 void HgmMultiAppStrategy::UpdateStrategyByTouch(
     PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate)
 {
-    if (!HgmCore::Instance().GetEnableDynamicMode() || strategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED) {
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (uniqueTouchInfo_ == nullptr || frameRateMgr == nullptr) {
         return;
     }
-    if (uniqueTouchInfo_ == nullptr) {
+
+    if (uniqueTouchInfo_->touchState == TouchState::DOWN_STATE &&
+        (!HgmCore::Instance().GetEnableDynamicMode() || strategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED)) {
         return;
     }
+
+    if (uniqueTouchInfo_->touchState == TouchState::IDLE_STATE) {
+        uniqueTouchInfo_ = nullptr;
+        frameRateMgr->HandleRefreshRateEvent(DEFAULT_PID, {"VOTER_TOUCH", false});
+        return;
+    }
+
+    auto voteTouchFunc = [this, frameRateMgr] (const PolicyConfigData::StrategyConfig& strategy) {
+        auto touchInfo = std::move(uniqueTouchInfo_);
+        if (touchInfo->touchState == TouchState::DOWN_STATE) {
+            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, downFps:%d",
+                touchInfo->pkgName.c_str(), touchInfo->touchState, strategy.down);
+            frameRateMgr->HandleRefreshRateEvent(DEFAULT_PID, {"VOTER_TOUCH", true, strategy.down, strategy.down});
+        } else if (touchInfo->touchState == TouchState::UP_STATE && touchInfo->upExpectFps > 0) {
+            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, upExpectFps:%d",
+                touchInfo->pkgName.c_str(), touchInfo->touchState, touchInfo->upExpectFps);
+            frameRateMgr->HandleRefreshRateEvent(DEFAULT_PID,
+                {"VOTER_TOUCH", true, touchInfo->upExpectFps, touchInfo->upExpectFps});
+        }
+    };
 
     if (forceUpdate) {
         // click pkg which not config
@@ -386,37 +409,12 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
             settingStrategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED) {
             return;
         }
-
-        auto touchInfo = std::move(uniqueTouchInfo_);
-        if (touchInfo->touchState == TouchState::DOWN_STATE) {
-            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] state:%d, downFps:%d force update",
-                touchInfo->touchState, strategy.down);
-            strategy.min = settingStrategy.down;
-            strategy.max = settingStrategy.down;
-        } else if (touchInfo->touchState == TouchState::UP_STATE && touchInfo->upExpectFps > 0) {
-            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] state:%d, upExpectFps:%d force update",
-                touchInfo->touchState, touchInfo->upExpectFps);
-            strategy.min = touchInfo->upExpectFps;
-            strategy.max = touchInfo->upExpectFps;
-        }
+        voteTouchFunc(settingStrategy);
     } else {
-        if (pkgName != uniqueTouchInfo_->pkgName) {
+        if (uniqueTouchInfo_->touchState == TouchState::DOWN_STATE && pkgName != uniqueTouchInfo_->pkgName) {
             return;
         }
-        auto touchInfo = std::move(uniqueTouchInfo_);
-        if (touchInfo->touchState == TouchState::DOWN_STATE) {
-            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, downFps:%d",
-                pkgName.c_str(), touchInfo->touchState, strategy.down);
-            strategy.min = strategy.down;
-            strategy.max = strategy.down;
-            voteRes_.first = EXEC_SUCCESS;
-        } else if (touchInfo->touchState == TouchState::UP_STATE && touchInfo->upExpectFps > 0) {
-            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, upExpectFps:%d force update",
-                pkgName.c_str(), touchInfo->touchState, touchInfo->upExpectFps);
-            strategy.min = touchInfo->upExpectFps;
-            strategy.max = touchInfo->upExpectFps;
-            voteRes_.first = EXEC_SUCCESS;
-        }
+        voteTouchFunc(strategy);
     }
 }
 

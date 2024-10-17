@@ -61,6 +61,7 @@ namespace {
 
         "VOTER_PACKAGES",
         "VOTER_LTPO",
+        "VOTER_TOUCH",
         "VOTER_SCENE",
         "VOTER_VIDEO",
         "VOTER_IDLE"
@@ -73,7 +74,8 @@ namespace {
 HgmFrameRateManager::HgmFrameRateManager()
     : voterLtpoTimer_("voter_ltpo", std::chrono::milliseconds(IDLE_TIMER_EXPIRED), nullptr, [this] () {
         DeliverRefreshRateVote({.voterName = "VOTER_LTPO"}, REMOVE_VOTE);
-    })
+    }),
+    voters_(std::begin(VOTER_NAME), std::end(VOTER_NAME))
 {
     for (auto &voter : VOTER_NAME) {
         voteRecord_[voter] = {{}, true};
@@ -83,7 +85,6 @@ HgmFrameRateManager::HgmFrameRateManager()
 void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
 {
-    voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
     auto& hgmCore = HgmCore::Instance();
     curRefreshRateMode_ = hgmCore.GetCurrentRefreshRateMode();
     multiAppStrategy_.UpdateXmlConfigCache();
@@ -402,6 +403,10 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
             SetAceAnimatorVote(linker.second, needCheckAceAnimatorStatus);
             auto expectedRange = linker.second->GetExpectedRange();
             HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange);
+            if ((expectedRange.type_ & ANIMATION_STATE_FIRST_FRAME) != 0 &&
+                expectedRange.preferred_ < currRefreshRate_) {
+                expectedRange.Set(currRefreshRate_, currRefreshRate_, currRefreshRate_);
+            }
             finalRange.Merge(expectedRange);
         }
         HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(finalRange);
@@ -675,7 +680,6 @@ uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, co
 
 void HgmFrameRateManager::Reset()
 {
-    currRefreshRate_ = 0;
     controllerRate_ = 0;
     appChangeData_.clear();
 }

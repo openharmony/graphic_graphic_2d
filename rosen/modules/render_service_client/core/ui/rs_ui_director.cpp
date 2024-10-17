@@ -280,16 +280,24 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
 {
-    bool hasRunningAnimation = false;
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         modifierManager->SetDisplaySyncEnable(true);
         modifierManager->SetFrameRateGetFunc([](const RSPropertyUnit unit, float velocity) -> int32_t {
             return RSFrameRatePolicy::GetInstance()->GetExpectedFrameRate(unit, velocity);
         });
-        hasRunningAnimation = modifierManager->Animate(timeStamp, vsyncPeriod);
+        return modifierManager->Animate(timeStamp, vsyncPeriod);
     }
-    return hasRunningAnimation;
+    return false;
+}
+
+bool RSUIDirector::HasFirstFrameAnimation()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        return modifierManager->HasFirstFrameAnimation();
+    }
+    return false;
 }
 
 void RSUIDirector::FlushAnimationStartTime(uint64_t timeStamp)

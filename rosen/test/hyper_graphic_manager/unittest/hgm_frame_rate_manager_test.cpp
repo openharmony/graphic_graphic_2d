@@ -220,8 +220,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             if (frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig) != EXEC_SUCCESS) {
                 return; // xml is empty, return
             }
-            ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
-            ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
             std::vector<std::pair<std::string, int32_t>> appBufferList;
             appBufferList.push_back(std::make_pair(otherSurface, OLED_90_HZ));
