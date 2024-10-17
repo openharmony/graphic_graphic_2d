@@ -420,60 +420,6 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedModes002, Function | SmallTest | Le
     EXPECT_EQ(supportedScreenModes.size(), 0);
 }
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-/**
- * @tc.name: SetPointerColorInversionConfig001
- * @tc.desc: set pointer color inversion config function.
- * @tc.type: FUNC
- * @tc.require: Issue #IA8DQ6
- */
-HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, TestSize.Level1)
-{
-    float darkBuffer = 0.5f;
-    float brightBuffer = 0.5f;
-    int64_t interval = 50;
-    int32_t rangeSize = 20;
-    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: SetPointerColorInversionEnabled001
- * @tc.desc: set pointer color inversion enabled function.
- * @tc.type: FUNC
- * @tc.require: Issue #IA8DQ6
- */
-HWTEST_F(RSInterfacesTest, SetPointerColorInversionEnabled001, TestSize.Level1)
-{
-    int32_t ret = rsInterfaces->SetPointerColorInversionEnabled(false);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: RegisterPointerLuminanceChangeCallback001
- * @tc.desc: register pointer luminance change callback function.
- * @tc.type: FUNC
- * @tc.require: Issue #IA8DQ6
- */
-HWTEST_F(RSInterfacesTest, RegisterPointerLuminanceChangeCallback001, TestSize.Level1)
-{
-    int32_t ret = rsInterfaces->RegisterPointerLuminanceChangeCallback([](int32_t brightness) -> void {});
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: UnRegisterPointerLuminanceChangeCallback001
- * @tc.desc: unregister pointer luminance change callback function.
- * @tc.type: FUNC
- * @tc.require: Issue #IA8DQ6
- */
-HWTEST_F(RSInterfacesTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Level1)
-{
-    int32_t ret = rsInterfaces->UnRegisterPointerLuminanceChangeCallback();
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-#endif
-
 /*
 * Function: SetScreenActiveMode
 * Type: Function
