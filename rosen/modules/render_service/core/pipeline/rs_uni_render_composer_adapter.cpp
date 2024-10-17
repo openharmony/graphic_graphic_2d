@@ -105,7 +105,8 @@ void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandl
 }
 
 // private func, for RSDisplayRenderNode
-ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    const std::vector<RectI>& dirtyRegion)
 {
     ComposeInfo info {};
     SetBufferColorSpace(displayDrawable);
@@ -125,11 +126,11 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
     std::vector<GraphicIRect> dirtyRects;
     // layer damage always relative to the top-left, no matter gl or vk
     std::vector<RectI> flipDirtyRects =
-        RSUniRenderUtil::GetFilpDirtyRects(displayDrawable.GetDirtyRects(), screenInfo_);
+        RSUniRenderUtil::GetFilpDirtyRects(dirtyRegion, screenInfo_);
     for (const auto& rect : flipDirtyRects) {
         dirtyRects.emplace_back(GraphicIRect {rect.left_, rect.top_, rect.width_, rect.height_});
     }
-    if (dirtyRects.empty()) {
+    if (RSSystemProperties::GetUniPartialRenderEnabled() == PartialRenderType::DISABLED && dirtyRects.empty()) {
         dirtyRects.emplace_back(info.srcRect);
     }
     info.dirtyRects = dirtyRects;
@@ -209,7 +210,13 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(info.visibleRect);
     layer->SetVisibleRegions(visibleRegions);
-    layer->SetDirtyRegions(info.dirtyRects);
+    if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
+        layer->SetDirtyRegions(info.dirtyRects);
+    } else {
+        std::vector<GraphicIRect> dirtyRegions;
+        dirtyRegions.emplace_back(info.srcRect);
+        layer->SetDirtyRegions(dirtyRegions);
+    }
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
     layer->SetMatrix(info.matrix);
@@ -1229,7 +1236,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
             !surfaceHandler->GetBuffer());
         return nullptr;
     }
-    ComposeInfo info = BuildComposeInfo(displayDrawable);
+    ComposeInfo info = BuildComposeInfo(displayDrawable, displayDrawable.GetDirtyRects());
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
     if (info.buffer) {
@@ -1272,7 +1279,11 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }
-    ComposeInfo info = BuildComposeInfo(*displayDrawable);
+    std::vector<RectI> dirtyRegions;
+    if (auto dirtyManager = node.GetDirtyManager()) {
+        dirtyRegions.emplace_back(dirtyManager->GetCurrentFrameDirtyRegion());
+    }
+    ComposeInfo info = BuildComposeInfo(*displayDrawable, dirtyRegions);
     RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayNode zorder:%d bufferFormat:%d", info.zOrder,
         surfaceHandler->GetBuffer()->GetFormat());
     if (info.buffer) {
