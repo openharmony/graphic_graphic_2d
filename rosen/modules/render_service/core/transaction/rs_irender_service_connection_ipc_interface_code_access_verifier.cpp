@@ -335,6 +335,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_DISPLAY_NODE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CREATE_DISPLAY_NODE");
+            break;
+        }
         default: {
             break;
         }
