@@ -1224,6 +1224,16 @@ void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
 #endif
 }
 
+uint64_t VSyncDistributor::GetRealTimeOffsetOfDvsync(int64_t time)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        return dvsync_->GetRealTimeOffsetOfDvsync(time);
+    }
+#endif
+    return 0;
+}
+
 void VSyncDistributor::SetHardwareTaskNum(uint32_t num)
 {
 #if defined(RS_ENABLE_DVSYNC)

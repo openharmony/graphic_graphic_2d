@@ -4307,6 +4307,11 @@ void RSMainThread::ConfigureRenderService()
     }
 }
 
+uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time)
+{
+    return rsVSyncDistributor_->GetRealTimeOffsetOfDvsync(time);
+}
+
 bool RSMainThread::IsBlurSwitchOpen() const
 {
     return isBlurSwitchOpen_;
