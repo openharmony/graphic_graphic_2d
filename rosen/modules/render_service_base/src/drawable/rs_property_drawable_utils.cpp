@@ -787,6 +787,11 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
         return;
     }
+    if (std::isinf(pixelStretch->x_) || std::isinf(pixelStretch->y_) ||
+        std::isinf(pixelStretch->z_) || std::isinf(pixelStretch->w_)) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch skip original pixelStretch");
+        return;
+    }
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch surface null");
