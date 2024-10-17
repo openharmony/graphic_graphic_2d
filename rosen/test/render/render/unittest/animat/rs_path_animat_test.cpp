@@ -230,7 +230,6 @@ HWTEST_F(RSRenderPathAnimatUniTest, SetIsNeedPathUniTest, Level1)
     bool isNeedPath = true;
     rsRenderPathAnimat.SetIsNeedPath(isNeedPath);
     ASSERT_NE(isNeedPath, false);
-    
 }
 
 /**
