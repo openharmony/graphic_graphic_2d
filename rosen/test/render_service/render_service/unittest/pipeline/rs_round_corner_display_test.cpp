@@ -274,6 +274,21 @@ HWTEST_F(RSRoundCornerDisplayTest, RSChooseResourceTest, TestSize.Level1)
 }
 
 /*
+ * @tc.name: IsNotchNeedUpdate
+ * @tc.desc: Test RSRoundCornerDisplayTest.IsNotchNeedUpdate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, IsNotchNeedUpdate, TestSize.Level1)
+{
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.Init();
+    rcdInstance.IsNotchNeedUpdate(true);
+    bool ischange = rcdInstance.IsNotchNeedUpdate(false);
+    EXPECT_EQ(true, ischange);
+}
+
+/*
  * @tc.name: RunHardwareTask
  * @tc.desc: Test RSRoundCornerDisplayTest.RunHardwareTask
  * @tc.type: FUNC
