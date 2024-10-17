@@ -36,7 +36,7 @@ public:
     bool HasTransaction(uint32_t pid) const;
 
     std::shared_ptr<RSTransactionData> GetTransaction(uint32_t pid);
-    std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>&& GetAllTransactions();
+    std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>> GetAllTransactions();
 private:
     RSMessageProcessor() = default;
     ~RSMessageProcessor();

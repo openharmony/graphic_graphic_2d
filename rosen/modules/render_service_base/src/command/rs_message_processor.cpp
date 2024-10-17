@@ -79,10 +79,12 @@ std::shared_ptr<RSTransactionData> RSMessageProcessor::GetTransaction(uint32_t p
     }
 }
 
-std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>&& RSMessageProcessor::GetAllTransactions()
+std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>> RSMessageProcessor::GetAllTransactions()
 {
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    return std::move(transactionMap_);
+    auto ret = std::move(transactionMap_);
+    transactionMap_.clear();
+    return ret;
 }
 
 } // namespace Rosen
