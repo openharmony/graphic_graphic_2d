@@ -1514,9 +1514,15 @@ bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t 
 void RSRenderServiceClient::TriggerSurfaceBufferCallback(uint64_t uid,
     const std::vector<uint32_t>& surfaceBufferIds) const
 {
-    std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
-    if (auto iter = surfaceBufferCallbacks_.find(uid); iter != std::cend(surfaceBufferCallbacks_)) {
-        iter->second->OnFinish(uid, surfaceBufferIds);
+    std::shared_ptr<SurfaceBufferCallback> callback = nullptr;
+    {
+        std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        if (auto iter = surfaceBufferCallbacks_.find(uid); iter != std::cend(surfaceBufferCallbacks_)) {
+            callback = iter->second;
+        }
+    }
+    if (callback) {
+        callback->OnFinish(uid, surfaceBufferIds);
     }
 }
 
