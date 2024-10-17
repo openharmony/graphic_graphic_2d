@@ -758,6 +758,8 @@ public:
         return isFullChildrenListValid_;
     }
 
+    virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
