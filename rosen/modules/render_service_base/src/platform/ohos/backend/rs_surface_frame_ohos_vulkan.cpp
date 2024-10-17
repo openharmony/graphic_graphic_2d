@@ -14,9 +14,10 @@
  */
 
 #include "rs_surface_frame_ohos_vulkan.h"
-#include "rs_trace.h"
 #include "platform/common/rs_log.h"
+
 #include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
