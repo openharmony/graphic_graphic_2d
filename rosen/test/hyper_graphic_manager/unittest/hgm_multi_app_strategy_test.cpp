@@ -603,6 +603,8 @@ HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
         multiAppStrategy->AnalyzePkgParam("com.app10:a"); // err pid
         multiAppStrategy->AnalyzePkgParam("com.app10:0:0");
         multiAppStrategy->AnalyzePkgParam("com.app10:0:a"); // err appType
+        auto [pkgName, pid, appType] = multiAppStrategy->AnalyzePkgParam("com.app10");
+        ASSERT_EQ(pkgName, "com.app10");
     }
     STEP("OnStrategyChange") {
         multiAppStrategy->RegisterStrategyChangeCallback([] (const PolicyConfigData::StrategyConfig&) {});
