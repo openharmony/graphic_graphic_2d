@@ -760,6 +760,23 @@ public:
 
     virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
 
+    int32_t GetCurDisplayOffsetX()
+    {
+        return curDisplayOffsetX_;
+    }
+    void SetCurDisplayOffsetX(int32_t offsetX)
+    {
+        curDisplayOffsetX_ = offsetX;
+    }
+    int32_t GetCurDisplayOffsetY()
+    {
+        return curDisplayOffsetY_;
+    }
+    void SetCurDisplayOffsetY(int32_t offsetY)
+    {
+        curDisplayOffsetY_ = offsetY;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -845,6 +862,8 @@ private:
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;
+    int32_t curDisplayOffsetX_ = 0;
+    int32_t curDisplayOffsetY_ = 0;
     bool isChildrenSorted_ = true;
     bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
