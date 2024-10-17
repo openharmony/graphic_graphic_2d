@@ -503,7 +503,7 @@ void HgmCore::SetActiveScreenId(ScreenId id)
 
 sptr<HgmScreen> HgmCore::GetActiveScreen() const
 {
-    auto activeScreenId = activeScreenId_.load();
+    auto activeScreenId = GetActiveScreenId();
     if (activeScreenId == INVALID_SCREEN_ID) {
         HGM_LOGE("HgmScreen activeScreenId_ noset");
         return nullptr;

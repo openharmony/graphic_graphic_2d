@@ -91,10 +91,10 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
 
     // hgm warning: get non active screenId in non-folding devices（from sceneboard）
     auto screenList = hgmCore.GetScreenIds();
-    curScreenId_ = screenList.empty() ? 0 : screenList.front();
+    curScreenId_.store(screenList.empty() ? 0 : screenList.front());
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    isLtpo_ = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_));
-    std::string curScreenName = "screen" + std::to_string(curScreenId_) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
+    isLtpo_ = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_.load()));
+    std::string curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
         if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
@@ -372,7 +372,7 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired)
 {
     if (finalRange.IsValid()) {
-        auto refreshRate = CalcRefreshRate(curScreenId_, finalRange);
+        auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
         voterLtpoTimer_.Start();
@@ -416,7 +416,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     // max used here
     finalRange = {lastVoteInfo_.max, lastVoteInfo_.max, lastVoteInfo_.max};
     RS_TRACE_NAME_FMT("VoteRes: %s[%d, %d]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
-    currRefreshRate_ = CalcRefreshRate(curScreenId_, finalRange);
+    currRefreshRate_ = CalcRefreshRate(curScreenId_.load(), finalRange);
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
@@ -854,7 +854,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     } else if (status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
         ReportHiSysEvent({.voterName = "SCREEN_POWER", .extInfo = "OFF"});
     }
-    if (status != ScreenPowerStatus::POWER_STATUS_ON || curScreenId_ == id) {
+    if (status != ScreenPowerStatus::POWER_STATUS_ON || curScreenId_.load() == id) {
         return;
     }
 
@@ -875,9 +875,9 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         curScreenStrategyId_ = "LTPO-DEFAULT";
     }
     isLtpo_ = isLtpo;
-    curScreenId_ = id;
-    hgmCore.SetActiveScreenId(curScreenId_);
-    HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_));
+    curScreenId_.store(id);
+    hgmCore.SetActiveScreenId(curScreenId_.load());
+    HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_.load()));
 
     multiAppStrategy_.UpdateXmlConfigCache();
     UpdateEnergyConsumptionConfig();
@@ -1022,7 +1022,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 
     // max used here
     FrameRateRange finalRange = {resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max};
-    auto refreshRate = CalcRefreshRate(curScreenId_, finalRange);
+    auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
     if (refreshRate == currRefreshRate_) {
         return;
     }
@@ -1308,7 +1308,7 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
         voteRecord_["VOTER_SCENE"].second = true;
     }
     HGM_LOGI("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
-        curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_), curRefreshRateMode_, min, max);
+        curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_.load()), curRefreshRateMode_, min, max);
     SetResultVoteInfo(resultVoteInfo, min, max);
     ProcessAdaptiveSync(resultVoteInfo.voterName);
     return resultVoteInfo;

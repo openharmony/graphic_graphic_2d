@@ -126,7 +126,7 @@ public:
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
-    ScreenId GetCurScreenId() const { return curScreenId_; };
+    ScreenId GetCurScreenId() const { return curScreenId_.load(); };
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
@@ -243,7 +243,7 @@ private:
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
 
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
-    ScreenId curScreenId_ = 0;
+    std::atomic<ScreenId> curScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
     int32_t idleFps_ = OLED_60_HZ;
