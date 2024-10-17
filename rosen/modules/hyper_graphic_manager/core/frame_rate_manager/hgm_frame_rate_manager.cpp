@@ -317,7 +317,7 @@ void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrame
             "AnimatorExpectedFrameRate = [%d]", ExtractPid(linker->GetId()), linker->GetId(),
             linker->GetAceAnimatorExpectedFrameRate());
         idleDetector_.SetAceAnimatorIdleState(false);
-        idleDetector_.UpdateAnimatorExpected(linker->GetAceAnimatorExpectedFrameRate());
+        idleDetector_.UpdateAnimatorExpectedFrameRate(linker->GetAceAnimatorExpectedFrameRate());
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("SetAceAnimatorVote PID = [%d]  linkerId = [%" PRIu64 "] "
@@ -410,7 +410,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     }
 
     UpdateGuaranteedPlanVote(timestamp);
-    idleDetector_.ResetAnimatorExpected();
+    idleDetector_.ResetAnimatorExpectedFrameRate();
     // changeGenerator only once in a single vsync period
     if (!changeGeneratorRateValid_.load()) {
         return;
