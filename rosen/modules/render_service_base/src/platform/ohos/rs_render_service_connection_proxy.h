@@ -247,7 +247,7 @@ public:
 
     void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) override;
 
-    int32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 

@@ -433,8 +433,8 @@ enum class AncoHebcStatus : int32_t {
 enum class RSInterfaceErrorCode : uint32_t {
 #undef NO_ERROR
     NO_ERROR = 0,
-    NON_SELF_CALLING,
-    NON_SYSTEM_CALLING,
+    NOT_SELF_CALLING,
+    NONSYSTEM_CALLING,
     UNKNOWN_ERROR,
     WRITE_PARCEL_ERROR,
 };

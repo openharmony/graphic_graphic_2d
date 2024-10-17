@@ -1562,19 +1562,28 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
                 "::SET_HIDE_PRIVACY_CONTENT");
             if (!isSystemCalling) {
-                RS_LOGW("The SetHidePrivacyContent is non-systemcalling");
-                reply.WriteInt32(static_cast<int32_t>(RSInterfaceErrorCode::NON_SYSTEM_CALLING));
+                if (!reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NONSYSTEM_CALLING))) {
+                    ret = ERR_INVALID_REPLY;
+                }
                 break;
             }
+#ifndef RS_ENABLE_UNI_RENDER
+            if (callingPid == 0) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+#endif
             if (ExtractPid(id) != callingPid) {
                 RS_LOGW("The SetHidePrivacyContent isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
-                reply.WriteInt32(static_cast<int32_t>(RSInterfaceErrorCode::NON_SELF_CALLING));
+                if (!reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NOT_SELF_CALLING))) {
+                    ret = ERR_INVALID_REPLY;
+                }
                 break;
             }
             auto needHidePrivacyContent = data.ReadBool();
             SetHidePrivacyContent(id, needHidePrivacyContent);
-            reply.WriteInt32(static_cast<int32_t>(RSInterfaceErrorCode::NO_ERROR));
+            reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NO_ERROR));
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {

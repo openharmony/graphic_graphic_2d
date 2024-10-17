@@ -332,7 +332,7 @@ public:
 
     void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType);
 
-    int32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
 
     void SetCacheEnabledForRotation(bool isEnabled);
 

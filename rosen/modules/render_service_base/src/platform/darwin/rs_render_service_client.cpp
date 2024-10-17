@@ -548,7 +548,7 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
 {
 }
 
-int32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
 {
     return {};
 }

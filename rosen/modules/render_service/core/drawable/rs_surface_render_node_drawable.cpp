@@ -539,7 +539,9 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if ((surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
          surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) &&
         canvas.GetUICapture() && surfaceParams->GetHidePrivacyContent()) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfacenode is not allowed to be uicaptured");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfacenode nodeId:[%{public}" PRIu64
+                "] is not allowed to be uicaptured",
+            nodeId_);
         return;
     }
 
