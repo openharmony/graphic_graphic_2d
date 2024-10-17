@@ -165,6 +165,7 @@ void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
     isLastFrameHardwareEnabled_ = enabled;
     needSync_ = true;
 }
+
 void RSSurfaceRenderParams::SetLayerSourceTuning(int32_t needSourceTuning)
 {
     if (layerSource_ == needSourceTuning) {
@@ -430,12 +431,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->preScalingMode_ = preScalingMode_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
-    targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
     targetSurfaceParams->isTransparent_ = isTransparent_;
     targetSurfaceParams->globalAlpha_ = globalAlpha_;
     targetSurfaceParams->hasFingerprint_ = hasFingerprint_;
+    targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->sdrNit_ = sdrNit_;
     targetSurfaceParams->displayNit_ = displayNit_;
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
@@ -478,4 +479,5 @@ const Occlusion::Region& RSSurfaceRenderParams::GetOpaqueRegion() const
 {
     return opaqueRegion_;
 }
+
 } // namespace OHOS::Rosen
