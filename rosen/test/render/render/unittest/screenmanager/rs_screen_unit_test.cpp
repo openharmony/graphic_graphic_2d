@@ -957,4 +957,836 @@ HWTEST_F(RsScreenTest, CapabilityTypeDump001, testing::ext::TestSize.Level1)
     rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_BUTT, dumpString);
 }
 
+/*
+ * @tc.name: PowerStatusDump003
+ * @tc.desc: PowerStatusDump Test, trigger all cases of switch
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, PowerStatusDump003, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::string dumpString = "dumpString";
+    uint32_t status;
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_STANDBY;
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND;
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF;
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_FAKE;
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_BUTT;
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED;
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ADVANCED;
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+
+    status = static_cast<GraphicDispPowerStatus>(GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ADVANCED + 1);
+    rsScreen->SetPowerStatus(status);
+    rsScreen->PowerStatusDump(dumpString);
+}
+
+/*
+ * @tc.name: ResizeVirtualScreen001
+ * @tc.desc: ResizeVirtualScreen Test, not virtual, return directly
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, ResizeVirtualScreen001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    ASSERT_FALSE(rsScreen->IsVirtual());
+
+    rsScreen->ResizeVirtualScreen(100, 100);
+}
+
+/*
+ * @tc.name: SetScreenBacklight002
+ * @tc.desc: SetScreenBacklight Test, trigger branch -- SetScreenBacklight(level) < 0, return directly
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenBacklight002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).Times(1).WillOnce(testing::Return(-1));
+
+    rsScreen->SetScreenBacklight(1);
+}
+
+/*
+ * @tc.name: GetScreenBacklight001
+ * @tc.desc: GetScreenBacklight Test, hdiScreen_->GetScreenBacklight(level) < 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenBacklight001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenBacklight(_, _)).Times(1).WillOnce(testing::Return(-1));
+
+    ASSERT_EQ(rsScreen->GetScreenBacklight(), INVALID_BACKLIGHT_VALUE);
+}
+
+/*
+ * @tc.name: ScreenTypeDump002
+ * @tc.desc: ScreenTypeDump Test, trigger all cases of switch
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, ScreenTypeDump002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::string dumpString = "dumpString";
+
+    rsScreen->screenType_ = RSScreenType::BUILT_IN_TYPE_SCREEN;
+    rsScreen->ScreenTypeDump(dumpString);
+
+    rsScreen->screenType_ = RSScreenType::EXTERNAL_TYPE_SCREEN;
+    rsScreen->ScreenTypeDump(dumpString);
+
+    rsScreen->screenType_ = RSScreenType::VIRTUAL_TYPE_SCREEN;
+    rsScreen->ScreenTypeDump(dumpString);
+
+    rsScreen->screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
+    rsScreen->ScreenTypeDump(dumpString);
+}
+
+/*
+ * @tc.name: GetScreenSupportedColorGamuts002
+ * @tc.desc: GetScreenSupportedColorGamuts Test, cover conditions: mode.size() =? 0 when not virtual
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenSupportedColorGamuts002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->isVirtual_ = false;
+    std::vector<ScreenColorGamut> mode;
+
+    rsScreen->supportedPhysicalColorGamuts_.resize(0);
+    ASSERT_EQ(rsScreen->GetScreenSupportedColorGamuts(mode), StatusCode::HDI_ERROR);
+
+    rsScreen->supportedPhysicalColorGamuts_.resize(1);
+    ASSERT_EQ(rsScreen->GetScreenSupportedColorGamuts(mode), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenColorGamut001
+ * @tc.desc: GetScreenColorGamut Test, IsVirtual() return false and if (supportedPhysicalColorGamuts_.size() == 0)
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenColorGamut001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    ScreenColorGamut mode;
+
+    rsScreen->supportedPhysicalColorGamuts_.resize(0);
+    ASSERT_EQ(rsScreen->GetScreenColorGamut(mode), StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: SetScreenColorGamut002
+ * @tc.desc: SetScreenColorGamut Test, when modeIdx < 0, expect INVALID_ARGUMENTS
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorGamut002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    int32_t modeIdx = -1;
+    ASSERT_EQ(rsScreen->SetScreenColorGamut(modeIdx), StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetScreenColorGamut003
+ * @tc.desc: SetScreenColorGamut Test, trigger branch: modeIdx >= hdiMode.size(), expect INVALID_ARGUMENTS
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorGamut003, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    // modeIdx >=0
+    int32_t modeIdx = 2;
+    // IsVirtual() return false
+    rsScreen->isVirtual_ = false;
+    // hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
+    // modeIdx >= static_cast<int32_t>(hdiMode.size())
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedColorGamuts(_, _))
+        .Times(1)
+        .WillOnce([modeIdx](uint32_t, std::vector<GraphicColorGamut>& gamuts) {
+            gamuts.resize(modeIdx - 1);
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+
+    ASSERT_EQ(rsScreen->SetScreenColorGamut(modeIdx), StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetScreenColorGamut004
+ * @tc.desc: SetScreenColorGamut Test, not virtual, expect SUCCESS.
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorGamut004, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    // modeIdx >=0
+    int32_t modeIdx = 2;
+    // IsVirtual() return false
+    rsScreen->isVirtual_ = false;
+    // hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
+    // modeIdx < static_cast<int32_t>(hdiMode.size())
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedColorGamuts(_, _))
+        .Times(1)
+        .WillOnce([modeIdx](uint32_t, std::vector<GraphicColorGamut>& gamuts) {
+            gamuts.resize(modeIdx + 1);
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+
+    // result == GRAPHIC_DISPLAY_SUCCESS
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _)).Times(1).WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    ASSERT_EQ(rsScreen->SetScreenColorGamut(modeIdx), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenColorGamut005
+ * @tc.desc: SetScreenColorGamut Test, not virtual, expect HDI_ERROR.
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorGamut005, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    // modeIdx >=0
+    int32_t modeIdx = 2;
+    // IsVirtual() return false
+    rsScreen->isVirtual_ = false;
+    // hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
+    // modeIdx < static_cast<int32_t>(hdiMode.size())
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedColorGamuts(_, _))
+        .Times(1)
+        .WillOnce([modeIdx](uint32_t, std::vector<GraphicColorGamut>& gamuts) {
+            gamuts.resize(modeIdx + 1);
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+
+    // result != GRAPHIC_DISPLAY_SUCCESS
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _))
+        .Times(1)
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    ASSERT_EQ(rsScreen->SetScreenColorGamut(modeIdx), StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: SetScreenGamutMap003
+ * @tc.desc: SetScreenGamutMap Test, not virtual, expect SUCCESS.
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenGamutMap003, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenGamutMap(_, _)).Times(1).WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+
+    ScreenGamutMap mode = GAMUT_MAP_CONSTANT;
+    ASSERT_EQ(rsScreen->SetScreenGamutMap(mode), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenGamutMap001
+ * @tc.desc: GetScreenGamutMap Test, hdiScreen_->GetScreenGamutMap(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenGamutMap001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenGamutMap(_, _)).Times(1).WillOnce([](uint32_t, GraphicGamutMap& gamutMap) {
+        GraphicGamutMap hdiMode = GRAPHIC_GAMUT_MAP_CONSTANT;
+        gamutMap = hdiMode;
+        return GRAPHIC_DISPLAY_SUCCESS;
+    });
+
+    ScreenGamutMap mode = GAMUT_MAP_CONSTANT;
+    ASSERT_EQ(rsScreen->GetScreenGamutMap(mode), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetVirtualMirrorScreenCanvasRotation001
+ * @tc.desc: SetVirtualMirrorScreenCanvasRotation Test, not virtual, expect false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetVirtualMirrorScreenCanvasRotation001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    ASSERT_FALSE(rsScreen->SetVirtualMirrorScreenCanvasRotation(false));
+}
+
+/*
+ * @tc.name: GetScaleMode001
+ * @tc.desc: GetScaleMode Test, get scaleMode_
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScaleMode001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    ScreenScaleMode scaleMode = ScreenScaleMode::UNISCALE_MODE;
+    rsScreen->scaleMode_ = scaleMode;
+    ASSERT_EQ(rsScreen->GetScaleMode(), scaleMode);
+}
+
+/*
+ * @tc.name: GetScreenSupportedHDRFormats002
+ * @tc.desc: GetScreenSupportedHDRFormats Test, IsVirtual() return  false, hdrFormats.size() == 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenSupportedHDRFormats002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->supportedPhysicalHDRFormats_.resize(0);
+    std::vector<ScreenHDRFormat> hdrFormats;
+    ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::HDI_ERROR);
+}
+/*
+ * @tc.name: GetScreenSupportedHDRFormats003
+ * @tc.desc: GetScreenSupportedHDRFormats Test, IsVirtual() return  false, hdrFormats.size() != 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenSupportedHDRFormats003, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->supportedPhysicalHDRFormats_.resize(1);
+    std::vector<ScreenHDRFormat> hdrFormats;
+    ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenHDRFormat001
+ * @tc.desc: GetScreenHDRFormat Test, IsVirtual() return false, supportedPhysicalHDRFormats_.size() == 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenHDRFormat001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->supportedPhysicalHDRFormats_.resize(0);
+    ScreenHDRFormat hdrFormat;
+    ASSERT_EQ(rsScreen->GetScreenHDRFormat(hdrFormat), StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: SetScreenHDRFormat002
+ * @tc.desc: SetScreenHDRFormat Test, modeIdx < 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenHDRFormat002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    int32_t modeIdx = -1;
+    ASSERT_EQ(rsScreen->SetScreenHDRFormat(modeIdx), StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetScreenHDRFormat003
+ * @tc.desc: SetScreenHDRFormat Test, modeIdx > 0, IsVirtual() return false,modeIdx <
+ * static_cast<int32_t>(hdrCapability_.formats.size())
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenHDRFormat003, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    int32_t modeIdx = 1;
+    decltype(rsScreen->hdrCapability_.formats.size()) formatsSize = modeIdx + 1;
+    rsScreen->hdrCapability_.formats.resize(formatsSize);
+
+    ASSERT_EQ(rsScreen->SetScreenHDRFormat(modeIdx), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenSupportedColorSpaces002
+ * @tc.desc: GetScreenSupportedColorSpaces Test, IsVirtual() return false, colorSpaces.size() == 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenSupportedColorSpaces002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    ASSERT_FALSE(rsScreen->IsVirtual());
+
+    std::vector<GraphicCM_ColorSpaceType> colorSpaces;
+    colorSpaces.resize(0);
+    ASSERT_EQ(colorSpaces.size(), 0);
+
+    rsScreen->supportedPhysicalColorGamuts_.resize(0);
+    ASSERT_EQ(rsScreen->GetScreenSupportedColorSpaces(colorSpaces), StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: GetScreenSupportedColorSpaces003
+ * @tc.desc: GetScreenSupportedColorSpaces Test, IsVirtual() return false, colorSpaces.size() != 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetScreenSupportedColorSpaces003, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::vector<GraphicCM_ColorSpaceType> colorSpaces;
+    colorSpaces.resize(2);
+
+    ASSERT_EQ(rsScreen->GetScreenSupportedColorSpaces(colorSpaces), StatusCode::SUCCESS);
+}
+/*
+ * @tc.name: SetScreenColorSpace002
+ * @tc.desc: SetScreenColorSpace Test, iter == COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end()
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorSpace002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_COLORSPACE_NONE;
+    ASSERT_EQ(rsScreen->SetScreenColorSpace(colorSpace), StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetScreenColorSpace003
+ * @tc.desc: SetScreenColorSpace Test, iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual true,it ==
+ * supportedVirtualColorGamuts_.end()
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorSpace003, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->supportedVirtualColorGamuts_.resize(0);
+
+    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_BT601_EBU_FULL;
+    ASSERT_EQ(rsScreen->SetScreenColorSpace(colorSpace), StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetScreenColorSpace004
+ * @tc.desc: SetScreenColorSpace Test,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
+ * hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) != GRAPHIC_DISPLAY_SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorSpace004, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedColorGamuts(_, _))
+        .Times(1)
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+
+    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_BT601_EBU_FULL;
+    ASSERT_EQ(rsScreen->SetScreenColorSpace(colorSpace), StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: SetScreenColorSpace005
+ * @tc.desc: SetScreenColorSpace Test,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
+ * hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
+ * it == hdiMode.end()
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorSpace005, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedColorGamuts(_, _))
+        .Times(1)
+        .WillOnce([](uint32_t, std::vector<GraphicColorGamut>& hdiMode) {
+            hdiMode.resize(0);
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+
+    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_BT601_EBU_FULL;
+    ASSERT_EQ(rsScreen->SetScreenColorSpace(colorSpace), StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: SetScreenColorSpace006
+ * @tc.desc: SetScreenColorSpace Test,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
+ * hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
+ * it != hdiMode.end()
+ * result == GRAPHIC_DISPLAY_SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorSpace006, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedColorGamuts(_, _))
+        .Times(1)
+        .WillOnce([](uint32_t, std::vector<GraphicColorGamut>& hdiMode) {
+            hdiMode.resize(1);
+            hdiMode[0] = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_STANDARD_BT601; // it != hdiMode.end(),curIdx=0
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _)).Times(1).WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+
+    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_BT601_EBU_FULL;
+    ASSERT_EQ(rsScreen->SetScreenColorSpace(colorSpace), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenColorSpace007
+ * @tc.desc: SetScreenColorSpace Test,iter != COMMON_COLOR_SPACE_TYPE_TO_RS_MAP.end(), IsVirtual false,
+ * hdiScreen_->GetScreenSupportedColorGamuts(hdiMode) == GRAPHIC_DISPLAY_SUCCESS
+ * it != hdiMode.end()
+ * result != GRAPHIC_DISPLAY_SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenColorSpace007, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedColorGamuts(_, _))
+        .Times(1)
+        .WillOnce([](uint32_t, std::vector<GraphicColorGamut>& hdiMode) {
+            hdiMode.resize(1);
+            hdiMode[0] = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_STANDARD_BT601; // it != hdiMode.end(),curIdx=0
+            return GRAPHIC_DISPLAY_SUCCESS;
+        });
+
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _))
+        .Times(1)
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+
+    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_BT601_EBU_FULL;
+    ASSERT_EQ(rsScreen->SetScreenColorSpace(colorSpace), StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: SetBlackList001
+ * @tc.desc: SetBlackList Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetBlackList001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::unordered_set<uint64_t> blackList {};
+    rsScreen->SetBlackList(blackList);
+}
+
+/*
+ * @tc.name: SetCastScreenEnableSkipWindow001
+ * @tc.desc: SetCastScreenEnableSkipWindow Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetCastScreenEnableSkipWindow001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->SetCastScreenEnableSkipWindow(false);
+}
+
+/*
+ * @tc.name: GetCastScreenEnableSkipWindow001
+ * @tc.desc: GetCastScreenEnableSkipWindow Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetCastScreenEnableSkipWindow001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->skipWindow_ = true;
+    ASSERT_TRUE(rsScreen->GetCastScreenEnableSkipWindow());
+}
+
+/*
+ * @tc.name: GetBlackList001
+ * @tc.desc: GetBlackList Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetBlackList001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::unordered_set<uint64_t> blackList {};
+    rsScreen->blackList_ = blackList;
+    ASSERT_TRUE(rsScreen->GetBlackList() == blackList);
+}
+
+/*
+ * @tc.name: SetScreenConstraint001
+ * @tc.desc: SetScreenConstraint Test, IsVirtual is true
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenConstraint001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint64_t frameId = 0;
+    uint64_t timestamp = 0;
+    ScreenConstraintType type = ScreenConstraintType::CONSTRAINT_NONE;
+
+    ASSERT_EQ(rsScreen->SetScreenConstraint(frameId, timestamp, type), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenConstraint002
+ * @tc.desc: SetScreenConstraint Test, IsVirtual is  fasle, hdiScreen_ == nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenConstraint002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint64_t frameId = 0;
+    uint64_t timestamp = 0;
+    ScreenConstraintType type = ScreenConstraintType::CONSTRAINT_NONE;
+    rsScreen->hdiScreen_ = nullptr;
+
+    ASSERT_EQ(rsScreen->SetScreenConstraint(frameId, timestamp, type), StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: SetScreenConstraint003
+ * @tc.desc: SetScreenConstraint Test, IsVirtual is  fasle, hdiScreen_ != nullptr
+ * result == GRAPHIC_DISPLAY_SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenConstraint003, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint64_t frameId = 0;
+    uint64_t timestamp = 0;
+    ScreenConstraintType type = ScreenConstraintType::CONSTRAINT_NONE;
+    rsScreen->hdiScreen_ = HdiScreen::CreateHdiScreen(ScreenPhysicalId(idx));
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenConstraint(_, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+
+    ASSERT_EQ(rsScreen->SetScreenConstraint(frameId, timestamp, type), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenConstraint004
+ * @tc.desc: SetScreenConstraint Test, IsVirtual is  fasle, hdiScreen_ != nullptr
+ * result != GRAPHIC_DISPLAY_SUCCESS
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetScreenConstraint004, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint64_t frameId = 0;
+    uint64_t timestamp = 0;
+    ScreenConstraintType type = ScreenConstraintType::CONSTRAINT_NONE;
+    rsScreen->hdiScreen_ = HdiScreen::CreateHdiScreen(ScreenPhysicalId(idx));
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenConstraint(_, _, _, _))
+        .Times(1)
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+
+    ASSERT_EQ(rsScreen->SetScreenConstraint(frameId, timestamp, type), StatusCode::HDI_ERROR);
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus001
+ * @tc.desc: SetVirtualScreenStatus Test, IsVirtual false
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetVirtualScreenStatus001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    ASSERT_FALSE(rsScreen->SetVirtualScreenStatus(VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus002
+ * @tc.desc: SetVirtualScreenStatus Test, IsVirtual false
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, SetVirtualScreenStatus002, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    ASSERT_TRUE(rsScreen->SetVirtualScreenStatus(VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
+}
+
+/*
+ * @tc.name: GetVirtualScreenStatus001
+ * @tc.desc: GetVirtualScreenStatus Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RsScreenTest, GetVirtualScreenStatus001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->screenStatus_ = VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
+    ASSERT_EQ(rsScreen->GetVirtualScreenStatus(), VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
+}
+
 } // namespace OHOS::Rosen
