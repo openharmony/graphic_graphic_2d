@@ -141,8 +141,8 @@ int32_t HgmIdleDetector::GetTouchUpExpectedFPS()
         });
         if (iter != appBufferList_.end() && frameTimeMap_.empty()) {
             return GetAnimatorExpected() > ANIMATOR_NO_EXPECTED_FRAME_RATE
-                        ? std::min(GetAnimatorExpected(), iter->second) 
-                        : iter->second;
+                    ? std::min(GetAnimatorExpected(), iter->second)
+                    : iter->second;
         }
     }
 
