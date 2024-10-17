@@ -233,7 +233,6 @@ bool RSInterfaceCodeAccessVerifierBase::IsStylusServiceCalling(const std::string
     RS_LOGE("%{public}s ipc interface code access denied: GetNativeTokenInfo error", callingCode.c_str());
     return false;
 }
-
 #else
 bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */)
 {
