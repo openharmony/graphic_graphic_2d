@@ -3744,7 +3744,10 @@ bool RSMainThread::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedSc
                 systemAnimatedScenes == SystemAnimatedScenes::ENTER_WIND_RECOVER) {
                 threeFingerScenesList_.push_back(std::make_pair(systemAnimatedScenes, curTime));
             }
-            if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER) {
+            if (systemAnimatedScenes != SystemAnimatedScenes::APPEAR_MISSION_CENTER &&
+                systemAnimatedScenes != SystemAnimatedScenes::ENTER_RECENTS &&
+                systemAnimatedScenes != SystemAnimatedScenes::EXIT_RECENTS) {
+                // systemAnimatedScenesList_ is only for pc now
                 systemAnimatedScenesList_.push_back(std::make_pair(systemAnimatedScenes, curTime));
             }
         }
