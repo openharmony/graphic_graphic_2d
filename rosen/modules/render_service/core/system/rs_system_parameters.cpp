@@ -194,5 +194,11 @@ bool RSSystemParameters::GetTcacheEnabled()
     static bool flag = system::GetBoolParameter("persist.sys.graphic.tcache.enable", true);
     return flag;
 }
+
+bool RSSystemParameters::IsNeedScRGBForP3(const GraphicColorGamut& currentGamut)
+{
+    static bool isSupportScRGBForP3_ = system::GetBoolParameter("persist.sys.graphic.scrgb.enabled", false);
+    return isSupportScRGBForP3_ && (currentGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
 } // namespace Rosen
 } // namespace OHOS

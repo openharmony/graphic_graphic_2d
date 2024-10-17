@@ -399,7 +399,14 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     bool isHdrOn = displayParams->GetHDRPresent();
     ScreenId id = displayParams->GetScreenId();
     drawable->SetHDRPresent(isHdrOn);
-    if (isHdrOn) {
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(displayParams->GetNewColorSpace()) &&
+        RSMainThread::Instance()->IsUIFirstOn();
+    bool changeColorSpace = drawable->GetTargetColorGamut() != displayParams->GetNewColorSpace();
+    if (isHdrOn || isScRGBEnable || changeColorSpace) {
+        if (isScRGBEnable && changeColorSpace) {
+            RS_LOGD("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface");
+            drawable->ClearCacheSurfaceInThread();
+        }
         drawable->SetScreenId(id);
         drawable->SetTargetColorGamut(displayParams->GetNewColorSpace());
     }

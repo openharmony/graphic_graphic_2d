@@ -711,7 +711,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && paramScreenId != 0) {
                 uniParam->SetOpDropped(false);
             }
-            bool needOffscreen = params->GetNeedOffscreen() || isHdrOn;
+            bool isScRGBEnable = EnablescRGBForP3AndUiFirst(params->GetNewColorSpace());
+            bool needOffscreen = params->GetNeedOffscreen() || isHdrOn || isScRGBEnable;
             if (params->GetNeedOffscreen()) {
                 uniParam->SetOpDropped(false);
             }
@@ -1515,6 +1516,11 @@ void RSDisplayRenderNodeDrawable::FinishHdrDraw(Drawing::Brush& paint, float hdr
     return;
 }
 
+bool RSDisplayRenderNodeDrawable::EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut)
+{
+    return RSSystemParameters::IsNeedScRGBForP3(currentGamut) && RSMainThread::Instance()->IsUIFirstOn();
+}
+
 void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
     bool useFixedSize)
 {
@@ -1553,11 +1559,12 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     }
     if (!params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || offscreenSurface_ == nullptr) {
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
-        if (!params->GetNeedOffscreen() && params->GetHDRPresent()) {
+        bool isScRGBEnable = EnablescRGBForP3AndUiFirst(params->GetNewColorSpace());
+        if (!params->GetNeedOffscreen() && (params->GetHDRPresent() || isScRGBEnable)) {
             offscreenWidth = curCanvas_->GetWidth();
             offscreenHeight = curCanvas_->GetHeight();
         }
-        if (params->GetHDRPresent()) {
+        if (params->GetHDRPresent() || isScRGBEnable) {
             PrepareHdrDraw(offscreenWidth, offscreenHeight);
         } else {
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);

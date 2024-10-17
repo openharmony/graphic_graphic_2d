@@ -114,7 +114,7 @@ public:
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isHdrOn = false);
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isNeedFP16 = false);
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
