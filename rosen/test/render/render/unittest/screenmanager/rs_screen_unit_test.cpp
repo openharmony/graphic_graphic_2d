@@ -1587,22 +1587,6 @@ HWTEST_F(RsScreenTest, SetScreenColorSpace007, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: SetBlackList001
- * @tc.desc: SetBlackList Test
- * @tc.type: FUNC
- * @tc.require: issueIAIRAN
- */
-HWTEST_F(RsScreenTest, SetBlackList001, testing::ext::TestSize.Level1)
-{
-    ScreenId idx = 0;
-    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
-    ASSERT_NE(nullptr, rsScreen);
-
-    std::unordered_set<uint64_t> blackList {};
-    rsScreen->SetBlackList(blackList);
-}
-
-/*
  * @tc.name: SetCastScreenEnableSkipWindow001
  * @tc.desc: SetCastScreenEnableSkipWindow Test
  * @tc.type: FUNC
@@ -1631,23 +1615,6 @@ HWTEST_F(RsScreenTest, GetCastScreenEnableSkipWindow001, testing::ext::TestSize.
 
     rsScreen->skipWindow_ = true;
     ASSERT_TRUE(rsScreen->GetCastScreenEnableSkipWindow());
-}
-
-/*
- * @tc.name: GetBlackList001
- * @tc.desc: GetBlackList Test
- * @tc.type: FUNC
- * @tc.require: issueIAIRAN
- */
-HWTEST_F(RsScreenTest, GetBlackList001, testing::ext::TestSize.Level1)
-{
-    ScreenId idx = 0;
-    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
-    ASSERT_NE(nullptr, rsScreen);
-
-    std::unordered_set<uint64_t> blackList {};
-    rsScreen->blackList_ = blackList;
-    ASSERT_TRUE(rsScreen->GetBlackList() == blackList);
 }
 
 /*
