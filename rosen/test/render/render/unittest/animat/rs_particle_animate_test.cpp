@@ -991,4 +991,548 @@ HWTEST_F(RSRenderParticleUniTest GetRandomValueUniTest Level1)
     res = rsRenderParticle.GetRandomValue(min, max);
     EXPECT_EQ(max, 0.f);
 }
+
+/**
+ * @tc.name: GetAccelerationStartValueUniTest
+ * @tc.desc: test results of GetAccelerationStartValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelerationStartValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAccelerationStartValue();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetVelocityEndAngleUniTest
+ * @tc.desc: test results of GetVelocityEndAngle
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetVelocityEndAngleUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetVelocityEndAngle();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetAccelerationStartAngleUniTest
+ * @tc.desc: test results of GetAccelerationStartAngle
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelerationStartAngleUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAccelerationStartAngle();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetAccelerationEndValueUniTest
+ * @tc.desc: test results of GetAccelerationEndValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelerationEndValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAccelerationEndValue();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetAccelerationValueUpdatorUniTest
+ * @tc.desc: test results of GetAccelerationValueUpdator
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelerationValueUpdatorUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    ParticleUpdator particleUpdator;
+    particleUpdator = particleRenderParams.GetAccelerationValueUpdator();
+    ASSERT_EQ(particleUpdator, ParticleUpdator::NONE);
+}
+
+/**
+ * @tc.name: GetAccelerationEndAngleUniTest
+ * @tc.desc: test results of GetAccelerationEndAngle
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelerationEndAngleUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAccelerationEndAngle();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetAccelRandomValueStartUniTest
+ * @tc.desc: test results of GetAccelRandomValueStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelRandomValueStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAccelRandomValueStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetAccelerationAngleUpdatorUniTest
+ * @tc.desc: test results of GetAccelerationAngleUpdator
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelerationAngleUpdatorUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    ParticleUpdator particleUpdator;
+    particleUpdator = particleRenderParams.GetAccelerationAngleUpdator();
+    ASSERT_EQ(particleUpdator, ParticleUpdator::NONE);
+}
+
+/**
+ * @tc.name: GetAccelRandomValueStartUniTest
+ * @tc.desc: test results of GetAccelRandomAngleStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelRandomAngleStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAccelRandomAngleStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetAccelRandomValueEndUniTest
+ * @tc.desc: test results of GetAccelRandomValueEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelRandomValueEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAccelRandomValueEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetColorStartValueUniTest
+ * @tc.desc: test results of GetColorStartValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetColorStartValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    Color color;
+    color = particleRenderParams.GetColorStartValue();
+    ASSERT_EQ(color, color);
+}
+
+/**
+ * @tc.name: GetAccelRandomAngleEndUniTest
+ * @tc.desc: test results of GetAccelRandomAngleEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAccelRandomAngleEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAccelRandomAngleEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetColorEndValueUniTest
+ * @tc.desc: test results of GetColorEndValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetColorEndValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    Color color;
+    color = particleRenderParams.GetColorEndValue();
+    ASSERT_EQ(color, color);
+}
+
+/**
+ * @tc.name: GetRedRandomStartUniTest
+ * @tc.desc: test results of GetRedRandomStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetRedRandomStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetRedRandomStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetColorUpdatorUniTest
+ * @tc.desc: test results of GetColorUpdator
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetColorUpdatorUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    ParticleUpdator particleUpdator;
+    particleUpdator = particleRenderParams.GetColorUpdator();
+    ASSERT_EQ(particleUpdator, particleUpdator);
+}
+
+/**
+ * @tc.name: GetGreenRandomStartUniTest
+ * @tc.desc: test results of GetGreenRandomStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetGreenRandomStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetGreenRandomStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetRedRandomEndUniTest
+ * @tc.desc: test results of GetRedRandomEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetRedRandomEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetRedRandomEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetBlueRandomStartUniTest
+ * @tc.desc: test results of GetBlueRandomStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetBlueRandomStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetBlueRandomStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetGreenRandomEndUniTest
+ * @tc.desc: test results of GetGreenRandomEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetGreenRandomEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetGreenRandomEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetAlphaRandomStartUniTest
+ * @tc.desc: test results of GetAlphaRandomStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAlphaRandomStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAlphaRandomStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetBlueRandomEndUniTest
+ * @tc.desc: test results of GetBlueRandomEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetBlueRandomEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetBlueRandomEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetOpacityStartValueUniTest
+ * @tc.desc: test results of GetOpacityStartValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetOpacityStartValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetOpacityStartValue();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetAlphaRandomEndUniTest
+ * @tc.desc: test results of GetAlphaRandomEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetAlphaRandomEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetAlphaRandomEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetOpacityUpdatorUniTest
+ * @tc.desc: test results of GetOpacityUpdator
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetOpacityUpdatorUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    ParticleUpdator particleUpdator;
+    particleUpdator = particleRenderParams.GetOpacityUpdator();
+    ASSERT_EQ(particleUpdator, particleUpdator);
+}
+
+/**
+ * @tc.name: GetOpacityEndValueUniTest
+ * @tc.desc: test results of GetOpacityEndValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetOpacityEndValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetOpacityEndValue();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetOpacityRandomEndUniTest
+ * @tc.desc: test results of GetOpacityRandomEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetOpacityRandomEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetOpacityRandomEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetOpacityRandomStartUniTest
+ * @tc.desc: test results of GetOpacityRandomStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetOpacityRandomStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetOpacityRandomStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetScaleEndValueUniTest
+ * @tc.desc: test results of GetScaleEndValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetScaleEndValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetScaleEndValue();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetScaleStartValueUniTest
+ * @tc.desc: test results of GetScaleStartValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetScaleStartValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetScaleStartValue();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetScaleRandomStartUniTest
+ * @tc.desc: test results of GetScaleRandomStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetScaleRandomStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetScaleRandomStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetScaleUpdatorUniTest
+ * @tc.desc: test results of GetScaleUpdator
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetScaleUpdatorUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    ParticleUpdator particleUpdator;
+    particleUpdator = particleRenderParams.GetScaleUpdator();
+    ASSERT_EQ(particleUpdator, particleUpdator);
+}
+
+/**
+ * @tc.name: GetSpinStartValueUniTest
+ * @tc.desc: test results of GetSpinStartValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetSpinStartValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetSpinStartValue();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetScaleRandomEndUniTest
+ * @tc.desc: test results of GetScaleRandomEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetScaleRandomEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetScaleRandomEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetSpinUpdatorUniTest
+ * @tc.desc: test results of GetSpinUpdator
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetSpinUpdatorUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    ParticleUpdator particleUpdator;
+    particleUpdator = particleRenderParams.GetSpinUpdator();
+    ASSERT_EQ(particleUpdator, particleUpdator);
+}
+
+/**
+ * @tc.name: GetSpinEndValueUniTest
+ * @tc.desc: test results of GetSpinEndValue
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetSpinEndValueUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetSpinEndValue();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: GetSpinRandomEndUniTest
+ * @tc.desc: test results of GetSpinRandomEnd
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamUnisTest, GetSpinRandomEndUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetSpinRandomEnd();
+    ASSERT_EQ(res, 0.f);
+}
+
+
+/**
+ * @tc.name: GetSpinRandomStartUniTest
+ * @tc.desc: test results of GetSpinRandomStart
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, GetSpinRandomStartUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    float res = particleRenderParams.GetSpinRandomStart();
+    ASSERT_EQ(res, 0.f);
+}
+
+/**
+ * @tc.name: SetParticleVelocityUniTest
+ * @tc.desc: test results of SetParticleVelocity
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, SetParticleVelocityUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    ParticleVelocity velocity;
+    particleRenderParams.SetParticleVelocity(velocity);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetEmitConfigUniTest
+ * @tc.desc: test results of SetEmitConfig
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, SetEmitConfigUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    EmitterConfig emiterConfig;
+    particleRenderParams.SetEmitConfig(emiterConfig);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetParticleColorUniTest
+ * @tc.desc: test results of SetParticleColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, SetParticleColorUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    RenderParticleColorParaType color;
+    particleRenderParams.SetParticleColor(color);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetParticleAccelerationUniTest
+ * @tc.desc: test results of SetParticleAcceleration
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsTest, SetParticleAccelerationTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    RenderParticleAcceleration acceleration;
+    particleRenderParams.SetParticleAcceleration(acceleration);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetParticleScaleUniTest
+ * @tc.desc: test results of SetParticleScale
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, SetParticleScaleUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    RenderParticleParaType<float> scale;
+    particleRenderParams.SetParticleScale(scale);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetParticleOpacityUniTest
+ * @tc.desc: test results of SetParticleOpacity
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsTest, SetParticleOpacityTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    RenderParticleParaType<float> opacity;
+    particleRenderParams.SetParticleOpacity(opacity);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetParticleSpinUniTest
+ * @tc.desc: test results of SetParticleSpin
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParticleRenderParamsUniTest, SetParticleSpinUniTest, Level1)
+{
+    ParticleRenderParams particleRenderParams;
+    RenderParticleParaType<float> spin;
+    particleRenderParams.SetParticleSpin(spin);
+    EXPECT_TRUE(true);
+}
 }
