@@ -123,11 +123,11 @@ public:
     virtual void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) {}
 #endif
 
-    virtual bool IsDrawCmdListsVisited() const
+    virtual bool IsNeedDraw() const
     {
-        return true;
+        return false;
     }
-    virtual void SetDrawCmdListsVisited(bool flag) {}
+    virtual void SetNeedDraw(bool flag) {}
     void SetSkip(SkipType type) { skipType_ = type; }
     SkipType GetSkipType() { return skipType_; }
 

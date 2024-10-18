@@ -23,19 +23,6 @@ class RSCanvasDrawingRenderParams : public RSRenderParams {
 public:
     explicit RSCanvasDrawingRenderParams(NodeId id);
     ~RSCanvasDrawingRenderParams() override = default;
-    void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
-
-    bool IsNeedProcess() const override
-    {
-        return isNeedProcess_;
-    }
-    void SetNeedProcess(bool isNeedProcess) override
-    {
-        isNeedProcess_ = isNeedProcess;
-        needSync_ = true;
-    }
-private:
-    std::atomic<bool> isNeedProcess_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_CANVAS_DRAWING_RENDER_PARAMS_H

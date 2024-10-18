@@ -408,6 +408,17 @@ void RSMainThread::DvsyncCheckRequestNextVsync()
     }
 }
 
+void RSMainThread::TraverseCanvasDrawingNodesNotOnTree()
+{
+    const auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraverseCanvasDrawingNodes([](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
+        if (canvasDrawingNode == nullptr) {
+            return;
+        }
+        canvasDrawingNode->ContentStyleSlotUpdate();
+    });
+}
+
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
@@ -432,6 +443,7 @@ void RSMainThread::Init()
         RS_PROFILER_ON_RENDER_BEGIN();
         // may mark rsnotrendering
         Render(); // now render is traverse tree to prepare
+        TraverseCanvasDrawingNodesNotOnTree();
         RS_PROFILER_ON_RENDER_END();
         OnUniRenderDraw();
         UIExtensionNodesTraverseAndCallback();
@@ -1136,6 +1148,22 @@ void RSMainThread::ProcessCommandForUniRender()
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s transactionDataEffective not empty", __func__);
     }
+    const auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraverseCanvasDrawingNodes([](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
+        if (canvasDrawingNode == nullptr) {
+            return;
+        }
+        if (canvasDrawingNode->IsNeedProcess() && !canvasDrawingNode->IsOnTheTree()) {
+            auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasDrawingNode);
+            if (!drawableNode) {
+                RS_LOGE("RSMainThread::ProcessCommandForUniRender GetCanvasDrawable Failed NodeId[%{public}" PRIu64 "]",
+                    canvasDrawingNode->GetId());
+                return;
+            }
+            std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)
+                ->PostPlaybackInCorrespondThread();
+        }
+    });
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     transactionFlags_ = transactionFlags;
     for (auto& rsTransactionElem: *transactionDataEffective) {

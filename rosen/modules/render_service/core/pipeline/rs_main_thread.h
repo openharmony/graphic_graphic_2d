@@ -470,6 +470,8 @@ private:
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
 
+    void TraverseCanvasDrawingNodesNotOnTree();
+
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
     bool IsLastFrameUIFirstEnabled(NodeId appNodeId) const;

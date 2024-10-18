@@ -2468,7 +2468,7 @@ void RSRenderNode::ApplyModifiers()
 
     UpdateFilterCacheWithBackgroundDirty();
 
-    //Clear node some resource
+    // Clear node some resource
     ClearResource();
     // update state
     dirtyTypes_.reset();
@@ -2537,6 +2537,9 @@ void RSRenderNode::UpdateDrawableVecV2()
     } else {
         dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
     }
+
+    waitSync_ = true;
+    ClearResource();
 }
 
 void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
@@ -3367,6 +3370,10 @@ void RSRenderNode::UpdateFullScreenFilterCacheRect(
 
 void RSRenderNode::OnTreeStateChanged()
 {
+    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        ClearNeverOnTree();
+    }
+
     if (!isOnTheTree_) {
         startingWindowFlag_ = false;
     }
@@ -4167,6 +4174,10 @@ void RSRenderNode::OnSync()
     backgroundFilterInteractWithDirty_ = false;
     foregroundFilterRegionChanged_ = false;
     foregroundFilterInteractWithDirty_ = false;
+
+    // Reset Sync Flag
+    renderDrawable_->SetNeedDraw(true);
+    waitSync_ = false;
 
     lastFrameSynced_ = !isLeashWindowPartialSkip;
 }

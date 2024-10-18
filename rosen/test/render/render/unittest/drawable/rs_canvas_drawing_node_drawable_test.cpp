@@ -158,8 +158,8 @@ HWTEST_F(RSCanvasDrawingNodeDrawableTest, InitSurfaceTestExt, TestSize.Level1)
 HWTEST_F(RSCanvasDrawingNodeDrawableTest, PlaybackInCorrespondThreadExtTest, TestSize.Level1)
 {
     auto drawable = RSCanvasDrawingNodeDrawableTest::CreateDrawable();
-    drawable->PlaybackInCorrespondThread();
-    ASSERT_FALSE(drawable->canvas_);
+    drawable->PostPlaybackInCorrespondThread();
+    ASSERT_TRUE(drawable->canvas_);
 }
 
 /**
