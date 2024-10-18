@@ -1399,6 +1399,15 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         return;
     }
     auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ : absDrawRect_;
+    auto curNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+    auto parent = GetParent().lock() ? GetParent().lock()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    if (curNode && curNode->GetGlobalPositionEnabled()) {
+        dirtyRect.left_ -= curNode->GetCurDisplayOffsetX();
+        dirtyRect.top_ -= curNode->GetCurDisplayOffsetY();
+    } else if (parent && parent->GetGlobalPositionEnabled()) {
+        dirtyRect.left_ -= parent->GetCurDisplayOffsetX();
+        dirtyRect.top_ -= parent->GetCurDisplayOffsetY();
+    }
     dirtyRect = dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
