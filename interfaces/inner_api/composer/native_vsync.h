@@ -112,6 +112,31 @@ int OH_NativeVSync_RequestFrameWithMultiCallback(
  * @version 1.0
  */
 int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period);
+
+/**
+ * @brief Enable dvsync to improve the performance of self-drawn animation scenes.
+ * After enabled, dvsync needs to occupy the free surfacebuffer for frame buffering. Users need to ensure that
+ * there is an idle buffer at least. Otherwise, you are not advised to enable this function.
+ * When you enable dvsync, it will drive the early drawing of subsequent animations by sending vsync with future
+ * timestamp in advance, and you need to disable dvsync at the end of animation.
+ * After dvsync is enabled, the user needs to respond correctly to vsync sent in advance, and needs to request
+ * the next vsync after the animation frame of the last vsync completes drawing. And the surfacebuffer needs to
+ * carry a timestamp consistent with vsync.
+ * In some scenarios, if another application enables dvsync first, the current enabling operation will not
+ * take effect, and the application will still receive normal vsync signals.
+ * Not all platforms support dvsync. On platforms that do not support it, users will receive normal vsync
+ * after enabling it.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
+ * @param nativeVsync Indicates the pointer to a NativeVsync.
+ * @param enable Enable or disable the dvsync.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter nativeVsync is NULL or callback is NULL.
+ *     {@link NATIVE_ERROR_BINDER_ERROR} 50401000 - ipc send failed.
+ * @since 12
+ * @version 1.0
+ */
+int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
 #ifdef __cplusplus
 }
 #endif

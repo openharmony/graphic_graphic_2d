@@ -156,6 +156,7 @@ public:
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount);
     virtual VsyncError RequestNextVSyncWithMultiCallback(FrameCallback callback);
+    virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch, int32_t bufferCount);
 private:
     VsyncError Destroy();
     sptr<IVSyncConnection> connection_;
