@@ -488,10 +488,13 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
 
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
 {
-    if (drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
-        RS_LOGE("AddDirtyType Out of Cmdlist Limit, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
-                " have drawcmdlist:%{public}zu",
-                GetId(), type, drawCmdLists_[type].size());
+    bool overflow = drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT;
+    if (overflow) {
+        if (overflow != lastOverflowStatus_) {
+            RS_LOGE("AddDirtyType Out of Cmdlist Limit, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
+                    " have drawcmdlist:%{public}zu",
+                    GetId(), type, drawCmdLists_[type].size());
+        }
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
         while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&
@@ -504,6 +507,7 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
                     GetId(), type, drawCmdLists_[type].size());
         }
     }
+    lastOverflowStatus_ = overflow;
 }
 
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)

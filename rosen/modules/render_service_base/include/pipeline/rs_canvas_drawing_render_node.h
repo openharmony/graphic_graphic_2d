@@ -105,6 +105,7 @@ private:
     std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
     bool isNeverOnTree_ = true;
+    bool lastOverflowStatus_ = false;
 
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
