@@ -1331,6 +1331,9 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
             UifirstStateChange(node, MultiThreadCacheType::NONE);   // mark as draw win in RT thread
             node.SetSubThreadAssignable(true);                      // mark as assignable to uifirst next frame
             node.SetNeedCacheSurface(true);                         // mark as that needs cache win in RT
+
+            // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
+            node.SetHwcChildrenDisabledStateByUifirst();
         } else {
             UifirstStateChange(node, MultiThreadCacheType::NONFOCUS_WINDOW);
         }
