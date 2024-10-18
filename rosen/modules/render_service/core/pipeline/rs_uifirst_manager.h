@@ -179,7 +179,7 @@ private:
     void RestoreSkipSyncNode();
     void ClearSubthreadRes();
     void ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& nodePtr);
-    bool CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node);
+    bool CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void DoPurgePendingPostNodes(std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& pendingNode);
     void PurgePendingPostNodes();
     void SetNodePriorty(std::list<NodeId>& result,
@@ -187,8 +187,8 @@ private:
     void SortSubThreadNodesPriority();
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
     static bool IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation);
-    void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
+    void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);
     NodeId LeashWindowContainMainWindowAndStarting(RSSurfaceRenderNode& node);
@@ -249,6 +249,7 @@ private:
     const std::vector<std::string> cardCanSkipFirstWaitScene_ = {
         { "INTO_HOME_ANI" }, // unlock to desktop
         { "FINGERPRINT_UNLOCK_ANI" }, // finger unlock to desktop
+        { "SCREEN_OFF_FINGERPRINT_UNLOCK_ANI" }, // aod finger unlock
         { "PASSWORD_UNLOCK_ANI" }, // password unlock to desktop
         { "FACIAL_FLING_UNLOCK_ANI" }, // facial unlock to desktop
         { "FACIAL_UNLOCK_ANI" }, // facial unlock to desktop
@@ -271,6 +272,9 @@ private:
     std::vector<NodeId> currentFrameDeletedCardNodes_;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
 };
+
+// If a subnode is delivered directly
+// record the firstLevelNodeId in the delivered subnode as the real one.
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
 public:
     RSUiFirstProcessStateCheckerHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
@@ -285,12 +289,10 @@ public:
         }
     }
 
-    // If a subnode is delivered directly
-    // record the firstLevelNodeId in the delivered subnode as the real one.
     RSUiFirstProcessStateCheckerHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId)
     {
         isCurUifirstRootNodeId_ = true;
-        isCurFirsLevelNodeId_ = true;
+        isCurFirsLevelNodeId_  = true;
         curUifirstRootNodeId_ = curUifirstRootNodeId;
         curFirstLevelNodeId_ = curFirsLevelNodeId;
     }
