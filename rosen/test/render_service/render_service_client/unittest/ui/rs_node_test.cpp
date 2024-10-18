@@ -5771,20 +5771,6 @@ HWTEST_F(RSNodeTest, SetShadowIsFilled, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetShadowColorStrategy
- * @tc.desc: test results of SetShadowColorStrategy
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
- */
-HWTEST_F(RSNodeTest, SetShadowColorStrategy, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    int shadowColorStrategy = 1; // for test
-    rsNode->SetShadowColorStrategy(shadowColorStrategy);
-    EXPECT_EQ(shadowColorStrategy, 1);
-}
-
-/**
  * @tc.name: SetClipRRect001
  * @tc.desc: test results of SetClipRRect
  * @tc.type: FUNC
