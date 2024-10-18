@@ -220,6 +220,9 @@ void VSyncGenerator::WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStam
 {
     bool isWakeup = false;
     if (occurTimestamp < nextTimeStamp) {
+        if (nextTimeStamp - occurTimestamp > periodRecord_ * 3 / 2) { // 3/2 means no more than 1.5 period
+            RS_TRACE_NAME_FMT("WaitForTimeout occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
+        }
         std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
         auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
         if (err == std::cv_status::timeout) {
@@ -623,15 +626,13 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
                                                            const ListenerPhaseOffsetData &listenerPhaseOffset,
                                                            uint32_t generatorRefreshRate, int64_t expectNextVsyncTime)
 {
-    std::string refreshrateStr = "refreshRates[";
+    RS_TRACE_NAME_FMT("ChangeGeneratorRefreshRateModel:%u, phaseByPulseNum:%d, expectNextVsyncTime:%ld",
+        generatorRefreshRate, listenerPhaseOffset.phaseByPulseNum, expectNextVsyncTime);
     for (std::pair<uint64_t, uint32_t> rateVec : listenerRefreshRates.refreshRates) {
         uint64_t linkerId = rateVec.first;
         uint32_t refreshrate = rateVec.second;
-        refreshrateStr += "(" + std::to_string(linkerId) + "," + std::to_string(refreshrate) + "),";
+        RS_TRACE_NAME_FMT("linkerId:%ld, refreshrate:%ld", linkerId, refreshrate);
     }
-    refreshrateStr += "]";
-    RS_TRACE_NAME_FMT("ChangeGeneratorRefreshRateModel:%u, phaseByPulseNum:%d, %s, expectNextVsyncTime:%ld",
-        generatorRefreshRate, listenerPhaseOffset.phaseByPulseNum, refreshrateStr.c_str(), expectNextVsyncTime);
     std::lock_guard<std::mutex> locker(mutex_);
     if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
         ScopedBytrace trace("it's not ltpo mode.");
