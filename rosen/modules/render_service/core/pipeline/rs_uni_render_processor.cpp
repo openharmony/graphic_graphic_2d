@@ -21,6 +21,7 @@
 #include "hdi_layer_info.h"
 #include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
+#include "rs_uni_render_util.h"
 #include "string_utils.h"
 #include "surface_type.h"
 
@@ -197,6 +198,30 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
         static_cast<int>(layerInfo.layerType));
 }
 
+bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
+{
+    if (params.GetIsProtectedLayer() == false) {
+        return false;
+    }
+    if (params.GetAnimateState() == true ||
+        RSUniRenderUtil::GetRotationDegreeFromMatrix(params.GetTotalMatrix()) % RS_ROTATION_90 != 0) {
+        return true;
+    }
+    bool forceClientForDRM = false;
+    auto ancestorDisplayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (ancestorDisplayDrawable == nullptr || ancestorDisplayDrawable->GetRenderParams() == nullptr ||
+        uniParam == nullptr) {
+        RS_LOGE("%{public}s ancestorDisplayDrawable/ancestorDisplayDrawableParams/uniParam is nullptr", __func__);
+        return false;
+    } else {
+        auto displayParams = static_cast<RSDisplayRenderParams*>(ancestorDisplayDrawable->GetRenderParams().get());
+        forceClientForDRM = displayParams->IsRotationChanged() || uniParam->GetCacheEnabledForRotation();
+    }
+    return forceClientForDRM;
+}
+
 LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
     sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence)
 {
@@ -222,8 +247,12 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     }
     layer->SetLayerSize(dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
-    bool forceClient = RSSystemProperties::IsForceClient() ||
-        (params.GetIsProtectedLayer() && (params.GetAnimateState() || params.GetForceClientForDRMOnly()));
+    bool forceClientForDRM = GetForceClientForDRM(params);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s nodeName[%s] forceClientForDRM[%d]",
+        __func__, params.GetName().c_str(), forceClientForDRM);
+    RS_LOGD("%{public}s nodeName[%{public}s] forceClientForDRM[%{public}d]",
+        __func__, params.GetName().c_str(), forceClientForDRM);
+    bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 

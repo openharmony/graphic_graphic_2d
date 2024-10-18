@@ -2480,11 +2480,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             ? -1.f : globalZOrder_++);
         auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo_);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
-        if (hwcNodePtr->GetProtectedLayer()) {
-            hwcNodePtr->SetForceClientForDRMOnly(displayNodeRotationChanged_ || isScreenRotationAnimating_);
-        } else {
-            hwcNodePtr->SetForceClientForDRMOnly(false);
-        }
     }
     curDisplayNode_->SetDisplayGlobalZOrder(globalZOrder_);
     if (pointWindow) {

@@ -831,11 +831,6 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
     SyncProtectedInfoToFirstLevelNode();
 }
 
-void RSSurfaceRenderNode::SetForceClientForDRMOnly(bool forceClient)
-{
-    forceClientForDRMOnly_ = forceClient;
-}
-
 bool RSSurfaceRenderNode::GetSecurityLayer() const
 {
     return isSecurityLayer_;
@@ -2727,7 +2722,6 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isSkipLayer_ = isSkipLayer_;
     surfaceParams->isProtectedLayer_ = isProtectedLayer_;
     surfaceParams->animateState_ = animateState_;
-    surfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
     surfaceParams->protectedLayerIds_= protectedLayerIds_;
