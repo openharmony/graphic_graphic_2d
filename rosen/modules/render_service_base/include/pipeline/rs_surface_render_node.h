@@ -262,7 +262,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isProtectedLayer_) {
+        // a protected node not on the tree need to release buffer when producer produce buffers
+        // release buffer in ReleaseSelfDrawingNodeBuffer function
+        if (isProtectedLayer_ && IsOnTheTree()) {
             return false;
         }
         return isHardwareForcedDisabled_ ||
