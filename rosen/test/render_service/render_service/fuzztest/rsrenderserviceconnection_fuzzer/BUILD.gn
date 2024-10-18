@@ -30,10 +30,6 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "../../../../../modules/render_service_base/src",
     "../../../../../test/include",
     "$graphic_2d_root/frameworks/surface/include",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
   ]
 
   deps = [
@@ -69,6 +65,7 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "common_event_service:cesfwk_innerkits",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "memmgr:memmgrclient",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

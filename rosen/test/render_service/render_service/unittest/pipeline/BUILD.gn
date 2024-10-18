@@ -1289,10 +1289,6 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
   ]
 
@@ -1334,6 +1330,7 @@ ohos_static_library("rs_test_common") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "memmgr:memmgrclient",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
