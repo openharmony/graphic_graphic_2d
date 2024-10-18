@@ -49,7 +49,6 @@ public:
 
     std::shared_ptr<RSNode> rootNode;
     std::shared_ptr<RSCanvasNode> canvasNode;
-    static constexpr int SLEEP_TIME_US = 100000;
 };
 
 void RsUniRenderTest::Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
@@ -112,17 +111,16 @@ void RsUniRenderTest::TearDown() {}
  */
 HWTEST_F(RsUniRenderTest, RSUniRenderTest01, TestSize.Level2)
 {
-    std::cout << "rs uni render demo start!" << std::endl;
     RSSystemProperties::GetUniRenderEnabled();
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
     option->SetWindowRect({ 0, 0, 500, 800 });
     auto window = Window::Create("uni_render_demo1", option);
-    ASSERT_NE(nullptr, window);
+    ASSERT_NE(window, nullptr);
     
     window->Show();
-    usleep(SLEEP_TIME_US);
+    usleep(100000);
     auto rect = window->GetRect();
     int failureTimes = 0;
     while (rect.width_ == 0 && rect.height_ == 0) {
@@ -130,20 +128,15 @@ HWTEST_F(RsUniRenderTest, RSUniRenderTest01, TestSize.Level2)
             return;
         }
         failureTimes++;
-        std::cout << "rs uni render demo create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
         window->Hide();
         window->Destroy();
         window = Window::Create("uni_render_demo", option);
         window->Show();
-        usleep(SLEEP_TIME_US);
+        usleep(100000);
         rect = window->GetRect();
     }
-
-
-    std::cout << "rs uni render demo create window " << rect.width_ << " " << rect.height_ << std::endl;
     auto surfaceNode = window->GetSurfaceNode();
     if (!RSSystemProperties::GetUniRenderEnabled()) {
-        std::cout << "rs uni render demo not in uni render mode, exit! " << std::endl;
         return;
     }
     system::SetParameter("rosen.uni.partialrender.enabled", "0");
@@ -152,7 +145,6 @@ HWTEST_F(RsUniRenderTest, RSUniRenderTest01, TestSize.Level2)
     RSTransaction::FlushImplicitTransaction();
     sleep(1);
 
-    std::cout << "rs uni render demo stage 1 " << std::endl;
     rsUiDirector->SetRSSurfaceNode(surfaceNode);
     Init(rsUiDirector, rect.width_, rect.height_);
     rsUiDirector->SendMessages();
@@ -160,19 +152,16 @@ HWTEST_F(RsUniRenderTest, RSUniRenderTest01, TestSize.Level2)
 
     surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
-    std::cout << "rs uni render demo stage 2 SetFilter" << std::endl;
     auto filter = RSFilter::CreateBlurFilter(5.f, 5.f);
     canvasNode->SetFilter(filter);
     rsUiDirector->SendMessages();
     sleep(2);
 
-    std::cout << "rs uni render demo stage 3 SetBounds" << std::endl;
     surfaceNode->SetBoundsWidth(250);
     surfaceNode->SetBoundsHeight(400);
     RSTransaction::FlushImplicitTransaction();
     sleep(2);
 
-    std::cout << "rs uni render demo end!" << std::endl;
     window->Hide();
     window->Destroy();
     system::SetParameter("rosen.uni.partialrender.enabled", "4");
