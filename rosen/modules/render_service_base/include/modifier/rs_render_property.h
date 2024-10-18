@@ -58,6 +58,11 @@ public:
         OnChange();
     }
 
+    RSModifierType GetModifierType() const
+    {
+        return modifierType_;
+    }
+
     void SetModifierType(RSModifierType type)
     {
         modifierType_ = type;

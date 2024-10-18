@@ -33,7 +33,7 @@ RSRenderParticleAnimation::RSRenderParticleAnimation(AnimationId id, const Prope
       particleSystem_(std::make_shared<RSRenderParticleSystem>(particlesRenderParams_))
 {}
 
-void RSRenderParticleAnimation::DumpAnimationType(std::string& out) const
+void RSRenderParticleAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderParticleAnimation";
 }

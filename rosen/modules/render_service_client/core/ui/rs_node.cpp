@@ -2878,6 +2878,11 @@ std::string RSNode::DumpNode(int depth) const
     if (!animations_.empty()) {
         ss << " animation:" << std::to_string(animations_.size());
     }
+    for (const auto& [animationId, animation] : animations_) {
+        if (animation) {
+            ss << " animationInfo:" << animation->DumpAnimation();
+        }
+    }
     ss << " " << GetStagingProperties().Dump();
     return ss.str();
 }

@@ -35,10 +35,12 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
     MessageOption option;
 
     if (!data.WriteInterfaceToken(IApplicationAgent::GetDescriptor())) {
+        RS_LOGE("RSApplicationAgentProxy::OnTransaction WriteInterfaceToken failed!");
         return;
     }
 
     if (!data.WriteParcelable(transactionData.get())) {
+        RS_LOGE("RSApplicationAgentProxy::OnTransaction WriteParcelable failed!");
         return;
     }
 
@@ -46,7 +48,7 @@ void RSApplicationAgentProxy::OnTransaction(std::shared_ptr<RSTransactionData> t
     uint32_t code = static_cast<uint32_t>(IApplicationAgentInterfaceCode::COMMIT_TRANSACTION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        // [PLANNING]: Error log
+        RS_LOGE("RSApplicationAgentProxy::OnTransaction error = %{public}d", err);
     }
 }
 } // namespace Rosen
