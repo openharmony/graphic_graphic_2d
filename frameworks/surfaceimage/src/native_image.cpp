@@ -72,7 +72,7 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
 
 int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -81,7 +81,7 @@ int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 
 int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -90,7 +90,7 @@ int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 
 int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -99,7 +99,7 @@ int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 
 int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 {
-    if (image == nullptr) {
+    if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
         return -1;
     }
