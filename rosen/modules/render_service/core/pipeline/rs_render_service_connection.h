@@ -249,6 +249,8 @@ private:
 
     void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) override;
 
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
+
     void NotifyLightFactorStatus(bool isSafe) override;
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;

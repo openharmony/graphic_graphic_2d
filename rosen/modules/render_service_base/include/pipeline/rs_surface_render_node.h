@@ -1161,6 +1161,7 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(int32_t sdrNit);
     void SetDisplayNit(int32_t displayNit);
@@ -1472,6 +1473,7 @@ private:
 
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
+    bool needHidePrivacyContent_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
 

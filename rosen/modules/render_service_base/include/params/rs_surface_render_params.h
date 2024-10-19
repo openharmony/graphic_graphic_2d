@@ -341,6 +341,9 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
 
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
+    bool GetHidePrivacyContent() const;
+
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
 
     void SetPreScalingMode(ScalingMode scalingMode) override
@@ -529,6 +532,7 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;

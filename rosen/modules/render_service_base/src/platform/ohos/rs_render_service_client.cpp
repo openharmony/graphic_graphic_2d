@@ -1265,6 +1265,15 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
     }
 }
 
+uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->SetHidePrivacyContent(id, needHidePrivacyContent);
+    }
+    return static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+}
+
 void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

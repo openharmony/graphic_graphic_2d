@@ -125,6 +125,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_VMA_CACHE_STATUS,
     NEED_REGISTER_TYPEFACE,
     CREATE_DISPLAY_NODE,
+    SET_HIDE_PRIVACY_CONTENT,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

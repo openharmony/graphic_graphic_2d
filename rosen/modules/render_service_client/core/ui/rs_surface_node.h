@@ -149,7 +149,7 @@ public:
     static void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
-
+    RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
