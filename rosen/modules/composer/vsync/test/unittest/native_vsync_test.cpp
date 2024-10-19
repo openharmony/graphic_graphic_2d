@@ -249,8 +249,8 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_DVSyncSwitch001, Function | MediumTest 
  */
 HWTEST_F(NativeVsyncTest, OH_NativeVSync_DVSyncSwitch002, Function | MediumTest | Level2)
 {
-    ASSERT_NE(OH_NativeVSync_DVSyncSwitch(native_vsync, true), 0);
-    ASSERT_NE(OH_NativeVSync_DVSyncSwitch(native_vsync, false), 0);
+    ASSERT_EQ(OH_NativeVSync_DVSyncSwitch(native_vsync, true), 0);
+    ASSERT_EQ(OH_NativeVSync_DVSyncSwitch(native_vsync, false), 0);
 }
 
 /*
