@@ -2658,6 +2658,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableBySrcRect_002, TestSize.Leve
     ASSERT_NE(surfaceNode, nullptr);
 
     surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     ASSERT_NE(surfaceNode->GetRSSurfaceHandler()->GetConsumer(), nullptr);
 
@@ -2678,6 +2679,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableBySrcRect_003, TestSize.Leve
     ASSERT_NE(surfaceNode, nullptr);
 
     surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->isHardwareForcedDisabledBySrcRect_ = true;
     ASSERT_TRUE(surfaceNode->IsHardwareDisabledBySrcRect());
@@ -2791,6 +2793,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_002, Test
     ASSERT_NE(surfaceNode, nullptr);
 
     surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(true);
     surfaceNode->SetAncoFlags(static_cast<uint32_t>(0x0001));
@@ -2815,6 +2818,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_003, Test
     ASSERT_NE(surfaceNode, nullptr);
 
     surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(false);
     ASSERT_FALSE(surfaceNode->GetAncoForceDoDirect());
@@ -2842,6 +2846,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_004, Test
     ASSERT_NE(surfaceNode, nullptr);
 
     surfaceNode->isProtectedLayer_ = true;
+    surfaceNode->isOnTheTree_ = true;
     ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
     surfaceNode->SetAncoForceDoDirect(false);
     ASSERT_FALSE(surfaceNode->GetAncoForceDoDirect());
