@@ -14,9 +14,8 @@
  */
 
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "platform/common/rs_log.h"
-#include "rs_hardware_thread.h"
-#include "rs_surface_buffer_callback_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,6 +41,11 @@ RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
     return surfaceBufferCallbackMgr;
 }
 
+void RSSurfaceBufferCallbackManager::SetPolicy(std::function<void(std::function<void()>)> runPolicy)
+{
+    runPolicy_ = runPolicy;
+}
+
 void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     sptr<RSISurfaceBufferCallback> callback)
 {
@@ -51,7 +55,8 @@ void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, ui
         surfaceBufferCallbacks_.insert({{pid, uid}, callback});
     } else {
         RS_LOGE("RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback Pair:"
-            "[Pid: %{public}d, Uid: %{public}s] exists.", pid, std::to_string(uid).c_str());
+            "[Pid: %{public}s, Uid: %{public}s] exists.",
+            std::to_string(pid).c_str(), std::to_string(uid).c_str());
     }
 }
 
@@ -69,7 +74,8 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, 
     auto iter = surfaceBufferCallbacks_.find({pid, uid});
     if (iter == std::end(surfaceBufferCallbacks_)) {
         RS_LOGE("RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback Pair:"
-            "[Pid: %{public}d, Uid: %{public}s] not exists.", pid, std::to_string(uid).c_str());
+            "[Pid: %{public}s, Uid: %{public}s] not exists.",
+            std::to_string(pid).c_str(), std::to_string(uid).c_str());
     } else {
         surfaceBufferCallbacks_.erase(iter);
     }
@@ -90,7 +96,8 @@ sptr<RSISurfaceBufferCallback> RSSurfaceBufferCallbackManager::GetSurfaceBufferC
     auto iter = surfaceBufferCallbacks_.find({pid, uid});
     if (iter == std::cend(surfaceBufferCallbacks_)) {
         RS_LOGE("RSSurfaceBufferCallbackManager::GetSurfaceBufferCallback Pair:"
-            "[Pid: %{public}d, Uid: %{public}s] not exists.", pid, std::to_string(uid).c_str());
+            "[Pid: %{public}s, Uid: %{public}s] not exists.",
+            std::to_string(pid).c_str(), std::to_string(uid).c_str());
         return nullptr;
     }
     return iter->second;
@@ -117,7 +124,8 @@ void RSSurfaceBufferCallbackManager::OnSurfaceBufferOpItemDestruct(
     std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
     if (surfaceBufferCallbacks_.find({pid, uid}) == std::end(surfaceBufferCallbacks_)) {
         RS_LOGE("RSSurfaceBufferCallbackManager::OnSurfaceBufferOpItemDestruct Pair:"
-            "[Pid: %{public}d, Uid: %{public}s] Callback not exists.", pid, std::to_string(uid).c_str());
+            "[Pid: %{public}s, Uid: %{public}s] Callback not exists.",
+            std::to_string(pid).c_str(), std::to_string(uid).c_str());
         return;
     }
     EnqueueSurfaceBufferId(pid, uid, surfaceBufferId);
@@ -125,7 +133,7 @@ void RSSurfaceBufferCallbackManager::OnSurfaceBufferOpItemDestruct(
 
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
 {
-    RSHardwareThread::Instance().PostTask([this]() {
+    runPolicy_([this]() {
         if (GetSurfaceBufferCallbackSize() == 0) {
             return;
         }

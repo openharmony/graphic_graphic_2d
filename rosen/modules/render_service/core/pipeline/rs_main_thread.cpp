@@ -506,6 +506,10 @@ void RSMainThread::Init()
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 
+    RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task){
+        RSHardwareThread::Instance().PostTask(task);
+    });
+
     if (RSGraphicConfig::LoadConfigXml()) {
         if (RSGraphicConfig::GetConfig().IsMap()) {
             RSGraphicConfig::DumpConfig(*RSGraphicConfig::GetConfig().mapValue);

@@ -28,6 +28,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -147,6 +148,8 @@ RSRenderThread::RSRenderThread()
         thread.detach();
     });
 #endif
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
+        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 }
 
 RSRenderThread::~RSRenderThread()
