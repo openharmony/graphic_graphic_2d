@@ -73,7 +73,7 @@ OHNativeWindow* OH_NativeImage_AcquireNativeWindow(OH_NativeImage* image)
 int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 {
     if (image == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->AttachContext(textureId);
@@ -82,7 +82,7 @@ int32_t OH_NativeImage_AttachContext(OH_NativeImage* image, uint32_t textureId)
 int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 {
     if (image == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->DetachContext();
@@ -91,7 +91,7 @@ int32_t OH_NativeImage_DetachContext(OH_NativeImage* image)
 int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 {
     if (image == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->UpdateSurfaceImage();
@@ -100,7 +100,7 @@ int32_t OH_NativeImage_UpdateSurfaceImage(OH_NativeImage* image)
 int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 {
     if (image == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+        BLOGE("parameter error");
         return -1;
     }
     return image->consumer->GetTimeStamp();
@@ -108,8 +108,8 @@ int64_t OH_NativeImage_GetTimestamp(OH_NativeImage* image)
 
 int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16])
 {
-    if (image == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+    if (image == nullptr || image->consumer == nullptr || matrix == nullptr) {
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->GetTransformMatrix(matrix);
@@ -117,8 +117,8 @@ int32_t OH_NativeImage_GetTransformMatrix(OH_NativeImage* image, float matrix[16
 
 int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[16])
 {
-    if (image == nullptr) {
-        BLOGE("parameter error, please check input parameter");
+    if (image == nullptr || image->consumer == nullptr || matrix == nullptr) {
+        BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->GetTransformMatrixV2(matrix);

@@ -18,11 +18,14 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <sys/time.h>
+#include <securec.h>
 #include "graphic_common_c.h"
 #include "surface_type.h"
 #include "window.h"
 #include "GLES/gl.h"
 #include "buffer_log.h"
+#include "surface.h"
+#include "surface_image.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,6 +45,13 @@ struct TEST_IMAGE {
     int a;
     bool b;
 };
+
+typedef struct OH_NativeImage_Tmp {
+    OHOS::sptr<OHOS::SurfaceImage> consumer;
+    OHOS::sptr<OHOS::IBufferProducer> producer;
+    OHOS::sptr<OHOS::Surface> pSurface = nullptr;
+    struct NativeWindow* nativeWindow = nullptr;
+} OH_NativeImage_Tmp;
 
 static bool CheckEglExtension(const char* extensions, const char* extension)
 {
@@ -401,6 +411,26 @@ HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage003, Function | MediumT
 }
 
 /*
+* Function: OH_NativeImage_UpdateSurfaceImage
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_UpdateSurfaceImage
+*                  2. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OHNativeImageUpdateSurfaceImage006, Function | MediumTest | Level1)
+{
+    OH_NativeImage* imageNew = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+    ASSERT_NE(imageNew, nullptr);
+    memset_s(imageNew, sizeof(OH_NativeImage_Tmp), 0, sizeof(OH_NativeImage_Tmp));
+    int32_t ret = OH_NativeImage_UpdateSurfaceImage(imageNew);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage_Destroy(&imageNew);
+}
+
+/*
 * Function: OH_NativeImage_GetTimestamp
 * Type: Function
 * Rank: Important(2)
@@ -428,6 +458,26 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTimestamp002, Function | MediumTest | 
 {
     int64_t timeStamp = OH_NativeImage_GetTimestamp(image);
     ASSERT_NE(timeStamp, SURFACE_ERROR_ERROR);
+}
+
+/*
+* Function: OH_NativeImage_GetTimestamp
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_GetTimestamp
+*                  2. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OHNativeImageGetTimestamp003, Function | MediumTest | Level1)
+{
+    OH_NativeImage* imageNew = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+    ASSERT_NE(imageNew, nullptr);
+    memset_s(imageNew, sizeof(OH_NativeImage_Tmp), 0, sizeof(OH_NativeImage_Tmp));
+    int32_t ret = OH_NativeImage_GetTimestamp(imageNew);
+    ASSERT_EQ(ret, -1);
+
+    OH_NativeImage_Destroy(&imageNew);
 }
 
 /*
@@ -518,8 +568,12 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix003, Function | MediumT
 
     OH_OnFrameAvailableListener listener;
     listener.context = this;
-    listener.onFrameAvailable = NativeImageTest::OnFrameAvailable;
+    listener.onFrameAvailable = nullptr;
     int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(image, listener);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    listener.onFrameAvailable = NativeImageTest::OnFrameAvailable;
+    ret = OH_NativeImage_SetOnFrameAvailableListener(image, listener);
     ASSERT_EQ(ret, GSERROR_OK);
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
@@ -629,6 +683,35 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix004, Function | MediumT
 }
 
 /*
+* Function: OH_NativeImage_GetTransformMatrix
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_GetTransformMatrix
+*                  2. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix005, Function | MediumTest | Level1)
+{
+    OH_NativeImage* imageNew = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+    ASSERT_NE(imageNew, nullptr);
+    int32_t ret = OH_NativeImage_GetTransformMatrixV2(nullptr, nullptr);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+    ret = OH_NativeImage_GetTransformMatrix(imageNew, nullptr);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+    ret = OH_NativeImage_GetTransformMatrixV2(imageNew, nullptr);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+    float matrix[16];
+    memset_s(imageNew, sizeof(OH_NativeImage_Tmp), 0, sizeof(OH_NativeImage_Tmp));
+    ret = OH_NativeImage_GetTransformMatrix(imageNew, matrix);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+    ret = OH_NativeImage_GetTransformMatrixV2(imageNew, matrix);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage_Destroy(&imageNew);
+}
+
+/*
 * Function: OH_NativeImage_AttachContext
 * Type: Function
 * Rank: Important(1)
@@ -707,6 +790,28 @@ HWTEST_F(NativeImageTest, OHNativeImageAttachContext004, Function | MediumTest |
 }
 
 /*
+* Function: OH_NativeImage_AttachContext
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_AttachContext after OH_NativeImage_DetachContext
+*                  2. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OHNativeImageAttachContext005, Function | MediumTest | Level1)
+{
+    OH_NativeImage* imageNew = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+    ASSERT_NE(imageNew, nullptr);
+    memset_s(imageNew, sizeof(OH_NativeImage_Tmp), 0, sizeof(OH_NativeImage_Tmp));
+    int32_t ret = OH_NativeImage_AttachContext(imageNew, 0);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+    ret = OH_NativeImage_DetachContext(imageNew);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage_Destroy(&imageNew);
+}
+
+/*
 * Function: OH_NativeImage_UpdateSurfaceImage
 * Type: Function
 * Rank: Important(1)
@@ -762,6 +867,35 @@ HWTEST_F(NativeImageTest, OHNativeImageGetSurfaceId001, Function | MediumTest | 
 }
 
 /*
+* Function: OH_NativeImage_GetSurfaceId
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. create image
+*                  2. GetSurfaceId
+*                  2. check ret
+* @tc.require: issueI86VH2
+*/
+HWTEST_F(NativeImageTest, OHNativeImageGetSurfaceId002, Function | MediumTest | Level1)
+{
+    uint64_t surfaceId;
+    int32_t ret = OH_NativeImage_GetSurfaceId(nullptr, &surfaceId);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage* imageNew = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+    ASSERT_NE(imageNew, nullptr);
+
+    ret = OH_NativeImage_GetSurfaceId(imageNew, nullptr);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    memset_s(imageNew, sizeof(OH_NativeImage_Tmp), 0, sizeof(OH_NativeImage_Tmp));
+    ret = OH_NativeImage_GetSurfaceId(imageNew, &surfaceId);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage_Destroy(&imageNew);
+}
+
+/*
 * Function: OH_NativeImage_SetOnFrameAvailableListener
 * Type: Function
 * Rank: Important(1)
@@ -811,6 +945,29 @@ HWTEST_F(NativeImageTest, OHNativeImageSetOnFrameAvailableListener001, Function 
 }
 
 /*
+* Function: OH_NativeImage_SetOnFrameAvailableListener
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. check image and nativeWindow
+* @tc.require: issueI86VH2
+*/
+HWTEST_F(NativeImageTest, OHNativeImageSetOnFrameAvailableListener002, Function | MediumTest | Level1)
+{
+    OH_OnFrameAvailableListener listener;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(nullptr, listener);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage* imageNew = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+    ASSERT_NE(imageNew, nullptr);
+    memset_s(imageNew, sizeof(OH_NativeImage_Tmp), 0, sizeof(OH_NativeImage_Tmp));
+    ret = OH_NativeImage_SetOnFrameAvailableListener(imageNew, listener);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage_Destroy(&imageNew);
+}
+
+/*
 * Function: OH_NativeImage_UnsetOnFrameAvailableListener
 * Type: Function
 * Rank: Important(1)
@@ -823,6 +980,29 @@ HWTEST_F(NativeImageTest, OHNativeImageUnsetOnFrameAvailableListener001, Functio
 {
     int32_t ret = OH_NativeImage_UnsetOnFrameAvailableListener(image);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);
+}
+
+/*
+* Function: OH_NativeImage_UnsetOnFrameAvailableListener
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_UnsetOnFrameAvailableListener
+*                  2. check ret
+* @tc.require: issueI86VH2
+*/
+HWTEST_F(NativeImageTest, OHNativeImageUnsetOnFrameAvailableListener002, Function | MediumTest | Level1)
+{
+    int32_t ret = OH_NativeImage_UnsetOnFrameAvailableListener(nullptr);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage* imageNew = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+    ASSERT_NE(imageNew, nullptr);
+    memset_s(imageNew, sizeof(OH_NativeImage_Tmp), 0, sizeof(OH_NativeImage_Tmp));
+    ret = OH_NativeImage_UnsetOnFrameAvailableListener(imageNew);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    OH_NativeImage_Destroy(&imageNew);
 }
 
 /*
@@ -880,6 +1060,15 @@ HWTEST_F(NativeImageTest, OHNativeImageAcquireNativeWindowBuffer001, Function | 
     ret = OH_NativeImage_ReleaseNativeWindowBuffer(nullptr, nullptr, 0);
     ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
     ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage1, nullptr, 0);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    int32_t fenceFd;
+    memset_s(newImage1, sizeof(OH_NativeImage_Tmp), 0, sizeof(OH_NativeImage_Tmp));
+    ret = OH_NativeImage_AcquireNativeWindowBuffer(newImage1, &nativeWindowBuffer, &fenceFd);
+    ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
+
+    NativeWindowBuffer nativeWindowBufferNew;
+    ret = OH_NativeImage_ReleaseNativeWindowBuffer(newImage1, &nativeWindowBufferNew, 0);
     ASSERT_EQ(ret, SURFACE_ERROR_INVALID_PARAM);
 
     OH_NativeImage_Destroy(&newImage1);

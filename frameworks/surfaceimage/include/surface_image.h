@@ -84,11 +84,14 @@ public:
 private:
     SurfaceError ValidateEglState();
     EGLImageKHR CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer);
-    SurfaceError UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer);
+    SurfaceError UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& buffer);
     void UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
                            int64_t timestamp, Rect damage);
     void CheckImageCacheNeedClean(uint32_t seqNum);
-    void DestroyEGLImage(uint32_t seqNum);
+    void DestroyEGLImage(EGLImageKHR &eglImage);
+    void DestroyEGLSync(EGLSyncKHR &eglSync);
+    void NewBufferDestroyEGLImage(bool isNewBuffer, uint32_t seqNum);
+    void DestroyEGLImageBySeq(uint32_t seqNum);
 
     uint32_t textureId_ = 0;
     uint32_t textureTarget_ = 0;

@@ -69,14 +69,8 @@ SurfaceImage::SurfaceImage()
 SurfaceImage::~SurfaceImage()
 {
     for (auto it = imageCacheSeqs_.begin(); it != imageCacheSeqs_.end(); it++) {
-        if (it->second.eglImage_ != EGL_NO_IMAGE_KHR) {
-            eglDestroyImageKHR(eglDisplay_, it->second.eglImage_);
-            it->second.eglImage_ = EGL_NO_IMAGE_KHR;
-        }
-        if (it->second.eglSync_ != EGL_NO_SYNC_KHR) {
-            eglDestroySyncKHR(eglDisplay_, it->second.eglSync_);
-            it->second.eglSync_ = EGL_NO_SYNC_KHR;
-        }
+        DestroyEGLImage(it->second.eglImage_);
+        DestroyEGLSync(it->second.eglSync_);
     }
 }
 
@@ -139,7 +133,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
         return ret;
     }
 
-    ret = UpdateEGLImageAndTexture(eglDisplay_, buffer);
+    ret = UpdateEGLImageAndTexture(buffer);
     if (ret != SURFACE_ERROR_OK) {
         ReleaseBuffer(buffer, -1);
         return ret;
@@ -283,14 +277,8 @@ void SurfaceImage::CheckImageCacheNeedClean(uint32_t seqNum)
             continue;
         }
         if (IsSurfaceBufferInCache(it->first, result) == SURFACE_ERROR_OK && !result) {
-            if (it->second.eglImage_ != EGL_NO_IMAGE_KHR) {
-                eglDestroyImageKHR(eglDisplay_, it->second.eglImage_);
-                it->second.eglImage_ = EGL_NO_IMAGE_KHR;
-            }
-            if (it->second.eglSync_ != EGL_NO_SYNC_KHR) {
-                eglDestroySyncKHR(eglDisplay_, it->second.eglSync_);
-                it->second.eglSync_ = EGL_NO_SYNC_KHR;
-            }
+            DestroyEGLImage(it->second.eglImage_);
+            DestroyEGLSync(it->second.eglSync_);
             it = imageCacheSeqs_.erase(it);
         } else {
             it++;
@@ -298,16 +286,39 @@ void SurfaceImage::CheckImageCacheNeedClean(uint32_t seqNum)
     }
 }
 
-void SurfaceImage::DestroyEGLImage(uint32_t seqNum)
+void SurfaceImage::DestroyEGLImage(EGLImageKHR &eglImage)
+{
+    if (eglImage != EGL_NO_IMAGE_KHR) {
+        eglDestroyImageKHR(eglDisplay_, eglImage);
+        eglImage = EGL_NO_IMAGE_KHR;
+    }
+}
+
+void SurfaceImage::DestroyEGLSync(EGLSyncKHR &eglSync)
+{
+    if (eglSync != EGL_NO_SYNC_KHR) {
+        eglDestroySyncKHR(eglDisplay_, eglSync);
+        eglSync = EGL_NO_SYNC_KHR;
+    }
+}
+
+void SurfaceImage::DestroyEGLImageBySeq(uint32_t seqNum)
 {
     auto iter = imageCacheSeqs_.find(seqNum);
-    if (iter != imageCacheSeqs_.end() && iter->second.eglImage_ != EGL_NO_IMAGE_KHR) {
-        eglDestroyImageKHR(eglDisplay_, iter->second.eglImage_);
+    if (iter != imageCacheSeqs_.end()) {
+        DestroyEGLImage(iter->second.eglImage_);
     }
     imageCacheSeqs_.erase(seqNum);
 }
 
-SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer)
+void SurfaceImage::NewBufferDestroyEGLImage(bool isNewBuffer, uint32_t seqNum)
+{
+    if (isNewBuffer) {
+        DestroyEGLImageBySeq(seqNum);
+    }
+}
+
+SurfaceError SurfaceImage::UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& buffer)
 {
     bool isNewBuffer = false;
     // private function, buffer is always valid.
@@ -326,9 +337,7 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
     glBindTexture(textureTarget_, textureId_);
     GLenum error = glGetError();
     if (error != GL_NO_ERROR) {
-        if (isNewBuffer) {
-            DestroyEGLImage(seqNum);
-        }
+        NewBufferDestroyEGLImage(isNewBuffer, seqNum);
         BLOGE("glBindTexture failed, textureTarget:%{public}d, textureId_:%{public}d, error:%{public}d"
             "uniqueId: %{public}" PRIu64 ".", textureTarget_, textureId_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
@@ -336,9 +345,7 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
     glEGLImageTargetTexture2DOES(textureTarget_, static_cast<GLeglImageOES>(image.eglImage_));
     error = glGetError();
     if (error != GL_NO_ERROR) {
-        if (isNewBuffer) {
-            DestroyEGLImage(seqNum);
-        }
+        NewBufferDestroyEGLImage(isNewBuffer, seqNum);
         BLOGE("glEGLImageTargetTexture2DOES failed, textureTarget:%{public}d, error:%{public}d"
             "uniqueId: %{public}" PRIu64 ".", textureTarget_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
@@ -350,9 +357,9 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(EGLDisplay disp, const sptr<
         auto &currentImage = iter->second;
         auto preSync = currentImage.eglSync_;
         if (preSync != EGL_NO_SYNC_KHR) {
-            eglDestroySyncKHR(disp, preSync);
+            eglDestroySyncKHR(eglDisplay_, preSync);
         }
-        currentImage.eglSync_ = eglCreateSyncKHR(disp, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
+        currentImage.eglSync_ = eglCreateSyncKHR(eglDisplay_, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
     }
 
     if (isNewBuffer) {
