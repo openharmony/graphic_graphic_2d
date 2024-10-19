@@ -425,6 +425,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
+    targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
     targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;
