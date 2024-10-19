@@ -343,6 +343,7 @@ public:
 
     void SetHidePrivacyContent(bool needHidePrivacyContent);
     bool GetHidePrivacyContent() const;
+
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
 
     void SetPreScalingMode(ScalingMode scalingMode) override
