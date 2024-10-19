@@ -403,6 +403,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     SyncSkipInfoToFirstLevelNode();
     SyncSnapshotSkipInfoToFirstLevelNode();
     SyncProtectedInfoToFirstLevelNode();
+    SyncPrivacyContentInfoToFirstLevelNode();
 }
 
 bool RSSurfaceRenderNode::HasSubSurfaceNodes() const
@@ -818,6 +819,23 @@ void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating)
     isInFixedRotation_ = isFixRotationByUser_ && isRotating;
 }
 
+void RSSurfaceRenderNode::SetHidePrivacyContent(bool needHidePrivacyContent)
+{
+    if (needHidePrivacyContent_ == needHidePrivacyContent) {
+        return;
+    }
+    needHidePrivacyContent_ = needHidePrivacyContent;
+    SetDirty();
+    if (needHidePrivacyContent) {
+        privacyContentLayerIds_.insert(GetId());
+    } else {
+        privacyContentLayerIds_.erase(GetId());
+    }
+    ROSEN_LOGI("RSSurfaceRenderNode::SetHidePrivacyContent, Node id: %{public}" PRIu64 ", privacyContent:%{public}d",
+        GetId(), needHidePrivacyContent);
+    SyncPrivacyContentInfoToFirstLevelNode();
+}
+
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 {
     if (isSecurityLayer_ == isSecurityLayer) {
@@ -925,6 +943,11 @@ bool RSSurfaceRenderNode::GetHasProtectedLayer() const
     return protectedLayerIds_.size() != 0;
 }
 
+bool RSSurfaceRenderNode::GetHasPrivacyContentLayer() const
+{
+    return privacyContentLayerIds_.size() != 0;
+}
+
 void RSSurfaceRenderNode::SyncSecurityInfoToFirstLevelNode()
 {
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
@@ -1001,6 +1024,19 @@ void RSSurfaceRenderNode::SyncProtectedInfoToFirstLevelNode()
                 firstLevelNode->protectedLayerIds_.erase(GetId());
             }
             firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
+        }
+    }
+}
+
+void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
+{
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    // firstLevelNode is the nearest app window / leash node
+    if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+        if (needHidePrivacyContent_ && IsOnTheTree()) {
+            firstLevelNode->privacyContentLayerIds_.insert(GetId());
+        } else {
+            firstLevelNode->privacyContentLayerIds_.erase(GetId());
         }
     }
 }
@@ -2715,6 +2751,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->snapshotSkipLayerIds_= snapshotSkipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
     surfaceParams->protectedLayerIds_= protectedLayerIds_;
+    surfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     surfaceParams->name_= name_;
     surfaceParams->positionZ_ = properties.GetPositionZ();
     surfaceParams->SetVisibleRegion(visibleRegion_);
@@ -2809,12 +2846,6 @@ void RSSurfaceRenderNode::SetSkipDraw(bool skip)
 bool RSSurfaceRenderNode::GetSkipDraw() const
 {
     return isSkipDraw_;
-}
-
-void RSSurfaceRenderNode::SetHidePrivacyContent(bool needHidePrivacyContent)
-{
-    needHidePrivacyContent_ = needHidePrivacyContent;
-    SetDirty();
 }
 
 const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtensionNodes()
