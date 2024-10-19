@@ -536,6 +536,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    // HidePrivacyContent is only for UICapture or NoneSystemCalling-WindowCapture
     bool isHiddenScene = canvas.GetUICapture() ||
         (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_);
