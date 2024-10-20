@@ -469,6 +469,10 @@ bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathM
 
 std::shared_ptr<Data> SkiaPath::Serialize() const
 {
+    if (path_.isEmpty()) {
+        LOGE("SkiaPath::Serialize, path is empty!");
+        return nullptr;
+    }
     SkBinaryWriteBuffer writer;
     writer.writePath(path_);
     size_t length = writer.bytesWritten();
@@ -481,7 +485,7 @@ std::shared_ptr<Data> SkiaPath::Serialize() const
 bool SkiaPath::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGD("SkiaPath::Deserialize, data is invalid!");
+        LOGE("SkiaPath::Deserialize, data is invalid!");
         return false;
     }
 
