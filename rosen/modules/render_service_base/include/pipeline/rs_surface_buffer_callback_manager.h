@@ -38,7 +38,7 @@ public:
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
     std::function<void(pid_t, uint64_t, uint32_t)> GetSurfaceBufferOpItemCallback() const;
-    void SetPolicy(std::function<void(std::function<void()>)> runPolicy);
+    void SetRunPolicy(std::function<void(std::function<void()>)> runPolicy);
 
     static RSSurfaceBufferCallbackManager& Instance();
 private:
@@ -62,7 +62,7 @@ private:
     std::map<std::pair<pid_t, uint64_t>, std::vector<uint32_t>> stagingSurfaceBufferIds_;
     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
-    std::function<void(std::function<void()>) runPolicy_ = [](auto task) {
+    std::function<void(std::function<void()>)> runPolicy_ = [](auto task) {
         std::invoke(task);
     };
 
