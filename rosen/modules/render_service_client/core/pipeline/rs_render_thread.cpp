@@ -148,8 +148,10 @@ RSRenderThread::RSRenderThread()
         thread.detach();
     });
 #endif
+#ifdef ROSEN_OHOS
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
+#endif
 }
 
 RSRenderThread::~RSRenderThread()
@@ -478,6 +480,7 @@ void RSRenderThread::Render()
     ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }

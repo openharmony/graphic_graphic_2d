@@ -52,7 +52,7 @@ private:
 
     sptr<RSISurfaceBufferCallback> GetSurfaceBufferCallback(pid_t pid, uint64_t uid) const;
     size_t GetSurfaceBufferCallbackSize() const;
-    
+
     void EnqueueSurfaceBufferId(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
     void OnSurfaceBufferOpItemDestruct(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
     void RunSurfaceBufferCallback();
