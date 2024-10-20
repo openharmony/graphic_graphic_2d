@@ -296,6 +296,14 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
     return !(deviceClipRegion.IsIntersects(dstRegion));
 }
 
+void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas)
+{
+    if (drawCmdList_.empty() || curDrawingCacheRoot_ == nullptr) {
+        return;
+    }
+    curDrawingCacheRoot_->withoutFilterMatrixMap_[GetId()] = canvas.GetTotalMatrix();
+}
+
 void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     Drawing::Canvas& canvas, const RSRenderParams& params)
 {
@@ -306,7 +314,6 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     auto backgroundIndex = drawCmdIndex_.backgroundEndIndex_;
     auto bounds = params.GetBounds();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    curDrawingCacheRoot_->allCachedNodeMatrixMap_[GetId()] = curCanvas->GetTotalMatrix();
     for (auto index = 0; index < backgroundIndex; ++index) {
         if (index == drawCmdIndex_.shadowIndex_) {
             if (!params.GetShadowRect().IsEmpty()) {

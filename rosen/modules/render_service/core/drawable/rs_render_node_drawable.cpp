@@ -237,13 +237,13 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     }
     // if children don't have any filter or effect, stop traversing
     if (params.GetForegroundFilterCache() == nullptr && drawBlurForCache_ && curDrawingCacheRoot_ &&
-        curDrawingCacheRoot_->GetFilterRectSize() == 0) {
+        curDrawingCacheRoot_->GetFilterNodeSize() == 0) {
         RS_OPTIONAL_TRACE_NAME_FMT("CheckCacheTypeAndDraw id:%llu child without filter, skip", nodeId_);
         return;
     }
     // in case of generating cache with filter in offscreen, clip hole for filter/shadow but drawing others
     if (isOffScreenWithClipHole_) {
-        if (params.GetForegroundFilterCache() == nullptr) {
+        if (HasFilterOrEffect() && params.GetForegroundFilterCache() == nullptr) {
             // clip hole for filter/shadow
             DrawBackgroundWithoutFilterAndEffect(canvas, params);
             DrawContent(canvas, params.GetFrameRect());
