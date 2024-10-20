@@ -89,7 +89,7 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
 }
 
 void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
-    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling)
 {
     if (callback == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
@@ -107,9 +107,9 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
         return;
     }
 
-    std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
+    std::function<void()> captureTask = [captureHandle, id, callback, isSystemCalling]() -> void {
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::TakeSurfaceCapture");
-        if (!captureHandle->Run(callback)) {
+        if (!captureHandle->Run(callback, isSystemCalling)) {
             callback->OnSurfaceCapture(id, nullptr);
         }
     };
@@ -163,7 +163,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
     return true;
 }
 
-bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
+bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, bool isSystemCalling)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     SetupGpuContext();
@@ -191,7 +191,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
             curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
         RSUniRenderThread::SetCaptureParam(
-            CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true));
+            CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true, isSystemCalling));
         surfaceNodeDrawable_->OnCapture(canvas);
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(

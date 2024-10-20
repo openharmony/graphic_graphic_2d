@@ -2358,6 +2358,40 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetHasProtectedLayer002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: GetHasPrivacyContentLayer001
+ * @tc.desc: Test GetHasPrivacyContentLayer when SetProtectedLayer is true.
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetHasPrivacyContentLayer001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetHidePrivacyContent(true);
+    bool result = node->GetHasPrivacyContentLayer();
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: GetHasPrivacyContentLayer002
+ * @tc.desc: Test GetHasPrivacyContentLayer when SetProtectedLayer is false.
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetHasPrivacyContentLayer002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetHidePrivacyContent(false);
+    bool result = node->GetHasPrivacyContentLayer();
+    ASSERT_EQ(result, false);
+}
+
+/**
  * @tc.name: IsCurFrameStatic001
  * @tc.desc: Test IsCurFrameStatic when DeviceType is PC.
  * @tc.type: FUNC

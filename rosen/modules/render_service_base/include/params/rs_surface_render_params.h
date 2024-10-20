@@ -172,6 +172,10 @@ public:
     {
         return protectedLayerIds_.size() != 0;
     }
+    bool HasPrivacyContentLayer()
+    {
+        return privacyContentLayerIds_.size() != 0;
+    }
 
     std::string GetName() const
     {
@@ -526,6 +530,7 @@ private:
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
     Vector4f overDrawBufferNodeCornerRadius_;
