@@ -246,22 +246,22 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
     }
 }
 
-void RSSurfaceNode::SetLeashPersistId(LeashPersistId leashPersistId)
+void RSSurfaceNode::SetLeashPersistentId(LeashPersistentId leashPersistentId)
 {
-    leashPersistId_ = leashPersistId;
+    leashPersistentId_ = leashPersistentId;
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSurfaceNodeSetLeashPersistId>(GetId(), leashPersistId);
+        std::make_unique<RSurfaceNodeSetLeashPersistentId>(GetId(), leashPersistentId);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-    ROSEN_LOGD("RSSurfaceNode::SetLeashPersistId, \
-                surfaceNodeId:[%{public}" PRIu64 "] leashPersistId:[%{public}" PRIu64 "]", GetId(), leashPersistId);
+    ROSEN_LOGD("RSSurfaceNode::SetLeashPersistentId, \
+        surfaceNodeId:[%{public}" PRIu64 "] leashPersistentId:[%{public}" PRIu64 "]", GetId(), leashPersistentId);
 }
 
-LeashPersistId RSSurfaceNode::GetLeashPersistId() const
+LeashPersistentId RSSurfaceNode::GetLeashPersistentId() const
 {
-    return leashPersistId_;
+    return leashPersistentId_;
 }
 
 void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)

@@ -407,9 +407,9 @@ HWTEST_F(RSSurfaceNodeTest, SetLeashPersistId001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    LeashPersistId leashPersistId = 50;
-    surfaceNode->SetLeashPersistId(leashPersistId);
-    EXPECT_TRUE(surfaceNode->GetLeashPersistId() == leashPersistId);
+    LeashPersistentId leashPersistentId = 50;
+    surfaceNode->SetLeashPersistentId(leashPersistentId);
+    EXPECT_TRUE(surfaceNode->GetLeashPersistentId() == leashPersistentId);
 }
 
 /**

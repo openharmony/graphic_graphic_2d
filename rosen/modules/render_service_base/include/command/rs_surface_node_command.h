@@ -65,7 +65,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_WATERMARK,
     SURFACE_NODE_SET_WATERMARK_ENABLED,
     SURFACE_NODE_SET_ABILITY_STATE,
-    SURFACE_NODE_SET_LEASH_PERSIST_ID,
+    SURFACE_NODE_SET_LEASH_PERSISTENT_ID,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -80,7 +80,7 @@ public:
     static void SetContextAlpha(RSContext& context, NodeId nodeId, float alpha);
     static void SetContextClipRegion(RSContext& context, NodeId nodeId, const std::optional<Drawing::Rect>& clipRect);
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
-    static void SetLeashPersistId(RSContext& context, NodeId nodeId, uint64_t leashPersistId);
+    static void SetLeashPersistentId(RSContext& context, NodeId nodeId, uint64_t leashPersistentId);
     static void SetSkipLayer(RSContext& context, NodeId nodeId, bool isSkipLayer);
     static void SetSnapshotSkipLayer(RSContext& context, NodeId nodeId, bool isSnapshotSkipLayer);
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
@@ -175,9 +175,9 @@ ADD_COMMAND(RSSurfaceNodeSetColorSpace,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
 ADD_COMMAND(RSurfaceNodeSetSurfaceId,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_ID, SurfaceNodeCommandHelper::SetSurfaceId, NodeId, SurfaceId))
-ADD_COMMAND(RSurfaceNodeSetLeashPersistId,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_LEASH_PERSIST_ID,
-    SurfaceNodeCommandHelper::SetLeashPersistId, NodeId, LeashPersistId))
+ADD_COMMAND(RSurfaceNodeSetLeashPersistentId,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_LEASH_PERSISTENT_ID,
+    SurfaceNodeCommandHelper::SetLeashPersistentId, NodeId, LeashPersistentId))
 
 #ifdef USE_SURFACE_TEXTURE
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,

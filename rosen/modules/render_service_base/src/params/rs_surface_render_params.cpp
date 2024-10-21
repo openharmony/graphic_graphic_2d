@@ -451,7 +451,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
-    targetSurfaceParams->leashPersistId_ = leashPersistId_;
+    targetSurfaceParams->leashPersistentId_ = leashPersistentId_;
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
