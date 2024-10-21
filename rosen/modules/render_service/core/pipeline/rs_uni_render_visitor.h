@@ -134,6 +134,10 @@ public:
         screenInfo_ = screenInfo;
     }
 
+    bool CheckIfHardCursorEnable() const;
+    bool HasMirrorDisplay() const;
+    bool HasVirtualDisplay() const;
+
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
 
