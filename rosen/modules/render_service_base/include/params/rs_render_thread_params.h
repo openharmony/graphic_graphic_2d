@@ -368,6 +368,11 @@ public:
         return isOverDrawEnabled_;
     }
 
+    bool isDrawingCacheDfxEnabled() const
+    {
+        return isDrawingCacheDfxEnabled_;
+    }
+
     bool IsAceDebugBoundaryEnabled() const
     {
         return isAceDebugBoundaryEnabled_;
@@ -412,6 +417,7 @@ private:
 
     bool needRequestNextVsyncAnimate_ = false;
     bool isOverDrawEnabled_ = false;
+    bool isDrawingCacheDfxEnabled_ = false;
 
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;

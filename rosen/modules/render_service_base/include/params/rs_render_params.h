@@ -22,7 +22,6 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "pipeline/rs_render_node.h"
 #include "property/rs_properties.h"
-#include "screen_manager/screen_types.h"
 #include "utils/matrix.h"
 #include "utils/region.h"
 
@@ -313,7 +312,7 @@ public:
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
     virtual bool GetSecurityDisplay() const { return true; }
     // canvas drawing node
-    virtual bool IsNeedProcess() const { return true; }
+    virtual bool IsNeedProcess() const { return false; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
 protected:
     bool needSync_ = false;
@@ -332,7 +331,7 @@ private:
     RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
-
+    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
@@ -356,7 +355,6 @@ private:
     bool hasGlobalCorner_ = false;
     bool hasBlurFilter_ = false;
     SurfaceParam surfaceParams_;
-    bool freezeFlag_ = false;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
 };

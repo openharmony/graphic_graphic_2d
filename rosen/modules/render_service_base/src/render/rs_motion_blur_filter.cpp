@@ -246,5 +246,11 @@ std::string RSMotionBlurFilter::GetDescription()
 {
     return "RSMotionBlurFilter";
 }
+
+void MotionBlurParam::Dump(std::string& out) const
+{
+    out += "[radius:" + std::to_string(radius) + " scaleAnchor[x:";
+    out += std::to_string(scaleAnchor.x_) + " y:" + std::to_string(scaleAnchor.y_) + "]]";
+}
 } // namespace Rosen
 } // namespace OHOS
