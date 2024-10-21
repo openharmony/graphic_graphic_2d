@@ -297,8 +297,8 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Touch_Tes
         testNode2->SetTranslate(xList[i], yList[i], 0);
         testNode2->SetBackgroundColor(0xff000000);
         testNode2->SetBorderStyle(styleList[i], styleList[i], styleList[i], styleList[i]);
-        testNode1->SetBorderDashGap({ dashGap, dashGap, dashGap, dashGap });
-        testNode1->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
+        testNode2->SetBorderDashGap({ dashGap, dashGap, dashGap, dashGap });
+        testNode2->SetBorderWidth(borderWidth, borderWidth, borderWidth, borderWidth);
         testNode2->SetBorderColor(0xff0000ff, 0xff0000ff, 0xff0000ff, 0xff0000ff);
         GetRootNode()->AddChild(testNode2);
         RegisterNode(testNode2);
