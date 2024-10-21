@@ -414,6 +414,43 @@ HWTEST_F(RSSurfaceRenderNodeTest, FingerprintTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HDRPresentTest
+ * @tc.desc: SetHDRPresent and GetHDRPresent
+ * @tc.type:FUNC
+ * @tc.require: issueI6Z3YK
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id + 2, rsContext);
+    ASSERT_NE(childNode, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(leashWindowNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[childNode->GetId()] = childNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[leashWindowNode->GetId()] = leashWindowNode;
+
+    parentNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    childNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    leashWindowNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+
+    leashWindowNode->AddChild(parentNode);
+    parentNode->AddChild(childNode);
+    leashWindowNode->SetIsOnTheTree(true);
+    parentNode->SetIsOnTheTree(true);
+    childNode->SetIsOnTheTree(true);
+    
+    childNode->SetHDRPresent(false);
+    EXPECT_EQ(childNode->GetHDRPresent(), false);
+    leashWindowNode->SetHDRPresent(true);
+    EXPECT_EQ(leashWindowNode->GetHDRPresent(), true);
+}
+
+/**
  * @tc.name: ShouldPrepareSubnodesTest
  * @tc.desc: function test
  * @tc.type:FUNC

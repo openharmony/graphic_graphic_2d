@@ -366,15 +366,9 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     RSLuminanceControl::Get().SetHdrStatus(screenId, hasUniRenderHdrSurface_);
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
-    // In DRM scenarios, avoid switching HDR status.
-    if (displayHasProtectedSurface_[currentVisitDisplay_] && isHdrOn) {
-        hasUniRenderHdrSurface_ = true;
-    }
-    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d brightnessRatio:%f DRM:%d", isHdrOn, hasUniRenderHdrSurface_,
-        brightnessRatio, displayHasProtectedSurface_[currentVisitDisplay_]);
+    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d brightnessRatio:%f", isHdrOn, hasUniRenderHdrSurface_, brightnessRatio);
     RS_LOGD("RSUniRenderVisitor::HandlePixelFormat HDR isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
-        "brightnessRatio:%{public}f DRM:%{public}d", isHdrOn, hasUniRenderHdrSurface_, brightnessRatio,
-        displayHasProtectedSurface_[currentVisitDisplay_]);
+        "brightnessRatio:%{public}f", isHdrOn, hasUniRenderHdrSurface_, brightnessRatio);
     if (!hasUniRenderHdrSurface_) {
         isHdrOn = false;
     }
@@ -1961,6 +1955,9 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
                 RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
                     " disabled by corner radius + hwc node below",
                     hwcNode->GetName().c_str(), hwcNode->GetId());
+                if (hwcNode->GetProtectedLayer()) {
+                    continue;
+                }
                 hwcNode->SetHardwareForcedDisabledState(true);
                 if (RSMainThread::CheckIsHdrSurface(*hwcNode)) {
                     hasUniRenderHdrSurface_ = true;
