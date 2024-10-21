@@ -753,6 +753,7 @@ public:
         return renderDrawable_;
     }
     void MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark);
+    virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);

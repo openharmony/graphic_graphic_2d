@@ -447,6 +447,10 @@ public:
     bool GetSkipLayer() const;
     bool GetProtectedLayer() const;
 
+    // set ability state that surfaceNode belongs to as foreground or background
+    void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
+    RSSurfaceNodeAbilityState GetAbilityState() const override;
+
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
@@ -1267,6 +1271,7 @@ private:
     bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
     SurfaceId surfaceId_ = 0;
+    RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
 
     std::string name_;
     std::string bundleName_;
