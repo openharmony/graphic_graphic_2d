@@ -445,7 +445,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     }
 }
 
-void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
+void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree dump task[%u] node[%" PRIu64 "]", taskId, nodeId);
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
@@ -458,7 +458,8 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSDumpClientNodeTree>(nodeId, getpid(), taskId, out);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSCommitDumpClientNodeTree>(
+            nodeId, getpid(), taskId, out);
         transactionProxy->AddCommand(command, true);
         RSTransaction::FlushImplicitTransaction();
     }

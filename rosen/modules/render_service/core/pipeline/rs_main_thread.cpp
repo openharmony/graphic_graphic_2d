@@ -386,7 +386,7 @@ RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id()),
 
 RSMainThread::~RSMainThread() noexcept
 {
-    RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
+    RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(nullptr);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
     if (rsAppStateListener_) {
@@ -493,8 +493,8 @@ void RSMainThread::Init()
     Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
     {
         using namespace std::placeholders;
-        RSNodeCommandHelper::SetDumpNodeTreeProcessor(
-            std::bind(&RSMainThread::OnDumpClientNodeTree, this, _1, _2, _3, _4));
+        RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(
+            std::bind(&RSMainThread::OnCommitDumpClientNodeTree, this, _1, _2, _3, _4));
     }
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
@@ -3299,7 +3299,7 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
         }
         auto transactionData = std::make_shared<RSTransactionData>();
         for (auto id : nodeIds) {
-            auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId, "");
+            auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId);
             transactionData->AddCommand(std::move(command), id, FollowType::NONE);
             task.count++;
             RS_TRACE_NAME_FMT("DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "]",
@@ -3343,7 +3343,7 @@ void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dum
         taskId, completed);
 }
 
-void RSMainThread::OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
+void RSMainThread::OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree collected task[%u] dataSize[%zu] pid[%d]",
         taskId, result.size(), pid);

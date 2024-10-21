@@ -3998,26 +3998,26 @@ HWTEST_F(RSMainThreadTest, OnDrawingCacheDfxSwitchCallback, TestSize.Level2)
 }
 
 /**
- * @tc.name: OnDumpClientNodeTree
- * @tc.desc: test OnDumpClientNodeTree
+ * @tc.name: OnCommitDumpClientNodeTree
+ * @tc.desc: test OnCommitDumpClientNodeTree
  * @tc.type: FUNC
  * @tc.require: issueIAKME2
  */
-HWTEST_F(RSMainThreadTest, OnDumpClientNodeTree, TestSize.Level2)
+HWTEST_F(RSMainThreadTest, OnCommitDumpClientNodeTree, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->nodeTreeDumpTasks_.clear();
 
     uint32_t taskId = 0;
-    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
     ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
 
     auto& task = mainThread->nodeTreeDumpTasks_[taskId];
     task.count++;
 
-    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
-    mainThread->OnDumpClientNodeTree(0, 0, taskId, "testData");
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
     ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
     ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_[taskId].data.empty());
 }
