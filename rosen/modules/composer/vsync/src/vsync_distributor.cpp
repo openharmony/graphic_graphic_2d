@@ -333,7 +333,7 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
             connectionsMap_[tmpPid].push_back(connection);
         }
     }
-    
+
     return VSYNC_ERROR_OK;
 }
 
@@ -780,7 +780,7 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
             }
             continue;
         }
-        
+
         RS_TRACE_NAME_FMT("CollectConnections name:%s, proxyPid:%d, highPriorityState_:%d, highPriorityRate_:%d"
             ", rate_:%d, timestamp:%ld, vsyncCount:%ld", connections_[i]->info_.name_.c_str(),
             connections_[i]->proxyPid_, connections_[i]->highPriorityState_,
@@ -990,7 +990,8 @@ VsyncError VSyncDistributor::SetHighPriorityVSyncRate(int32_t highPriorityRate, 
 
 VsyncError VSyncDistributor::QosGetPidByName(const std::string& name, uint32_t& pid)
 {
-    if (name.find("WM") == std::string::npos && name.find("NWeb") == std::string::npos) {
+    if (name.find("WM") == std::string::npos && name.find("ArkWebCore") == std::string::npos
+        && name.find("NWeb") == std::string::npos) {
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     std::string::size_type pos = name.find("_");
@@ -1053,7 +1054,7 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
     if (iter == connectionsMap_.end()) {
         return resCode;
     }
-    
+
     bool isNeedNotify = false;
     for (auto& connection : iter->second) {
         if (connection && connection->highPriorityRate_ != rate) {
