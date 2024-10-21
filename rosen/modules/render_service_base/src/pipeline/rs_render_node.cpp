@@ -2565,7 +2565,6 @@ void RSRenderNode::UpdateDrawableVecV2()
     }
 
     waitSync_ = true;
-    ClearResource();
 }
 
 void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
