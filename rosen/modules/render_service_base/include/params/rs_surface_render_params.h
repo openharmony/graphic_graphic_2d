@@ -327,8 +327,6 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
-    void SetHardCursorEnabled(bool enabled);
-    bool IsHardCursorEnabled() const override;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
     void SetFixRotationByUser(bool flag);
@@ -540,7 +538,6 @@ private:
     Rect damageRect_ = {0, 0, 0, 0};
 #endif
     bool isHardwareEnabled_ = false;
-    bool isHardCursorEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;

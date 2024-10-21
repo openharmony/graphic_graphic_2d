@@ -44,10 +44,6 @@ struct CaptureParam {
         isFirstNode_(isFirstNode),
         isSystemCalling_(isSystemCalling) {}
 };
-struct HardCursorInfo {
-    NodeId id = INVALID_NODEID;
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawablePtr = nullptr;
-};
 class RSB_EXPORT RSRenderThreadParams {
 public:
     RSRenderThreadParams() = default;
@@ -128,11 +124,7 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
-    const std::vector<HardCursorInfo>& GetHardCursorDrawables() const
-    {
-        return hardCursorDrawables_;
-    }
-    
+
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
         pendingScreenRefreshRate_ = rate;
@@ -381,7 +373,6 @@ private:
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
-    std::vector<HardCursorInfo> hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.

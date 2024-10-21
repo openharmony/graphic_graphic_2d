@@ -294,12 +294,6 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
     return false;
 }
 
-bool RSSurfaceRenderNodeDrawable::IsHardwareEnabledTopSurface() const
-{
-    return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
-        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
-}
-
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
@@ -354,10 +348,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         (surfaceParams->GetIsSecurityLayer() && !uniParam->GetSecExemption()) || surfaceParams->GetIsSkipLayer();
     if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
         curDrawingCacheRoot_->SetSkipCacheLayer(true);
-    }
-    if (surfaceParams->IsHardCursorEnabled()) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip SurfaceName:%s", name_.c_str());
-        return;
     }
 
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
@@ -751,8 +741,7 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    if ((surfaceParams.GetHardwareEnabled() || surfaceParams.IsHardCursorEnabled()) &&
-        !RSUniRenderThread::IsInCaptureProcess()) {
+    if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }
