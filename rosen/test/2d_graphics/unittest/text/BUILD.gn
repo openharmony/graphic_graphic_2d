@@ -32,6 +32,7 @@ ohos_unittest("2d_graphics_text_test") {
     "c_utils:utils",
     "graphic_2d:2d_graphics",
     "hilog:libhilog",
+    "skia:skia_canvaskit",
   ]
 
   part_name = "graphic_2d"

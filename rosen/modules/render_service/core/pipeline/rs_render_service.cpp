@@ -523,7 +523,7 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type) && type.length() < 10) {
-        pid = std::stoi(type);
+        pid = std::atoi(type.c_str());
     }
     mainThread_->ScheduleTask(
         [this, &argSets, &dumpString, &type, &pid]() {

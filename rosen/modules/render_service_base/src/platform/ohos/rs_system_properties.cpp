@@ -195,6 +195,12 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
     return isNeedScreenRCD;
 }
 
+bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+{
+    static bool isNeedUnMap = system::GetParameter("persist.rosen.rsmemory.optimize.enabled", "1") != "0";
+    return isNeedUnMap;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.enabled", "0");
@@ -503,6 +509,14 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<HgmRefreshRateModes>(ConvertToInt(enable, 0));
+}
+
+bool RSSystemProperties::GetHardCursorEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hardCursor.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()

@@ -35,7 +35,7 @@
 #include "skia_surface.h"
 #include "skia_texture_info.h"
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "include/core/SkYUVAPixmaps.h"
 #include "skia_gpu_context.h"
 #endif
@@ -113,7 +113,7 @@ bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
     return false;
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
 {
     if (!memory) {
@@ -548,7 +548,7 @@ void SkiaImage::SetSkImage(const sk_sp<SkImage>& skImage)
     skiaImage_ = skImage;
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 sk_sp<GrDirectContext> SkiaImage::GetGrContext() const
 {
     return grContext_;
@@ -558,7 +558,7 @@ sk_sp<GrDirectContext> SkiaImage::GetGrContext() const
 std::shared_ptr<Data> SkiaImage::Serialize() const
 {
     if (skiaImage_ == nullptr) {
-        LOGD("SkiaImage::Serialize, SkImage is nullptr!");
+        LOGE("SkiaImage::Serialize, SkImage is nullptr!");
         return nullptr;
     }
 
@@ -577,18 +577,21 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
 
         auto context = as_IB(skiaImage_.get())->directContext();
         if (!as_IB(skiaImage_.get())->getROPixels(context, &bitmap)) {
-            LOGD("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
+            LOGE("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
             return nullptr;
         }
         SkPixmap pixmap;
         if (!bitmap.peekPixels(&pixmap)) {
-            LOGD("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
+            LOGE("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
             return nullptr;
         }
         size_t rb = pixmap.rowBytes();
         int32_t width = pixmap.width();
         int32_t height = pixmap.height();
         const void* addr = pixmap.addr();
+        if (addr == nullptr) {
+            return nullptr;
+        }
         size_t size = pixmap.computeByteSize();
 
         writer.writeUInt(size);
@@ -618,7 +621,7 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
 bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGD("SkiaImage::Deserialize, data is invalid!");
+        LOGE("SkiaImage::Deserialize, data is invalid!");
         return false;
     }
 

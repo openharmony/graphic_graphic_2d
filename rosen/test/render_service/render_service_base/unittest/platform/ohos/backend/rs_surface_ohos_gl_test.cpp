@@ -95,7 +95,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer002, TestSize.Level1)
     sptr<IBufferProducer> bp = cSurface->GetProducer();
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
     RSSurfaceOhosGl rsSurface(pSurface);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
     if (renderContext) {
         renderContext->InitializeEglContext();
@@ -115,7 +115,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer002, TestSize.Level1)
         sptr<IBufferProducer> bp = cSurface->GetProducer();
         sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
         RSSurfaceOhosGl rsSurface(pSurface);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
         RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
         if (renderContext) {
             renderContext->InitializeEglContext();
@@ -169,7 +169,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge002, TestSize.Level1)
     sptr<IBufferProducer> bp = cSurface->GetProducer();
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
     RSSurfaceOhosGl rsSurface(pSurface);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
     if (renderContext) {
         renderContext->InitializeEglContext();
@@ -190,7 +190,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge002, TestSize.Level1)
         sptr<IBufferProducer> bp = cSurface->GetProducer();
         sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
         RSSurfaceOhosGl rsSurface(pSurface);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
         RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
         if (renderContext) {
             renderContext->InitializeEglContext();

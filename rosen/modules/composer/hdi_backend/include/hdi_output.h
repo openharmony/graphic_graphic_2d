@@ -96,6 +96,8 @@ public:
     void SetPendingMode(int64_t period, int64_t timestamp);
     void ReleaseLayers(sptr<SyncFence>& releaseFence);
     int32_t GetBufferCacheSize();
+    void SetVsyncSamplerEnabled(bool enabled);
+    bool GetVsyncSamplerEnabled();
 
 private:
     HdiDevice *device_ = nullptr;
@@ -149,6 +151,7 @@ private:
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
+    std::atomic<bool> enableVsyncSample_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

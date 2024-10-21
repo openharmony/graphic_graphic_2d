@@ -81,7 +81,7 @@ HWTEST_F(SurfaceTest, SurfaceBind002, TestSize.Level1)
     ASSERT_TRUE(surface->Bind(bitmap));
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: SurfaceBind003
  * @tc.desc: Test for binding texture Surface.

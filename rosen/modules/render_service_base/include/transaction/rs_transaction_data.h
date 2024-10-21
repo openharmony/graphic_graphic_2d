@@ -199,6 +199,7 @@ private:
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;
+    friend class RSMainThread;
 };
 using TransactionDataMap = std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>>;
 } // namespace Rosen

@@ -77,6 +77,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
@@ -214,6 +219,11 @@ void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetHardCursorEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()

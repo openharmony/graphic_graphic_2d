@@ -112,6 +112,32 @@ int OH_NativeVSync_RequestFrameWithMultiCallback(
  * @version 1.0
  */
 int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period);
+
+/**
+ * @brief Enable DVSync to improve the smoothness of self-drawn animation scenes.
+ * DVSync stands for Decoupled VSync, a frame timing management strategy decoupled from hardware VSync.
+ * DVSync drives the early rendering of subsequent animation frames by sending VSync signals with future timestamps
+ * in advance, which are then cached in the frame buffer queue. DVSync reduces the possibility of future frame drops
+ * by caching pre-rendered frames for display, thereby improving the smoothness of animation scenes.
+ * Because DVSync requires the use of free self-drawn frame buffers to cache pre-rendered animation frames, users need
+ * to ensure that there is at least one free frame buffer, otherwise it is not recommended to enable this feature.
+ * After enabling DVSync, users need to respond correctly to the VSync signal sent in advance, and request
+ * the next VSync after the animation frame corresponding to the previous VSync has completed, and the self-drawn
+ * frame needs to carry a timestamp consistent with its VSync event.
+ * After the animation ends, the user needs to disable DVSync.
+ * On platforms that do not support DVSync or if another application has already enabled DVSync, the current
+ * enable operation will not take effect and the application will still receive normal VSync signals.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
+ * @param nativeVsync Indicates the pointer to a NativeVsync.
+ * @param enable Indicates enable or disable DVSync, true indicates enable, false indicates disable.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter nativeVsync is NULL or callback is NULL.
+ *     {@link NATIVE_ERROR_BINDER_ERROR} 50401000 - ipc send failed.
+ * @since 14
+ * @version 1.0
+ */
+int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
 #ifdef __cplusplus
 }
 #endif

@@ -132,6 +132,10 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
             continue;
         }
         FontParser::NameId nameId = static_cast<FontParser::NameId>(nameTable->nameRecord[i].nameId.Get());
+        // Parsing fields with NameId greater than 7 is not currently supported.
+        if (nameId > FontParser::NameId::TRADEMARK) {
+            continue;
+        }
         unsigned int languageId = static_cast<unsigned int>(nameTable->nameRecord[i].languageId.Get());
         FontParser::PlatformId platformId =
             static_cast<FontParser::PlatformId>(nameTable->nameRecord[i].platformId.Get());
@@ -196,7 +200,7 @@ int FontParser::ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     auto parseCmap = std::make_shared<CmapTableParser>(data_, length_);
     auto cmapTable = parseCmap->Parse(data_, length_);
     ProcessCmapTable(cmapTable, fontDescriptor);
-
+    hb_blob_destroy(hblob);
     return SUCCESSED;
 }
 
@@ -229,9 +233,10 @@ int FontParser::ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     int ret = ProcessNameTable(nameTable, fontDescriptor);
     if (ret != SUCCESSED) {
         LOGSO_FUNC_LINE(ERROR) << "process name table failed";
+        hb_blob_destroy(hblob);
         return FAILED;
     }
-
+    hb_blob_destroy(hblob);
     return SUCCESSED;
 }
 
@@ -262,7 +267,7 @@ int FontParser::ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     auto parsePost = std::make_shared<PostTableParser>(data_, length_);
     auto postTable = parsePost->Parse(data_, length_);
     ProcessPostTable(postTable, fontDescriptor);
-
+    hb_blob_destroy(hblob);
     return SUCCESSED;
 }
 

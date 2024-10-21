@@ -35,7 +35,7 @@ public:
     std::string GetFragmentShader() override;
 private:
     void DoProcess(ProcessData& data) override;
-    void LoadFilterParams() override{};
+    void LoadFilterParams() override {}
     std::unique_ptr<ScaleFilter> upSampleFilter_ = nullptr;
     std::unique_ptr<ScaleFilter> downSampleFilter_ = nullptr;
     std::unique_ptr<HorizontalBlurFilter> horizontalBlurFilter_ = nullptr;

@@ -38,6 +38,7 @@
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "render/rs_typeface_cache.h"
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS::Rosen {
 
@@ -184,6 +185,9 @@ void RSProfiler::Init(RSRenderService* renderService)
 
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(SYS_KEY_BETARECORDING, OnFlagChangedCallback, nullptr);
+    bool isEnabled = RSSystemProperties::GetProfilerEnabled();
+    bool isBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
+    HRPD("Profiler flags changed enabled=%{public}d beta_record=%{public}d", isEnabled ? 1 : 0, isBetaRecord ? 1 : 0);
 
     if (!IsEnabled()) {
         return;
@@ -367,13 +371,16 @@ void RSProfiler::OnWorkModeChanged()
 {
     if (IsEnabled()) {
         if (IsBetaRecordEnabled()) {
+            HRPD("RSProfiler: Stop network. Start beta-recording.");
             Network::Stop();
             StartBetaRecord();
         } else {
             StopBetaRecord();
             StartNetworkThread();
+            HRPD("RSProfiler: Stop beta-recording (if running). Start network.");
         }
     } else {
+        HRPD("RSProfiler: Stop recording. Stop network.");
         StopBetaRecord();
         RecordStop(ArgList());
         Network::Stop();
@@ -390,6 +397,8 @@ void RSProfiler::ProcessSignalFlag()
     if (!signalFlagChanged_) {
         bool newEnabled = RSSystemProperties::GetProfilerEnabled();
         bool newBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
+        HRPD("Profiler flags changed enabled=%{public}d beta_record=%{public}d", newEnabled ? 1 : 0,
+            newBetaRecord ? 1 : 0);
         if (enabled_ && !newEnabled) {
             const ArgList dummy;
             if (GetMode() == Mode::READ) {
@@ -645,10 +654,13 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
             if (node == nullptr) {
                 return;
             }
+            if (!node->GetSortedChildren()) {
+                return;
+            }
             auto parentPtr = node->GetParent().lock();
             if (parentPtr != nullptr && !rootNode &&
                 Utils::ExtractPid(node->GetId()) != Utils::ExtractPid(parentPtr->GetId()) &&
-                Utils::ExtractPid(node->GetId()) == pid) {
+                Utils::ExtractPid(node->GetId()) == pid && node->GetSortedChildren()->size() > 0) {
                 rootNode = node;
                 Respond("Root node found: " + std::to_string(rootNode->GetId()));
             }
@@ -1707,7 +1719,12 @@ void RSProfiler::PlaybackStop(const ArgList& args)
     g_playbackShouldBeTerminated = true;
     HiddenSpaceTurnOff();
     FilterMockNode(*g_context);
+    constexpr int maxCountForSecurity = 1000;
+    for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
+        RSRenderNodeGC::Instance().ReleaseNodeBucket();
+    }
     RSTypefaceCache::Instance().ReplayClear();
+    ImageCache::Reset();
     g_replayLastPauseTimeReported = 0;
 
     Respond("Playback stop");

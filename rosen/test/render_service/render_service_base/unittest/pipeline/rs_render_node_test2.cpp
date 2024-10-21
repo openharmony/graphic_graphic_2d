@@ -36,7 +36,8 @@ namespace OHOS {
 namespace Rosen {
 const std::string OUT_STR3 =
     ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, VisibleRegion [Empty], "
-    "OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0";
+    "OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0, "
+    "ContainerConfig: [outR: 32 inR: 28 x: 0 y: 0 w: 0 h: 0]";
 const std::string OUT_STR4 = ", Visible: 1, Size: [-inf, -inf], EnableRender: 1";
 const std::string OUT_STR5 = ", skipLayer: 0";
 
@@ -464,7 +465,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRectAndDirtyRegion002, TestSize.Level1)
     properties.geoDirty_ = true;
     node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
     node.isSelfDrawingNode_ = true;
-    node.clipAbsDrawRectChange_ = true;
+    node.absDrawRectChange_ = true;
     node.shouldPaint_ = true;
     node.isLastVisible_ = true;
     ASSERT_EQ(node.UpdateDrawRectAndDirtyRegion(*rsDirtyManager, false, clipRect, matrix), true);
@@ -1211,7 +1212,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
 
     RSDirtyRegionManager dirtyManagerTest3;
     RectI clipRectTest3 = RectI { 0, 0, 1, 1 };
-    nodeTest->clipAbsDrawRectChange_ = true;
+    nodeTest->absDrawRectChange_ = true;
     nodeTest->hasChildrenOutOfRect_ = false;
     nodeTest->lastFrameHasChildrenOutOfRect_ = true;
     nodeTest->renderContent_->renderProperties_.boundsGeo_ = nullptr;
@@ -1308,5 +1309,26 @@ HWTEST_F(RSRenderNodeTest2, SetDrawRegionTest, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
+/**
+ * @tc.name: CollectAndUpdateLocalDistortionEffectRecttest
+ * @tc.desc: CollectAndUpdateLocalDistortionEffectRect
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalDistortionEffectRecttest, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    float width = 100.0f; // 100: set width of bounds
+    float height = 100.0f; // 100: set height of bounds
+    Vector4f bounds(0.0, 0.0, width, height);
+    node.renderContent_->renderProperties_.SetBounds(bounds);
+    node.CollectAndUpdateLocalDistortionEffectRect();
+    EXPECT_FALSE(node.localDistortionEffectRect_.width_ > static_cast<int>(width));
+
+    node.renderContent_->renderProperties_.SetDistortionK(0.5f); // 0.5 is k of value in distortion
+    EXPECT_TRUE(node.renderContent_->renderProperties_.GetDistortionDirty());
+    node.CollectAndUpdateLocalDistortionEffectRect();
+    EXPECT_FALSE(node.renderContent_->renderProperties_.GetDistortionDirty());
+}
 } // namespace Rosen
 } // namespace OHOS

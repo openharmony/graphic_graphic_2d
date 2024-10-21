@@ -19,40 +19,73 @@
 #include <cstdint>
 #include <cstdio>
 #include <chrono>
-#include "vsync_distributor.h"
+#include <screen_manager/rs_screen_info.h>
 #include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "system/rs_system_parameters.h"
 #include "visitor/rs_node_visitor.h"
+#include "vsync_distributor.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSUniRenderVisitor;
+struct SurfaceVRateInfo {
+    NodeId nodeId = 0;
+    std::string name;
+    Occlusion::Region visibleRegion;
+    RectI maxVisRect;
+    int appWindowArea = 0;
+};
+
 class RSVsyncRateReduceManager {
 public:
     RSVsyncRateReduceManager() {};
     ~RSVsyncRateReduceManager() = default;
-    void CollectVSyncRate(RSSurfaceRenderNode& node, RSVisibleLevel visibleLevel);
-    void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
-        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
-    void SetUniVSyncRateByVisibleLevel(const std::shared_ptr<RSUniRenderVisitor>& uniVisitor);
-    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
 
     void SetFocusedNodeId(NodeId focusedNodeId)
     {
+        if (!vsyncControlEnabled_) {
+            return;
+        }
         focusedNodeId_ = focusedNodeId;
     }
     void PushWindowNodeId(NodeId nodeId)
     {
+        if (!vsyncControlEnabled_) {
+            return;
+        }
         curAllMainAndLeashWindowNodesIds_.emplace_back(nodeId);
     }
     void ClearLastVisMapForVsyncRate()
     {
-        lastVisMapForVSyncRate_.clear();
+        lastVisMapForVSyncVisLevel_.clear();
     }
+    bool GetVsyncControlEnabled() const
+    {
+        return vsyncControlEnabled_;
+    }
+
+    void FrameDurationBegin()
+    {
+        if (!vsyncControlEnabled_) {
+            return;
+        }
+        curTime_ = Now();
+    }
+    void FrameDurationEnd()
+    {
+        if (!vsyncControlEnabled_) {
+            return;
+        }
+        if (oneFramePeriod_ > 0) {
+            float val = (Now() - curTime_) / static_cast<float>(oneFramePeriod_);
+            EnqueueFrameDuration(val);
+        }
+        curTime_ = 0;
+    }
+
     bool GetIsReduceBySystemAnimatedScenes() const
     {
         return isReduceBySystemAnimatedScenes_;
@@ -61,10 +94,27 @@ public:
     {
         isReduceBySystemAnimatedScenes_ = isReduceBySystemAnimatedScenes;
     }
-    void ResetFrameValues();
     void Init(const sptr<VSyncDistributor>& appVSyncDistributor);
+    void ResetFrameValues(uint32_t refreshRate);
+    void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
+    void SetUniVsync();
+
+    void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
+        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
+    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
 
 private:
+    void NotifyVRates();
+    int UpdateRatesLevel();
+    void CalcRates();
+    bool CheckNeedNotify();
+    int GetRateByBalanceLevel(double vVal);
+    void EnqueueFrameDuration(float duration);
+    static inline Occlusion::Rect GetMaxVerticalRect(const Occlusion::Region& region);
+    static Occlusion::Rect CalcMaxVisibleRect(const Occlusion::Region& region, int appWindowArea);
+    static float CalcVValByAreas(int windowArea, int maxVisRectArea, int visArea);
+
+    uint64_t Now();
     void SetVSyncRatesChanged(bool vSyncRatesChanged)
     {
         vSyncRatesChanged_ = vSyncRatesChanged_ || vSyncRatesChanged;
@@ -72,14 +122,27 @@ private:
 private:
     bool vsyncControlEnabled_ = false;
     bool vSyncRatesChanged_ = false;
+    std::map<NodeId, int> vSyncRateMap_;
+    std::map<NodeId, int> lastVSyncRateMap_;
     std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     std::vector<NodeId> lastAllMainAndLeashWindowNodesIds_;
-    std::map<NodeId, RSVisibleLevel> visMapForVSyncRate_;
-    std::map<NodeId, RSVisibleLevel> lastVisMapForVSyncRate_;
+    std::map<NodeId, RSVisibleLevel> visMapForVSyncVisLevel_;
+    std::map<NodeId, RSVisibleLevel> lastVisMapForVSyncVisLevel_;
 
     NodeId focusedNodeId_ = 0;
     NodeId lastFocusedNodeId_ = 0;
+
+    uint64_t curTime_ = 0;
+    int curRatesLevel_ = 0;
+    int64_t oneFramePeriod_ = 0;
+    uint32_t rsRefreshRate_ = 0;
+    std::mutex mutexFrameDuration_;
+    std::deque<float> frameDurations_;
+
+    bool isSystemAnimatedScenes_ = false;
     bool isReduceBySystemAnimatedScenes_ = false;
+    DeviceType deviceType_ = DeviceType::PC;
+    std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
 };
 

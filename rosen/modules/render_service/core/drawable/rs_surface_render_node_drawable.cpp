@@ -112,11 +112,16 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(
         canvas.Restore();
     }
 
-    // 3. Draw content of this node by the main canvas.
-    DrawContent(canvas, bounds);
+    if (surfaceParams.GetNeedCacheSurface()) {
+        // 3/4 Draw content and children of this node by the main canvas, and cache
+        drawWindowCache_.DrawAndCacheWindowContent(this, canvas, bounds);
+    } else {
+        // 3. Draw content of this node by the main canvas.
+        DrawContent(canvas, bounds);
 
-    // 4. Draw children of this node by the main canvas.
-    DrawChildren(canvas, bounds);
+        // 4. Draw children of this node by the main canvas.
+        DrawChildren(canvas, bounds);
+    }
 
     // 5. Draw foreground of this node by the main canvas.
     DrawForeground(canvas, bounds);
@@ -289,6 +294,12 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
     return false;
 }
 
+bool RSSurfaceRenderNodeDrawable::IsHardwareEnabledTopSurface() const
+{
+    return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
+        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+}
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
@@ -344,6 +355,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
         curDrawingCacheRoot_->SetSkipCacheLayer(true);
     }
+    if (surfaceParams->IsHardCursorEnabled()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip SurfaceName:%s", name_.c_str());
+        return;
+    }
 
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
 
@@ -373,6 +388,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    if (drawWindowCache_.DealWithCachedWindow(this, *rscanvas, *surfaceParams)) {
+        return;
+    }
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
         return;
     }
@@ -528,6 +546,18 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    // HidePrivacyContent is only for UICapture or NoneSystemCalling-WindowCapture
+    bool isHiddenScene = canvas.GetUICapture() ||
+        (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+        !RSUniRenderThread::GetCaptureParam().isSystemCalling_);
+    if ((surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+         surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) &&
+        isHiddenScene && surfaceParams->GetHidePrivacyContent()) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfacenode nodeId:[%{public}" PRIu64
+                "] is not allowed to be captured", nodeId_);
+        return;
+    }
+
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
@@ -666,8 +696,11 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hwcEnable = surfaceParams.GetHardwareEnabled();
     surfaceParams.SetHardwareEnabled(false);
     RS_LOGD("HDR hasHdrPresent_:%{public}d", canvas.IsCapture());
+    bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
+        RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+        !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasSnapshotSkipLayer() ||
-        surfaceParams.HasProtectedLayer() || hasHdrPresent_) &&
+        surfaceParams.HasProtectedLayer() || hasHdrPresent_ || hasHidePrivacyContent) &&
         DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
         return;
@@ -718,7 +751,8 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::IsInCaptureProcess()) {
+    if ((surfaceParams.GetHardwareEnabled() || surfaceParams.IsHardCursorEnabled()) &&
+        !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }
@@ -861,6 +895,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
     }
     DrawForeground(canvas, bounds);
+    DrawWatermark(canvas, surfaceParams);
     if (uniParams.GetUIFirstDebugEnabled()) {
         DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
     }

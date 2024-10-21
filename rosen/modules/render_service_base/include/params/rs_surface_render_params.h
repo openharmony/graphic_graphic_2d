@@ -178,6 +178,10 @@ public:
     {
         return protectedLayerIds_.size() != 0;
     }
+    bool HasPrivacyContentLayer()
+    {
+        return privacyContentLayerIds_.size() != 0;
+    }
 
     std::string GetName() const
     {
@@ -323,6 +327,8 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetHardCursorEnabled(bool enabled);
+    bool IsHardCursorEnabled() const override;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
     void SetFixRotationByUser(bool flag);
@@ -349,6 +355,9 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
+    bool GetHidePrivacyContent() const;
 
     void SetLayerTop(bool isTop);
     bool IsLayerTop() const;
@@ -479,6 +488,9 @@ public:
         return brightnessRatio_;
     }
 
+    void SetNeedCacheSurface(bool needCacheSurface);
+    bool GetNeedCacheSurface() const;
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -528,6 +540,7 @@ private:
     Rect damageRect_ = {0, 0, 0, 0};
 #endif
     bool isHardwareEnabled_ = false;
+    bool isHardCursorEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
@@ -546,6 +559,7 @@ private:
     std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
     Vector4f overDrawBufferNodeCornerRadius_;
@@ -553,6 +567,7 @@ private:
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
@@ -565,6 +580,7 @@ private:
     int32_t sdrNit_ = 500; // default sdrNit
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
+    bool needCacheSurface_ = false;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

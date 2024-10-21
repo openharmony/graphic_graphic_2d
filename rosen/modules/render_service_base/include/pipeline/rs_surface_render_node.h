@@ -113,10 +113,7 @@ public:
         return isNodeDirty_;
     }
 
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+    bool IsHardwareEnabledTopSurface() const;
 
     void SetLayerTop(bool isTop);
 
@@ -132,7 +129,7 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface() || IsLayerTop();
+            IsLayerTop();
     }
 
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
@@ -154,7 +151,8 @@ public:
     bool NeedBilinearInterpolation() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
-            (name_ == "SceneViewer Model0" || name_ == "RosenWeb");
+            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
+                name_ == "VMLinuxXComponentSurface");
     }
 
     void SetSubNodeShouldPaint()
@@ -261,7 +259,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isProtectedLayer_) {
+        // a protected node not on the tree need to release buffer when producer produce buffers
+        // release buffer in ReleaseSelfDrawingNodeBuffer function
+        if (isProtectedLayer_ && IsOnTheTree()) {
             return false;
         }
         return isHardwareForcedDisabled_ ||
@@ -413,7 +413,7 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsSCBNode() const;
-    void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable = false);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
@@ -458,13 +458,14 @@ public:
 
     // set ability state that surfaceNode belongs to as foreground or background
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
-    RSSurfaceNodeAbilityState GetAbilityState() const;
+    RSSurfaceNodeAbilityState GetAbilityState() const override;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
     bool GetHasSnapshotSkipLayer() const;
     bool GetHasProtectedLayer() const;
+    bool GetHasPrivacyContentLayer() const;
 
     void ResetSpecialLayerChangedFlag()
     {
@@ -481,6 +482,7 @@ public:
     void SyncOnTheTreeInfoToFirstLevelNode();
     void SyncSnapshotSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
+    void SyncPrivacyContentInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -683,9 +685,7 @@ public:
     GraphicColorGamut GetColorSpace() const;
 
     // Only call this if the node is self-drawing surface node.
-    void UpdateColorSpaceToIntanceRootNode();
-    GraphicColorGamut GetSubSurfaceColorSpace() const;
-    void ResetSubSurfaceColorSpace();
+    void UpdateColorSpaceWithMetadata();
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
@@ -807,8 +807,10 @@ public:
     {
         return "[outR: " + std::to_string(containerConfig_.outR) +
                " inR: " + std::to_string(containerConfig_.inR) +
-               " bt: " + std::to_string(containerConfig_.bt) +
-               " bp: " + std::to_string(containerConfig_.bp) + "]";
+               " x: " + std::to_string(containerConfig_.innerRect.left_) +
+               " y: " + std::to_string(containerConfig_.innerRect.top_) +
+               " w: " + std::to_string(containerConfig_.innerRect.width_) +
+               " h: " + std::to_string(containerConfig_.innerRect.height_) + "]";
     }
 
     bool IsOpaqueRegionChanged() const
@@ -1177,6 +1179,7 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(int32_t sdrNit);
     void SetDisplayNit(int32_t displayNit);
@@ -1226,6 +1229,16 @@ public:
     size_t GetIntersectedRoundCornerAABBsSize() const {
         return intersectedRoundCornerAABBs_.size();
     }
+
+    void SetNeedCacheSurface(bool needCacheSurface);
+    bool GetSubThreadAssignable() const
+    {
+        return subThreadAssignable_;
+    }
+    void SetSubThreadAssignable(bool subThreadAssignable)
+    {
+        subThreadAssignable_ = subThreadAssignable;
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1274,6 +1287,7 @@ private:
     std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     bool specialLayerChanged_ = false;
     bool isGlobalPositionEnabled_ = false;
 
@@ -1294,8 +1308,10 @@ private:
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     bool isLayerTop_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
+    // This variable can be set in two cases:
+    // 1. The upper-layer IPC interface directly sets window colorspace.
+    // 2. If it is a self-drawing node, the colorspace will be refreshed after hardware-enable calculation.
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    std::optional<GraphicColorGamut> subColorSpace_ = std::nullopt;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif
@@ -1398,11 +1414,11 @@ private:
         bool hasContainerWindow_ = false;               // set to false as default, set by arkui
         int outR = 32;                                  // outer radius (int value)
         int inR = 28;                                   // inner radius (int value)
-        int bp = 10;                                    // border width + padding (int value)
-        int bt = 76;                                    // border width + title (int value)
+        RectI innerRect = {};                           // inner rect, value relative to outerRect
     };
 
     ContainerConfig containerConfig_;
+    ContainerConfig GetAbsContainerConfig() const;
 
     bool startAnimationFinished_ = false;
 
@@ -1492,11 +1508,14 @@ private:
 
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
+    bool needHidePrivacyContent_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
 
     bool arsrTag_ = true;
+
+    bool subThreadAssignable_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

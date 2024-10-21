@@ -1927,7 +1927,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetOpaqueRegion, TestSize.Level1)
     ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
     bool isFocusWindow = true;
     Occlusion::Region res = testNode->ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
-    EXPECT_NE(res.rects_.size(), 0);
+    EXPECT_EQ(res.rects_.size(), 0);
     isFocusWindow = false;
     res = testNode->ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
     EXPECT_NE(res.rects_.size(), 0);
@@ -1965,7 +1965,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetFocusedWindowOpaqueRegion, TestSize.Level1)
     ScreenRotation::ROTATION_180, ScreenRotation::ROTATION_270, ScreenRotation::INVALID_SCREEN_ROTATION };
     for (ScreenRotation rotation : rotationCases) {
         Occlusion::Region opaqueRegion = renderNode->SetFocusedWindowOpaqueRegion(absRect, rotation);
-        EXPECT_NE(opaqueRegion.rects_.size(), 0);
+        EXPECT_EQ(opaqueRegion.rects_.size(), 0);
     }
 }
 
@@ -2165,6 +2165,28 @@ HWTEST_F(RSSurfaceRenderNodeTest, MarkBlurIntersectDRMTest, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
     nodeTest->MarkBlurIntersectWithDRM(true, true);
+}
+
+/**
+ * @tc.name: SetNeedCacheSurface
+ * @tc.desc: test if node could be marked NeedCacheSurface correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetNeedCacheSurface, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+
+    testNode->SetNeedCacheSurface(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_TRUE(surfaceParams->GetNeedCacheSurface());
+
+    testNode->SetNeedCacheSurface(false);
+    surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -52,10 +52,10 @@ class RsSurfaceNodeScaleTestDemo {
 public:
     RsSurfaceNodeScaleTestDemo()
     {
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
         renderContext_ = std::make_unique<RenderContext>();
         renderContext_->InitializeEglContext();
-#endif // ACE_ENABLE_GPU
+#endif // RS_ENABLE_GPU
 
         sptr<WindowOption> option(new WindowOption());
         option->SetDisplayId(DEFAULT_DISPLAY_ID);
@@ -94,11 +94,11 @@ public:
             return;
         }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
         if (renderContext_ != nullptr) {
             rsSurface->SetRenderContext(renderContext_.get());
         }
-#endif // ACE_ENABLE_GPU
+#endif // RS_ENABLE_GPU
 
         // test 50 frames.
         for (int i = 0; i < 50; ++i) {
@@ -139,9 +139,9 @@ public:
     }
 
 private:
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     std::unique_ptr<RenderContext> renderContext_;
-#endif // ACE_ENABLE_GPU
+#endif // RS_ENABLE_GPU
 
     sptr<Window> window_;
     std::shared_ptr<RSSurfaceNode> surfaceNode_;

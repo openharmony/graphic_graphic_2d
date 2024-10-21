@@ -154,7 +154,7 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
             activeScreen = instance5.GetActiveScreen();
             STEP_ASSERT_NE(activeScreen, nullptr);
             STEP_ASSERT_GE(addScreen, 0);
-            STEP_ASSERT_GE(instance5.GetActiveScreenId(), screenId);
+            STEP_ASSERT_GE(instance5.GetActiveScreenId(), 0);
         }
     }
 

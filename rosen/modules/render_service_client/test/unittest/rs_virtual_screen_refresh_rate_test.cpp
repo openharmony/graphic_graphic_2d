@@ -197,5 +197,37 @@ HWTEST_F(RSVirtualScreenRefreshRateTest, SetVirtualScreenRefreshRate005, Functio
     int32_t ret = rsInterfaces->SetVirtualScreenRefreshRate(defaultScreenId, maxRefreshRate, actualRefreshRate);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
+
+/*
+* Function: SetVirtualScreenRefreshRate
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. SetVirtualScreenRefreshRate UINT32_MAX+1
+*/
+HWTEST_F(RSVirtualScreenRefreshRateTest, SetVirtualScreenRefreshRate006, Function | SmallTest | Level1)
+{
+    auto csurface = IConsumerSurface::Create();
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    uint32_t defaultWidth = 720; // 720px
+    uint32_t defaultHeight = 1280; // 1280px
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen01", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    uint32_t maxRefreshRate = UINT32_MAX + 1;
+    uint32_t actualRefreshRate = 0;
+    std::cout << "Set virtualScreenId:" << virtualScreenId << ", maxRefreshRate:" << maxRefreshRate << std::endl;
+    int32_t ret = rsInterfaces->SetVirtualScreenRefreshRate(virtualScreenId, maxRefreshRate, actualRefreshRate);
+    EXPECT_EQ(actualRefreshRate, 0);
+    EXPECT_NE(ret, StatusCode::SUCCESS);
+
+    // recover
+    ret = rsInterfaces->SetVirtualScreenRefreshRate(virtualScreenId, 60, actualRefreshRate); // 60hz
+    EXPECT_EQ(actualRefreshRate, 60); // 60hz
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
 } // namespace Rosen
 } // namespace OHOS

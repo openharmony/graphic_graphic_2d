@@ -138,6 +138,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     UNREGISTER_SURFACE_BUFFER_CALLBACK,
     SET_LAYER_TOP,
     SET_VIRTUAL_SCREEN_REFRESH_RATE,
+    SET_HIDE_PRIVACY_CONTENT,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

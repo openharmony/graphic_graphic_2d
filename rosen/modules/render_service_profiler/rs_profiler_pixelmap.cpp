@@ -153,7 +153,7 @@ public:
             return false;
         }
 
-        base = new uint8_t[size];
+        base = new (std::nothrow) uint8_t[size];
         if (!base) {
             return false;
         }
@@ -287,6 +287,10 @@ void ImageSource::CacheImage(
     }
 
     if (bufferHandle && ((bufferHandle->width == 0) || (bufferHandle->height == 0))) {
+        return;
+    }
+
+    if (Rosen::RSProfiler::GetMode() != Rosen::Mode::WRITE && Rosen::RSProfiler::GetMode() != Rosen::Mode::WRITE_EMUL) {
         return;
     }
 

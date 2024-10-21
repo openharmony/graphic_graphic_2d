@@ -53,10 +53,12 @@ std::shared_ptr<RSRenderModifier> RSEnvForegroundColorStrategyModifier::CreateRe
 RSCustomClipToFrameModifier::RSCustomClipToFrameModifier(const std::shared_ptr<RSPropertyBase>& property)
     : RSForegroundModifier(property, RSModifierType::CUSTOM_CLIP_TO_FRAME)
 {}
+
 RSModifierType RSCustomClipToFrameModifier::GetModifierType() const
 {
     return RSModifierType::CUSTOM_CLIP_TO_FRAME;
 }
+
 std::shared_ptr<RSRenderModifier> RSCustomClipToFrameModifier::CreateRenderModifier() const
 {
     auto renderProperty = GetRenderProperty();

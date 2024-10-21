@@ -226,18 +226,31 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback008, Funct
 }
 
 /*
-* Function: OH_NativeVSync_Destroy
+* Function: OH_NativeVSync_DVSyncSwitch
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call OH_NativeVSync_Destroy by abnormal input
+* CaseDescription: 1. call OH_NativeVSync_DVSyncSwitch with abnormal parameters
 *                  2. check ret
  */
-HWTEST_F(NativeVsyncTest, OH_NativeVSync_Destroy001, Function | MediumTest | Level2)
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_DVSyncSwitch001, Function | MediumTest | Level2)
 {
-    OH_NativeVSync* nativeVsync = nullptr;
-    ASSERT_EQ(nativeVsync, nullptr);
-    OH_NativeVSync_Destroy(nativeVsync);
+    ASSERT_NE(OH_NativeVSync_DVSyncSwitch(nullptr, true), 0);
+    ASSERT_NE(OH_NativeVSync_DVSyncSwitch(nullptr, false), 0);
+}
+
+/*
+* Function: OH_NativeVSync_DVSyncSwitch
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_DVSyncSwitch with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_DVSyncSwitch002, Function | MediumTest | Level2)
+{
+    ASSERT_EQ(OH_NativeVSync_DVSyncSwitch(native_vsync, true), 0);
+    ASSERT_EQ(OH_NativeVSync_DVSyncSwitch(native_vsync, false), 0);
 }
 
 /*
@@ -245,11 +258,13 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_Destroy001, Function | MediumTest | Lev
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. call OH_NativeVSync_Destroy
-*                  2. check ret
+* CaseDescription: 1. call OH_NativeVSync_Destroy with abnormal input
+*                  2. call OH_NativeVSync_Destroy with normal input
  */
-HWTEST_F(NativeVsyncTest, OH_NativeVSync_Destroy002, Function | MediumTest | Level2)
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_Destroy001, Function | MediumTest | Level2)
 {
+    OH_NativeVSync_Destroy(nullptr);
+
     ASSERT_NE(native_vsync, nullptr);
     OH_NativeVSync_Destroy(native_vsync);
     native_vsync = nullptr;

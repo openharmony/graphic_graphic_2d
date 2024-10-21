@@ -21,6 +21,7 @@
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "impl/paragraph_impl.h"
+#include "utils/text_trace.h"
 
 #include "convert.h"
 #include "text_line_base.h"
@@ -120,6 +121,7 @@ float Typography::DetectIndents(size_t index)
 
 void Typography::Layout(double width)
 {
+    TEXT_TRACE_FUNC();
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();

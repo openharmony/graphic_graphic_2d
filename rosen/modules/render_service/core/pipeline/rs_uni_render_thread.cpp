@@ -76,6 +76,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
 constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
+constexpr uint64_t ONE_MEGABYTE = 1000 * 1000;
 
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -647,9 +648,16 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
     int maxResources;
     gpuContext->GetResourceCacheLimits(&maxResources, &cacheLimit);
 
+    constexpr int MAX_GPU_LIMIT_SIZE = 4000;
     std::string strM = type.substr(typeGpuLimit.length());
-    size_t sizeM = std::stoul(strM);
-    size_t maxResourcesBytes = sizeM * 1000 * 1000L; // max 4G
+    size_t maxResourcesBytes = cacheLimit; // max 4G
+    char* end = nullptr;
+    errno = 0;
+    long long sizeM = std::strtoll(strM.c_str(), &end, 10);
+    if (end != nullptr && end != strM.c_str() && errno == 0 && *end == '\0' &&
+        sizeM > 0 && sizeM <= MAX_GPU_LIMIT_SIZE) {
+        maxResourcesBytes = sizeM * ONE_MEGABYTE;
+    }
 
     gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
     dumpString.append("setgpulimit: " + FormatNumber(cacheLimit)
@@ -697,7 +705,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
         } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
             TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
-            uint32_t pid = static_cast<uint32_t>(std::stoll(type));
+            uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
             Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
@@ -787,8 +795,20 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
+        if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+            auto purgeDrawables =
+                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
+            for (auto& drawable : purgeDrawables) {
+                drawable->Purge();
+            }
+        }
+        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
+        } else {
+            if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+                grContext->PurgeUnlockedResources(false);
+            }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->exitedPidSet_.clear();
@@ -803,8 +823,15 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
-void RSUniRenderThread::ResetClearMemoryTask()
+void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids)
 {
+    for (auto [nodeId, purgeFlag] : ids) {
+        if (purgeFlag) {
+            nodesNeedToBeClearMemory_.insert(nodeId);
+        } else {
+            nodesNeedToBeClearMemory_.erase(nodeId);
+        }
+    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
         ClearMemoryCache(clearMoment_, clearMemDeeply_);

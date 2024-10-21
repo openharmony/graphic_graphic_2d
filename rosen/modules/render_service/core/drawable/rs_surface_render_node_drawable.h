@@ -29,6 +29,7 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_draw_window_cache.h"
 
 namespace OHOS::Rosen {
 class RSRenderThreadParams;
@@ -113,7 +114,7 @@ public:
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isHdrOn = false);
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isNeedFP16 = false);
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
@@ -233,10 +234,8 @@ public:
     }
     void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) override;
 #endif
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+
+    bool IsHardwareEnabledTopSurface() const;
 
     inline bool CheckCacheSurface()
     {
@@ -338,6 +337,9 @@ private:
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
     bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
+
+    RSDrawWindowCache drawWindowCache_;
+    friend class OHOS::Rosen::RSDrawWindowCache;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

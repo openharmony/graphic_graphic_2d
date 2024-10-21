@@ -108,7 +108,7 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
     table->minor = -1;
     if (table->isLoad && table->egl.eglInitialize) {
         if (table->egl.eglInitialize(disp_, &table->major, &table->minor)) {
-            WLOGI("initialized ver=%{public}d.%{public}d", table->major, table->minor);
+            WLOGD("initialized ver=%{public}d.%{public}d", table->major, table->minor);
             if (major != nullptr) {
                 *major = table->major;
             }

@@ -155,7 +155,7 @@ void HgmCore::SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting)
         std::string asConfig = curScreenSetting.ltpoConfig["adaptiveSync"];
  
         if (asConfig == "1" || asConfig == "0") {
-            adaptiveSync_ = std::stoi(curScreenSetting.ltpoConfig["adaptiveSync"]);
+            adaptiveSync_ = std::stoi(asConfig);
         } else {
             adaptiveSync_ = 0;
         }
@@ -503,7 +503,7 @@ void HgmCore::SetActiveScreenId(ScreenId id)
 
 sptr<HgmScreen> HgmCore::GetActiveScreen() const
 {
-    auto activeScreenId = activeScreenId_.load();
+    auto activeScreenId = GetActiveScreenId();
     if (activeScreenId == INVALID_SCREEN_ID) {
         HGM_LOGE("HgmScreen activeScreenId_ noset");
         return nullptr;

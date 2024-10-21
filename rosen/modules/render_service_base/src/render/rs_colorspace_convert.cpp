@@ -25,26 +25,7 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-constexpr float DEFAULT_HDR_RATIO = 1.0f;
-constexpr float REFERENCE_WHITE = 203.0f;
-constexpr float CAMERA_WHITE_MIN = 500.0f;
-constexpr float CAMERA_WHITE_MAX = 510.0f;
-constexpr float CAMERA_HDR_RATIO = 2.5f;
-constexpr float HDR_WHITE = 1000.0f;
-constexpr float DEFAULT_SCALER = HDR_WHITE / REFERENCE_WHITE;
-
-float CalScaler(const float& maxContentLightLevel)
-{
-    if (ROSEN_EQ(maxContentLightLevel, REFERENCE_WHITE)) {
-        return DEFAULT_HDR_RATIO;
-    } else if (ROSEN_GE(maxContentLightLevel, CAMERA_WHITE_MIN) && ROSEN_LE(maxContentLightLevel, CAMERA_WHITE_MAX)) {
-        return CAMERA_HDR_RATIO;
-    } else if (ROSEN_LE(maxContentLightLevel, HDR_WHITE)) {
-        return HDR_WHITE / REFERENCE_WHITE;
-    } else {
-        return maxContentLightLevel / REFERENCE_WHITE;
-    }
-}
+constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 }; // namespace
 
 RSColorSpaceConvert::RSColorSpaceConvert()
@@ -177,11 +158,12 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     }
 
     float scaler = DEFAULT_SCALER;
+    auto& rsLuminance = RSLuminanceControl::Get();
     if (parameter.staticMetadata.size() != sizeof(HdrStaticMetadata)) {
         RS_LOGD("bhdr parameter.staticMetadata size is invalid");
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(parameter.staticMetadata.data());
-        scaler = CalScaler(data.cta861.maxContentLightLevel);
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel);
     }
 
     ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata);
@@ -190,8 +172,8 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     }
 
     // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
-    float sdrNits = RSLuminanceControl::Get().GetSdrDisplayNits(screenId);
-    float displayNits = RSLuminanceControl::Get().GetDisplayNits(screenId);
+    float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
+    float displayNits = rsLuminance.GetDisplayNits(screenId);
     parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
     parameter.currentDisplayNits = displayNits;
     parameter.sdrNits = sdrNits;

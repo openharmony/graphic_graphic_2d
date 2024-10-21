@@ -50,11 +50,30 @@ SKImageChain::~SKImageChain()
     cpuSurface_ = nullptr;
     image_ = nullptr;
 }
-void SKImageChain::InitWithoutCanvas()
+
+DrawError SKImageChain::Render(const std::vector<sk_sp<SkImageFilter>>& skFilters, const bool& forceCPU,
+    std::shared_ptr<Media::PixelMap>& dstPixelMap)
+{
+    for (auto filter : skFilters) {
+        SetFilters(filter);
+    }
+
+    ForceCPU(forceCPU);
+    DrawError ret = Draw();
+    if (ret == DrawError::ERR_OK) {
+        dstPixelMap = GetPixelMap();
+    } else {
+        LOGE("skImage.Draw() = %{public}d", ret);
+    }
+
+    return ret;
+}
+
+DrawError SKImageChain::InitWithoutCanvas()
 {
     if (srcPixelMap_ == nullptr) {
         LOGE("The srcPixelMap_ is nullptr.");
-        return;
+        return DrawError::ERR_IMAGE_NULL;
     }
     imageInfo_ = SkImageInfo::Make(srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight(),
     PixelFormatConvert(srcPixelMap_->GetPixelFormat()), static_cast<SkAlphaType>(srcPixelMap_->GetAlphaType()));
@@ -70,7 +89,12 @@ void SKImageChain::InitWithoutCanvas()
     if (dstPixelMap != nullptr) {
         dstPixmap_ = std::make_shared<SkPixmap>(imageInfo_, dstPixelMap->GetPixels(), dstPixelMap->GetRowStride());
         dstPixelMap_ = std::shared_ptr<Media::PixelMap>(dstPixelMap.release());
+    } else {
+        LOGE("Failed to create the dstPixelMap.");
+        return DrawError::ERR_IMAGE_NULL;
     }
+
+    return DrawError::ERR_OK;
 }
 
 bool SKImageChain::CreateCPUCanvas()
@@ -182,7 +206,12 @@ std::shared_ptr<Media::PixelMap> SKImageChain::GetPixelMap()
 
 bool SKImageChain::InitializeCanvas()
 {
-    InitWithoutCanvas();
+    DrawError ret = InitWithoutCanvas();
+    if (ret != DrawError::ERR_OK) {
+        LOGE("Failed to init.");
+        return false;
+    }
+
     if (forceCPU_) {
         if (!CreateCPUCanvas()) {
             LOGE("Failed to create canvas for CPU.");

@@ -244,8 +244,8 @@ enum class SystemAnimatedScenes : uint32_t {
     APPEAR_MISSION_CENTER, // A special case scenario that displays the mission center
     ENTER_WIND_CLEAR, // Enter win+D in clear screen mode
     ENTER_WIND_RECOVER, // Enter win+D in recover mode
-    ENTER_RECENTS, // Enter recents
-    EXIT_RECENTS, // Exit recents
+    ENTER_RECENTS, // Enter recents only for phone, end with EXIT_RECENTS instead of OTHERS
+    EXIT_RECENTS, // Exit recents only for phone
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
@@ -428,6 +428,15 @@ enum class AncoHebcStatus : int32_t {
     INITIAL,
     NOT_USE_HEBC,
     USE_HEBC
+};
+
+enum class RSInterfaceErrorCode : uint32_t {
+#undef NO_ERROR
+    NO_ERROR = 0,
+    NOT_SELF_CALLING,
+    NONSYSTEM_CALLING,
+    UNKNOWN_ERROR,
+    WRITE_PARCEL_ERROR,
 };
 
 } // namespace Rosen

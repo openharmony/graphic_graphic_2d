@@ -25,7 +25,7 @@ ohos_unittest("2d_graphics_image_test") {
     "picture_test.cpp",
   ]
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     sources += [ "gpu_context_test.cpp" ]
   }
 
@@ -43,8 +43,8 @@ ohos_unittest("2d_graphics_image_test") {
   ]
 
   defines = [ "ROSEN_OHOS" ]
-  if (ace_enable_gpu) {
-    defines += [ "ACE_ENABLE_GPU" ]
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
   }
   defines += gpu_defines
 

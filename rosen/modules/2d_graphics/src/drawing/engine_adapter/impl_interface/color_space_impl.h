@@ -28,6 +28,7 @@ enum class CMSTransferFuncType;
 enum class CMSMatrixType;
 struct CMSTransferFunction;
 struct CMSMatrix3x3;
+class ColorSpace;
 class Image;
 class ColorSpaceImpl : public BaseImpl {
 public:
@@ -42,6 +43,8 @@ public:
     virtual sk_sp<SkColorSpace> GetSkColorSpace() const = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
+    virtual bool IsSRGB() const = 0;
+    virtual bool Equals(const std::shared_ptr<ColorSpace>& colorSpace) const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

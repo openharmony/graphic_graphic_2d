@@ -101,8 +101,8 @@ template("skia_libtxt") {
         "USE_ROSEN_DRAWING",
         "USE_SKIA_TXT",
       ]
-      if (ace_enable_gpu) {
-        defines += [ "ACE_ENABLE_GPU" ]
+      if (rs_enable_gpu) {
+        defines += [ "RS_ENABLE_GPU" ]
       }
     }
 
@@ -197,8 +197,8 @@ ohos_source_set("skia_paragraph") {
       "USE_ROSEN_DRAWING",
       "USE_SKIA_TXT",
     ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
   }
 
@@ -231,7 +231,10 @@ ohos_source_set("skia_paragraph") {
 
   if (!is_cross_platform) {
     defines += [ "OHOS_TEXT_ENABLE" ]
-    external_deps += [ "init:libbegetutil" ]
+    external_deps += [
+      "hitrace:hitrace_meter",
+      "init:libbegetutil",
+    ]
   }
 }
 
@@ -286,8 +289,8 @@ ohos_source_set("skia_shaper") {
       "USE_ROSEN_DRAWING",
       "USE_SKIA_TXT",
     ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
   }
 

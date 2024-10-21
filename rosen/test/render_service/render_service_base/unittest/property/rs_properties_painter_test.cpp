@@ -623,7 +623,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawContentLight001, TestSize.Level1)
     RSProperties properties;
     auto lightBuilder = RSPropertiesPainter::GetPhongShaderBuilder();
     Drawing::Brush brush;
-    float lightIntensityArray[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f}; // for test
+    std::array<float, MAX_LIGHT_SOURCES> lightIntensityArray = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f }; // for test
     RSPropertiesPainter::DrawContentLight(properties, canvas, lightBuilder, brush, lightIntensityArray);
     EXPECT_NE(lightBuilder, nullptr);
 }
@@ -970,20 +970,19 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightInner001, TestSize.Level1)
     std::shared_ptr<RSObjAbsGeometry> geoPtr;
     Vector4f lightPos = {1.f, 1.f, 1.f, 1.f}; // for test
     lightSourcesAndPosVec.push_back(std::make_pair(newLightSource, lightPos));
-    RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
-    EXPECT_EQ(geoPtr, nullptr);
+    RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec);
 
     properties.illuminatedPtr_ = std::make_shared<RSIlluminated>();
     properties.illuminatedPtr_->illuminatedType_ = IlluminatedType::CONTENT;
-    RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
+    RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec);
     EXPECT_NE(properties.illuminatedPtr_, nullptr);
 
     properties.illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER;
-    RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
+    RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec);
     EXPECT_EQ(lightSourcesAndPosVec.empty(), false);
 
     properties.illuminatedPtr_->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
-    RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec, geoPtr);
+    RSPropertiesPainter::DrawLightInner(properties, canvas, lightBuilder, lightSourcesAndPosVec);
     EXPECT_NE(lightSourcesAndPosVec.empty(), true);
 }
 
@@ -1667,6 +1666,35 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
+}
+
+/**
+ * @tc.name: GetDistortionEffectDirtyRect
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetDistortionEffectDirtyRect, TestSize.Level1)
+{
+    RectI localDistortionEffectRect(0, 0, 0, 0);
+    RSProperties properties;
+    float width = 200.0f; // set width 200
+    float height = 200.0f; // set height 200
+    Vector4f bounds(0.0, 0.0, width, height);
+    properties.SetBounds(bounds);
+
+    // the distortionK is nullptr
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
+
+    // the distortionK < 0
+    properties.SetDistortionK(-0.2f);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
+
+    // the distortionK > 0
+    properties.SetDistortionK(0.2f);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    EXPECT_TRUE(localDistortionEffectRect.width_ > static_cast<int>(width));
 }
 } // namespace Rosen
 } // namespace OHOS

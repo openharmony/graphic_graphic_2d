@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+#include "parameters_defination.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -23,8 +24,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest : public RSGraphicTest {
 private:
-    int screenWidth = 1260;
-    int screenHeight = 2720;
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
 
 public:
     // called before each tests
@@ -39,14 +40,14 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_1)
 {
     float spherizeList[] = { 0, 0.001, 0.5, 1 };
 
-    for (int i = 0; i < 4; i++) {
-        int x = (i % 2) * 510;
-        int y = (i / 2) * 510;
+    for (int i = 0; i < FOUR_; i++) {
+        int x = (i % TWO_) * FIVE_HUNDRED_TEN_;
+        int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
         auto testNodeSpherize = RSCanvasNode::Create();
-        testNodeSpherize->SetBounds({ x, y, 500, 500 });
+        testNodeSpherize->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         auto imageModifier = std::make_shared<ImageCustomModifier>();
-        imageModifier->SetWidth(500);
-        imageModifier->SetHeight(500);
+        imageModifier->SetWidth(FIVE_HUNDRED_);
+        imageModifier->SetHeight(FIVE_HUNDRED_);
         imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
         testNodeSpherize->AddModifier(imageModifier);
         testNodeSpherize->SetSpherizeDegree(spherizeList[i]);
@@ -59,13 +60,13 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_1)
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_2)
 {
     auto testNodeSpherizeBlur = RSCanvasNode::Create();
-    testNodeSpherizeBlur->SetBounds({ 0, 0, 500, 500 });
+    testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     auto imageModifier2 = std::make_shared<ImageCustomModifier>();
-    imageModifier2->SetWidth(500);
-    imageModifier2->SetHeight(500);
+    imageModifier2->SetWidth(FIVE_HUNDRED_);
+    imageModifier2->SetHeight(FIVE_HUNDRED_);
     imageModifier2->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
     testNodeSpherizeBlur->AddModifier(imageModifier2);
-    testNodeSpherizeBlur->SetForegroundEffectRadius(10);
+    testNodeSpherizeBlur->SetForegroundEffectRadius(TEN_);
     testNodeSpherizeBlur->SetSpherizeDegree(1);
     GetRootNode()->AddChild(testNodeSpherizeBlur);
     RegisterNode(testNodeSpherizeBlur);

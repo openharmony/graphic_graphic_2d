@@ -110,6 +110,16 @@ public:
     {
         RSAnimation::StartCustomAnimation(animation);
     }
+
+    std::string DumpAnimation() const
+    {
+        return RSAnimation::DumpAnimation();
+    }
+
+    void DumpAnimationInfo(std::string& dumpInfo) const override
+    {
+        RSAnimation::DumpAnimationInfo(dumpInfo);
+    }
 };
 
 class RSRenderAnimationMock : public RSRenderAnimation {
@@ -275,6 +285,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest003, TestSize.Level1)
     animation->SetFraction(0.5f);
     animation->OnSetFraction(0.5f);
     animation->StartCustomAnimation(renderAnimation);
+    animation->DumpAnimation();
+    std::string dumpInfo = "";
+    animation->DumpAnimationInfo(dumpInfo);
     EXPECT_TRUE(animation != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest003 end";
 }
@@ -1114,6 +1127,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     auto propertyUnit_ { RSPropertyUnit::UNKNOWN };
     property->SetPropertyUnit(propertyUnit_);
     auto base = std::make_shared<RSRenderPropertyBase>();
+    base->SetModifierType(RSModifierType::BOUNDS);
+    auto type = base->GetModifierType();
+    EXPECT_TRUE(type == RSModifierType::BOUNDS);
     property->SetValueFromRender(base);
     property->SetUpdateCallback(nullptr);
     RSAnimationTimingProtocol timingProtocol;

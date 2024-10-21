@@ -19,6 +19,7 @@
 #include <cinttypes>
 
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 #include "hisysevent.h"
@@ -131,6 +132,9 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
 
     hdiScreen_->Init();
+    if (!RSSystemProperties::IsPcType() && !RSSystemProperties::IsTabletType()) {
+        hdiScreen_->SetScreenVsyncEnabled(true);
+    }
     if (hdiScreen_->GetScreenSupportedModes(supportedModes_) < 0) {
         RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedModes.",
             __func__, id_);
@@ -366,8 +370,9 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
         return;
     }
 
-    if (powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON ||
-        powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED) {
+    if ((powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON ||
+        powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED) &&
+        !RSSystemProperties::IsPcType() && !RSSystemProperties::IsTabletType()) {
         RS_LOGD("RSScreen %{public}s Enable hardware vsync", __func__);
         if (hdiScreen_->SetScreenVsyncEnabled(true) != GRAPHIC_DISPLAY_SUCCESS) {
             RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);

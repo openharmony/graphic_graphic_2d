@@ -120,7 +120,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COLOR_FILTER,                  // HUE_ROTATE
     RSDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE
-    RSDrawableSlot::INVALID,                       // SHADOW_IS_FILLED
+    RSDrawableSlot::SHADOW,                        // SHADOW_IS_FILLED
     RSDrawableSlot::OUTLINE,                       // OUTLINE_COLOR
     RSDrawableSlot::OUTLINE,                       // OUTLINE_WIDTH
     RSDrawableSlot::OUTLINE,                       // OUTLINE_STYLE
@@ -628,7 +628,8 @@ bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
         }
     }
     if (bgFilterDrawable->FuzePixelStretch(node)) {
-        pixelStretchDrawable->SetPixelStretch(std::nullopt);
+        float INFTY = std::numeric_limits<float>::infinity();
+        pixelStretchDrawable->SetPixelStretch(Vector4f{ INFTY, INFTY, INFTY, INFTY });
         return true;
     }
 

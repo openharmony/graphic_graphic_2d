@@ -194,6 +194,8 @@ public:
     size_t CountTextBlobNum();
 
     void Dump(std::string& out);
+
+    void Purge();
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);

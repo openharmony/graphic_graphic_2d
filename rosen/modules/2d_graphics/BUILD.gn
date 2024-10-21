@@ -46,8 +46,8 @@ config("export_config") {
     "$rosen_root/modules/2d_engine/rosen_text/export",
   ]
 
-  if (ace_enable_gpu) {
-    defines = [ "ACE_ENABLE_GPU" ]
+  if (rs_enable_gpu) {
+    defines = [ "RS_ENABLE_GPU" ]
   }
 }
 
@@ -203,13 +203,13 @@ template("graphics2d_source_set") {
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
     ]
 
-    if (ace_enable_gpu) {
+    if (rs_enable_gpu) {
       sources += [
         "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_gpu_context.cpp",
         "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_task_executor.cpp",
         "$drawing_core_src_dir/image/gpu_context.cpp",
       ]
-      defines += [ "ACE_ENABLE_GPU" ]
+      defines += [ "RS_ENABLE_GPU" ]
 
       if (!is_emulator && !build_ohos_sdk && !is_arkui_x) {
         external_deps += [ "qos_manager:qos" ]
@@ -399,7 +399,7 @@ if (!is_arkui_x) {
       "bounds_checking_function:libsec_static",
       "hilog:libhilog",
     ]
-
+    public_external_deps = [ "skia:skia_canvaskit" ]
     public_configs = [ ":export_config" ]
 
     if (platform == "ohos") {

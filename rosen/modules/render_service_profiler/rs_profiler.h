@@ -88,7 +88,7 @@
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc)
-#define RS_PROFILER_SKIP_PARCEL_DATA(parcel, size, retCode) false
+#define RS_PROFILER_SKIP_PARCEL_DATA(parcel, size) false
 #define RS_PROFILER_GET_FRAME_NUMBER() 0
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
@@ -206,6 +206,7 @@ public:
     RSB_EXPORT static bool IsSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
+    RSB_EXPORT static Mode GetMode();
 
     RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
@@ -235,7 +236,6 @@ private:
     static void UpdateDirtyRegionBetaRecord(double currentFrameDirtyRegion);
 
     RSB_EXPORT static void SetMode(Mode mode);
-    RSB_EXPORT static Mode GetMode();
     RSB_EXPORT static bool IsEnabled();
 
     RSB_EXPORT static uint32_t GetCommandCount();

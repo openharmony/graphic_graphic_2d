@@ -665,7 +665,6 @@ void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data, uin
             return;
         }
         if (Utils::IsNodeIdPatched(node->GetId())) {
-            ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, unmarshal nodes", node->GetId());
             node->SetContentDirty();
             node->SetDirty();
         }

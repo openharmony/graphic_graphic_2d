@@ -35,7 +35,7 @@ void RSRenderKeyframeAnimationTest::TearDown() {}
 
 /**
  * @tc.name: DumpAnimationTypeTest
- * @tc.desc: test results of DumpAnimationType
+ * @tc.desc: test results of DumpAnimationInfo
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderKeyframeAnimationTest, DumpAnimationTypeTest, Level1)
@@ -43,7 +43,7 @@ HWTEST_F(RSRenderKeyframeAnimationTest, DumpAnimationTypeTest, Level1)
     auto originValue = std::make_shared<RSRenderPropertyBase>();
     RSRenderKeyframeAnimation rsRenderKeyframeAnimation(0, 0, originValue);
     std::string out = "out";
-    rsRenderKeyframeAnimation.DumpAnimationType(out);
+    rsRenderKeyframeAnimation.DumpAnimationInfo(out);
     EXPECT_TRUE(true);
 }
 

@@ -47,6 +47,12 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     }
 }
 
+bool RSRenderNodeGC::IsBucketQueueEmpty()
+{
+    std::lock_guard<std::mutex> lock(nodeMutex_);
+    return nodeBucket_.empty();
+}
+
 void RSRenderNodeGC::ReleaseNodeBucket()
 {
     std::vector<RSRenderNode*> toDele;
@@ -69,6 +75,7 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 
 void RSRenderNodeGC::ReleaseNodeMemory()
 {
+    RS_TRACE_FUNC();
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
         if (nodeBucket_.empty()) {

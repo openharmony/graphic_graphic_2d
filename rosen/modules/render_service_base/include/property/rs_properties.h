@@ -472,6 +472,8 @@ public:
     bool IsWaterRippleValid() const;
     bool IsFlyOutValid() const;
     bool IsDistortionKValid() const;
+    void SetDistortionDirty(bool distortionEffectDirty);
+    bool GetDistortionDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
 
@@ -633,7 +635,8 @@ private:
     std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
     std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
     float flyOutDegree_ = 0.0f;
-    std::optional<float> distortionK_;
+    std::optional<float> distortionK_ = std::nullopt;
+    bool distortionEffectDirty_ = false;
     float foregroundEffectRadius_ = 0.f;
     bool haveEffectRegion_ = false;
     bool isAttractionValid_ = false;

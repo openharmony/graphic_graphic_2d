@@ -77,7 +77,7 @@ std::unique_ptr<DataImpl> ImplFactory::CreateDataImpl()
     return EngineImplFactory::CreateData();
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::unique_ptr<GPUContextImpl> ImplFactory::CreateGPUContextImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

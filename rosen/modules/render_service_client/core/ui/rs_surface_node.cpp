@@ -18,9 +18,6 @@
 
 #include <algorithm>
 #include <string>
-#ifdef ROSEN_OHOS
-#include "parameters.h"
-#endif
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -67,7 +64,9 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
     RSNodeMap::MutableInstance().RegisterNode(node);
-    if (type == RSSurfaceNodeType::APP_WINDOW_NODE) {
+    RS_LOGD("RSSurfaceNode::Create HDRClient name: %{public}s, type: %{public}hhu, id: %{public}" PRIu64,
+        node->name_.c_str(), type, node->GetId());
+    if (type == RSSurfaceNodeType::APP_WINDOW_NODE || type == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
         auto callback = &RSSurfaceNode::SetHDRPresent;
         RSHDRManager::Instance().RegisterSetHDRPresent(callback, node->GetId());
     }
@@ -863,8 +862,7 @@ bool RSSurfaceNode::GetSkipDraw() const
 void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
 #ifdef ROSEN_OHOS
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return;
     }
     if (name.empty() || name.length() > WATERMARK_NAME_LENGTH_LIMIT) {
@@ -905,6 +903,17 @@ void RSSurfaceNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)
 RSSurfaceNodeAbilityState RSSurfaceNode::GetAbilityState() const
 {
     return abilityState_;
+}
+
+RSInterfaceErrorCode RSSurfaceNode::SetHidePrivacyContent(bool needHidePrivacyContent)
+{
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient != nullptr) {
+        return static_cast<RSInterfaceErrorCode>(
+            renderServiceClient->SetHidePrivacyContent(GetId(), needHidePrivacyContent));
+    }
+    return RSInterfaceErrorCode::UNKNOWN_ERROR;
 }
 } // namespace Rosen
 } // namespace OHOS

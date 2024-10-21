@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pixel_map.h"
+#include "property/rs_properties_def.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
 
@@ -2097,5 +2098,170 @@ HWTEST_F(RSUniRenderUtilTest, IntersectRect, TestSize.Level2)
     result = RSUniRenderUtil::IntersectRect(srcRect, rect);
     expect = { 500, 500, 580, 1420 };
     ASSERT_EQ(result, expect);
+}
+
+/*
+ * @tc.name: GetMatrix_001
+ * @tc.desc: test GetMatrix with nullptr Node
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_001, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderNode> node = nullptr;
+    ASSERT_EQ(node, nullptr);
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_002
+ * @tc.desc: test GetMatrix with nullptr boundsGeo_
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_002, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_003
+ * @tc.desc: test GetMatrix with boundsGeo_
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_003, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), node->renderContent_->renderProperties_.boundsGeo_->GetMatrix());
+}
+
+/*
+ * @tc.name: GetMatrix_004
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_004, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_005
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent has no geo
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_005, TestSize.Level2)
+{
+    NodeId parentId = 0;
+    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(parentId);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    node->SetParent(parentNode);
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), Drawing::Matrix());
+}
+
+/*
+ * @tc.name: GetMatrix_006
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent has geo
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_006, TestSize.Level2)
+{
+    NodeId parentId = 0;
+    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(parentId);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    node->SetParent(parentNode);
+    auto invertAbsParentMatrix = Drawing::Matrix();
+    parentNode->renderContent_->renderProperties_.boundsGeo_->GetAbsMatrix().Invert(invertAbsParentMatrix);
+    auto assertResult = node->renderContent_->renderProperties_.boundsGeo_->GetAbsMatrix();
+    assertResult.PostConcat(invertAbsParentMatrix);
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), assertResult);
+}
+
+/**
+ * @tc.name: CheckRenderSkipIfScreenOff001
+ * @tc.desc: Test CheckRenderSkipIfScreenOff, no need for extra frame
+ * @tc.type: FUNC
+ * @tc.require: #I9UNQP
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return;
+    }
+    ScreenId screenId = 1;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+    EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+}
+
+/**
+ * @tc.name: CheckRenderSkipIfScreenOff002
+ * @tc.desc: Test CheckRenderSkipIfScreenOff, need extra frame
+ * @tc.type: FUNC
+ * @tc.require: #I9UNQP
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return;
+    }
+    ScreenId screenId = 1;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
 }
 } // namespace OHOS::Rosen

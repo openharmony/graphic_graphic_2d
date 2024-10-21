@@ -20,6 +20,7 @@
 #include <ipc_skeleton.h>
 #include <iremote_object.h>
 #include <iservice_registry.h>
+#include <parameters.h>
 #include <system_ability_definition.h>
 #include "util.h"
 
@@ -57,7 +58,7 @@ void BootAnimationController::WaitRenderServiceInit() const
             continue;
         }
         sptr<IRemoteObject> renderObj = saMgr->GetSystemAbility(RENDER_SERVICE);
-        if (renderObj == nullptr) {
+        if (renderObj == nullptr || !system::GetBoolParameter("bootevent.renderservice.ready", false)) {
             LOGI("renderService is not initialized, please wait...");
             usleep(SLEEP_TIME_US);
         } else {

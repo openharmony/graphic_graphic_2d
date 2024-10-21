@@ -275,6 +275,8 @@ public:
 
     virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) = 0;
 
+    virtual uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) = 0;
+
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
     virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;

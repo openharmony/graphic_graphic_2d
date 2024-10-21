@@ -2723,7 +2723,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowColorStrategy001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
     rsNode->SetShadowColorStrategy(shadowColorStrategy);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy));
+    ASSERT_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy);
 }
 
 /**
@@ -5245,7 +5245,7 @@ HWTEST_F(RSNodeTest, SetEnvForegroundColor, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     uint32_t colorValue = 1; // for test
     rsNode->SetEnvForegroundColor(colorValue);
-    EXPECT_EQ(colorValue, 1);
+    ASSERT_EQ(rsNode->GetInstanceId(), -1);
 }
 
 /**
@@ -5771,20 +5771,6 @@ HWTEST_F(RSNodeTest, SetShadowIsFilled, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetShadowColorStrategy
- * @tc.desc: test results of SetShadowColorStrategy
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
- */
-HWTEST_F(RSNodeTest, SetShadowColorStrategy, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    int shadowColorStrategy = 1; // for test
-    rsNode->SetShadowColorStrategy(shadowColorStrategy);
-    EXPECT_EQ(shadowColorStrategy, 1);
-}
-
-/**
  * @tc.name: SetClipRRect001
  * @tc.desc: test results of SetClipRRect
  * @tc.type: FUNC
@@ -5936,7 +5922,7 @@ HWTEST_F(RSNodeTest, SetDistortionK, TestSize.Level1)
     // for test
     float distortionK = 0.5f;
     rsNode->SetDistortionK(distortionK);
-    EXPECT_EQ(distortionK, 0.5f);
+    ASSERT_TRUE(rsNode != nullptr);
 }
 
 /**
@@ -7173,7 +7159,7 @@ HWTEST_F(RSNodeTest, SetWaterRippleParams, TestSize.Level1)
     };
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetWaterRippleParams(rs_water_ripple_param, progress);
-    EXPECT_EQ(waveCount, 2);
+    ASSERT_EQ(rsNode->GetInstanceId(), -1);
 }
 
 /**

@@ -143,6 +143,8 @@ public:
     // Sync methods, then can access all members and do UI->RT sync
     virtual void OnSync() = 0;
 
+    virtual void OnPurge() {};
+
     // static generate & update helper methods
     // Step 1, calculate dirtySlots based on dirty modifiers
     static std::unordered_set<RSDrawableSlot> CalculateDirtySlots(

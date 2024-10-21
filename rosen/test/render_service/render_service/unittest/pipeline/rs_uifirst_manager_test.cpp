@@ -1436,4 +1436,35 @@ HWTEST_F(RSUifirstManagerTest, GetUiFirstMode, TestSize.Level1)
         EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
     }
 }
+
+/**
+ * @tc.name: UpdateUifirstNodes002
+ * @tc.desc: Test UpdateUifirstNodes
+ * @tc.type: FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+        return;
+    }
+
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode->isChildSupportUifirst_ = true;
+    surfaceNode->firstLevelNodeId_ = surfaceNode->GetId();
+    surfaceNode->forceUIFirst_ = true;
+    surfaceNode->hasSharedTransitionNode_ = false;
+    surfaceNode->hasFilter_ = false;
+    surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+    uifirstManager_.rotationChanged_ = false;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
+    auto param = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
+    EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE);
+
+    surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
+    EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONFOCUS_WINDOW);
+}
 }

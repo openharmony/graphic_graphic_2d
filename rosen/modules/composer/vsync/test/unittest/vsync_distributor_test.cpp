@@ -283,6 +283,19 @@ HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level
 }
 
 /*
+* Function: GetRealTimeOffsetOfDvsync001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetRealTimeOffsetOfDvsync
+ */
+HWTEST_F(VSyncDistributorTest, GetRealTimeOffsetOfDvsync001, Function | MediumTest| Level3)
+{
+    int64_t time = 1000;
+    VSyncDistributorTest::vsyncDistributor->GetRealTimeOffsetOfDvsync(time);
+}
+
+/*
 * Function: MarkRSAnimate001
 * Type: Function
 * Rank: Important(2)

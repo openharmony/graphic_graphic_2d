@@ -16,6 +16,7 @@
 #include "animation/rs_render_spring_animation.h"
 
 #include "animation/rs_animation_trace_utils.h"
+#include "animation/rs_animation_trace_utils.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "pipeline/rs_render_node.h"
@@ -41,9 +42,18 @@ RSRenderSpringAnimation::RSRenderSpringAnimation(AnimationId id, const PropertyI
     // spring model is not initialized, so we can't calculate estimated duration
 }
 
-void RSRenderSpringAnimation::DumpAnimationType(std::string& out) const
+void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderSpringAnimation";
+    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    if (property_ != nullptr) {
+        type = property_->GetPropertyType();
+        out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
+    } else {
+        out += ", ModifierType: INVALID";
+    }
+    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(startValue_, type);
+    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type);
 }
 
 void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, float blendDuration)

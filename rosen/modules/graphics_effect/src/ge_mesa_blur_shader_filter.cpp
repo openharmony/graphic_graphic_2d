@@ -99,12 +99,12 @@ GEMESABlurShaderFilter::GEMESABlurShaderFilter(const Drawing::GEMESABlurShaderFi
     }
 
     if (radius_ < 1) {
-        LOGI("GEMESABlurShaderFilter radius(%{public}d) should be [1, 8k], ignore blur.", radius_);
+        LOGD("GEMESABlurShaderFilter radius(%{public}d) should be [1, 8k], ignore blur.", radius_);
         radius_ = 0;
     }
 
     if (radius_ > 8000) { // 8000 experienced value
-        LOGI("GEMESABlurShaderFilter radius(%{public}d) should be [1, 8k], change to 8k.", radius_);
+        LOGD("GEMESABlurShaderFilter radius(%{public}d) should be [1, 8k], change to 8k.", radius_);
         radius_ = 8000; // 8000 experienced value
     }
 

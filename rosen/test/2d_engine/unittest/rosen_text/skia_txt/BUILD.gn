@@ -44,6 +44,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "$rosen_root/modules/2d_graphics/include/recording",
     "$rosen_root/modules/2d_graphics/include/text",
     "$skia_root_new",
+    "$skia_root_new/modules/skparagraph",
   ]
 
   cflags_cc = [
@@ -63,8 +64,8 @@ ohos_unittest("rosen_text_skia_txt_test") {
       "USE_SKIA_TXT",
       "OHOS_SUPPORT",
     ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
   }
 

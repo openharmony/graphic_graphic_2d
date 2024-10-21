@@ -982,8 +982,8 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             }
             ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         } else {
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id);
-            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling);
         }
     };
     mainThread_->PostTask(captureTask);
@@ -1903,6 +1903,26 @@ void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, Se
         }
     };
     mainThread_->PostTask(task);
+}
+
+uint32_t RSRenderServiceConnection::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    if (!mainThread_) {
+        return static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, needHidePrivacyContent]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+        if (node) {
+            node->SetHidePrivacyContent(needHidePrivacyContent);
+        }
+    };
+    mainThread_->PostTask(task);
+    return static_cast<uint32_t>(RSInterfaceErrorCode::NO_ERROR);
 }
 
 void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)

@@ -22,8 +22,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest03 : public RSGraphicTest {
 private:
-    int screenWidth = 1260;
-    int screenHeight = 2720;
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
 
 public:
     // called before each tests
@@ -54,37 +54,44 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 {
     Color colorList[] = { Color(0, 0, 0), Color(255, 0, 0), Color(0, 255, 0), Color(0, 0, 255) };
 
-    for (int i = 0; i < 4; i++) {
-        int x = (i % 2) * 520;
-        int y = (i / 2) * 520;
+    const int nodeCount = 4;
+    const int columnCount = 2;
+    const int nodeSize = 500;
+    const int nodeHalfSize = 250;
+    const int nodePos = 520;
+
+    for (int i = 0; i < nodeCount; i++) {
+        int x = (i % columnCount) * nodePos;
+        int y = (i / columnCount) * nodePos;
         auto testNodeColor = RSCanvasNode::Create();
-        setNode(testNodeColor, { x, y, 500, 500 }, Vector4<Color>(colorList[i]));
+        setNode(testNodeColor, { x, y, nodeSize, nodeSize }, Vector4<Color>(colorList[i]));
         GetRootNode()->AddChild(testNodeColor);
         RegisterNode(testNodeColor);
     }
 
     // parent black, child red color, white border
     auto testNodeParent = RSCanvasNode::Create();
-    setNode(testNodeParent, { 0, 520 * 2, 500, 500 }, Vector4<Color>(colorList[0]));
+    setNode(testNodeParent, { 0, nodePos * 2, nodeSize, nodeSize }, Vector4<Color>(colorList[0]));
     testNodeParent->SetBackgroundColor(0xff000000);
     GetRootNode()->AddChild(testNodeParent);
     RegisterNode(testNodeParent);
 
+    const int testPos = 50;
     auto testNodeChild = RSCanvasNode::Create();
-    setNode(testNodeChild, { 50, 50, 250, 250 }, Vector4<Color>(Color(0xffffffff)));
+    setNode(testNodeChild, { testPos, testPos, nodeHalfSize, nodeHalfSize }, Vector4<Color>(Color(0xffffffff)));
     testNodeChild->SetForegroundColor(0xffff0000);
     testNodeParent->AddChild(testNodeChild);
     RegisterNode(testNodeChild);
 
     // alpha border
     auto testNodeAlphaColor = RSCanvasNode::Create();
-    setNode(testNodeAlphaColor, { 520, 520 * 2, 500, 500 }, Vector4<Color>(Color(0x7dffffff)));
+    setNode(testNodeAlphaColor, { nodePos, nodePos * 2, nodeSize, nodeSize }, Vector4<Color>(Color(0x7dffffff)));
     GetRootNode()->AddChild(testNodeAlphaColor);
     RegisterNode(testNodeAlphaColor);
 
     // four different color
     auto testNodeFourColor = RSCanvasNode::Create();
-    setNode(testNodeFourColor, { 0, 520 * 3, 500, 500 },
+    setNode(testNodeFourColor, { 0, nodePos * 3, nodeSize, nodeSize },
         Vector4<Color>(colorList[0], colorList[1], colorList[2], colorList[3]));
     GetRootNode()->AddChild(testNodeFourColor);
     RegisterNode(testNodeFourColor);
@@ -98,15 +105,23 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
     Color color(0, 0, 0);
     Vector4<Color> outLineColor = { color, color, color, color };
 
-    for (int i = 0; i < 3; i++) {
-        int x = (i % 2) * 520;
-        int y = (i / 2) * 520;
+    const int nodeCount = 3;
+    const int columnCount = 2;
+    const int nodeSize = 500;
+    const int nodePos = 520;
+    const float radiusVal = 50.0f;
+    const int offsetVal = 20;
+    const int offsetVal2 = 600;
+
+    for (int i = 0; i < nodeCount; i++) {
+        int x = (i % columnCount) * nodePos;
+        int y = (i / columnCount) * nodePos;
         auto testNodeWidth = RSCanvasNode::Create();
-        testNodeWidth->SetBounds({ x, y, 500, 500 });
-        testNodeWidth->SetTranslate(widthList[i] + 20, widthList[i] + 50, 0);
+        testNodeWidth->SetBounds({ x, y, nodeSize, nodeSize });
+        testNodeWidth->SetTranslate(widthList[i] + offsetVal, widthList[i] + radiusVal, 0);
         testNodeWidth->SetOutlineStyle(style);
         testNodeWidth->SetOutlineWidth({ widthList[i], widthList[i], widthList[i], widthList[i] });
-        testNodeWidth->SetOutlineRadius({ 50.0, 50.0, 50.0, 50.0 });
+        testNodeWidth->SetOutlineRadius({ radiusVal, radiusVal, radiusVal, radiusVal });
         testNodeWidth->SetOutlineColor(outLineColor);
         GetRootNode()->AddChild(testNodeWidth);
         RegisterNode(testNodeWidth);
@@ -114,11 +129,11 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 
     // four different width
     auto testNodeFourWidth = RSCanvasNode::Create();
-    testNodeFourWidth->SetBounds({ 0, 520 * 2, 500, 500 });
-    testNodeFourWidth->SetTranslate(20, 600, 0);
+    testNodeFourWidth->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
+    testNodeFourWidth->SetTranslate(offsetVal, offsetVal2, 0);
     testNodeFourWidth->SetOutlineStyle(style);
     testNodeFourWidth->SetOutlineWidth({ widthList[1] * 0, widthList[1] * 2, widthList[1] * 4, widthList[1] * 8 });
-    testNodeFourWidth->SetOutlineRadius({ 50.0, 50.0, 50.0, 50.0 });
+    testNodeFourWidth->SetOutlineRadius({ radiusVal, radiusVal, radiusVal, radiusVal });
     testNodeFourWidth->SetOutlineColor(outLineColor);
     GetRootNode()->AddChild(testNodeFourWidth);
     RegisterNode(testNodeFourWidth);
@@ -134,16 +149,24 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
     Color color(0, 0, 0);
     Vector4<Color> outLineColor = { color, color, color, color };
 
-    for (int i = 0; i < 4; i++) {
-        int x = (i % 2) * 520;
-        int y = (i / 2) * 520;
+    const int nodeCount = 4;
+    const int columnCount = 2;
+    const int nodeSize = 500;
+    const int nodePos = 520;
+    const float radiusVal = 50.0f;
+    const int borderWidth = 5;
+    const int tranlateVal = 20;
+
+    for (int i = 0; i < nodeCount; i++) {
+        int x = (i % columnCount) * nodePos;
+        int y = (i / columnCount) * nodePos;
         auto testNodeStyle = RSCanvasNode::Create();
-        testNodeStyle->SetBounds({ x, y, 500, 500 });
-        testNodeStyle->SetTranslate(20, 20, 0);
+        testNodeStyle->SetBounds({ x, y, nodeSize, nodeSize });
+        testNodeStyle->SetTranslate(tranlateVal, tranlateVal, 0);
         Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)i);
         testNodeStyle->SetOutlineStyle(style);
-        testNodeStyle->SetOutlineWidth({ 5, 5, 5, 5 });
-        testNodeStyle->SetOutlineRadius({ 50.0, 50.0, 50.0, 50.0 });
+        testNodeStyle->SetOutlineWidth({ borderWidth, borderWidth, borderWidth, borderWidth });
+        testNodeStyle->SetOutlineRadius({ radiusVal, radiusVal, radiusVal, radiusVal });
         testNodeStyle->SetOutlineColor(outLineColor);
         GetRootNode()->AddChild(testNodeStyle);
         RegisterNode(testNodeStyle);
@@ -151,12 +174,12 @@ GRAPHIC_TEST(AppearanceTest03, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ra
 
     // four different style
     auto testNodeFourStyle = RSCanvasNode::Create();
-    testNodeFourStyle->SetBounds({ 0, 520 * 2, 500, 500 });
-    testNodeFourStyle->SetTranslate(20, 20, 0);
+    testNodeFourStyle->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
+    testNodeFourStyle->SetTranslate(tranlateVal, tranlateVal, 0);
     Vector4<BorderStyle> style2 = Vector4<BorderStyle>((BorderStyle)0, (BorderStyle)1, (BorderStyle)2, (BorderStyle)3);
     testNodeFourStyle->SetOutlineStyle(style2);
-    testNodeFourStyle->SetOutlineWidth({ 5, 5, 5, 5 });
-    testNodeFourStyle->SetOutlineRadius({ 50.0, 50.0, 50.0, 50.0 });
+    testNodeFourStyle->SetOutlineWidth({ borderWidth, borderWidth, borderWidth, borderWidth });
+    testNodeFourStyle->SetOutlineRadius({ radiusVal, radiusVal, radiusVal, radiusVal });
     testNodeFourStyle->SetOutlineColor(outLineColor);
     GetRootNode()->AddChild(testNodeFourStyle);
     RegisterNode(testNodeFourStyle);

@@ -960,5 +960,31 @@ HWTEST_F(PropertiesTest, IsDistortionKValidTest, TestSize.Level1)
     properties.SetDistortionK(0.7f);
     ASSERT_TRUE(properties.IsDistortionKValid());
 }
+
+
+/**
+ * @tc.name: GetDistortionDirtyTest
+ * @tc.desc: test results of GetDistortionDirty
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(PropertiesTest, GetDistortionDirtyTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // if distortionK_ has no value
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ > 1
+    properties.SetDistortionK(1.7f);
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ < 0
+    properties.SetDistortionK(-0.1f);
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ > 0 and < 1
+    properties.SetDistortionK(0.7f);
+    ASSERT_TRUE(properties.GetDistortionDirty());
+}
 } // namespace Rosen
 } // namespace OHOS

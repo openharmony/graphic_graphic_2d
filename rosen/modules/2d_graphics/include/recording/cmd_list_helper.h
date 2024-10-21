@@ -244,8 +244,9 @@ public:
     static GroupInfoHandle AddGroupInfoToCmdList(CmdList& cmdList, const DrawingGroupInfo& groupInfo);
     static DrawingGroupInfo GetGroupInfoFromCmdList(const CmdList& cmdList, const GroupInfoHandle& groupInfoHandle);
 #ifdef ROSEN_OHOS
-    static uint32_t AddSurfaceBufferToCmdList(CmdList& cmdList, const sptr<SurfaceBuffer>& imageFilter);
-    static sptr<SurfaceBuffer> GetSurfaceBufferFromCmdList(
+    static uint32_t AddSurfaceBufferEntryToCmdList(
+        CmdList& cmdList, const std::shared_ptr<SurfaceBufferEntry>& imageFilter);
+    static std::shared_ptr<SurfaceBufferEntry> GetSurfaceBufferEntryFromCmdList(
         const CmdList& cmdList, uint32_t imageFilterHandle);
 #endif
     static uint32_t AddExtendObjectToCmdList(CmdList& cmdList, std::shared_ptr<ExtendObject>);

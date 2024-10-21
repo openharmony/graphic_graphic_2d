@@ -1930,5 +1930,62 @@ void RSUniRenderUtil::FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap)
         }
     }
 }
+
+std::optional<Drawing::Matrix> RSUniRenderUtil::GetMatrix(
+    std::shared_ptr<RSRenderNode> hwcNode)
+{
+    if (!hwcNode) {
+        return std::nullopt;
+    }
+    auto relativeMat = Drawing::Matrix();
+    auto& property = hwcNode->GetRenderProperties();
+    if (auto geo = property.GetBoundsGeometry()) {
+        if (LIKELY(!property.GetSandBox().has_value())) {
+            relativeMat = geo->GetMatrix();
+        } else {
+            auto parent = hwcNode->GetParent().lock();
+            if (!parent) {
+                return std::nullopt;
+            }
+            if (auto parentGeo = parent->GetRenderProperties().GetBoundsGeometry()) {
+                auto invertAbsParentMatrix = Drawing::Matrix();
+                parentGeo->GetAbsMatrix().Invert(invertAbsParentMatrix);
+                relativeMat = geo->GetAbsMatrix();
+                relativeMat.PostConcat(invertAbsParentMatrix);
+            }
+        }
+    } else {
+        return std::nullopt;
+    }
+    return relativeMat;
+}
+
+bool RSUniRenderUtil::CheckRenderSkipIfScreenOff(bool extraFrame, std::optional<ScreenId> screenId)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSUniRenderUtil::CheckRenderSkipIfScreenOff, failed to get screen manager!");
+        return false;
+    }
+    // in certain cases such as wireless display, render skipping may be disabled.
+    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
+    auto isScreenOff = screenId.has_value() ?
+        screenManager->IsScreenPowerOff(screenId.value()) : screenManager->IsAllScreensPowerOff();
+    RS_TRACE_NAME_FMT("CheckRenderSkipIfScreenOff disableRenderControl:[%d], PowerOff:[%d]",
+        disableRenderControlScreensCount, isScreenOff);
+    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
+        return false;
+    }
+    if (extraFrame && screenManager->GetPowerOffNeedProcessOneFrame()) {
+        RS_LOGI("RSUniRenderUtil::CheckRenderSkipIfScreenOff screen power off, one more frame.");
+        screenManager->ResetPowerOffNeedProcessOneFrame();
+        return false;
+    } else {
+        return !screenManager->GetPowerOffNeedProcessOneFrame();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

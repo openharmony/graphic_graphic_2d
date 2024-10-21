@@ -58,6 +58,7 @@ public:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     std::shared_ptr<Typography> GetParagraph();
     static napi_value LayoutAsync(napi_env env, napi_callback_info info);
+    static napi_value IsStrutStyleEqual(napi_env env, napi_callback_info info);
 
 private:
     static thread_local napi_ref constructor_;

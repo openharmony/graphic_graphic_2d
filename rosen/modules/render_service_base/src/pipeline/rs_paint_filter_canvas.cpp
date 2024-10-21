@@ -60,7 +60,7 @@ uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
     return canvas_->GetSaveCount();
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<Drawing::GPUContext> RSPaintFilterCanvasBase::GetGPUContext()
 {
     return canvas_ != nullptr ? canvas_->GetGPUContext() : nullptr;
@@ -1513,6 +1513,16 @@ ScreenId RSPaintFilterCanvas::GetScreenId() const
 void RSPaintFilterCanvas::SetScreenId(ScreenId screenId)
 {
     screenId_ = screenId;
+}
+
+bool RSPaintFilterCanvas::GetHdrOn() const
+{
+    return isHdrOn_;
+}
+
+void RSPaintFilterCanvas::SetHdrOn(bool isHdrOn)
+{
+    isHdrOn_ = isHdrOn;
 }
 
 GraphicColorGamut RSPaintFilterCanvas::GetTargetColorGamut() const

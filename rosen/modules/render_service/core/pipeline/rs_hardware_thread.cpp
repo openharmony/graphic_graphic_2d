@@ -22,6 +22,7 @@
 #include "hdi_backend.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "hisysevent.h"
 #include "parameters.h"
 #include "rs_realtime_refresh_rate_manager.h"
 #include "rs_trace.h"
@@ -67,6 +68,9 @@
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
+constexpr uint32_t HARD_JANK_TWO_TIME = 2;
+constexpr int64_t REFRESH_PERIOD = 16667; // 16667us == 16.667ms
+constexpr int64_t REPORT_LOAD_WARNING_INTERVAL_TIME = 5000000; // 5s == 5000000us
 }
 
 RSHardwareThread& RSHardwareThread::Instance()
@@ -175,6 +179,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param]() {
+        int64_t startTime = GetCurTimeCount();
         if (output == nullptr || hdiBackend_ == nullptr) {
             return;
         }
@@ -205,7 +210,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             endTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             FrameReport::GetInstance().SetLastSwapBufferTime(endTimeNs - startTimeNs);
-            FrameReport::GetInstance().ReportCommitTime(endTimeNs);
         }
 
         unExecuteTaskNum_--;
@@ -213,6 +217,20 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             " HARDWARE_THREAD_TASK_NUM:%{public}d", unExecuteTaskNum_.load(), HARDWARE_THREAD_TASK_NUM);
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
+        }
+        int64_t endTime = GetCurTimeCount();
+        uint64_t frameTime = endTime - startTime;
+        uint32_t missedFrames = frameTime / REFRESH_PERIOD;
+        uint16_t frameRate = currentRate;
+        if (missedFrames >= HARD_JANK_TWO_TIME &&
+            endTime - intervalTimePoints_ > REPORT_LOAD_WARNING_INTERVAL_TIME) {
+            RS_LOGI("RSHardwareThread::CommitAndReleaseLayers report load event frameTime: %{public}" PRIu64
+                " missedFrame: %{public}" PRIu32 " frameRate:%{public}" PRIu16 "",
+                frameTime, missedFrames, frameRate);
+            intervalTimePoints_ = endTime;
+            HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RS_HARDWARE_THREAD_LOAD_WARNING",
+                OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "FRAME_RATE", frameRate, "MISSED_FRAMES",
+                missedFrames, "FRAME_TIME", frameTime);
         }
     };
     RSBaseRenderUtil::IncAcquiredBufferCount();
@@ -224,17 +242,13 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     if (!hgmCore.GetLtpoEnabled()) {
         PostTask(task);
     } else {
-        // if in game adaptive vsync mode and do direct composition,send layer immediately
-        auto frameRateMgr = hgmCore.GetFrameRateMgr();
-        if (frameRateMgr != nullptr) {
-            bool isAdaptive = frameRateMgr->IsAdaptive();
-            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
-            if (isAdaptive) {
-                RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers PostTask in Adaptive Mode");
-                PostTask(task);
-                return;
-            }
+        if (IsInAdaptiveMode(output)) {
+            RS_TRACE_NAME("RSHardwareThread::CommitAndReleaseLayers PostTask in Adaptive Mode");
+            PostTask(task);
+            isLastAdaptive_ = true;
+            return;
         }
+        isLastAdaptive_ = false;
         auto period  = CreateVSyncSampler()->GetHardwarePeriod();
         int64_t pipelineOffset = hgmCore.GetPipelineOffset();
         uint64_t expectCommitTime = static_cast<uint64_t>(param.frameTimestamp +
@@ -254,6 +268,44 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             PostDelayTask(task, delayTime_);
         }
     }
+}
+
+int64_t RSHardwareThread::GetCurTimeCount()
+{
+    auto curTime = std::chrono::system_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::microseconds>(curTime).count();
+}
+
+bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
+{
+    if (hdiBackend_ == nullptr) {
+        RS_LOGE("RSHardwareThread::IsInAdaptiveMode hdiBackend_ is nullptr");
+        return false;
+    }
+
+    bool isSamplerEnabled = hdiBackend_->GetVsyncSamplerEnabled(output);
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+
+    // if in game adaptive vsync mode and do direct composition,send layer immediately
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr != nullptr) {
+        bool isAdaptive = frameRateMgr->IsAdaptive();
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
+        if (isAdaptive) {
+            if (isSamplerEnabled) {
+                // when phone enter game adaptive sync mode must disable vsync sampler
+                hdiBackend_->SetVsyncSamplerEnabled(output, false);
+            }
+            return true;
+        }
+    }
+    if (isLastAdaptive_ && !isSamplerEnabled) {
+        // exit adaptive sync mode must restore vsync sampler, and startSample immediately
+        hdiBackend_->SetVsyncSamplerEnabled(output, true);
+        hdiBackend_->StartSample(output);
+    }
+
+    return false;
 }
 
 RefreshRateParam RSHardwareThread::GetRefreshRateParam()

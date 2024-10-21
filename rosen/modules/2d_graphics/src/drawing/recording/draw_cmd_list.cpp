@@ -59,6 +59,9 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height, DrawCmdList::UnmarshalMo
 
 DrawCmdList::~DrawCmdList()
 {
+    if (drawOpItems_.size() == 0) {
+        UnmarshallingDrawOps();
+    }
     ClearOp();
 }
 
@@ -597,6 +600,21 @@ void DrawCmdList::PatchTypefaceIds()
         }
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0 && offset < maxOffset);
+}
+
+void DrawCmdList::Purge()
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    for (auto op : drawOpItems_) {
+        if (!op) {
+            continue;
+        }
+        auto type = op->GetType();
+        if (type == DrawOpItem::PIXELMAP_RECT_OPITEM ||
+            type == DrawOpItem::PIXELMAP_WITH_PARM_OPITEM) {
+            op->Purge();
+        }
+    }
 }
 
 } // namespace Drawing

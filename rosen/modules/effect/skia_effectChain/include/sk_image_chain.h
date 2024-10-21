@@ -52,6 +52,9 @@ public:
     SKImageChain(SkCanvas* canvas, sk_sp<SkImage> image);
     SKImageChain(std::shared_ptr<Media::PixelMap> srcPxielMap);
     virtual ~SKImageChain();
+    DrawError Render(const std::vector<sk_sp<SkImageFilter>> &skFilters, const bool &forceCPU,
+        std::shared_ptr<Media::PixelMap> &dstPixelMap);
+public:
     DrawError Draw();
     void ForceCPU(bool forceCPU);
     void SetFilters(sk_sp<SkImageFilter> filter);
@@ -66,7 +69,7 @@ private:
     void SetupPaint(SkPaint& paint);
     void ApplyClipping();
     bool DrawImage(SkPaint& paint);
-    void InitWithoutCanvas();
+    DrawError InitWithoutCanvas();
     bool CreateCPUCanvas();
     bool CreateGPUCanvas();
     SkColorType PixelFormatConvert(const Media::PixelFormat& pixelFormat);
