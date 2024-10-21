@@ -35,6 +35,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
@@ -209,7 +210,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
 {
     //update content_style when node not on tree, need check (waitSync_ false, not on tree, surface not changed)
     if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
-        stagingRenderParams_->GetCanvasDrawingSurfaceChanged()) {
+        stagingRenderParams_->GetCanvasDrawingSurfaceChanged() || RSUniRenderJudgement::IsUniRender()) {
         return;
     }
 
@@ -566,8 +567,10 @@ const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDraw
 
 void RSCanvasDrawingRenderNode::ClearResource()
 {
-    std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-    drawCmdLists_.clear();
+    if (RSUniRenderJudgement::IsUniRender()) {
+        std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
+        drawCmdLists_.clear();
+    }
 }
 
 void RSCanvasDrawingRenderNode::ClearNeverOnTree()
