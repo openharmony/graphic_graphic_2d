@@ -405,7 +405,7 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::GetSystemFo
     descriptors.reserve(typefaces.size());
     for (auto& item : typefaces) {
         FontDescriptor desc;
-        desc.requestedLid = GetLanguageId(locale);
+        desc.requestedLid = static_cast<unsigned int>(GetLanguageId(locale));
         desc.path = item->GetFontPath();
         auto fontStyle = item->GetFontStyle();
         desc.weight = fontStyle.GetWeight();
@@ -424,7 +424,7 @@ bool FontParser::ParserFontDescriptorFromPath(const std::string& path,
     std::shared_ptr<Drawing::Typeface> typeface;
     int index = 0;
     FontDescriptor desc;
-    desc.requestedLid = GetLanguageId(locale);
+    desc.requestedLid = static_cast<unsigned int>(GetLanguageId(locale));
     desc.path = path;
     while ((typeface = Drawing::Typeface::MakeFromFile(path.c_str(), index)) != nullptr) {
         index++;
