@@ -42,15 +42,7 @@ if (defined(use_rosen_drawing) && use_rosen_drawing) {
       platform = "windows"
     }
 
-    if (is_arkui_x) {
-      public_deps = [ "//third_party/skia:skia_$platform" ]
-    } else {
-      public_external_deps = [ "skia:skia_canvaskit" ]
-    }
-    deps = []
-    if (is_arkui_x) {
-      deps += [ "//third_party/bounds_checking_function:libsec_static" ]
-    }
+    public_external_deps = [ "skia:skia_canvaskit" ]
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines = [ "USE_ROSEN_DRAWING" ]
@@ -74,10 +66,6 @@ if (defined(use_rosen_drawing) && use_rosen_drawing) {
     public_external_deps = [ "skia:skia_canvaskit" ]
 
     deps = []
-
-    if (is_cross_platform) {
-      public_deps += [ "//foundation/appframework/icu_data:static_icudata" ]
-    }
 
     innerapi_tags = [ "platformsdk" ]
     part_name = "graphic_2d"
