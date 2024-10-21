@@ -454,6 +454,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
+    targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
     targetSurfaceParams->animateState_ = animateState_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;

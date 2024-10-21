@@ -407,6 +407,56 @@ HWTEST_F(HdiLayerInfoTest, LayerColor001, Function | MediumTest | Level1)
     ASSERT_EQ(color.a, layercolor.a);
 }
 
+/*
+* Function: SetBackgroundColor and GetBackgroundColor
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetBackgroundColor
+*                  2. call GetBackgroundColor and check ret
+* @tc.require: issueIAX2NE
+ */
+HWTEST_F(HdiLayerInfoTest, BackgroundColor001, Function | MediumTest | Level1)
+{
+    const uint32_t COLOR_R = 155;
+    const uint32_t COLOR_G = 224;
+    const uint32_t COLOR_B = 88;
+    const uint32_t COLOR_A = 128;
+
+    GraphicLayerColor backgroundColor = {
+        .r = COLOR_R,
+        .g = COLOR_G,
+        .b = COLOR_B,
+        .a = COLOR_A
+    };
+
+    HdiLayerInfoTest::hdiLayerInfo_->SetBackgroundColor(backgroundColor);
+    GraphicLayerColor color = HdiLayerInfoTest::hdiLayerInfo_->GetBackgroundColor();
+    ASSERT_EQ(color.r, backgroundColor.r);
+    ASSERT_EQ(color.g, backgroundColor.g);
+    ASSERT_EQ(color.b, backgroundColor.b);
+    ASSERT_EQ(color.a, backgroundColor.a);
+}
+
+/*
+* Function: SetCornerRadiusInfoForDRM and GetCornerRadiusInfoForDRM
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetCornerRadiusInfoForDRM
+*                  2. call GetCornerRadiusInfoForDRM and check ret
+* @tc.require: issueIAX2NE
+ */
+HWTEST_F(HdiLayerInfoTest, CornerRadiusInfoForDRM001, Function | MediumTest | Level1)
+{
+    float testNum = 1.0f;
+    std::vector<float> cornerRadiusInfo = {testNum, testNum, testNum, testNum,
+        testNum, testNum, testNum, testNum};
+    HdiLayerInfoTest::hdiLayerInfo_->SetCornerRadiusInfoForDRM(cornerRadiusInfo);
+    const std::vector<float>& res = HdiLayerInfoTest::hdiLayerInfo_->GetCornerRadiusInfoForDRM();
+    int expectResSize = 8;
+    ASSERT_EQ(res.size(), expectResSize);
+}
 
 /*
 * Function: SetColorDataSpace and GetColorDataSpace

@@ -2806,6 +2806,18 @@ void RSSurfaceRenderNode::SetUifirstUseStarting(NodeId id)
     }
 }
 
+void RSSurfaceRenderNode::SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+{
+    if (drmCornerRadiusInfo_ != drmCornerRadiusInfo) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        if (surfaceParams) {
+            surfaceParams->SetCornerRadiusInfoForDRM(drmCornerRadiusInfo);
+            drmCornerRadiusInfo_ = drmCornerRadiusInfo;
+        }
+        AddToPendingSyncList();
+    }
+}
+
 void RSSurfaceRenderNode::SetSkipDraw(bool skip)
 {
     isSkipDraw_ = skip;
