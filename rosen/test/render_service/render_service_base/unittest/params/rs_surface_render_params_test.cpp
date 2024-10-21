@@ -290,4 +290,22 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetNeedCacheSurface, TestSize.Level1)
     EXPECT_EQ(params.GetNeedCacheSurface(), false);
     EXPECT_EQ(params.needSync_, true);
 }
+
+/**
+ * @tc.name: SetHardCursorEnabled
+ * @tc.desc: SetHardCursorEnabled and IsHardCursorEnabled test
+ * @tc.type:FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetHardCursorEnabledTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(114);
+    params.SetHardCursorEnabled(false);
+    EXPECT_EQ(params.needSync_, false);
+    EXPECT_EQ(params.IsHardCursorEnabled(), false);
+
+    params.SetHardCursorEnabled(true);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_EQ(params.IsHardCursorEnabled(), true);
+}
 }

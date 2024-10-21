@@ -4499,4 +4499,46 @@ HWTEST_F(RSUniRenderVisitorTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_EQ(rsUniRenderVisitor->IsFirstFrameOfOverdrawSwitch(), false);
 }
+
+/**
+ * @tc.name: HasMirrorDisplay
+ * @tc.desc: Test HasMirrorDisplay
+ * @tc.type: FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasMirrorDisplayTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto result = mainThread->HasMirrorDisplay();
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: HasVirtualDisplay
+ * @tc.desc: Test HasVirtualDisplay
+ * @tc.type: FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSUniRenderVisitorTest, HasVirtualDisplayTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto result = rsUniRenderVisitor->HasVirtualDisplay();
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: CheckIfHardCursorEnable
+ * @tc.desc: Test CheckIfHardCursorEnable
+ * @tc.type: FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckIfHardCursorEnableTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto result = rsUniRenderVisitor->CheckIfHardCursorEnable();
+    ASSERT_EQ(result, false);
+}
 } // OHOS::Rosen

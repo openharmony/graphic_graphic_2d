@@ -234,10 +234,8 @@ public:
     }
     void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) override;
 #endif
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+
+    bool IsHardwareEnabledTopSurface() const;
 
     inline bool CheckCacheSurface()
     {

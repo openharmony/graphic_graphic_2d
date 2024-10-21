@@ -1143,6 +1143,12 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop)
     AddToPendingSyncList();
 }
 
+bool RSSurfaceRenderNode::IsHardwareEnabledTopSurface() const
+{
+    return ShouldPaint() && nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
+        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+}
+
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
@@ -1550,7 +1556,7 @@ bool RSSurfaceRenderNode::IsSCBNode() const
     return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW;
 }
 
-void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
+void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable)
 {
 #ifndef ROSEN_CROSS_PLATFORM
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
@@ -1596,6 +1602,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
 #endif
     surfaceParams->SetLayerInfo(layer);
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
+    surfaceParams->SetHardCursorEnabled(IsHardwareEnabledTopSurface() && isHardCursorEnable);
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
     surfaceParams->SetInFixedRotation(isInFixedRotation_);
     // 1 means need source tuning
