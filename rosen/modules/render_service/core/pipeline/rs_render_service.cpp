@@ -58,6 +58,7 @@ RSRenderService::~RSRenderService() noexcept {}
 
 bool RSRenderService::Init()
 {
+    system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "false");
     std::thread preLoadSysTTFThread([]() {
         Drawing::FontMgr::CreateDefaultFontMgr();
     });
@@ -120,6 +121,10 @@ bool RSRenderService::Init()
     mainThread_->vsyncGenerator_ = generator;
     mainThread_->Init();
     mainThread_->SetAppVSyncDistributor(appVSyncDistributor_);
+    mainThread_->PostTask([]() {
+        system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
+        RS_LOGI("Set boot render service started true");
+        }, "BOOTEVENT_RENDER_SERVICE_READY", 0, AppExecFwk::EventQueue::Priority::VIP);
 
     // Wait samgr ready for up to 5 second to ensure adding service to samgr.
     int status = WaitParameter("bootevent.samgr.ready", "true", 5);
@@ -135,11 +140,6 @@ bool RSRenderService::Init()
     samgr->AddSystemAbility(RENDER_SERVICE, this);
 
     RS_PROFILER_INIT(this);
-
-    if (!system::GetBoolParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), false)) {
-        system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
-        RS_LOGI("set boot render service started true");
-    }
 
     return true;
 }
