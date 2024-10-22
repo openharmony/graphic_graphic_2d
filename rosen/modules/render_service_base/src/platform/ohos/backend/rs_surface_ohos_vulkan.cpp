@@ -151,7 +151,7 @@ int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(NativeWindowBuffer** nati
 
     auto res = NativeWindowRequestBuffer(mNativeWindow, nativeWindowBuffer, &fenceFd);
     if (res != OHOS::GSERROR_OK) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: OH_NativeWindow_NativeWindowRequestBuffer failed %{public}d", res);
+        ROSEN_LOGE("RSSurfaceOhosVulkan: RequestBuffer failed %{public}d", res);
         NativeWindowCancelBuffer(mNativeWindow, *nativeWindowBuffer);
     }
     return res;
