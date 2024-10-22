@@ -16,7 +16,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include <string.h>
+#include <cstring>
 #include <securec.h>
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
