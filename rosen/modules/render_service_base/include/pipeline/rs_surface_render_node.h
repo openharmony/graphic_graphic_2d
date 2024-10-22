@@ -1217,12 +1217,15 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
     const std::unordered_map<std::string, bool>& GetWatermark() const;
     bool IsWatermarkEmpty() const;
+
     template<class... Args>
-    void SetIntersectedRoundCornerAABBs(Args&& ...args) {
+    void SetIntersectedRoundCornerAABBs(Args&& ...args)
+    {
         std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
 
-    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const {
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const 
+    {
         return intersectedRoundCornerAABBs_;
     }
 
