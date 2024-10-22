@@ -426,7 +426,8 @@ int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
     RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-    const std::unique_ptr<RSFilterCacheManager>& cacheManager, bool shouldClearFilteredCache)
+    const std::unique_ptr<RSFilterCacheManager>& cacheManager, bool shouldClearFilteredCache,
+    Drawing::RectI& bounds)
 {
     if (rsFilter == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null filter");
@@ -442,7 +443,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         return;
     }
     g_blurCnt++;
-    auto clipIBounds = canvas->GetDeviceClipBounds();
+    auto clipIBounds = bounds;
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::DrawBackgroundEffect " + rsFilter->GetDescription());
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "EffectComponent, %s, bounds: %s",
