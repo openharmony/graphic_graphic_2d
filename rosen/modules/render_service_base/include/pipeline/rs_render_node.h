@@ -884,7 +884,7 @@ private:
     RectI oldChildrenRect_;
     RectI oldClipRect_;
     Drawing::Matrix oldAbsMatrix_;
-     bool childHasFilter_ = false;  // only collect children filter status
+    bool childHasFilter_ = false;  // only collect children filter status
     
     // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
@@ -914,7 +914,7 @@ private:
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
     void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
-    
+
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
     bool shouldPaint_ = true;
