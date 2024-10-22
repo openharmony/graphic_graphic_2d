@@ -429,9 +429,13 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
     // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
     if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
         RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
-        if (!nativeWindowBuffer_) {
+        if (pixelMapId_ != pixelMap->GetUniqueId()) {
+            if (nativeWindowBuffer_) {
+                DestroyNativeWindowBuffer(nativeWindowBuffer_);
+            }
             sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
             nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+            pixelMapId_ = pixelMap->GetUniqueId();
         }
         OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
         if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity())) {
