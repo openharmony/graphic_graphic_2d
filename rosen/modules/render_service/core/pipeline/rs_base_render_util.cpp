@@ -1501,7 +1501,7 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::S
     return WriteToPng(filename, param);
 }
 
-bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(Drawing::Bitmap bitmap, std::string debugInfo)
+bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugInfo)
 {
     // create dir if not exists
     if (access(DUMP_CANVASDRAWING_DIR.c_str(), F_OK) == -1) {
@@ -1520,10 +1520,10 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(Drawing::Bitmap bitmap, st
         + std::string(timechar) + "_" + debugInfo + ".png";
 
     WriteToPngParam param;
-    param.width = static_cast<uint32_t>(bitmap.GetWidth());
-    param.height = static_cast<uint32_t>(bitmap.GetHeight());
-    param.data = static_cast<uint8_t *>(bitmap.GetPixels());
-    param.stride = static_cast<uint32_t>(bitmap.GetRowBytes());
+    param.width = static_cast<uint32_t>(bitmap->GetWidth());
+    param.height = static_cast<uint32_t>(bitmap->GetHeight());
+    param.data = static_cast<uint8_t *>(bitmap->GetPixels());
+    param.stride = static_cast<uint32_t>(bitmap->GetRowBytes());
     param.bitDepth = Detail::BITMAP_DEPTH;
 
     return WriteToPng(filename, param);

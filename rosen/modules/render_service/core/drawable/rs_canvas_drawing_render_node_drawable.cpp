@@ -121,7 +121,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     SetDrawCmdListsVisited(true);
 }
 
-void CanvasDrawingDumpToPngImpl(Drawing::Bitmap bitmap, std::string debugNodeId)
+void CanvasDrawingDumpToPngImpl(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugNodeId)
 {
     RS_LOGI("canvas drawing dump beginning");
     RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap, debugNodeId);
@@ -135,9 +135,9 @@ void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
     }
     std::string debugNodeId = std::to_string(GetId());
     Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    Drawing::Bitmap bitmap;
-    bitmap.Build(image_->GetWidth(), image_->GetHeight(), format);
-    image_->ReadPixels(bitmap, 0, 0);
+    std::shared_ptr<Drawing::Bitmap> bitmap = std::make_shared<Drawing::Bitmap>();
+    bitmap->Build(image_->GetWidth(), image_->GetHeight(), format);
+    image_->ReadPixels(*bitmap, 0, 0);
     std::thread syncDump(CanvasDrawingDumpToPngImpl, bitmap, debugNodeId);
     syncDump.detach();
 }
