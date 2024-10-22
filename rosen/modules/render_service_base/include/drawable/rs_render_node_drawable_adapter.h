@@ -177,6 +177,7 @@ public:
     {
         return lastDrawnFilterNodeId_;
     }
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -205,7 +206,6 @@ protected:
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas);
-
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
     void DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const;
@@ -242,12 +242,14 @@ protected:
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #endif
+
     // if the node needs to avoid drawing cache because of some layers, such as the security layer...
     bool hasSkipCacheLayer_ = false;
+    
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
-                            std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
+                        std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
@@ -259,7 +261,6 @@ private:
     static void RemoveDrawableFromCache(const NodeId nodeId);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
-
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSDisplayRenderNode;
     friend class OHOS::Rosen::RSSurfaceRenderNode;

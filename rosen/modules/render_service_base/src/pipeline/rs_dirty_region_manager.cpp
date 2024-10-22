@@ -199,7 +199,6 @@ RectI RSDirtyRegionManager::GetDirtyRegionFlipWithinSurface() const
 RectI RSDirtyRegionManager::GetRectFlipWithinSurface(const RectI& rect) const
 {
     RectI glRect = rect;
-
     if (!RSSystemProperties::IsUseVulkan()) {
         // left-top to left-bottom corner(in current surface)
         glRect.top_ = surfaceRect_.height_ - rect.top_ - rect.height_;
