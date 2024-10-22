@@ -154,7 +154,7 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
         RSSubThreadManager::Instance()->WaitNodeTask(surfaceParams.GetId());
     }
     // ConsumeAndUpdateBuffer may set buffer, must be before !GetBuffer()
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandlerUiFirst_, true) ||
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandlerUiFirst_) ||
         !surfaceHandlerUiFirst_->GetBuffer()) {
         RS_LOGE("DrawUIFirstCacheWithDma ConsumeAndUpdateBuffer or GetBuffer return false");
         return false;

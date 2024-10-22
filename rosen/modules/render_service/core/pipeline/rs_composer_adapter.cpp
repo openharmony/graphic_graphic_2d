@@ -622,7 +622,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
     }
     auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
     auto surfaceHandler = displayDrawable->GetMutableRSSurfaceHandlerOnDraw();
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true)) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }
