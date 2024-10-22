@@ -823,6 +823,17 @@ HWTEST_F(RSClientTest, SetVirtualMirrorScreenScaleMode001, TestSize.Level1)
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenScaleMode(virtualScreenId, ScreenScaleMode::UNISCALE_MODE), true);
 }
 
+/*
+ * @tc.name: SetGlobalDarkColorMode Test
+ * @tc.desc: SetGlobalDarkColorMode Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+*/
+HWTEST_F(RSClientTest, SetGlobalDarkColorMode001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->SetGlobalDarkColorMode(true), true);
+}
+
 /**
  * @tc.name: RegisterUIExtensionCallback Test
  * @tc.desc: RegisterUIExtensionCallback, expected success when callback non-empty.
@@ -861,6 +872,20 @@ HWTEST_F(RSClientTest, SetFreeMultiWindowStatus, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     rsClient->SetFreeMultiWindowStatus(true);
+}
+
+/**
+ * @tc.name: SetLayerTop001 Test
+ * @tc.desc: SetLayerTop001, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSClientTest, SetLayerTop001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    const std::string nodeIdStr = "123456";
+    rsClient->SetLayerTop(nodeIdStr, true);
+    rsClient->SetLayerTop(nodeIdStr, false);
 }
 } // namespace Rosen
 } // namespace OHOS

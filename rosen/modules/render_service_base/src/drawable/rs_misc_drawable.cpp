@@ -22,6 +22,8 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 
+#include "rs_profiler.h"
+
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 constexpr int TRACE_LEVEL_TWO = 2;
@@ -136,7 +138,14 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (const auto& drawable : ptr->childrenDrawableVec_) {
+        for (size_t i = 0; i < ptr->childrenDrawableVec_.size(); i++) {
+#ifdef RS_ENABLE_PREFETCH
+            size_t prefetchIndex = i + 2;
+            if (prefetchIndex < ptr->childrenDrawableVec_.size()) {
+                __builtin_prefetch(&(ptr->childrenDrawableVec_[prefetchIndex]), 0, 1);
+            }
+#endif
+            const auto& drawable = ptr->childrenDrawableVec_[i];
             drawable->Draw(*canvas);
         }
     };
@@ -203,11 +212,27 @@ void RSCustomModifierDrawable::OnSync()
     needSync_ = false;
 }
 
+void RSCustomModifierDrawable::OnPurge()
+{
+    for (auto &drawCmdList : drawCmdListVec_) {
+        if (drawCmdList) {
+            drawCmdList->Purge();
+        }
+    }
+}
+
 Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (const auto& drawCmdList : ptr->drawCmdListVec_) {
+        for (size_t i = 0; i < ptr->drawCmdListVec_.size(); i++) {
+#ifdef RS_ENABLE_PREFETCH
+            size_t prefetchIndex = i + 2;
+            if (prefetchIndex < ptr->drawCmdListVec_.size()) {
+                __builtin_prefetch(&(ptr->drawCmdListVec_[prefetchIndex]), 0, 1);
+            }
+#endif
+            const auto& drawCmdList = ptr->drawCmdListVec_[i];
             Drawing::Matrix mat;
             if (ptr->isCanvasNode_ &&
                 RSPropertyDrawableUtils::GetGravityMatrix(ptr->gravity_, *rect, drawCmdList->GetWidth(),
@@ -216,7 +241,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
             }
             drawCmdList->Playback(*canvas, rect);
             if (ptr->needClearOp_ && ptr->type_ == RSModifierType::CONTENT_STYLE) {
-                drawCmdList->ClearOp();
+                RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList);
             }
         }
     };
@@ -473,5 +498,47 @@ Drawing::RecordingCanvas::DrawFunc RSEnvFGColorStrategyDrawable::CreateDrawFunc(
         }
     };
 }
+
+RSDrawable::Ptr RSCustomClipToFrameDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSCustomClipToFrameDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+
+bool RSCustomClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
+{
+    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    auto itr = drawCmdModifiers.find(RSModifierType::CUSTOM_CLIP_TO_FRAME);
+    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
+        return false;
+    }
+    const auto& modifier = itr->second.back();
+    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier->GetProperty());
+    const auto& clipRectV4f = renderProperty->Get();
+    stagingCustomClipRect_ = Drawing::Rect(clipRectV4f.x_, clipRectV4f.y_, clipRectV4f.z_, clipRectV4f.w_);
+    needSync_ = true;
+    return true;
+}
+
+void RSCustomClipToFrameDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    customClipRect_ = stagingCustomClipRect_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSCustomClipToFrameDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSCustomClipToFrameDrawable>(shared_from_this());
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        paintFilterCanvas->ClipRect(ptr->customClipRect_);
+    };
+}
+
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

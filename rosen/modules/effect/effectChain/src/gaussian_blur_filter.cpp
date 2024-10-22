@@ -19,20 +19,21 @@ namespace OHOS {
 namespace Rosen {
 GaussianBlurFilter::GaussianBlurFilter()
 {
-    downSampleFilter_ = new ScaleFilter();
-    downSampleFilter_->SetScale(DOWNSAMPLE_FACTOR);
-    upSampleFilter_ = new ScaleFilter();
+    // Allocate the filters
+    upSampleFilter_ = std::make_unique<ScaleFilter>();
     upSampleFilter_->SetScale(INVERSE_DOWNSAMPLE_FACTOR);
-    horizontalBlurFilter_ = new HorizontalBlurFilter();
-    verticalBlurFilter_ = new VerticalBlurFilter();
+    downSampleFilter_ = std::make_unique<ScaleFilter>();
+    downSampleFilter_->SetScale(DOWNSAMPLE_FACTOR);
+    horizontalBlurFilter_ = std::make_unique<HorizontalBlurFilter>();
+    verticalBlurFilter_ = std::make_unique<VerticalBlurFilter>();
 }
 
 GaussianBlurFilter::~GaussianBlurFilter()
 {
-    delete downSampleFilter_;
-    delete upSampleFilter_;
-    delete horizontalBlurFilter_;
-    delete verticalBlurFilter_;
+    downSampleFilter_ = nullptr;
+    upSampleFilter_ = nullptr;
+    horizontalBlurFilter_ = nullptr;
+    verticalBlurFilter_ = nullptr;
 }
 
 void GaussianBlurFilter::DoProcess(ProcessData& data)

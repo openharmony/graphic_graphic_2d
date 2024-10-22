@@ -283,6 +283,19 @@ HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level
 }
 
 /*
+* Function: GetRealTimeOffsetOfDvsync001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetRealTimeOffsetOfDvsync
+ */
+HWTEST_F(VSyncDistributorTest, GetRealTimeOffsetOfDvsync001, Function | MediumTest| Level3)
+{
+    int64_t time = 1000;
+    VSyncDistributorTest::vsyncDistributor->GetRealTimeOffsetOfDvsync(time);
+}
+
+/*
 * Function: MarkRSAnimate001
 * Type: Function
 * Rank: Important(2)
@@ -315,7 +328,8 @@ HWTEST_F(VSyncDistributorTest, UnmarkRSAnimate001, Function | MediumTest| Level3
  */
 HWTEST_F(VSyncDistributorTest, HasPendingUIRNV001, Function | MediumTest| Level3)
 {
-    VSyncDistributorTest::vsyncDistributor->HasPendingUIRNV();
+    auto res = VSyncDistributorTest::vsyncDistributor->HasPendingUIRNV();
+    EXPECT_FALSE(res);
 }
 
 /*
@@ -437,7 +451,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest001, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
         conns.emplace_back(conn);
     }
-    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPO);
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPO, 360);
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
@@ -458,7 +472,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest002, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
         conns.emplace_back(conn);
     }
-    vsyncDistributor->OnVSyncTrigger(1000000000, -8333333, 120, VSYNC_MODE_LTPO);
+    vsyncDistributor->OnVSyncTrigger(1000000000, -8333333, 120, VSYNC_MODE_LTPO, 360);
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
@@ -479,7 +493,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest003, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
         conns.emplace_back(conn);
     }
-    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPS);
+    vsyncDistributor->OnVSyncTrigger(1000000000, 8333333, 120, VSYNC_MODE_LTPS, 360);
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }

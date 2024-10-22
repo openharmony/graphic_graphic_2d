@@ -21,7 +21,6 @@ config("export_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
-  defines = [ "NEW_RENDER_CONTEXT" ]
 }
 
 ohos_static_library("librender_backend") {
@@ -46,24 +45,20 @@ ohos_static_library("librender_backend") {
 
   sources = [
     "drawing_context.cpp",
-    "ohos/render_context_ohos_raster.cpp",
-    "ohos/rs_render_surface_ohos.cpp",
     "render_backend_utils.cpp",
     "render_context_factory.cpp",
     "rs_surface_factory.cpp",
   ]
 
+  external_deps = []
+
   if (rs_enable_gpu) {
-    include_dirs += [
-      "//third_party/openssl/include",
-      "$graphic_2d_root/interfaces/inner_api/common",
-    ]
+    include_dirs += [ "$graphic_2d_root/interfaces/inner_api/common" ]
 
     sources += [
       "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/cache_data.cpp",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/memory_handler.cpp",
       "$graphic_2d_root/rosen/modules/2d_graphics/src/render_context/shader_cache.cpp",
-      "ohos/render_context_ohos_gl.cpp",
     ]
 
     include_dirs += [ "//third_party/skia" ]
@@ -74,11 +69,14 @@ ohos_static_library("librender_backend") {
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     ]
+    external_deps += [ "openssl:libcrypto_shared" ]
   }
 
-  external_deps = [
+  external_deps += [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "graphic_surface:surface",
+    "graphic_surface:sync_fence",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",

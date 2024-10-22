@@ -26,6 +26,9 @@
 #include "transaction/rs_render_service_client.h"
 namespace OHOS {
 namespace Rosen {
+constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
+constexpr int32_t IRREGULAR_REFRESH_RATE_SKIP_THRETHOLD = 10;
+
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
@@ -34,12 +37,14 @@ RSDisplayRenderNode::RSDisplayRenderNode(
     RS_LOGI("RSDisplayRenderNode ctor id:%{public}" PRIu64 "", id);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
 }
 
 RSDisplayRenderNode::~RSDisplayRenderNode()
 {
     RS_LOGI("RSDisplayRenderNode dtor id:%{public}" PRIu64 "", GetId());
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
 void RSDisplayRenderNode::CollectSurface(
@@ -171,6 +176,16 @@ void RSDisplayRenderNode::InitRenderParams()
     }
 }
 
+ReleaseDmaBufferTask RSDisplayRenderNode::releaseScreenDmaBufferTask_;
+void RSDisplayRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
+{
+    if (!releaseScreenDmaBufferTask_ && callback) {
+        releaseScreenDmaBufferTask_ = callback;
+    } else {
+        RS_LOGE("RreleaseScreenDmaBufferTask_ register failed!");
+    }
+}
+
 void RSDisplayRenderNode::OnSync()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSDisplayRenderNode::OnSync global dirty[%s]",
@@ -279,6 +294,25 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInte
     }
     int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
+    // when skipFrameInterval > 10 means the skipFrameInterval is the virtual screen refresh rate
+    if (skipFrameInterval > IRREGULAR_REFRESH_RATE_SKIP_THRETHOLD) {
+        int64_t minFrameInterval = 1000000000LL / skipFrameInterval;
+        if (minFrameInterval == 0) {
+            return false;
+        }
+        // lastRefreshTime_ is next frame expected refresh time for virtual display
+        if (lastRefreshTime_ <= 0) {
+            lastRefreshTime_ = currentTime + minFrameInterval;
+            return false;
+        }
+        if (currentTime < (lastRefreshTime_ - MAX_JITTER_NS)) {
+            return true;
+        }
+        int64_t intervalNums = (currentTime - lastRefreshTime_ + MAX_JITTER_NS) / minFrameInterval;
+        lastRefreshTime_ += (intervalNums + 1) * minFrameInterval;
+        return false;
+    }
+    // the skipFrameInterval is equal to 60 divide the virtual screen refresh rate
     int64_t refreshInterval = currentTime - lastRefreshTime_;
     // 1000000000ns == 1s, 110/100 allows 10% over.
     bool needSkip = refreshInterval < (1000000000LL / refreshRate) * (skipFrameInterval - 1) * 110 / 100;
@@ -415,7 +449,14 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
         auto childPid = ExtractPid(child->GetId());
         auto pidIter = std::find(oldScbPids.begin(), oldScbPids.end(), childPid);
         if (pidIter != oldScbPids.end()) {
+            if (child) {
+                child->SetIsOntheTreeOnlyFlag(false);
+            }
             continue;
+        } else if (childPid == currentScbPid) {
+            if (child) {
+                child->SetIsOntheTreeOnlyFlag(true);
+            }
         }
         currentChildrenList_->emplace_back(child);
     }

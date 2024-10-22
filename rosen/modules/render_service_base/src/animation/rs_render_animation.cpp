@@ -42,7 +42,8 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
         parcel.WriteBool(animationFraction_.GetRepeatCallbackEnable()) &&
         parcel.WriteInt32(animationFraction_.GetFrameRateRange().min_) &&
         parcel.WriteInt32(animationFraction_.GetFrameRateRange().max_) &&
-        parcel.WriteInt32(animationFraction_.GetFrameRateRange().preferred_))) {
+        parcel.WriteInt32(animationFraction_.GetFrameRateRange().preferred_) &&
+        parcel.WriteInt32(static_cast<int32_t>(animationFraction_.GetFrameRateRange().componentScene_)))) {
         ROSEN_LOGE("RSRenderAnimation::Marshalling, write param failed");
         return false;
     }
@@ -52,10 +53,13 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
 void RSRenderAnimation::DumpAnimation(std::string& out) const
 {
     out += "Animation: [id:" + std::to_string(id_) + ", ";
-    DumpAnimationType(out);
+    DumpAnimationInfo(out);
     out += ", AnimationState:" + std::to_string(static_cast<int>(state_));
-    out += ", StartDelay:" + std::to_string(animationFraction_.GetDuration());
-    out += ", Duration:" + std::to_string(animationFraction_.GetStartDelay());
+    if (!targetName_.empty()) {
+        out += ", NodeName:" + targetName_;
+    }
+    out += ", Duration:" + std::to_string(animationFraction_.GetDuration());
+    out += ", StartDelay:" + std::to_string(animationFraction_.GetStartDelay());
     out += ", Speed:" + std::to_string(animationFraction_.GetSpeed());
     out += ", RepeatCount:" + std::to_string(animationFraction_.GetRepeatCount());
     out += ", AutoReverse:" + std::to_string(animationFraction_.GetAutoReverse());
@@ -65,10 +69,11 @@ void RSRenderAnimation::DumpAnimation(std::string& out) const
     out += ", FrameRateRange_min:" + std::to_string(animationFraction_.GetFrameRateRange().min_);
     out += ", FrameRateRange_max:" + std::to_string(animationFraction_.GetFrameRateRange().max_);
     out += ", FrameRateRange_prefered:" + std::to_string(animationFraction_.GetFrameRateRange().preferred_);
+    out += ", FrameRateRange_componentScene:" + animationFraction_.GetFrameRateRange().GetComponentName();
     out += "]";
 }
 
-void RSRenderAnimation::DumpAnimationType(std::string& out) const
+void RSRenderAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:Unknown";
 }
@@ -86,10 +91,12 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     int fpsMin = 0;
     int fpsMax = 0;
     int fpsPreferred = 0;
+    int componentScene = 0;
     if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
             parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
             parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable) &&
-            parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) && parcel.ReadInt32(fpsPreferred))) {
+            parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) && parcel.ReadInt32(fpsPreferred) &&
+            parcel.ReadInt32(componentScene))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
@@ -102,7 +109,7 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     SetDirection(direction);
     SetFillMode(static_cast<FillMode>(fillMode));
     SetRepeatCallbackEnable(isRepeatCallbackEnable);
-    SetFrameRateRange({fpsMin, fpsMax, fpsPreferred});
+    SetFrameRateRange({fpsMin, fpsMax, fpsPreferred, 0, static_cast<ComponentScene>(componentScene)});
     return true;
 }
 AnimationId RSRenderAnimation::GetAnimationId() const
@@ -167,7 +174,7 @@ NodeId RSRenderAnimation::GetTargetId() const
     return targetId_;
 }
 
-const std::string& RSRenderAnimation::GetTargetName() const
+const std::string RSRenderAnimation::GetTargetName() const
 {
     return targetName_;
 }
@@ -318,6 +325,7 @@ bool RSRenderAnimation::Animate(int64_t time)
     calculateAnimationValue_ = true;
 
     if (!IsRunning()) {
+        ROSEN_LOGD("RSRenderAnimation::Animate, IsRunning is false!");
         return state_ == AnimationState::FINISHED;
     }
 

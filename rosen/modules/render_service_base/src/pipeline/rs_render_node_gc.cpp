@@ -47,6 +47,12 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     }
 }
 
+bool RSRenderNodeGC::IsBucketQueueEmpty()
+{
+    std::lock_guard<std::mutex> lock(nodeMutex_);
+    return nodeBucket_.empty();
+}
+
 void RSRenderNodeGC::ReleaseNodeBucket()
 {
     std::vector<RSRenderNode*> toDele;
@@ -69,6 +75,7 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 
 void RSRenderNodeGC::ReleaseNodeMemory()
 {
+    RS_TRACE_FUNC();
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
         if (nodeBucket_.empty()) {
@@ -147,5 +154,60 @@ void RSRenderNodeGC::ReleaseDrawableMemory()
         ReleaseDrawableBucket();
     }
 }
+
+void RSRenderNodeGC::AddToOffTreeNodeBucket(const std::shared_ptr<RSBaseRenderNode>& node)
+{
+    if (offTreeBucket_.size() > 0) {
+        auto& bucket = offTreeBucket_.back();
+        if (bucket.size() < OFF_TREE_BUCKET_MAX_SIZE) {
+            bucket.emplace_back(node);
+        } else {
+            offTreeBucket_.push({node});
+        }
+    } else {
+        offTreeBucket_.push({node});
+    }
+}
+
+void RSRenderNodeGC::ReleaseOffTreeNodeBucket()
+{
+    std::vector<std::shared_ptr<RSBaseRenderNode>> toRemove;
+    if (offTreeBucket_.empty()) {
+        return;
+    }
+    toRemove.swap(offTreeBucket_.front());
+    offTreeBucket_.pop();
+    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeBucket %d", toRemove.size());
+    for (const auto& node : toRemove) {
+        if (!node) {
+            continue;
+        }
+        auto parent = node->GetParent().lock();
+        if (parent) {
+            parent->RemoveChildFromFulllist(node->GetId());
+        }
+        node->RemoveFromTree(false);
+    }
+}
+
+void RSRenderNodeGC::ReleaseFromTree()
+{
+    if (offTreeBucket_.empty()) {
+        return;
+    }
+    if (mainTask_) {
+        auto task = [this]() {
+            if (!isEnable_.load()) {
+                return;
+            }
+            ReleaseOffTreeNodeBucket();
+            ReleaseFromTree();
+        };
+        mainTask_(task, OFF_TREE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
+    } else {
+        ReleaseOffTreeNodeBucket();
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

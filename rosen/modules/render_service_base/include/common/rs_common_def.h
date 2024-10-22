@@ -36,11 +36,13 @@ using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
 using SurfaceId = uint64_t;
 using InteractiveImplictAnimatorId = uint64_t;
+using LeashPersistentId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
 constexpr uint32_t RGBA_MAX = 255;
+constexpr uint64_t INVALID_LEASH_PERSISTENTID = 0;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -190,6 +192,7 @@ enum class CacheProcessStatus : uint8_t {
     WAITING = 0, // waiting for process
     DOING, // processing
     DONE, // processed
+    SKIPPED, // skip cur process and wait for next new data to process
     UNKNOWN,
 };
 
@@ -243,8 +246,8 @@ enum class SystemAnimatedScenes : uint32_t {
     APPEAR_MISSION_CENTER, // A special case scenario that displays the mission center
     ENTER_WIND_CLEAR, // Enter win+D in clear screen mode
     ENTER_WIND_RECOVER, // Enter win+D in recover mode
-    ENTER_RECENTS, // Enter recents
-    EXIT_RECENTS, // Exit recents
+    ENTER_RECENTS, // Enter recents only for phone, end with EXIT_RECENTS instead of OTHERS
+    EXIT_RECENTS, // Exit recents only for phone
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
@@ -310,12 +313,19 @@ struct RSSurfaceExtConfig {
 using RSSurfaceTextureConfig = RSSurfaceExtConfig;
 using RSSurfaceTextureAttachCallBack = std::function<void(int64_t textureId, bool attach)>;
 using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
+using RSSurfaceTextureInitTypeCallBack = std::function<void(int32_t&)>;
 
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
     bool isMirrored = false;
-    bool isSync = false;
     NodeId mirrorNodeId = 0;
+    bool isSync = false;
+};
+
+// ability state of surface node
+enum class RSSurfaceNodeAbilityState : uint8_t {
+    BACKGROUND,
+    FOREGROUND,
 };
 
 constexpr int64_t NS_TO_S = 1000000000;
@@ -413,7 +423,23 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
 }
 
 enum class AncoFlags : uint32_t {
-    IS_ANCO_NODE = 0x0001
+    IS_ANCO_NODE = 0x0001,
+    ANCO_SFV_NODE = 0x0011
+};
+
+enum class AncoHebcStatus : int32_t {
+    INITIAL,
+    NOT_USE_HEBC,
+    USE_HEBC
+};
+
+enum class RSInterfaceErrorCode : uint32_t {
+#undef NO_ERROR
+    NO_ERROR = 0,
+    NOT_SELF_CALLING,
+    NONSYSTEM_CALLING,
+    UNKNOWN_ERROR,
+    WRITE_PARCEL_ERROR,
 };
 
 } // namespace Rosen

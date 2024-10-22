@@ -30,18 +30,18 @@ enum class TextTraceLevel {
     TEXT_TRACE_LEVEL_HIGH
 };
 
-#define TEXT_TRACE(name) TextOptionalTrace optionalTrace(name)
-#define TEXT_TRACE_FUNC() TextOptionalTrace optionalTrace(__FUNCTION__)
-#define TEXT_TRACE_LEVEL(level, name) TextOptionalTrace::TraceWithLevel(level, name, __FUNCTION__)
+#define TEXT_TRACE(name) OHOS::Rosen::TextOptionalTrace optionalTrace(name)
+#define TEXT_TRACE_FUNC() OHOS::Rosen::TextOptionalTrace optionalTrace(__PRETTY_FUNCTION__)
+#define TEXT_TRACE_LEVEL(level, name) OHOS::Rosen::TextOptionalTrace::TraceWithLevel(level, name, __PRETTY_FUNCTION__)
 
 class TextOptionalTrace {
 public:
-    TextOptionalTrace(const std::string& traceStr)
+    TextOptionalTrace(std::string traceStr)
     {
-        static bool debugTraceEnable =
-            (OHOS::system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0);
+        static bool debugTraceEnable = (OHOS::system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0);
         if (debugTraceEnable) {
-            std::string name{"Text#"};
+            std::string name { "Text#" };
+            CutPrettyFunction(traceStr);
             name.append(traceStr);
             StartTrace(HITRACE_TAG_GRAPHIC_AGP | HITRACE_TAG_COMMERCIAL, name);
         }
@@ -49,18 +49,44 @@ public:
 
     ~TextOptionalTrace()
     {
-        static bool debugTraceEnable =
-            (OHOS::system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0);
+        static bool debugTraceEnable = (OHOS::system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0);
         if (debugTraceEnable) {
             FinishTrace(HITRACE_TAG_GRAPHIC_AGP | HITRACE_TAG_COMMERCIAL);
         }
     }
 
-    static void TraceWithLevel(TextTraceLevel level, const std::string &traceStr, const std::string &caller)
+    // Simplify __PRETTY_FUNCTION__ to only return class name and function name
+    // case: std::unique_str<XXX::XXX::Xxx> XXX::XXX::ClassName::FunctionName()
+    // retrun: ClassName::FunctionName
+    static void CutPrettyFunction(std::string& str)
+    {
+        // find last '('
+        int endIndex = str.rfind('(');
+        if (endIndex == std::string::npos) {
+            return;
+        }
+
+        // find the third ':' before '('
+        int startIndex = 0;
+        int count = 0;
+        for (int i = endIndex; i >= 0; --i) {
+            if (str[i] == ':') {
+                count++;
+                if (count == 3) { // 3 means to stop iterating when reaching the third ':'
+                    startIndex = i + 1;
+                    break;
+                }
+            }
+        }
+        str = str.substr(startIndex, endIndex - startIndex);
+    }
+
+    static void TraceWithLevel(TextTraceLevel level, const std::string& traceStr, std::string caller)
     {
         static int32_t systemLevel =
             std::atoi(OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0").c_str());
         if ((systemLevel != 0) && (systemLevel <= static_cast<int32_t>(level))) {
+            CutPrettyFunction(caller);
             HITRACE_METER_FMT(HITRACE_TAG_GRAPHIC_AGP, "Text#%s %s", traceStr.c_str(), caller.c_str());
         }
     }
@@ -71,5 +97,5 @@ public:
 #define TEXT_TRACE_FUNC()
 #define TEXT_TRACE_LEVEL(level, name)
 #endif
-}
+} // namespace OHOS::Rosen
 #endif

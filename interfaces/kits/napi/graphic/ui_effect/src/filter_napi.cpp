@@ -163,6 +163,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("pixelStretch", SetPixelStretch),
         DECLARE_NAPI_FUNCTION("waterRipple", SetWaterRipple),
         DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
+        DECLARE_NAPI_FUNCTION("distort", SetDistort),
     };
     NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
     return object;
@@ -416,6 +417,44 @@ napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
     }
     filterObj->AddPara(para);
 
+    return thisVar;
+}
+
+napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetDistort failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetDistort failed, is not system app");
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    size_t argc = NUM_1;
+    napi_value argv[NUM_1] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, argc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_distort_info"));
+    if (argc != NUM_1) {
+        return thisVar;
+    }
+    float distortionK = 0.0f;
+    if (UIEffectNapiUtils::getType(env, argv[NUM_0]) == napi_number) {
+        double tmp = 0.0f;
+        if (UIEFFECT_IS_OK(napi_get_value_double(env, argv[NUM_0], &tmp))) {
+            distortionK = static_cast<float>(tmp);
+        }
+    }
+    Filter* filterObj = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
+    if (filterObj == nullptr) {
+        FILTER_LOG_E("filterNapi is nullptr");
+        return thisVar;
+    }
+    std::shared_ptr<DistortPara> para = std::make_shared<DistortPara>();
+    para->SetDistortionK(distortionK);
+    filterObj->AddPara(para);
     return thisVar;
 }
 

@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "include/core/SkFontMgr.h"
+#include "include/core/SkTypeface.h"
 
 #include "impl_interface/font_mgr_impl.h"
 
@@ -54,7 +55,11 @@ public:
     int CountFamilies() const override;
     void GetFamilyName(int index, std::string& str) const override;
     FontStyleSet* CreateStyleSet(int index) const override;
+    int GetFontFullName(int fontFd, std::vector<FontByteArray>& fullnameVec) override;
+    int ParseInstallFontConfig(const std::string& configPath, std::vector<std::string>& fontPathVec) override;
 private:
+    bool CheckDynamicFontValid(const std::string &familyName, sk_sp<SkTypeface> typeface);
+
     sk_sp<SkFontMgr> skFontMgr_;
 };
 } // namespace Drawing

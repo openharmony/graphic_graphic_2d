@@ -26,6 +26,9 @@
 #include "res_type.h"
 #include "rs_frame_report.h"
 #include "rs_profiler.h"
+#include "command/rs_node_command.h"
+#include "command/rs_canvas_node_command.h"
+#include "recording/draw_cmd_list.h"
 
 #ifdef RES_SCHED_ENABLE
 #include "qos.h"
@@ -38,8 +41,8 @@ constexpr int REQUEST_SET_FRAME_LOAD_ID = 100006;
 constexpr int REQUEST_FRAME_AWARE_LOAD = 85;
 constexpr int REQUEST_FRAME_AWARE_NUM = 4;
 constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
-constexpr size_t TRANSACTION_DATA_ALARM_SIZE = 500 * 1024; // 500KB
-constexpr size_t TRANSACTION_DATA_KILL_SIZE = 1000 * 1024; // 1000KB
+constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
+constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
 const std::unique_ptr<AppExecFwk::AppMgrClient>& GetAppMgrClient()
@@ -100,6 +103,10 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
                 RS_LOGE("RSUnmarshalThread::RecvParcel non-system callingPid %{public}d"
                         " is denied to access commandPid %{public}d, commandMap = %{public}s",
                         callingPid, conflictCommandPid, commandMapDesc.c_str());
+            }
+            bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
+            if (shouldDrop) {
+                RS_LOGW("RSUnmarshalThread::RecvParcel data droped");
                 return;
             }
         }
@@ -128,7 +135,6 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             cachedDeps_.push_back(std::move(handle));
         }
     }
-
     if (!isPendingUnmarshal) {
         RSMainThread::Instance()->RequestNextVSync();
     }
@@ -180,21 +186,64 @@ void RSUnmarshalThread::Wait()
     ffrt::wait(deps);
 }
 
-bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid, size_t dataSize, bool isNonSystemAppCalling)
+bool RSUnmarshalThread::IsHaveCmdList(const std::unique_ptr<RSCommand>& cmd) const
 {
-    size_t preSize = 0;
-    size_t totalSize = 0;
+    if (!cmd) {
+        return false;
+    }
+    bool haveCmdList = false;
+    switch (cmd->GetType()) {
+        case RSCommandType::RS_NODE:
+            if (cmd->GetSubType() == RSNodeCommandType::UPDATE_MODIFIER_DRAW_CMD_LIST ||
+                cmd->GetSubType() == RSNodeCommandType::ADD_MODIFIER) {
+                haveCmdList = true;
+            }
+            break;
+        case RSCommandType::CANVAS_NODE:
+            if (cmd->GetSubType() == RSCanvasNodeCommandType::CANVAS_NODE_UPDATE_RECORDING) {
+                haveCmdList = true;
+            }
+            break;
+        default:
+            break;
+    }
+    return haveCmdList;
+}
+
+bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
+                                                        RSTransactionData* transactionData,
+                                                        bool isNonSystemAppCalling)
+{
+    size_t preCount = 0;
+    size_t totalCount = 0;
+    size_t opCount = 0;
+    if (!transactionData) {
+        return false;
+    }
+    opCount = transactionData->GetCommandCount();
+    auto& payload_temp = transactionData->GetPayload();
+    for (auto& item_temp : payload_temp) {
+        auto& cmd = std::get<2>(item_temp);
+        if (!cmd) {
+            continue;
+        }
+        if (IsHaveCmdList(cmd)) {
+            auto drawCmdList = cmd->GetDrawCmdList();
+            if (drawCmdList) {
+                opCount += drawCmdList->GetOpItemSize();
+            }
+        }
+    }
     {
         std::unique_lock<std::mutex> lock(statisticsMutex_);
-        preSize = transactionDataStatistics_[pid];
-        totalSize = preSize + dataSize;
-        transactionDataStatistics_[pid] = totalSize;
+        preCount = transactionDataStatistics_[pid];
+        totalCount = preCount + opCount;
+        transactionDataStatistics_[pid] = totalCount;
 
-        if (totalSize < TRANSACTION_DATA_ALARM_SIZE) {
+        if (totalCount < TRANSACTION_DATA_ALARM_COUNT) {
             return false;
         }
     }
-
     const auto& appMgrClient = GetAppMgrClient();
     int32_t uid = 0;
     std::string bundleName;
@@ -202,15 +251,16 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid, size_t dataSi
 
     HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, TRANSACTION_REPORT_NAME,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid, "UID", uid,
-        "BUNDLE_NAME", bundleName, "TRANSACTION_DATA_SIZE", totalSize);
-    RS_LOGW("TransactionDataStatistics pid[%d] uid[%d] bundleName[%s] dataSize[%{public}zu] exceeded[%{public}d]",
-        pid, uid, bundleName.c_str(), totalSize, totalSize > TRANSACTION_DATA_KILL_SIZE);
+        "BUNDLE_NAME", bundleName, "TRANSACTION_DATA_SIZE", totalCount);
+    RS_LOGW("TransactionDataStatistics pid[%{public}d] uid[%{public}d]"
+            " bundleName[%{public}s] opCount[%{public}zu] exceeded[%{public}d]",
+        pid, uid, bundleName.c_str(), totalCount, totalCount > TRANSACTION_DATA_KILL_COUNT);
 
     bool terminateEnabled = RSSystemProperties::GetTransactionTerminateEnabled();
     if (!isNonSystemAppCalling || !terminateEnabled) {
         return false;
     }
-    if (totalSize > TRANSACTION_DATA_KILL_SIZE && preSize <= TRANSACTION_DATA_KILL_SIZE) {
+    if (totalCount > TRANSACTION_DATA_KILL_COUNT && preCount <= TRANSACTION_DATA_KILL_COUNT) {
         int res = appMgrClient->KillApplicationByUid(bundleName, uid);
         return res == AppExecFwk::RESULT_OK;
     }

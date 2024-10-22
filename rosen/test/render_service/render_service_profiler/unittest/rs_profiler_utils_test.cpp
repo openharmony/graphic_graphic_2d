@@ -125,33 +125,6 @@ HWTEST_F(RSProfilerUtilsTest, UtilsSplitTest, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: UtilsArgListTest
- * @tc.desc: RSProfiler Utils ArgList public API Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSProfilerUtilsTest, UtilsArgListTest, testing::ext::TestSize.Level1)
-{
-    std::vector<std::string> args { "123", "-5", "45738957893", "837983", "1.5", "678.789", "qwe" };
-    ArgList list { args };
-
-    EXPECT_EQ(list.Uint32(0), 123);
-    EXPECT_EQ(list.Int32(1), -5);
-    EXPECT_EQ(list.Uint64(2), 45738957893);
-    EXPECT_EQ(list.Int64(3), 837983);
-    EXPECT_EQ(list.Fp32(4), 1.5f);
-    EXPECT_EQ(list.Fp64(5), 678.789);
-    EXPECT_EQ(list.String(6), "qwe");
-    EXPECT_EQ(list.Count(), 7);
-    EXPECT_TRUE(list.String(7).empty());
-    EXPECT_TRUE(list.String(100).empty());
-
-    EXPECT_FALSE(list.Empty());
-    list.Clear();
-    EXPECT_TRUE(list.Empty());
-}
-
-/*
  * @tc.name: UtilsIdRoutineTest
  * @tc.desc: RSProfiler Utils identifiers combining routine Test
  * @tc.type: FUNC

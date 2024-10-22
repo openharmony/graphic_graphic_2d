@@ -15,6 +15,14 @@
 
 #include <gtest/gtest.h>
 
+#include <if_system_ability_manager.h>
+#include <iremote_stub.h>
+#include <iservice_registry.h>
+#include <mutex>
+#include <system_ability_definition.h>
+#include <unistd.h>
+
+#include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_thread_visitor.h"
@@ -38,6 +46,8 @@ public:
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
     uint8_t MAX_ALPHA = 255;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceRenderNodeTest::SetUpTestCase()
@@ -229,7 +239,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion03, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -284,7 +294,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion05, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -312,7 +322,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion06, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -340,7 +350,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion07, TestSize.Level1)
     surfaceRenderNode.SetAbilityBGAlpha(255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     Vector4f cornerRadius;
     Vector4f::Max(
         surfaceRenderNode.GetWindowCornerRadius(), surfaceRenderNode.GetGlobalCornerRadius(), cornerRadius);
@@ -401,6 +411,43 @@ HWTEST_F(RSSurfaceRenderNodeTest, FingerprintTest, TestSize.Level1)
     surfaceRenderNode.SetFingerprint(false);
     result = surfaceRenderNode.GetFingerprint();
     ASSERT_EQ(false, result);
+}
+
+/**
+ * @tc.name: HDRPresentTest
+ * @tc.desc: SetHDRPresent and GetHDRPresent
+ * @tc.type:FUNC
+ * @tc.require: issueI6Z3YK
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id + 2, rsContext);
+    ASSERT_NE(childNode, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(leashWindowNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[childNode->GetId()] = childNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[leashWindowNode->GetId()] = leashWindowNode;
+
+    parentNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    childNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    leashWindowNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+
+    leashWindowNode->AddChild(parentNode);
+    parentNode->AddChild(childNode);
+    leashWindowNode->SetIsOnTheTree(true);
+    parentNode->SetIsOnTheTree(true);
+    childNode->SetIsOnTheTree(true);
+    
+    childNode->SetHDRPresent(false);
+    EXPECT_EQ(childNode->GetHDRPresent(), false);
+    leashWindowNode->SetHDRPresent(true);
+    EXPECT_EQ(leashWindowNode->GetHDRPresent(), true);
 }
 
 /**
@@ -515,6 +562,22 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
     ASSERT_EQ(node->GetBootAnimation(), true);
     node->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
+}
+
+/**
+ * @tc.name: SetGlobalPositionEnabledTest
+ * @tc.desc: SetGlobalPositionEnabled and GetGlobalPositionEnabled
+ * @tc.type:FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalPositionEnabledTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetGlobalPositionEnabled(true);
+    ASSERT_EQ(node->GetGlobalPositionEnabled(), true);
+    node->SetGlobalPositionEnabled(false);
+    ASSERT_FALSE(node->GetGlobalPositionEnabled());
 }
 
 /**
@@ -1901,7 +1964,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetOpaqueRegion, TestSize.Level1)
     ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
     bool isFocusWindow = true;
     Occlusion::Region res = testNode->ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
-    EXPECT_NE(res.rects_.size(), 0);
+    EXPECT_EQ(res.rects_.size(), 0);
     isFocusWindow = false;
     res = testNode->ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
     EXPECT_NE(res.rects_.size(), 0);
@@ -1939,7 +2002,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetFocusedWindowOpaqueRegion, TestSize.Level1)
     ScreenRotation::ROTATION_180, ScreenRotation::ROTATION_270, ScreenRotation::INVALID_SCREEN_ROTATION };
     for (ScreenRotation rotation : rotationCases) {
         Occlusion::Region opaqueRegion = renderNode->SetFocusedWindowOpaqueRegion(absRect, rotation);
-        EXPECT_NE(opaqueRegion.rects_.size(), 0);
+        EXPECT_EQ(opaqueRegion.rects_.size(), 0);
     }
 }
 
@@ -2067,6 +2130,18 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateChildrenFilterRects, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetOriAncoForceDoDirect
+ * @tc.desc: test results of GetOriAncoForceDoDirect
+ * @tc.type: FUNC
+ * @tc.require: issueIARZ3Q
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
+{
+    RSSurfaceRenderNode::SetAncoForceDoDirect(false);
+    EXPECT_FALSE(RSSurfaceRenderNode::GetOriAncoForceDoDirect());
+}
+
+/**
  * @tc.name: CheckUpdateHwcNodeLayerInfo
  * @tc.desc: test results of CheckUpdateHwcNodeLayerInfo
  * @tc.type: FUNC
@@ -2082,8 +2157,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
     Vector4<int> cornerRadius;
     ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius));
     bool hasContainer = true;
-    float density = 1.0f;
-    node->containerConfig_.Update(hasContainer, density);
+    node->containerConfig_.Update(hasContainer, rrect);
 
     node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     node->addedToPendingSyncList_ = true;
@@ -2096,6 +2170,60 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckUpdateHwcNodeLayerInfo, TestSize.Level1)
     node->UpdateHwcNodeLayerInfo(transform);
     auto layer = node->stagingRenderParams_->GetLayerInfo();
     ASSERT_TRUE(layer.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+}
+
+/**
+ * @tc.name: BufferClearCallbackProxy
+ * @tc.desc: test results of BufferClearCallbackProxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, BufferClearCallbackProxy, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    ASSERT_NE(remoteObject, nullptr);
+    sptr<RSBufferClearCallbackProxy> callback = new RSBufferClearCallbackProxy(remoteObject);
+    ASSERT_NE(callback, nullptr);
+    testNode->RegisterBufferClearListener(callback);
+    testNode->SetNotifyRTBufferAvailable(true);
+    ASSERT_TRUE(testNode->isNotifyRTBufferAvailable_);
+}
+
+/**
+ * @tc.name: MarkBlurIntersectDRMTest
+ * @tc.desc: test if node could be marked BlurIntersectWithDRM correctly
+ * @tc.type: FUNC
+ * @tc.require: issuesIAQZ4I
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, MarkBlurIntersectDRMTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->MarkBlurIntersectWithDRM(true, true);
+}
+
+/**
+ * @tc.name: SetNeedCacheSurface
+ * @tc.desc: test if node could be marked NeedCacheSurface correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetNeedCacheSurface, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+
+    testNode->SetNeedCacheSurface(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_TRUE(surfaceParams->GetNeedCacheSurface());
+
+    testNode->SetNeedCacheSurface(false);
+    surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
 }
 } // namespace Rosen
 } // namespace OHOS

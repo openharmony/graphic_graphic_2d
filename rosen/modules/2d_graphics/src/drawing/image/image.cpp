@@ -15,14 +15,9 @@
 
 #include "image/image.h"
 
-#include "engine_adapter/skia_adapter/skia_gpu_context.h"
-#include "image/gpu_context.h"
 #include "impl_factory.h"
 #include "skia_adapter/skia_image.h"
 #include "static_factory.h"
-#include "src/core/SkImagePriv.h"
-#include "src/image/SkImage_Base.h"
-#include "utils/system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -71,7 +66,7 @@ std::shared_ptr<Image> Image::MakeRasterData(const ImageInfo& info, std::shared_
     return StaticFactory::MakeRasterData(info, pixels, rowBytes);
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<Image> Image::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
 {
     return StaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);

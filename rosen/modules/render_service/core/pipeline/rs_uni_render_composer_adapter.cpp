@@ -42,6 +42,15 @@ constexpr uint32_t FLAT_ANGLE = 180;
 constexpr int32_t DEFAULT_BRIGHTNESS = 500;
 constexpr float NO_RATIO = 1.0f;
 static const int GLOBAL_ALPHA_MAX = 255;
+
+std::string RectVectorToString(const std::vector<GraphicIRect>& dirtyRects)
+{
+    std::stringstream ss;
+    for (auto& rect : dirtyRects) {
+        ss << "[" << rect.x << "," << rect.y << "," << rect.w << "," << rect.h << "]";
+    }
+    return ss.str();
+}
 }
 
 bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
@@ -239,18 +248,22 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(info.visibleRect);
     layer->SetVisibleRegions(visibleRegions);
+    std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
-        layer->SetDirtyRegions(info.dirtyRects);
+        // Make sure the dirty region does not exceed layer src range.
+        for (const auto& rect : info.dirtyRects) {
+            dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(info.srcRect, rect));
+        }
     } else {
-        std::vector<GraphicIRect> dirtyRegions;
         dirtyRegions.emplace_back(info.srcRect);
-        layer->SetDirtyRegions(dirtyRegions);
     }
+    layer->SetDirtyRegions(dirtyRegions);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
     layer->SetMatrix(info.matrix);
     layer->SetGravity(info.gravity);
     SetMetaDataInfoToLayer(layer, info.buffer, surface);
+    layer->SetSdrNit(info.sdrNit);
     layer->SetDisplayNit(info.displayNit);
     layer->SetBrightnessRatio(info.brightnessRatio);
 }
@@ -806,14 +819,17 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
         RS_LOGE("RSUniRenderComposerAdapter::BuildComposeInfo fail, node params is nullptr");
         return info;
     }
+    info.sdrNit = renderParam->GetSdrNit();
     info.displayNit = renderParam->GetDisplayNit();
     info.brightnessRatio = renderParam->GetBrightnessRatio();
+    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
+        info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
         " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
-        node.GetId(), info.zOrder, info.blendType, info.needClient, info.displayNit, info.brightnessRatio,
+        node.GetId(), info.zOrder, info.blendType, info.needClient,
         info.alpha.enGlobalAlpha, info.alpha.gAlpha,
         info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
         info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,
@@ -872,14 +888,17 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSSurfaceRe
         RS_LOGE("RSUniRenderComposerAdapter::curRenderParam is nullptr");
         return info;
     }
+    info.sdrNit = curRenderParam->GetSdrNit();
     info.displayNit = curRenderParam->GetDisplayNit();
     info.brightnessRatio = curRenderParam->GetBrightnessRatio();
+    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
+        info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
         " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
-        surfaceDrawable.GetId(), info.zOrder, info.blendType, info.needClient, info.displayNit, info.brightnessRatio,
+        surfaceDrawable.GetId(), info.zOrder, info.blendType, info.needClient,
         info.alpha.enGlobalAlpha, info.alpha.gAlpha,
         info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
         info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,
@@ -1348,8 +1367,8 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
         return nullptr;
     }
     ComposeInfo info = BuildComposeInfo(displayDrawable, displayDrawable.GetDirtyRects());
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable zorder:%d bufferFormat:%d", info.zOrder,
-        surfaceHandler->GetBuffer()->GetFormat());
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable dirty:%s zorder:%d bufferFormat:%d",
+        RectVectorToString(info.dirtyRects).c_str(), info.zOrder, surfaceHandler->GetBuffer()->GetFormat());
     if (info.buffer) {
         RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayDrawable id:%{public}" PRIu64 " dst [%{public}d"
             " %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d]"

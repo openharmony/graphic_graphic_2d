@@ -34,7 +34,8 @@ public:
     {
         return instance_;
     };
-    void PropertiesDisplayByTrace(const NodeId& id, const RSProperties& properties);
+
+    void PropertiesDisplayByTrace(const NodeId& id, const std::shared_ptr<RSObjAbsGeometry>& boundsGeometry);
     void TracePropertiesByNodeName(const NodeId& id, const std::string& nodeName, const RSProperties& properties);
     void RefreshNodeTraceInfo();
 private:
@@ -60,7 +61,6 @@ private:
     static RSPropertyTrace instance_;
     std::set<NodeId> nodeIdSet_;
     std::set<std::string> nodeNameSet_;
-    std::set<std::string> propertySet_;
     std::string propertyFileLastModifyTime;
 };
 

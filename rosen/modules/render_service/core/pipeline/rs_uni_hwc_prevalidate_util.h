@@ -29,7 +29,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr uint64_t USAGE_UNI_LAYER = 1ULL << 60;
  
 struct RequestRect {
     uint32_t x = 0;
@@ -77,7 +76,7 @@ public:
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
     bool CreateUIFirstLayerInfo(
         RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info);
-    bool IsLoadSuccess() const;
+    bool IsPrevalidateEnable(const ScreenId& screenId);
     void CollectSurfaceNodeLayerInfo(
         std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
         uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);
@@ -92,10 +91,16 @@ private:
     void LayerRotate(
         RequestLayerInfo& info, const sptr<IConsumerSurface>& surface, const ScreenInfo &screenInfo);
     bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
+    static bool CheckHwcNodeAndGetPointerWindow(
+        const RSSurfaceRenderNode::SharedPtr& node, RSSurfaceRenderNode::SharedPtr& pointerWindow);
+    static void EmplaceSurfaceNodeLayer(
+        std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
+        uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);
 
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;
-    bool loadSuccess = false;
+    bool loadSuccess_ = false;
+    bool isPrevalidateHwcNodeEnable_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

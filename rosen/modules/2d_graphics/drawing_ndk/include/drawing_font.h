@@ -499,6 +499,60 @@ typedef struct {
  */
 float OH_Drawing_FontGetMetrics(OH_Drawing_Font*, OH_Drawing_Font_Metrics*);
 
+/**
+ * @brief Retrieves the bound rect for each glyph in glyph array.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param glyphs Indicates the array of glyph indices to be measured.
+ * @param count Indicates the number of glyphs.
+ * @param bounds The bound rect array for each glyph, returned to the caller.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, glyphs
+ *                 and bounds is nullptr or count is 0.
+ * @since 14
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontGetBounds(const OH_Drawing_Font* font, const uint16_t* glyphs, uint32_t count,
+    OH_Drawing_Array* bounds);
+
+/**
+ * @brief Retrieves the path for specified Glyph.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param glyph glyph index to be obtained.
+ * @param path The path object, returned to the caller.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, path
+ *                 is nullptr or glyph not exist.
+ * @since 14
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontGetPathForGlyph(const OH_Drawing_Font* font, uint16_t glyph,
+    OH_Drawing_Path* path);
+
+/**
+ * @brief Get the text outline path.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param text Indicates the character storage encoded with text encoding.
+ * @param byteLength Indicates the text length in bytes.
+ * @param encoding Indicates the text encoding.
+ * @param x Indicates x coordinates of the text.
+ * @param y Indicates y coordinates of the text.
+ * @param path The path object, returned to the caller.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, text or path is nullptr.
+ * @since 14
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontGetTextPath(const OH_Drawing_Font* font, const void* text, size_t byteLength,
+    OH_Drawing_TextEncoding encoding, float x, float y, OH_Drawing_Path* path);
 #ifdef __cplusplus
 }
 #endif

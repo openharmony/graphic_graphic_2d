@@ -531,5 +531,39 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, UpdateUIFirstFrameGravity, TestSize.Level2
     node->UpdateUIFirstFrameGravity();
     ASSERT_TRUE(node->IsLeashWindow());
 }
+
+/**
+ * @tc.name: SetAbilityState
+ * @tc.desc: test results of SetAbilityState
+ * @tc.type:FUNC SetAbilityState
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetAbilityState, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
+    ASSERT_TRUE(node->abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    ASSERT_FALSE(node->abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+}
+
+/**
+ * @tc.name: GetAbilityState
+ * @tc.desc: test results of GetAbilityState
+ * @tc.type:FUNC GetAbilityState
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, GetAbilityState, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto abilityState = node->GetAbilityState();
+    ASSERT_TRUE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->abilityState_ = RSSurfaceNodeAbilityState::BACKGROUND;
+    abilityState = node->GetAbilityState();
+    ASSERT_FALSE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
+}
 } // namespace Rosen
 } // namespace OHOS

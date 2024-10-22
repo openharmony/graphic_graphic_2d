@@ -99,7 +99,7 @@ enum class RSColorBlendMode : int16_t {
 
     HUE,        // hue of source with saturation and luminosity of destination
     SATURATION, // saturation of source with hue and luminosity of destination
-    COLOR,      // hue and saturation of source with luminosity of destination
+    COLOUR,     // hue and saturation of source with luminosity of destination
     LUMINOSITY, // luminosity of source with hue and saturation of destination
 
     MAX = LUMINOSITY,
@@ -267,9 +267,9 @@ private:
     }
     Vector4f lightPosition_ = Vector4f();
     Vector4f absLightPosition_ = Vector4f(); // absolute light Position;
-    Color lightColor_ = RgbPalette::White();
     float intensity_ = 0.f;
     float preIntensity_ = 0.f;
+    Color lightColor_ = RgbPalette::White();
     float radius_ = 0.f;
 };
 

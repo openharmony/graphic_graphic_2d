@@ -55,9 +55,6 @@ public:
 
     bool BuildFromGL(const GPUContextOptions& options) override;
 
-    static std::unique_ptr<SkExecutor> threadPool;
-    void InitSkExecutor();
-
 #ifdef RS_ENABLE_VK
     bool BuildFromVK(const GrVkBackendContext& context) override;
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
@@ -100,10 +97,9 @@ public:
 
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag) override;
 
-    void SetMemoryOverCheck(MemoryOverCheckCallback func) override;
+    void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) override;
 
-    void SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func) override;
-
+    void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size) override;
 #ifdef RS_ENABLE_VK
     void StoreVkPipelineCacheData() override;
 #endif
@@ -119,6 +115,18 @@ public:
     static std::function<void(const std::function<void()>& task)> GetPostFunc(sk_sp<GrDirectContext> grContext);
 
     void VmaDefragment() override;
+
+    void BeginFrame() override;
+
+    void EndFrame() override;
+
+    void SetGpuCacheSuppressWindowSwitch(bool enabled) override;
+
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled) override;
+
+    void FlushGpuMemoryInWaitQueue() override;
+    
+    void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

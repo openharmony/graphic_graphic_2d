@@ -17,7 +17,6 @@
 #define HDI_BACKEND_HDI_LAYER_INFO_H
 
 #include <string>
-#include <set>
 #include "iconsumer_surface.h"
 #include <surface.h>
 #include <sync_fence.h>
@@ -394,6 +393,11 @@ public:
         presentTimestamp_ = timestamp;
     }
 
+    int32_t GetSdrNit() const
+    {
+        return sdrNit_;
+    }
+
     int32_t GetDisplayNit() const
     {
         return displayNit_;
@@ -404,14 +408,19 @@ public:
         return brightnessRatio_;
     }
 
-    int32_t SetDisplayNit(int32_t displayNit)
+    void SetSdrNit(int32_t sdrNit)
     {
-        return displayNit_ = displayNit;
+        sdrNit_ = sdrNit;
     }
 
-    int32_t SetBrightnessRatio(float brightnessRatio)
+    void SetDisplayNit(int32_t displayNit)
     {
-        return brightnessRatio_ = brightnessRatio;
+        displayNit_ = displayNit;
+    }
+
+    void SetBrightnessRatio(float brightnessRatio)
+    {
+        brightnessRatio_ = brightnessRatio;
     }
 
     void SetScalingMode(ScalingMode scalingMode)
@@ -432,16 +441,6 @@ public:
     void SetLayerSourceTuning(int32_t layerSouce)
     {
         layerSource_ = layerSouce;
-    }
-
-    void SetClearCacheSet(const std::set<int32_t>& clearCacheSet)
-    {
-        clearCacheSet_ = clearCacheSet;
-    }
-
-    std::set<int32_t> GetClearCacheSet() const
-    {
-        return clearCacheSet_;
     }
 
     void SetRotationFixed(bool rotationFixed)
@@ -494,7 +493,6 @@ public:
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
         scalingMode_ = layerInfo->GetScalingMode();
         layerSource_ = layerInfo->GetLayerSourceTuning();
-        clearCacheSet_ = layerInfo->GetClearCacheSet();
         rotationFixed_ = layerInfo->GetRotationFixed();
         arsrTag_ = layerInfo->GetLayerArsr();
     }
@@ -604,18 +602,18 @@ private:
 
     void *additionalInfo_ = nullptr;
     sptr<IConsumerSurface> cSurface_ = nullptr;
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
     mutable std::mutex mutex_;
+    int32_t sdrNit_ = 500; // default sdr nit
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
     uint64_t nodeId_ = 0;
     ScalingMode scalingMode_;
     int32_t layerSource_ = 0; // default layer source tag
-    std::set<int32_t> clearCacheSet_;
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
 };

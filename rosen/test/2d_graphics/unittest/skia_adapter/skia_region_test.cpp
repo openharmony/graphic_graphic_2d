@@ -49,7 +49,7 @@ HWTEST_F(SkiaRegionTest, SetPath001, TestSize.Level1)
     std::shared_ptr<SkiaRegion> skiaRegion = std::make_shared<SkiaRegion>();
     Path path;
     Region region;
-    skiaRegion->SetPath(path, region);
+    ASSERT_FALSE(skiaRegion->SetPath(path, region));
 }
 
 /**
@@ -62,8 +62,8 @@ HWTEST_F(SkiaRegionTest, GetBoundaryPath001, TestSize.Level1)
 {
     std::shared_ptr<SkiaRegion> skiaRegion = std::make_shared<SkiaRegion>();
     Path path;
-    skiaRegion->GetBoundaryPath(&path);
-    skiaRegion->GetBoundaryPath(nullptr);
+    ASSERT_FALSE(skiaRegion->GetBoundaryPath(&path));
+    ASSERT_FALSE(skiaRegion->GetBoundaryPath(nullptr));
 }
 
 /**
@@ -91,6 +91,7 @@ HWTEST_F(SkiaRegionTest, Clone001, TestSize.Level1)
     std::shared_ptr<SkiaRegion> skiaRegion = std::make_shared<SkiaRegion>();
     Region region;
     skiaRegion->Clone(region);
+    EXPECT_TRUE(skiaRegion->IsEmpty());
 }
 
 /**

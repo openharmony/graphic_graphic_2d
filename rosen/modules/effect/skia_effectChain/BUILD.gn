@@ -38,53 +38,110 @@ config("effect_SKeffectChian_public_config") {
     "$graphic_2d_root/utils/log",
     "include",
   ]
-}
 
-ohos_shared_library("skeffectchain") {
-  public_deps = [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
-
-  if (ace_enable_gpu) {
-    defines = gpu_defines
-    public_deps += [
-      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
-      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+  if (is_arkui_x) {
+    include_dirs += [
+      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+      "//foundation/graphic/graphic_2d/utils/color_manager/export",
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits",
     ]
   }
 
-  public_external_deps = [
-    "graphic_surface:surface",
-    "skia:skia_canvaskit",
-  ]
+  if (target_os == "ios") {
+    include_dirs -= [ "../egl/include" ]
+  }
+}
+if (is_arkui_x) {
+  ohos_source_set("skeffectchain") {
+    public_deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//foundation/arkui/ace_engine/adapter/${target_os}/build:libarkui_${target_os}",
+    ]
 
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "hitrace:hitrace_meter",
-    "image_framework:image",
-    "image_framework:image_native",
-    "image_framework:pixelconvertadapter",
-    "init:libbegetutil",
-    "ipc:ipc_core",
-    "napi:ace_napi",
-    "samgr:samgr_proxy",
-  ]
+    if (target_os == "android") {
+      defines = [ "ANDROID_PLATFORM" ]
+    } else if (target_os == "ios") {
+      defines = [ "IOS_PLATFORM" ]
+    }
 
-  sources = [
-    "src/sk_image_chain.cpp",
-    "src/sk_image_filter_factory.cpp",
-  ]
+    if (target_os == "android") {
+      public_deps +=
+          [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
 
-  configs = [ ":effect_SKeffectChian_config" ]
+      if (rs_enable_gpu) {
+        defines += gpu_defines
+        public_deps += [
+          "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+          "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+        ]
+      }
+    }
 
-  public_configs = [ ":effect_SKeffectChian_public_config" ]
+    public_external_deps = [
+      "c_utils:utilsbase",
+      "skia:skia_canvaskit_static",
+    ]
 
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-  ]
+    sources = [
+      "src/sk_image_chain.cpp",
+      "src/sk_image_filter_factory.cpp",
+    ]
 
-  cflags_cc = [ "-std=c++17" ]
+    configs = [ ":effect_SKeffectChian_config" ]
 
-  install_enable = true
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+    public_configs = [ ":effect_SKeffectChian_public_config" ]
+
+    cflags_cc = [ "-std=c++17" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+} else {
+  ohos_shared_library("skeffectchain") {
+    public_deps = [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
+
+    if (rs_enable_gpu) {
+      defines = gpu_defines
+      public_deps += [
+        "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+        "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+      ]
+    }
+
+    public_external_deps = [
+      "graphic_surface:surface",
+      "skia:skia_canvaskit",
+    ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "hitrace:hitrace_meter",
+      "image_framework:image",
+      "image_framework:image_native",
+      "image_framework:pixelconvertadapter",
+      "init:libbegetutil",
+      "ipc:ipc_core",
+      "napi:ace_napi",
+      "samgr:samgr_proxy",
+    ]
+
+    sources = [
+      "src/sk_image_chain.cpp",
+      "src/sk_image_filter_factory.cpp",
+    ]
+
+    configs = [ ":effect_SKeffectChian_config" ]
+
+    public_configs = [ ":effect_SKeffectChian_public_config" ]
+
+    deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+
+    cflags_cc = [ "-std=c++17" ]
+
+    install_enable = true
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }

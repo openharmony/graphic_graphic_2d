@@ -45,6 +45,8 @@ public:
     sk_sp<SkColorSpace> GetSkColorSpace() const override;
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
+    bool IsSRGB() const override;
+    bool Equals(const std::shared_ptr<ColorSpace>& colorSpace) const override;
 private:
     sk_sp<SkColorSpace> colorSpace_;
 };

@@ -18,12 +18,14 @@
 
 #include <cstdint>
 
+#include "draw/path.h"
 #include "impl_interface/base_impl.h"
 #include "text/font_metrics.h"
 #include "text/font_types.h"
 #include "text/typeface.h"
 #include "utils/rect.h"
 #include "utils/scalar.h"
+#include "draw/path.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -67,10 +69,14 @@ public:
     virtual uint16_t UnicharToGlyph(int32_t uni) const = 0;
     virtual int TextToGlyphs(const void* text, size_t byteLength, TextEncoding encoding,
         uint16_t glyphs[], int maxGlyphCount) const = 0;
+    virtual bool GetPathForGlyph(uint16_t glyph, Path* path) const = 0;
 
     virtual scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding,
         Rect* bounds = nullptr) const = 0;
     virtual int CountText(const void* text, size_t byteLength, TextEncoding encoding) const = 0;
+    
+    virtual void GetTextPath(const void* text, size_t byteLength,
+        TextEncoding encoding, float x, float y, Path* path) const = 0;
 
 protected:
     FontImpl() noexcept = default;

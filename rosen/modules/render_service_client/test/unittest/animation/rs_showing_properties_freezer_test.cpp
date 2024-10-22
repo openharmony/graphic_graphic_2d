@@ -428,5 +428,35 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
     EXPECT_TRUE(result3.value() == SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetDegreeTest end";
 }
+
+/**
+ * @tc.name: GetAttractionValueTest
+ * @tc.desc: Verify the GetAttractionValue
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSShowingPropertiesFreezerTest, GetAttractionValueTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetAttractionValueTest start";
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetAttractionEffect(SHOWING_FLOAT_NUM, Vector2f(SHOWING_FLOAT_NUM, 0.f));
+    auto result1 = canvasNode->GetShowingProperties().GetAttractionFractionValue();
+    EXPECT_TRUE(result1.has_value());
+    EXPECT_TRUE(result1.value() == SHOWING_FLOAT_NUM);
+    auto result2 = canvasNode->GetShowingProperties().GetAttractionDstPointValue();
+    EXPECT_TRUE(result2.has_value());
+    EXPECT_TRUE(result2->x_ == SHOWING_FLOAT_NUM);
+
+    float showingFloatNumber = 200.f;
+    canvasNode->SetAttractionEffectFraction(showingFloatNumber);
+    auto result3 = canvasNode->GetShowingProperties().GetAttractionFractionValue();
+    EXPECT_TRUE(result3.has_value());
+    EXPECT_TRUE(result3.value() == showingFloatNumber);
+    
+    canvasNode->SetAttractionEffectDstPoint(Vector2f(showingFloatNumber, 0.f));
+    auto result4 = canvasNode->GetShowingProperties().GetAttractionDstPointValue();
+    EXPECT_TRUE(result4.has_value());
+    EXPECT_TRUE(result4->x_ == showingFloatNumber);
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetAttractionValueTest end";
+}
 } // namespace Rosen
 } // namespace OHOS

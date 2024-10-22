@@ -118,10 +118,12 @@ void ExtendRecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& su
         AddDrawOpDeferred<Drawing::DrawSurfaceBufferOpItem>(surfaceBufferInfo);
         return;
     }
+    std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry = std::make_shared<Drawing::SurfaceBufferEntry>(
+        surfaceBufferInfo.surfaceBuffer_, surfaceBufferInfo.acquireFence_);
     AddDrawOpImmediate<Drawing::DrawSurfaceBufferOpItem::ConstructorHandle>(
-        Drawing::CmdListHelper::AddSurfaceBufferToCmdList(*cmdList_, surfaceBufferInfo.surfaceBuffer_),
+        Drawing::CmdListHelper::AddSurfaceBufferEntryToCmdList(*cmdList_, surfaceBufferEntry),
         surfaceBufferInfo.offSetX_, surfaceBufferInfo.offSetY_,
-        surfaceBufferInfo.width_, surfaceBufferInfo.height_);
+        surfaceBufferInfo.width_, surfaceBufferInfo.height_, surfaceBufferInfo.pid_, surfaceBufferInfo.uid_);
 }
 #endif
 

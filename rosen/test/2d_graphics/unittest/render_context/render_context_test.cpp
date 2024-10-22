@@ -254,6 +254,7 @@ HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
 HWTEST_F(RenderContextTest, DiscodingTest001, Level1)
 {
     RenderContext* renderContext = new RenderContext();
+    EXPECT_NE(renderContext, nullptr);
     delete renderContext;
     renderContext = nullptr;
 }
@@ -266,6 +267,7 @@ HWTEST_F(RenderContextTest, DiscodingTest001, Level1)
 HWTEST_F(RenderContextTest, CreatePbufferSurfaceTest001, Level1)
 {
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    EXPECT_NE(renderContext, nullptr);
     renderContext->CreatePbufferSurface();
 }
 
@@ -277,6 +279,7 @@ HWTEST_F(RenderContextTest, CreatePbufferSurfaceTest001, Level1)
 HWTEST_F(RenderContextTest, ClearRedundantTest, Level1)
 {
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    EXPECT_NE(renderContext, nullptr);
     renderContext->drGPUContext_ = nullptr;
     renderContext->ClearRedundantResources();
     renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
@@ -291,6 +294,7 @@ HWTEST_F(RenderContextTest, ClearRedundantTest, Level1)
 HWTEST_F(RenderContextTest, DamageFrameTest003, Level1)
 {
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    EXPECT_NE(renderContext, nullptr);
     renderContext->eglDisplay_ = nullptr;
     renderContext->DamageFrame({});
 }
@@ -303,6 +307,7 @@ HWTEST_F(RenderContextTest, DamageFrameTest003, Level1)
 HWTEST_F(RenderContextTest, DamageFrameTest004, Level1)
 {
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    EXPECT_NE(renderContext, nullptr);
     renderContext->eglDisplay_ = nullptr;
     renderContext->DamageFrame(1, 1, 1, 1);
 }
@@ -315,9 +320,11 @@ HWTEST_F(RenderContextTest, DamageFrameTest004, Level1)
 HWTEST_F(RenderContextTest, RenderFrameTest, Level1)
 {
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    EXPECT_NE(renderContext, nullptr);
     renderContext->surface_ = nullptr;
     renderContext->RenderFrame();
     renderContext->surface_ = std::make_shared<Drawing::Surface>();
+    EXPECT_NE(renderContext->surface_, nullptr);
     renderContext->RenderFrame();
 }
 

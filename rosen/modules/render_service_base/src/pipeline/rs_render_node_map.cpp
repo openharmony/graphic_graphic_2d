@@ -18,6 +18,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -177,18 +178,12 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
 
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
-    // temp solution to address the dma leak
+    renderNodeMap_.erase(id);
     auto it = surfaceNodeMap_.find(id);
     if (it != surfaceNodeMap_.end()) {
-        if (it->second->GetName().find("ShellAssistantAnco") == std::string::npos) {
-            renderNodeMap_.erase(id);
-        }
         RemoveUIExtensionSurfaceNode(it->second);
-    } else {
-        renderNodeMap_.erase(id);
+        surfaceNodeMap_.erase(id);
     }
-    renderNodeMap_.erase(id);
-    surfaceNodeMap_.erase(id);
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
@@ -214,28 +209,38 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
+    bool useBatchRemoving =
+        RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(renderNodeMap_, [pid, useBatchRemoving](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {
             return false;
         }
         if (pair.second == nullptr) {
             return true;
         }
-        auto parent = pair.second->GetParent().lock();
-        if (parent) {
-            parent->RemoveChildFromFulllist(pair.second->GetId());
+        if (useBatchRemoving) {
+            RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(pair.second);
+        } else {
+            if (auto parent = pair.second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(pair.second->GetId());
+            }
+            pair.second->RemoveFromTree(false);
         }
-        // remove node from tree
-        pair.second->RemoveFromTree(false);
         pair.second->GetAnimationManager().FilterAnimationByPid(pid);
         return true;
     });
 
-    EraseIf(surfaceNodeMap_, [pid, this](const auto& pair) -> bool {
+    EraseIf(surfaceNodeMap_, [pid, useBatchRemoving, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid);
         if (shouldErase) {
             RemoveUIExtensionSurfaceNode(pair.second);
+        }
+        if (shouldErase && pair.second && useBatchRemoving) {
+            if (auto parent = pair.second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(pair.second->GetId());
+            }
+            pair.second->RemoveFromTree(false);
         }
         return shouldErase;
     });
@@ -320,6 +325,21 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
         return nullptr;
     }
     return itr->second;
+}
+
+void RSRenderNodeMap::AddOffTreeNode(NodeId nodeId)
+{
+    purgeableNodeMap_.insert(std::pair(nodeId, true));
+}
+
+void RSRenderNodeMap::RemoveOffTreeNode(NodeId nodeId)
+{
+    purgeableNodeMap_.insert(std::pair(nodeId, false));
+}
+
+std::unordered_map<NodeId, bool>&& RSRenderNodeMap::GetAndClearPurgeableNodeIds()
+{
+    return std::move(purgeableNodeMap_);
 }
 
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const

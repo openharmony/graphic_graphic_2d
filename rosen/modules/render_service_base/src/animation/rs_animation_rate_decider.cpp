@@ -18,6 +18,7 @@
 #include <cmath>
 #include <string>
 
+#include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
@@ -43,7 +44,7 @@ void RSAnimationRateDecider::AddDecisionElement(PropertyId id, const PropertyVal
     if (!isEnabled_) {
         return;
     }
-    if (!velocity && !range.IsValid()) {
+    if (!velocity && !range.IsValid() && range.componentScene_ == ComponentScene::UNKNOWN_SCENE) {
         return;
     }
     PropertyValue data = nullptr;
@@ -74,6 +75,7 @@ void RSAnimationRateDecider::MakeDecision(const FrameRateGetFunc& func)
             int32_t preferred = CalculatePreferredRate(element.first, func);
             if (preferred > 0) {
                 propertyRange = {0, RANGE_MAX_REFRESHRATE, preferred};
+                propertyRange.componentScene_ = element.second.componentScene_;
             }
         }
         FrameRateRange finalRange;
@@ -85,6 +87,7 @@ void RSAnimationRateDecider::MakeDecision(const FrameRateGetFunc& func)
         } else {
             finalRange = element.second;
         }
+        RsCommonHook::Instance().GetComponentPowerFps(finalRange);
         frameRateRange_.Merge(finalRange);
         RS_OPTIONAL_TRACE_END();
     }

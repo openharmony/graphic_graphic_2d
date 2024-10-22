@@ -52,6 +52,11 @@ static void AwakeRenderServiceThread()
     });
 }
 
+bool Network::IsRunning()
+{
+    return isRunning_;
+}
+
 void Network::Run()
 {
     const uint16_t port = 5050;
@@ -336,6 +341,8 @@ void Network::Shutdown(Socket*& socket)
     AwakeRenderServiceThread();
 
     HRPE("Network: Shutdown");
+    RSSystemProperties::SetProfilerDisabled();
+    HRPE("Network: persist.graphic.profiler.enabled 0");
 }
 
 void Network::ProcessIncoming(Socket& socket)

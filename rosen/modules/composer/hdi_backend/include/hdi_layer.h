@@ -75,7 +75,7 @@ private:
         virtual ~LayerBufferInfo() = default;
 
         sptr<SurfaceBuffer> sbuffer_ = nullptr;
-        sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+        sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
     };
 
     std::array<FPSInfo, FRAME_RECORDS_NUM> presentTimeRecords_ {};

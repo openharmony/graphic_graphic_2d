@@ -163,6 +163,17 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation()
     return implicitAnimator->CloseImplicitAnimation();
 }
 
+bool RSNode::CloseImplicitCancelAnimation()
+{
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to close implicit animation for cancel, implicit animator is null!");
+        return false;
+    }
+
+    return implicitAnimator->CloseImplicitCancelAnimation();
+}
+
 void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;
@@ -1451,6 +1462,11 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             };
             SetFlyOutParams(rs_fly_out_param, degree);
         }
+        if (filterPara->GetParaType() == FilterPara::DISTORT) {
+            auto distortPara = std::static_pointer_cast<DistortPara>(filterPara);
+            auto distortionK = distortPara->GetDistortionK();
+            SetDistortionK(distortionK);
+        }
     }
 }
 
@@ -1781,6 +1797,12 @@ void RSNode::SetClipToFrame(bool clipToFrame)
     SetProperty<RSClipToFrameModifier, RSProperty<bool>>(RSModifierType::CLIP_TO_FRAME, clipToFrame);
 }
 
+void RSNode::SetCustomClipToFrame(const Vector4f& clipRect)
+{
+    SetProperty<RSCustomClipToFrameModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::CUSTOM_CLIP_TO_FRAME, clipRect);
+}
+
 void RSNode::SetVisible(bool visible)
 {
     // kick off transition only if it's on tree(has valid parent) and visibility is changed.
@@ -1847,6 +1869,11 @@ void RSNode::SetFlyOutParams(const RSFlyOutPara& params, float degree)
         RSProperty<RSFlyOutPara>>(RSModifierType::FLY_OUT_PARAMS, params);
     SetProperty<RSFlyOutDegreeModifier,
         RSAnimatableProperty<float>>(RSModifierType::FLY_OUT_DEGREE, degree);
+}
+
+void RSNode::SetDistortionK(const float distortionK)
+{
+    SetProperty<RSDistortionKModifier, RSAnimatableProperty<float>>(RSModifierType::DISTORTION_K, distortionK);
 }
 
 void RSNode::SetFreeze(bool isFreeze)
@@ -2850,6 +2877,11 @@ std::string RSNode::DumpNode(int depth) const
 
     if (!animations_.empty()) {
         ss << " animation:" << std::to_string(animations_.size());
+    }
+    for (const auto& [animationId, animation] : animations_) {
+        if (animation) {
+            ss << " animationInfo:" << animation->DumpAnimation();
+        }
     }
     ss << " " << GetStagingProperties().Dump();
     return ss.str();

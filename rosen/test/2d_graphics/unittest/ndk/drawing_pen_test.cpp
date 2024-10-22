@@ -26,6 +26,8 @@
 
 #include "effect/color_filter.h"
 #include "effect/filter.h"
+#include "draw/pen.h"
+#include "drawing_helper.h"
 #include "drawing_path.h"
 #include "drawing_rect.h"
 #include "drawing_matrix.h"
@@ -549,6 +551,8 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShadowLayer002, TestSi
     uint32_t color = 0xFF00FF00;
     OH_Drawing_ShadowLayer* shadowLayer = OH_Drawing_ShadowLayerCreate(blurRadius, x, y, color);
     OH_Drawing_PenSetShadowLayer(pen, shadowLayer);
+    auto blurDrawLooperHandle = Helper::CastTo<OH_Drawing_ShadowLayer*, NativeHandle<BlurDrawLooper>*>(shadowLayer);
+    EXPECT_EQ(reinterpret_cast<Pen*>(pen)->GetLooper(), blurDrawLooperHandle->value);
     OH_Drawing_ShadowLayerDestroy(shadowLayer);
     OH_Drawing_PenDestroy(pen);
 }
@@ -620,7 +624,10 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetFilter001, TestSize.Le
 HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenGetFilter002, TestSize.Level1)
 {
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
-    OH_Drawing_PenGetFilter(pen, nullptr);
+    OH_Drawing_Filter* filter = nullptr;
+    OH_Drawing_PenGetFilter(pen, filter);
+    ASSERT_TRUE(filter == nullptr);
+    OH_Drawing_FilterDestroy(filter);
     OH_Drawing_PenDestroy(pen);
 }
 

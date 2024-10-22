@@ -40,15 +40,15 @@ void RSVirtualScreenProcessorTest::TearDown() {}
 
 /**
  * @tc.name: CreateAndDestroy001
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.desc: Test RSVirtualScreenProcessor can be created and destroyed.
+ * @tc.type: FUNC
+ * @tc.require: issueIATLPV
  */
 HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create RSSoftwareProcessor.
     auto p = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::SOFTWARE_COMPOSITE);
+    ASSERT_NE(p, nullptr);
 }
 
 /**
@@ -105,6 +105,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurface001, TestSize.Level1)
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         SOFTWARE_COMPOSITE);
+    ASSERT_NE(rsSoftwareProcessor, nullptr);
     rsSoftwareProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -137,6 +138,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, PostProcess001, TestSize.Level1)
 {
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         SOFTWARE_COMPOSITE);
+    ASSERT_NE(rsSoftwareProcessor, nullptr);
     rsSoftwareProcessor->PostProcess();
 }
 
@@ -151,8 +153,9 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurfaceTest, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    RSVirtualScreenProcessor rsVirtualScreenProcessor;
-    rsVirtualScreenProcessor.ProcessSurface(rsSurfaceRenderNode);
+    auto rsVirtualScreenProcessor = std::make_shared<RSVirtualScreenProcessor>();
+    ASSERT_NE(rsVirtualScreenProcessor, nullptr);
+    rsVirtualScreenProcessor->ProcessSurface(rsSurfaceRenderNode);
 }
 
 /**
@@ -167,8 +170,9 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level
     RSDisplayNodeConfig config;
     NodeId id = 0;
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
-    RSVirtualScreenProcessor rsVirtualScreenProcessor;
-    rsVirtualScreenProcessor.ProcessDisplaySurface(rsDisplayRenderNode);
+    auto rsVirtualScreenProcessor = std::make_shared<RSVirtualScreenProcessor>();
+    ASSERT_NE(rsVirtualScreenProcessor, nullptr);
+    rsVirtualScreenProcessor->ProcessDisplaySurface(rsDisplayRenderNode);
 }
 
 /**
@@ -182,7 +186,8 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
     NodeId id = 0;
     RCDSurfaceType type = RCDSurfaceType::BOTTOM;
     RSRcdSurfaceRenderNode node(id, type);
-    RSVirtualScreenProcessor rsVirtualScreenProcessor;
-    rsVirtualScreenProcessor.ProcessRcdSurface(node);
+    auto rsVirtualScreenProcessor = std::make_shared<RSVirtualScreenProcessor>();
+    ASSERT_NE(rsVirtualScreenProcessor, nullptr);
+    rsVirtualScreenProcessor->ProcessRcdSurface(node);
 }
 } // namespace OHOS::Rosen

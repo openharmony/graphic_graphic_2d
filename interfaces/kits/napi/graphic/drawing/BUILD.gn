@@ -45,7 +45,10 @@ ohos_shared_library("drawing_napi") {
 
   deps = [ ":drawing_napi_impl" ]
 
-  external_deps = [ "napi:ace_napi" ]
+  external_deps = [
+    "napi:ace_napi",
+    "skia:skia_canvaskit",
+  ]
 
   if (current_os == "ohos" || current_os == "ohos_ng") {
     cflags = [ "-fstack-protector-strong" ]

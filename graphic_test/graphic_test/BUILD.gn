@@ -19,8 +19,43 @@ module_output_path = "graphic_2d/graphic_test/graphic_test"
 drawing_engine_sources = []
 hardware_manager_sources = []
 open_capability_sources = []
-rs_display_effect_sources =
-    [ "rs_display_effect/property_display/mesa_blur_shader_filter_test.cpp" ]
+rs_display_effect_sources = [
+  "rs_display_effect/content_display/content_effectnode_test.cpp",
+  "rs_display_effect/property_display/appearance_alpha_test.cpp",
+  "rs_display_effect/property_display/appearance_border_radius_test.cpp",
+  "rs_display_effect/property_display/appearance_border_test.cpp",
+  "rs_display_effect/property_display/appearance_clip_test.cpp",
+  "rs_display_effect/property_display/appearance_outlineborder_radius_test.cpp",
+  "rs_display_effect/property_display/appearance_outlineborder_test.cpp",
+  "rs_display_effect/property_display/appearance_shadow_test.cpp",
+  "rs_display_effect/property_display/appearance_spherize_test.cpp",
+  "rs_display_effect/property_display/fg_blur_test.cpp",
+  "rs_display_effect/property_display/fg_colorbrightness_test.cpp",
+  "rs_display_effect/property_display/fg_colorfilter_test.cpp",
+  "rs_display_effect/property_display/fg_dynamicdimdegree_test.cpp",
+  "rs_display_effect/property_display/fg_dynamiclightup_test.cpp",
+  "rs_display_effect/property_display/fg_envfgcolor_test.cpp",
+  "rs_display_effect/property_display/fg_fgcolor_test.cpp",
+  "rs_display_effect/property_display/fg_lightupeffect_test.cpp",
+  "rs_display_effect/property_display/fg_mask_test.cpp",
+  "rs_display_effect/property_display/geom_cameradistance_test.cpp",
+  "rs_display_effect/property_display/geom_clip_test.cpp",
+  "rs_display_effect/property_display/geom_cornerradius_test.cpp",
+  "rs_display_effect/property_display/geom_persp_test.cpp",
+  "rs_display_effect/property_display/geom_pivotandrotation_test.cpp",
+  "rs_display_effect/property_display/geom_scale_test.cpp",
+  "rs_display_effect/property_display/geom_translation_test.cpp",
+  "rs_display_effect/property_display/test_Appearance_PixelStretch.cpp",
+  "rs_display_effect/property_display/test_G2_CornerRadius.cpp",
+  "rs_display_effect/property_display/test_Geometry_Transform_Test.cpp",
+  "rs_display_effect/property_display/test_RSBackground_BeginBlender.cpp",
+  "rs_display_effect/property_display/test_RSBackground_Color.cpp",
+  "rs_display_effect/property_display/test_RSBackground_Filter.cpp",
+  "rs_display_effect/property_display/test_RSBackground_GreyCoef.cpp",
+  "rs_display_effect/property_display/test_RSBackground_Image.cpp",
+  "rs_display_effect/property_display/test_RSBackground_UseEffect.cpp",
+  "rs_display_effect/property_display/test_RSBackground_WaterRipple.cpp",
+]
 rs_framework_sources = []
 rs_func_feature_sources = [ "rs_func_feature/component_capture/demo.cpp" ]
 rs_perform_feature_sources = []

@@ -88,6 +88,13 @@ void SurfaceNodeCommandHelper::SetSecurityLayer(RSContext& context, NodeId id, b
     }
 }
 
+void SurfaceNodeCommandHelper::SetLeashPersistentId(RSContext& context, NodeId id, LeashPersistentId leashPersistentId)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetLeashPersistentId(leashPersistentId);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
@@ -184,10 +191,10 @@ void SurfaceNodeCommandHelper::SetSurfaceNodeType(RSContext& context, NodeId nod
 }
 
 void SurfaceNodeCommandHelper::SetContainerWindow(
-    RSContext& context, NodeId nodeId, bool hasContainerWindow, float density)
+    RSContext& context, NodeId nodeId, bool hasContainerWindow, RRect rrect)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetContainerWindow(hasContainerWindow, density);
+        node->SetContainerWindow(hasContainerWindow, rrect);
     }
 }
 
@@ -237,6 +244,13 @@ void SurfaceNodeCommandHelper::SetBootAnimation(RSContext& context, NodeId nodeI
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetBootAnimation(isBootAnimation);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetGlobalPositionEnabled(RSContext& context, NodeId nodeId, bool isEnabled)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetGlobalPositionEnabled(isEnabled);
     }
 }
 
@@ -300,14 +314,6 @@ void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bo
     }
 }
 
-void SurfaceNodeCommandHelper::SetWatermark(RSContext& context, NodeId nodeId,
-    const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetWatermark(name, watermark);
-    }
-}
-
 void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId nodeId,
     const std::string& name, bool isEnabled)
 {
@@ -316,20 +322,15 @@ void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId no
     }
 }
 
-void SurfaceNodeCommandHelper::SetLayerTop(RSContext& context, NodeId nodeId, std::string nodeIdStr, bool isTop)
+void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId,
+    RSSurfaceNodeAbilityState abilityState)
 {
-    const auto& nodeMap = context.GetNodeMap();
-    nodeMap.TraverseSurfaceNodes(
-        [&nodeIdStr, &isTop](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-        if (surfaceNode == nullptr) {
-            return;
-        }
-        if ((surfaceNode->GetName() == nodeIdStr) &&
-            (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
-            surfaceNode->SetLayerTop(isTop);
-            return;
-        }
-    });
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (!node) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::SetAbilityState node is null!");
+        return;
+    }
+    node->SetAbilityState(abilityState);
 }
 } // namespace Rosen
 } // namespace OHOS

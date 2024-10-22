@@ -19,13 +19,17 @@
 #pragma once
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include "image/bitmap.h"
 #include <cstring>
 #include <vector>
 #include <iostream>
 #include <cstdlib>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <thread>
 #include <unordered_map>
 
+#include "image/bitmap.h"
 #include "securec.h"
 #include "platform/common/rs_log.h"
 
@@ -102,8 +106,9 @@ struct RoundCornerLayer {
 
 struct RoundCornerHardware {
     bool resourceChanged = false;
-    RoundCornerLayer* topLayer = nullptr;
-    RoundCornerLayer* bottomLayer = nullptr;
+    bool resourcePreparing = false;
+    std::shared_ptr<RoundCornerLayer> topLayer = nullptr;
+    std::shared_ptr<RoundCornerLayer> bottomLayer = nullptr;
 };
 
 struct RogPortrait {
@@ -124,6 +129,10 @@ struct ROGSetting {
     std::unordered_map<std::string, RogPortrait> portraitMap;
     std::unordered_map<std::string, RogLandscape> landscapeMap;
     bool ReadXmlNode(const xmlNodePtr& rogNodePtr);
+    bool HavePortrait(const std::string& name) const;
+    bool HaveLandscape(const std::string& name) const;
+    std::optional<RogPortrait> GetPortrait(const std::string& name) const;
+    std::optional<RogLandscape> GetLandscape(const std::string& name) const;
 };
 
 struct SurfaceConfig {
@@ -171,9 +180,12 @@ struct RCDConfig {
     bool Load(const std::string& configFile);
 private:
     void CloseXML();
+    void Clear();
     xmlDocPtr pDoc = nullptr;
     xmlNodePtr pRoot = nullptr;
     std::vector<LCDModel*> lcdModels;
+    std::mutex xmlMut;
+    bool isLoadData = false;
 };
 } // namespace rs_rcd
 } // namespace Rosen

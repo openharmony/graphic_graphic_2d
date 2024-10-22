@@ -42,6 +42,7 @@ namespace {
     constexpr uint32_t MAX_VIRTUAL_SCREEN_NUM = 64;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
+    constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 60;
     void SensorPostureDataCallback(SensorEvent *event)
     {
         OHOS::Rosen::CreateOrGetScreenManager()->HandlePostureData(event);
@@ -119,7 +120,7 @@ void RSScreenManager::RegisterSensorCallback()
     int32_t setBatchRet;
     int32_t activateRet;
     int tryCnt = 0;
-    const int tryLimit = 5; // 5 times failure limit
+    constexpr int tryLimit = 5; // 5 times failure limit
     do {
         subscribeRet = SubscribeSensor(SENSOR_TYPE_ID_POSTURE, &user);
         RS_LOGI("RSScreenManager RegisterSensorCallback, subscribeRet: %{public}d", subscribeRet);
@@ -319,7 +320,12 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput> &output, bool co
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        pendingHotPlugEvents_.emplace_back(ScreenHotPlugEvent{output, connected});
+
+        ScreenId id = ToScreenId(output->GetScreenId());
+        if (pendingHotPlugEvents_.find(id) != pendingHotPlugEvents_.end()) {
+            RS_LOGE("RSScreenManager %{public}s: screen %{public}" PRIu64 "is covered.", __func__, id);
+        }
+        pendingHotPlugEvents_[id] = ScreenHotPlugEvent{output, connected};
     }
 
     // This func would be called in main thread first time immediately after calling composer_->RegScreenHotplug,
@@ -476,7 +482,7 @@ bool RSScreenManager::TrySimpleProcessHotPlugEvents()
 void RSScreenManager::ProcessScreenHotPlugEvents()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (auto &event : pendingHotPlugEvents_) {
+    for (auto& [_, event] : pendingHotPlugEvents_) {
         if (event.connected) {
             ProcessScreenConnectedLocked(event.output);
             AddScreenToHgm(event.output);
@@ -554,7 +560,6 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput> &output)
             RS_LOGW("RSScreenManager failed to add screen : %{public}" PRIu64 "", thisId);
             return;
         }
-        hgmCore.SetActiveScreenId(thisId);
 
         // for each supported mode, use the index as modeId to add the detailed mode to hgm
         int32_t modeId = 0;
@@ -611,43 +616,6 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
 
     screens_[id] = std::make_unique<RSScreen>(id, isVirtual, output, nullptr);
 
-    auto vsyncSampler = CreateVSyncSampler();
-    if (vsyncSampler != nullptr) {
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            vsyncSampler->RegSetScreenVsyncEnabledCallback([this, id](bool enabled) {
-                auto mainThread = RSMainThread::Instance();
-                if (mainThread == nullptr) {
-                    RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, get RSMainThread failed", enabled);
-                    return;
-                }
-                mainThread->PostTask([this, id, enabled]() {
-                    auto screensIt = screens_.find(id);
-                    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-                        RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
-                            enabled, id);
-                        return;
-                    }
-                    screensIt->second->SetScreenVsyncEnabled(enabled);
-                });
-            });
-        } else {
-            vsyncSampler->RegSetScreenVsyncEnabledCallback([this, id](bool enabled) {
-                RSHardwareThread::Instance().PostTask([this, id, enabled]() {
-                    auto screensIt = screens_.find(id);
-                    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-                        RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
-                            enabled, id);
-                        return;
-                    }
-                    screensIt->second->SetScreenVsyncEnabled(enabled);
-                });
-            });
-        }
-    } else {
-        RS_LOGE("RegSetScreenVsyncEnabledCallback failed, vsyncSampler is null");
-    }
-
     if (screens_[id]->GetCapability().type == GraphicInterfaceType::GRAPHIC_DISP_INTF_MIPI) {
         if (!mipiCheckInFirstHotPlugEvent_) {
             defaultScreenId_ = id;
@@ -655,6 +623,20 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
         mipiCheckInFirstHotPlugEvent_ = true;
     } else if (defaultScreenId_ == INVALID_SCREEN_ID) {
         defaultScreenId_ = id;
+    }
+
+    ScreenId vsyncEnabledScreenId = id;
+    if (RSSystemProperties::IsPcType() || RSSystemProperties::IsTabletType()) {
+        vsyncEnabledScreenId = defaultScreenId_;
+        if (defaultScreenId_ == id) {
+            screens_[id]->SetScreenVsyncEnabled(true);
+        }
+    }
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RegSetScreenVsyncEnabledCallbackForMainThread(vsyncEnabledScreenId);
+    } else {
+        RegSetScreenVsyncEnabledCallbackForHardwareThread(vsyncEnabledScreenId);
     }
 
     RS_LOGI("RSScreenManager %{public}s: A new screen(id %{public}" PRIu64 ") connected.", __func__, id);
@@ -686,6 +668,66 @@ void RSScreenManager::ProcessScreenDisConnectedLocked(std::shared_ptr<HdiOutput>
     if (id == defaultScreenId_) {
         HandleDefaultScreenDisConnectedLocked();
     }
+
+    ScreenId vsyncEnabledScreenId = INVALID_SCREEN_ID;
+    if (RSSystemProperties::IsPcType() || RSSystemProperties::IsTabletType()) {
+        vsyncEnabledScreenId = defaultScreenId_;
+    } else if (screens_.size() != 0) {
+        vsyncEnabledScreenId = screens_.rbegin()->first;
+    }
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        RegSetScreenVsyncEnabledCallbackForMainThread(vsyncEnabledScreenId);
+    } else {
+        RegSetScreenVsyncEnabledCallbackForHardwareThread(vsyncEnabledScreenId);
+    }
+}
+
+void RSScreenManager::RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId)
+{
+    auto vsyncSampler = CreateVSyncSampler();
+    if (vsyncSampler == nullptr) {
+        RS_LOGE("RegSetScreenVsyncEnabledCallbackForMainThread failed, vsyncSampler is null");
+        return;
+    }
+    vsyncSampler->RegSetScreenVsyncEnabledCallback([this, vsyncEnabledScreenId](bool enabled) {
+        auto mainThread = RSMainThread::Instance();
+        if (mainThread == nullptr) {
+            RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, get RSMainThread failed", enabled);
+            return;
+        }
+        mainThread->PostTask([this, vsyncEnabledScreenId, enabled]() {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto screensIt = screens_.find(vsyncEnabledScreenId);
+            if (screensIt == screens_.end() || screensIt->second == nullptr) {
+                RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
+                enabled, vsyncEnabledScreenId);
+                return;
+            }
+            screensIt->second->SetScreenVsyncEnabled(enabled);
+        });
+    });
+}
+
+void RSScreenManager::RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId)
+{
+    auto vsyncSampler = CreateVSyncSampler();
+    if (vsyncSampler == nullptr) {
+        RS_LOGE("RegSetScreenVsyncEnabledCallbackForHardwareThread failed, vsyncSampler is null");
+        return;
+    }
+    vsyncSampler->RegSetScreenVsyncEnabledCallback([this, vsyncEnabledScreenId](bool enabled) {
+        RSHardwareThread::Instance().PostTask([this, vsyncEnabledScreenId, enabled]() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto screensIt = screens_.find(vsyncEnabledScreenId);
+            if (screensIt == screens_.end() || screensIt->second == nullptr) {
+                RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
+                    enabled, vsyncEnabledScreenId);
+                return;
+            }
+            screensIt->second->SetScreenVsyncEnabled(enabled);
+        });
+    });
 }
 
 // If the previous primary screen disconnected, we traversal the left screens
@@ -1301,6 +1343,25 @@ void RSScreenManager::GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInf
     GetScreenActiveModeLocked(defaultScreenId_, screenModeInfo);
 }
 
+void RSScreenManager::ReleaseScreenDmaBuffer(uint64_t screenId)
+{
+    RSHardwareThread::Instance().PostTask([screenId]() {
+        RS_TRACE_NAME("RSScreenManager ReleaseScreenDmaBuffer");
+        auto screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer RSScreenManager is nullptr!");
+            return;
+        }
+        auto output = screenManager->GetOutput(screenId);
+        if (output == nullptr) {
+            RS_LOGE("RSScreenManager::ReleaseScreenDmaBuffer HdiOutput is nullptr!");
+            return;
+        }
+        std::vector<LayerInfoPtr> layer;
+        output->SetLayerInfo(layer);
+    });
+}
+
 std::vector<RSScreenModeInfo> RSScreenManager::GetScreenSupportedModes(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1764,6 +1825,36 @@ int32_t RSScreenManager::SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t 
     return StatusCode::SUCCESS;
 }
 
+int32_t RSScreenManager::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    if (!screensIt->second->IsVirtual()) {
+        RS_LOGW("RSScreenManager %{public}s: Not Support for screen:%{public}" PRIu64 ".", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    if (maxRefreshRate == 0) {
+        RS_LOGW("RSScreenManager %{public}s: Invalid maxRefreshRate:%{public}u.", __func__, maxRefreshRate);
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    if (maxRefreshRate > MAX_VIRTUAL_SCREEN_REFRESH_RATE) {
+        maxRefreshRate = MAX_VIRTUAL_SCREEN_REFRESH_RATE;
+    }
+    while (MAX_VIRTUAL_SCREEN_REFRESH_RATE % maxRefreshRate != 0) { // maxRefreshRate is greater than 0
+        maxRefreshRate--;
+    }
+    uint32_t skipFrameInterval = MAX_VIRTUAL_SCREEN_REFRESH_RATE / maxRefreshRate;
+    screensIt->second->SetScreenSkipFrameInterval(skipFrameInterval);
+    RS_LOGI("RSScreenManager %{public}s: screen(id %" PRIu64 "), skipFrameInterval(%d).",
+        __func__, id, skipFrameInterval);
+    actualRefreshRate = maxRefreshRate;
+    return StatusCode::SUCCESS;
+}
+
 int32_t RSScreenManager::GetPixelFormatLocked(ScreenId id, GraphicPixelFormat& pixelFormat) const
 {
     auto screensIt = screens_.find(id);
@@ -1874,6 +1965,24 @@ uint32_t RSScreenManager::GetActualScreensNum() const
         }
     }
     return num;
+}
+
+ScreenInfo RSScreenManager::GetActualScreenMaxResolution() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    uint32_t maxResolution = 0;
+    ScreenId maxScreenId = INVALID_SCREEN_ID;
+    for (const auto &[id, screen] : screens_) {
+        if (!screen || screen->IsVirtual()) {
+            continue;
+        }
+        uint32_t resolution = screen->PhyWidth() * screen->PhyHeight();
+        if (resolution > maxResolution) {
+            maxScreenId = id;
+            maxResolution = resolution;
+        }
+    }
+    return QueryScreenInfoLocked(maxScreenId);
 }
 
 int32_t RSScreenManager::GetScreenColorGamut(ScreenId id, ScreenColorGamut &mode) const

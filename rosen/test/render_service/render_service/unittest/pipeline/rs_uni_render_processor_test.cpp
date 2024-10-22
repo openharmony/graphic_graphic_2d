@@ -18,6 +18,8 @@
 #include "limit_number.h"
 #include "rs_test_util.h"
 
+#include "drawable/rs_display_render_node_drawable.h"
+#include "params/rs_display_render_params.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -70,6 +72,7 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
         return;
     }
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+    ASSERT_NE(processor, nullptr);
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(1, config);
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
@@ -108,6 +111,7 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
         return;
     }
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
     RSDisplayNodeConfig config;
     RSDisplayRenderNode node(1, config);
     auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
@@ -467,5 +471,172 @@ HWTEST(RSUniRenderProcessorTest, CreateUIFirstLayer002, TestSize.Level1)
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->CreateUIFirstLayer(*surfaceDrawable, params);
+}
+
+/**
+ * @tc.name: GetForceClientForDRM001
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM001, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.isProtectedLayer_ = false;
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+}
+
+/**
+ * @tc.name: GetForceClientForDRM002
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM002, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.isProtectedLayer_ = true;
+    params.animateState_ = true;
+    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
+}
+
+/**
+ * @tc.name: GetForceClientForDRM003
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM003, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.isProtectedLayer_ = true;
+    params.animateState_ = false;
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+    // set totalMatrix to 30 degrees
+    params.totalMatrix_.PostRotate(30.0f);
+    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
+}
+
+/**
+ * @tc.name: GetForceClientForDRM004
+ * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.isProtectedLayer_ = true;
+    params.animateState_ = false;
+    RSDisplayNodeConfig config;
+    NodeId id = 1;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    std::shared_ptr<DrawableV2::RSDisplayRenderNodeDrawable> displayDrawable(
+        static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(
+        DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node)));
+    ASSERT_NE(displayDrawable, nullptr);
+    params.ancestorDisplayDrawable_ = displayDrawable;
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
+    ASSERT_NE(displayDrawable->GetRenderParams(), nullptr);
+    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+}
+
+/**
+ * @tc.name: ProcessLayerSetCropRect
+ * @tc.desc: Test RSUniRenderProcessorTest.ProcessLayerSetCropRect when params has Buffer
+ * @tc.type:FUNC
+ * @tc.require: issueIAIT5Z
+ */
+HWTEST(RSUniRenderProcessorTest, ProcessLayerSetCropRect, TestSize.Level1)
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+    RSSurfaceRenderParams params(0);
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    params.SetBuffer(buffer, {});
+
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+
+    LayerInfoPtr layerInfoPtr = HdiLayerInfo::CreateHdiLayerInfo();
+    auto layerInfo = params.layerInfo_;
+
+    // case 1. Intersect the left border of the screen.
+    //    map_x = (buffer_width - buffer_right_x)
+    layerInfo.srcRect.x = 1;
+    ASSERT_EQ(layerInfo.srcRect.x, 1);
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_H;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_H_ROT180;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    // case 2. Intersect the right border of the screen.
+    //    map_x = (buffer_width - buffer_right_x)
+    //    Only left side adjustment can be triggerred on the narrow screen.
+    layerInfo.srcRect.x = 0;
+    ASSERT_EQ(layerInfo.srcRect.x, 0);
+    layerInfo.dstRect.x = 10000;
+    layerInfo.dstRect.w = 10000;
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_H;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_H_ROT180;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    // case 1. Vertical direction.
+    layerInfo.srcRect.y = 1;
+    ASSERT_EQ(layerInfo.srcRect.y, 1);
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_V;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_V_ROT180;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    // case 2. Vertical direction.
+    layerInfo.srcRect.y = 0;
+    ASSERT_EQ(layerInfo.srcRect.y, 0);
+    layerInfo.dstRect.y = 10000;
+    layerInfo.dstRect.h = 10000;
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_V;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
+
+    layerInfo.transformType = GraphicTransformType::GRAPHIC_FLIP_V_ROT180;
+    renderProcessor->ProcessLayerSetCropRect(layerInfoPtr, layerInfo, buffer);
 }
 }

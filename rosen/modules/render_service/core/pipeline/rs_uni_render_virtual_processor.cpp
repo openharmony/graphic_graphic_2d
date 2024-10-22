@@ -23,9 +23,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "platform/common/rs_log.h"
-#ifndef NEW_RENDER_CONTEXT
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
-#endif
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "string_utils.h"
@@ -60,6 +58,8 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     scaleMode_ = screenManager->GetScaleMode(virtualScreenId_);
     virtualScreenWidth_ = static_cast<float>(virtualScreenInfo.width);
     virtualScreenHeight_ = static_cast<float>(virtualScreenInfo.height);
+    originalVirtualScreenWidth_ = virtualScreenWidth_;
+    originalVirtualScreenHeight_ = virtualScreenHeight_;
     auto mirroredDisplayDrawable =
         std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
     if (mirroredDisplayDrawable) {
@@ -101,15 +101,9 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
             rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
             displayDrawable.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
         }
-#ifdef NEW_RENDER_CONTEXT
-        renderFrame_ = renderEngine_->RequestFrame(
-            std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
-            frameContextConfig);
-#else
         renderFrame_ = renderEngine_->RequestFrame(
             std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
             frameContextConfig);
-#endif
     }
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::Init for Screen(id %{public}" PRIu64 "): RenderFrame is null!",
@@ -160,13 +154,8 @@ bool RSUniRenderVirtualProcessor::RequestVirtualFrame(DrawableV2::RSDisplayRende
             rsSurface = renderEngine->MakeRSSurface(producerSurface_, forceCPU_);
             displayDrawable.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
         }
-#ifdef NEW_RENDER_CONTEXT
-        renderFrame_ = renderEngine->RequestFrame(
-            std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
-#else
         renderFrame_ = renderEngine->RequestFrame(
             std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false);
-#endif
     }
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::RequestVirtualFrame RenderFrame is null!");
@@ -237,19 +226,26 @@ GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(std::vector<RectI>& dam
     }
 
     RoiRegions roiRegions;
+    const RectI screenRect{0, 0, originalVirtualScreenWidth_, originalVirtualScreenHeight_};
     if (damageRegion.size() <= ROI_REGIONS_MAX_CNT) {
-        for (auto& rect : damageRegion) {
-            RoiRegionInfo region = RoiRegionInfo{rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight()};
-            roiRegions.regions[roiRegions.regionCnt++] = region;
+        for (auto rect : damageRegion) {
+            rect = rect.IntersectRect(screenRect);
+            if (!rect.IsEmpty()) {
+                RoiRegionInfo region = RoiRegionInfo{rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight()};
+                roiRegions.regions[roiRegions.regionCnt++] = region;
+            }
         }
     } else {
         RectI mergedRect;
         for (auto& rect : damageRegion) {
             mergedRect = mergedRect.JoinRect(rect);
         }
-        RoiRegionInfo region = RoiRegionInfo{mergedRect.GetLeft(), mergedRect.GetTop(),
-            mergedRect.GetWidth(), mergedRect.GetHeight()};
-        roiRegions.regions[roiRegions.regionCnt++] = region;
+        mergedRect = mergedRect.IntersectRect(screenRect);
+        if (!mergedRect.IsEmpty()) {
+            RoiRegionInfo region = RoiRegionInfo{mergedRect.GetLeft(), mergedRect.GetTop(),
+                mergedRect.GetWidth(), mergedRect.GetHeight()};
+            roiRegions.regions[roiRegions.regionCnt++] = region;
+        }
     }
 
     std::vector<uint8_t> roiRegionsVec;
@@ -314,7 +310,7 @@ void RSUniRenderVirtualProcessor::PostProcess()
         return;
     }
     auto surfaceOhos = renderFrame_->GetSurface();
-    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
+    RSBaseRenderEngine::SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
     RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");

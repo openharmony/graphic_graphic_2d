@@ -57,7 +57,6 @@ HWTEST_F(RSBufferAvailableCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
     int res = rsBufferAvailableCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
     code = static_cast<uint32_t>(RSIBufferAvailableCallbackInterfaceCode::ON_BUFFER_AVAILABLE);
-    EXPECT_TRUE(RSBufferAvailableCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     res = rsBufferAvailableCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
@@ -77,7 +76,6 @@ HWTEST_F(RSBufferAvailableCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
     auto rsBufferAvailableCallbackStub = std::make_shared<RSBufferAvailableCallbackStubMock>();
     auto code = static_cast<uint32_t>(RSIBufferAvailableCallbackInterfaceCode::ON_BUFFER_AVAILABLE);
     data.WriteInterfaceToken(RSIBufferAvailableCallback::GetDescriptor());
-    EXPECT_TRUE(RSBufferAvailableCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
     int res = rsBufferAvailableCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE);

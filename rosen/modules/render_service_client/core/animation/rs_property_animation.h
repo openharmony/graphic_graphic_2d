@@ -32,6 +32,8 @@ public:
 
     void SetIsCustom(const bool isCustom);
 
+    void DumpAnimationInfo(std::string& dumpInfo) const override;
+
 protected:
     RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property);
 
@@ -43,15 +45,15 @@ protected:
 
     void SetPropertyValue(const std::shared_ptr<RSPropertyBase>& value);
 
-    const std::shared_ptr<RSPropertyBase> GetPropertyValue() const override;
+    const std::shared_ptr<RSPropertyBase> GetPropertyValue() const;
 
     PropertyId GetPropertyId() const override;
 
     void OnStart() override;
 
-    void SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue) override;
+    void SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue);
 
-    void InitInterpolationValue() override;
+    virtual void InitInterpolationValue();
 
     void OnUpdateStagingValue(bool isFirstStart) override;
 

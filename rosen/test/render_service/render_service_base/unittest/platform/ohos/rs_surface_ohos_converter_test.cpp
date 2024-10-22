@@ -17,11 +17,8 @@
 
 #include "platform/drawing/rs_surface_converter.h"
 #include "iconsumer_surface.h"
-#if defined(NEW_RENDER_CONTEXT)
-#include "render_backend/drawing_context.h"
-#else
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
-#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -48,15 +45,6 @@ void RSSurfaceConverterTest::TearDown() {}
  */
 HWTEST_F(RSSurfaceConverterTest, ConvertToOhosSurface, TestSize.Level1)
 {
-    #if defined(NEW_RENDER_CONTEXT)
-        auto csurf = IConsumerSurface::Create();
-        auto producer = csurf->GetProducer();
-        auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-        RenderType renderType = RenderType::RASTER;
-        DrawingContext drawingContext(renderType);
-        std::shared_ptr<RSRenderSurface> surface = std::make_shared<RSRenderSurfaceOhos>(pSurface, drawingContext);
-        RSSurfaceConverter::ConvertToOhosSurface(surface);
-    #else
         std::shared_ptr<RSSurfaceOhosRaster> surface;
         RSSurfaceConverter::ConvertToOhosSurface(surface);
         
@@ -65,7 +53,6 @@ HWTEST_F(RSSurfaceConverterTest, ConvertToOhosSurface, TestSize.Level1)
         sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
         surface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
         RSSurfaceConverter::ConvertToOhosSurface(surface);
-    #endif
     ASSERT_TRUE(true);
 }
 } // namespace Rosen

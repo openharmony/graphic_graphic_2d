@@ -152,7 +152,7 @@ RectI CoreCanvas::GetRoundInDeviceClipBounds() const
     return impl_->GetRoundInDeviceClipBounds();
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<GPUContext> CoreCanvas::GetGPUContext()
 {
     if (!gpuContext_) {

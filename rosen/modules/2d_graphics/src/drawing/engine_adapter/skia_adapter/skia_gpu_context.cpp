@@ -14,7 +14,6 @@
  */
 
 #include "skia_gpu_context.h"
-#include <mutex>
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 #include "include/core/SkTypes.h"
@@ -24,6 +23,7 @@
 #include "utils/log.h"
 #include "skia_trace_memory_dump.h"
 #include "utils/system_properties.h"
+#include "skia_task_executor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,16 +65,15 @@ void SkiaPersistentCache::store(const SkData& key, const SkData& data)
 
 SkiaGPUContext::SkiaGPUContext() : grContext_(nullptr), skiaPersistentCache_(nullptr) {}
 
-std::unique_ptr<SkExecutor> SkiaGPUContext::threadPool = nullptr;
-void SkiaGPUContext::InitSkExecutor()
-{
-    static std::mutex mtx;
-    mtx.lock();
-    if (threadPool == nullptr) {
-        threadPool = SkExecutor::MakeFIFOThreadPool(2); // 2 threads async task
+class CommonPoolExecutor : public SkExecutor {
+public:
+    void add(std::function<void(void)> func) override
+    {
+        TaskPoolExecutor::PostTask(std::move(func));
     }
-    mtx.unlock();
-}
+};
+
+static CommonPoolExecutor g_defaultExecutor;
 
 bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 {
@@ -83,7 +82,6 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
         skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
     }
 
-    InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     // fix svg antialiasing bug
@@ -92,7 +90,7 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
-    grOptions.fExecutor = threadPool.get();
+    grOptions.fExecutor = &g_defaultExecutor;
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
     return grContext_ != nullptr ? true : false;
 }
@@ -103,9 +101,8 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
     if (!SystemProperties::IsUseVulkan()) {
         return false;
     }
-    InitSkExecutor();
     GrContextOptions grOptions;
-    grOptions.fExecutor = threadPool.get();
+    grOptions.fExecutor = &g_defaultExecutor;
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
     return grContext_ != nullptr;
 }
@@ -118,7 +115,6 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     if (options.GetPersistentCache() != nullptr) {
         skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
     }
-    InitSkExecutor();
     GrContextOptions grOptions;
     grOptions.fGpuPathRenderers &= ~GpuPathRenderers::kCoverageCounting;
     // fix svg antialiasing bug
@@ -127,7 +123,7 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     grOptions.fDisableDistanceFieldPaths = true;
     grOptions.fAllowPathMaskCaching = options.GetAllowPathMaskCaching();
     grOptions.fPersistentCache = skiaPersistentCache_.get();
-    grOptions.fExecutor = threadPool.get();
+    grOptions.fExecutor = &g_defaultExecutor;
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
     return grContext_ != nullptr;
 }
@@ -351,20 +347,23 @@ void SkiaGPUContext::SetGrContext(const sk_sp<GrDirectContext>& grContext)
     grContext_ = grContext;
 }
 
-void SkiaGPUContext::SetMemoryOverCheck(MemoryOverCheckCallback func)
+void SkiaGPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
 {
-    if (grContext_ != nullptr) {
-        grContext_->setMemoryOverCheck(func);
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::GetUpdatedMemoryMap, grContext_ is nullptr");
+        return;
     }
+    grContext_->getUpdatedMemoryMap(out);
 }
 
-void SkiaGPUContext::SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func)
+void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size)
 {
-    if (grContext_ != nullptr) {
-        grContext_->setRemoveMemoryFromSnapshotInfo(func);
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::InitGpuMemoryLimit, grContext_ is nullptr");
+        return;
     }
+    grContext_->initGpuMemoryLimit(callback, size);
 }
-
 #ifdef RS_ENABLE_VK
 void SkiaGPUContext::StoreVkPipelineCacheData()
 {
@@ -375,6 +374,60 @@ void SkiaGPUContext::StoreVkPipelineCacheData()
     grContext_->storeVkPipelineCacheData();
 }
 #endif
+
+void SkiaGPUContext::BeginFrame()
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::BeginFrame, grContext_ is nullptr");
+        return;
+    }
+    grContext_->beginFrame();
+}
+
+void SkiaGPUContext::EndFrame()
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::EndFrame, grContext_ is nullptr");
+        return;
+    }
+    grContext_->endFrame();
+}
+
+void SkiaGPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::SetGpuCacheSuppressWindowSwitch, grContext_ is nullptr");
+        return;
+    }
+    grContext_->setGpuCacheSuppressWindowSwitch(enabled);
+}
+
+void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch, grContext_ is nullptr");
+        return;
+    }
+    grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled);
+}
+
+void SkiaGPUContext::FlushGpuMemoryInWaitQueue()
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::FlushGpuMemoryInWaitQueue, grContext_ is nullptr");
+        return;
+    }
+    grContext_->flushGpuMemoryInWaitQueue();
+}
+
+void SkiaGPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::SuppressGpuCacheBelowCertainRatio, grContext_ is nullptr");
+        return;
+    }
+    grContext_->suppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
+}
 
 std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& task)>>
     SkiaGPUContext::contextPostMap_ = {};

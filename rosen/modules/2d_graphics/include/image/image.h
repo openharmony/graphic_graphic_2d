@@ -17,7 +17,6 @@
 #define IMAGE_H
 
 #include "drawing/engine_adapter/impl_interface/image_impl.h"
-#include "image/gpu_context.h"
 #include "include/core/SkImage.h"
 #include "utils/drawing_macros.h"
 #ifdef RS_ENABLE_VK
@@ -257,7 +256,7 @@ public:
      */
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
                                                  size_t rowBytes);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     /**
      * @brief             Create YUV Image from pixelmap.
      * @param gpuContext  GPU context.

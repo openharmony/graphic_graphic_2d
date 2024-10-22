@@ -47,6 +47,10 @@
 #include "res_type.h"
 #endif
 
+#ifdef RES_CLINET_SCHED_ENABLE
+#include "qos.h"
+#endif
+
 #ifdef ROSEN_PREVIEW
 #include "glfw_render_context.h"
 #endif
@@ -148,13 +152,11 @@ RSRenderThread::RSRenderThread()
 RSRenderThread::~RSRenderThread()
 {
     Stop();
-#ifndef NEW_RENDER_CONTEXT
     if (renderContext_ != nullptr) {
         ROSEN_LOGD("Destroy renderContext!!");
         delete renderContext_;
         renderContext_ = nullptr;
     }
-#endif
 }
 
 void RSRenderThread::Start()
@@ -229,20 +231,6 @@ int32_t RSRenderThread::GetTid()
 
 void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
-#if defined(NEW_RENDER_CONTEXT)
-#if !defined(ROSEN_PREVIEW)
-    if (renderContext_ == nullptr) {
-        renderContext_ = RenderContextBaseFactory::CreateRenderContext();
-        drawingContext_ = std::make_shared<Rosen::DrawingContext>(renderContext_->GetRenderType());
-        RS_TRACE_NAME("Init Context");
-        renderContext_->Init(); // init egl context on RT
-        if (!cacheDir_.empty()) {
-            ShaderCache::Instance().SetFilePath(cacheDir_);
-        }
-        ROSEN_LOGD("Create and Init RenderContext");
-    }
-#endif
-#else
 #if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
     if (renderContext_ == nullptr) {
         renderContext_ = new RenderContext();
@@ -264,7 +252,6 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #endif
 #endif
     }
-#endif
 #endif
 }
 
@@ -317,6 +304,11 @@ void RSRenderThread::RenderLoop()
         });
     });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
+#endif
+
+#ifdef RES_CLINET_SCHED_ENABLE
+    auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+    RS_LOGI("RSRenderThread: SetThreadQos retcode = %{public}d", ret);
 #endif
 
     if (runner_) {
@@ -478,7 +470,9 @@ void RSRenderThread::Render()
     }
     // get latest partial render status from system properties and set it to RTvisitor_
     visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(),
-        isRTRenderForced_ || (isOverDrawEnabledOfLastFrame_ != isOverDrawEnabledOfCurFrame_));
+        isRTRenderForced_ || (isOverDrawEnabledOfLastFrame_ != isOverDrawEnabledOfCurFrame_) ||
+        IsHighContrastChanged());
+    ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
     isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;

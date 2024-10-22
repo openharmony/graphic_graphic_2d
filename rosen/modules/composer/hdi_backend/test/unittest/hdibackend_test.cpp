@@ -146,6 +146,22 @@ HWTEST_F(HdiBackendTest, RegHwcDeadListener002, Function | MediumTest| Level3)
 }
 
 /*
+* Function: SetVsyncSamplerEnabled
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetVsyncSamplerEnabled()
+*                  2. call GetVsyncSamplerEnabled
+*                  3. check ret
+*/
+HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled, Function | MediumTest| Level3)
+{
+    OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    hdiBackend_->SetVsyncSamplerEnabled(output, false);
+    ASSERT_EQ(hdiBackend_->GetVsyncSamplerEnabled(output), false);
+}
+
+/*
 * Function: ResetDevice
 * Type: Function
 * Rank: Important(1)

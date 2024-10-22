@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pixel_map.h"
+#include "property/rs_properties_def.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
 
@@ -367,19 +368,23 @@ HWTEST_F(RSUniRenderUtilTest, Is3DRotation_003, Function | SmallTest | Level2)
 
 /*
  * @tc.name: AssignWindowNodes
- * @tc.desc:
+ * @tc.desc: Test AssignWindowNodes when displaynode is nullptr, or has no child.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIATLPV
  */
 HWTEST_F(RSUniRenderUtilTest, AssignWindowNodes, Function | SmallTest | Level2)
 {
     std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
     RSUniRenderUtil::AssignWindowNodes(nullptr, mainThreadNodes, subThreadNodes);
+    ASSERT_TRUE(mainThreadNodes.empty());
+    ASSERT_TRUE(subThreadNodes.empty());
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
     RSUniRenderUtil::AssignWindowNodes(node, mainThreadNodes, subThreadNodes);
+    ASSERT_TRUE(mainThreadNodes.empty());
+    ASSERT_TRUE(subThreadNodes.empty());
 }
 
 /*
@@ -523,9 +528,9 @@ HWTEST_F(RSUniRenderUtilTest, PostReleaseSurfaceTask002, Function | SmallTest | 
 
 /*
  * @tc.name: ClearNodeCacheSurface
- * @tc.desc:
+ * @tc.desc: Test ClearNodeCacheSurface
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIATLPV
  */
 HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Level2)
 {
@@ -534,6 +539,7 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(node, nullptr);
     threadIndex = UNI_MAIN_THREAD_INDEX;
     auto cacheSurface = node->GetCacheSurface(threadIndex, false);
     auto completedSurface= node->GetCompletedCacheSurface(0, true);
@@ -1349,14 +1355,14 @@ HWTEST_F(RSUniRenderUtilTest, CacheSubThreadNodesTest002, TestSize.Level1)
 HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
 {
     RSUniRenderUtil rsUniRenderUtil;
-    RSSurfaceRenderNode nodesTest1(0);
-    nodesTest1.GetRSSurfaceHandler()->buffer_.buffer = nullptr;
-    rsUniRenderUtil.LayerScaleDown(nodesTest1);
+    auto nodesTest1 = std::make_shared<RSSurfaceRenderNode>(0);
+    nodesTest1->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
+    rsUniRenderUtil.LayerScaleDown(*nodesTest1);
 
-    RSSurfaceRenderNode nodesTest2(1);
-    nodesTest2.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
-    nodesTest2.GetRSSurfaceHandler()->consumer_ = nullptr;
-    rsUniRenderUtil.LayerScaleDown(nodesTest2);
+    auto nodesTest2 = std::make_shared<RSSurfaceRenderNode>(1);
+    nodesTest2->GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    nodesTest2->GetRSSurfaceHandler()->consumer_ = nullptr;
+    rsUniRenderUtil.LayerScaleDown(*nodesTest2);
 }
 
 /*
@@ -1405,6 +1411,7 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo002, TestSize.Lev
 {
     RSUniRenderUtil rsUniRenderUtil;
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
+    ASSERT_NE(node, nullptr);
     node->childrenHasUIExtension_ = true;
     Drawing::Matrix parentMatrix = Drawing::Matrix();
     parentMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
@@ -2051,4 +2058,210 @@ HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
 #endif
 }
 
+/*
+ * @tc.name: IntersectRect
+ * @tc.desc: test GraphicIRect intersect with GraphicIRect
+ * @tc.type: FUNC
+ * @tc.require: issueIARLU9
+ */
+HWTEST_F(RSUniRenderUtilTest, IntersectRect, TestSize.Level2)
+{
+    GraphicIRect srcRect = { 0, 0, 1080, 1920 };
+    GraphicIRect emptyRect = { 0, 0, 0, 0 };
+
+    GraphicIRect rect = emptyRect; // no intersect
+    GraphicIRect result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, emptyRect);
+
+    rect = { -500, -500, -100, -100 }; // no intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, emptyRect);
+
+    rect = { 1100, 0, 100, 100 }; // no intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, emptyRect);
+
+    rect = { 200, 200, 800, 800 }; // all intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, rect);
+
+    rect = { -100, -100, 3000, 3000 }; // src rect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    ASSERT_EQ(result, srcRect);
+
+    rect = { -100, -100, 1000, 1000 }; // partial intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    GraphicIRect expect = { 0, 0, 900, 900 };
+    ASSERT_EQ(result, expect);
+
+    rect = { 500, 500, 2000, 2000 }; // partial intersect
+    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
+    expect = { 500, 500, 580, 1420 };
+    ASSERT_EQ(result, expect);
+}
+
+/*
+ * @tc.name: GetMatrix_001
+ * @tc.desc: test GetMatrix with nullptr Node
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_001, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderNode> node = nullptr;
+    ASSERT_EQ(node, nullptr);
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_002
+ * @tc.desc: test GetMatrix with nullptr boundsGeo_
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_002, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_003
+ * @tc.desc: test GetMatrix with boundsGeo_
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_003, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), node->renderContent_->renderProperties_.boundsGeo_->GetMatrix());
+}
+
+/*
+ * @tc.name: GetMatrix_004
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_004, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_005
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent has no geo
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_005, TestSize.Level2)
+{
+    NodeId parentId = 0;
+    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(parentId);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    node->SetParent(parentNode);
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), Drawing::Matrix());
+}
+
+/*
+ * @tc.name: GetMatrix_006
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent has geo
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrix_006, TestSize.Level2)
+{
+    NodeId parentId = 0;
+    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(parentId);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    node->SetParent(parentNode);
+    auto invertAbsParentMatrix = Drawing::Matrix();
+    parentNode->renderContent_->renderProperties_.boundsGeo_->GetAbsMatrix().Invert(invertAbsParentMatrix);
+    auto assertResult = node->renderContent_->renderProperties_.boundsGeo_->GetAbsMatrix();
+    assertResult.PostConcat(invertAbsParentMatrix);
+    ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), assertResult);
+}
+
+/**
+ * @tc.name: CheckRenderSkipIfScreenOff001
+ * @tc.desc: Test CheckRenderSkipIfScreenOff, no need for extra frame
+ * @tc.type: FUNC
+ * @tc.require: #I9UNQP
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return;
+    }
+    ScreenId screenId = 1;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+    EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+}
+
+/**
+ * @tc.name: CheckRenderSkipIfScreenOff002
+ * @tc.desc: Test CheckRenderSkipIfScreenOff, need extra frame
+ * @tc.type: FUNC
+ * @tc.require: #I9UNQP
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return;
+    }
+    ScreenId screenId = 1;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+}
 } // namespace OHOS::Rosen

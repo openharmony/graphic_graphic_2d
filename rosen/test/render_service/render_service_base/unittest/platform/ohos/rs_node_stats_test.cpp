@@ -54,6 +54,7 @@ HWTEST_F(RSNodeStatsTest, AddNodeStatsTest1, TestSize.Level1)
     rsNodeStats.AddNodeStats(nodeStats1, RSNodeStatsUpdateMode::SIMPLE_APPEND);
     rsNodeStats.AddNodeStats(nodeStats2, RSNodeStatsUpdateMode::SIMPLE_APPEND);
     rsNodeStats.AddNodeStats(nodeStats3, RSNodeStatsUpdateMode::SIMPLE_APPEND);
+    EXPECT_NE(rsNodeStats.rsNodeCountTotal_, -1);
 }
 
 /**
@@ -71,6 +72,7 @@ HWTEST_F(RSNodeStatsTest, AddNodeStatsTest2, TestSize.Level1)
     rsNodeStats.AddNodeStats(nodeStats1, RSNodeStatsUpdateMode::DISCARD_DUPLICATE);
     rsNodeStats.AddNodeStats(nodeStats2, RSNodeStatsUpdateMode::DISCARD_DUPLICATE);
     rsNodeStats.AddNodeStats(nodeStats3, RSNodeStatsUpdateMode::DISCARD_DUPLICATE);
+    EXPECT_NE(rsNodeStats.rsNodeCountTotal_, -1);
 }
 
 /**
@@ -88,6 +90,7 @@ HWTEST_F(RSNodeStatsTest, ClearNodeStatsTest, TestSize.Level1)
     rsNodeStats.AddNodeStats(nodeStats1, RSNodeStatsUpdateMode::SIMPLE_APPEND);
     rsNodeStats.AddNodeStats(nodeStats2, RSNodeStatsUpdateMode::DISCARD_DUPLICATE);
     rsNodeStats.ClearNodeStats();
+    EXPECT_NE(rsNodeStats.rsNodeCountTotal_, -1);
 }
 
 /**
@@ -104,6 +107,7 @@ HWTEST_F(RSNodeStatsTest, ReportRSNodeLimitExceededTest1, TestSize.Level1)
     rsNodeStats.AddNodeStats(nodeStats1, RSNodeStatsUpdateMode::DISCARD_DUPLICATE);
     rsNodeStats.AddNodeStats(nodeStats2, RSNodeStatsUpdateMode::SIMPLE_APPEND);
     rsNodeStats.ReportRSNodeLimitExceeded();
+    EXPECT_NE(rsNodeStats.rsNodeCountTotal_, -1);
 }
 
 /**
@@ -126,6 +130,7 @@ HWTEST_F(RSNodeStatsTest, ReportRSNodeLimitExceededTest2, TestSize.Level1)
     rsNodeStats.AddNodeStats(nodeStats4, RSNodeStatsUpdateMode::SIMPLE_APPEND);
     rsNodeStats.AddNodeStats(nodeStats5, RSNodeStatsUpdateMode::SIMPLE_APPEND);
     rsNodeStats.ReportRSNodeLimitExceeded();
+    EXPECT_NE(rsNodeStats.rsNodeCountTotal_, -1);
 }
 
 /**
@@ -159,6 +164,7 @@ HWTEST_F(RSNodeStatsTest, ReportRSNodeLimitExceededTest3, TestSize.Level1)
     rsNodeStats.AddNodeStats(nodeStats4, RSNodeStatsUpdateMode::SIMPLE_APPEND);
     rsNodeStats.AddNodeStats(nodeStats4, RSNodeStatsUpdateMode::SIMPLE_APPEND);
     rsNodeStats.ReportRSNodeLimitExceeded();
+    EXPECT_NE(rsNodeStats.rsNodeCountTotal_, -1);
 }
 
 } // namespace Rosen

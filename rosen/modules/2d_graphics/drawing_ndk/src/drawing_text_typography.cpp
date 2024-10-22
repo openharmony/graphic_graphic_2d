@@ -23,6 +23,7 @@
 #include <unicode/brkiter.h>
 #include <vector>
 
+#include "array_mgr.h"
 #include "font_config.h"
 #include "font_parser.h"
 #include "rosen_text/font_collection.h"
@@ -299,6 +300,30 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
     ConvertToOriginalText<TextStyle>(style)->decoration = rosenDecoration;
 }
 
+void OH_Drawing_AddTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
+{
+    if (style == nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH))) {
+        return;
+    }
+    TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
+    if (rosenTextStyle) {
+        rosenTextStyle->decoration = static_cast<TextDecoration>(rosenTextStyle->decoration | decoration);
+    }
+}
+
+void OH_Drawing_RemoveTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
+{
+    if (style == nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH))) {
+        return;
+    }
+    TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
+    if (rosenTextStyle) {
+        rosenTextStyle->decoration = static_cast<TextDecoration>(rosenTextStyle->decoration & ~decoration);
+    }
+}
+
 void OH_Drawing_SetTextStyleDecorationColor(OH_Drawing_TextStyle* style, uint32_t color)
 {
     if (!style) {
@@ -526,6 +551,14 @@ double OH_Drawing_TypographyGetLongestLine(OH_Drawing_Typography* typography)
         return 0.0;
     }
     return ConvertToOriginalText<Typography>(typography)->GetActualWidth();
+}
+
+double OH_Drawing_TypographyGetLongestLineWithIndent(OH_Drawing_Typography* typography)
+{
+    if (typography == nullptr) {
+        return 0.0;
+    }
+    return ConvertToOriginalText<Typography>(typography)->GetLongestLineWithIndent();
 }
 
 double OH_Drawing_TypographyGetMinIntrinsicWidth(OH_Drawing_Typography* typography)
@@ -1125,19 +1158,26 @@ void OH_Drawing_TextStyleGetBackgroundPen(OH_Drawing_TextStyle* style, OH_Drawin
 
 OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 {
-    auto fontDescriptor = new (std::nothrow) TextEngine::FontParser::FontDescriptor;
-    if (fontDescriptor == nullptr) {
+    OH_Drawing_FontDescriptor* desc = new (std::nothrow) OH_Drawing_FontDescriptor;
+    if (desc == nullptr) {
         return nullptr;
     }
-    return (OH_Drawing_FontDescriptor*)fontDescriptor;
+    desc->path = nullptr;
+    desc->postScriptName = nullptr;
+    desc->fullName = nullptr;
+    desc->fontFamily = nullptr;
+    desc->fontSubfamily = nullptr;
+    desc->weight = 0;
+    desc->width = 0;
+    desc->italic = 0;
+    desc->monoSpace = false;
+    desc->symbolic = false;
+    return desc;
 }
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 {
-    if (descriptor) {
-        delete ConvertToOriginalText<TextEngine::FontParser::FontDescriptor>(descriptor);
-        descriptor = nullptr;
-    }
+    delete descriptor;
 }
 
 OH_Drawing_FontParser* OH_Drawing_CreateFontParser(void)
@@ -1248,17 +1288,27 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
     }
     std::vector<TextEngine::FontParser::FontDescriptor> systemFontList =
         ConvertToOriginalText<TextEngine::FontParser>(fontParser)->GetVisibilityFonts();
-    TextEngine::FontParser::FontDescriptor* descriptor = new (std::nothrow) TextEngine::FontParser::FontDescriptor;
-    if (descriptor == nullptr) {
-        return nullptr;
-    }
     for (size_t i = 0; i < systemFontList.size(); ++i) {
-        if (strcmp(name, systemFontList[i].fullName.c_str()) == 0) {
-            *descriptor = systemFontList[i];
-            return (OH_Drawing_FontDescriptor*)descriptor;
+        if (strcmp(name, systemFontList[i].fullName.c_str()) != 0) {
+            continue;
         }
+
+        OH_Drawing_FontDescriptor* descriptor = new (std::nothrow) OH_Drawing_FontDescriptor();
+        if (descriptor == nullptr) {
+            return nullptr;
+        }
+        descriptor->path = strdup(systemFontList[i].path.c_str());
+        descriptor->postScriptName = strdup(systemFontList[i].postScriptName.c_str());
+        descriptor->fullName = strdup(systemFontList[i].fullName.c_str());
+        descriptor->fontFamily = strdup(systemFontList[i].fontFamily.c_str());
+        descriptor->fontSubfamily = strdup(systemFontList[i].fontSubfamily.c_str());
+        descriptor->weight = systemFontList[i].weight;
+        descriptor->width = systemFontList[i].width;
+        descriptor->italic = systemFontList[i].italic;
+        descriptor->monoSpace = systemFontList[i].monoSpace;
+        descriptor->symbolic = systemFontList[i].symbolic;
+        return descriptor;
     }
-    delete descriptor;
     return nullptr;
 }
 
@@ -3383,4 +3433,72 @@ void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle* style, const cha
     if (convertStyle) {
         convertStyle->fontVariations.SetAxisValue(axis, value);
     }
+}
+
+size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray)
+{
+    if (drawingArray == nullptr) {
+        return 0;
+    }
+
+    ObjectArray* array = ConvertToOriginalText<ObjectArray>(drawingArray);
+    if (array == nullptr) {
+        return 0;
+    }
+
+    return array->num;
+}
+
+OH_Drawing_TextTab* OH_Drawing_CreateTextTab(OH_Drawing_TextAlign alignment, float location)
+{
+    TextAlign textAlign;
+    switch (alignment) {
+        case TEXT_ALIGN_LEFT: {
+            textAlign = TextAlign::LEFT;
+            break;
+        }
+        case TEXT_ALIGN_RIGHT: {
+            textAlign = TextAlign::RIGHT;
+            break;
+        }
+        case TEXT_ALIGN_CENTER: {
+            textAlign = TextAlign::CENTER;
+            break;
+        }
+        default: {
+            textAlign = TextAlign::LEFT;
+            break;
+        }
+    }
+    return (OH_Drawing_TextTab*)new TextTab(textAlign, location);
+}
+
+void OH_Drawing_DestroyTextTab(OH_Drawing_TextTab* tab)
+{
+    delete ConvertToOriginalText<TextTab>(tab);
+}
+
+void OH_Drawing_SetTypographyTextTab(OH_Drawing_TypographyStyle* style, OH_Drawing_TextTab* tab)
+{
+    if (!style || !tab) {
+        return;
+    }
+    auto rosenTextTab = ConvertToOriginalText<OHOS::Rosen::TextTab>(tab);
+    ConvertToOriginalText<TypographyStyle>(style)->tab = *rosenTextTab;
+}
+
+OH_Drawing_TextAlign OH_Drawing_GetTextTabAlignment(OH_Drawing_TextTab* tab)
+{
+    if (tab == nullptr) {
+        return TEXT_ALIGN_LEFT;
+    }
+    return static_cast<OH_Drawing_TextAlign>(ConvertToOriginalText<TextTab>(tab)->alignment);
+}
+
+float OH_Drawing_GetTextTabLocation(OH_Drawing_TextTab* tab)
+{
+    if (tab == nullptr) {
+        return 0.0;
+    }
+    return ConvertToOriginalText<TextTab>(tab)->location;
 }

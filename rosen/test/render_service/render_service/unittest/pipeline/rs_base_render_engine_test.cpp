@@ -266,5 +266,47 @@ HWTEST(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestSiz
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
     ASSERT_EQ(colorSpace, nullptr);
 }
+
+/**
+ * @tc.name: ConvertDrawingColorSpaceToSpaceInfo
+ * @tc.desc: Test ConvertDrawingColorSpaceToSpaceInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST(RSBaseRenderEngineUnitTest, ConvertDrawingColorSpaceToSpaceInfo, TestSize.Level1)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    std::shared_ptr<Drawing::ColorSpace> colorSpace;
+    CM_ColorSpaceInfo colorSpaceInfo;
+
+    colorSpace = Drawing::ColorSpace::CreateSRGB();
+    EXPECT_TRUE(RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(colorSpace, colorSpaceInfo));
+    EXPECT_EQ(colorSpaceInfo.primaries, COLORPRIMARIES_SRGB);
+    EXPECT_EQ(colorSpaceInfo.transfunc, TRANSFUNC_SRGB);
+
+    colorSpace = Drawing::ColorSpace::CreateRGB(
+        Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+    EXPECT_TRUE(RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(colorSpace, colorSpaceInfo));
+    EXPECT_EQ(colorSpaceInfo.primaries, COLORPRIMARIES_P3_D65);
+    EXPECT_EQ(colorSpaceInfo.transfunc, TRANSFUNC_SRGB);
+
+    colorSpace = Drawing::ColorSpace::CreateRGB(
+        Drawing::CMSTransferFuncType::REC2020, Drawing::CMSMatrixType::REC2020);
+    EXPECT_FALSE(RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(colorSpace, colorSpaceInfo));
+}
+
+/**
+ * @tc.name: GetCanvasColorSpace
+ * @tc.desc: Test GetCanvasColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST(RSBaseRenderEngineUnitTest, GetCanvasColorSpace, TestSize.Level1)
+{
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+    EXPECT_EQ(RSBaseRenderEngine::GetCanvasColorSpace(canvas.get()), nullptr);
+}
 #endif
 }

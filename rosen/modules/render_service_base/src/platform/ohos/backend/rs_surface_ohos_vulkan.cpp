@@ -151,7 +151,7 @@ int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(NativeWindowBuffer** nati
 
     auto res = NativeWindowRequestBuffer(mNativeWindow, nativeWindowBuffer, &fenceFd);
     if (res != OHOS::GSERROR_OK) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan: OH_NativeWindow_NativeWindowRequestBuffer failed %{public}d", res);
+        ROSEN_LOGE("RSSurfaceOhosVulkan: RequestBuffer failed %{public}d", res);
         NativeWindowCancelBuffer(mNativeWindow, *nativeWindowBuffer);
     }
     return res;
@@ -179,6 +179,9 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 
     mSurfaceList.emplace_back(nativeWindowBuffer);
     NativeBufferUtils::NativeSurfaceInfo& nativeSurface = mSurfaceMap[nativeWindowBuffer];
+#ifdef RS_ENABLE_PREFETCH
+    __builtin_prefetch(&(nativeSurface.lastPresentedCount), 0, 1);
+#endif
     if (nativeSurface.drawingSurface == nullptr) {
         NativeObjectReference(mNativeWindow);
         nativeSurface.window = mNativeWindow;
@@ -223,6 +226,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     std::unique_ptr<RSSurfaceFrameOhosVulkan> frame =
         std::make_unique<RSSurfaceFrameOhosVulkan>(nativeSurface.drawingSurface, width, height, bufferAge);
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
+    mSkContext->BeginFrame();
     return ret;
 }
 
@@ -243,6 +247,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     if (mSurfaceList.empty()) {
         return false;
     }
+#ifdef RS_ENABLE_PREFETCH
+    __builtin_prefetch(&mSkContext, 0, 1);
+#endif
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
 
     VkSemaphore semaphore = vkContext.RequireSemaphore();
@@ -278,6 +285,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         RS_TRACE_NAME("Submit");
         RSTimer timer("Submit");
         mSkContext->Submit();
+        mSkContext->EndFrame();
     }
     
     int fenceFd = -1;

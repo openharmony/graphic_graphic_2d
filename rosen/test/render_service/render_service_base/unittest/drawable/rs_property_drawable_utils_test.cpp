@@ -24,6 +24,7 @@
 #include "skia_adapter/skia_surface.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
+#include "render/rs_mesa_blur_shader_filter.h"
 
 namespace OHOS::Rosen {
 class RSPropertyDrawableUtilsTest : public testing::Test {
@@ -175,6 +176,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Width(), 0);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Height(), 0);
+
+    // third: DrawFilterWithDRM test
+    Drawing::Canvas canvasTest3;
+    RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
+    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);
+    rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, false);
 }
 
 /**
@@ -217,23 +224,22 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
     std::shared_ptr<RSFilter> rsFilter = nullptr;
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
-    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    Drawing::RectI bounds(0, 0, 400, 400);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     rsFilter = std::make_shared<RSFilter>();
     rsFilter->type_ = RSFilter::NONE;
     paintFilterCanvas.surface_ = nullptr;
-    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     Drawing::Surface surface;
     paintFilterCanvas.surface_ = &surface;
     Drawing::Canvas canvasTest2;
     paintFilterCanvas.canvas_ = &canvasTest2;
-    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     paintFilterCanvas.SetDisableFilterCache(true);
-    auto surfaceTwo = Drawing::Surface::MakeRasterN32Premul(10, 10);
-    paintFilterCanvas.surface_ = surfaceTwo.get();
-    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     int lastBlurCnt = rsPropertyDrawableUtils->g_blurCnt;
     ASSERT_NE(lastBlurCnt, 0);
-    rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, false);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, false, bounds);
     ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
@@ -367,31 +373,16 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest013, testing::ext::Tes
     RSPaintFilterCanvas paintFilterCanvasTest(&canvasTest);
     RectF boundsRect = RectF(0.0f, 0.0f, 1.0f, 1.0f);
     std::optional<Vector4f> pixelStretch = std::nullopt;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
     pixelStretch = 1.0f;
     paintFilterCanvasTest.surface_ = nullptr;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
     Drawing::Surface surface;
     paintFilterCanvasTest.surface_ = &surface;
-    rsPropertyDrawableUtilsTest->DrawPixelStretch(&paintFilterCanvasTest, pixelStretch, boundsRect, true);
-}
-
-/**
- * @tc.name: CreateColorFilterForHDRTest
- * @tc.desc: CreateColorFilterForHDRTest test
- * @tc.type:FUNC
- * @tc.require: issueI9SCBR
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, CreateColorFilterForHDRTest, testing::ext::TestSize.Level1)
-{
-    auto rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
-    auto ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(1.f, 0.5f);
-    EXPECT_NE(ret, nullptr);
-    ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(0.5f, 0.5f);
-    EXPECT_EQ(ret, nullptr);
-    ret = rsPropertyDrawableUtilsTest->CreateColorFilterForHDR(0.0f, 0.5f);
-    EXPECT_EQ(ret, nullptr);
+    rsPropertyDrawableUtilsTest->DrawPixelStretch(
+        &paintFilterCanvasTest, pixelStretch, boundsRect, true, Drawing::TileMode::CLAMP);
 }
 
 /**
@@ -640,15 +631,20 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::e
     std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(rsFilterTest2);
     EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
 
+    // 10: blur radius
+    int radius = 10;
+    std::shared_ptr<RSMESABlurShaderFilter> mesaFilter = std::make_shared<RSMESABlurShaderFilter>(radius);
+    std::shared_ptr<RSDrawingFilter> filter3 = std::make_shared<RSDrawingFilter>(mesaFilter);
+
     // -1.0f: stretch offset param
     Vector4f pixelStretchTest(-1.0f, -1.0f, -1.0f, -1.0f);
     properties.pixelStretch_ = pixelStretchTest;
-    EXPECT_TRUE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
+    EXPECT_TRUE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter3));
 
     // 1.0f: stretch offset param
     Vector4f pixelStretchTest2(1.0f, 1.0f, 1.0f, 1.0f);
     properties.pixelStretch_ = pixelStretchTest2;
-    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
+    EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter3));
 }
 
 /**
@@ -669,9 +665,10 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterRemovePixelStretchTest022, testing
     std::shared_ptr<RSDrawingFilter> filter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     rsPropertyDrawableUtils->RSFilterRemovePixelStretch(filter);
 
-    std::shared_ptr<RSShaderFilter> rsFilterTest2 = std::make_shared<RSShaderFilter>();
-    rsFilterTest2->type_ = RSShaderFilter::MESA;
-    std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(rsFilterTest2);
+    // 10: blur radius
+    int radius = 10;
+    std::shared_ptr<RSMESABlurShaderFilter> mesaFilter = std::make_shared<RSMESABlurShaderFilter>(radius);
+    std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(mesaFilter);
     rsPropertyDrawableUtils->RSFilterRemovePixelStretch(filter2);
 }
 } // namespace OHOS::Rosen

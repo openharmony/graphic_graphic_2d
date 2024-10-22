@@ -85,10 +85,10 @@ private:
 class HgmSimpleTimer {
 public:
     using Interval = std::chrono::milliseconds;
-    using ResetCallback = std::function<void()>;
+    using StartCallback = std::function<void()>;
     using ExpiredCallback = std::function<void()>;
 
-    HgmSimpleTimer(std::string name, const Interval& interval, const ExpiredCallback& resetCallback,
+    HgmSimpleTimer(std::string name, const Interval& interval, const StartCallback& startCallback,
         const ExpiredCallback& expiredCallback,
         std::unique_ptr<ChronoSteadyClock> clock = std::make_unique<ChronoSteadyClock>());
     ~HgmSimpleTimer() = default;
@@ -106,7 +106,7 @@ private:
 
     std::string name_;
     const Interval interval_;
-    const ResetCallback resetCallback_ = nullptr;
+    const StartCallback startCallback_ = nullptr;
     const ExpiredCallback expiredCallback_ = nullptr;
     std::unique_ptr<ChronoSteadyClock> clock_ = nullptr;
 

@@ -20,9 +20,6 @@
 
 #include "draw/color.h"
 #include "platform/common/rs_log.h"
-#ifndef NEW_RENDER_CONTEXT
-#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
-#endif
 #include "rs_base_render_util.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
@@ -89,7 +86,7 @@ void RSVirtualScreenProcessor::PostProcess()
         canvas_->Clear(Drawing::Color::COLOR_BLACK);
     }
     auto surfaceOhos = renderFrame_->GetSurface();
-    renderEngine_->SetUiTimeStamp(renderFrame_, surfaceOhos);
+    RSBaseRenderEngine::SetUiTimeStamp(renderFrame_, surfaceOhos);
     renderFrame_->Flush();
 }
 

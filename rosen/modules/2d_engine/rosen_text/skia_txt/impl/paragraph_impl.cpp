@@ -25,7 +25,6 @@
 #include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
-#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -169,7 +168,6 @@ float ParagraphImpl::DetectIndents(size_t index)
 
 void ParagraphImpl::Layout(double width)
 {
-    TEXT_TRACE_FUNC();
     RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
@@ -297,7 +295,7 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    
+
     TextStyle txt;
     txt.color = skStyle.getColor();
     txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());

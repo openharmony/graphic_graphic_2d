@@ -36,18 +36,6 @@ void RsFrameReportExtTest::SetUp() {}
 void RsFrameReportExtTest::TearDown() {}
 
 /**
- * @tc.name: Init
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RsFrameReportExtTest, Init001, Function | MediumTest | Level2)
-{
-    OHOS::Rosen::RsFrameReportExt rsFrameReportExt_;
-    rsFrameReportExt_.Init();
-}
-
-/**
  * @tc.name: GetEnable
  * @tc.desc: test
  * @tc.type:FUNC
@@ -55,8 +43,8 @@ HWTEST_F(RsFrameReportExtTest, Init001, Function | MediumTest | Level2)
  */
 HWTEST_F(RsFrameReportExtTest, GetEnable001, Function | MediumTest | Level2)
 {
-    OHOS::Rosen::RsFrameReportExt rsFrameReportExt_;
-    rsFrameReportExt_.GetEnable();
+    int ret = OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable();
+    EXPECT_NE(ret, 0);
 }
 
 /**
@@ -67,8 +55,8 @@ HWTEST_F(RsFrameReportExtTest, GetEnable001, Function | MediumTest | Level2)
  */
 HWTEST_F(RsFrameReportExtTest, HandleSwapBuffer001, Function | MediumTest | Level2)
 {
-    OHOS::Rosen::RsFrameReportExt rsFrameReportExt_;
-    rsFrameReportExt_.HandleSwapBuffer();
+    OHOS::Rosen::RsFrameReportExt::GetInstance().HandleSwapBuffer();
+    EXPECT_NE(OHOS::Rosen::RsFrameReportExt::GetInstance().handleSwapBufferFunc_, nullptr);
 }
 
 /**
@@ -79,8 +67,8 @@ HWTEST_F(RsFrameReportExtTest, HandleSwapBuffer001, Function | MediumTest | Leve
  */
 HWTEST_F(RsFrameReportExtTest, RequestNextVSync001, Function | MediumTest | Level2)
 {
-    OHOS::Rosen::RsFrameReportExt rsFrameReportExt_;
-    rsFrameReportExt_.RequestNextVSync();
+    OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
+    EXPECT_NE(OHOS::Rosen::RsFrameReportExt::GetInstance().requestNextVSyncFunc_, nullptr);
 }
 
 /**
@@ -91,8 +79,8 @@ HWTEST_F(RsFrameReportExtTest, RequestNextVSync001, Function | MediumTest | Leve
  */
 HWTEST_F(RsFrameReportExtTest, ReceiveVSync001, Function | MediumTest | Level2)
 {
-    OHOS::Rosen::RsFrameReportExt rsFrameReportExt_;
-    rsFrameReportExt_.ReceiveVSync();
+    OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
+    EXPECT_NE(OHOS::Rosen::RsFrameReportExt::GetInstance().receiveVSyncFunc_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

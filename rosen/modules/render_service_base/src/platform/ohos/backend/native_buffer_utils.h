@@ -31,6 +31,7 @@
 
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
+constexpr uint32_t VKIMAGE_LIMIT_SIZE = 10000 * 10000; // Vk-Image Size need less than 10000*10000
 void DeleteVkImage(void* context);
 class VulkanCleanupHelper {
 public:

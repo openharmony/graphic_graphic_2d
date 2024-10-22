@@ -42,6 +42,7 @@ public:
         PIXEL_STRETCH,
         WATER_RIPPLE,
         FLY_OUT,
+        DISTORT,
     };
 
     FilterPara()  = default;

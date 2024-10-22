@@ -33,12 +33,10 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "render_backend/rs_surface_factory.h"
-#endif
 #include "render/rs_typeface_cache.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
@@ -126,11 +124,7 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
     return renderService->CreateNode(config);
 }
 
-#ifdef NEW_RENDER_CONTEXT
-std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
-#else
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
-#endif
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -140,13 +134,6 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
     return CreateRSSurface(surface);
 }
 
-#if defined(NEW_RENDER_CONTEXT)
-std::shared_ptr<RSRenderSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
-{
-    std::shared_ptr<RSRenderSurface> producer = RSSurfaceFactory::CreateRSSurface(PlatformName::OHOS, surface);
-    return producer;
-}
-#else
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
 #if defined (ACE_ENABLE_VK)
@@ -162,7 +149,6 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Sur
 #endif
     return std::make_shared<RSSurfaceOhosRaster>(surface); // CPU render
 }
-#endif
 
 std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
@@ -221,7 +207,7 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, std::shared
             continue;
         }
         std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
-        if (i != callbackVector.size() - 1) {
+        if (UNLIKELY(RSSystemProperties::GetPixelmapDfxEnabled()) || (i != callbackVector.size() - 1)) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
@@ -344,6 +330,16 @@ int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vecto
     }
 
     return renderService->SetVirtualScreenBlackList(id, blackListVector);
+}
+
+bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return false;
+    }
+
+    return renderService->SetWatermark(name, watermark);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
@@ -888,6 +884,16 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenS
     return renderService->SetVirtualMirrorScreenScaleMode(id, scaleMode);
 }
 
+bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: renderService is nullptr");
+        return false;
+    }
+    return renderService->SetGlobalDarkColorMode(isDark);
+}
+
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1046,6 +1052,16 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
         return RENDER_SERVICE_NULL;
     }
     return renderService->SetScreenSkipFrameInterval(id, skipFrameInterval);
+}
+
+int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
+    ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
 }
 
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
@@ -1316,6 +1332,15 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
     }
 }
 
+uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->SetHidePrivacyContent(id, needHidePrivacyContent);
+    }
+    return static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+}
+
 void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1507,6 +1532,91 @@ void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
         return;
     }
     renderService->SetFreeMultiWindowStatus(enable);
+}
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetLayerTop(nodeIdStr, isTop);
+    }
+}
+
+class SurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
+public:
+    explicit SurfaceBufferCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    ~SurfaceBufferCallbackDirector() noexcept override = default;
+    void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override
+    {
+        client_->TriggerSurfaceBufferCallback(uid, surfaceBufferIds);
+    }
+
+private:
+    RSRenderServiceClient* client_;
+};
+
+bool RSRenderServiceClient::RegisterSurfaceBufferCallback(
+    pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback renderService == nullptr!");
+        return false;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback callback == nullptr!");
+        return false;
+    }
+    {
+        std::unique_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        if (surfaceBufferCallbacks_.find(uid) == std::end(surfaceBufferCallbacks_)) {
+            surfaceBufferCallbacks_.emplace(uid, callback);
+        } else {
+            ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback callback exists"
+                " in uid %{public}s", std::to_string(uid).c_str());
+            return false;
+        }
+        if (surfaceBufferCbDirector_ == nullptr) {
+            surfaceBufferCbDirector_ = new SurfaceBufferCallbackDirector(this);
+        }
+    }
+    renderService->RegisterSurfaceBufferCallback(pid, uid, surfaceBufferCbDirector_);
+    return true;
+}
+
+bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::UnregisterSurfaceBufferCallback renderService == nullptr!");
+        return false;
+    }
+    {
+        std::unique_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        auto iter = surfaceBufferCallbacks_.find(uid);
+        if (iter == std::end(surfaceBufferCallbacks_)) {
+            ROSEN_LOGE("RSRenderServiceClient::UnregisterSurfaceBufferCallback invaild uid.");
+            return false;
+        }
+        surfaceBufferCallbacks_.erase(iter);
+    }
+    renderService->UnregisterSurfaceBufferCallback(pid, uid);
+    return true;
+}
+
+void RSRenderServiceClient::TriggerSurfaceBufferCallback(uint64_t uid,
+    const std::vector<uint32_t>& surfaceBufferIds) const
+{
+    std::shared_ptr<SurfaceBufferCallback> callback = nullptr;
+    {
+        std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        if (auto iter = surfaceBufferCallbacks_.find(uid); iter != std::cend(surfaceBufferCallbacks_)) {
+            callback = iter->second;
+        }
+    }
+    if (callback) {
+        callback->OnFinish(uid, surfaceBufferIds);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

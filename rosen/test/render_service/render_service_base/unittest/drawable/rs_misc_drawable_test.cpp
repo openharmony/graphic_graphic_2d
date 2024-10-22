@@ -336,4 +336,46 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable002, TestSize.Level
     drawFunc(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: RSCustomClipToFrameDrawable001
+ * @tc.desc: Test OnGenerate
+ * @tc.type:FUNC
+ * @tc.require: issueIASGKZ
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node), nullptr);
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    property->GetRef() = drawCmdList;
+    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
+    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CUSTOM_CLIP_TO_FRAME, list);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSCustomClipToFrameDrawable>(
+        DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+}
+
+/**
+ * @tc.name: RSCustomClipToFrameDrawable002
+ * @tc.desc: Test CreateDrawFunc
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable002, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSCustomClipToFrameDrawable>();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+    auto drawFunc = drawable->CreateDrawFunc();
+    drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
 } // namespace OHOS::Rosen

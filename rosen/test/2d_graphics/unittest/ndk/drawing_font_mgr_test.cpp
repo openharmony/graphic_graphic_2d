@@ -49,9 +49,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest002, TestSize.Level1)
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
     int count = OH_Drawing_FontMgrGetFamilyCount(mgr);
-    EXPECT_TRUE(count > 0);
+    EXPECT_EQ(count, 9);
 
     char *familyName = OH_Drawing_FontMgrGetFamilyName(mgr, 0);
+    std::string result = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
+    EXPECT_EQ(std::string(familyName), result);
     OH_Drawing_FontMgrDestroyFamilyName(familyName);
 
     OH_Drawing_FontMgrDestroy(mgr);
@@ -86,6 +88,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest004, TestSize.Level1)
     const char* matchFamilyName = "HarmonyOS-Sans";
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrMatchFamily(mgr, matchFamilyName);
     EXPECT_NE(fontStyleSet, nullptr);
+    EXPECT_EQ(OH_Drawing_FontStyleSetCount(fontStyleSet), 2);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
 
     OH_Drawing_FontMgrDestroy(mgr);
@@ -146,11 +149,11 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest006, TestSize.Level1)
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest007, TestSize.Level1)
 {
     int count = OH_Drawing_FontMgrGetFamilyCount(nullptr);
-    EXPECT_TRUE(count == 0);
+    EXPECT_EQ(count, 0);
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
     char *familyName = OH_Drawing_FontMgrGetFamilyName(nullptr, 0);
-    EXPECT_TRUE(familyName == nullptr);
+    EXPECT_EQ(familyName, nullptr);
     OH_Drawing_FontMgrDestroyFamilyName(familyName);
     OH_Drawing_FontMgrDestroy(mgr);
 }
@@ -163,17 +166,17 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest007, TestSize.Level1)
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest008, TestSize.Level1)
 {
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(nullptr, 0);
-    EXPECT_TRUE(fontStyleSet == nullptr);
+    EXPECT_EQ(fontStyleSet, nullptr);
     const char* matchFamilyName = "HarmonyOS-Sans";
     fontStyleSet = OH_Drawing_FontMgrMatchFamily(nullptr, matchFamilyName);
-    EXPECT_TRUE(fontStyleSet == nullptr);
+    EXPECT_EQ(fontStyleSet, nullptr);
 
     OH_Drawing_FontStyleStruct normalStyle;
     normalStyle.weight = FONT_WEIGHT_400;
     normalStyle.width = FONT_WIDTH_NORMAL;
     normalStyle.slant = FONT_STYLE_NORMAL;
     OH_Drawing_Typeface *typeface = OH_Drawing_FontMgrMatchFamilyStyle(nullptr, matchFamilyName, normalStyle);
-    EXPECT_TRUE(typeface == nullptr);
+    EXPECT_EQ(typeface, nullptr);
 }
 
 /*
@@ -192,7 +195,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest009, TestSize.Level1)
     const char *bcp47[] = {"zh-Hans", "zh-CN"};
     OH_Drawing_Typeface *CharTypeface = OH_Drawing_FontMgrMatchFamilyStyleCharacter(nullptr, matchFamilyName,
                                                                                     normalStyle, bcp47, 1, ' ');
-    EXPECT_TRUE(CharTypeface == nullptr);
+    EXPECT_EQ(CharTypeface, nullptr);
 }
 
 /*
@@ -207,7 +210,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest010, TestSize.Level1)
     OH_Drawing_Typeface *typeface = OH_Drawing_FontStyleSetCreateTypeface(fontStyleSet, 0);
     EXPECT_NE(typeface, nullptr);
     typeface = OH_Drawing_FontStyleSetCreateTypeface(nullptr, 0);
-    EXPECT_TRUE(typeface == nullptr);
+    EXPECT_EQ(typeface, nullptr);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
     OH_Drawing_TypefaceDestroy(typeface);
     OH_Drawing_FontMgrDestroy(mgr);
@@ -225,7 +228,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest011, TestSize.Level1)
     OH_Drawing_FontStyleStruct normalStyle;
     char** styleName = nullptr;
     normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, 0, styleName);
-    EXPECT_TRUE(normalStyle.weight == FONT_WEIGHT_400);
+    EXPECT_EQ(normalStyle.weight, FONT_WEIGHT_400);
     OH_Drawing_FontStyleSetFreeStyleName(styleName);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
     OH_Drawing_FontMgrDestroy(mgr);
@@ -248,7 +251,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest012, TestSize.Level1)
     EXPECT_NE(typeface, nullptr);
 
     typeface = OH_Drawing_FontStyleSetMatchStyle(nullptr, normalStyle);
-    EXPECT_TRUE(typeface == nullptr);
+    EXPECT_EQ(typeface, nullptr);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
     OH_Drawing_TypefaceDestroy(typeface);
     OH_Drawing_FontMgrDestroy(mgr);
@@ -265,9 +268,9 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest013, TestSize.Level1)
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
     int count = OH_Drawing_FontStyleSetCount(fontStyleSet);
     EXPECT_TRUE(count > 0);
-    
+
     count = OH_Drawing_FontStyleSetCount(nullptr);
-    EXPECT_TRUE(count == 0);
+    EXPECT_EQ(count, 0);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
     OH_Drawing_FontMgrDestroy(mgr);
 }

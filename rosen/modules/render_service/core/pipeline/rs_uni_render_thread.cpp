@@ -32,7 +32,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -67,8 +67,7 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
-constexpr const char* PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES = "PreAllocateTextureBetweenFrames";
-constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES = "AsyncFreeVMAMemoryBetweenFrames";
+constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -77,6 +76,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
 constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
+constexpr uint64_t ONE_MEGABYTE = 1000 * 1000;
 
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -149,6 +149,18 @@ void RSUniRenderThread::InitGrContext()
         }
     }
 #endif
+    auto renderContext = uniRenderEngine_->GetRenderContext();
+    if (!renderContext) {
+        return;
+    }
+    auto grContext = renderContext->GetDrGPUContext();
+    if (!grContext) {
+        return;
+    }
+    MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
+        grContext, RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled());
+    MemoryManager::SetGpuCacheSuppressWindowSwitch(
+        grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
 }
 
 void RSUniRenderThread::Inittcache()
@@ -168,11 +180,11 @@ void RSUniRenderThread::Start()
     }
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
-    auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+    auto postTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority) {
         RSUniRenderThread::Instance().PostTask(task, name, delayTime, priority);
     };
-    RSRenderNodeGC::Instance().SetRenderTask(PostTaskProxy);
+    RSRenderNodeGC::Instance().SetRenderTask(postTaskProxy);
     PostSyncTask([this] {
         RS_LOGE("RSUniRenderThread Started ...");
         Inittcache();
@@ -292,9 +304,9 @@ bool RSUniRenderThread::IsIdle() const
     return handler_ ? handler_->IsIdle() : false;
 }
 
-void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams)
+void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams)
 {
-    renderThreadParams_ = std::move(stagingRenderThreadParams);
+    renderParamsManager_.SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
 }
 
 void RSUniRenderThread::Render()
@@ -320,11 +332,12 @@ void RSUniRenderThread::Render()
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
-    if (!renderThreadParams_) {
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    if (!renderThreadParams) {
         return;
     }
     std::vector<std::function<void()>> releaseTasks;
-    for (const auto& drawable : renderThreadParams_->GetSelfDrawables()) {
+    for (const auto& drawable : renderThreadParams->GetSelfDrawables()) {
         if (UNLIKELY(!drawable)) {
             continue;
         }
@@ -401,17 +414,20 @@ void RSUniRenderThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& su
 
 uint64_t RSUniRenderThread::GetCurrentTimestamp() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetCurrentTimestamp() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetCurrentTimestamp() : 0;
 }
 
 uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetPendingScreenRefreshRate() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetPendingScreenRefreshRate() : 0;
 }
 
 uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetPendingConstraintRelativeTime() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetPendingConstraintRelativeTime() : 0;
 }
 
 #ifdef RES_SCHED_ENABLE
@@ -552,17 +568,20 @@ uint32_t RSUniRenderThread::GetRefreshRate() const
 
 std::shared_ptr<Drawing::Image> RSUniRenderThread::GetWatermarkImg()
 {
-    return renderThreadParams_ ? renderThreadParams_->GetWatermarkImg() : nullptr;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetWatermarkImg() : nullptr;
 }
 
 bool RSUniRenderThread::GetWatermarkFlag() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetWatermarkFlag() : false;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetWatermarkFlag() : false;
 }
 
 bool RSUniRenderThread::IsCurtainScreenOn() const
 {
-    return renderThreadParams_ ? renderThreadParams_->IsCurtainScreenOn() : false;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->IsCurtainScreenOn() : false;
 }
 
 bool RSUniRenderThread::IsColorFilterModeOn() const
@@ -629,9 +648,16 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
     int maxResources;
     gpuContext->GetResourceCacheLimits(&maxResources, &cacheLimit);
 
+    constexpr int MAX_GPU_LIMIT_SIZE = 4000;
     std::string strM = type.substr(typeGpuLimit.length());
-    size_t sizeM = std::stoul(strM);
-    size_t maxResourcesBytes = sizeM * 1000 * 1000L; // max 4G
+    size_t maxResourcesBytes = cacheLimit; // max 4G
+    char* end = nullptr;
+    errno = 0;
+    long long sizeM = std::strtoll(strM.c_str(), &end, 10);
+    if (end != nullptr && end != strM.c_str() && errno == 0 && *end == '\0' &&
+        sizeM > 0 && sizeM <= MAX_GPU_LIMIT_SIZE) {
+        maxResourcesBytes = sizeM * ONE_MEGABYTE;
+    }
 
     gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
     dumpString.append("setgpulimit: " + FormatNumber(cacheLimit)
@@ -679,7 +705,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
         } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
             TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
-            uint32_t pid = static_cast<uint32_t>(std::stoll(type));
+            uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
             Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
@@ -769,8 +795,20 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
+        if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+            auto purgeDrawables =
+                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
+            for (auto& drawable : purgeDrawables) {
+                drawable->Purge();
+            }
+        }
+        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
+        } else {
+            if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+                grContext->PurgeUnlockedResources(false);
+            }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->exitedPidSet_.clear();
@@ -785,8 +823,15 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
-void RSUniRenderThread::ResetClearMemoryTask()
+void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids)
 {
+    for (auto [nodeId, purgeFlag] : ids) {
+        if (purgeFlag) {
+            nodesNeedToBeClearMemory_.insert(nodeId);
+        } else {
+            nodesNeedToBeClearMemory_.erase(nodeId);
+        }
+    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
         ClearMemoryCache(clearMoment_, clearMemDeeply_);
@@ -822,42 +867,53 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
         PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
-void RSUniRenderThread::PreAllocateTextureBetweenFrames()
+void RSUniRenderThread::FlushGpuMemoryInWaitQueueBetweenFrames()
 {
-    if (!RSSystemProperties::IsPhoneType()) {
+    if (!uniRenderEngine_) {
         return;
     }
-    RemoveTask(PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES);
-    PostTask(
-        [this]() {
-            RS_TRACE_NAME_FMT("PreAllocateTextureBetweenFrames");
-            GrDirectContext::preAllocateTextureBetweenFrames();
-        },
-        PRE_ALLOCATE_TEXTURE_BETWEEN_FRAMES,
-        0,
-        AppExecFwk::EventQueue::Priority::LOW);
+    auto renderContext = uniRenderEngine_->GetRenderContext();
+    if (!renderContext) {
+        return;
+    }
+    auto grContext = renderContext->GetDrGPUContext();
+    if (!grContext) {
+        return;
+    }
+    MemoryManager::FlushGpuMemoryInWaitQueue(grContext);
 }
 
-void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
+void RSUniRenderThread::SuppressGpuCacheBelowCertainRatioBetweenFrames()
 {
-    RemoveTask(ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES);
+    RemoveTask(SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO);
     PostTask(
         [this]() {
-            RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames");
-            GrDirectContext::asyncFreeVMAMemoryBetweenFrames([this]() -> bool {
-                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+            if (!uniRenderEngine_) {
+                return;
+            }
+            auto renderContext = uniRenderEngine_->GetRenderContext();
+            if (!renderContext) {
+                return;
+            }
+            auto grContext = renderContext->GetDrGPUContext();
+            if (!grContext) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("SuppressGpuCacheBelowCertainRatio");
+            MemoryManager::SuppressGpuCacheBelowCertainRatio(grContext, [this]() -> bool {
+               return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
             });
         },
-        ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
+        SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
 {
-    if (RSSystemProperties::GetPreAllocateTextureBetweenFramesEnabled()) {
-        PreAllocateTextureBetweenFrames();
+    if (RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()) {
+        FlushGpuMemoryInWaitQueueBetweenFrames();
     }
-    if (RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()) {
-        AsyncFreeVMAMemoryBetweenFrames();
+    if (RSSystemProperties::GetGpuCacheSuppressWindowEnabled()) {
+        SuppressGpuCacheBelowCertainRatioBetweenFrames();
     }
 }
 

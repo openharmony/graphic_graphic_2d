@@ -54,6 +54,48 @@ void RSMagicPointerRenderManagerTest::SetUp() {}
 void RSMagicPointerRenderManagerTest::TearDown() {}
 
 /**
+ * @tc.name: SetPointerColorInversionConfig
+ * @tc.desc: Test SetPointerColorInversionConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMagicPointerRenderManagerTest, SetPointerColorInversionConfig, TestSize.Level1)
+{
+    float darkBuffer = 0.5f;
+    float brightBuffer = 0.5f;
+    int64_t interval = 50;
+    int32_t rangeSize = 20;
+    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
+        interval, rangeSize);
+    ASSERT_EQ(RSMagicPointerRenderManager::GetInstance().GetPointerColorInversionEnabled(), true);
+}
+
+/**
+ * @tc.name: SetPointerColorInversionEnabled
+ * @tc.desc: Test SetPointerColorInversionEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMagicPointerRenderManagerTest, SetPointerColorInversionEnabled, TestSize.Level1)
+{
+    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(false);
+    ASSERT_EQ(RSMagicPointerRenderManager::GetInstance().GetPointerColorInversionEnabled(), false);
+}
+
+/**
+ * @tc.name: RegisterPointerLuminanceChangeCallback
+ * @tc.desc: Test RegisterPointerLuminanceChangeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMagicPointerRenderManagerTest, RegisterPointerLuminanceChangeCallback, TestSize.Level1)
+{
+    RSMagicPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(1);
+    RSMagicPointerRenderManager::GetInstance().RegisterPointerLuminanceChangeCallback(1, nullptr);
+    ASSERT_EQ(RSMagicPointerRenderManager::GetInstance().GetPointerColorInversionEnabled(), false);
+}
+
+/**
  * @tc.name: ColorPicker with image
  * @tc.desc: Test RSMagicPointerRenderManager.ColorPicker
  * @tc.type: FUNC
@@ -96,6 +138,7 @@ HWTEST_F(RSMagicPointerRenderManagerTest, ColorPickerWithImage, TestSize.Level1)
     RSMagicPointerRenderManager::GetInstance().ProcessColorPicker(rsUniRenderProcessor,
         paintFilterCanvas.GetGPUContext());
     RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
+    ASSERT_EQ(RSMagicPointerRenderManager::GetInstance().GetPointerColorInversionEnabled(), false);
 }
 
 /**
@@ -141,5 +184,6 @@ HWTEST_F(RSMagicPointerRenderManagerTest, ColorPickerWithoutImage, TestSize.Leve
     RSMagicPointerRenderManager::GetInstance().ProcessColorPicker(rsUniRenderProcessor,
         paintFilterCanvas.GetGPUContext());
     RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
+    ASSERT_EQ(RSMagicPointerRenderManager::GetInstance().GetPointerColorInversionEnabled(), false);
 }
 } // namespace OHOS::Rosen

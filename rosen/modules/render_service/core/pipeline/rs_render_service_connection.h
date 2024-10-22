@@ -195,6 +195,8 @@ private:
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
 
+    bool SetGlobalDarkColorMode(bool isDark) override;
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
@@ -225,6 +227,8 @@ private:
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
+    int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
+
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -244,6 +248,8 @@ private:
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark) override;
+
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     void ReportJankStats() override;
@@ -257,6 +263,8 @@ private:
     void ReportGameStateData(GameStateData info) override;
 
     void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) override;
+
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
 
     void NotifyLightFactorStatus(bool isSafe) override;
 
@@ -296,6 +304,12 @@ private:
     bool SetAncoForceDoDirect(bool direct) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;
+
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

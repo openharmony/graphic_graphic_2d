@@ -263,6 +263,11 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.shadow_->imageMask_ = true;
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
+
+    properties.distortionK_ = 0.7;
+    properties.shadow_->imageMask_ = true;
+    properties.UpdateFilter();
+    EXPECT_TRUE(properties.foregroundFilter_);
 }
 
 /**
@@ -912,36 +917,74 @@ HWTEST_F(PropertiesTest, CreateFlyOutShaderFilterTest, TestSize.Level1)
     }
     EXPECT_FALSE(properties.GetForegroundFilter() == nullptr);
 }
-
 /**
- * @tc.name: GetMaterialColorFilterTest001
- * @tc.desc: test results of GetMaterialColorFilter
+ * @tc.name: SetDistortionKTest
+ * @tc.desc: test results of SetDistortionK
  * @tc.type: FUNC
- * @tc.require: issueIAH2TY
+ * @tc.require: issueIAS8IM
  */
-HWTEST_F(PropertiesTest, GetMaterialColorFilterTest001, TestSize.Level1)
+HWTEST_F(PropertiesTest, SetDistortionKTest, TestSize.Level1)
 {
     RSProperties properties;
-    float sat = 1.0;
-    float brightness = 1.1;
-    Color maskColor = RSColor(255, 255, 255, 140);
-    EXPECT_FALSE(properties.GetMaterialColorFilter(sat, brightness, maskColor) == nullptr);
+    // if distortionK_ has no value
+    properties.SetDistortionK(std::nullopt);
+    auto distortionK = properties.GetDistortionK();
+    EXPECT_TRUE(distortionK == std::nullopt);
+
+    // if distortionK_ has value
+    properties.SetDistortionK(0.7f);
+    distortionK = properties.GetDistortionK();
+    EXPECT_FLOAT_EQ(*distortionK, 0.7f);
 }
 
 /**
- * @tc.name: GetMaterialColorFilterTest002
- * @tc.desc: test results of GetMaterialColorFilter
+ * @tc.name: IsDistortionKValidTest
+ * @tc.desc: test results of IsDistortionKValid
  * @tc.type: FUNC
- * @tc.require: issueIAH2TY
+ * @tc.require: issueIAS8IM
  */
-HWTEST_F(PropertiesTest, GetMaterialColorFilterTest002, TestSize.Level1)
+HWTEST_F(PropertiesTest, IsDistortionKValidTest, TestSize.Level1)
 {
     RSProperties properties;
-    float sat = 1.0;
-    float brightness = 1.1;
-    Color maskColor = RSColor(255, 255, 255, 0);
-    EXPECT_FALSE(properties.GetMaterialColorFilter(sat, brightness, maskColor) == nullptr);
+    // if distortionK_ has no value
+    ASSERT_FALSE(properties.IsDistortionKValid());
+
+    // if distortionK_ > 1
+    properties.SetDistortionK(1.7f);
+    ASSERT_FALSE(properties.IsDistortionKValid());
+
+    // if distortionK_ < -1
+    properties.SetDistortionK(-1.7f);
+    ASSERT_FALSE(properties.IsDistortionKValid());
+
+    properties.SetDistortionK(0.7f);
+    ASSERT_TRUE(properties.IsDistortionKValid());
 }
 
+
+/**
+ * @tc.name: GetDistortionDirtyTest
+ * @tc.desc: test results of GetDistortionDirty
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(PropertiesTest, GetDistortionDirtyTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // if distortionK_ has no value
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ > 1
+    properties.SetDistortionK(1.7f);
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ < 0
+    properties.SetDistortionK(-0.1f);
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ > 0 and < 1
+    properties.SetDistortionK(0.7f);
+    ASSERT_TRUE(properties.GetDistortionDirty());
+}
 } // namespace Rosen
 } // namespace OHOS

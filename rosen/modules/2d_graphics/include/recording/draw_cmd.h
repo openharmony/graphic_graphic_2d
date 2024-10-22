@@ -20,7 +20,7 @@
 #include <cstdint>
 #include <ctime>
 #include <functional>
-#include <mutex>
+#include <shared_mutex>
 #include <stack>
 #include <unordered_map>
 #include <utility>
@@ -30,7 +30,7 @@
 #include "recording/cmd_list.h"
 
 #define REGISTER_UNMARSHALLING_FUNC(name, type, func) \
-    bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingPlayer::RegisterUnmarshallingFunc(type, func)
+    static bool isRegistered##name = OHOS::Rosen::Drawing::UnmarshallingHelper::Instance().RegisterFunc(type, func)
 
 namespace OHOS {
 namespace Rosen {
@@ -119,23 +119,38 @@ public:
     static void SetTypefaceQueryCallBack(
         std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc);
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
+
+    virtual void Purge() {}
 };
 
-static std::mutex UnmarshallingFuncMapMutex_;
+class DRAWING_API UnmarshallingHelper {
+    using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const DrawCmdList& cmdList, void* handle);
+public:
+    static UnmarshallingHelper& Instance();
+
+    bool RegisterFunc(uint32_t type, UnmarshallingFunc func);
+    UnmarshallingFunc GetFunc(uint32_t type);
+
+private:
+    UnmarshallingHelper() = default;
+    ~UnmarshallingHelper() = default;
+    UnmarshallingHelper(const UnmarshallingHelper& other) = delete;
+    UnmarshallingHelper(const UnmarshallingHelper&& other) = delete;
+    UnmarshallingHelper& operator=(const UnmarshallingHelper& other) = delete;
+    UnmarshallingHelper& operator=(const UnmarshallingHelper&& other) = delete;
+
+    std::shared_mutex mtx_;
+    std::unordered_map<uint32_t, UnmarshallingFunc> opUnmarshallingFuncLUT_;
+};
+
 class UnmarshallingPlayer {
 public:
-    using UnmarshallingFunc = std::shared_ptr<DrawOpItem>(*)(const DrawCmdList& cmdList, void* handle);
-    DRAWING_API static bool RegisterUnmarshallingFunc(uint32_t type, UnmarshallingFunc func);
-
     UnmarshallingPlayer(const DrawCmdList& cmdList);
     ~UnmarshallingPlayer() = default;
 
     std::shared_ptr<DrawOpItem> Unmarshalling(uint32_t type, void* handle);
-
-    const DrawCmdList& cmdList_;
-
 private:
-    static std::unordered_map<uint32_t, UnmarshallingFunc>* opUnmarshallingFuncLUT_;
+    const DrawCmdList& cmdList_;
 };
 
 class GenerateCachedOpItemPlayer {

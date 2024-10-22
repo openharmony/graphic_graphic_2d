@@ -58,7 +58,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlots, TestSize.Level1)
     std::optional<Vector4f> aiInvert = { Vector4f() };
     node.renderContent_->GetMutableRenderProperties().SetAiInvert(aiInvert);
     ASSERT_TRUE(node.GetRenderProperties().GetAiInvert());
-    ASSERT_EQ(RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec).size(), 33);
+    ASSERT_EQ(RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec).size(), 34);
 }
 
 /**
@@ -96,7 +96,7 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); i++) {
         drawableVecTwo[i] = nullptr;
     }
-    ASSERT_FALSE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
+    ASSERT_TRUE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
     nodeTwo.GetMutableRenderProperties().SetBackgroundColor(Color(255, 255, 255, 255));
     ASSERT_TRUE(RSDrawable::UpdateDirtySlots(nodeTwo, drawableVecTwo, dirtySlotsTwo));
 }

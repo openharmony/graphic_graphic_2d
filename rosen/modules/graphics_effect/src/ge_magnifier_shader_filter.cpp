@@ -154,11 +154,11 @@ bool GEMagnifierShaderFilter::InitMagnifierEffect()
                 vec2 d = max(abs(position) - R1, 0.0);
                 float dist = length(d) / R2;
                 vec2 dir = normalize(sign(position) * d);
-                float borderHeightRatio = min(size.x, size.y) / (borderWidth * 2.8);
+                float borderHeightRatio = min(size.x, size.y) / (borderWidth * 2.8); // 2.8 borderWidth
                 float posInBorder = mix(1.0 - borderHeightRatio, 1.0, dist);
                 float weight = max(posInBorder, 0.0);
                 vec3 normal = normalize(mix(vec3(0.0, 0.0, 1.0), vec3(dir, 0.0), weight));
-                isInBorder = smoothstep(0.0, 0.3, posInBorder);
+                isInBorder = smoothstep(0.0, 0.3, posInBorder); // 0.3 alpha threshold
 
                 // calculate shadow
                 position -= shadowOffset / iResolution.x;
@@ -198,7 +198,7 @@ bool GEMagnifierShaderFilter::InitMagnifierEffect()
                 refraction.xyz = mix(refraction.xyz, gradientMask.xyz, gradientMask.w);
 
                 // only apply refraction if z-value is not zero
-                float mask = smoothstep(0.0, 0.3, magnifyingGlass.z);
+                float mask = smoothstep(0.0, 0.3, magnifyingGlass.z); // 0.3 alpha threshold
                 finalColor = mix(finalColor, refraction, mask);
 
                 // add outer_contour color

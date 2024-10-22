@@ -42,7 +42,7 @@ namespace {
 constexpr int SURFACE_NODE_SIZE = 100;
 constexpr int SLEEP_TIME = 8;
 }
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     RenderContext* rc_ = nullptr;
 #endif
 
@@ -121,7 +121,7 @@ namespace pipelineTestUtils {
             if (rsSurface == nullptr) {
                 return wrongExit;
             }
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
             // SetRenderContext must before rsSurface->RequestFrame, or it will failed.
             if (rc_) {
                 rsSurface->SetRenderContext(rc_);
@@ -272,11 +272,11 @@ public:
         isInit_ = true;
         std::cout << "Render service Client rs Demo.cpp testInit Start\n";
 
-#ifdef ACE_ENABLE_GPU
-        std::cout << "ACE_ENABLE_GPU is enabled\n";
+#ifdef RS_ENABLE_GPU
+        std::cout << "RS_ENABLE_GPU is enabled\n";
         isGPU_ = true;
 #else
-        std::cout << "ACE_ENABLE_GPU is disabled\n";
+        std::cout << "RS_ENABLE_GPU is disabled\n";
         isGPU_ = false;
 #endif
 
@@ -353,8 +353,8 @@ private:
     RSDemoTestCase() = default;
     static void RenderContextInit()
     {
-#ifdef ACE_ENABLE_GPU
-        std::cout << "ACE_ENABLE_GPU is true. \n";
+#ifdef RS_ENABLE_GPU
+        std::cout << "RS_ENABLE_GPU is true. \n";
         std::cout << "Init RenderContext start. \n";
             rc_ = RenderContextFactory::GetInstance().CreateEngine();
             if (rc_) {

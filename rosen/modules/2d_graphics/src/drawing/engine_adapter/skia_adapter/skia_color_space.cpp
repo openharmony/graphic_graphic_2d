@@ -109,7 +109,7 @@ sk_sp<SkColorSpace> SkiaColorSpace::GetSkColorSpace() const
 std::shared_ptr<Data> SkiaColorSpace::Serialize() const
 {
     if (colorSpace_ == nullptr) {
-        LOGD("SkiaColorSpace::Serialize, colorSpace_ is nullptr!");
+        LOGE("SkiaColorSpace::Serialize, colorSpace_ is nullptr!");
         return nullptr;
     }
 
@@ -122,12 +122,33 @@ std::shared_ptr<Data> SkiaColorSpace::Serialize() const
 bool SkiaColorSpace::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGD("SkiaColorSpace::Deserialize, data is invalid!");
+        LOGE("SkiaColorSpace::Deserialize, data is invalid!");
         return false;
     }
 
     colorSpace_ = SkColorSpace::Deserialize(data->GetData(), data->GetSize());
     return true;
+}
+
+bool SkiaColorSpace::IsSRGB() const
+{
+    if (colorSpace_ == nullptr) {
+        LOGD("SkiaColorSpace::IsSRGB, colorSpace_ is nullptr!");
+        return false;
+    }
+    return colorSpace_->isSRGB();
+}
+
+bool SkiaColorSpace::Equals(const std::shared_ptr<ColorSpace>& colorSpace) const
+{
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr) {
+        auto skiaColorSpace = colorSpace->GetImpl<SkiaColorSpace>();
+        if (skiaColorSpace != nullptr) {
+            skColorSpace = skiaColorSpace->colorSpace_;
+        }
+    }
+    return SkColorSpace::Equals(colorSpace_.get(), skColorSpace.get());
 }
 
 } // namespace Drawing

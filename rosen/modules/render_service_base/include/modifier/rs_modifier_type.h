@@ -26,7 +26,7 @@ namespace Rosen {
 // 1. Following LUTs must be updated according when this enum is updated :
 //    a. g_propertyResetterLUT in rs_properties.cpp
 //    b. g_propertyToDrawableLut in rs_drawable_content.cpp
-// 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, else wise it will not work
+// 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, elsewise it will not work
 enum class RSModifierType : int16_t {
     INVALID = 0,
     BOUNDS,
@@ -137,6 +137,7 @@ enum class RSModifierType : int16_t {
     MOTION_BLUR_PARA,
     FLY_OUT_DEGREE,
     FLY_OUT_PARAMS,
+    DISTORTION_K,
     DYNAMIC_DIM_DEGREE,
     MAGNIFIER_PARA,
     BACKGROUND_BLUR_RADIUS,
@@ -166,6 +167,7 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR,
     ENV_FOREGROUND_COLOR_STRATEGY,
     GEOMETRYTRANS,
+    CUSTOM_CLIP_TO_FRAME,
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
@@ -208,151 +210,147 @@ class RSModifierTypeString {
 public:
     std::string GetModifierTypeString(RSModifierType type) const
     {
-        auto iter = RS_MODIFIER_TYPE_TO_STRING.find(type);
-        if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
-            return iter->second;
-        } else {
-            return "UNKNOWN";
+        switch (type) {
+            case RSModifierType::INVALID: return "Invalid";
+            case RSModifierType::BOUNDS: return "Bounds";
+            case RSModifierType::FRAME: return "Frame";
+            case RSModifierType::POSITION_Z: return "PositionZ";
+            case RSModifierType::PIVOT: return "Pivot";
+            case RSModifierType::PIVOT_Z: return "PivotZ";
+            case RSModifierType::QUATERNION: return "Quaternion";
+            case RSModifierType::ROTATION: return "Rotation";
+            case RSModifierType::ROTATION_X: return "RotationX";
+            case RSModifierType::ROTATION_Y: return "RotationY";
+            case RSModifierType::CAMERA_DISTANCE: return "CameraDistance";
+            case RSModifierType::SCALE: return "Scale";
+            case RSModifierType::SKEW: return "Skew";
+            case RSModifierType::PERSP: return "Persp";
+            case RSModifierType::TRANSLATE: return "Translate";
+            case RSModifierType::TRANSLATE_Z: return "TranslateZ";
+            case RSModifierType::SUBLAYER_TRANSFORM: return "SublayerTransform";
+            case RSModifierType::CORNER_RADIUS: return "CornerRadius";
+            case RSModifierType::ALPHA: return "Alpha";
+            case RSModifierType::ALPHA_OFFSCREEN: return "AlphaOffscreen";
+            case RSModifierType::FOREGROUND_COLOR: return "ForegroundColor";
+            case RSModifierType::BACKGROUND_COLOR: return "BackgroundColor";
+            case RSModifierType::BACKGROUND_SHADER: return "BackgroundShader";
+            case RSModifierType::BG_IMAGE: return "BgImage";
+            case RSModifierType::BG_IMAGE_INNER_RECT: return "BgImageInnerRect";
+            case RSModifierType::BG_IMAGE_WIDTH: return "BgImageWidth";
+            case RSModifierType::BG_IMAGE_HEIGHT: return "BgImageHeight";
+            case RSModifierType::BG_IMAGE_POSITION_X: return "BgImagePositionX";
+            case RSModifierType::BG_IMAGE_POSITION_Y: return "BgImagePositionY";
+            case RSModifierType::SURFACE_BG_COLOR: return "SurfaceBgColor";
+            case RSModifierType::BORDER_COLOR: return "BorderColor";
+            case RSModifierType::BORDER_WIDTH: return "BorderWidth";
+            case RSModifierType::BORDER_STYLE: return "BorderStyle";
+            case RSModifierType::BORDER_DASH_WIDTH: return "BorderDashWidth";
+            case RSModifierType::BORDER_DASH_GAP: return "BorderDashGap";
+            case RSModifierType::FILTER: return "Filter";
+            case RSModifierType::BACKGROUND_FILTER: return "BackgroundFilter";
+            case RSModifierType::LINEAR_GRADIENT_BLUR_PARA: return "LinearGradientBlurPara";
+            case RSModifierType::DYNAMIC_LIGHT_UP_RATE: return "DynamicLightUpRate";
+            case RSModifierType::DYNAMIC_LIGHT_UP_DEGREE: return "DynamicLightUpDegree";
+            case RSModifierType::FG_BRIGHTNESS_RATES: return "FgBrightnessRates";
+            case RSModifierType::FG_BRIGHTNESS_SATURATION: return "FgBrightnessSaturation";
+            case RSModifierType::FG_BRIGHTNESS_POSCOEFF: return "FgBrightnessPoscoeff";
+            case RSModifierType::FG_BRIGHTNESS_NEGCOEFF: return "FgBrightnessNegcoeff";
+            case RSModifierType::FG_BRIGHTNESS_FRACTION: return "FgBrightnessFraction";
+            case RSModifierType::BG_BRIGHTNESS_RATES: return "BgBrightnessRates";
+            case RSModifierType::BG_BRIGHTNESS_SATURATION: return "BgBrightnessSaturation";
+            case RSModifierType::BG_BRIGHTNESS_POSCOEFF: return "BgBrightnessPoscoeff";
+            case RSModifierType::BG_BRIGHTNESS_NEGCOEFF: return "BgBrightnessNegcoeff";
+            case RSModifierType::BG_BRIGHTNESS_FRACTION: return "BgBrightnessFraction";
+            case RSModifierType::FRAME_GRAVITY: return "FrameGravity";
+            case RSModifierType::CLIP_RRECT: return "ClipRrect";
+            case RSModifierType::CLIP_BOUNDS: return "ClipBounds";
+            case RSModifierType::CLIP_TO_BOUNDS: return "ClipToBounds";
+            case RSModifierType::CLIP_TO_FRAME: return "ClipToFrame";
+            case RSModifierType::VISIBLE: return "Visible";
+            case RSModifierType::SHADOW_COLOR: return "ShadowColor";
+            case RSModifierType::SHADOW_OFFSET_X: return "ShadowOffsetX";
+            case RSModifierType::SHADOW_OFFSET_Y: return "ShadowOffsetY";
+            case RSModifierType::SHADOW_ALPHA: return "ShadowAlpha";
+            case RSModifierType::SHADOW_ELEVATION: return "ShadowElevation";
+            case RSModifierType::SHADOW_RADIUS: return "ShadowRadius";
+            case RSModifierType::SHADOW_PATH: return "ShadowPath";
+            case RSModifierType::SHADOW_MASK: return "ShadowMask";
+            case RSModifierType::SHADOW_COLOR_STRATEGY: return "ShadowColorStrategy";
+            case RSModifierType::MASK: return "Mask";
+            case RSModifierType::SPHERIZE: return "Spherize";
+            case RSModifierType::LIGHT_UP_EFFECT: return "LightUpEffect";
+            case RSModifierType::PIXEL_STRETCH: return "PixelStretch";
+            case RSModifierType::PIXEL_STRETCH_PERCENT: return "PixelStretchPercent";
+            case RSModifierType::PIXEL_STRETCH_TILE_MODE: return "PixelStretchTileMode";
+            case RSModifierType::USE_EFFECT: return "UseEffect";
+            case RSModifierType::COLOR_BLEND_MODE: return "ColorBlendMode";
+            case RSModifierType::COLOR_BLEND_APPLY_TYPE: return "ColorBlendApplyType";
+            case RSModifierType::SANDBOX: return "Sandbox";
+            case RSModifierType::GRAY_SCALE: return "GrayScale";
+            case RSModifierType::BRIGHTNESS: return "Brightness";
+            case RSModifierType::CONTRAST: return "Contrast";
+            case RSModifierType::SATURATE: return "Saturate";
+            case RSModifierType::SEPIA: return "Sepia";
+            case RSModifierType::INVERT: return "Invert";
+            case RSModifierType::AIINVERT: return "Aiinvert";
+            case RSModifierType::SYSTEMBAREFFECT: return "Systembareffect";
+            case RSModifierType::HUE_ROTATE: return "HueRotate";
+            case RSModifierType::COLOR_BLEND: return "ColorBlend";
+            case RSModifierType::PARTICLE: return "Particle";
+            case RSModifierType::SHADOW_IS_FILLED: return "ShadowIsFilled";
+            case RSModifierType::OUTLINE_COLOR: return "OutlineColor";
+            case RSModifierType::OUTLINE_WIDTH: return "OutlineWidth";
+            case RSModifierType::OUTLINE_STYLE: return "OutlineStyle";
+            case RSModifierType::OUTLINE_DASH_WIDTH: return "OutlineDashWidth";
+            case RSModifierType::OUTLINE_DASH_GAP: return "OutlineDashGap";
+            case RSModifierType::OUTLINE_RADIUS: return "OutlineRadius";
+            case RSModifierType::GREY_COEF: return "GreyCoef";
+            case RSModifierType::LIGHT_INTENSITY: return "LightIntensity";
+            case RSModifierType::LIGHT_COLOR: return "LightColor";
+            case RSModifierType::LIGHT_POSITION: return "LightPosition";
+            case RSModifierType::ILLUMINATED_BORDER_WIDTH: return "IlluminatedBorderWidth";
+            case RSModifierType::ILLUMINATED_TYPE: return "IlluminatedType";
+            case RSModifierType::BLOOM: return "Bloom";
+            case RSModifierType::FOREGROUND_EFFECT_RADIUS: return "ForegroundEffectRadius";
+            case RSModifierType::USE_SHADOW_BATCHING: return "UseShadowBatching";
+            case RSModifierType::MOTION_BLUR_PARA: return "MotionBlurPara";
+            case RSModifierType::PARTICLE_EMITTER_UPDATER: return "ParticleEmitterUpdater";
+            case RSModifierType::PARTICLE_NOISE_FIELD: return "ParticleNoiseField";
+            case RSModifierType::DYNAMIC_DIM_DEGREE: return "DynamicDimDegree";
+            case RSModifierType::MAGNIFIER_PARA: return "MagnifierPara";
+            case RSModifierType::BACKGROUND_BLUR_RADIUS: return "BackgroundBlurRadius";
+            case RSModifierType::BACKGROUND_BLUR_SATURATION: return "BackgroundBlurSaturation";
+            case RSModifierType::BACKGROUND_BLUR_BRIGHTNESS: return "BackgroundBlurBrightness";
+            case RSModifierType::BACKGROUND_BLUR_MASK_COLOR: return "BackgroundBlurMaskColor";
+            case RSModifierType::BACKGROUND_BLUR_COLOR_MODE: return "BackgroundBlurColorMode";
+            case RSModifierType::BACKGROUND_BLUR_RADIUS_X: return "BackgroundBlurRadiusX";
+            case RSModifierType::BACKGROUND_BLUR_RADIUS_Y: return "BackgroundBlurRadiusY";
+            case RSModifierType::FOREGROUND_BLUR_RADIUS: return "ForegroundBlurRadius";
+            case RSModifierType::FOREGROUND_BLUR_SATURATION: return "ForegroundBlurSaturation";
+            case RSModifierType::FOREGROUND_BLUR_BRIGHTNESS: return "ForegroundBlurBrightness";
+            case RSModifierType::FOREGROUND_BLUR_MASK_COLOR: return "ForegroundBlurMaskColor";
+            case RSModifierType::FOREGROUND_BLUR_COLOR_MODE: return "ForegroundBlurColorMode";
+            case RSModifierType::FOREGROUND_BLUR_RADIUS_X: return "ForegroundBlurRadiusX";
+            case RSModifierType::FOREGROUND_BLUR_RADIUS_Y: return "ForegroundBlurRadiusY";
+            case RSModifierType::CUSTOM: return "Custom";
+            case RSModifierType::EXTENDED: return "Extended";
+            case RSModifierType::TRANSITION: return "Transition";
+            case RSModifierType::BACKGROUND_STYLE: return "BackgroundStyle";
+            case RSModifierType::CONTENT_STYLE: return "ContentStyle";
+            case RSModifierType::FOREGROUND_STYLE: return "ForegroundStyle";
+            case RSModifierType::OVERLAY_STYLE: return "OverlayStyle";
+            case RSModifierType::NODE_MODIFIER: return "NodeModifier";
+            case RSModifierType::ENV_FOREGROUND_COLOR: return "EnvForegroundColor";
+            case RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY: return "EnvForegroundColorStrategy";
+            case RSModifierType::GEOMETRYTRANS: return "Geometrytrans";
+            case RSModifierType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
+            case RSModifierType::CHILDREN: return "Children";
+            case RSModifierType::MAX_RS_MODIFIER_TYPE: return "MaxRsModifierType";
+            default:
+                return "UNKNOWN";
         }
+        return "UNKNOWN";
     }
-
-private:
-    const std::map<RSModifierType, std::string> RS_MODIFIER_TYPE_TO_STRING = {
-        { RSModifierType::INVALID, "Invalid" },
-        { RSModifierType::BOUNDS, "Bounds" },
-        { RSModifierType::FRAME, "Frame" },
-        { RSModifierType::POSITION_Z, "PositionZ" },
-        { RSModifierType::PIVOT, "Pivot" },
-        { RSModifierType::PIVOT_Z, "PivotZ" },
-        { RSModifierType::QUATERNION, "Quaternion" },
-        { RSModifierType::ROTATION, "Rotation" },
-        { RSModifierType::ROTATION_X, "RotationX" },
-        { RSModifierType::ROTATION_Y, "RotationY" },
-        { RSModifierType::CAMERA_DISTANCE, "CameraDistance" },
-        { RSModifierType::SCALE, "Scale" },
-        { RSModifierType::SKEW, "Skew" },
-        { RSModifierType::PERSP, "Persp" },
-        { RSModifierType::TRANSLATE, "Translate" },
-        { RSModifierType::TRANSLATE_Z, "TranslateZ" },
-        { RSModifierType::SUBLAYER_TRANSFORM, "SublayerTransform" },
-        { RSModifierType::CORNER_RADIUS, "CornerRadius" },
-        { RSModifierType::ALPHA, "Alpha" },
-        { RSModifierType::ALPHA_OFFSCREEN, "AlphaOffscreen" },
-        { RSModifierType::FOREGROUND_COLOR, "ForegroundColor" },
-        { RSModifierType::BACKGROUND_COLOR, "BackgroundColor" },
-        { RSModifierType::BACKGROUND_SHADER, "BackgroundShader" },
-        { RSModifierType::BG_IMAGE, "BgImage" },
-        { RSModifierType::BG_IMAGE_INNER_RECT, "BgImageInnerRect" },
-        { RSModifierType::BG_IMAGE_WIDTH, "BgImageWidth" },
-        { RSModifierType::BG_IMAGE_HEIGHT, "BgImageHeight" },
-        { RSModifierType::BG_IMAGE_POSITION_X, "BgImagePositionX" },
-        { RSModifierType::BG_IMAGE_POSITION_Y, "BgImagePositionY" },
-        { RSModifierType::SURFACE_BG_COLOR, "SurfaceBgColor" },
-        { RSModifierType::BORDER_COLOR, "BorderColor" },
-        { RSModifierType::BORDER_WIDTH, "BorderWidth" },
-        { RSModifierType::BORDER_STYLE, "BorderStyle" },
-        { RSModifierType::BORDER_DASH_WIDTH, "BorderDashWidth" },
-        { RSModifierType::BORDER_DASH_GAP, "BorderDashGap" },
-        { RSModifierType::FILTER, "Filter" },
-        { RSModifierType::BACKGROUND_FILTER, "BackgroundFilter" },
-        { RSModifierType::LINEAR_GRADIENT_BLUR_PARA, "LinearGradientBlurPara" },
-        { RSModifierType::DYNAMIC_LIGHT_UP_RATE, "DynamicLightUpRate" },
-        { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, "DynamicLightUpDegree" },
-        { RSModifierType::FG_BRIGHTNESS_RATES, "FgBrightnessRates" },
-        { RSModifierType::FG_BRIGHTNESS_SATURATION, "FgBrightnessSaturation" },
-        { RSModifierType::FG_BRIGHTNESS_POSCOEFF, "FgBrightnessPoscoeff" },
-        { RSModifierType::FG_BRIGHTNESS_NEGCOEFF, "FgBrightnessNegcoeff" },
-        { RSModifierType::FG_BRIGHTNESS_FRACTION, "FgBrightnessFraction" },
-        { RSModifierType::BG_BRIGHTNESS_RATES, "BgBrightnessRates" },
-        { RSModifierType::BG_BRIGHTNESS_SATURATION, "BgBrightnessSaturation" },
-        { RSModifierType::BG_BRIGHTNESS_POSCOEFF, "BgBrightnessPoscoeff" },
-        { RSModifierType::BG_BRIGHTNESS_NEGCOEFF, "BgBrightnessNegcoeff" },
-        { RSModifierType::BG_BRIGHTNESS_FRACTION, "BgBrightnessFraction" },
-        { RSModifierType::FRAME_GRAVITY, "FrameGravity" },
-        { RSModifierType::CLIP_RRECT, "ClipRrect" },
-        { RSModifierType::CLIP_BOUNDS, "ClipBounds" },
-        { RSModifierType::CLIP_TO_BOUNDS, "ClipToBounds" },
-        { RSModifierType::CLIP_TO_FRAME, "ClipToFrame" },
-        { RSModifierType::VISIBLE, "Visible" },
-        { RSModifierType::SHADOW_COLOR, "ShadowColor" },
-        { RSModifierType::SHADOW_OFFSET_X, "ShadowOffsetX" },
-        { RSModifierType::SHADOW_OFFSET_Y, "ShadowOffsetY" },
-        { RSModifierType::SHADOW_ALPHA, "ShadowAlpha" },
-        { RSModifierType::SHADOW_ELEVATION, "ShadowElevation" },
-        { RSModifierType::SHADOW_RADIUS, "ShadowRadius" },
-        { RSModifierType::SHADOW_PATH, "ShadowPath" },
-        { RSModifierType::SHADOW_MASK, "ShadowMask" },
-        { RSModifierType::SHADOW_COLOR_STRATEGY, "ShadowColorStrategy" },
-        { RSModifierType::MASK, "Mask" },
-        { RSModifierType::SPHERIZE, "Spherize" },
-        { RSModifierType::LIGHT_UP_EFFECT, "LightUpEffect" },
-        { RSModifierType::PIXEL_STRETCH, "PixelStretch" },
-        { RSModifierType::PIXEL_STRETCH_PERCENT, "PixelStretchPercent" },
-        { RSModifierType::PIXEL_STRETCH_TILE_MODE, "PixelStretchTileMode" },
-        { RSModifierType::USE_EFFECT, "UseEffect" },
-        { RSModifierType::COLOR_BLEND_MODE, "ColorBlendMode" },
-        { RSModifierType::COLOR_BLEND_APPLY_TYPE, "ColorBlendApplyType" },
-        { RSModifierType::SANDBOX, "Sandbox" },
-        { RSModifierType::GRAY_SCALE, "GrayScale" },
-        { RSModifierType::BRIGHTNESS, "Brightness" },
-        { RSModifierType::CONTRAST, "Contrast" },
-        { RSModifierType::SATURATE, "Saturate" },
-        { RSModifierType::SEPIA, "Sepia" },
-        { RSModifierType::INVERT, "Invert" },
-        { RSModifierType::AIINVERT, "Aiinvert" },
-        { RSModifierType::SYSTEMBAREFFECT, "Systembareffect" },
-        { RSModifierType::HUE_ROTATE, "HueRotate" },
-        { RSModifierType::COLOR_BLEND, "ColorBlend" },
-        { RSModifierType::PARTICLE, "Particle" },
-        { RSModifierType::SHADOW_IS_FILLED, "ShadowIsFilled" },
-        { RSModifierType::OUTLINE_COLOR, "OutlineColor" },
-        { RSModifierType::OUTLINE_WIDTH, "OutlineWidth" },
-        { RSModifierType::OUTLINE_STYLE, "OutlineStyle" },
-        { RSModifierType::OUTLINE_DASH_WIDTH, "OutlineDashWidth" },
-        { RSModifierType::OUTLINE_DASH_GAP, "OutlineDashGap" },
-        { RSModifierType::OUTLINE_RADIUS, "OutlineRadius" },
-        { RSModifierType::GREY_COEF, "GreyCoef" },
-        { RSModifierType::LIGHT_INTENSITY, "LightIntensity" },
-        { RSModifierType::LIGHT_COLOR, "LightColor" },
-        { RSModifierType::LIGHT_POSITION, "LightPosition" },
-        { RSModifierType::ILLUMINATED_BORDER_WIDTH, "IlluminatedBorderWidth" },
-        { RSModifierType::ILLUMINATED_TYPE, "IlluminatedType" },
-        { RSModifierType::BLOOM, "Bloom" },
-        { RSModifierType::FOREGROUND_EFFECT_RADIUS, "ForegroundEffectRadius" },
-        { RSModifierType::USE_SHADOW_BATCHING, "UseShadowBatching" },
-        { RSModifierType::MOTION_BLUR_PARA, "MotionBlurPara" },
-        { RSModifierType::PARTICLE_EMITTER_UPDATER, "ParticleEmitterUpdater" },
-        { RSModifierType::PARTICLE_NOISE_FIELD, "ParticleNoiseField" },
-        { RSModifierType::DYNAMIC_DIM_DEGREE, "DynamicDimDegree" },
-        { RSModifierType::MAGNIFIER_PARA, "MagnifierPara" },
-        { RSModifierType::BACKGROUND_BLUR_RADIUS, "BackgroundBlurRadius" },
-        { RSModifierType::BACKGROUND_BLUR_SATURATION, "BackgroundBlurSaturation" },
-        { RSModifierType::BACKGROUND_BLUR_BRIGHTNESS, "BackgroundBlurBrightness" },
-        { RSModifierType::BACKGROUND_BLUR_MASK_COLOR, "BackgroundBlurMaskColor" },
-        { RSModifierType::BACKGROUND_BLUR_COLOR_MODE, "BackgroundBlurColorMode" },
-        { RSModifierType::BACKGROUND_BLUR_RADIUS_X, "BackgroundBlurRadiusX" },
-        { RSModifierType::BACKGROUND_BLUR_RADIUS_Y, "BackgroundBlurRadiusY" },
-        { RSModifierType::FOREGROUND_BLUR_RADIUS, "ForegroundBlurRadius" },
-        { RSModifierType::FOREGROUND_BLUR_SATURATION, "ForegroundBlurSaturation" },
-        { RSModifierType::FOREGROUND_BLUR_BRIGHTNESS, "ForegroundBlurBrightness" },
-        { RSModifierType::FOREGROUND_BLUR_MASK_COLOR, "ForegroundBlurMaskColor" },
-        { RSModifierType::FOREGROUND_BLUR_COLOR_MODE, "ForegroundBlurColorMode" },
-        { RSModifierType::FOREGROUND_BLUR_RADIUS_X, "ForegroundBlurRadiusX" },
-        { RSModifierType::FOREGROUND_BLUR_RADIUS_Y, "ForegroundBlurRadiusY" },
-        { RSModifierType::CUSTOM, "Custom" },
-        { RSModifierType::EXTENDED, "Extended" },
-        { RSModifierType::TRANSITION, "Transition" },
-        { RSModifierType::BACKGROUND_STYLE, "BackgroundStyle" },
-        { RSModifierType::CONTENT_STYLE, "ContentStyle" },
-        { RSModifierType::FOREGROUND_STYLE, "ForegroundStyle" },
-        { RSModifierType::OVERLAY_STYLE, "OverlayStyle" },
-        { RSModifierType::NODE_MODIFIER, "NodeModifier" },
-        { RSModifierType::ENV_FOREGROUND_COLOR, "EnvForegroundColor" },
-        { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, "EnvForegroundColorStrategy" },
-        { RSModifierType::GEOMETRYTRANS, "Geometrytrans" },
-        { RSModifierType::CHILDREN, "Children" },
-        { RSModifierType::MAX_RS_MODIFIER_TYPE, "MaxRsModifierType" },
-    };
 };
 
 } // namespace Rosen

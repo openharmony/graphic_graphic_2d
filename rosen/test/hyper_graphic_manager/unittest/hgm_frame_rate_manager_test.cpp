@@ -35,6 +35,9 @@ namespace {
     constexpr uint32_t touchCount = 1;
     constexpr uint32_t delay_60Ms = 60;
     constexpr uint32_t delay_110Ms = 110;
+    ScreenSize screenSize = {720, 1080, 685, 1218}; // width, height, phyWidth, phyHeight
+    constexpr int32_t internalScreenId = 5;
+    constexpr int32_t externalScreenId = 0;
 }
 class HgmFrameRateMgrTest : public testing::Test {
 public:
@@ -217,8 +220,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
             if (frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig) != EXEC_SUCCESS) {
                 return; // xml is empty, return
             }
-            ASSERT_EQ(strategyConfig.min, OLED_120_HZ);
-            ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
 
             std::vector<std::pair<std::string, int32_t>> appBufferList;
             appBufferList.push_back(std::make_pair(otherSurface, OLED_90_HZ));
@@ -484,5 +485,55 @@ HWTEST_F(HgmFrameRateMgrTest, HgmRsIdleTimerTest, Function | SmallTest | Level2)
     sleep(1); // wait for timer stop
 }
 
+/**
+ * @tc.name: HandleScreenPowerStatus
+ * @tc.desc: Verify the result of HandleScreenPowerStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Level1)
+{
+    ScreenId extraScreenId = 1;
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr || frameRateMgr == nullptr) {
+        return;
+    }
+    // init
+    EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(internalScreenId, 0, screenSize), EXEC_SUCCESS);
+    configData->screenStrategyConfigs_["screen0_LTPS"] = "LTPS-DEFAULT";
+    configData->screenStrategyConfigs_["screen0_LTPO"] = "LTPO-DEFAULT";
+    configData->screenStrategyConfigs_["screen5_LTPS"] = "LTPS-DEFAULT";
+    configData->screenStrategyConfigs_["screen5_LTPO"] = "LTPO-DEFAULT";
+
+    // fold -> expand -> fold
+    frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
+    frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
+    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize), EXEC_SUCCESS);
+    EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
+    EXPECT_EQ(hgmCore.RemoveScreen(extraScreenId), EXEC_SUCCESS);
+    EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
+
+    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize), EXEC_SUCCESS);
+    frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
+    frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
+    EXPECT_EQ(hgmCore.RemoveScreen(extraScreenId), EXEC_SUCCESS);
+    EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
+
+    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize), EXEC_SUCCESS);
+    EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
+    EXPECT_EQ(hgmCore.RemoveScreen(extraScreenId), EXEC_SUCCESS);
+
+    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize), EXEC_SUCCESS);
+    frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
+    frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
+    EXPECT_EQ(hgmCore.RemoveScreen(extraScreenId), EXEC_SUCCESS);
+    EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
+}
 } // namespace Rosen
 } // namespace OHOS

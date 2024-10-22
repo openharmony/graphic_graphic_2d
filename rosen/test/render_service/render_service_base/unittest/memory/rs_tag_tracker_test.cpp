@@ -69,6 +69,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker001, TestSize.Level1)
     Drawing::GPUContext* gpuContext = nullptr;
     RSTagTracker tagTracker(gpuContext, tag);
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ == nullptr);
 }
 
 /**
@@ -85,6 +86,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker002, TestSize.Level1)
     tagTracker.UpdateReleaseResourceEnabled(true);
     RSTagTracker tagTracker1(gpuContext, tagType);
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ != nullptr);
 }
 
 /**
@@ -101,6 +103,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker003, TestSize.Level1)
     tagTracker.UpdateReleaseResourceEnabled(false);
     RSTagTracker tagTracker1(gpuContext, tagType);
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ != nullptr);
 }
 
 /**
@@ -117,6 +120,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker004, TestSize.Level1)
     tagTracker.UpdateReleaseResourceEnabled(false);
     RSTagTracker tagTracker1(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER, "RSTagTracker004");
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ != nullptr);
 }
 
 /**
@@ -131,6 +135,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker005, TestSize.Level1)
     NodeId nodeId = 1;
     RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER, "RSTagTracker005");
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ == nullptr);
 }
 
 /**
@@ -147,6 +152,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker006, TestSize.Level1)
     tagTracker.UpdateReleaseResourceEnabled(false);
     RSTagTracker tagTracker1(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER, "RSTagTracker005");
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ == nullptr);
 }
 
 /**
@@ -163,6 +169,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker007, TestSize.Level1)
     tagTracker.UpdateReleaseResourceEnabled(true);
     RSTagTracker tagTracker1(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER, "RSTagTracker007");
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ != nullptr);
 }
 
 /**
@@ -179,6 +186,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker008, TestSize.Level1)
     tagTracker.UpdateReleaseResourceEnabled(true);
     RSTagTracker tagTracker1(&gpuContext, tag);
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ != nullptr);
 }
 
 /**
@@ -195,6 +203,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker009, TestSize.Level1)
     tagTracker.UpdateReleaseResourceEnabled(false);
     RSTagTracker tagTracker1(&gpuContext, tag);
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ != nullptr);
 }
 
 /**
@@ -211,6 +220,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker010, TestSize.Level1)
     tagTracker.UpdateReleaseResourceEnabled(false);
     RSTagTracker tagTracker1(gpuContext, tagType);
     tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ == nullptr);
 }
 
 /**

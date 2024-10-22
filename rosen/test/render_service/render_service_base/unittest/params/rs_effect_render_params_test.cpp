@@ -87,6 +87,7 @@ HWTEST_F(RSEffectRenderParamsTest, SetCacheValid001, TestSize.Level1)
     RSEffectRenderParams params(id);
     params.cacheValid_ = true;
     params.SetCacheValid(true);
+    EXPECT_TRUE(params.GetCacheValid());
 }
 
 /**
@@ -102,5 +103,6 @@ HWTEST_F(RSEffectRenderParamsTest, SetHasEffectChildren001, TestSize.Level1)
     RSEffectRenderParams params(id);
     params.hasEffectChildren_ = true;
     params.SetHasEffectChildren(true);
+    EXPECT_TRUE(params.GetHasEffectChildren());
 }
 } // namespace OHOS::Rosen

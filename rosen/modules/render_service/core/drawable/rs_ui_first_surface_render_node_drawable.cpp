@@ -21,6 +21,7 @@
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "draw/brush.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
@@ -45,6 +46,16 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+namespace {
+static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
+    OHOS::Rosen::Drawing::Matrix matrix;
+    matrix.SetMatrix(1.0f, 0.0f, 0.0f,
+                     0.0f, 1.0f, 0.0f,
+                     0.0f, 0.0f, 1.0f);
+    return matrix;
+}();
+}
+
 namespace OHOS::Rosen::DrawableV2 {
 CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus() const
 {
@@ -54,6 +65,9 @@ CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus()
 void RSSurfaceRenderNodeDrawable::SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
 {
     uiFirstParams.cacheProcessStatus_.store(cacheProcessStatus);
+    if (cacheProcessStatus == CacheProcessStatus::DONE || cacheProcessStatus == CacheProcessStatus::SKIPPED) {
+        RSUiFirstProcessStateCheckerHelper::NotifyAll();
+    }
 }
 
 std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(uint32_t threadIndex,
@@ -240,7 +254,7 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
 }
 
 void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func,
-    uint32_t threadIndex, bool isHdrOn)
+    uint32_t threadIndex, bool isNeedFP16)
 {
     if (func) {
         cacheSurfaceThreadIndex_ = threadIndex;
@@ -292,7 +306,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
-        if (isHdrOn) {
+        if (isNeedFP16) {
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
         }
@@ -418,8 +432,9 @@ bool RSSurfaceRenderNodeDrawable::IsCurFrameStatic(DeviceType deviceType)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return false;
     }
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::GetSurfaceCacheContentStatic: [%d] name [%s] Id:%" PRIu64 "",
-        surfaceParams->GetSurfaceCacheContentStatic(), surfaceParams->GetName().c_str(), surfaceParams->GetId());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::GetSurfaceCacheContentStatic:"
+        "[%d] name [%s] Id:%" PRIu64 "", surfaceParams->GetSurfaceCacheContentStatic(),
+        surfaceParams->GetName().c_str(), surfaceParams->GetId());
     return surfaceParams->GetSurfaceCacheContentStatic();
 }
 
@@ -448,7 +463,7 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
-    RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
+    RSRenderParams::SetParentSurfaceMatrix(IDENTITY_MATRIX);
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
@@ -511,5 +526,10 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
         drawable->Draw(rscanvas);
     }
     return ret;
+}
+
+void RSSurfaceRenderNodeDrawable::SetSubThreadSkip(bool isSubThreadSkip)
+{
+    isSubThreadSkip_ = isSubThreadSkip;
 }
 } // namespace OHOS::Rosen

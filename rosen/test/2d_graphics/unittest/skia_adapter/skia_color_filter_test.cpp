@@ -78,6 +78,7 @@ HWTEST_F(SkiaColorFilterTest, InitWithBlendMode001, TestSize.Level1)
     ColorQuad c = 0xFF000000;
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.InitWithBlendMode(c, BlendMode::CLEAR);
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
 /**
@@ -91,6 +92,7 @@ HWTEST_F(SkiaColorFilterTest, InitWithColorMatrix001, TestSize.Level1)
     ColorMatrix cm;
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.InitWithColorMatrix(cm);
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
 /**
@@ -109,6 +111,7 @@ HWTEST_F(SkiaColorFilterTest, InitWithColorFloat001, TestSize.Level1)
     };
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.InitWithColorFloat(colorMatrixArray);
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
 /**
@@ -121,6 +124,7 @@ HWTEST_F(SkiaColorFilterTest, InitWithSrgbGammaToLinear001, TestSize.Level1)
 {
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.InitWithSrgbGammaToLinear();
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
 /**
@@ -133,6 +137,7 @@ HWTEST_F(SkiaColorFilterTest, InitWithLuma001, TestSize.Level1)
 {
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.InitWithLuma();
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
 /**
@@ -146,6 +151,7 @@ HWTEST_F(SkiaColorFilterTest, Serialize001, TestSize.Level1)
     SkiaColorFilter skiaColorFilter;
     skiaColorFilter.Serialize();
     skiaColorFilter.Deserialize(nullptr);
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() == nullptr);
 }
 
 /**
@@ -166,6 +172,7 @@ HWTEST_F(SkiaColorFilterTest, AsAColorMatrix001, TestSize.Level1)
     skiaColorFilter.AsAColorMatrix(colorMatrixArray);
     skiaColorFilter.InitWithLuma();
     skiaColorFilter.AsAColorMatrix(colorMatrixArray);
+    EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
 } // namespace Drawing

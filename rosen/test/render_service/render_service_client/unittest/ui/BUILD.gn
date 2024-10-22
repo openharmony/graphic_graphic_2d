@@ -403,6 +403,7 @@ ohos_unittest("RSSurfaceNodeTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "init:libbegetutil",
   ]
 }
 

@@ -46,6 +46,8 @@ HWTEST_F(RSSkiaFilterTest, ExtractSkImage, TestSize.Level1)
     rsBlurFilter.GetBrush();
 
     rsBlurFilter.GetImageFilter();
+    ASSERT_EQ(rsBlurFilter.blurRadiusX_, 0);
+    ASSERT_EQ(rsBlurFilter.blurRadiusY_, 1);
 }
 
 /**

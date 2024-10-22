@@ -54,6 +54,7 @@ HWTEST_F(RSOcclusionRegionTest, OstreamOperator001, Function | MediumTest | Leve
      */
     Rect rect;
     std::cout << rect;
+    EXPECT_TRUE(rect.left_ == 0);
 }
 
 /**
@@ -70,6 +71,7 @@ HWTEST_F(RSOcclusionRegionTest, OstreamOperator002, Function | MediumTest | Leve
     Rect rect;
     Region region(rect);
     std::cout << region;
+    EXPECT_TRUE(rect.left_ == 0);
 }
 
 /**
@@ -278,6 +280,7 @@ HWTEST_F(RSOcclusionRegionTest, XOrSelf001, Function | MediumTest | Level2)
     Region region1(rect);
     Region region2(rect);
     region1.XOrSelf(region2);
+    EXPECT_TRUE(region1.Area() == 0);
 }
 
 /**
@@ -354,9 +357,10 @@ HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest1, Function | Medium
     std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
     std::cout << "screenRegion " << screenRegion.GetRegionInfo() << std::endl;
     transparentRegion.AndSelf(screenRegion);
-    opaqueRegion.AndSelf(screenRegion);
+    auto res = opaqueRegion.AndSelf(screenRegion);
     std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
     std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+    EXPECT_TRUE(res.rects_.empty());
 }
 
 /**
@@ -377,9 +381,10 @@ HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest2, Function | Medium
     std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
     std::cout << "screenRegion " << screenRegion.GetRegionInfo() << std::endl;
     transparentRegion.AndSelf(screenRegion);
-    opaqueRegion.AndSelf(screenRegion);
+    auto res = opaqueRegion.AndSelf(screenRegion);
     std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
     std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+    EXPECT_TRUE(res.rects_.empty());
 }
 
 /**
@@ -400,9 +405,10 @@ HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest3, Function | Medium
     std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
     std::cout << "screenRegion " << screenRegion.GetRegionInfo() << std::endl;
     transparentRegion.AndSelf(screenRegion);
-    opaqueRegion.AndSelf(screenRegion);
+    auto res = opaqueRegion.AndSelf(screenRegion);
     std::cout << "transparentRegion " << transparentRegion.GetRegionInfo() << std::endl;
     std::cout << "opaqueRegion " << opaqueRegion.GetRegionInfo() << std::endl;
+    EXPECT_TRUE(res.rects_.empty());
 }
 
 /**

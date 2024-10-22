@@ -52,7 +52,7 @@ public:
         gpuContext_ = gpuContext;
     }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<GPUContext> GetGPUContext() override
     {
         return gpuContext_;
@@ -61,8 +61,6 @@ public:
 
     void Clear() const;
     void Reset(int32_t width, int32_t height, bool addDrawOpImmediate = true);
-
-    void ResetCanvas(int32_t width, int32_t height);
 
     void DrawPoint(const Point& point) override;
     void DrawPoints(PointMode mode, size_t count, const Point pts[]) override;

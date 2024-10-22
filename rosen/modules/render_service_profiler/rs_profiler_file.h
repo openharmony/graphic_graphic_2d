@@ -73,7 +73,7 @@ public:
     void AddHeaderFirstFrame(const std::string& dataFirstFrame);
 
     const std::vector<std::pair<uint64_t, int64_t>>& GetAnimeStartTimes() const;
-    void AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& dataFirstFrame);
+    void AddAnimeStartTimes(const std::vector<std::pair<uint64_t, int64_t>>& startTimes);
 
     void AddHeaderPid(pid_t pid);
     const std::vector<pid_t>& GetHeaderPids() const;
@@ -122,8 +122,9 @@ public:
 
     static const std::string& GetDefaultPath();
 
-    double ConvertVsyncId2Time(int64_t vsyncId);
     void CacheVsyncId2Time(uint32_t layer);
+    double ConvertVsyncId2Time(int64_t vsyncId);
+    int64_t ConvertTime2VsyncId(double time);
 
 private:
     void WriteHeaders();

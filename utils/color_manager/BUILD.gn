@@ -37,10 +37,8 @@ config("color_manager_config") {
 
 config("color_manager_public_config") {
   include_dirs = [ "export" ]
-  if (defined(use_new_skia) && use_new_skia) {
+  if (is_arkui_x) {
     include_dirs += [ "$skia_root_new" ]
-  } else {
-    include_dirs += [ "$flutter_root" ]
   }
 }
 
@@ -57,6 +55,12 @@ template("color_manager_source_set") {
     configs = [ ":color_manager_config" ]
     public_configs = [ ":color_manager_public_config" ]
 
+    if (defined(use_new_skia) && use_new_skia) {
+      external_deps = [ "skia:skia_canvaskit" ]
+    } else {
+      include_dirs += [ "$flutter_root" ]
+    }
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -71,7 +75,7 @@ config("export") {
 
 if (current_os == "ohos") {
   ohos_shared_library("color_manager") {
-    public_deps = [ ":color_manager_source" ]
+    deps = [ ":color_manager_source" ]
     public_external_deps = [ "bounds_checking_function:libsec_shared" ]
     public_configs = [ ":export" ]
     if (defined(use_new_skia) && use_new_skia) {
@@ -91,7 +95,7 @@ if (current_os == "ohos") {
     }
   } else {
     ohos_shared_library("color_manager") {
-      public_deps = [ ":color_manager_source" ]
+      deps = [ ":color_manager_source" ]
       public_configs = [ ":export" ]
       part_name = "graphic_2d"
       subsystem_name = "graphic"

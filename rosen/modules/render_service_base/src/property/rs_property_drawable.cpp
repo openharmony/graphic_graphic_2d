@@ -105,6 +105,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::MOTION_BLUR_PARA, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::FLY_OUT_DEGREE, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::FLY_OUT_PARAMS, RSPropertyDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::DISTORTION_K, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::MAGNIFIER_PARA, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::DYNAMIC_LIGHT_UP_RATE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
@@ -189,6 +190,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::NODE_MODIFIER, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::ENV_FOREGROUND_COLOR, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR },
     { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY },
+    { RSModifierType::CUSTOM_CLIP_TO_FRAME, RSPropertyDrawableSlot::CUSTOM_CLIP_TO_FRAME },
     { RSModifierType::PARTICLE_EMITTER_UPDATER, RSPropertyDrawableSlot::PARTICLE_EFFECT },
     { RSModifierType::PARTICLE_NOISE_FIELD, RSPropertyDrawableSlot::PARTICLE_EFFECT },
     { RSModifierType::DYNAMIC_DIM_DEGREE, RSPropertyDrawableSlot::DYNAMIC_DIM },
@@ -230,6 +232,7 @@ static const std::array<RSPropertyDrawable::DrawableGenerator, LUT_SIZE> g_drawa
     nullptr,                                                 // SAVE_FRAME
     nullptr,                                                 // FRAME_OFFSET
     RSClipFrameDrawable::Generate,                           // CLIP_TO_FRAME
+    CustomModifierAdapter<RSModifierType::CUSTOM_CLIP_TO_FRAME>,    // CUSTOM_CLIP_TO_FRAME
     CustomModifierAdapter<RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE
     nullptr,                                                 // CHILDREN
     CustomModifierAdapter<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE

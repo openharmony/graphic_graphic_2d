@@ -27,6 +27,10 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "platform/common/rs_log.h"
 
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
+
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
     constexpr int EDGE_WIDTH_LIMIT = 1000;
@@ -102,6 +106,14 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+#ifdef RS_PROFILER_ENABLED
+        if (auto canvas = RSCaptureRecorder::GetInstance().TryDrawingCanvasCapture(
+            static_cast<float>(canvas_->GetWidth()), static_cast<float>(canvas_->GetHeight()), nodeId_)) {
+            DrawContent(*canvas, bounds);
+            RSCaptureRecorder::GetInstance().EndDrawingCanvasCapture();
+        }
+#endif
+
     // 1. Draw background of this drawing node by the main canvas.
     DrawBackground(canvas, bounds);
 
@@ -116,9 +128,6 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // 4. Draw foreground of this drawing node by the main canvas.
     DrawForeground(canvas, bounds);
-
-    // 5. Ready to clear resource.
-    SetDrawCmdListsVisited(true);
 }
 
 void CanvasDrawingDumpToPngImpl(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugNodeId)
@@ -148,7 +157,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
     if (!renderParams_) {
         return;
     }
-    renderParams_->SetNeedProcess(false);
+    SetNeedDraw(false);
     Rosen::Drawing::Matrix mat;
     const auto& params = GetRenderParams();
     if (params == nullptr) {
@@ -182,23 +191,65 @@ void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     OnDraw(canvas);
 }
 
-void RSCanvasDrawingRenderNodeDrawable::PlaybackInCorrespondThread()
+void RSCanvasDrawingRenderNodeDrawable::CheckAndSetThreadIdx(uint32_t& threadIdx)
+{
+    auto realTid = gettid();
+    if (realTid == RSUniRenderThread::Instance().GetTid()) {
+        threadIdx = UNI_RENDER_THREAD_INDEX;
+    } else {
+        for (auto& [idx, tid] : RSSubThreadManager::Instance()->GetReThreadIndexMap()) {
+            if (tid == realTid) {
+                threadIdx = idx;
+                break;
+            }
+        }
+    }
+}
+
+void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 {
     auto canvasDrawingPtr = shared_from_this();
     pid_t threadId = threadId_;
     auto task = [this, canvasDrawingPtr, threadId]() {
         std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
-        if (!surface_ || !canvas_ || !renderParams_ || threadId != threadId_) {
+        // default in unirenderthread
+        if (!renderParams_ || renderParams_->GetCanvasDrawingSurfaceChanged()) {
             return;
         }
-        if (renderParams_->GetCanvasDrawingSurfaceChanged()) {
+
+        if (threadId != threadId_) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::PostPlayback ThreadId Error NodeId[%{public}" PRIu64 "],"
+                "threadId[%{public}d], threadId_[%{public}d]", GetId(), threadId, threadId_.load());
             return;
+        }
+
+        auto surfaceParams = renderParams_->GetCanvasDrawingSurfaceParams();
+        if (surfaceParams.width == 0 || surfaceParams.height == 0) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::PostPlayback Area Error NodeId[%{public}" PRIu64 "],"
+                "width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
+            SetNeedDraw(false);
+            return;
+        }
+
+        if (!surface_ || !canvas_) {
+            if (!ResetSurfaceforPlayback(surfaceParams.width, surfaceParams.height)) {
+                RS_LOGE("RSCanvasDrawingRenderNodeDrawable::PostPlayback Reset Surface Error NodeId[%{public}" PRIu64
+                    "], width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
+                return;
+            }
+
+            uint32_t threadIdx = UNI_MAIN_THREAD_INDEX;
+            CheckAndSetThreadIdx(threadIdx);
+            auto clearFunc = [idx = threadIdx](std::shared_ptr<Drawing::Surface> surface) {
+                // The second param is null, 0 is an invalid value.
+                RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, idx, 0);
+            };
+            SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
         }
         auto rect = GetRenderParams()->GetBounds();
         DrawContent(*canvas_, rect);
-        renderParams_->SetNeedProcess(false);
+        SetNeedDraw(false);
         canvas_->Flush();
-        SetDrawCmdListsVisited(true);
     };
     RSTaskDispatcher::GetInstance().PostTask(threadId, task, false);
 }
@@ -371,7 +422,7 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
 void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
 {
     if (surface_ && surface_->GetImageInfo().GetWidth() > EDGE_WIDTH_LIMIT) {
-        RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurface id:%{public}" PRIu64 "", nodeId_);
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface id:%{public}" PRIu64 "", nodeId_);
     }
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
@@ -531,6 +582,10 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
     if (!backendTexture_.IsValid()) {
         return;
     }
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage canvas.GetGPUContext is nullptr");
+        return;
+    }
     if (captureImage_ && captureImage_->IsValid(canvas.GetGPUContext().get())) {
         canvas.DrawImage(*captureImage_, 0, 0, Drawing::SamplingOptions());
         return;
@@ -539,10 +594,6 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
     SharedTextureContext* sharedContext = new SharedTextureContext(image_);
     captureImage_ = std::make_shared<Drawing::Image>();
-    if (canvas.GetGPUContext() == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage canvas.GetGPUContext is nullptr");
-        return;
-    }
     bool ret = captureImage_->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(), origin, info,
         nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
     if (!ret) {
@@ -652,6 +703,147 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForGL(int width, int height,
 #endif
     if (!surface_) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface surface is nullptr");
+        return false;
+    }
+    recordingCanvas_ = nullptr;
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(surface_.get());
+    return true;
+}
+
+bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext)
+{
+    auto realTid = gettid();
+    if (realTid == RSUniRenderThread::Instance().GetTid()) {
+        grContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
+        if (!grContext) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetCurrentContext UniRenderThread get grGrContext failed");
+            return false;
+        }
+    } else {
+        grContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
+        if (!grContext) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetCurrentContext SubThread get grGrContext failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+#if defined(RS_ENABLE_GL)
+bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetGL(
+    int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext)
+{
+    Drawing::ImageInfo info =
+        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    surface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+    if (!surface_) {
+        isGpuSurface_ = false;
+        surface_ = Drawing::Surface::MakeRaster(info);
+        if (!surface_) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GL Reset surface is nullptr");
+            return false;
+        }
+        recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
+        canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
+        return true;
+    }
+    return true;
+}
+#endif
+
+#if defined(RS_ENABLE_VK)
+bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVk(
+    int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext)
+{
+    Drawing::ImageInfo info =
+        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+
+    bool isNewCreate = false;
+    if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
+        backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
+        if (!backendTexture_.IsValid()) {
+            surface_ = nullptr;
+            recordingCanvas_ = nullptr;
+            image_ = nullptr;
+            canvas_ = nullptr;
+            backendTexture_ = {};
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                vulkanCleanupHelper_ = nullptr;
+            }
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::VK backendTexture invalid, nodeId[%{public}" PRIu64 "]",
+                GetId());
+            return false;
+        }
+    }
+    auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
+    if (vulkanCleanupHelper_ == nullptr) {
+        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+            RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        isNewCreate = true;
+    }
+    surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),
+        Drawing::TextureOrigin::BOTTOM_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
+        NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
+    if (!surface_) {
+        isGpuSurface_ = false;
+        surface_ = Drawing::Surface::MakeRaster(info);
+        if (!surface_) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::VK Reset surface is nullptr, nodeId[%{public}" PRIu64 "]",
+                GetId());
+            return false;
+        }
+        recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
+        canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
+        return true;
+    }
+    return true;
+}
+#endif
+
+bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback(int width, int height)
+{
+    Drawing::ImageInfo info =
+        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+
+    std::shared_ptr<Drawing::GPUContext> gpuContext;
+    if (canvas_ == nullptr) {
+        if (!GetCurrentContext(gpuContext)) {
+            RS_LOGE("ResetSurfaceforPlayback canvas null, getContext Failed");
+            return false;
+        }
+    } else {
+        gpuContext = canvas_->GetGPUContext();
+    }
+
+    isGpuSurface_ = true;
+    if (gpuContext == nullptr) {
+        isGpuSurface_ = false;
+        surface_ = Drawing::Surface::MakeRaster(info);
+    } else {
+#if defined(RS_ENABLE_GL)
+        if (!GpuContextResetGL(width, height, gpuContext)) {
+            return false;
+        }
+        if (canvas_) {
+            return true;
+        }
+#else
+#if defined(RS_ENABLE_VK)
+        if (!GpuContextResetVk(width, height, gpuContext)) {
+            return false;
+        }
+        if (canvas_) {
+            return true;
+        }
+#else
+        surface_ = Drawing::Surface::MakeRaster(info);
+#endif
+#endif
+    }
+
+    if (!surface_) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback surface is nullptr");
         return false;
     }
     recordingCanvas_ = nullptr;
@@ -781,6 +973,5 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
     return true;
 }
 #endif
-
 
 } // namespace OHOS::Rosen::DrawableV2

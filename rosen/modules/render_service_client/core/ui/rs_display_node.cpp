@@ -16,7 +16,10 @@
 #include "ui/rs_display_node.h"
 
 #include "rs_trace.h"
-
+#ifdef ROSEN_OHOS
+#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+#include "sandbox_utils.h"
+#endif
 #include "command/rs_display_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
@@ -97,6 +100,9 @@ RSDisplayNode::SharedPtr RSDisplayNode::Unmarshalling(Parcel& parcel)
     SharedPtr displayNode(new RSDisplayNode(config, id));
     RSNodeMap::MutableInstance().RegisterNode(displayNode);
 
+    // for nodes constructed by unmarshalling, we should not destroy the corresponding render node on destruction
+    displayNode->skipDestroyCommandInDestructor_ = true;
+
     return displayNode;
 }
 
@@ -117,6 +123,16 @@ void RSDisplayNode::SetScreenId(uint64_t screenId)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
+#ifdef ROSEN_OHOS
+    int32_t ret = HiSysEventWrite(
+        OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC,
+        "SET_SCREENID",
+        OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
+        "CURRENT_SCREENID", screenId);
+    if (ret != 0) {
+        ROSEN_LOGE("SET_SCREENID Write HiSysEvent error, ret: %{public}d" PRIu64, ret);
+    }
+#endif
     ROSEN_LOGI(
         "RSDisplayNode::SetScreenId, DisplayNode: %{public}" PRIu64 ", ScreenId: %{public}" PRIu64, GetId(), screenId);
     RS_TRACE_NAME_FMT("RSDisplayNode::SetScreenId, DisplayNode: %" PRIu64 ", ScreenId: %" PRIu64, GetId(), screenId);
@@ -248,6 +264,7 @@ void RSDisplayNode::SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_
     for (auto iter = oldScbPids.begin(); iter != oldScbPids.end(); ++iter) {
         oldPidsStr << *iter << ",";
     }
+    DoFlushModifier();
     ROSEN_LOGI("SetScbNodePid %{public}s", oldPidsStr.str().c_str());
 }
 

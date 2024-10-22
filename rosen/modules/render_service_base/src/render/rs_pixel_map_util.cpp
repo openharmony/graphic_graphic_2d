@@ -308,7 +308,8 @@ bool RSPixelMapUtil::IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap
     ImageInfo imageInfo;
     pixelMap->GetImageInfo(imageInfo);
     if (imageInfo.pixelFormat == Media::PixelFormat::RGBA_8888) {
-        return sampling.GetMipmapMode() != Drawing::MipmapMode::LINEAR && RSSystemProperties::IsPhoneType();
+        return sampling.GetMipmapMode() != Drawing::MipmapMode::LINEAR &&
+            RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
     return true;
 }

@@ -52,12 +52,14 @@ template("skia_libtxt") {
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/adapter/skia_txt",
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
       "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt/txt",
+      "$graphic_2d_root/rosen/modules/texgine/src",
     ]
 
     sources = [
       "$txt_root/impl/drawing_painter_impl.cpp",
       "$txt_root/impl/paragraph_builder_impl.cpp",
       "$txt_root/impl/paragraph_impl.cpp",
+      "$txt_root/impl/paragraph_line_fetcher_impl.cpp",
       "$txt_root/impl/run_impl.cpp",
       "$txt_root/impl/text_line_impl.cpp",
       "$txt_root/symbol_engine/hm_symbol_node_build.cpp",
@@ -70,13 +72,20 @@ template("skia_libtxt") {
       "$txt_root/txt/paragraph_style.cpp",
       "$txt_root/txt/placeholder_run.cpp",
       "$txt_root/txt/platform.cpp",
+      "$txt_root/txt/text_bundle_config_parser.cpp",
       "$txt_root/txt/text_style.cpp",
       "$txt_root/txt/typeface_font_asset_provider.cpp",
     ]
 
     external_deps = []
     if (platform == "ohos" || platform == "ohos_ng") {
-      external_deps += [ "init:libbegetutil" ]
+      external_deps += [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "samgr:samgr_proxy",
+      ]
       defines += [ "HM_SYMBOL_TXT_ENABLE" ]
       defines += [ "OHOS_TEXT_ENABLE" ]
     }
@@ -92,8 +101,8 @@ template("skia_libtxt") {
         "USE_ROSEN_DRAWING",
         "USE_SKIA_TXT",
       ]
-      if (ace_enable_gpu) {
-        defines += [ "ACE_ENABLE_GPU" ]
+      if (rs_enable_gpu) {
+        defines += [ "RS_ENABLE_GPU" ]
       }
     }
 
@@ -169,6 +178,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/ParagraphBuilderImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphCache.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphImpl.cpp",
+    "//third_party/skia/modules/skparagraph/src/ParagraphLineFetcherImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphPainterImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphStyle.cpp",
     "//third_party/skia/modules/skparagraph/src/Run.cpp",
@@ -177,6 +187,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/TextLineBaseImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/TextShadow.cpp",
     "//third_party/skia/modules/skparagraph/src/TextStyle.cpp",
+    "//third_party/skia/modules/skparagraph/src/TextTabAlign.cpp",
     "//third_party/skia/modules/skparagraph/src/TextWrapper.cpp",
     "//third_party/skia/modules/skparagraph/src/TypefaceFontProvider.cpp",
   ]
@@ -186,8 +197,8 @@ ohos_source_set("skia_paragraph") {
       "USE_ROSEN_DRAWING",
       "USE_SKIA_TXT",
     ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
   }
 
@@ -219,8 +230,11 @@ ohos_source_set("skia_paragraph") {
       current_os == "android" || current_os == "ios"
 
   if (!is_cross_platform) {
-    defines += [ "TXT_USE_PARAMETER" ]
-    external_deps += [ "init:libbegetutil" ]
+    defines += [ "OHOS_TEXT_ENABLE" ]
+    external_deps += [
+      "hitrace:hitrace_meter",
+      "init:libbegetutil",
+    ]
   }
 }
 
@@ -275,8 +289,8 @@ ohos_source_set("skia_shaper") {
       "USE_ROSEN_DRAWING",
       "USE_SKIA_TXT",
     ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
   }
 

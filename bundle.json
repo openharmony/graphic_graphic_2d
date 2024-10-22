@@ -45,6 +45,17 @@
         "graphic_2d_feature_parallel_render_enable",
         "graphic_2d_feature_tp_switch_enbale",
         "graphic_2d_feature_rs_enable_profiler",
+        "graphic_2d_feature_enable_chipset_vsync",
+        "graphic_2d_feature_enable_ddgr",
+        "graphic_2d_feature_enable_flutter_vulkan",
+        "graphic_2d_feature_enable_opengl",
+        "graphic_2d_feature_enable_opinc",
+        "graphic_2d_feature_enable_recording_dcl",
+        "graphic_2d_feature_enable_rspipeline",
+        "graphic_2d_feature_enable_stack_culling",
+        "graphic_2d_feature_enable_vulkan",
+        "graphic_2d_feature_use_aps_igameservice_func",
+        "graphic_2d_feature_use_igraphics_extend_hooks",
         "graphic_2d_feature_vkqueue_priority_enable"
       ],
       "rom": "10000KB",
@@ -88,7 +99,6 @@
           "bounds_checking_function",
           "egl",
           "opengles",
-          "node",
           "vulkan-headers",
           "vulkan-loader",
           "cJSON",
@@ -103,7 +113,6 @@
           "skia"
         ],
         "third_party": [
-          "flutter",
           "skia"
         ]
       },
@@ -129,7 +138,8 @@
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json",
             "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect:libgraphics_effect",
-            "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/native_display_soloist:libnative_display_soloist"
+            "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/native_display_soloist:libnative_display_soloist",
+            "//foundation/graphic/graphic_2d/utils/color_manager/ndk:libnative_color_space_manager"
           ],
           "fwk_group": [
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
@@ -390,9 +400,20 @@
               "header_files": [
                   "color_space_object_convertor.h",
                   "js_color_space.h",
-                  "js_color_space_utils.h"
+                  "js_color_space_utils.h",
+                  "ndk_color_space.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/color_manager/color_space_object_convertor"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/utils/color_manager/ndk:libnative_color_space_manager",
+            "header": {
+              "header_files": [
+                "native_color_space_manager.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/color_manager"
             }
           },
           {

@@ -18,37 +18,42 @@
 #include <memory>
 
 #include "include/core/SkCanvas.h"
-#include "rs_trace.h"
 #include "src/image/SkImage_Base.h"
-
-#include "common/rs_background_thread.h"
-#include "common/rs_common_def.h"
-#include "common/rs_obj_abs_geometry.h"
-#include "params/rs_canvas_drawing_render_params.h"
-#include "pipeline/rs_context.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_recording_canvas.h"
-#include "pipeline/rs_task_dispatcher.h"
-#include "pipeline/sk_resource_manager.h"
-#include "platform/common/rs_log.h"
-#include "property/rs_properties_painter.h"
-#include "visitor/rs_node_visitor.h"
-
 #ifdef NEW_SKIA
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #endif
 
+#include "rs_trace.h"
+
+#include "common/rs_background_thread.h"
+#include "common/rs_common_def.h"
+#include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
+#include "params/rs_canvas_drawing_render_params.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/sk_resource_manager.h"
+#include "platform/common/rs_log.h"
+#include "property/rs_properties_painter.h"
+#include "visitor/rs_node_visitor.h"
+
+
 namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
-constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 50;
+constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 500;
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSCanvasRenderNode(id, context, isTextureExportNode)
-{}
+{
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this) - sizeof(RSCanvasRenderNode));
+}
 
 RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 {
@@ -57,6 +62,7 @@ RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
         preThreadInfo_.second(std::move(surface_));
     }
 #endif
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this) - sizeof(RSCanvasRenderNode));
 }
 
 void RSCanvasDrawingRenderNode::InitRenderContent()
@@ -89,10 +95,10 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
 
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
-    SharedTextureContext* sharedContext = new SharedTextureContext(image);
     auto context = canvas.GetGPUContext();
     if (!context || !sharedTexture->BuildFromTexture(*context, sharedBackendTexture.GetTextureInfo(),
-        origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
+        origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext,
+        new SharedTextureContext(image))) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture is nullptr");
         return false;
     }
@@ -121,7 +127,6 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 {
     int width = 0;
     int height = 0;
-    RS_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::ProcessRenderContents  %" PRIu64 "", GetId());
     std::lock_guard<std::mutex> lockTask(taskMutex_);
     if (!GetSizeFromDrawCmdModifiers(width, height)) {
         return;
@@ -195,21 +200,50 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
 
 bool RSCanvasDrawingRenderNode::IsNeedProcess() const
 {
-    if (!renderDrawable_ || !(renderDrawable_->GetRenderParams())) {
+    if (!renderDrawable_) {
         return false;
     }
-    return renderDrawable_->GetRenderParams()->IsNeedProcess();
+    return renderDrawable_->IsNeedDraw();
+}
+
+void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
+{
+    //update content_style when node not on tree, need check (waitSync_ false, not on tree, surface not changed)
+    if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
+        stagingRenderParams_->GetCanvasDrawingSurfaceChanged() || RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
+
+    if (!dirtyTypes_.test(static_cast<size_t>(RSModifierType::CONTENT_STYLE))) {
+        return;
+    }
+
+    auto surfaceParams = GetStagingRenderParams()->GetCanvasDrawingSurfaceParams();
+    if (surfaceParams.width == 0 || surfaceParams.height == 0) {
+        RS_LOGE("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate Area Size Error, NodeId[%{public}" PRIu64 "]"
+            "width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
+        return;
+    }
+
+    playbackNotOnTreeCmdSize_ += drawCmdLists_[RSModifierType::CONTENT_STYLE].size();
+    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu], NotOnTreeDraw Cmdlist Size[%lu]", GetId(), playbackNotOnTreeCmdSize_);
+
+    UpdateDrawableVecV2();
+
+    // Clear node some resource
+    ClearResource();
+    // update state
+    dirtyTypes_.reset();
+    AddToPendingSyncList();
 }
 
 void RSCanvasDrawingRenderNode::SetNeedProcess(bool needProcess)
 {
-    auto stagingCanvasDrawingParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
-    if (stagingCanvasDrawingParams) {
-        stagingCanvasDrawingParams->SetNeedProcess(needProcess);
-        if (stagingRenderParams_->NeedSync()) {
-            AddToPendingSyncList();
-        }
+    if (!stagingRenderParams_) {
+        return;
     }
+
+    stagingRenderParams_->SetNeedSync(needProcess);
     isNeedProcess_ = needProcess;
 }
 
@@ -242,8 +276,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
-        RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr, imagesize:[%{public}d, %{public}d],"
-                "id: %{public}" PRIu64"", width, height, GetId());
+        RS_LOGD("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
@@ -251,8 +284,8 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         if (!surface_) {
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
-            RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface, imagesize: [%{public}d, %{public}d],"
-                "id: %{public}" PRIu64"", width, height, GetId());
+            RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface [%{public}d, %{public}d] %{public}" PRIu64 "",
+                width, height, GetId());
             if (!surface_) {
                 RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface surface is nullptr");
                 return false;
@@ -326,6 +359,10 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!image_) {
         RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ is nullptr");
+        return bitmap;
+    }
+    if (GetTid() != tid) {
+        RS_LOGE("RSCanvasDrawingRenderNode::GetBitmap: image_ used by multi threads");
         return bitmap;
     }
     if (!image_->AsLegacyBitmap(bitmap)) {
@@ -445,8 +482,33 @@ void RSCanvasDrawingRenderNode::InitRenderParams()
     stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderNode::InitRenderParams failed");
         return;
     }
+}
+
+void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
+{
+    bool overflow = drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT;
+    if (overflow) {
+        if (overflow != lastOverflowStatus_) {
+            RS_LOGE("AddDirtyType Out of Cmdlist Limit, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
+                    " have drawcmdlist:%{public}zu",
+                    GetId(), type, drawCmdLists_[type].size());
+        }
+        // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
+        // too many drawOp, so we need to add the limit of drawcmdlists.
+        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&
+                drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
+                drawCmdLists_[type].pop_front();
+        }
+        if (drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
+            RS_LOGE("AddDirtyType Cmdlist Protect Error, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
+                    " have drawcmdlist:%{public}zu",
+                    GetId(), type, drawCmdLists_[type].size());
+        }
+    }
+    lastOverflowStatus_ = overflow;
 }
 
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
@@ -476,17 +538,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
             drawCmdLists_[type].emplace_back(cmd);
             SetNeedProcess(true);
         }
-
-        // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
-        // too many drawOp, so we need to add the limit of drawcmdlists.
-        while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&
-            drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
-            drawCmdLists_[type].pop_front();
-        }
-        if (drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
-            RS_LOGE("drawcmdlist Error, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
-                    " have drawcmdlist:%{public}zu", GetId(), type, drawCmdLists_[type].size());
-        }
+        CheckDrawCmdListSize(type);
     }
 }
 
@@ -515,11 +567,15 @@ const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& RSCanvasDraw
 
 void RSCanvasDrawingRenderNode::ClearResource()
 {
-    if (renderDrawable_ && renderDrawable_->IsDrawCmdListsVisited()) {
+    if (RSUniRenderJudgement::IsUniRender()) {
         std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
         drawCmdLists_.clear();
-        renderDrawable_->SetDrawCmdListsVisited(false);
     }
+}
+
+void RSCanvasDrawingRenderNode::ClearNeverOnTree()
+{
+    isNeverOnTree_ = false;
 }
 
 } // namespace Rosen

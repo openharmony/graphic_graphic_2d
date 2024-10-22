@@ -22,11 +22,6 @@ namespace Rosen {
 int RSHgmConfigChangeCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
-    if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-        RS_LOGE("RSHgmConfigChangeCallbackStub::OnRemoteRequest no permission to access codeID=%{public}u.", code);
-        return ERR_INVALID_STATE;
-    }
-
     auto token = data.ReadInterfaceToken();
     if (token != RSIHgmConfigChangeCallback::GetDescriptor()) {
         return ERR_INVALID_STATE;
@@ -58,8 +53,5 @@ int RSHgmConfigChangeCallbackStub::OnRemoteRequest(
 
     return ret;
 }
-
-const RSInterfaceCodeSecurityManager RSHgmConfigChangeCallbackStub::securityManager_ = \
-    RSInterfaceCodeSecurityManager::CreateInstance<RSIHgmConfigChangeCallbackInterfaceCodeAccessVerifier>();
 } // namespace Rosen
 } // namespace OHOS

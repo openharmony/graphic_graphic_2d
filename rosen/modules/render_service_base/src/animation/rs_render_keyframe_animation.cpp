@@ -30,9 +30,16 @@ RSRenderKeyframeAnimation::RSRenderKeyframeAnimation(AnimationId id, const Prope
     : RSRenderPropertyAnimation(id, propertyId, originValue)
 {}
 
-void RSRenderKeyframeAnimation::DumpAnimationType(std::string& out) const
+void RSRenderKeyframeAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderKeyframeAnimation";
+    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    if (property_ != nullptr) {
+        type = property_->GetPropertyType();
+        out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
+    } else {
+        out += ", ModifierType: INVALID";
+    }
 }
 
 void RSRenderKeyframeAnimation::AddKeyframe(float fraction, const std::shared_ptr<RSRenderPropertyBase>& value,
@@ -226,6 +233,11 @@ void RSRenderKeyframeAnimation::InitValueEstimator()
     if (valueEstimator_ == nullptr) {
         valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR);
     }
+    if (valueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderKeyframeAnimation::InitValueEstimator, valueEstimator_ is nullptr.");
+        return;
+    }
+
     if (isDurationKeyframe_) {
         valueEstimator_->InitDurationKeyframeAnimationValue(property_, durationKeyframes_, lastValue_);
     } else {

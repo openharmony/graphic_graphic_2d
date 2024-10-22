@@ -73,6 +73,8 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark) override;
+
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
@@ -168,6 +170,8 @@ public:
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
 
+    bool SetGlobalDarkColorMode(bool isDark) override;
+
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
@@ -197,6 +201,8 @@ public:
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
+
+    int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
 
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
@@ -241,6 +247,8 @@ public:
 
     void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) override;
 
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
+
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
     void SetDefaultDeviceRotationOffset(uint32_t offset) override;
@@ -270,6 +278,12 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
@@ -279,6 +293,8 @@ private:
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
 
     bool SetAncoForceDoDirect(bool direct) override;
+
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 

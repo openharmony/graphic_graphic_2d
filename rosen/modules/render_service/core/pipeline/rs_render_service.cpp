@@ -26,7 +26,6 @@
 
 #include "hgm_core.h"
 #include "parameter.h"
-#include <parameters.h>
 #include "rs_main_thread.h"
 #include "rs_profiler.h"
 #include "rs_render_service_connection.h"
@@ -35,7 +34,8 @@
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -66,6 +66,7 @@ RSRenderService::~RSRenderService() noexcept {}
 
 bool RSRenderService::Init()
 {
+    system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "false");
     std::thread preLoadSysTTFThread([]() {
         Drawing::FontMgr::CreateDefaultFontMgr();
     });
@@ -126,8 +127,12 @@ bool RSRenderService::Init()
     mainThread_->rsVSyncController_ = rsVSyncController_;
     mainThread_->appVSyncController_ = appVSyncController_;
     mainThread_->vsyncGenerator_ = generator;
-    mainThread_->Init();
     mainThread_->SetAppVSyncDistributor(appVSyncDistributor_);
+    mainThread_->Init();
+    mainThread_->PostTask([]() {
+        system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
+        RS_LOGI("Set boot render service started true");
+        }, "BOOTEVENT_RENDER_SERVICE_READY", 0, AppExecFwk::EventQueue::Priority::VIP);
 
     // Wait samgr ready for up to 5 second to ensure adding service to samgr.
     int status = WaitParameter("bootevent.samgr.ready", "true", 5);
@@ -144,11 +149,6 @@ bool RSRenderService::Init()
 
     RS_PROFILER_INIT(this);
 
-    if (!system::GetBoolParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), false)) {
-        system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
-        RS_LOGI("set boot render service started true");
-    }
-
     return true;
 }
 
@@ -164,20 +164,24 @@ void RSRenderService::Run()
 
 void RSRenderService::RegisterRcdMsg()
 {
-    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
         if (!isRcdServiceRegister_) {
-            auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+            auto& rcdHardManager = RSRcdRenderManager::GetInstance();
             auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-            msgBus.RegisterTopic<uint32_t, uint32_t>(
+            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t>(
                 TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
-                &RoundCornerDisplay::UpdateDisplayParameter);
-            msgBus.RegisterTopic<ScreenRotation>(
+                &RoundCornerDisplayManager::UpdateDisplayParameter);
+            msgBus.RegisterTopic<NodeId, ScreenRotation>(
                 TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
-                &RoundCornerDisplay::UpdateOrientationStatus);
-            msgBus.RegisterTopic<int>(
+                &RoundCornerDisplayManager::UpdateOrientationStatus);
+            msgBus.RegisterTopic<NodeId, int>(
                 TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
-                &RoundCornerDisplay::UpdateNotchStatus);
+                &RoundCornerDisplayManager::UpdateNotchStatus);
+            msgBus.RegisterTopic<NodeId, bool>(
+                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
             isRcdServiceRegister_ = true;
             RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
             return;
@@ -322,6 +326,10 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump EventParamList info\n")
         .append("allInfo                        ")
         .append("|dump all info\n")
+        .append("client                         ")
+        .append("|dump client ui node trees\n")
+        .append("client-server                  ")
+        .append("|dump client and server info\n")
         .append("dumpMem                        ")
         .append("|dump Cache\n")
         .append("trimMem cpu/gpu/shader         ")
@@ -515,7 +523,7 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type) && type.length() < 10) {
-        pid = std::stoi(type);
+        pid = std::atoi(type.c_str());
     }
     mainThread_->ScheduleTask(
         [this, &argSets, &dumpString, &type, &pid]() {
@@ -574,7 +582,12 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg17(u"hitchs");
     std::u16string arg18(u"rsLogFlag");
     std::u16string arg19(u"flushJankStatsRs");
-    std::u16string arg20(u"clientNodeTree");
+    std::u16string arg20(u"client");
+    std::u16string arg21(u"client-server");
+    if (argSets.count(arg21)) {
+        argSets.insert(arg9);
+        argSets.insert(arg20);
+    }
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -659,7 +672,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
     }
-    if (argSets.count(arg9) || argSets.count(arg20)) {
+    if (argSets.count(arg20)) {
         auto taskId = GenerateTaskId();
         mainThread_->ScheduleTask(
             [this, taskId]() {

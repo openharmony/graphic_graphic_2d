@@ -15,9 +15,11 @@
 
 #include "rs_rcd_surface_render_node.h"
 #include <fstream>
+#include "common/rs_singleton.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "rs_round_corner_display_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,11 +36,18 @@ RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
     rcdExtInfo_.surfaceType = type;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
+    MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this));
+}
+
+RSRcdSurfaceRenderNode::SharedPtr RSRcdSurfaceRenderNode::Create(NodeId id, RCDSurfaceType type)
+{
+    return std::make_shared<RSRcdSurfaceRenderNode>(id, type);
 }
 
 RSRcdSurfaceRenderNode::~RSRcdSurfaceRenderNode()
 {
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
 }
 
 const RectI& RSRcdSurfaceRenderNode::GetSrcRect() const
@@ -51,6 +60,11 @@ const RectI& RSRcdSurfaceRenderNode::GetDstRect() const
     return rcdExtInfo_.dstRect_;
 }
 
+void RSRcdSurfaceRenderNode::SetRenderTargetId(NodeId id)
+{
+    renerTargetId_ = id;
+}
+
 bool RSRcdSurfaceRenderNode::CreateSurface(sptr<IBufferConsumerListener> listener)
 {
     RS_LOGD("RCD: Start RSRcdSurfaceRenderNode CreateSurface");
@@ -58,11 +72,17 @@ bool RSRcdSurfaceRenderNode::CreateSurface(sptr<IBufferConsumerListener> listene
         RS_LOGD("RSRcdSurfaceRenderNode::CreateSurface already created, return");
         return true;
     }
+    std::string surfaceName = "";
+    RoundCornerDisplayManager::RCDLayerType type = RoundCornerDisplayManager::RCDLayerType::INVALID;
     if (IsTopSurface()) {
-        consumer_ = IConsumerSurface::Create("RCDTopSurfaceNode");
+        surfaceName = "RCDTopSurfaceNode" + std::to_string(renerTargetId_);
+        type = RoundCornerDisplayManager::RCDLayerType::TOP;
     } else {
-        consumer_ = IConsumerSurface::Create("RCDBottomSurfaceNode");
+        surfaceName = "RCDBottomSurfaceNode" + std::to_string(renerTargetId_);
+        type = RoundCornerDisplayManager::RCDLayerType::BOTTOM;
     }
+    consumer_ = IConsumerSurface::Create(surfaceName.c_str());
+    RSSingleton<RoundCornerDisplayManager>::GetInstance().AddLayer(surfaceName, renerTargetId_, type);
     if (consumer_ == nullptr) {
         RS_LOGE("RSRcdSurfaceRenderNode::CreateSurface get consumer surface fail");
         return false;
@@ -130,7 +150,7 @@ BufferRequestConfig RSRcdSurfaceRenderNode::GetHardenBufferRequestConfig() const
     return config;
 }
 
-bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLayer* layerInfo)
+bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo)
 {
     RS_LOGD("RCD: Start PrepareHardwareResourceBuffer");
 
@@ -254,11 +274,7 @@ bool RSRcdSurfaceRenderNode::IsSurfaceCreated() const
     return rcdExtInfo_.surfaceCreated;
 }
 
-#ifdef NEW_RENDER_CONTEXT
-std::shared_ptr<RSRenderSurface> RSRcdSurfaceRenderNode::GetRSSurface() const
-#else
 std::shared_ptr<RSSurface> RSRcdSurfaceRenderNode::GetRSSurface() const
-#endif
 {
     return surface_;
 }

@@ -90,6 +90,9 @@ public:
     void InteractiveSetFraction(float fraction);
 
     virtual bool IsSupportInteractiveAnimator() { return true; }
+
+    std::string DumpAnimation() const;
+    virtual void DumpAnimationInfo(std::string& dumpInfo) const {}
 protected:
     enum class AnimationState {
         INITIALIZED,
@@ -118,14 +121,6 @@ protected:
 
     void StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     virtual void SetInitialVelocity(const std::shared_ptr<RSPropertyBase>& velocity) {};
-
-    virtual void SetOriginValue(const std::shared_ptr<RSPropertyBase>& originValue) {};
-    virtual void InitInterpolationValue() {};
-
-    virtual const std::shared_ptr<RSPropertyBase> GetPropertyValue() const
-    {
-        return nullptr;
-    }
 
 private:
     static AnimationId GenerateId();

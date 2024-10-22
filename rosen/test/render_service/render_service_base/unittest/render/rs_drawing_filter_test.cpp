@@ -15,10 +15,12 @@
 
 #include "gtest/gtest.h"
 
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_mesa_blur_shader_filter.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -110,11 +112,17 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription001, TestSize.Level1)
     filterPtr->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
 
-    filterPtr->type_ = RSShaderFilter::MESA;
-    EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
-
     filterPtr->type_ = RSShaderFilter::NONE;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
+
+    int radius = 1;
+    auto filterPtr2 = std::make_shared<RSMESABlurShaderFilter>(radius);
+    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters2;
+    shaderFilters2.push_back(filterPtr2);
+    RSDrawingFilter drawingFilter2(imageFilter, shaderFilters2, hash);
+    drawingFilter2.SetFilterType(RSFilter::BLUR);
+    filterPtr2->type_ = RSShaderFilter::MESA;
+    EXPECT_TRUE(!drawingFilter2.GetDetailedDescription().empty());
 }
 
 /**
@@ -204,40 +212,8 @@ HWTEST_F(RSDrawingFilterTest, ApplyColorFilter001, TestSize.Level1)
     auto image = std::make_shared<Drawing::Image>();
     Drawing::Rect src;
     Drawing::Rect dst;
-    drawingFilter.ApplyColorFilter(canvas, image, src, dst);
+    drawingFilter.ApplyColorFilter(canvas, image, src, dst, 1.0f);
     EXPECT_TRUE(image != nullptr);
-}
-
-/**
- * @tc.name: SetColorFilterForHDR
- * @tc.desc: test results of SetColorFilterForHDR
- * @tc.type: FUNC
- * @tc.require: issuesIALVQH
- */
-HWTEST_F(RSDrawingFilterTest, SetColorFilterForHDR001, TestSize.Level1)
-{
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, hash);
-    auto colorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX);
-    drawingFilter.SetColorFilterForHDR(colorFilter);
-}
-
-/**
- * @tc.name: ResetColorFilterForHDR
- * @tc.desc: test results of ResetColorFilterForHDR
- * @tc.type: FUNC
- * @tc.require: issuesIALVQH
- */
-HWTEST_F(RSDrawingFilterTest, ResetColorFilterForHDR001, TestSize.Level1)
-{
-    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
-    uint32_t hash = 1;
-    RSDrawingFilter drawingFilter(imageFilter, hash);
-    drawingFilter.ResetColorFilterForHDR();
-    auto colorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::MATRIX);
-    drawingFilter.SetColorFilterForHDR(colorFilter);
-    drawingFilter.ResetColorFilterForHDR();
 }
 
 /**
@@ -259,11 +235,66 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     auto image = std::make_shared<Drawing::Image>();
     Drawing::Rect src;
     Drawing::Rect dst;
-    drawingFilter.DrawImageRect(canvas, image, src, dst);
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
+    EXPECT_TRUE(image != nullptr);
+
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
     EXPECT_TRUE(image != nullptr);
 
     filterPtr->type_ = RSShaderFilter::NONE;
-    drawingFilter.DrawImageRect(canvas, image, src, dst);
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, true });
     EXPECT_TRUE(image != nullptr);
+
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
+    EXPECT_TRUE(image != nullptr);
+}
+
+/**
+ * @tc.name: PrepareAlphaForOnScreenDraw001
+ * @tc.desc: test results of PrepareAlphaForOnScreenDraw
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDrawingFilterTest, PrepareAlphaForOnScreenDraw001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSShaderFilter>();
+    filterPtr->type_ = RSShaderFilter::KAWASE;
+    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    float canvasAlpha = 0.5f;
+    float defaultAlpha = 1.0f;
+    float brushAlpha = defaultAlpha;
+
+    paintFilterCanvas.SetAlpha(canvasAlpha);
+    brushAlpha = drawingFilter.PrepareAlphaForOnScreenDraw(paintFilterCanvas);
+    // no RSMaskColorShaderFilter, result is canvasAlpha
+    EXPECT_TRUE(ROSEN_EQ(brushAlpha, canvasAlpha));
+
+    auto colorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(0, RSColor());
+    colorShaderFilter->maskColor_.SetAlpha(102);
+    drawingFilter.InsertShaderFilter(colorShaderFilter);
+
+    canvasAlpha = 1.0f;
+    paintFilterCanvas.SetAlpha(canvasAlpha);
+    brushAlpha = drawingFilter.PrepareAlphaForOnScreenDraw(paintFilterCanvas);
+    // brush alpha is 1.0 - result is default
+    EXPECT_TRUE(ROSEN_EQ(brushAlpha, defaultAlpha));
+
+    canvasAlpha = 0.0f;
+    paintFilterCanvas.SetAlpha(canvasAlpha);
+    brushAlpha = drawingFilter.PrepareAlphaForOnScreenDraw(paintFilterCanvas);
+    // brush alpha is 0.0 - result is default
+    EXPECT_TRUE(ROSEN_EQ(brushAlpha, defaultAlpha));
+
+    canvasAlpha = 0.5f;
+    paintFilterCanvas.SetAlpha(canvasAlpha);
+    brushAlpha = drawingFilter.PrepareAlphaForOnScreenDraw(paintFilterCanvas);
+    // brush alpha is canvasAlpha * (coeff from RSMaskColorShaderFilter)
+    EXPECT_TRUE(ROSEN_EQ(brushAlpha, 0.375f));
 }
 } // namespace OHOS::Rosen

@@ -48,7 +48,8 @@ HWTEST_F(FrameRateReportTest, SendFrameRates001, TestSize.Level1)
     FrameRateReport::GetInstance().SendFrameRates(rates);
     rates[1008] = 60;
     rates[-1] = 120;
-    FrameRateReport::GetInstance().SendFrameRates(rates);
+    bool ret = FrameRateReport::GetInstance().SendFrameRates(rates);
+    EXPECT_EQ(ret, false);
 }
 
 /**
@@ -64,6 +65,7 @@ HWTEST_F(FrameRateReportTest, SendFrameRatesToRss001, TestSize.Level1)
     rates[1008] = 60;
     rates[-1] = 120;
     FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
+    EXPECT_TRUE(nullptr != FrameRateReport::GetInstance().instance_);
 }
 } // namespace Rosen
 } // namespace OHOS

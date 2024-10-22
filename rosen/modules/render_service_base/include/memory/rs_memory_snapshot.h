@@ -32,15 +32,17 @@ struct MemorySnapshotInfo {
     }
 };
 
+using MemoryOverflowCalllback = std::function<void(pid_t, uint64_t, bool)>;
 class RSB_EXPORT MemorySnapshot {
 public:
     static MemorySnapshot& Instance();
-    void AddCpuMemory(const pid_t pid, const size_t size, MemorySnapshotInfo& info);
+    void AddCpuMemory(const pid_t pid, const size_t size);
     void RemoveCpuMemory(const pid_t pid, const size_t size);
-    void AddGpuMemory(const pid_t pid, const size_t size, MemorySnapshotInfo& info);
-    void RemoveGpuMemory(const pid_t pid, const size_t size);
     bool GetMemorySnapshotInfoByPid(const pid_t pid, MemorySnapshotInfo& info);
     void EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet);
+    void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
+        std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver);
+    void InitMemoryLimit(MemoryOverflowCalllback callback, uint64_t warning, uint64_t overflow, uint64_t totalSize);
 private:
     MemorySnapshot() = default;
     ~MemorySnapshot() = default;
@@ -50,6 +52,12 @@ private:
     MemorySnapshot& operator=(const MemorySnapshot&&) = delete;
     std::mutex mutex_;
     std::unordered_map<pid_t, MemorySnapshotInfo> appMemorySnapshots_;
+
+    uint64_t singleMemoryWarning_ = UINT64_MAX; // warning threshold for total memory of a single process
+    uint64_t singleCpuMemoryLimit_ = UINT64_MAX; // error threshold for cpu memory of a single process
+    uint64_t totalMemoryLimit_ = UINT64_MAX; // error threshold for total memory of all process
+    size_t totalMemory_ = 0; // record the total memory of all processes
+    MemoryOverflowCalllback callback_ = nullptr;
 };
 } // namespace OHOS
 } // namespace Rosen

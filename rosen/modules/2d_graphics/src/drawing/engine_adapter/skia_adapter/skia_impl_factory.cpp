@@ -23,7 +23,7 @@
 #include "skia_adapter/skia_color_filter.h"
 #include "skia_adapter/skia_color_space.h"
 #include "skia_adapter/skia_data.h"
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "skia_adapter/skia_gpu_context.h"
 #endif
 #include "skia_adapter/skia_font.h"
@@ -78,7 +78,7 @@ std::unique_ptr<DataImpl> SkiaImplFactory::CreateData()
     return std::make_unique<SkiaData>();
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::unique_ptr<GPUContextImpl> SkiaImplFactory::CreateGPUContext()
 {
     return std::make_unique<SkiaGPUContext>();

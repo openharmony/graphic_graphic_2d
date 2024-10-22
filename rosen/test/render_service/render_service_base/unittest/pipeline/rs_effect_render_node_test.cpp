@@ -97,6 +97,7 @@ HWTEST_F(RSEffectRenderNodeTest, GetFilterRect, TestSize.Level1)
     rsEffectRenderNode.GetFilterRect();
     rsEffectRenderNode.childHasVisibleEffect_ = true;
     rsEffectRenderNode.GetFilterRect();
+    ASSERT_FALSE(rsEffectRenderNode.GetMutableRenderProperties().GetHaveEffectRegion());
 }
 
 /**

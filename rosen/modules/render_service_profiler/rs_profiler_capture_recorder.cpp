@@ -46,14 +46,29 @@ namespace OHOS::Rosen {
 static const Int32Parameter MSKP_COUNTER("mskp.counter");
 static const Int32Parameter MSKP_MAX("mskp.max");
 static const StringParameter MSKP_PATH("mskp.path");
+static const BoolParameter IS_MSKP("mskp.isMskp");
 
-RSCaptureRecorder::RSCaptureRecorder() = default;
+RSCaptureRecorder::RSCaptureRecorder()
+{
+    InvalidateDrawingCanvasNodeId();
+}
+
 RSCaptureRecorder::~RSCaptureRecorder() = default;
 
 bool RSCaptureRecorder::IsRecordingEnabled()
 {
     static const bool profilerEnabled = RSSystemProperties::GetProfilerEnabled();
     return profilerEnabled && RSSystemProperties::GetInstantRecording();
+}
+
+void RSCaptureRecorder::InvalidateDrawingCanvasNodeId()
+{
+    SetDrawingCanvasNodeId(INVALID_NODEID);
+}
+
+void RSCaptureRecorder::SetDrawingCanvasNodeId(uint64_t nodeId)
+{
+    drawingCanvasNodeId_ = nodeId;
 }
 
 Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
@@ -63,47 +78,67 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
     }
     if (RSSystemProperties::GetSaveRDC()) {
         // for saving .drawing file
-        recordingTriggered_ = true;
+        recordingTriggeredFullFrame_ = true;
         return TryInstantCaptureDrawing(width, height);
     }
     // for saving .mskp file
     mskpMaxLocal_ = *MSKP_MAX;
     mskpIdxNext_ = *MSKP_COUNTER;
 
-    if (mskpMaxLocal_ > 0) {
+    if (*IS_MSKP) {
         // record next frame, triggered by profiler step
-        if (mskpIdxCurrent_ != mskpIdxNext_) {
-            recordingTriggered_ = true;
+        if ((mskpIdxCurrent_ != mskpIdxNext_) && (mskpMaxLocal_ > 0)) {
+            recordingTriggeredFullFrame_ = true;
             return TryCaptureMSKP(width, height);
         }
         return nullptr;
     }
+    if (isMskpActive_) {
+        return nullptr;
+    }
     // for saving .skp file
-    recordingTriggered_ = true;
+    recordingTriggeredFullFrame_ = true;
     return TryInstantCaptureSKP(width, height);
 }
 
 void RSCaptureRecorder::EndInstantCapture()
 {
-    if (!(IsRecordingEnabled() && recordingTriggered_)) {
+    if (!(IsRecordingEnabled() && recordingTriggeredFullFrame_) && !isMskpActive_) {
         return;
     }
-    recordingTriggered_ = false;
+    recordingTriggeredFullFrame_ = false;
     if (RSSystemProperties::GetSaveRDC()) {
         // for saving .drawing file
         EndInstantCaptureDrawing();
         return;
     }
-    if (mskpMaxLocal_ > 0) {
-        if (isPageActive_) {
-            recordingTriggered_ = false;
-            return EndCaptureMSKP();
-        }
-        return;
+    if (((mskpMaxLocal_ > 0) && isPageActive_) || isMskpActive_) {
+        recordingTriggeredFullFrame_ = false;
+        return EndCaptureMSKP();
     }
 
     // for saving .skp file
-    recordingTriggered_ = false;
+    recordingTriggeredFullFrame_ = false;
+    Network::SendMessage("Finishing .skp capturing");
+    EndInstantCaptureSKP();
+}
+
+Drawing::Canvas* RSCaptureRecorder::TryDrawingCanvasCapture(float width, float height, uint64_t nodeId)
+{
+    if (drawingCanvasNodeId_ != nodeId) {
+        return nullptr;
+    }
+
+    recordingTriggeredDrawingCanvas_ = true;
+    return TryInstantCaptureSKP(width, height);
+}
+
+void RSCaptureRecorder::EndDrawingCanvasCapture()
+{
+    if (!recordingTriggeredDrawingCanvas_) {
+        return;
+    }
+    recordingTriggeredDrawingCanvas_ = false;
     EndInstantCaptureSKP();
 }
 
@@ -156,6 +191,7 @@ void RSCaptureRecorder::InitMSKP()
         openMultiPicStream_.get(), &procs, [sharingCtx = serialContext_.get()](const SkPicture* pic) {
             SkSharingSerialContext::collectNonTextureImagesFromPicture(pic, sharingCtx);
         });
+    isMskpActive_ = true;
 }
 
 ExtendRecordingCanvas* RSCaptureRecorder::TryInstantCaptureDrawing(float width, float height)
@@ -213,12 +249,13 @@ Drawing::Canvas* RSCaptureRecorder::TryInstantCaptureSKP(float width, float heig
 
 void RSCaptureRecorder::EndInstantCaptureSKP()
 {
-    Network::SendMessage("Finishing .skp capturing");
     if (skRecorder_ == nullptr) {
         RSSystemProperties::SetInstantRecording(false);
         return;
     }
+    InvalidateDrawingCanvasNodeId();
     picture_ = skRecorder_->finishRecordingAsPicture();
+    Network::SendMessage("Finishing .skp capturing.");
     if (picture_ != nullptr) {
         if (picture_->approximateOpCount() > 0) {
             Network::SendMessage("OpCount: " + std::to_string(picture_->approximateOpCount()));
@@ -231,13 +268,18 @@ void RSCaptureRecorder::EndInstantCaptureSKP()
                 Network::SendSkp(data->data(), data->size());
             }
         }
+    } else {
+        Network::SendMessage("Empty, nothing to record to .skp");
     }
+    recordingSkpCanvas_.reset();
+    skRecorder_.reset();
+
     RSSystemProperties::SetInstantRecording(false);
 }
 
 Drawing::Canvas* RSCaptureRecorder::TryCaptureMSKP(float width, float height)
 {
-    if (mskpIdxNext_ == 0) {
+    if (!isMskpActive_) {
         Network::SendMessage("Starting .mskp capturing.");
         InitMSKP();
     }
@@ -255,17 +297,20 @@ Drawing::Canvas* RSCaptureRecorder::TryCaptureMSKP(float width, float height)
 
 void RSCaptureRecorder::EndCaptureMSKP()
 {
-    Network::SendMessage("Close .mskp page: " + std::to_string(mskpIdxCurrent_));
-    multiPic_->endPage();
+    if (isPageActive_) {
+        Network::SendMessage("Close .mskp page: " + std::to_string(mskpIdxCurrent_));
+        multiPic_->endPage();
+    }
     isPageActive_ = false;
 
-    if (mskpIdxCurrent_ == mskpMaxLocal_) {
+    if (!*IS_MSKP || (mskpIdxNext_ == -1)) {
         Network::SendMessage("Finishing / Serializing .mskp capturing");
         RSSystemProperties::SetInstantRecording(false);
         // setting to default
         mskpMaxLocal_ = 0;
         mskpIdxCurrent_ = -1;
         mskpIdxNext_ = -1;
+        isMskpActive_ = false;
 
         std::thread thread([this]() mutable {
             SkFILEWStream* stream = this->openMultiPicStream_.release();

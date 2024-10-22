@@ -16,5 +16,18 @@
 #include "params/rs_render_thread_params.h"
 
 namespace OHOS::Rosen {
+std::shared_ptr<Media::PixelMap> RSRenderThreadParams::GetWatermark(const std::string& name) const
+{
+    auto iter = surfaceNodeWatermarks_.find(name);
+    if (iter != surfaceNodeWatermarks_.end()) {
+        return iter->second;
+    }
+    return nullptr;
+}
+
+void RSRenderThreadParams::SetWatermarks(std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>>& watermarks)
+{
+    surfaceNodeWatermarks_ = watermarks;
+}
 
 } // namespace OHOS::Rosen

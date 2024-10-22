@@ -72,6 +72,11 @@ bool RSSystemProperties::GetDrawOpTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
@@ -118,6 +123,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
 }
 
 bool RSSystemProperties::GetVkQueuePriorityEnable()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetAceDebugBoundaryEnabled()
 {
     return false;
 }
@@ -209,6 +219,11 @@ void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetHardCursorEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
@@ -472,6 +487,11 @@ bool RSSystemProperties::GetDrawMirrorCacheImageEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    return false;
+}
+
 SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     return SubTreePrepareCheckType::ENABLED;
@@ -517,12 +537,22 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
 {
     return false;
 }
 
+std::string RSSystemProperties::GetVersionType()
+{
+    return "";
+}
+
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
 }

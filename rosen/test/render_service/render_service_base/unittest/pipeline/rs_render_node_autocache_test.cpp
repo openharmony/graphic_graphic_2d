@@ -204,12 +204,16 @@ HWTEST_F(RSRenderNodeAutocacheTest, IsMarkedRenderGroup001, TestSize.Level1)
 HWTEST_F(RSRenderNodeAutocacheTest, OpincForcePrepareSubTree001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    bool res = renderNode.OpincForcePrepareSubTree();
+    bool autoCacheEnable = true;
+    bool res = renderNode.OpincForcePrepareSubTree(autoCacheEnable);
     EXPECT_TRUE(!res);
 
     renderNode.isSuggestOpincNode_ = true;
-    res = renderNode.OpincForcePrepareSubTree();
+    res = renderNode.OpincForcePrepareSubTree(autoCacheEnable);
     EXPECT_TRUE(res);
+    autoCacheEnable = false;
+    res = renderNode.OpincForcePrepareSubTree(autoCacheEnable);
+    EXPECT_FALSE(res);
 }
 
 /**

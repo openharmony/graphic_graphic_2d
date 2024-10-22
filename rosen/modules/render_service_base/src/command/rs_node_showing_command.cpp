@@ -153,14 +153,8 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
             continue;
         }
         auto modifier = node->GetModifier(propertyId);
-        if (!modifier) {
-            node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
-            continue;
-        }
-        property = modifier->GetProperty();
-        if (!property) {
-            node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
-            continue;
+        if (modifier) {
+            property = modifier->GetProperty();
         }
         node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
     }

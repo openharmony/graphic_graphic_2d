@@ -41,6 +41,8 @@ public:
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
     uint8_t MAX_ALPHA = 255;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceRenderNodeTwoTest::SetUpTestCase()
@@ -81,7 +83,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, ResetSurfaceOpaqueRegion03, TestSize.Level1
         static_cast<int>(std::ceil(1)), static_cast<int>(std::ceil(1)));
     surfaceRenderNode.ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadiusT);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, true, dstCornerRadius);
 }
@@ -122,6 +124,10 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, CollectSurfaceTest003, TestSize.Level1)
     renderNode->shouldPaint_ = false;
     renderNode->CollectSurface(rsBaseRenderNode, vec, false, true);
     EXPECT_FALSE(renderNode->IsLeashWindow());
+    if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
+        delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
+        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
+    }
 }
 
 /**
@@ -225,6 +231,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateSrcRectTest, TestSize.Level1)
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
     if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
         delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
+        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     }
 }
 
@@ -250,6 +257,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateHwcDisabledBySrcRectTest, TestSize.Le
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
     if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
         delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
+        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     }
 }
 
@@ -278,6 +286,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsYUVBufferFormatTest, TestSize.Level1)
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
     if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
         delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
+        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     }
 }
 
@@ -622,6 +631,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, AccumulateOcclusionRegion, TestSize.Level1)
     EXPECT_TRUE(testNode->IsSurfaceInStartingWindowStage());
     if (testNode->GetRSSurfaceHandler()->buffer_.buffer) {
         delete testNode->GetRSSurfaceHandler()->buffer_.buffer;
+        testNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     }
 }
 
@@ -716,7 +726,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, CheckParticipateInOcclusion, TestSize.Level
     node->SetAbilityBGAlpha(255);
     node->SetGlobalAlpha(1.0f);
     node->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    node->SetContainerWindow(true, 1.0f);
+    node->SetContainerWindow(true, rrect);
     node->CheckParticipateInOcclusion();
     node->isSubSurfaceNode_ = true;
     node->CheckParticipateInOcclusion();

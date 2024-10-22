@@ -56,6 +56,12 @@ void RSRenderServiceVisitorTest::SetUp()
 }
 void RSRenderServiceVisitorTest::TearDown() {}
 
+std::shared_ptr<RSRenderServiceVisitor> GetRenderServiceVisitor()
+{
+    auto visitor = std::make_shared<RSRenderServiceVisitor>();
+    EXPECT_NE(visitor, nullptr);
+    return visitor;
+}
 /*
  * @tc.name: CreateAndDestroy001
  * @tc.desc: Test RSRenderServiceVisitorTest.RSRenderServiceVisitor
@@ -64,7 +70,7 @@ void RSRenderServiceVisitorTest::TearDown() {}
  */
 HWTEST_F(RSRenderServiceVisitorTest, CreateAndDestroy001, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
 }
 
 /**
@@ -78,8 +84,8 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareChildren001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsSurfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(rsSurfaceRenderNode.GetId());
-    RSRenderServiceVisitor rsRenderServiceVisitor;
-    rsRenderServiceVisitor.PrepareChildren(rsSurfaceRenderNode);
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    rsRenderServiceVisitor->PrepareChildren(rsSurfaceRenderNode);
 }
 
 /**
@@ -91,10 +97,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareChildren001, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -106,10 +112,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode001, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -121,10 +127,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode002, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -136,10 +142,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode003, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -151,10 +157,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode004, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -166,10 +172,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode005, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode006, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -181,10 +187,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode006, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode007, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -196,10 +202,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode007, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode008, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -211,7 +217,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode008, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode009, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
     auto& property = node->GetMutableRenderProperties();
@@ -221,7 +227,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode009, TestSize.Level
     property.SetFrameHeight(0);
     auto& absGeo = (property.GetBoundsGeometry());
     absGeo->SetRotation(90);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -233,7 +239,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode009, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode010, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
     auto& property = node->GetMutableRenderProperties();
@@ -243,7 +249,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode010, TestSize.Level
     property.SetFrameHeight(0);
     auto& absGeo = (property.GetBoundsGeometry());
     absGeo->SetRotation(270);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -255,11 +261,11 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode010, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode011, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     config.isMirrored = true;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
+    rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
 /**
@@ -275,6 +281,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode012, TestSize.Level
     RSDisplayNodeConfig config;
     config.isMirrored = true;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -291,8 +298,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode013, TestSize.Level
     RSDisplayNodeConfig config;
     config.isMirrored = true;
     auto mirroredNode = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(mirroredNode, nullptr);
     RSDisplayNodeConfig config1;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(TestSrc::limitNumber::Uint64[6], config1);
+    ASSERT_NE(displayNode, nullptr);
     mirroredNode->SetMirrorSource(displayNode);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*mirroredNode);
 }
@@ -305,10 +314,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode013, TestSize.Level
  */
 HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
+    rsRenderServiceVisitor->PrepareSurfaceRenderNode(rsSurfaceRenderNode);
 }
 
 /**
@@ -319,13 +328,13 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level
  */
 HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    rsRenderServiceVisitor.isSecurityDisplay_ = true;
+    rsRenderServiceVisitor->isSecurityDisplay_ = true;
     rsSurfaceRenderNode.SetSkipLayer(true);
     ASSERT_EQ(true, rsSurfaceRenderNode.GetSkipLayer());
-    rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
+    rsRenderServiceVisitor->PrepareSurfaceRenderNode(rsSurfaceRenderNode);
 }
 
 /**
@@ -337,10 +346,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
     node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
-    rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
+    rsRenderServiceVisitor->PrepareCanvasRenderNode(node);
 }
 
 /**
@@ -352,9 +361,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode001, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
+    rsRenderServiceVisitor->PrepareCanvasRenderNode(node);
 }
 
 /**
@@ -366,9 +375,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode002, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
+    rsRenderServiceVisitor->PrepareCanvasRenderNode(node);
 }
 
 /**
@@ -380,9 +389,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode003, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
+    rsRenderServiceVisitor->PrepareCanvasRenderNode(node);
 }
 
 /**
@@ -394,9 +403,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode004, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
+    rsRenderServiceVisitor->PrepareCanvasRenderNode(node);
 }
 
 /**
@@ -408,9 +417,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode005, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode006, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
+    rsRenderServiceVisitor->PrepareCanvasRenderNode(node);
 }
 
 /**
@@ -422,9 +431,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode006, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode007, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
+    rsRenderServiceVisitor->PrepareCanvasRenderNode(node);
 }
 
 /**
@@ -436,9 +445,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode007, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode008, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
+    rsRenderServiceVisitor->PrepareCanvasRenderNode(node);
 }
 
 /**
@@ -450,9 +459,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode008, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareRootRenderNode(node);
+    rsRenderServiceVisitor->PrepareRootRenderNode(node);
 }
 
 /**
@@ -464,9 +473,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode001, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareRootRenderNode(node);
+    rsRenderServiceVisitor->PrepareRootRenderNode(node);
 }
 
 /**
@@ -478,9 +487,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode002, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareRootRenderNode(node);
+    rsRenderServiceVisitor->PrepareRootRenderNode(node);
 }
 
 /**
@@ -492,9 +501,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode003, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareRootRenderNode(node);
+    rsRenderServiceVisitor->PrepareRootRenderNode(node);
 }
 
 /**
@@ -506,9 +515,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode004, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareRootRenderNode(node);
+    rsRenderServiceVisitor->PrepareRootRenderNode(node);
 }
 
 /**
@@ -520,9 +529,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode005, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode006, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareRootRenderNode(node);
+    rsRenderServiceVisitor->PrepareRootRenderNode(node);
 }
 
 /**
@@ -534,9 +543,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode006, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode007, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareRootRenderNode(node);
+    rsRenderServiceVisitor->PrepareRootRenderNode(node);
 }
 
 /**
@@ -548,9 +557,9 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode007, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode008, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.PrepareRootRenderNode(node);
+    rsRenderServiceVisitor->PrepareRootRenderNode(node);
 }
 
 /**
@@ -561,10 +570,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode008, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren001, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    rsRenderServiceVisitor.ProcessChildren(rsSurfaceRenderNode);
+    rsRenderServiceVisitor->ProcessChildren(rsSurfaceRenderNode);
 }
 
 /*
@@ -577,8 +586,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren002, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
     RSSurfaceRenderNodeConfig config;
-    RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    rsRenderServiceVisitor.ProcessChildren(rsSurfaceRenderNode);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsRenderServiceVisitor.ProcessChildren(*rsSurfaceRenderNode);
 }
 
 /**
@@ -590,11 +600,11 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren002, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(node->GetId());
-    rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
+    rsRenderServiceVisitor->ProcessDisplayRenderNode(*node);
 }
 
 /**
@@ -606,11 +616,11 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode001, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(node->GetId());
-    rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
+    rsRenderServiceVisitor->ProcessDisplayRenderNode(*node);
 }
 
 /**
@@ -622,10 +632,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode002, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
+    rsRenderServiceVisitor->ProcessDisplayRenderNode(*node);
 }
 
 /**
@@ -637,10 +647,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode003, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
+    rsRenderServiceVisitor->ProcessDisplayRenderNode(*node);
 }
 
 /**
@@ -652,10 +662,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode004, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
+    rsRenderServiceVisitor->ProcessDisplayRenderNode(*node);
 }
 
 /**
@@ -667,10 +677,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode005, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode006, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
+    rsRenderServiceVisitor->ProcessDisplayRenderNode(*node);
 }
 
 /**
@@ -682,10 +692,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode006, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode007, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
+    rsRenderServiceVisitor->ProcessDisplayRenderNode(*node);
 }
 
 /**
@@ -697,10 +707,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode007, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode008, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
-    rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
+    rsRenderServiceVisitor->ProcessDisplayRenderNode(*node);
 }
 
 /**
@@ -714,8 +724,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode009, TestSize.Level
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
     auto screenManager = CreateOrGetScreenManager();
-
+    ASSERT_NE(screenManager, nullptr);
     auto rsScreen = std::make_unique<impl::RSScreen>(0, false, HdiOutput::CreateHdiOutput(0), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
@@ -740,7 +751,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode010, TestSize.Level
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
     auto screenManager = CreateOrGetScreenManager();
-
+    ASSERT_NE(screenManager, nullptr);
 
     auto rsScreen = std::make_unique<impl::RSScreen>(0, false, HdiOutput::CreateHdiOutput(0), nullptr);
     auto csurface = IConsumerSurface::Create();
@@ -767,10 +778,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode010, TestSize.Level
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    rsRenderServiceVisitor->ProcessSurfaceRenderNode(rsSurfaceRenderNode);
 }
 
 /**
@@ -781,12 +792,12 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
-    rsRenderServiceVisitor.processor_ =
+    rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+    rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -797,14 +808,14 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
-    rsRenderServiceVisitor.processor_ =
+    rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsRenderServiceVisitor.isSecurityDisplay_ = true;
+    rsRenderServiceVisitor->isSecurityDisplay_ = true;
     rsSurfaceRenderNode->SetSecurityLayer(true);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+    rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -815,13 +826,13 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
-    rsRenderServiceVisitor.processor_ =
+    rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
     rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+    rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -832,14 +843,14 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
-    rsRenderServiceVisitor.processor_ =
+    rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
     rsSurfaceRenderNode->SetSkipLayer(true);
     ASSERT_EQ(true, rsSurfaceRenderNode->GetSkipLayer());
-    rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+    rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
 /**
@@ -851,9 +862,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
+    rsRenderServiceVisitor->ProcessCanvasRenderNode(node);
 }
 
 /**
@@ -865,9 +876,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode001, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
+    rsRenderServiceVisitor->ProcessCanvasRenderNode(node);
 }
 
 /**
@@ -879,9 +890,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode002, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
+    rsRenderServiceVisitor->ProcessCanvasRenderNode(node);
 }
 
 /**
@@ -893,9 +904,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode003, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
+    rsRenderServiceVisitor->ProcessCanvasRenderNode(node);
 }
 
 /**
@@ -907,9 +918,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode004, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
+    rsRenderServiceVisitor->ProcessCanvasRenderNode(node);
 }
 
 /**
@@ -921,9 +932,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode005, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode006, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
+    rsRenderServiceVisitor->ProcessCanvasRenderNode(node);
 }
 
 /**
@@ -935,9 +946,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode006, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode007, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
+    rsRenderServiceVisitor->ProcessCanvasRenderNode(node);
 }
 
 /**
@@ -949,9 +960,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode007, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode008, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSCanvasRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
+    rsRenderServiceVisitor->ProcessCanvasRenderNode(node);
 }
 
 /**
@@ -963,9 +974,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode008, TestSize.Level1
 HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessRootRenderNode(node);
+    rsRenderServiceVisitor->ProcessRootRenderNode(node);
 }
 
 /**
@@ -977,9 +988,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode001, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessRootRenderNode(node);
+    rsRenderServiceVisitor->ProcessRootRenderNode(node);
 }
 
 /**
@@ -991,9 +1002,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode002, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessRootRenderNode(node);
+    rsRenderServiceVisitor->ProcessRootRenderNode(node);
 }
 
 /**
@@ -1005,9 +1016,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode003, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessRootRenderNode(node);
+    rsRenderServiceVisitor->ProcessRootRenderNode(node);
 }
 
 /**
@@ -1019,9 +1030,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode004, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessRootRenderNode(node);
+    rsRenderServiceVisitor->ProcessRootRenderNode(node);
 }
 
 /**
@@ -1033,9 +1044,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode005, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode006, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessRootRenderNode(node);
+    rsRenderServiceVisitor->ProcessRootRenderNode(node);
 }
 
 /**
@@ -1047,9 +1058,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode006, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode007, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessRootRenderNode(node);
+    rsRenderServiceVisitor->ProcessRootRenderNode(node);
 }
 
 /**
@@ -1061,9 +1072,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode007, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    RSRenderServiceVisitor rsRenderServiceVisitor;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSRootRenderNode node(nodeId);
-    rsRenderServiceVisitor.ProcessRootRenderNode(node);
+    rsRenderServiceVisitor->ProcessRootRenderNode(node);
 }
 
 /**
@@ -1074,8 +1085,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceVisitorTest, SetAnimateState, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
-    rsRenderServiceVisitor.SetAnimateState(true);
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    rsRenderServiceVisitor->SetAnimateState(true);
+    ASSERT_TRUE(rsRenderServiceVisitor->doAnimate_);
 }
 
 /**
@@ -1086,7 +1098,7 @@ HWTEST_F(RSRenderServiceVisitorTest, SetAnimateState, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceVisitorTest, ShouldForceSerial, TestSize.Level1)
 {
-    RSRenderServiceVisitor rsRenderServiceVisitor;
-    ASSERT_EQ(false, rsRenderServiceVisitor.ShouldForceSerial());
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    ASSERT_EQ(false, rsRenderServiceVisitor->ShouldForceSerial());
 }
 } // namespace OHOS::Rosen

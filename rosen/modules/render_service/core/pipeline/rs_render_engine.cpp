@@ -31,6 +31,10 @@ constexpr float GAMMA2_2 = 2.2f;
 void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
     BufferDrawParam& params, PreProcessFunc preProcess, PostProcessFunc postProcess)
 {
+    if (!params.useCPU) {
+        RegisterDeleteBufferListener(node.GetRSSurfaceHandler()->GetConsumer());
+    }
+
     auto nodePreProcessFunc = [&preProcess, &node](RSPaintFilterCanvas& canvas, BufferDrawParam& params) {
         // call the preprocess func passed in first.
         if (preProcess != nullptr) {
@@ -105,7 +109,8 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
 #ifdef USE_VIDEO_PROCESSING_ENGINE
             params.tmoNits = layer->GetDisplayNit();
             params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
-            if (!node.GetRSSurfaceHandler() && !CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer())) {
+            if (node.GetRSSurfaceHandler() != nullptr &&
+                !CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer())) {
                 params.brightnessRatio = layer->GetBrightnessRatio();
             } else {
                 params.isHdrRedraw = true;

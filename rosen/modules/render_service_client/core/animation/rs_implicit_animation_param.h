@@ -63,13 +63,13 @@ public:
     ~RSImplicitCancelAnimationParam() override = default;
 
     void AddPropertyToPendingSyncList(const std::shared_ptr<RSPropertyBase>& property);
-    void SyncProperties();
+    bool SyncProperties();
 
     std::shared_ptr<RSAnimation> CreateEmptyAnimation(std::shared_ptr<RSPropertyBase> property,
         const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
 
 private:
-    void ExecuteSyncPropertiesTask(
+    bool ExecuteSyncPropertiesTask(
         RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService);
     std::vector<std::shared_ptr<RSPropertyBase>> pendingSyncList_;
 };

@@ -143,6 +143,16 @@ const RSLayerInfo& RSSurfaceRenderParams::GetLayerInfo() const
     return layerInfo_;
 }
 
+void RSSurfaceRenderParams::SetHidePrivacyContent(bool needHidePrivacyContent)
+{
+    needHidePrivacyContent_ = needHidePrivacyContent;
+}
+
+bool RSSurfaceRenderParams::GetHidePrivacyContent() const
+{
+    return needHidePrivacyContent_;
+}
+
 void RSSurfaceRenderParams::SetHardwareEnabled(bool enabled)
 {
     if (isHardwareEnabled_ == enabled) {
@@ -155,6 +165,20 @@ void RSSurfaceRenderParams::SetHardwareEnabled(bool enabled)
 bool RSSurfaceRenderParams::GetHardwareEnabled() const
 {
     return isHardwareEnabled_;
+}
+
+void RSSurfaceRenderParams::SetHardCursorEnabled(bool enabled)
+{
+    if (isHardCursorEnabled_ == enabled) {
+        return;
+    }
+    isHardCursorEnabled_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsHardCursorEnabled() const
+{
+    return isHardCursorEnabled_;
 }
 
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
@@ -338,6 +362,16 @@ bool RSSurfaceRenderParams::IsSubSurfaceNode() const
     return isSubSurfaceNode_;
 }
 
+void RSSurfaceRenderParams::SetGlobalPositionEnabled(bool isEnabled)
+{
+    isGlobalPositionEnabled_ = isEnabled;
+}
+
+bool RSSurfaceRenderParams::GetGlobalPositionEnabled() const
+{
+    return isGlobalPositionEnabled_;
+}
+
 void RSSurfaceRenderParams::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
 {
     isNodeToBeCaptured_ = isNodeToBeCaptured;
@@ -372,32 +406,20 @@ bool RSSurfaceRenderParams::IsLayerTop() const
     return isLayerTop_;
 }
 
-void RSSurfaceRenderParams::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
-{
-    auto iter = watermarkHandles_.find(name);
-    if (iter == watermarkHandles_.end()) {
-        std::tie(iter, std::ignore) = watermarkHandles_.insert({name, {false, nullptr}});
-    }
-    (iter->second).second = watermark;
-}
-
 void RSSurfaceRenderParams::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
-    auto iter = watermarkHandles_.find(name);
-    if (iter == watermarkHandles_.end()) {
-        return;
-    }
-    (iter->second).first = isEnabled;
+    watermarkHandles_[name] = isEnabled;
+    needSync_ = true;
 }
 
-std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> RSSurfaceRenderParams::GetWatermark() const
+const std::unordered_map<std::string, bool>& RSSurfaceRenderParams::GetWatermarksEnabled() const
 {
     return watermarkHandles_;
 }
 
-size_t RSSurfaceRenderParams::GetWatermarkSize() const
+bool RSSurfaceRenderParams::IsWatermarkEmpty() const
 {
-    return watermarkHandles_.size();
+    return watermarkHandles_.empty();
 }
 
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -444,6 +466,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->isHardCursorEnabled_ = isHardCursorEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
@@ -453,16 +476,17 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
+    targetSurfaceParams->leashPersistentId_ = leashPersistentId_;
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->animateState_ = animateState_;
     targetSurfaceParams->isRotating_ = isRotating_;
-    targetSurfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->snapshotSkipLayerIds_= snapshotSkipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
+    targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
     targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;
@@ -471,10 +495,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->overDrawBufferNodeCornerRadius_ = overDrawBufferNodeCornerRadius_;
     targetSurfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
+    targetSurfaceParams->isGlobalPositionEnabled_ = isGlobalPositionEnabled_;
     targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
     targetSurfaceParams->dstRect_ = dstRect_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
+    targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->preScalingMode_ = preScalingMode_;
@@ -489,6 +515,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->sdrNit_ = sdrNit_;
     targetSurfaceParams->displayNit_ = displayNit_;
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
+    targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
+    targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
     RSRenderParams::OnSync(target);
 }
 
@@ -528,6 +556,20 @@ void RSSurfaceRenderParams::SetOpaqueRegion(const Occlusion::Region& opaqueRegio
 const Occlusion::Region& RSSurfaceRenderParams::GetOpaqueRegion() const
 {
     return opaqueRegion_;
+}
+
+void RSSurfaceRenderParams::SetNeedCacheSurface(bool needCacheSurface)
+{
+    if (needCacheSurface_ == needCacheSurface) {
+        return;
+    }
+    needCacheSurface_ = needCacheSurface;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetNeedCacheSurface() const
+{
+    return needCacheSurface_;
 }
 
 } // namespace OHOS::Rosen

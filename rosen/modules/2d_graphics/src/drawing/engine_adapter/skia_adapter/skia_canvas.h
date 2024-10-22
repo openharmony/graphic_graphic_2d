@@ -49,7 +49,7 @@ public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
 
     SkiaCanvas();
-    SkiaCanvas(DrawingType type);
+    explicit SkiaCanvas(DrawingType type);
     explicit SkiaCanvas(const std::shared_ptr<SkCanvas>& skCanvas);
     SkiaCanvas(int32_t width, int32_t height);
     ~SkiaCanvas() override {};
@@ -65,7 +65,7 @@ public:
     Rect GetLocalClipBounds() const override;
     RectI GetDeviceClipBounds() const override;
     RectI GetRoundInDeviceClipBounds() const override;
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<GPUContext> GetGPUContext() const override;
 #endif
     int32_t GetWidth() const override;

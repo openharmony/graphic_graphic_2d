@@ -20,12 +20,18 @@
 namespace OHOS::Rosen {
 ContextBase::~ContextBase()
 {
-    TEXT_LOGI("no memory leak after callback or promise[resolved/rejected]");
+    TEXT_LOGI("No memory leak after callback or promise[resolved/rejected]");
     TEXT_CHECK(env != nullptr, return);
-    TEXT_CHECK(work == nullptr, napi_delete_async_work(env, work));
-    TEXT_CHECK(callbackRef == nullptr, napi_delete_reference(env, callbackRef));
+    TEXT_CHECK(work == nullptr, status = napi_delete_async_work(env, work));
+    TEXT_ERROR_CHECK(status == napi_ok, return, "Failed to delete async work, status:%{public}d",
+        static_cast<int>(status));
+    TEXT_CHECK(callbackRef == nullptr, status = napi_delete_reference(env, callbackRef));
+    TEXT_ERROR_CHECK(status == napi_ok, return, "Failed to delete callback reference, status:%{public}d",
+        static_cast<int>(status));
+    TEXT_CHECK(selfRef == nullptr, status = napi_delete_reference(env, selfRef));
+    TEXT_ERROR_CHECK(status == napi_ok, return, "Failed to delete self reference, status:%{public}d",
+        static_cast<int>(status));
 
-    napi_delete_reference(env, selfRef);
     env = nullptr;
     callbackRef = nullptr;
     selfRef = nullptr;
@@ -37,117 +43,148 @@ void ContextBase::GetCbInfo(napi_env envi, napi_callback_info info, NapiCbInfoPa
     size_t argc = ARGC_MAX;
     napi_value argv[ARGC_MAX] = {nullptr};
     status = napi_get_cb_info(env, info, &argc, argv, &self, nullptr);
-    NAPI_CHECK_ARGS_RETURN_VOID(this, status == napi_ok, status, "napi_get_cb_info failed", TextErrorCode::ERROR);
-    NAPI_CHECK_ARGS_RETURN_VOID(this, argc <= ARGC_MAX, status, "too many arguments",
-        TextErrorCode::ERROR_INVALID_PARAM);
-    NAPI_CHECK_ARGS_RETURN_VOID(this, self, status, "no JavaScript this argument",
-        TextErrorCode::ERROR_INVALID_PARAM);
+    NAPI_CHECK_ARGS(this, status == napi_ok, status, TextErrorCode::ERROR, return,
+        "Failed to get callback info, status:%d", static_cast<int>(status));
+    NAPI_CHECK_ARGS(this, argc <= ARGC_MAX, status, TextErrorCode::ERROR_INVALID_PARAM, return,
+        "Too many arguments %zu", argc);
+    NAPI_CHECK_ARGS(this, self, status, TextErrorCode::ERROR_INVALID_PARAM, return,
+        "There is no JavaScript for this parameter");
 
-    napi_create_reference(env, self, 1, &selfRef);
+    status = napi_create_reference(env, self, 1, &selfRef);
+    NAPI_CHECK_ARGS(this, status == napi_ok, status, TextErrorCode::ERROR, return,
+        "Failed to create reference, status:%d", static_cast<int>(status));
 
     status = napi_unwrap(env, self, &native);
-    NAPI_CHECK_ARGS_RETURN_VOID(this, status == napi_ok, status, "self unwrap failed", TextErrorCode::ERROR);
+    NAPI_CHECK_ARGS(this, status == napi_ok, status, TextErrorCode::ERROR, return,
+        "Failed to unwrap self, status:%d", static_cast<int>(status));
 
     if (!sync && (argc > 0)) {
         // get the last arguments :: <callback>
         size_t index = argc - 1;
         napi_valuetype type = napi_undefined;
-        napi_status tyst = napi_typeof(env, argv[index], &type);
-        if ((tyst == napi_ok) && (type == napi_function)) {
+        napi_status typeStatus = napi_typeof(env, argv[index], &type);
+        if ((typeStatus == napi_ok) && (type == napi_function)) {
             status = napi_create_reference(env, argv[index], 1, &callbackRef);
-            NAPI_CHECK_ARGS_RETURN_VOID(this, status == napi_ok, status, "ref callback failed", TextErrorCode::ERROR);
+            NAPI_CHECK_ARGS(this, status == napi_ok, status, TextErrorCode::ERROR, return,
+                "Failed to get callback ref, status:%d", static_cast<int>(status));
             argc = index;
-            TEXT_LOGD("async callback, no promise");
+            TEXT_LOGD("Async callback, no promise");
         } else {
-            TEXT_LOGD("no callback, async promise");
+            TEXT_LOGD("No callback, async promise");
         }
     }
 
     if (parser) {
         parser(argc, argv);
     } else {
-        NAPI_CHECK_ARGS_RETURN_VOID(this, argc == 0, status, "required no arguments",
-            TextErrorCode::ERROR_INVALID_PARAM);
+        NAPI_CHECK_ARGS(this, argc == 0, status, TextErrorCode::ERROR_INVALID_PARAM, return,
+            "Required no arguments");
     }
 }
 
-napi_value NapiAsyncWork::Enqueue(napi_env env, std::shared_ptr<ContextBase> contextBase, const std::string& name,
+napi_value NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBase, const std::string& name,
                                   NapiAsyncExecute execute, NapiAsyncComplete complete)
 {
-    TEXT_ERROR_CHECK(contextBase, return nullptr, "NapiAsyncWork::Enqueue contextBase nullptr");
+    TEXT_ERROR_CHECK(contextBase, return nullptr, "Context is null");
     contextBase->execute = std::move(execute);
     contextBase->complete = std::move(complete);
     napi_value promise = nullptr;
+    napi_status stat = napi_invalid_arg;
     if (contextBase->callbackRef == nullptr) {
-        napi_create_promise(contextBase->env, &contextBase->deferred, &promise);
+        stat = napi_create_promise(contextBase->env, &contextBase->deferred, &promise);
+        NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return nullptr,
+            "Failed to create promise, stat:%d", static_cast<int>(stat));
     } else {
-        napi_get_undefined(contextBase->env, &promise);
+        stat = napi_get_undefined(contextBase->env, &promise);
+        NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return nullptr,
+            "Failed to get undefined, stat:%d", static_cast<int>(stat));
     }
 
+    contextBase->IncStrongRef(nullptr);
     napi_value resource = nullptr;
-    napi_create_string_utf8(contextBase->env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
-    napi_create_async_work(
+    stat = napi_create_string_utf8(contextBase->env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
+    NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return promise,
+        "Failed to create string, stat:%d", static_cast<int>(stat));
+    stat = napi_create_async_work(
         contextBase->env, nullptr, resource,
         [](napi_env env, void* data) {
-            TEXT_ERROR_CHECK(data, return, "NapiAsyncWork::Enqueue napi_async_execute_callback nullptr");
-            auto contextBase = reinterpret_cast<ContextBase*>(data);
+            TEXT_ERROR_CHECK(data, return, "Data is null");
+            sptr<ContextBase> contextBase(static_cast<ContextBase *>(data));
             if (contextBase && contextBase->execute && contextBase->status == napi_ok) {
                 contextBase->execute();
             }
         },
         [](napi_env env, napi_status status, void* data) {
-            TEXT_ERROR_CHECK(data, return, "NapiAsyncWork::Enqueue napi_async_complete_callback nullptr");
-            auto contextBase = reinterpret_cast<ContextBase*>(data);
-            TEXT_ERROR_CHECK(contextBase, return, "contextBase nullptr");
-
+            TEXT_ERROR_CHECK(data, return, "Data is null");
+            sptr<ContextBase> contextBase(static_cast<ContextBase *>(data));
+            TEXT_ERROR_CHECK(contextBase, return, "Context is null");
             if ((status != napi_ok) && contextBase && (contextBase->status == napi_ok)) {
                 contextBase->status = status;
             }
             if (contextBase && (contextBase->complete) && (status == napi_ok) && (contextBase->status == napi_ok)) {
                 contextBase->complete(contextBase->output);
             }
-            GenerateOutput(*contextBase);
+            GenerateOutput(contextBase);
         },
-        reinterpret_cast<void*>(contextBase.get()), &contextBase->work);
-    napi_queue_async_work_with_qos(contextBase->env, contextBase->work, napi_qos_user_initiated);
-    contextBase->hold = contextBase; // save crossing-thread contextBase.
+        reinterpret_cast<void*>(contextBase.GetRefPtr()), &contextBase->work);
+    NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return promise,
+        "Failed to create async work, stat:%d", static_cast<int>(stat));
+
+    stat = napi_queue_async_work_with_qos(contextBase->env, contextBase->work, napi_qos_user_initiated);
+    NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return promise,
+        "Failed to queue async work, stat:%d", static_cast<int>(stat));
     return promise;
 }
 
-void NapiAsyncWork::GenerateOutput(ContextBase& contextBase)
+void NapiAsyncWork::GenerateOutput(sptr<ContextBase> contextBase)
 {
+    TEXT_ERROR_CHECK(contextBase, return, "Context is null");
     napi_value result[RESULT_ALL] = {nullptr};
-    if (contextBase.status == napi_ok) {
-        napi_get_undefined(contextBase.env, &result[RESULT_ERROR]);
-        if (contextBase.output == nullptr) {
-            napi_get_undefined(contextBase.env, &contextBase.output);
+    napi_status stat = napi_invalid_arg;
+    if (contextBase->status == napi_ok) {
+        stat = napi_get_undefined(contextBase->env, &result[RESULT_ERROR]);
+        TEXT_CHECK(stat == napi_ok, TEXT_LOGD("Failed to assign result, stat:%d", static_cast<int>(stat)));
+        if (contextBase->output == nullptr) {
+            stat = napi_get_undefined(contextBase->env, &contextBase->output);
+            TEXT_CHECK(stat == napi_ok, TEXT_LOGD("Failed to assign output, stat:%d", static_cast<int>(stat)));
         }
-        result[RESULT_DATA] = contextBase.output;
+        result[RESULT_DATA] = contextBase->output;
     } else {
         napi_value message = nullptr;
         napi_value code = nullptr;
-        napi_create_string_utf8(contextBase.env, contextBase.errMessage.c_str(), NAPI_AUTO_LENGTH, &message);
-        napi_create_error(contextBase.env, nullptr, message, &result[RESULT_ERROR]);
-        napi_create_int32(contextBase.env, contextBase.errCode, &code);
-        napi_set_named_property(contextBase.env, result[RESULT_ERROR], "code", code);
-        napi_get_undefined(contextBase.env, &result[RESULT_DATA]);
+        stat = napi_create_string_utf8(contextBase->env, contextBase->errMessage.c_str(), NAPI_AUTO_LENGTH, &message);
+        TEXT_CHECK(stat == napi_ok, TEXT_LOGD("Failed to create string, stat:%d", static_cast<int>(stat)));
+        stat = napi_create_error(contextBase->env, nullptr, message, &result[RESULT_ERROR]);
+        TEXT_CHECK(stat == napi_ok, TEXT_LOGD("Failed to create error, stat:%d", static_cast<int>(stat)));
+        stat = napi_create_int32(contextBase->env, contextBase->errCode, &code);
+        TEXT_CHECK(stat == napi_ok, TEXT_LOGD("Failed to assign errCode, stat:%d", static_cast<int>(stat)));
+        stat = napi_set_named_property(contextBase->env, result[RESULT_ERROR], "code", code);
+        TEXT_CHECK(stat == napi_ok, TEXT_LOGD("Failed to set named property, stat:%d", static_cast<int>(stat)));
+        stat = napi_get_undefined(contextBase->env, &result[RESULT_DATA]);
+        TEXT_CHECK(stat == napi_ok, TEXT_LOGD("Failed to assign data, stat:%d", static_cast<int>(stat)));
     }
-    if (contextBase.deferred != nullptr) {
-        if (contextBase.status == napi_ok) {
-            TEXT_LOGD("deferred promise resolved");
-            napi_resolve_deferred(contextBase.env, contextBase.deferred, result[RESULT_DATA]);
+    if (contextBase->deferred != nullptr) {
+        if (contextBase->status == napi_ok) {
+            stat = napi_resolve_deferred(contextBase->env, contextBase->deferred, result[RESULT_DATA]);
+            TEXT_CHECK(stat == napi_ok, TEXT_LOGE("Failed to resolve a deferred promise, stat:%d",
+                static_cast<int>(stat)));
         } else {
-            TEXT_LOGD("deferred promise rejected");
-            napi_reject_deferred(contextBase.env, contextBase.deferred, result[RESULT_ERROR]);
+            stat = napi_reject_deferred(contextBase->env, contextBase->deferred, result[RESULT_ERROR]);
+            TEXT_CHECK(stat == napi_ok, TEXT_LOGE("Failed to reject a deferred promise, stat:%d",
+                static_cast<int>(stat)));
         }
     } else {
         napi_value callback = nullptr;
-        napi_get_reference_value(contextBase.env, contextBase.callbackRef, &callback);
+        stat = napi_get_reference_value(contextBase->env, contextBase->callbackRef, &callback);
+        TEXT_CHECK(stat == napi_ok, TEXT_LOGE("Failed to get reference value, stat:%d",
+            static_cast<int>(stat)));
         napi_value callbackResult = nullptr;
-        TEXT_LOGD("call callback function");
-        napi_call_function(contextBase.env, nullptr, callback, RESULT_ALL, result, &callbackResult);
+        stat = napi_call_function(contextBase->env, nullptr, callback, RESULT_ALL, result, &callbackResult);
+        TEXT_CHECK(stat == napi_ok, TEXT_LOGE("Failed to call callback function, stat:%d", static_cast<int>(stat)));
     }
-
-    contextBase.hold.reset(); // release contextBase.
+    int count = contextBase->GetSptrRefCount();
+    for (int i = 0; i < count - 1; ++i) {
+        contextBase->DecStrongRef(nullptr);
+    }
 }
 }

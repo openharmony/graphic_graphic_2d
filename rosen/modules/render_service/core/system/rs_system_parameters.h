@@ -19,6 +19,7 @@
 #include <atomic>
 #include <string>
 #include <vector>
+#include <surface_type.h>
 
 #include "common/rs_macros.h"
 
@@ -74,6 +75,7 @@ public:
     static bool GetUIFirstDmaBufferEnabled();
     static bool GetTcacheEnabled();
     static int GetDumpCanvasDrawingNodeEnabled();
+    static bool IsNeedScRGBForP3(const GraphicColorGamut& currentGamut);
 };
 
 } // namespace Rosen

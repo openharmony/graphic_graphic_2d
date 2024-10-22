@@ -166,6 +166,54 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SkipFrameTest008
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 55
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest008, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 55; // skipFrameInterval 55
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest009
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 45
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest009, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 45; // skipFrameInterval 45
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_TRUE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest010
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 25
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest010, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 25; // skipFrameInterval 25
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_TRUE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
  * @tc.name: SetMirrorSourceTest
  * @tc.desc: test results of SetMirrorSource
  * @tc.type:FUNC

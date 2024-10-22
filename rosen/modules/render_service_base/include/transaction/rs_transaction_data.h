@@ -179,8 +179,6 @@ private:
 
     bool UnmarshallingCommand(Parcel& parcel);
 
-    void ClearCommandMap();
-    void InsertCommandToMap(NodeId nodeId, std::pair<uint16_t, uint16_t> commandType);
     std::string PrintCommandMapDesc(
         const std::unordered_map<NodeId, std::set<std::pair<uint16_t, uint16_t>>>& commandTypeMap) const;
 
@@ -198,11 +196,10 @@ private:
     uint64_t syncId_ { 0 };
     static std::function<void(uint64_t, int, int)> alarmLogFunc;
     mutable std::mutex commandMutex_;
-    std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<std::pair<uint16_t, uint16_t>>>> pidToCommandMap_;
-    mutable std::mutex pidToCommandMapMutex_;
 
     friend class RSTransactionProxy;
     friend class RSMessageProcessor;
+    friend class RSMainThread;
 };
 using TransactionDataMap = std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>>;
 } // namespace Rosen

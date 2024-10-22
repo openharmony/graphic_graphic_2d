@@ -30,7 +30,7 @@ bool Surface::Bind(const Bitmap& bitmap)
     return impl_->Bind(bitmap);
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 bool Surface::Bind(const Image& image)
 {
     return impl_->Bind(image);

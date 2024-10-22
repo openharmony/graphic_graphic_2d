@@ -324,33 +324,40 @@ bool GenerateCachedOpItemPlayer::GenerateCachedOpItem(uint32_t type, void* handl
 }
 
 /* UnmarshallingPlayer */
-std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc>*
-    UnmarshallingPlayer::opUnmarshallingFuncLUT_ = nullptr;
-
-bool UnmarshallingPlayer::RegisterUnmarshallingFunc(uint32_t type, UnmarshallingPlayer::UnmarshallingFunc func)
+UnmarshallingHelper& UnmarshallingHelper::Instance()
 {
-    if (!opUnmarshallingFuncLUT_) {
-        static std::unordered_map<uint32_t, UnmarshallingPlayer::UnmarshallingFunc> opUnmarshallingFuncLUT = {};
-        opUnmarshallingFuncLUT_ = &opUnmarshallingFuncLUT;
+    static UnmarshallingHelper instance;
+    return instance;
+}
+
+bool UnmarshallingHelper::RegisterFunc(uint32_t type, UnmarshallingHelper::UnmarshallingFunc func)
+{
+    std::unique_lock lck(mtx_);
+    return opUnmarshallingFuncLUT_.emplace(type, func).second;
+}
+
+UnmarshallingHelper::UnmarshallingFunc UnmarshallingHelper::GetFunc(uint32_t type)
+{
+    std::shared_lock lck(mtx_);
+    auto it = opUnmarshallingFuncLUT_.find(type);
+    if (it == opUnmarshallingFuncLUT_.end()) {
+        return nullptr;
     }
-    std::unique_lock<std::mutex> lock(UnmarshallingFuncMapMutex_);
-    return opUnmarshallingFuncLUT_->emplace(type, func).second;
+    return it->second;
 }
 
 UnmarshallingPlayer::UnmarshallingPlayer(const DrawCmdList& cmdList) : cmdList_(cmdList) {}
 
 std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, void* handle)
 {
-    if (type == DrawOpItem::OPITEM_HEAD || !opUnmarshallingFuncLUT_) {
+    if (type == DrawOpItem::OPITEM_HEAD) {
         return nullptr;
     }
 
-    auto it = opUnmarshallingFuncLUT_->find(type);
-    if (it == opUnmarshallingFuncLUT_->end() || it->second == nullptr) {
+    const auto& func = UnmarshallingHelper::Instance().GetFunc(type);
+    if (func == nullptr) {
         return nullptr;
     }
-
-    auto func = it->second;
     return (*func)(this->cmdList_, handle);
 }
 
@@ -791,7 +798,7 @@ void DrawShadowStyleOpItem::Marshalling(DrawCmdList& cmdList)
 void DrawShadowStyleOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
     if (path_ == nullptr) {
-        LOGD("DrawShadowOpItem path is null!");
+        LOGD("DrawShadowStyleOpItem path is null!");
         return;
     }
     canvas->DrawShadowStyle(
@@ -1543,7 +1550,9 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         canvas->Save();
         canvas->SetMatrix(m);
         auto bounds = textBlob_->Bounds();
-        canvas->ClipRect(*bounds, ClipOp::INTERSECT, true);
+        if (bounds && bounds->IsValid()) {
+            canvas->ClipRect(*bounds, ClipOp::INTERSECT, true);
+        }
         saveFlag = true;
     }
     if (canvas->isHighContrastEnabled()) {
@@ -1621,7 +1630,8 @@ void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas, bool offScreen) const
     // draw outline stroke with pen
     Drawing::Pen outlinePen;
     outlinePen.SetColor(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK);
-    outlinePen.SetAntiAlias(false);
+    outlinePen.SetAntiAlias(true);
+    outlinePen.SetBlenderEnabled(false);
     canvas->AttachPen(outlinePen);
     offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 

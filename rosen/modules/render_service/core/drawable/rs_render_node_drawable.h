@@ -142,6 +142,10 @@ protected:
     thread_local static inline int opincRootTotalCount_ = 0;
     static inline RectI screenRectInfo_ = {0, 0, 0, 0};
 
+    static inline int32_t offsetX_ = 0;
+    static inline int32_t offsetY_ = 0;
+    static inline ScreenId curDisplayScreenId_ = INVALID_SCREEN_ID;
+
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
     DrawableCacheType GetCacheType() const;
@@ -149,7 +153,7 @@ protected:
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId,
-        bool isHdrOn = false);
+        bool isNeedFP16 = false);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
     void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
@@ -191,6 +195,17 @@ private:
     void NodeCacheStateDisable();
     bool BeforeDrawCacheProcessChildNode(NodeStrategyType& cacheStragy, RSRenderParams& params);
     void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params, bool& isOpincDropNodeExt);
+    void DrawWithoutNodeGroupCache(
+        Drawing::Canvas& canvas, const RSRenderParams& params, DrawableCacheType originalCacheType);
+    void DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params);
+
+    void CheckRegionAndDrawWithoutFilter(
+        const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params);
+    void CheckRegionAndDrawWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
+        const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params);
+    bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
+        const std::vector<FilterNodeInfo>& filterInfoVec,
+        Drawing::RectI& dstRect);
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;

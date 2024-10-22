@@ -42,6 +42,7 @@ public:
 
     bool Animate(int64_t time, int64_t vsyncPeriod = 0);
     void Draw();
+    bool HasFirstFrameAnimation();
 
     void SetFrameRateGetFunc(const FrameRateGetFunc& func);
     const FrameRateRange GetFrameRateRange() const;
@@ -66,6 +67,7 @@ private:
 
     RSAnimationRateDecider rateDecider_;
     FrameRateGetFunc frameRateGetFunc_;
+    bool hasFirstFrameAnimation_ = false;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderDisplaySync>> displaySyncs_;
     bool isDisplaySyncEnabled_ = false;

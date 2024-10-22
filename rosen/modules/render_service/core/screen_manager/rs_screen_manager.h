@@ -188,9 +188,14 @@ public:
 
     virtual uint32_t GetActualScreensNum() const = 0;
 
+    virtual ScreenInfo GetActualScreenMaxResolution() const = 0;
+
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual ScreenId GetActiveScreenId() = 0;
+
+    virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
+
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 
@@ -359,6 +364,8 @@ public:
 
     uint32_t GetActualScreensNum() const override;
 
+    ScreenInfo GetActualScreenMaxResolution() const override;
+
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
@@ -391,6 +398,8 @@ public:
     int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
 
     ScreenId GetActiveScreenId() override;
+
+    int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
 
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
@@ -434,6 +443,8 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
 
+    static void ReleaseScreenDmaBuffer(uint64_t screenId);
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -453,7 +464,7 @@ private:
     void RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output);
     void HandleDefaultScreenDisConnectedLocked();
     void ForceRefreshOneFrame() const;
-    std::vector<ScreenHotPlugEvent> pendingHotPlugEvents_;
+    std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents_;
 
     void GetVirtualScreenResolutionLocked(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const;
     void GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& screenModeInfo) const;
@@ -494,6 +505,9 @@ private:
     void HandleSensorData(float angle);
     FoldState TransferAngleToScreenState(float angle);
 #endif
+
+    void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
+    void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
 
     mutable std::mutex mutex_;
     mutable std::mutex blackListMutex_;

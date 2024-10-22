@@ -30,12 +30,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "platform/drawing/rs_vsync_client.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "render_backend/render_context_factory.h"
-#include "drawing_context.h"
-#else
 #include "render_context/render_context.h"
-#endif
 #include "transaction/rs_transaction_proxy.h"
 #include "vsync_receiver.h"
 
@@ -60,21 +55,10 @@ public:
     int32_t GetTid();
 
     std::string DumpRenderTree() const;
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RenderContextBase> GetRenderContext() const
-    {
-        return renderContext_;
-    }
-    std::shared_ptr<DrawingContext> GetDrawingContext() const
-    {
-        return drawingContext_;
-    }
-#else
     RenderContext* GetRenderContext()
     {
         return renderContext_;
     }
-#endif
     RSContext& GetContext()
     {
         return *context_;
@@ -90,10 +74,19 @@ public:
     void SetHighContrast(bool enabled)
     {
         isHighContrastEnabled_  = enabled;
+        isHighContrastChanged_ = true;
     }
-    bool isHighContrastEnabled() const
+    bool IsHighContrastEnabled() const
     {
         return isHighContrastEnabled_;
+    }
+    bool IsHighContrastChanged() const
+    {
+        return isHighContrastChanged_;
+    }
+    void ResetHighContrastChanged()
+    {
+        isHighContrastChanged_ = false;
     }
     void SetCacheDir(const std::string& filePath)
     {
@@ -177,14 +170,10 @@ private:
 
     std::shared_ptr<RSContext> context_;
 
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RenderContextBase> renderContext_;
-    std::shared_ptr<Rosen::DrawingContext> drawingContext_;
-#else
     RenderContext* renderContext_ = nullptr;
-#endif
     std::shared_ptr<HighContrastObserver> highContrastObserver_;
     std::atomic_bool isHighContrastEnabled_ = false;
+    std::atomic_bool isHighContrastChanged_ = false;
 
     std::string cacheDir_;
     bool isRTRenderForced_ = false;

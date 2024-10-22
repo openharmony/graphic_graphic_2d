@@ -62,7 +62,7 @@ ohos_unittest("RRSAccessibilityTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -130,7 +130,7 @@ ohos_unittest("RSAshmemHelperTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -198,7 +198,7 @@ ohos_unittest("RSEventDetectorTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -266,7 +266,7 @@ ohos_unittest("RSEventMgrTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -334,7 +334,7 @@ ohos_unittest("RSInnovationTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -402,7 +402,7 @@ ohos_unittest("RSJankStatsTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -470,7 +470,7 @@ ohos_unittest("RSLogTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -538,7 +538,7 @@ ohos_unittest("RSMarshallingHelperTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -606,7 +606,7 @@ ohos_unittest("RSNodeStatsTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -674,7 +674,7 @@ ohos_unittest("RSClientTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -742,7 +742,7 @@ ohos_unittest("RSRenderServiceConnectHubTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -810,7 +810,7 @@ ohos_unittest("RSRenderServiceConnectionProxyTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -878,7 +878,7 @@ ohos_unittest("RSProxyTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -946,7 +946,7 @@ ohos_unittest("RSSurfaceConverterTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -1014,7 +1014,7 @@ ohos_unittest("RSSurfaceOhosTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -1082,7 +1082,7 @@ ohos_unittest("RSSystemPropertiesTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -1149,7 +1149,7 @@ ohos_unittest("RSVsyncClientTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",

@@ -127,6 +127,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessSurface, TestSize.Level2)
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
+    ASSERT_NE(processor, nullptr);
     processor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -159,6 +160,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess, TestSize.Level2)
 {
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
+    ASSERT_NE(processor, nullptr);
     processor->PostProcess();
 }
 
@@ -273,8 +275,11 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Le
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_001, TestSize.Level2)
 {
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(virtualProcessor_, nullptr);
     displayDrawable_->isFirstTimeToProcessor_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
+    ASSERT_FALSE(displayDrawable_->isFirstTimeToProcessor_);
 }
 
 /**
@@ -285,9 +290,12 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_001, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasInit_002, TestSize.Level2)
 {
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(virtualProcessor_, nullptr);
     displayDrawable_->isFirstTimeToProcessor_ = false;
     virtualProcessor_->canvasRotation_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
+    ASSERT_EQ(virtualProcessor_->screenRotation_, displayDrawable_->originScreenRotation_);
 }
 
 /**
@@ -313,6 +321,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, GetBufferAge_001, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, SetDirtyInfo_001, TestSize.Level2)
 {
+    ASSERT_NE(virtualProcessor_, nullptr);
     virtualProcessor_->renderFrame_ = nullptr;
     std::vector<RectI> damageRegion {};
     virtualProcessor_->SetDirtyInfo(damageRegion);
@@ -342,6 +351,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetDirtyInfo_002, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceForRenderThread_001, TestSize.Level2)
 {
+    ASSERT_NE(virtualProcessor_, nullptr);
     virtualProcessor_->isExpand_ = true;
     virtualProcessor_->ProcessDisplaySurfaceForRenderThread(*displayDrawable_);
 }

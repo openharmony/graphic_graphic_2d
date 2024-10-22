@@ -288,6 +288,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable004, TestSize.Le
         DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_R5G6B5_UNORM_PACK16));
     EXPECT_EQ(Drawing::COLORTYPE_RGBA_8888,
         DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_R8_SRGB));
+    EXPECT_EQ(Drawing::COLORTYPE_RGBA_1010102,
+        DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_A2B10G10R10_UNORM_PACK32));
 }
 #endif
 
@@ -312,7 +314,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable005, TestSize.Le
     drawable.MakeFromTextureForVK(canvas, buffer);
     ASSERT_TRUE(true);
     delete buffer;
-    FreeBufferHandle(handle);
 }
 #endif
 

@@ -25,6 +25,20 @@
 
 namespace OHOS {
 namespace Rosen {
+struct TextTab {
+    TextTab() = default;
+    TextTab(TextAlign alignment, float location) : alignment(alignment), location(location) {};
+    TextTab& operator=(const TextTab&) = default;
+
+    bool operator==(const TextTab& rhs) const
+    {
+        return (this->alignment == rhs.alignment) &&
+            (skia::textlayout::nearlyEqual(this->location, rhs.location));
+    }
+    TextAlign alignment = TextAlign::LEFT;
+    static constexpr float INVALID_LOCATION = -1.0f;
+    float location = INVALID_LOCATION;
+};
 struct TypographyStyle {
     const static inline std::u16string ELLIPSIS = u"\u2026";
 
@@ -91,7 +105,8 @@ struct TypographyStyle {
             this->breakStrategy == rhs.breakStrategy &&
             this->wordBreakType == rhs.wordBreakType &&
             this->ellipsisModal == rhs.ellipsisModal &&
-            skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio);
+            skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio) &&
+            this->tab == rhs.tab;
     }
     TextStyle GetTextStyle() const;
     void SetTextStyle(TextStyle& textstyle);
@@ -106,6 +121,7 @@ struct TypographyStyle {
     bool customTextStyle = false;
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
     bool hintingIsOn = false;
+    TextTab tab;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -43,6 +43,7 @@ HWTEST_F(MemoryHandlerTest, ClearRedundantResourcesTest001, TestSize.Level1)
 {
     MemoryHandler::ClearRedundantResources(nullptr);
     auto gpuContext = new Drawing::GPUContext();
+    EXPECT_NE(gpuContext, nullptr);
     MemoryHandler::ClearRedundantResources(gpuContext);
     delete gpuContext;
     gpuContext = nullptr;
@@ -55,7 +56,7 @@ HWTEST_F(MemoryHandlerTest, ClearRedundantResourcesTest001, TestSize.Level1)
  */
 HWTEST_F(MemoryHandlerTest, QuerryShaderTest001, TestSize.Level1)
 {
-    MemoryHandler::QuerryShader();
+    EXPECT_NE(MemoryHandler::QuerryShader(), "");
 }
 
 /**
@@ -67,7 +68,7 @@ HWTEST_F(MemoryHandlerTest, QuerryShaderTest002, TestSize.Level1)
 {
     ShaderCache::Instance().SetFilePath("test");
     ShaderCache::Instance().InitShaderCache();
-    MemoryHandler::QuerryShader();
+    EXPECT_NE(MemoryHandler::QuerryShader(), "");
 }
 } // namespace Rosen
 } // namespace OHOS

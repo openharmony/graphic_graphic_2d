@@ -98,6 +98,9 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
     if (discardJankFrames) { ClearAllAnimation(); }
     SetRSJankStats(skipJankAnimatorFrame || discardJankFrames, dynamicRefreshRate);
     RecordJankFrame(dynamicRefreshRate);
+#ifdef RS_ENABLE_PREFETCH
+    __builtin_prefetch(&firstFrameAppPids_, 0, 1);
+#endif
     for (auto &[animationId, jankFrames] : animateJankFrames_) {
         if (jankFrames.isReportEventResponse_) {
             ReportEventResponse(jankFrames);

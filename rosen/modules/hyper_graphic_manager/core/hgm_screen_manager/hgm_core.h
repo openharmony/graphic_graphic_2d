@@ -27,6 +27,7 @@
 
 #include <event_handler.h>
 
+#include "hgm_frame_rate_manager.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "vsync_type.h"
@@ -46,11 +47,6 @@ public:
         return screenIds_;
     }
 
-    bool IsEnabled() const
-    {
-        return isEnabled_;
-    }
-
     int32_t GetScreenListSize() const
     {
         return screenList_.size();
@@ -58,6 +54,9 @@ public:
 
     ScreenId GetActiveScreenId() const
     {
+        if (hgmFrameRateMgr_ != nullptr) {
+            return hgmFrameRateMgr_->GetCurScreenId();
+        }
         return activeScreenId_.load();
     }
 
@@ -76,6 +75,20 @@ public:
     uint32_t GetPendingScreenRefreshRate() const
     {
         return pendingScreenRefreshRate_.load();
+    }
+
+    // called by HgmThread
+    // the rate takes effect at the latest hardware timing
+    void SetScreenRefreshRateImme(uint32_t rate)
+    {
+        screenRefreshRateImme_.store(rate);
+    }
+
+    // called by HardwareThread
+    uint32_t GetScreenRefreshRateImme()
+    {
+        // 0 means disenable
+        return screenRefreshRateImme_.exchange(0);
     }
 
     // called by RSMainThread
@@ -229,7 +242,11 @@ private:
     int32_t SetCustomRateMode(int32_t mode);
     void SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting);
 
-    bool isEnabled_ = true;
+    bool IsEnabled() const
+    {
+        return mPolicyConfigData_ != nullptr && !mPolicyConfigData_->refreshRateForSettings_.empty();
+    }
+
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
@@ -243,11 +260,11 @@ private:
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeListToApply_ = nullptr;
 
     std::atomic<ScreenId> activeScreenId_{ INVALID_SCREEN_ID };
-    std::unordered_set<SceneType> screenSceneSet_;
     std::shared_ptr<HgmFrameRateManager> hgmFrameRateMgr_ = nullptr;
 
     // for LTPO
     std::atomic<uint32_t> pendingScreenRefreshRate_{ 0 };
+    std::atomic<uint32_t> screenRefreshRateImme_{ 0 };
     std::atomic<uint64_t> pendingConstraintRelativeTime_{ 0 };
     std::atomic<uint64_t> timestamp_{ 0 };
     bool ltpoEnabled_ = false;

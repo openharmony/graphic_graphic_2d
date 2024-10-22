@@ -61,6 +61,7 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:buffer_handle",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
   ]

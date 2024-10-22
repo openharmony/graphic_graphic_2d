@@ -230,8 +230,8 @@ bool DoSetContainerWindow(const uint8_t* data, size_t size)
     // test
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     bool hasContainerWindow = GetData<bool>();
-    float density = GetData<float>();
-    director->SetContainerWindow(hasContainerWindow, density);
+    RRect rrect = GetData<RRect>();
+    director->SetContainerWindow(hasContainerWindow, rrect);
     return true;
 }
 

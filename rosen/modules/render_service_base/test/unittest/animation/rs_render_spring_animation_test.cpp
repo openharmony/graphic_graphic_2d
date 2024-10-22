@@ -390,5 +390,23 @@ HWTEST_F(RSRenderSpringAnimationTest, OnSetFraction001, TestSize.Level1)
     EXPECT_EQ(true, renderSpringAnimationMock->IsCalculateAniamtionValue());
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnSetFraction001 end";
 }
+
+/**
+ * @tc.name: InitValueEstimatorTest001
+ * @tc.desc: Test valueEstimator_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, InitValueEstimatorTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest InitValueEstimatorTest001 start";
+
+    RSRenderSpringAnimation animation;
+    auto property = std::make_shared<RSRenderPropertyBase>();
+    animation.property_ = property;
+    animation.InitValueEstimator();
+    EXPECT_TRUE(animation.valueEstimator_ == nullptr);
+
+    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest InitValueEstimatorTest001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

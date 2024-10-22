@@ -221,6 +221,11 @@ public:
         return startingWindowFlag_;
     }
 
+    bool SetFirstLevelNode(NodeId firstLevelNodeId);
+    NodeId GetFirstLevelNodeId() const;
+    bool SetUiFirstRootNode(NodeId uifirstRootNodeId);
+    NodeId GetUifirstRootNodeId() const;
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -263,6 +268,7 @@ public:
     virtual bool IsLeashWindow() const { return true; }
     virtual bool IsAppWindow() const { return false; }
     virtual bool GetHardwareEnabled() const { return false; }
+    virtual bool IsHardCursorEnabled() const { return false; }
     virtual bool GetLayerCreated() const { return false; }
     virtual bool GetLastFrameHardwareEnabled() const { return false; }
     virtual void SetLayerCreated(bool layerCreated) {}
@@ -357,6 +363,8 @@ private:
     bool hasBlurFilter_ = false;
     SurfaceParam surfaceParams_;
     bool freezeFlag_ = false;
+    NodeId firstLevelNodeId_ = INVALID_NODEID;
+    NodeId uifirstRootNodeId_ = INVALID_NODEID;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

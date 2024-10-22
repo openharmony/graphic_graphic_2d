@@ -75,6 +75,62 @@ void RunImpl::Paint(Drawing::Canvas* canvas, double x, double y)
     runBase_->paint(&painter, x, y);
 }
 
+std::vector<uint16_t> RunImpl::GetGlyphs(int64_t start, int64_t length) const
+{
+    if (runBase_ == nullptr || start < 0 || length < 0) {
+        return {};
+    }
+    return runBase_->getGlyphs(start, length);
+}
+
+std::vector<Drawing::Point> RunImpl::GetPositions(int64_t start, int64_t length) const
+{
+    if (runBase_ == nullptr || start < 0 || length < 0) {
+        return {};
+    }
+    return runBase_->getPositions(start, length);
+}
+
+void RunImpl::GetStringRange(uint64_t* location, uint64_t* length) const
+{
+    if (location == nullptr || length == nullptr) {
+        return;
+    } else if (runBase_ == nullptr) {
+        *location= 0;
+        *length = 0;
+        return;
+    }
+    runBase_->getStringRange(location, length);
+}
+
+std::vector<uint64_t> RunImpl::GetStringIndices(int64_t start, int64_t length) const
+{
+    if (runBase_ == nullptr || start < 0 || length < 0) {
+        return {};
+    }
+    return runBase_->getStringIndices(start, length);
+}
+
+Drawing::Rect RunImpl::GetImageBounds() const
+{
+    if (runBase_ == nullptr) {
+        return {};
+    }
+    return runBase_->getImageBounds();
+}
+
+float RunImpl::GetTypographicBounds(float* ascent, float* descent, float* leading) const
+{
+    if (ascent == nullptr || descent == nullptr || leading == nullptr) {
+        return 0.0;
+    } else if (runBase_ == nullptr) {
+        *ascent = 0.0;
+        *descent = 0.0;
+        *leading = 0.0;
+        return 0.0;
+    }
+    return runBase_->getTypographicBounds(ascent, descent, leading);
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

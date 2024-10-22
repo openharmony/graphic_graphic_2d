@@ -286,6 +286,17 @@ HWTEST_F(RSSystemPropertiesTest, GetDrawMirrorCacheImageEnabled, TestSize.Level1
 }
 
 /**
+ * @tc.name: GetPixelmapDfxEnabled
+ * @tc.desc: GetPixelmapDfxEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetPixelmapDfxEnabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetPixelmapDfxEnabled());
+}
+
+/**
  * @tc.name: GetAFBCEnabled
  * @tc.desc: GetAFBCEnabled Test
  * @tc.type:FUNC
@@ -825,7 +836,7 @@ HWTEST_F(RSSystemPropertiesTest, IsFoldScreenFlag, TestSize.Level1)
 {
     std::string foldScreenFlag = system::GetParameter("const.window.foldscreen.type", "");
     system::SetParameter("const.window.foldscreen.type", "0");
-    ASSERT_TRUE(RSSystemProperties::IsFoldScreenFlag());
+    EXPECT_TRUE(RSSystemProperties::IsFoldScreenFlag());
     system::SetParameter("const.window.foldscreen.type", foldScreenFlag);
 }
 

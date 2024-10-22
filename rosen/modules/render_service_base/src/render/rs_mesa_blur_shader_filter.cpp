@@ -51,7 +51,10 @@ void RSMESABlurShaderFilter::SetRadius(int radius)
 
 void RSMESABlurShaderFilter::SetPixelStretchParams(std::shared_ptr<RSPixelStretchParams>& param)
 {
-    pixelStretchParam_ = std::move(param);
+    {
+        std::lock_guard<std::mutex> lock(pixelStretchParamsMutex_);
+        pixelStretchParam_ = std::move(param);
+    }
     CalculateHash();
 }
 
@@ -60,14 +63,14 @@ void RSMESABlurShaderFilter::CalculateHash()
     hash_ = SkOpts::hash(&radius_, sizeof(radius_), 0);
     hash_ = SkOpts::hash(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
     hash_ = SkOpts::hash(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
-    if (pixelStretchParam_) {
-        hash_ = SkOpts::hash(&pixelStretchParam_->offsetX_, sizeof(pixelStretchParam_->offsetX_), hash_);
-        hash_ = SkOpts::hash(&pixelStretchParam_->offsetY_, sizeof(pixelStretchParam_->offsetY_), hash_);
-        hash_ = SkOpts::hash(&pixelStretchParam_->offsetZ_, sizeof(pixelStretchParam_->offsetZ_), hash_);
-        hash_ = SkOpts::hash(&pixelStretchParam_->offsetW_, sizeof(pixelStretchParam_->offsetW_), hash_);
-        hash_ = SkOpts::hash(&pixelStretchParam_->tileMode_, sizeof(pixelStretchParam_->tileMode_), hash_);
-        hash_ = SkOpts::hash(&pixelStretchParam_->width_, sizeof(pixelStretchParam_->width_), hash_);
-        hash_ = SkOpts::hash(&pixelStretchParam_->height_, sizeof(pixelStretchParam_->height_), hash_);
+    if (auto localParams = GetPixelStretchParams()) {
+        hash_ = SkOpts::hash(&localParams->offsetX_, sizeof(localParams->offsetX_), hash_);
+        hash_ = SkOpts::hash(&localParams->offsetY_, sizeof(localParams->offsetY_), hash_);
+        hash_ = SkOpts::hash(&localParams->offsetZ_, sizeof(localParams->offsetZ_), hash_);
+        hash_ = SkOpts::hash(&localParams->offsetW_, sizeof(localParams->offsetW_), hash_);
+        hash_ = SkOpts::hash(&localParams->tileMode_, sizeof(localParams->tileMode_), hash_);
+        hash_ = SkOpts::hash(&localParams->width_, sizeof(localParams->width_), hash_);
+        hash_ = SkOpts::hash(&localParams->height_, sizeof(localParams->height_), hash_);
     }
 }
 
@@ -76,14 +79,14 @@ std::string RSMESABlurShaderFilter::GetDetailedDescription() const
     std::string filterString = ", radius: " + std::to_string(radius_) + " sigma";
     filterString = filterString + ", greyCoef1: " + std::to_string(greyCoefLow_);
     filterString = filterString + ", greyCoef2: " + std::to_string(greyCoefHigh_);
-    if (pixelStretchParam_) {
-        filterString = filterString + ", pixel stretch offsetX: " + std::to_string(pixelStretchParam_->offsetX_);
-        filterString = filterString + ", offsetY: " + std::to_string(pixelStretchParam_->offsetY_);
-        filterString = filterString + ", offsetZ: " + std::to_string(pixelStretchParam_->offsetZ_);
-        filterString = filterString + ", offsetW: " + std::to_string(pixelStretchParam_->offsetW_);
-        filterString = filterString + ", tileMode: " + std::to_string(pixelStretchParam_->tileMode_);
-        filterString = filterString + ", width: " + std::to_string(pixelStretchParam_->width_);
-        filterString = filterString + ", height: " + std::to_string(pixelStretchParam_->height_);
+    if (auto localParams = GetPixelStretchParams()) {
+        filterString = filterString + ", pixel stretch offsetX: " + std::to_string(localParams->offsetX_);
+        filterString = filterString + ", offsetY: " + std::to_string(localParams->offsetY_);
+        filterString = filterString + ", offsetZ: " + std::to_string(localParams->offsetZ_);
+        filterString = filterString + ", offsetW: " + std::to_string(localParams->offsetW_);
+        filterString = filterString + ", tileMode: " + std::to_string(localParams->tileMode_);
+        filterString = filterString + ", width: " + std::to_string(localParams->width_);
+        filterString = filterString + ", height: " + std::to_string(localParams->height_);
     }
     return filterString;
 }
@@ -95,14 +98,14 @@ void RSMESABlurShaderFilter::GenerateGEVisualEffect(
     mesaFilter->SetParam("MESA_BLUR_RADIUS", (int)radius_); // blur radius
     mesaFilter->SetParam("MESA_BLUR_GREY_COEF_1", greyCoefLow_);
     mesaFilter->SetParam("MESA_BLUR_GREY_COEF_2", greyCoefHigh_);
-    if (pixelStretchParam_) {
-        mesaFilter->SetParam("OFFSET_X", pixelStretchParam_->offsetX_);
-        mesaFilter->SetParam("OFFSET_Y", pixelStretchParam_->offsetY_);
-        mesaFilter->SetParam("OFFSET_Z", pixelStretchParam_->offsetZ_);
-        mesaFilter->SetParam("OFFSET_W", pixelStretchParam_->offsetW_);
-        mesaFilter->SetParam("TILE_MODE", pixelStretchParam_->tileMode_);
-        mesaFilter->SetParam("WIDTH", pixelStretchParam_->width_);
-        mesaFilter->SetParam("HEIGHT", pixelStretchParam_->height_);
+    if (auto localParams = GetPixelStretchParams()) {
+        mesaFilter->SetParam("OFFSET_X", localParams->offsetX_);
+        mesaFilter->SetParam("OFFSET_Y", localParams->offsetY_);
+        mesaFilter->SetParam("OFFSET_Z", localParams->offsetZ_);
+        mesaFilter->SetParam("OFFSET_W", localParams->offsetW_);
+        mesaFilter->SetParam("TILE_MODE", localParams->tileMode_);
+        mesaFilter->SetParam("WIDTH", localParams->width_);
+        mesaFilter->SetParam("HEIGHT", localParams->height_);
     } else {
         mesaFilter->SetParam("OFFSET_X", 0.f);
         mesaFilter->SetParam("OFFSET_Y", 0.f);

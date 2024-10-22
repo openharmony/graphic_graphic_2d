@@ -49,6 +49,7 @@ private:
     };
     static inline Drawing::Matrix matrix  = Drawing::Matrix();
     static const uint32_t MATRIX_SIZE = 20;
+    static constexpr float BRIGHTNESS_RATIO = 0.6f;
     static inline float InvertColorMat[MATRIX_SIZE] = {
         0.402,  -1.174, -0.228, 1.0, 0.0,
         -0.598, -0.174, -0.228, 1.0, 0.0,
@@ -213,83 +214,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
-    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, "", true, 0));
-}
-
-/*
- * @tc.name: ConsumeAndUpdateBuffer_002
- * @tc.desc: Test ConsumeAndUpdateBuffer while buffer not satisfy consume time
- * @tc.type: FUNC
- * @tc.require: issueI9J3IQ
- */
-HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
-{
-    // create producer and consumer
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
-    ASSERT_NE(surfaceConsumer, nullptr);
-    auto producer = surfaceConsumer->GetProducer();
-    ASSERT_NE(producer, nullptr);
-    psurf = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(psurf, nullptr);
-    psurf->SetQueueSize(1);
-
-    // request buffer
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    // flush buffer
-    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
-    flushConfig.timestamp = 100; // this timestamp can be any nunmber
-    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    if (RSUniRenderJudgement::IsUniRender()) {
-        auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
-        uint64_t vsyncTimestamp = 50; // let vync's timestamp smaller than buffer timestamp
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, "", false, vsyncTimestamp);
-        ASSERT_NE(surfaceHandler.bufferCache_.size(), 0);
-    }
-}
-
-/*
- * @tc.name: ConsumeAndUpdateBuffer_003
- * @tc.desc: Test ConsumeAndUpdateBuffer while buffer satisfy consume time
- * @tc.type: FUNC
- * @tc.require: issueI9LOXQ
- */
-HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
-{
-    // create producer and consumer
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
-    ASSERT_NE(surfaceConsumer, nullptr);
-    auto producer = surfaceConsumer->GetProducer();
-    ASSERT_NE(producer, nullptr);
-    psurf = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(psurf, nullptr);
-    psurf->SetQueueSize(1);
-
-    // request buffer
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    // flush buffer
-    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
-    flushConfig.timestamp = 100; // this timestamp can be any nunmber
-    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
-    ASSERT_EQ(ret, GSERROR_OK);
-
-    auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
-    uint64_t vsyncTimestamp = 200; // let vync's timestamp bigger than buffer timestamp
-    RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, "", false, vsyncTimestamp);
-    ASSERT_EQ(surfaceHandler.bufferCache_.size(), 0);
+    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 0));
 }
 
 /*
@@ -342,6 +267,10 @@ HWTEST_F(RSBaseRenderUtilTest, SetColorFilterModeToPaint_001, TestSize.Level2)
     filter = paint.GetFilter();
     filter.GetColorFilter()->AsAColorMatrix(matrix);
     CompareMatrix(matrix, InvertColorMat);
+
+    RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint, BRIGHTNESS_RATIO);
+    filter = paint.GetFilter();
+    ASSERT_NE(filter.GetColorFilter(), nullptr);
 
     colorFilterMode = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
@@ -475,6 +404,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_001, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_002, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
@@ -600,7 +530,7 @@ HWTEST_F(RSBaseRenderUtilTest, WritePixelMapToPng_001, TestSize.Level2)
 
 /*
  * @tc.name: DealWithSurfaceRotationAndGravity_001
- * @tc.desc: Test DealWithSurfaceRotationAndGravity
+ * @tc.desc: Test DealWithSurfaceRotationAndGravity, with empty param.buffer
  * @tc.type: FUNC
  * @tc.require: issueI605F4
  */
@@ -610,12 +540,13 @@ HWTEST_F(RSBaseRenderUtilTest, DealWithSurfaceRotationAndGravity_001, TestSize.L
     BufferDrawParam params;
     RSSurfaceRenderNodeConfig config;
     std::shared_ptr<RSSurfaceRenderNode> rsNode = std::make_shared<RSSurfaceRenderNode>(config);
-
     std::shared_ptr<RSSurfaceRenderNode> rsParentNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsParentNode->AddChild(rsNode);
     rsNode->SetIsOnTheTree(true);
-
+    ASSERT_EQ(params.buffer, nullptr);
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
+    ASSERT_NE(csurf, nullptr);
+    ASSERT_NE(rsNode->GetRSSurfaceHandler(), nullptr);
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(csurf->GetTransform(),
         rsNode->GetRenderProperties().GetFrameGravity(), localBounds, params);
