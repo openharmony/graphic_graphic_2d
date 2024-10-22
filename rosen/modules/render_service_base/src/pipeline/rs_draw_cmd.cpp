@@ -266,6 +266,7 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
             RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
                 rsImage_->GetUniqueId(), image_, gettid());
         }
+        return ret;
     }
     return true;
 }
