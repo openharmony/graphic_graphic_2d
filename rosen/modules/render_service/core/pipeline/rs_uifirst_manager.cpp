@@ -1509,7 +1509,7 @@ void RSUifirstManager::CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRende
     }
 }
 
-bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSSurfaceRenderParams& params, bool checkMatch)
+bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch)
 {
     if (checkMatch && IsCurFirstLevelMatch(params)) {
         return true;
@@ -1517,11 +1517,17 @@ bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSSurface
     return CheckAndWaitPreFirstLevelDrawableNotify(params);
 }
 
-bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify(const RSSurfaceRenderParams& params)
+bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify(const RSRenderParams& params)
 {
     auto firstLevelNodeId = params.GetFirstLevelNodeId();
     auto uifirstRootNodeId = params.GetUifirstRootNodeId();
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
+    if (rootId == INVALID_NODEID) {
+        /* uifirst will not draw with no firstlevel node, and there's no need to check and wait for uifirst onDraw */
+        RS_LOGW("node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
+        return true;
+    }
+
     auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(rootId);
     if (!uifirstRootNodeDrawable || uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
         return false;
@@ -1543,7 +1549,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     return pred();
 }
 
-bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSSurfaceRenderParams& params)
+bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSRenderParams& params)
 {
     auto uifirstRootNodeId = params.GetUifirstRootNodeId();
     auto firstLevelNodeId = params.GetFirstLevelNodeId();
