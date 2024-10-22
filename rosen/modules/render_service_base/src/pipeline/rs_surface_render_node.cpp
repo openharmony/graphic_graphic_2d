@@ -854,6 +854,19 @@ void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
     SyncSecurityInfoToFirstLevelNode();
 }
 
+void RSSurfaceRenderNode::SetLeashPersistentId(NodeId leashPersistentId)
+{
+    if (leashPersistentId_ == leashPersistentId) {
+        return;
+    }
+
+    leashPersistentId_ = leashPersistentId;
+    SetDirty();
+
+    ROSEN_LOGD("RSSurfaceRenderNode::SetLeashPersistentId, Node id: %{public}" PRIu64 ", leashPersistentId:%{public}"
+        "" PRIu64, GetId(), leashPersistentId);
+}
+
 void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
 {
     if (isSkipLayer_ == isSkipLayer) {
@@ -868,6 +881,11 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
         skipLayerIds_.erase(GetId());
     }
     SyncSkipInfoToFirstLevelNode();
+}
+
+LeashPersistentId RSSurfaceRenderNode::GetLeashPersistentId() const
+{
+    return leashPersistentId_;
 }
 
 void RSSurfaceRenderNode::SetSnapshotSkipLayer(bool isSnapshotSkipLayer)
@@ -2779,6 +2797,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetHidePrivacyContent(needHidePrivacyContent_);
     surfaceParams->visibleFilterChild_ = GetVisibleFilterChild();
     surfaceParams->isTransparent_ = IsTransparent();
+    surfaceParams->leashPersistentId_ = leashPersistentId_;
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();
