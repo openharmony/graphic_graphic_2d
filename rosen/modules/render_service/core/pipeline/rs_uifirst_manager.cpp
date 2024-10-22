@@ -411,7 +411,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         surfaceParams->GetBrightnessRatio());
 }
 
-bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node)
+bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
         return false;
