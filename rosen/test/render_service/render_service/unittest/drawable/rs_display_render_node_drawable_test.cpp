@@ -1103,27 +1103,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilter, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHighContrastIfEnabled
- * @tc.desc: Test SetHighContrastIfEnabled
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SetHighContrastIfEnabled, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    displayDrawable_->SetHighContrastIfEnabled(canvas);
-    ASSERT_FALSE(RSUniRenderThread::Instance().GetRenderEngine());
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    displayDrawable_->SetHighContrastIfEnabled(canvas);
-    ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-}
-
-/**
  * @tc.name: FindHardwareEnabledNodes
  * @tc.desc: Test FindHardwareEnabledNodes
  * @tc.type: FUNC

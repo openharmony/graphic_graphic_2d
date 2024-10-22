@@ -98,6 +98,8 @@ public:
     bool GetWatermarkFlag() const;
     
     bool IsCurtainScreenOn() const;
+    bool IsColorFilterModeOn() const;
+    bool IsHighContrastTextModeOn() const;
 
     static void SetCaptureParam(const CaptureParam& param);
     static CaptureParam& GetCaptureParam();

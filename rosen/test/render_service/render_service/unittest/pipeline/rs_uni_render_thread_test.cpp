@@ -511,4 +511,38 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     instance.ReleaseSelfDrawingNodeBuffer();
     EXPECT_TRUE(params->isHardwareEnabled_);
 }
+
+/**
+ * @tc.name: IsColorFilterModeOn
+ * @tc.desc: Test IsColorFilterModeOn
+ * @tc.type: FUNC
+ * @tc.require: issueIALVZN
+ */
+HWTEST_F(RSUniRenderThreadTest, IsColorFilterModeOn, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(instance.uniRenderEngine_, nullptr);
+    instance.uniRenderEngine_->SetColorFilterMode(ColorFilterMode::COLOR_FILTER_END);
+    ASSERT_FALSE(instance.IsColorFilterModeOn());
+    instance.uniRenderEngine_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
+    ASSERT_TRUE(instance.IsColorFilterModeOn());
+}
+
+/**
+ * @tc.name: IsHighContrastTextModeOn
+ * @tc.desc: Test IsHighContrastTextModeOn
+ * @tc.type: FUNC
+ * @tc.require: issueIALVZN
+ */
+HWTEST_F(RSUniRenderThreadTest, IsHighContrastTextModeOn, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    ASSERT_NE(instance.uniRenderEngine_, nullptr);
+    instance.uniRenderEngine_->SetHighContrast(true);
+    ASSERT_TRUE(instance.IsHighContrastTextModeOn());
+    instance.uniRenderEngine_->SetHighContrast(false);
+    ASSERT_FALSE(instance.IsHighContrastTextModeOn());
+}
 }

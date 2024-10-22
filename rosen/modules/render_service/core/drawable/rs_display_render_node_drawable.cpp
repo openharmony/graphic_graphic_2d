@@ -731,7 +731,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 curCanvas_->ConcatMatrix(params->GetMatrix());
             }
 
-            SetHighContrastIfEnabled(*curCanvas_);
+            curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
             DrawCurtainScreen();
             if (needOffscreen) {
@@ -846,13 +846,14 @@ void RSDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(int32_t bufferage, b
 
 int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& params)
 {
+    auto& uniRenderThread = RSUniRenderThread::Instance();
     auto hasGeneralSpecialLayer = params.HasSecurityLayer() || params.HasSkipLayer() || params.HasProtectedLayer() ||
-        RSUniRenderThread::Instance().IsCurtainScreenOn() || params.GetHDRPresent();
+        uniRenderThread.IsCurtainScreenOn() || params.GetHDRPresent() || uniRenderThread.IsColorFilterModeOn();
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }
-    if (hasGeneralSpecialLayer || !RSUniRenderThread::Instance().GetWhiteList().empty() || !currentBlackList_.empty()) {
+    if (hasGeneralSpecialLayer || (!uniRenderThread.GetWhiteList().empty()) || !currentBlackList_.empty()) {
         return HAS_SPECIAL_LAYER;
     } else if (params.HasCaptureWindow()) {
         return CAPTURE_WINDOW;
@@ -1313,15 +1314,6 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(*GetRSSurfaceHandlerOnDraw(), false);
 
-    // Screen capture considering color inversion
-    ColorFilterMode colorFilterMode = renderEngine->GetColorFilterMode();
-    if (colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
-        colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE) {
-        RS_LOGD("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: \
-            SetColorFilterModeToPaint mode:%{public}d.", static_cast<int32_t>(colorFilterMode));
-        RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, drawParams.paint);
-    }
-
     // To get dump image
     // execute "param set rosen.dumpsurfacetype.enabled 4 && setenforce 0 && param set rosen.afbc.enabled 0"
     RSBaseRenderUtil::WriteSurfaceBufferToPng(drawParams.buffer);
@@ -1404,14 +1396,6 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas,
 #endif
     Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
     canvas.SaveLayer(slr);
-}
-
-void RSDisplayRenderNodeDrawable::SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas) const
-{
-    const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (renderEngine) {
-        canvas.SetHighContrast(renderEngine->IsHighContrastEnabled());
-    }
 }
 
 void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes(RSDisplayRenderParams& params)

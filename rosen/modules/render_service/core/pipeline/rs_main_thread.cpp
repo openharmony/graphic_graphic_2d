@@ -311,9 +311,10 @@ public:
     AccessibilityObserver() = default;
     void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
-        RS_LOGI("RSMainThread AccessibilityObserver OnConfigChanged configId: %{public}d", id);
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
+            RS_LOGI("RSAccessibility DALTONIZATION_COLOR_FILTER: %{public}d",
+                static_cast<int>(value.daltonizationColorFilter));
             switch (value.daltonizationColorFilter) {
                 case Protanomaly:
                     mode = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
@@ -332,13 +333,15 @@ public:
             }
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_INVERT_COLOR) {
+            RS_LOGI("RSAccessibility INVERT_COLOR: %{public}d", static_cast<int>(value.invertColor));
             mode = value.invertColor ? ColorFilterMode::INVERT_COLOR_ENABLE_MODE :
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
+            RS_LOGI("RSAccessibility HIGH_CONTRAST_TEXT: %{public}d", static_cast<int>(value.highContrastText));
             RSBaseRenderEngine::SetHighContrast(value.highContrastText);
         } else {
-            RS_LOGW("AccessibilityObserver configId: %{public}d is not supported yet.", id);
+            RS_LOGW("RSAccessibility configId: %{public}d is not supported yet.", id);
         }
         RSMainThread::Instance()->PostTask([]() {
             RSMainThread::Instance()->SetAccessibilityConfigChanged();

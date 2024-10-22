@@ -564,6 +564,16 @@ ColorFilterMode RSBaseRenderEngine::GetColorFilterMode()
     return colorFilterMode_;
 }
 
+void RSBaseRenderEngine::SetHighContrast(bool enabled)
+{
+    isHighContrastEnabled_  = enabled;
+}
+
+bool RSBaseRenderEngine::IsHighContrastEnabled()
+{
+    return isHighContrastEnabled_;
+}
+
 void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME("RSBaseRenderEngine::DrawBuffer(CPU)");
