@@ -340,6 +340,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         filter->SetSnapshotOutset(false);
     }
 
+    if (imageClipIBounds.IsEmpty()) {
+        return;
+    }
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter image null");
