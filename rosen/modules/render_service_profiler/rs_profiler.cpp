@@ -419,6 +419,7 @@ void RSProfiler::ProcessSignalFlag()
 
 void RSProfiler::OnProcessCommand()
 {
+    RS_TRACE_NAME("Profiler OnProcessCommand");
     ProcessSignalFlag();
 
     if (!IsEnabled()) {
@@ -435,6 +436,8 @@ void RSProfiler::OnRenderBegin()
     if (!IsEnabled()) {
         return;
     }
+
+    RS_TRACE_NAME("Profiler OnRenderBegin");
     HRPD("OnRenderBegin()");
     g_renderServiceCpuId = Utils::GetCpuId();
 }
@@ -444,7 +447,8 @@ void RSProfiler::OnRenderEnd()
     if (!IsEnabled()) {
         return;
     }
-    
+
+    RS_TRACE_NAME("Profiler OnRenderEnd");
     g_renderServiceCpuId = Utils::GetCpuId();
 }
 
@@ -521,6 +525,7 @@ void RSProfiler::OnFrameBegin()
         return;
     }
 
+    RS_TRACE_NAME("Profiler OnFrameBegin");
     g_frameBeginTimestamp = RawNowNano();
     g_renderServiceCpuId = Utils::GetCpuId();
     g_frameNumber++;
@@ -554,6 +559,7 @@ void RSProfiler::OnFrameEnd()
         return;
     }
 
+    RS_TRACE_NAME("Profiler OnFrameEnd");
     g_renderServiceCpuId = Utils::GetCpuId();
     ProcessCommands();
     ProcessSendingRdc();
@@ -841,12 +847,20 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
         return "";
     }
 
+    RS_TRACE_NAME("Profiler FirstFrameMarshalling");
     std::stringstream stream;
+    stream.exceptions(0); // 0: disable all exceptions for stringstream
     TypefaceMarshalling(stream, fileVersion);
+    if (!stream.good()) {
+        HRPD("strstream error with typeface marshalling");
+    }
 
     SetMode(Mode::WRITE_EMUL);
     DisableSharedMemory();
     MarshalNodes(*g_context, stream, fileVersion);
+    if (!stream.good()) {
+        HRPD("strstream error with marshalling nodes");
+    }
     EnableSharedMemory();
     SetMode(Mode::NONE);
 
@@ -869,6 +883,9 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
     stream.write(reinterpret_cast<const char*>(&size), sizeof(size));
     stream.write(reinterpret_cast<const char*>(abilityName.data()), size);
 
+    if (!stream.good()) {
+        HRPE("error with stringstream in FirstFrameMarshalling");
+    }
     return stream.str();
 }
 
