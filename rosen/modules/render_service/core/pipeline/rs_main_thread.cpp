@@ -386,7 +386,7 @@ RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id()),
 
 RSMainThread::~RSMainThread() noexcept
 {
-    RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
+    RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(nullptr);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
     if (rsAppStateListener_) {
@@ -493,8 +493,8 @@ void RSMainThread::Init()
     Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
     {
         using namespace std::placeholders;
-        RSNodeCommandHelper::SetDumpNodeTreeProcessor(
-            std::bind(&RSMainThread::OnDumpClientNodeTree, this, _1, _2, _3, _4));
+        RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(
+            std::bind(&RSMainThread::OnCommitDumpClientNodeTree, this, _1, _2, _3, _4));
     }
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
@@ -1558,6 +1558,15 @@ void RSMainThread::CollectInfoForHardwareComposer()
         });
 }
 
+void RSMainThread::CollectInfoForHardCursor(NodeId id,
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable)
+{
+    if (!isUniRender_) {
+        return;
+    }
+    hardCursorDrawables_.push_back({ id, cursorDrawable });
+}
+
 bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
 {
     for (auto& node : subThreadNodes_) {
@@ -1995,6 +2004,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             WaitUntilUploadTextureTaskFinishedForGL();
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
+            renderThreadParams_->hardCursorDrawables_ = std::move(hardCursorDrawables_);
             return;
         }
     }
@@ -2015,6 +2025,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SurfaceOcclusionCallbackToWMS();
         rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
+        renderThreadParams_->hardCursorDrawables_ = std::move(hardCursorDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
         renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
@@ -2938,6 +2949,9 @@ void RSMainThread::ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactio
         cachedTransactionDataMap_[rsTransactionData->GetSendingPid()].emplace_back(std::move(rsTransactionData));
     }
     PostTask([this]() {
+        if (!context_) {
+            return;
+        }
         // animation node will call RequestNextVsync() in mainLoop_, here we simply ignore animation scenario
         // and also ignore mult-window scenario
         bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
@@ -2948,20 +2962,6 @@ void RSMainThread::ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactio
             RequestNextVSync();
         }
     });
-}
-
-void RSMainThread::RecvAndProcessRSTransactionDataImmediately(std::unique_ptr<RSTransactionData>& rsTransactionData)
-{
-    if (!rsTransactionData || !isUniRender_) {
-        return;
-    }
-    RS_TRACE_NAME("ProcessBySingleFrameComposer");
-    {
-        std::lock_guard<std::mutex> lock(transitionDataMutex_);
-        RSTransactionMetricCollector::GetInstance().Collect(rsTransactionData);
-        cachedTransactionDataMap_[rsTransactionData->GetSendingPid()].emplace_back(std::move(rsTransactionData));
-    }
-    ForceRefreshForUni();
 }
 
 void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
@@ -3158,12 +3158,12 @@ void RSMainThread::SendCommands()
             auto& app = appIter->second;
             auto transactionPtr = transactionIter.second;
             if (transactionPtr != nullptr) {
-                dfxString += "[pid:" + std::to_string(pid) + ",cmdIndex:" + std::to_string(transactionPtr->GetIndex())
-                    + ",cmdCount:" + std::to_string(transactionPtr->GetCommandCount()) + "]";
+                dfxString += "[pid:" + std::to_string(pid) + ",index:" + std::to_string(transactionPtr->GetIndex())
+                    + ",cnt:" + std::to_string(transactionPtr->GetCommandCount()) + "]";
             }
             app->OnTransaction(transactionPtr);
         }
-        RS_LOGI("RSMainThread::SendCommand to %{public}s", dfxString.c_str());
+        RS_LOGI("RS send to %{public}s", dfxString.c_str());
         RS_TRACE_NAME_FMT("RSMainThread::SendCommand to %s", dfxString.c_str());
     });
 }
@@ -3292,7 +3292,7 @@ void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
         }
         auto transactionData = std::make_shared<RSTransactionData>();
         for (auto id : nodeIds) {
-            auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId, "");
+            auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId);
             transactionData->AddCommand(std::move(command), id, FollowType::NONE);
             task.count++;
             RS_TRACE_NAME_FMT("DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "]",
@@ -3336,7 +3336,7 @@ void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dum
         taskId, completed);
 }
 
-void RSMainThread::OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
+void RSMainThread::OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree collected task[%u] dataSize[%zu] pid[%d]",
         taskId, result.size(), pid);
@@ -3841,6 +3841,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
         selfDrawables_.clear();
+        hardCursorDrawables_.clear();
     }
 }
 

@@ -351,6 +351,28 @@ static void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool cl
     }
 }
 
+bool RSDisplayRenderNodeDrawable::HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor)
+{
+    bool ret = false;
+    auto& hardCursorDrawables = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardCursorDrawables();
+    RS_OPTIONAL_TRACE_NAME_FMT("HardCursorCreateLayer size:%d", static_cast<int>(hardCursorDrawables.size()));
+    for (const auto& drawable : hardCursorDrawables) {
+        if (drawable.id != GetId() || !drawable.drawablePtr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable.drawablePtr->GetRenderParams().get());
+        if (!surfaceParams) {
+            continue;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable.drawablePtr);
+        if (surfaceParams->IsHardCursorEnabled()) {
+            processor->CreateLayerForRenderThread(*surfaceDrawable);
+            ret = true;
+        }
+    }
+    return ret;
+}
+
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
@@ -367,8 +389,9 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
     auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
+    auto isHardCursor = HardCursorCreateLayer(processor);
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
-        pendingDrawables.size() == 0) {
+        pendingDrawables.size() == 0 && !isHardCursor) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }
@@ -518,9 +541,16 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         drawable->GetRenderParams()->SetLayerCreated(false);
     }
-
-    // if screen power off, skip on draw
-    if (SkipDisplayIfScreenOff()) {
+    auto& hardCursorDrawables = uniParam->GetHardCursorDrawables();
+    for (const auto& drawable : hardCursorDrawables) {
+        if (drawable.id != GetId() || !drawable.drawablePtr ||
+            !drawable.drawablePtr->GetRenderParams()) {
+            continue;
+        }
+        drawable.drawablePtr->GetRenderParams()->SetLayerCreated(false);
+    }
+    // if screen power off, skip on draw, needs to draw one more frame.
+    if (params && RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, params->GetScreenId())) {
         return;
     }
 
@@ -805,6 +835,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
     }
+    HardCursorCreateLayer(processor);
     SetDirtyRects(damageRegionrects);
     processor->ProcessDisplaySurfaceForRenderThread(*this);
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
@@ -1396,6 +1427,20 @@ void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes(RSDisplayRenderParams
             params.GetHardwareEnabledDrawables().emplace_back(drawable);
         }
     }
+    auto& hardCursorDrawables = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardCursorDrawables();
+    for (const auto& drawable : hardCursorDrawables) {
+        if (drawable.id != GetId() || !drawable.drawablePtr) {
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable.drawablePtr->GetRenderParams().get());
+        if (!surfaceParams) {
+            continue;
+        }
+        auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable.drawablePtr);
+        if (surfaceParams->IsHardCursorEnabled()) {
+            params.GetHardwareEnabledTopDrawables().emplace_back(drawable.drawablePtr);
+        }
+    }
 }
 
 
@@ -1626,35 +1671,6 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         offscreenSurface_ = nullptr;
     }
     curCanvas_ = std::move(canvasBackup_);
-}
-
-bool RSDisplayRenderNodeDrawable::SkipDisplayIfScreenOff() const
-{
-    // renderParams_ not null in caller
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
-        return false;
-    }
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff, failed to get screen manager!");
-        return false;
-    }
-    // in certain cases such as wireless display, render skipping may be disabled.
-    ScreenId id = renderParams_->GetScreenId();
-    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
-    auto isScreenOff = screenManager->IsScreenPowerOff(id);
-    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable Screen_[%" PRIu64 "] disableRenderControl:[%d], PowerOff:[%d]",
-        id, disableRenderControlScreensCount, isScreenOff);
-    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
-        return false;
-    }
-    if (screenManager->GetPowerOffNeedProcessOneFrame()) {
-        RS_LOGI("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff screen_%{public}" PRIu64
-            " power off, one more frame.", id);
-        screenManager->ResetPowerOffNeedProcessOneFrame();
-        return false;
-    }
-    return true;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

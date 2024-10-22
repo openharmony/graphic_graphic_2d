@@ -1959,5 +1959,33 @@ std::optional<Drawing::Matrix> RSUniRenderUtil::GetMatrix(
     }
     return relativeMat;
 }
+
+bool RSUniRenderUtil::CheckRenderSkipIfScreenOff(bool extraFrame, std::optional<ScreenId> screenId)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSUniRenderUtil::CheckRenderSkipIfScreenOff, failed to get screen manager!");
+        return false;
+    }
+    // in certain cases such as wireless display, render skipping may be disabled.
+    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
+    auto isScreenOff = screenId.has_value() ?
+        screenManager->IsScreenPowerOff(screenId.value()) : screenManager->IsAllScreensPowerOff();
+    RS_TRACE_NAME_FMT("CheckRenderSkipIfScreenOff disableRenderControl:[%d], PowerOff:[%d]",
+        disableRenderControlScreensCount, isScreenOff);
+    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
+        return false;
+    }
+    if (extraFrame && screenManager->GetPowerOffNeedProcessOneFrame()) {
+        RS_LOGI("RSUniRenderUtil::CheckRenderSkipIfScreenOff screen power off, one more frame.");
+        screenManager->ResetPowerOffNeedProcessOneFrame();
+        return false;
+    } else {
+        return !screenManager->GetPowerOffNeedProcessOneFrame();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

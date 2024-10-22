@@ -294,6 +294,12 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
     return false;
 }
 
+bool RSSurfaceRenderNodeDrawable::IsHardwareEnabledTopSurface() const
+{
+    return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
+        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+}
+
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     if (!ShouldPaint()) {
@@ -348,6 +354,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         (surfaceParams->GetIsSecurityLayer() && !uniParam->GetSecExemption()) || surfaceParams->GetIsSkipLayer();
     if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
         curDrawingCacheRoot_->SetSkipCacheLayer(true);
+    }
+    if (surfaceParams->IsHardCursorEnabled()) {
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip SurfaceName:%s", name_.c_str());
+        return;
     }
 
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
@@ -536,12 +546,15 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    // HidePrivacyContent is only for UICapture or NoneSystemCalling-WindowCapture
+    bool isHiddenScene = canvas.GetUICapture() ||
+        (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+        !RSUniRenderThread::GetCaptureParam().isSystemCalling_);
     if ((surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
          surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) &&
-        canvas.GetUICapture() && surfaceParams->GetHidePrivacyContent()) {
+        isHiddenScene && surfaceParams->GetHidePrivacyContent()) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfacenode nodeId:[%{public}" PRIu64
-                "] is not allowed to be uicaptured",
-            nodeId_);
+                "] is not allowed to be captured", nodeId_);
         return;
     }
 
@@ -683,8 +696,11 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hwcEnable = surfaceParams.GetHardwareEnabled();
     surfaceParams.SetHardwareEnabled(false);
     RS_LOGD("HDR hasHdrPresent_:%{public}d", canvas.IsCapture());
+    bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
+        RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+        !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasSnapshotSkipLayer() ||
-        surfaceParams.HasProtectedLayer() || hasHdrPresent_) &&
+        surfaceParams.HasProtectedLayer() || hasHdrPresent_ || hasHidePrivacyContent) &&
         DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
         return;
@@ -735,7 +751,8 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::IsInCaptureProcess()) {
+    if ((surfaceParams.GetHardwareEnabled() || surfaceParams.IsHardCursorEnabled()) &&
+        !RSUniRenderThread::IsInCaptureProcess()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }

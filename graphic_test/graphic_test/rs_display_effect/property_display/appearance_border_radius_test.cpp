@@ -93,7 +93,7 @@ GRAPHIC_TEST(AppearanceTest01, CONTENT_DISPLAY_TEST, Appearance_Border_Radius_Co
 
     // four different color
     auto testNodeFourColor = RSCanvasNode::Create();
-    setNode(testNodeFourColor, { 0, nodeSize * 3, nodeSize, nodeSize },
+    setNode(testNodeFourColor, { 0, nodePos * 3, nodeSize, nodeSize },
         Vector4<Color>(colorList[0], colorList[1], colorList[2], colorList[3]));
     GetRootNode()->AddChild(testNodeFourColor);
     RegisterNode(testNodeFourColor);

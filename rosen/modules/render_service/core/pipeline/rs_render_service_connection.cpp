@@ -983,7 +983,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         } else {
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);
+            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling);
         }
     };
     mainThread_->PostTask(captureTask);

@@ -2565,7 +2565,6 @@ void RSRenderNode::UpdateDrawableVecV2()
     }
 
     waitSync_ = true;
-    ClearResource();
 }
 
 void RSRenderNode::UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots)
@@ -4244,6 +4243,14 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
             filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
         }
     }
+}
+
+bool RSRenderNode::GetUifirstSupportFlag()
+{
+    if (sharedTransitionParam_ && !sharedTransitionParam_->IsInAppTranSition()) {
+        return false;
+    }
+    return isChildSupportUifirst_ && isUifirstNode_;
 }
 
 void RSRenderNode::UpdatePointLightDirtySlot()

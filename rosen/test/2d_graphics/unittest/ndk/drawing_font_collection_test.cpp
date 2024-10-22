@@ -33,7 +33,7 @@ class OH_Drawing_FontCollectionTest : public testing::Test {
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
-    EXPECT_EQ(fontCollection == nullptr, false);
+    EXPECT_NE(fontCollection, nullptr);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 
@@ -45,6 +45,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    EXPECT_NE(fontCollection, nullptr);
     OH_Drawing_DisableFontCollectionFallback(fontCollection);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
@@ -57,6 +58,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSi
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSize.Level1)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    EXPECT_NE(fontCollection, nullptr);
     OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
     OH_Drawing_ClearFontCaches(fontCollection);
     OH_Drawing_DestroyFontCollection(fontCollection);

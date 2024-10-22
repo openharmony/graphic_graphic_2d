@@ -900,7 +900,7 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uin
             return OHOS::GSERROR_NO_BUFFER;
         }
 
-        ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, SyncFence::InvalidFence());
+        ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
                     "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",

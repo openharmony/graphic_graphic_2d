@@ -30,6 +30,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_engine.h"
@@ -469,6 +470,33 @@ std::shared_ptr<RSSurfaceOhos> RSHardwareThread::CreateFrameBufferSurfaceOhos(co
     return rsSurface;
 }
 
+void RSHardwareThread::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers)
+{
+    RS_TRACE_NAME("RSHardwareThread::RedrawScreenRCD");
+    using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
+    std::vector<std::pair<NodeId, RoundCornerDisplayManager::RCDLayerType>> rcdLayerInfoList;
+    for (const auto& layer : layers) {
+        if (layer == nullptr) {
+            continue;
+        }
+        auto layerSurface = layer->GetSurface();
+        if (layerSurface != nullptr) {
+            auto rcdlayerInfo = RSRcdManager::GetInstance().GetLayerPair(layerSurface->GetName());
+            if (rcdlayerInfo.second != RoundCornerDisplayManager::RCDLayerType::INVALID) {
+                rcdLayerInfoList.push_back(rcdlayerInfo);
+                continue;
+            }
+        } else {
+            RS_LOGE("RSHardwareThread::RedrawScreenRCD layerSurface is nullptr");
+            continue;
+        }
+    }
+
+    if (RSRcdManager::GetInstance().GetRcdEnable()) {
+        RSRcdManager::GetInstance().DrawRoundCorner(rcdLayerInfoList, &canvas);
+    }
+}
+
 void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId)
 {
     RS_TRACE_NAME("RSHardwareThread::Redraw");
@@ -555,7 +583,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #else
     uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo);
 #endif
-
+    RedrawScreenRCD(*canvas, layers);
     renderFrame->Flush();
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }

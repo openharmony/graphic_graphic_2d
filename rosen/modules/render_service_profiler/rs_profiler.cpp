@@ -38,6 +38,7 @@
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "render/rs_typeface_cache.h"
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS::Rosen {
 
@@ -1709,7 +1710,12 @@ void RSProfiler::PlaybackStop(const ArgList& args)
     }
     HiddenSpaceTurnOff();
     FilterMockNode(*g_context);
+    constexpr int maxCountForSecurity = 1000;
+    for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
+        RSRenderNodeGC::Instance().ReleaseNodeBucket();
+    }
     RSTypefaceCache::Instance().ReplayClear();
+    ImageCache::Reset();
     g_playbackShouldBeTerminated = true;
     g_replayLastPauseTimeReported = 0;
 

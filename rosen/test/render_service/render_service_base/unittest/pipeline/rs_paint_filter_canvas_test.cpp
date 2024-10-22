@@ -1406,6 +1406,21 @@ HWTEST_F(RSPaintFilterCanvasTest, SetBlenderTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HdrOnTest
+ * @tc.desc: GetHdrOn/SetHdrOn
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, HdrOnTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetHdrOn(false);
+    EXPECT_EQ(paintFilterCanvas_->GetHdrOn(), false);
+    paintFilterCanvas_->SetHdrOn(true);
+    EXPECT_EQ(paintFilterCanvas_->GetHdrOn(), true);
+}
+
+/**
  * @tc.name: DrawSdfTest001
  * @tc.desc: DrawSdf Test
  * @tc.type:FUNC

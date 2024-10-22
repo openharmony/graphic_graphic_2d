@@ -97,7 +97,6 @@ public:
     void UpdateFocusNodeId(NodeId focusNodeId);
     void UpdateNeedDrawFocusChange(NodeId id);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
-    void RecvAndProcessRSTransactionDataImmediately(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync(const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0);
     void PostTask(RSTaskMessage::RSTask task);
@@ -362,6 +361,8 @@ public:
 
     bool IsHardwareEnabledNodesNeedSync();
     bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
+    void CollectInfoForHardCursor(NodeId id,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
@@ -507,7 +508,7 @@ private:
     bool CheckUIExtensionCallbackDataChanged() const;
     void ConfigureRenderService();
 
-    void OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
+    void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -628,6 +629,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
+    std::vector<HardCursorInfo> hardCursorDrawables_;
 
     // for client node tree dump
     struct NodeTreeDumpTask {

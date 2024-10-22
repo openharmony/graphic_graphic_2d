@@ -1630,7 +1630,8 @@ void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas, bool offScreen) const
     // draw outline stroke with pen
     Drawing::Pen outlinePen;
     outlinePen.SetColor(flag ? Color::COLOR_WHITE : Color::COLOR_BLACK);
-    outlinePen.SetAntiAlias(false);
+    outlinePen.SetAntiAlias(true);
+    outlinePen.SetBlenderEnabled(false);
     canvas->AttachPen(outlinePen);
     offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
 

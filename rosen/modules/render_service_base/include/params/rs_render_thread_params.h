@@ -32,15 +32,21 @@ struct CaptureParam {
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
+    bool isSystemCalling_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        float scaleX, float scaleY, bool isFirstNode = false)
+        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         scaleX_(scaleX),
         scaleY_(scaleY),
-        isFirstNode_(isFirstNode) {}
+        isFirstNode_(isFirstNode),
+        isSystemCalling_(isSystemCalling) {}
+};
+struct HardCursorInfo {
+    NodeId id = INVALID_NODEID;
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawablePtr = nullptr;
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:
@@ -122,7 +128,11 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
-
+    const std::vector<HardCursorInfo>& GetHardCursorDrawables() const
+    {
+        return hardCursorDrawables_;
+    }
+    
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
         pendingScreenRefreshRate_ = rate;
@@ -371,6 +381,7 @@ private:
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
+    std::vector<HardCursorInfo> hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.

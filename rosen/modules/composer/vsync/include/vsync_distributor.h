@@ -61,6 +61,7 @@ public:
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
+    virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
     inline void SetGCNotifyTask(GCNotifyTask hook)
     {
@@ -139,6 +140,7 @@ public:
     void SetHardwareTaskNum(uint32_t num);
     int64_t GetVsyncCount();
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
 
 private:
 

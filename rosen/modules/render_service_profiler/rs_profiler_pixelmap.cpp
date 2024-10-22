@@ -153,7 +153,7 @@ public:
             return false;
         }
 
-        base = new uint8_t[size];
+        base = new (std::nothrow) uint8_t[size];
         if (!base) {
             return false;
         }

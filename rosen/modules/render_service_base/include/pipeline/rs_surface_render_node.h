@@ -113,10 +113,7 @@ public:
         return isNodeDirty_;
     }
 
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+    bool IsHardwareEnabledTopSurface() const;
 
     void SetLayerTop(bool isTop);
 
@@ -132,7 +129,7 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface() || IsLayerTop();
+            IsLayerTop();
     }
 
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
@@ -155,7 +152,7 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
             (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
-                name_ == "VMLinuxXComponentSurface");
+                name_ == "VMLinuxXComponentSurface" || name_.find("HwStylusFeature") != std::string::npos);
     }
 
     void SetSubNodeShouldPaint()
@@ -416,7 +413,7 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsSCBNode() const;
-    void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable = false);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
@@ -468,6 +465,7 @@ public:
     bool GetHasSkipLayer() const;
     bool GetHasSnapshotSkipLayer() const;
     bool GetHasProtectedLayer() const;
+    bool GetHasPrivacyContentLayer() const;
 
     void ResetSpecialLayerChangedFlag()
     {
@@ -484,6 +482,7 @@ public:
     void SyncOnTheTreeInfoToFirstLevelNode();
     void SyncSnapshotSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
+    void SyncPrivacyContentInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -1288,6 +1287,7 @@ private:
     std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     bool specialLayerChanged_ = false;
     bool isGlobalPositionEnabled_ = false;
 

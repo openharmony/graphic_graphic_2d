@@ -256,6 +256,26 @@ VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch)
     return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this);
 }
 
+VsyncError VSyncConnection::SetNativeDVSyncSwitch(bool dvsyncSwitch)
+{
+    sptr<VSyncDistributor> distributor;
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        if (isDead_) {
+            VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+            return VSYNC_ERROR_API_FAILED;
+        }
+        if (distributor_ == nullptr) {
+            return VSYNC_ERROR_NULLPTR;
+        }
+        distributor = distributor_.promote();
+        if (distributor == nullptr) {
+            return VSYNC_ERROR_NULLPTR;
+        }
+    }
+    return distributor->SetNativeDVSyncSwitch(dvsyncSwitch, this);
+}
+
 VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
 {
     sptr<VSyncDistributor> distributor;
@@ -1165,7 +1185,7 @@ VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSy
 {
 #if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
-    dvsync_->RuntimeMark(dvsyncSwitch ? connection : nullptr);
+    dvsync_->RuntimeMark(connection, dvsyncSwitch);
 #endif
     return VSYNC_ERROR_OK;
 }
@@ -1175,6 +1195,15 @@ VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount)
 #if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
     dvsync_->SetUiDvsyncConfig(bufferCount);
+#endif
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncDistributor::SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    std::lock_guard<std::mutex> locker(mutex_);
+    dvsync_->RuntimeMark(connection, dvsyncSwitch, true);
 #endif
     return VSYNC_ERROR_OK;
 }

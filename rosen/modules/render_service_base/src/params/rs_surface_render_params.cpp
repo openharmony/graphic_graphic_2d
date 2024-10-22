@@ -167,6 +167,20 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
+void RSSurfaceRenderParams::SetHardCursorEnabled(bool enabled)
+{
+    if (isHardCursorEnabled_ == enabled) {
+        return;
+    }
+    isHardCursorEnabled_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsHardCursorEnabled() const
+{
+    return isHardCursorEnabled_;
+}
+
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
 {
     if (isLastFrameHardwareEnabled_ == enabled) {
@@ -452,6 +466,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->isHardCursorEnabled_ = isHardCursorEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
@@ -470,6 +485,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->snapshotSkipLayerIds_= snapshotSkipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
+    targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
     targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;

@@ -109,7 +109,7 @@ sk_sp<SkColorSpace> SkiaColorSpace::GetSkColorSpace() const
 std::shared_ptr<Data> SkiaColorSpace::Serialize() const
 {
     if (colorSpace_ == nullptr) {
-        LOGD("SkiaColorSpace::Serialize, colorSpace_ is nullptr!");
+        LOGE("SkiaColorSpace::Serialize, colorSpace_ is nullptr!");
         return nullptr;
     }
 
@@ -122,7 +122,7 @@ std::shared_ptr<Data> SkiaColorSpace::Serialize() const
 bool SkiaColorSpace::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGD("SkiaColorSpace::Deserialize, data is invalid!");
+        LOGE("SkiaColorSpace::Deserialize, data is invalid!");
         return false;
     }
 
