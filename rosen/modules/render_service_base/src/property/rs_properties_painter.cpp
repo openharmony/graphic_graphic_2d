@@ -92,6 +92,8 @@ Drawing::RoundRect RSPropertiesPainter::RRect2DrawingRRect(const RRect& rr)
 
 Drawing::RoundRect RSPropertiesPainter::RRect2DrawingRRectBorder(const RRect& rr_outer, const RRect& rr_inner)
 {
+    // Take the general position of the inner and outer borders of the border
+    // to prevent the background from being affected by the border.
     auto left_border = (rr_inner.rect_.left_ - rr_outer.rect_.left_) / 2;
     auto top_border = (rr_inner.rect_.top_ - rr_outer.rect_.top_) / 2;
     auto right_border = ((rr_outer.rect_.left_ + rr_outer.rect_.width_) -
