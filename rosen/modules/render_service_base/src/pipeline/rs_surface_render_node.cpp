@@ -1027,44 +1027,25 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
     return colorSpace_;
 }
 
-void RSSurfaceRenderNode::UpdateColorSpaceToIntanceRootNode()
+void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
 {
-    auto parentInstance = GetInstanceRootNode();
-    if (!parentInstance) {
-        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceToIntanceRootNode get parent instance root node info failed.");
-        return;
-    }
 #ifndef ROSEN_CROSS_PLATFORM
     if (!GetRSSurfaceHandler() || !GetRSSurfaceHandler()->GetBuffer()) {
+        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata node(%{public}s) did not have buffer.",
+            GetName().c_str());
         return;
     }
     const sptr<SurfaceBuffer>& buffer = GetRSSurfaceHandler()->GetBuffer();
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceToIntanceRootNode get color space info failed.");
+        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata get color space info failed.");
         return;
     }
     // currently, P3 is the only supported wide color gamut, this may be modified later.
-    auto subColorSpace = colorSpaceInfo.primaries != COLORPRIMARIES_SRGB ?
+    colorSpace_ = colorSpaceInfo.primaries != COLORPRIMARIES_SRGB ?
         GRAPHIC_COLOR_GAMUT_DISPLAY_P3 : GRAPHIC_COLOR_GAMUT_SRGB;
-    if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-        parentSurface->subColorSpace_ = parentSurface->subColorSpace_ == GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ?
-            GRAPHIC_COLOR_GAMUT_DISPLAY_P3 : subColorSpace;
-    }
-    // Set subColorSpace_ of the node itself, in case the parent surface is not obtained.
-    subColorSpace_ = subColorSpace;
 #endif
-}
-
-GraphicColorGamut RSSurfaceRenderNode::GetSubSurfaceColorSpace() const
-{
-    return subColorSpace_.value_or(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-}
-
-void RSSurfaceRenderNode::ResetSubSurfaceColorSpace()
-{
-    subColorSpace_ = std::nullopt;
 }
 
 void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
