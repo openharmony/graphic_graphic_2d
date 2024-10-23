@@ -49,6 +49,7 @@ public:
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
     void DrawCaptureImage(RSPaintFilterCanvas& canvas);
     void ReleaseCaptureImage();
+    void DumpCanvasDrawing();
 
     uint32_t GetTid() const
     {
