@@ -357,7 +357,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
             RSMainThread::Instance()->IsUIFirstOn();
         bool isNeedFP16 = nodeDrawable->GetHDRPresent() || isScRGBEnable;
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
-        nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_, isScRGBEnable);
+        nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_, isNeedFP16);
         cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
     }
 
