@@ -48,7 +48,6 @@ public:
     void ForceReleaseResource();
     void DumpMem(DfxString& log);
     float GetAppGpuMemoryInMB();
-    std::vector<MemoryGraphic> CountSubMem(int pid);
     void ReleaseSurface(uint32_t threadIndex) const;
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
     std::unordered_map<uint32_t, pid_t> GetReThreadIndexMap() const;
