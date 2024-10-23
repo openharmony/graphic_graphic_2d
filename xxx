@@ -1,0 +1,29 @@
+FHtmlChannel::FHtmlChannel ( const FString& Path )
+    : FFileChannel ( CheckExtension ( Path, "html" ) )
+{
+    WriteString ( "<!DOCTYPE HTML>" );
+    WriteString ( "<html>"
+                  "<head><style>"
+                  "err { color:#FF2B00; font-family: segoe ui; white-space: pre-line}"
+                  "wrn { color:#FF9F00; font-family: segoe ui; white-space: pre-line}"
+                  "inf { color:#AAAAAA; font-family: segoe ui; white-space: pre-line}"
+                  "</style></head>"
+                  "<body bgcolor=\"#333333\">" );
+}
+
+FHtmlChannel::~FHtmlChannel ()
+{
+    WriteString ( "</body></html>" );
+}
+
+void FHtmlChannel::Output ( ESeverity Severity, const FString& String )
+{
+    if ( Severity == ESeverity::High )
+        WriteString ( "<err>" + String + "</err>" );
+    else
+    if ( Severity == ESeverity::Medium )
+        WriteString ( "<wrn>" + String + "</wrn>" );
+    else
+    if ( Severity == ESeverity::Low )
+        WriteString ( "<inf>" + String + "</inf>" );
+}
