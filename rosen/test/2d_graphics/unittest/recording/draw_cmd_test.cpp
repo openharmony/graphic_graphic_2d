@@ -231,14 +231,14 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
-    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr));
+    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr, 0));
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
         globalUniqueId, 0, 0, paintHandle};
-    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle));
-    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle));
+    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0));
+    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0));
 }
 
 /**
@@ -255,7 +255,7 @@ HWTEST_F(DrawCmdTest, PatchTypefaceIds001, TestSize.Level1)
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId, 0, 0, paintHandle};
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
-    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle);
+    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0);
     drawCmdList->PatchTypefaceIds();
 }
 
