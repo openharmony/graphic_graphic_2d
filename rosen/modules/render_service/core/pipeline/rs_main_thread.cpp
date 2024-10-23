@@ -169,13 +169,13 @@ constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE = 100; // ms
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
-constexpr float DEFAULT_SCALER = 4.5f;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
 constexpr float REFERENCE_WHITE = 203.0f;
 constexpr float CAMERA_WHITE_MIN = 500.0f;
 constexpr float CAMERA_WHITE_MAX = 510.0f;
 constexpr float CAMERA_HDR_RATIO = 2.5f;
 constexpr float HDR_WHITE = 1000.0f;
+constexpr float DEFAULT_SCALER = HDR_WHITE / REFERENCE_WHITE;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -243,7 +243,7 @@ void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<Rc
 
 float CalScaler(const float& maxContentLightLevel)
 {
-    if (ROSEN_LE(maxContentLightLevel, 0.0f) || ROSEN_LNE(maxContentLightLevel, REFERENCE_WHITE)) {
+    if (ROSEN_EQ(maxContentLightLevel, REFERENCE_WHITE)) {
         return DEFAULT_HDR_RATIO;
     } else if (ROSEN_GE(maxContentLightLevel, CAMERA_WHITE_MIN) && ROSEN_LE(maxContentLightLevel, CAMERA_WHITE_MAX)) {
         return CAMERA_HDR_RATIO;
@@ -279,7 +279,7 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
         return;
     }
     float scaler = DEFAULT_SCALER;
-    if (hdrStaticMetadataVec.size() != sizeof(hdrStaticMetadataVec) || hdrStaticMetadataVec.data() == nullptr) {
+    if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
