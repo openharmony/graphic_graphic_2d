@@ -186,8 +186,8 @@ void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<Rc
     }
     if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [&processor, &rcdInfo]() {
-                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+            [&processor, &rcdInfo](void) {
+                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfoPreparing();
                 rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
                     hardInfo.resourceChanged};
                 RSRcdRenderManager::GetInstance().DoProcessRenderTask(rcdInfo->processInfo);
