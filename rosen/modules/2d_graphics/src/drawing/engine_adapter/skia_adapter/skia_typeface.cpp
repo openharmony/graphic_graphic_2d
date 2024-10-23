@@ -252,7 +252,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromName(const char familyName[], Fo
 sk_sp<SkData> SkiaTypeface::SerializeTypeface(SkTypeface* typeface, void* ctx)
 {
     if (!typeface) {
-        LOGE("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     TextBlob::Context* textblobCtx = reinterpret_cast<TextBlob::Context*>(ctx);
@@ -268,7 +268,7 @@ sk_sp<SkData> SkiaTypeface::SerializeTypeface(SkTypeface* typeface, void* ctx)
 sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t length, void* ctx)
 {
     if (data == nullptr) {
-        LOGE("data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
 
@@ -279,12 +279,12 @@ sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t len
     }
     auto& typeface = textblobCtx->GetTypeface();
     if (typeface == nullptr) {
-        LOGE("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("typeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     auto skiaTypeface = typeface->GetImpl<SkiaTypeface>();
     if (skiaTypeface == nullptr) {
-        LOGE("skiaTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("skiaTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     auto skTypeface = skiaTypeface->GetSkTypeface();
@@ -294,14 +294,14 @@ sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t len
 std::shared_ptr<Data> SkiaTypeface::Serialize() const
 {
     if (!skTypeface_) {
-        LOGE("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     auto skData = skTypeface_->serialize(SkTypeface::SerializeBehavior::kDoIncludeData);
     auto data = std::make_shared<Data>();
     auto skiaData = data->GetImpl<SkiaData>();
     if (!skiaData) {
-        LOGE("skiaData nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("skiaData nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     skiaData->SetSkData(skData);
@@ -313,7 +313,7 @@ std::shared_ptr<Typeface> SkiaTypeface::Deserialize(const void* data, size_t siz
     SkMemoryStream stream(data, size);
     auto skTypeface = SkTypeface::MakeDeserialize(&stream);
     if (!skTypeface) {
-        LOGE("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
     auto typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);

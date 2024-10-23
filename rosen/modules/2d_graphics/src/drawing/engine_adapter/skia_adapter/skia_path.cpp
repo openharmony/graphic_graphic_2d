@@ -471,7 +471,6 @@ std::shared_ptr<Data> SkiaPath::Serialize() const
 {
     if (path_.isEmpty()) {
         LOGE("SkiaPath::Serialize, path is empty!");
-        return nullptr;
     }
     SkBinaryWriteBuffer writer;
     writer.writePath(path_);

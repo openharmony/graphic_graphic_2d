@@ -30,7 +30,7 @@ const sk_sp<SkPicture> SkiaPicture::GetPicture() const
 std::shared_ptr<Data> SkiaPicture::Serialize() const
 {
     if (skiaPicture_ == nullptr) {
-        LOGE("SkiaPicture::Serialize, SkPicture is nullptr!");
+        LOGD("SkiaPicture::Serialize, SkPicture is nullptr!");
         return nullptr;
     }
 
@@ -44,7 +44,6 @@ std::shared_ptr<Data> SkiaPicture::Serialize() const
 bool SkiaPicture::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaPicture::Deserialize, data is nullptr!");
         return false;
     }
 

@@ -89,7 +89,7 @@ void SkiaPathEffect::SetSkPathEffect(const sk_sp<SkPathEffect>& pathEffect)
 std::shared_ptr<Data> SkiaPathEffect::Serialize() const
 {
     if (pathEffect_ == nullptr) {
-        LOGE("SkiaPathEffect::Serialize, pathEffect_ is nullptr!");
+        LOGD("SkiaPathEffect::Serialize, pathEffect_ is nullptr!");
         return nullptr;
     }
 
@@ -99,7 +99,7 @@ std::shared_ptr<Data> SkiaPathEffect::Serialize() const
 bool SkiaPathEffect::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaPathEffect::Deserialize, data is invalid!");
+        LOGD("SkiaPathEffect::Deserialize, data is invalid!");
         return false;
     }
 
