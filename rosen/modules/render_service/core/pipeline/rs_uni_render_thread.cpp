@@ -629,6 +629,27 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
         + "==>" + FormatNumber(maxResourcesBytes) + "\n");
 }
 
+bool RSUniRenderThread::IsColorFilterModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
+    if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
+        colorFilterMode == ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
+        return false;
+    }
+    return true;
+}
+
+bool RSUniRenderThread::IsHighContrastTextModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    return uniRenderEngine_->IsHighContrastEnabled();
+}
+
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 {
     auto task = [this, &dumpString, &type] {
