@@ -130,7 +130,7 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
     GraphicLayerInfo hdiLayerInfo = {
         .width = layerInfo->GetLayerSize().w,
         .height = layerInfo->GetLayerSize().h,
-        .type = layerInfo->GetType(),
+        .type = GRAPHIC_LAYER_TYPE_GRAPHIC,
         .pixFormat = GRAPHIC_PIXEL_FMT_RGBA_8888,
     };
     int32_t ret = device_->CreateLayer(screenId_, hdiLayerInfo, bufferCacheCountMax_, layerId);
