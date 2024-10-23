@@ -658,10 +658,7 @@ public:
         isChildSupportUifirst_ = isChildSupportUifirst_ && b;
     }
 
-    virtual bool GetUifirstSupportFlag()
-    {
-        return !GetRenderProperties().GetSandBox() && isChildSupportUifirst_ && isUifirstNode_;
-    }
+    virtual bool GetUifirstSupportFlag();
 
     virtual void MergeOldDirtyRect()
     {
@@ -1100,6 +1097,10 @@ struct SharedTransitionParam {
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool UpdateHierarchyAndReturnIsLower(const NodeId nodeId);
+    bool IsInAppTranSition() const
+    {
+        return !crossApplication_;
+    }
     void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
 
