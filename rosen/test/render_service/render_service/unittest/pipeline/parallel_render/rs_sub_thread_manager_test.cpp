@@ -334,24 +334,6 @@ HWTEST_F(RsSubThreadManagerTest, AddToReleaseQueue, TestSize.Level1)
 }
 
 /**
- * @tc.name: CountSubMemTest001
- * @tc.desc: Verify function CountSubMem
- * @tc.type:FUNC
- */
-HWTEST_F(RsSubThreadManagerTest, CountSubMemTest001, TestSize.Level1)
-{
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    EXPECT_TRUE(rsSubThreadManager->CountSubMem(0).empty());
-    auto renderContext = std::make_shared<RenderContext>();
-    std::shared_ptr<RSSubThread> curThread = nullptr;
-    auto curThreads = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    rsSubThreadManager->threadList_.push_back(curThread);
-    rsSubThreadManager->threadList_.push_back(curThreads);
-    EXPECT_FALSE(rsSubThreadManager->CountSubMem(0).empty());
-    rsSubThreadManager->threadList_.clear();
-}
-
-/**
  * @tc.name: GetReThreadIndexMapTest001
  * @tc.desc: Verify function GetReThreadIndexMap
  * @tc.type:FUNC

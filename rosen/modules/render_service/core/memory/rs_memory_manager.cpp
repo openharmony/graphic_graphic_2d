@@ -41,7 +41,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 
 #include "app_mgr_client.h"
 #include "hisysevent.h"
@@ -218,17 +217,6 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid, const Drawing::GPUCon
     log.AppendFormat("GPU Mem(MB):%f\n", mem.GetGpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("CPU Mem(KB):%f\n", mem.GetCpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("Total Mem(MB):%f\n", mem.GetTotalMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
-}
-
-MemoryGraphic MemoryManager::CountSubMemory(int pid, const Drawing::GPUContext* gpuContext)
-{
-    MemoryGraphic memoryGraphic;
-    auto subThreadManager = RSSubThreadManager::Instance();
-    std::vector<MemoryGraphic> subMems = subThreadManager->CountSubMem(pid);
-    for (const auto& mem : subMems) {
-        memoryGraphic += mem;
-    }
-    return memoryGraphic;
 }
 
 MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* gpuContext)
