@@ -23,17 +23,17 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-constexpr float DEFAULT_SCALER = 4.5f;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
 constexpr float REFERENCE_WHITE = 203.0f;
 constexpr float CAMERA_WHITE_MIN = 500.0f;
 constexpr float CAMERA_WHITE_MAX = 510.0f;
 constexpr float CAMERA_HDR_RATIO = 2.5f;
 constexpr float HDR_WHITE = 1000.0f;
+constexpr float DEFAULT_SCALER = HDR_WHITE / REFERENCE_WHITE;
 
 float CalScaler(const float& maxContentLightLevel)
 {
-    if (ROSEN_LE(maxContentLightLevel, 0.0f) || ROSEN_LNE(maxContentLightLevel, REFERENCE_WHITE)) {
+    if (ROSEN_EQ(maxContentLightLevel, REFERENCE_WHITE)) {
         return DEFAULT_HDR_RATIO;
     } else if (ROSEN_GE(maxContentLightLevel, CAMERA_WHITE_MIN) && ROSEN_LE(maxContentLightLevel, CAMERA_WHITE_MAX)) {
         return CAMERA_HDR_RATIO;
