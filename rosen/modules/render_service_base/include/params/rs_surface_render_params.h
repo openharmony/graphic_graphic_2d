@@ -398,6 +398,16 @@ public:
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
 
+    void SetRoundedCornerRegion(const Occlusion::Region& roundedCornerRegion)
+    {
+        roundedCornerRegion_ = roundedCornerRegion;
+    }
+
+    const Occlusion::Region& GetRoundedCornerRegion() const
+    {
+        return roundedCornerRegion_;
+    }
+
     // DFX
     std::string ToString() const override;
     // Set/Get OpaqueRegion, currently only used for DFX
@@ -523,6 +533,7 @@ private:
     RRect rrect_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
+    Occlusion::Region roundedCornerRegion_;
     Occlusion::Region opaqueRegion_;
 
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
