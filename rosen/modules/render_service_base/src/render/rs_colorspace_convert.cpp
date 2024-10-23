@@ -95,7 +95,7 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
     ScreenId screenId, uint32_t dynamicRangeMode)
 {
-    RS_LOGD("RSColorSpaceConvertor targetColorSpace:%{public}d. screenId:%{public}" PRIu64 ". \
+    RS_LOGD("RSColorSpaceConvertor HDRDraw targetColorSpace:%{public}d. screenId:%{public}" PRIu64 ". \
         dynamicRangeMode%{public}u", targetColorSpace, screenId, dynamicRangeMode);
     VPEParameter parameter;
 
