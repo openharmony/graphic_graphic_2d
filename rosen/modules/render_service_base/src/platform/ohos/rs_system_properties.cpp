@@ -458,11 +458,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
-void RSSystemProperties::SetDefaultScreenRotationOffset(uint32_t offset)
-{
-    defaultScreenRotationOffset_ = offset;
-}
-
 void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
     defaultDeviceRotationOffset_ = offset;
@@ -470,7 +465,7 @@ void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
 
 uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
 {
-    return defaultDeviceRotationOffset_.load().value_or(defaultScreenRotationOffset_);
+    return defaultDeviceRotationOffset_;
 }
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
