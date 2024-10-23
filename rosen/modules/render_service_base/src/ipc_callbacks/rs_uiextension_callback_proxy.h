@@ -28,7 +28,7 @@ public:
     explicit RSUIExtensionCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSUIExtensionCallbackProxy() noexcept = default;
 
-    void OnUIExtension(std::shared_ptr<RSUIExtensionData> uiextensionData, uint64_t userId) override;
+    void OnUIExtension(std::shared_ptr<RSUIExtensionData> uiExtensionData, uint64_t userId) override;
 
 private:
     static inline BrokerDelegator<RSUIExtensionCallbackProxy> delegator_;
