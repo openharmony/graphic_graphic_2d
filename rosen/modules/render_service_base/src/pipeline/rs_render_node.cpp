@@ -636,6 +636,16 @@ void RSRenderNode::RemoveSubSurfaceNode(SharedPtr parent)
 
 void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 {
+    // Exceed max depth for dumping render node tree, refuse to continue and add a warning.
+    // Possible reason: loop in the render node tree
+    constexpr int32_t MAX_DUMP_DEPTH = 256;
+    if (depth >= MAX_DUMP_DEPTH) {
+        ROSEN_LOGW("RSRenderNode::DumpTree depth exceed max depth, stop dumping. current depth = %d, "
+            "nodeId = %" PRIu64, depth, id_);
+        out += "===== WARNING: exceed max depth for dumping render node tree =====\n";
+        return;
+    }
+
     for (int32_t i = 0; i < depth; ++i) {
         out += "  ";
     }

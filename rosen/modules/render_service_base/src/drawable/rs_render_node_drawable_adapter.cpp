@@ -296,11 +296,22 @@ void RSRenderNodeDrawableAdapter::DrawAll(Drawing::Canvas& canvas, const Drawing
 // can only run in sync mode
 void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const
 {
+    // Exceed max depth for dumping drawable tree, refuse to dump and add a warning.
+    // Possible reason: loop in the drawable tree
+    constexpr int32_t MAX_DUMP_DEPTH = 256;
+    if (depth >= MAX_DUMP_DEPTH) {
+        ROSEN_LOGW("RSRenderNodeDrawableAdapter::DumpDrawableTree depth too large, stop dumping. current depth = %d, "
+            "nodeId = %" PRIu64, depth, nodeId_);
+        out += "===== WARNING: exceed max depth for dumping drawable tree =====\n";
+        return;
+    }
+
     for (int32_t i = 0; i < depth; ++i) {
         out += "  ";
     }
+    // dump node info/DrawableVec/renderParams etc.
     auto renderNode = (depth == 0 && nodeId_ == INVALID_NODEID) ? context.GetGlobalRootRenderNode()
-                                                : context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId_);
+        : context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId_);
     if (renderNode == nullptr) {
         out += "[" + std::to_string(nodeId_) + ": nullptr]\n";
         return;
@@ -321,10 +332,13 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
     }
     out += "\n";
 
+    // Dump children drawable(s)
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
         renderNode->drawableVec_[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
     if (childrenDrawable) {
-        for (const auto& renderNodeDrawable : childrenDrawable->childrenDrawableVec_) {
+        const auto& childrenVec = childrenDrawable->needSync_ ? childrenDrawable->stagingChildrenDrawableVec_
+            : childrenDrawable->childrenDrawableVec_;
+        for (const auto& renderNodeDrawable : childrenVec) {
             renderNodeDrawable->DumpDrawableTree(depth + 1, out, context);
         }
     }
