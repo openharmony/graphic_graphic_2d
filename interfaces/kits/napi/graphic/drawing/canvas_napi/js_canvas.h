@@ -18,6 +18,9 @@
 
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
+#ifdef ROSEN_OHOS
+#include "pixel_map.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -150,6 +153,9 @@ private:
     static thread_local napi_ref constructor_;
     Canvas* m_canvas = nullptr;
     bool owned_ = false;
+#ifdef ROSEN_OHOS
+    std::shared_ptr<Media::PixelMap> mPixelMap_ = nullptr;
+#endif
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
