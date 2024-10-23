@@ -121,7 +121,7 @@ void RSRenderNodeGC::ReleaseDrawableBucket()
         toDele.swap(drawableBucket_.front());
         drawableBucket_.pop();
     }
-    RS_TRACE_NAME_FMT("ReleaseDrawableMemory %d", toDele.size());
+    RS_TRACE_NAME_FMT("ReleaseDrawableMemory %zu", toDele.size());
     for (auto ptr : toDele) {
         if (ptr) {
             delete ptr;
