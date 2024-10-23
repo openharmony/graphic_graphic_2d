@@ -319,6 +319,8 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset);
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();

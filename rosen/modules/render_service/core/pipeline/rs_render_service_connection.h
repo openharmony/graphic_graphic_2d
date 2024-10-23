@@ -263,6 +263,8 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
+
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
