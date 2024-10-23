@@ -1165,7 +1165,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
 
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGE("RSRenderNode::FallbackAnimationsToRoot: Invalid context");
         return;
     }
     auto target = context->GetNodeMap().GetAnimationFallbackNode();
@@ -3654,7 +3654,7 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetInstanceRootNode() const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGE("RSRenderNode::GetInstanceRootNode: Invalid context");
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(instanceRootNodeId_);
@@ -3677,7 +3677,7 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstLevelNode() const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGE("RSRenderNode::GetFirstLevelNode: Invalid context");
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(firstLevelNodeId_);
@@ -3687,7 +3687,7 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetUifirstRootNode() const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGE("RSRenderNode::GetUifirstRootNode: Invalid context");
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(uifirstRootNodeId_);
