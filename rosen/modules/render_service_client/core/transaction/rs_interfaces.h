@@ -287,6 +287,11 @@ public:
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

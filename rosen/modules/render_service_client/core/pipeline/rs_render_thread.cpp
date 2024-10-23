@@ -484,6 +484,7 @@ void RSRenderThread::Render()
     visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(), isRTRenderForced_);
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    RSSurfaceBufferCallbackManager::Instance().
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
