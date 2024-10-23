@@ -53,6 +53,7 @@ public:
     void ProcessDisplaySurfaceForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable) override;
 
 private:
+    bool GetForceClientForDRM(RSSurfaceRenderParams& params);
     LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;

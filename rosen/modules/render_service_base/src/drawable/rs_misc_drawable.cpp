@@ -48,12 +48,14 @@ bool RSChildrenDrawable::OnUpdate(const RSRenderNode& node)
             if (UNLIKELY(child->GetSharedTransitionParam()) && OnSharedTransition(child)) {
                 continue;
             }
-            if (auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child)) {
-                if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
-                    childDrawable->SetSkip(SkipType::NONE);
-                }
-                stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
+            auto childDrawable = RSRenderNodeDrawableAdapter::OnGenerate(child);
+            if (!childDrawable) {
+                continue;
             }
+            if (childDrawable->GetSkipType() == SkipType::SKIP_SHADOW) {
+                childDrawable->SetSkip(SkipType::NONE);
+            }
+            stagingChildrenDrawableVec_.push_back(std::move(childDrawable));
         }
     } else {
         // ShadowBatching mode, draw all shadows, then draw all children
@@ -128,7 +130,7 @@ void RSChildrenDrawable::OnSync()
         return;
     }
     std::swap(stagingChildrenDrawableVec_, childrenDrawableVec_);
-    stagingChildrenDrawableVec_.clear();
+    RSRenderNodeDrawableAdapter::AddToClearDrawables(stagingChildrenDrawableVec_);
     needSync_ = false;
 }
 
@@ -199,7 +201,7 @@ void RSCustomModifierDrawable::OnSync()
     gravity_ = stagingGravity_;
     isCanvasNode_ = stagingIsCanvasNode_;
     std::swap(stagingDrawCmdListVec_, drawCmdListVec_);
-    stagingDrawCmdListVec_.clear();
+    RSRenderNodeDrawableAdapter::AddToClearCmdList(stagingDrawCmdListVec_);
     needSync_ = false;
 }
 
@@ -322,7 +324,7 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
 {
     auto ptr = std::static_pointer_cast<const RSBeginBlenderDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas->GetDrawingType() == Drawing::DrawingType::PAINT_FILTER) {
+        if (canvas->GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
             return;
         }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);

@@ -15,7 +15,6 @@
 
 #include "gtest/gtest.h"
 #include "pipeline/rs_unmarshal_thread.h"
-#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -108,7 +107,6 @@ HWTEST_F(RSUnmarshalThreadTest, TransactionDataStatistics001, TestSize.Level1)
     std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
     constexpr bool isSystemCall = false;
     auto& instance = RSUnmarshalThread::Instance();
-    bool terminateEnabled = RSSystemProperties::GetTransactionTerminateEnabled();
 
     RSUnmarshalThread::Instance().ClearTransactionDataStatistics();
     ASSERT_EQ(instance.ReportTransactionDataStatistics(callingPid, transactionData.get(), !isSystemCall), false);

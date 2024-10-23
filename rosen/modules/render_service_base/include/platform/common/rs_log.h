@@ -69,6 +69,9 @@ enum RSLogFlag {
 
     // drawing
     FLAG_DEBUG_DRAWING = 0x00000200,
+
+    // prevalidate
+    FLAG_DEBUG_PREVALIDATE = 0x00000400,
 };
 
 class RSLogManager {
@@ -98,6 +101,7 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
+
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001406
 
@@ -126,7 +130,6 @@ private:
 #define RS_LOGF(format, ...) \
     HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)
 
-#ifdef NOT_BUILD_FOR_OHOS_SDK
 #define CONDITION(cond)     (__builtin_expect((cond) != 0, 0))
 
 #ifndef RS_LOGD_IF
@@ -162,13 +165,6 @@ private:
     ( (CONDITION(cond)) \
     ? ((void)HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__)) \
     : (void)0)
-#endif
-#else
-#define RS_LOGD_IF(cond, format, ...) ((void)0)
-#define RS_LOGI_IF(cond, format, ...) ((void)0)
-#define RS_LOGW_IF(cond, format, ...) ((void)0)
-#define RS_LOGE_IF(cond, format, ...) ((void)0)
-#define RS_LOGF_IF(cond, format, ...) ((void)0)
 #endif
 
 #ifndef ROSEN_LOGD_IF
@@ -210,5 +206,7 @@ private:
 #define DEBUG_VSYNC RS_LOG_ENABLE(FLAG_DEBUG_VSYNC)
 
 #define DEBUG_DRAWING RS_LOG_ENABLE(FLAG_DEBUG_DRAWING)
+
+#define DEBUG_PREVALIDATE RS_LOG_ENABLE(FLAG_DEBUG_PREVALIDATE)
 
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H

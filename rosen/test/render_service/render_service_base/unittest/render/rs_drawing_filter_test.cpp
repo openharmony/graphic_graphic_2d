@@ -18,6 +18,7 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_mesa_blur_shader_filter.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -74,6 +75,8 @@ HWTEST_F(RSDrawingFilterTest, GetDescription001, TestSize.Level1)
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
     filterPtr->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
+    filterPtr->type_ = RSShaderFilter::MESA;
+    EXPECT_TRUE(!drawingFilter.GetDescription().empty());
     filterPtr->type_ = RSShaderFilter::NONE;
     EXPECT_TRUE(!drawingFilter.GetDescription().empty());
 }
@@ -109,6 +112,15 @@ HWTEST_F(RSDrawingFilterTest, GetDetailedDescription001, TestSize.Level1)
 
     filterPtr->type_ = RSShaderFilter::NONE;
     EXPECT_TRUE(!drawingFilter.GetDetailedDescription().empty());
+
+    int radius = 1;
+    auto filterPtr2 = std::make_shared<RSMESABlurShaderFilter>(radius);
+    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters2;
+    shaderFilters2.push_back(filterPtr2);
+    RSDrawingFilter drawingFilter2(imageFilter, shaderFilters2, hash);
+    drawingFilter2.SetFilterType(RSFilter::BLUR);
+    filterPtr2->type_ = RSShaderFilter::MESA;
+    EXPECT_TRUE(!drawingFilter2.GetDetailedDescription().empty());
 }
 
 /**

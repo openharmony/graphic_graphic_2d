@@ -158,8 +158,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetSubTreePrepareCheckType();
     RSSystemProperties::GetHDRImageEnable();
     RSSystemProperties::IsForceClient();
-    RSSystemProperties::GetUnmarshParallelFlag();
-    RSSystemProperties::GetUnMarshParallelSize();
     RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled();
     RSSystemProperties::GetDdgrOpincType();
     RSSystemProperties::IsDdgrOpincEnable();

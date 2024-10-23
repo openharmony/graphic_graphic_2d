@@ -20,6 +20,7 @@
 #include "sandbox_utils.h"
 #include "src/core/SkLRUCache.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include <algorithm>
 
 // after 5 vsync count, destory it
@@ -268,6 +269,7 @@ void RSTypefaceCache::AddDelayDestroyQueue(uint64_t globalUniqueId)
 
 void RSTypefaceCache::HandleDelayDestroyQueue()
 {
+    RS_TRACE_FUNC();
     std::lock_guard<std::mutex> lock(listMutex_);
     for (auto it = delayDestroyTypefaces_.begin(); it != delayDestroyTypefaces_.end();) {
         it->refCount--;

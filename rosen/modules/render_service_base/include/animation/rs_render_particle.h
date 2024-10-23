@@ -140,6 +140,8 @@ public:
     EmitterUpdater(const EmitterUpdater& config) = default;
     EmitterUpdater& operator=(const EmitterUpdater& config) = default;
     ~EmitterUpdater() = default;
+
+    void Dump(std::string& out) const;
 };
 
 class RSB_EXPORT ParticleVelocity {

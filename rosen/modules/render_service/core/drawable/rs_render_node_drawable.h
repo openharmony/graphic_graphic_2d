@@ -140,6 +140,7 @@ protected:
     static inline std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos_;
     thread_local static inline bool isOpincDropNodeExt_ = true;
     thread_local static inline int opincRootTotalCount_ = 0;
+    static inline RectI screenRectInfo_ = {0, 0, 0, 0};
 
     // used for render group cache
     void SetCacheType(DrawableCacheType cacheType);
@@ -193,6 +194,14 @@ private:
     void DrawWithoutNodeGroupCache(
         Drawing::Canvas& canvas, const RSRenderParams& params, DrawableCacheType originalCacheType);
     void DrawWithNodeGroupCache(Drawing::Canvas& canvas, const RSRenderParams& params);
+
+    void CheckRegionAndDrawWithoutFilter(
+        const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params);
+    void CheckRegionAndDrawWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
+        const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params);
+    bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
+        const std::vector<FilterNodeInfo>& filterInfoVec,
+        Drawing::RectI& dstRect);
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;
@@ -203,12 +212,13 @@ private:
     bool isOpincRootNode_ = false;
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
-    bool isOpincMarkCached_ = false;
     bool OpincGetCachedMark() const
     {
         return isOpincMarkCached_;
     }
     static thread_local bool isOffScreenWithClipHole_;
+    bool isOpincMarkCached_ = false;
+    bool IsOpincNodeInScreenRect(RSRenderParams& params);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

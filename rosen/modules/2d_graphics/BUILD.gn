@@ -134,6 +134,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_texture_info.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_trace_memory_dump.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_typeface.cpp",
+      "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_utils.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_vertices.cpp",
       "$drawing_core_src_dir/engine_adapter/static_factory.cpp",
       "$drawing_core_src_dir/image/bitmap.cpp",

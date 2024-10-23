@@ -93,7 +93,7 @@ void RSRenderServiceListener::OnCleanCache()
         node->NeedClearBufferCache();
         node->GetRSSurfaceHandler()->ResetBufferAvailableCount();
         node->ResetPreBuffer();
-        node->GetRSSurfaceHandler()->CleanPreBuffer();
+        node->GetRSSurfaceHandler()->ResetPreBuffer();
     });
 }
 

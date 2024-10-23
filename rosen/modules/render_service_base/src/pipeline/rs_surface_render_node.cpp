@@ -53,6 +53,9 @@ bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
     if (child->IsInstanceOf<RSRootRenderNode>()) {
         auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
+        // when rootnode is occluded, its applymodifiers will be skipped
+        // need to applymodifiers to update its properties here
+        rootNode->ApplyModifiers();
         const auto& property = rootNode->GetRenderProperties();
         if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 && rootNode->GetEnableRender()) {
             return true;
@@ -389,6 +392,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     SyncSecurityInfoToFirstLevelNode();
     SyncSkipInfoToFirstLevelNode();
     SyncProtectedInfoToFirstLevelNode();
+    SyncPrivacyContentInfoToFirstLevelNode();
 }
 
 bool RSSurfaceRenderNode::HasSubSurfaceNodes() const
@@ -780,6 +784,23 @@ void RSSurfaceRenderNode::SetInFixedRotation(bool isRotating)
     isInFixedRotation_ = isFixRotationByUser_ && isRotating;
 }
 
+void RSSurfaceRenderNode::SetHidePrivacyContent(bool needHidePrivacyContent)
+{
+    if (needHidePrivacyContent_ == needHidePrivacyContent) {
+        return;
+    }
+    needHidePrivacyContent_ = needHidePrivacyContent;
+    SetDirty();
+    if (needHidePrivacyContent) {
+        privacyContentLayerIds_.insert(GetId());
+    } else {
+        privacyContentLayerIds_.erase(GetId());
+    }
+    ROSEN_LOGI("RSSurfaceRenderNode::SetHidePrivacyContent, Node id: %{public}" PRIu64 ", privacyContent:%{public}d",
+        GetId(), needHidePrivacyContent);
+    SyncPrivacyContentInfoToFirstLevelNode();
+}
+
 void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
 {
     if (isSecurityLayer_ == isSecurityLayer) {
@@ -828,11 +849,6 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
     SyncProtectedInfoToFirstLevelNode();
 }
 
-void RSSurfaceRenderNode::SetForceClientForDRMOnly(bool forceClient)
-{
-    forceClientForDRMOnly_ = forceClient;
-}
-
 bool RSSurfaceRenderNode::GetSecurityLayer() const
 {
     return isSecurityLayer_;
@@ -862,6 +878,11 @@ bool RSSurfaceRenderNode::GetHasSkipLayer() const
 bool RSSurfaceRenderNode::GetHasProtectedLayer() const
 {
     return protectedLayerIds_.size() != 0;
+}
+
+bool RSSurfaceRenderNode::GetHasPrivacyContentLayer() const
+{
+    return privacyContentLayerIds_.size() != 0;
 }
 
 void RSSurfaceRenderNode::SyncSecurityInfoToFirstLevelNode()
@@ -906,6 +927,19 @@ void RSSurfaceRenderNode::SyncProtectedInfoToFirstLevelNode()
                 firstLevelNode->protectedLayerIds_.erase(GetId());
             }
             firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
+        }
+    }
+}
+
+void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
+{
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    // firstLevelNode is the nearest app window / leash node
+    if (firstLevelNode && GetFirstLevelNodeId() != GetId()) {
+        if (needHidePrivacyContent_ && IsOnTheTree()) {
+            firstLevelNode->privacyContentLayerIds_.insert(GetId());
+        } else {
+            firstLevelNode->privacyContentLayerIds_.erase(GetId());
         }
     }
 }
@@ -1065,9 +1099,11 @@ void RSSurfaceRenderNode::OnSkipSync()
         }
         auto context = GetContext().lock();
         if (context && !surfaceParams->GetHardwareEnabled()) {
-            context->GetMutableSkipSyncBuffer().push_back(
-                { preBuffer, GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
+            context->GetMutableSkipSyncBuffer().push_back({ GetFirstLevelNodeId(), preBuffer,
+                GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
             surfaceParams->SetPreBuffer(nullptr);
+            RS_LOGD("CollectSkipSyncBuffer fId[%" PRIu64"], sId[%" PRIu64"]",
+                GetFirstLevelNodeId(), surfaceParams->GetId());
         }
     }
 #endif
@@ -1099,11 +1135,11 @@ void RSSurfaceRenderNode::NeedClearBufferCache()
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     std::set<int32_t> bufferCacheSet;
-    if (surfaceHandler_->GetBuffer()) {
-        bufferCacheSet.insert(surfaceHandler_->GetBuffer()->GetSeqNum());
+    if (auto buffer = surfaceHandler_->GetBuffer()) {
+        bufferCacheSet.insert(buffer->GetSeqNum());
     }
-    if (surfaceHandler_->GetPreBuffer().buffer) {
-        bufferCacheSet.insert(surfaceHandler_->GetPreBuffer().buffer->GetSeqNum());
+    if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
+        bufferCacheSet.insert(preBuffer->GetSeqNum());
     }
     surfaceParams->SetBufferClearCacheSet(bufferCacheSet);
     AddToPendingSyncList();
@@ -2722,10 +2758,10 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isSkipLayer_ = isSkipLayer_;
     surfaceParams->isProtectedLayer_ = isProtectedLayer_;
     surfaceParams->animateState_ = animateState_;
-    surfaceParams->forceClientForDRMOnly_ = forceClientForDRMOnly_;
     surfaceParams->skipLayerIds_= skipLayerIds_;
     surfaceParams->securityLayerIds_= securityLayerIds_;
     surfaceParams->protectedLayerIds_= protectedLayerIds_;
+    surfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     surfaceParams->name_= name_;
     surfaceParams->positionZ_ = properties.GetPositionZ();
     surfaceParams->SetVisibleRegion(visibleRegion_);
@@ -2734,6 +2770,9 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->overDrawBufferNodeCornerRadius_ = GetOverDrawBufferNodeCornerRadius();
     surfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     surfaceParams->SetSkipDraw(isSkipDraw_);
+    surfaceParams->SetHidePrivacyContent(needHidePrivacyContent_);
+    surfaceParams->visibleFilterChild_ = GetVisibleFilterChild();
+    surfaceParams->isTransparent_ = IsTransparent();
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();

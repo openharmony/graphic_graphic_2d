@@ -139,7 +139,7 @@ public:
 private:
     float GetSurfaceWidth() const;
     float GetSurfaceHeight() const;
-    bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width, int stride, uint8_t *img);
+    bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width);
     HardwareLayerInfo cldLayerInfo;
     Drawing::Bitmap layerBitmap;
 

@@ -33,31 +33,16 @@ config("libtexgine_config") {
   ]
 }
 
-if (defined(is_arkui_x) && is_arkui_x) {
-  config("libtexgine_public_config") {
-    include_dirs = [
-      "export",
-      "texgine_drawing",
-      "//third_party/icu/icu4c/source/common",
-      "$graphic_2d_root/rosen/modules/render_service_base/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-      "$graphic_2d_root/rosen/modules/2d_graphics/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
-    ]
-  }
-} else {
-  config("libtexgine_public_config") {
-    include_dirs = [
-      "export",
-      "texgine_drawing",
-      "$graphic_2d_root/rosen/modules/render_service_base/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-      "$graphic_2d_root/rosen/modules/2d_graphics/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
-    ]
-  }
+config("libtexgine_public_config") {
+  include_dirs = [
+    "export",
+    "texgine_drawing",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+  ]
 }
 
 ohos_source_set("libtexgine_source") {
@@ -70,10 +55,8 @@ ohos_source_set("libtexgine_source") {
       "src/opentype_parser/opentype_basic_type.cpp",
       "src/opentype_parser/post_table_parser.cpp",
       "src/opentype_parser/ranges.cpp",
-      "src/typography_types.cpp",
       "src/utils/exlog.cpp",
       "src/utils/logger.cpp",
-      "src/utils/trace_ohos.cpp",
     ]
 
     configs = [
@@ -92,10 +75,6 @@ ohos_source_set("libtexgine_source") {
     public_deps = [ "texgine_drawing:libtexgine_drawing" ]
 
     defines = []
-    if (is_arkui_x) {
-      defines += [ "CROSS_PLATFORM" ]
-      public_deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
-    }
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
       if (ace_enable_gpu) {
@@ -105,15 +84,7 @@ ohos_source_set("libtexgine_source") {
     if (enable_text_gine) {
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
-    if (is_arkui_x) {
-      deps = [ "//third_party/bounds_checking_function:libsec_static" ]
-      deps += [ "//third_party/cJSON:cjson_static" ]
-    } else {
-      external_deps = [
-        "bounds_checking_function:libsec_static",
-        "cJSON:cjson_static",
-      ]
-    }
+    external_deps = [ "bounds_checking_function:libsec_static" ]
 
     if (platform == "ohos") {
       defines += [ "BUILD_NON_SDK_VER" ]
@@ -127,6 +98,7 @@ ohos_source_set("libtexgine_source") {
       }
 
       external_deps += [
+        "cJSON:cjson_static",
         "c_utils:utils",
         "hilog:libhilog",
         "hitrace:hitrace_meter",
@@ -135,24 +107,16 @@ ohos_source_set("libtexgine_source") {
       public_deps +=
           [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
     } else {
-      sources -= [ "src/utils/trace_ohos.cpp" ]
       if (platform == "mac") {
         defines += [ "BUILD_SDK_MAC" ]
         public_deps += [
           "$graphic_2d_root/rosen/build/harfbuzz:rosen_libharfbuzz_$platform",
         ]
       } else {
-        if (!(host_os == "linux" && host_cpu == "arm64")) {
-          public_deps +=
-              [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
-        }
+        public_deps +=
+            [ "$graphic_2d_root/rosen/build/icu:rosen_libicu_$platform" ]
       }
-      if (platform == "android") {
-        defines += [ "BUILD_SDK_ANDROID" ]
-      }
-      if (platform == "ios") {
-        defines += [ "BUILD_SDK_IOS" ]
-      }
+      external_deps += [ "cJSON:cjson" ]
     }
   }
 

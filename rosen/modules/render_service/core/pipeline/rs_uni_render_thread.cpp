@@ -75,6 +75,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
 constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
+constexpr uint64_t ONE_MEGABYTE = 1000 * 1000;
 
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -296,9 +297,9 @@ bool RSUniRenderThread::IsIdle() const
     return handler_ ? handler_->IsIdle() : false;
 }
 
-void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams)
+void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams)
 {
-    renderThreadParams_ = std::move(stagingRenderThreadParams);
+    renderParamsManager_.SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
 }
 
 void RSUniRenderThread::Render()
@@ -322,39 +323,14 @@ void RSUniRenderThread::Render()
     PerfForBlurIfNeeded();
 }
 
-void RSUniRenderThread::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    auto& bufferToRelease = RSMainThread::Instance()->GetContext().GetMutableSkipSyncBuffer();
-    if (bufferToRelease.empty()) {
-        return;
-    }
-    for (const auto& item : bufferToRelease) {
-        if (!item.buffer || !item.consumer) {
-            continue;
-        }
-        auto releaseTask = [buffer = item.buffer, consumer = item.consumer,
-            useReleaseFence = item.useFence, acquireFence = acquireFence_]() mutable {
-            auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
-                RSHardwareThread::Instance().releaseFence_ : acquireFence);
-            if (ret != OHOS::SURFACE_ERROR_OK) {
-                RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
-            }
-        };
-        tasks.emplace_back(releaseTask);
-    }
-    bufferToRelease.clear();
-#endif
-}
-
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
-    if (!renderThreadParams_) {
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    if (!renderThreadParams) {
         return;
     }
     std::vector<std::function<void()>> releaseTasks;
-    for (const auto& surfaceNode : renderThreadParams_->GetSelfDrawingNodes()) {
-        auto drawable = surfaceNode->GetRenderDrawable();
+    for (const auto& drawable : renderThreadParams->GetSelfDrawables()) {
         if (UNLIKELY(!drawable)) {
             continue;
         }
@@ -398,7 +374,6 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             }
         }
     }
-    ReleaseSkipSyncBuffer(releaseTasks);
     if (releaseTasks.empty()) {
         return;
     }
@@ -433,17 +408,20 @@ void RSUniRenderThread::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& su
 
 uint64_t RSUniRenderThread::GetCurrentTimestamp() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetCurrentTimestamp() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetCurrentTimestamp() : 0;
 }
 
 uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetPendingScreenRefreshRate() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetPendingScreenRefreshRate() : 0;
 }
 
 uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetPendingConstraintRelativeTime() : 0;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetPendingConstraintRelativeTime() : 0;
 }
 
 #ifdef RES_SCHED_ENABLE
@@ -584,17 +562,20 @@ uint32_t RSUniRenderThread::GetRefreshRate() const
 
 std::shared_ptr<Drawing::Image> RSUniRenderThread::GetWatermarkImg()
 {
-    return renderThreadParams_ ? renderThreadParams_->GetWatermarkImg() : nullptr;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetWatermarkImg() : nullptr;
 }
 
 bool RSUniRenderThread::GetWatermarkFlag() const
 {
-    return renderThreadParams_ ? renderThreadParams_->GetWatermarkFlag() : false;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetWatermarkFlag() : false;
 }
 
 bool RSUniRenderThread::IsCurtainScreenOn() const
 {
-    return renderThreadParams_ ? renderThreadParams_->IsCurtainScreenOn() : false;
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->IsCurtainScreenOn() : false;
 }
 
  std::string FormatNumber(size_t number)
@@ -640,13 +621,41 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
     int maxResources;
     gpuContext->GetResourceCacheLimits(&maxResources, &cacheLimit);
 
+    constexpr int MAX_GPU_LIMIT_SIZE = 4000;
     std::string strM = type.substr(typeGpuLimit.length());
-    size_t sizeM = std::stoul(strM);
-    size_t maxResourcesBytes = sizeM * 1000 * 1000L; // max 4G
+    size_t maxResourcesBytes = cacheLimit; // max 4G
+    char* end = nullptr;
+    errno = 0;
+    long long sizeM = std::strtoll(strM.c_str(), &end, 10);
+    if (end != nullptr && end != strM.c_str() && errno == 0 && *end == '\0' &&
+        sizeM > 0 && sizeM <= MAX_GPU_LIMIT_SIZE) {
+        maxResourcesBytes = sizeM * ONE_MEGABYTE;
+    }
 
     gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
     dumpString.append("setgpulimit: " + FormatNumber(cacheLimit)
         + "==>" + FormatNumber(maxResourcesBytes) + "\n");
+}
+
+bool RSUniRenderThread::IsColorFilterModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
+    if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
+        colorFilterMode == ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
+        return false;
+    }
+    return true;
+}
+
+bool RSUniRenderThread::IsHighContrastTextModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    return uniRenderEngine_->IsHighContrastEnabled();
 }
 
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)

@@ -153,12 +153,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     auto grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
-    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_));
     std::string nodeName("RSUiCaptureTaskParallel");
-    if (surfaceNode != nullptr) {
-        nodeName = surfaceNode->GetName();
-    }
     RSTagTracker tagTracker(grContext, nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelMap_);
@@ -189,6 +184,13 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGD("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
     }
 
+    //make sure the previous uifirst task is completed
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*nodeParams, false)) {
+        RS_LOGE("RSUiCaptureTaskParallel::Run: CheckMatchAndWaitNotify fail");
+        return false;
+    }
+    RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
+        nodeParams->GetFirstLevelNodeId(), nodeParams->GetUifirstRootNodeId());
     RSUniRenderThread::SetCaptureParam(
         CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY));
     nodeDrawable_->OnCapture(canvas);

@@ -60,9 +60,9 @@ namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
 struct SharedTransitionParam;
-
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
 public:
+
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
@@ -159,6 +159,10 @@ public:
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID);
+    void SetIsOntheTreeOnlyFlag(bool flag)
+    {
+        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+    }
     inline bool IsOnTheTree() const
     {
         return isOnTheTree_;
@@ -261,11 +265,9 @@ public:
         return preFirstLevelNodeIdSet_;
     }
 
-    void AddPreFirstLevelNodeIdSet(const std::set<NodeId>& preSet)
+    inline void AddPreFirstLevelNodeIdSet(const std::set<NodeId>& preSet)
     {
-        for (const auto& it : preSet) {
-            preFirstLevelNodeIdSet_.insert(it);
-        }
+        preFirstLevelNodeIdSet_.insert(preSet.begin(), preSet.end());
     }
 
     // only use for ARKTS_CARD
@@ -280,7 +282,7 @@ public:
     void ResetChildRelevantFlags();
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
-    void UpdateCurCornerRadius(Vector4f& curCornerRadius, bool isSubNodeInSurface);
+    void UpdateCurCornerRadius(Vector4f& curCornerRadius);
     void SetDirty(bool forceAddToActiveList = false);
 
     virtual void AddDirtyType(RSModifierType type)
@@ -294,11 +296,13 @@ public:
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     const RectF& GetSelfDrawRect() const;
     const RectI& GetAbsDrawRect() const;
+    void UpdateAbsDrawRect();
 
     void ResetChangeState();
     bool UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty, const RectI& clipRect,
         const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManager);
+    void UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
 
@@ -394,6 +398,11 @@ public:
         return cacheSurface_;
     }
 
+    void SetIsTextureExportNode(bool isTextureExportNode)
+    {
+        isTextureExportNode_ = isTextureExportNode;
+    }
+
 // use for uni render visitor
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
         bool releaseAfterGet = false);
@@ -447,6 +456,7 @@ public:
     void SetGeoUpdateDelay(bool val);
     void ResetGeoUpdateDelay();
     bool GetGeoUpdateDelay() const;
+
     bool HasAnimation() const;
     bool GetCurFrameHasAnimation() const
     {
@@ -625,11 +635,6 @@ public:
         return renderContent_;
     }
 
-    void SetIsTextureExportNode(bool isTextureExportNode)
-    {
-        isTextureExportNode_ = isTextureExportNode;
-    }
-
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);
     void SetSubNodesCovered();
@@ -637,7 +642,7 @@ public:
     bool isFullSurfaceOpaquCanvasNode_ = false;
     bool hasChildFullSurfaceOpaquCanvasNode_ = false;
     bool isCoveredByOtherNode_ = false;
-#define MAX_COLD_DOWN_NUM 20
+    static const int32_t MAX_COLD_DOWN_NUM = 20;
     int32_t coldDownCounter_ = 0;
 #endif
 
@@ -879,6 +884,7 @@ private:
     RectI oldChildrenRect_;
     RectI oldClipRect_;
     Drawing::Matrix oldAbsMatrix_;
+    bool childHasFilter_ = false;  // only collect children filter status
     
     // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
@@ -904,9 +910,11 @@ private:
     bool UpdateSelfDrawRect();
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
+
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
     void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
+
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
     bool shouldPaint_ = true;

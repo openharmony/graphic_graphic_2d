@@ -170,6 +170,7 @@ struct RCDConfig {
     LCDModel* GetLcdModel(const std::string& name) const;
     bool Load(const std::string& configFile);
 private:
+    void CloseXML();
     xmlDocPtr pDoc = nullptr;
     xmlNodePtr pRoot = nullptr;
     std::vector<LCDModel*> lcdModels;

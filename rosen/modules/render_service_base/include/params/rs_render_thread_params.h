@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
 
 #include <memory>
-#include <mutex>
 #include <vector>
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -33,15 +32,17 @@ struct CaptureParam {
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
+    bool isSystemCalling_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        float scaleX, float scaleY, bool isFirstNode = false)
+        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         scaleX_(scaleX),
         scaleY_(scaleY),
-        isFirstNode_(isFirstNode) {}
+        isFirstNode_(isFirstNode),
+        isSystemCalling_(isSystemCalling) {}
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:
@@ -113,9 +114,9 @@ public:
         return timestamp_;
     }
 
-    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const
+    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
-        return selfDrawingNodes_;
+        return selfDrawables_;
     }
 
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
@@ -201,6 +202,16 @@ public:
         return isForceCommitLayer_;
     }
 
+    void SetCacheEnabledForRotation(bool flag)
+    {
+        cacheEnabledForRotation_ = flag;
+    }
+
+    bool GetCacheEnabledForRotation() const
+    {
+        return cacheEnabledForRotation_;
+    }
+
     void SetRequestNextVsyncFlag(bool flag)
     {
         needRequestNextVsyncAnimate_ = flag;
@@ -273,30 +284,6 @@ public:
     bool GetHasCaptureImg() const
     {
         return hasCaptureImg_;
-    }
-
-    void SetBlackList(std::unordered_set<NodeId> blackList)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        blackList_ = blackList;
-    }
-
-    const std::unordered_set<NodeId> GetBlackList() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return blackList_;
-    }
-
-    void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        whiteList_ = whiteList;
-    }
-
-    const std::unordered_set<NodeId> GetWhiteList() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return whiteList_;
     }
 
     // To be deleted after captureWindow being deleted
@@ -381,17 +368,19 @@ public:
         return isOverDrawEnabled_;
     }
 
+    bool isDrawingCacheDfxEnabled() const
+    {
+        return isDrawingCacheDfxEnabled_;
+    }
+
     bool IsAceDebugBoundaryEnabled() const
     {
         return isAceDebugBoundaryEnabled_;
     }
 
 private:
-    mutable std::mutex mutex_;
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
     bool hasCaptureImg_ = false;  // To be deleted after captureWindow being deleted
-    std::unordered_set<NodeId> blackList_ = {};
-    std::unordered_set<NodeId> whiteList_ = {};
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -415,8 +404,9 @@ private:
     bool isVirtualDirtyEnabled_ = false;
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
+    bool cacheEnabledForRotation_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
@@ -427,6 +417,7 @@ private:
 
     bool needRequestNextVsyncAnimate_ = false;
     bool isOverDrawEnabled_ = false;
+    bool isDrawingCacheDfxEnabled_ = false;
 
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
@@ -445,6 +436,24 @@ private:
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
     friend class RSDirtyRectsDfx;
+};
+
+class RSRenderThreadParamsManager {
+public:
+    RSRenderThreadParamsManager() = default;
+    ~RSRenderThreadParamsManager() = default;
+
+    inline void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
+    {
+        renderThreadParams_ = std::move(renderThreadParams);
+    }
+    inline const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
+    {
+        return renderThreadParams_;
+    }
+
+private:
+    static inline thread_local std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H

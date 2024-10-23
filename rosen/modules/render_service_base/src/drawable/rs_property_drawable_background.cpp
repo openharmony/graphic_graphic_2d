@@ -323,7 +323,7 @@ RSDrawable::Ptr RSBackgroundImageDrawable::OnGenerate(const RSRenderNode& node)
 };
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
+Drawing::ColorType RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat vkFormat)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
@@ -421,11 +421,11 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
 void RSBackgroundImageDrawable::SetCompressedDataForASTC()
 {
     std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
-    std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-    if (!pixelMap || !fileData || !pixelMap->GetFd()) {
+    if (!pixelMap || !pixelMap->GetFd()) {
         RS_LOGE("SetCompressedDataForASTC fail, data is null");
         return;
     }
+    std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
     // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
     if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
         RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
@@ -441,8 +441,9 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
     } else {
         const void* data = pixelMap->GetPixels();
         if (pixelMap->GetCapacity() > ASTC_HEADER_SIZE &&
-            (data == nullptr || !fileData->BuildWithoutCopy((void*)((char*) data + ASTC_HEADER_SIZE),
-            pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
+            (data == nullptr || !fileData->BuildWithoutCopy(
+                reinterpret_cast<const void *>(reinterpret_cast<const char *>(data) + ASTC_HEADER_SIZE),
+                pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
             RS_LOGE("SetCompressedDataForASTC data BuildWithoutCopy fail");
             return;
         }
@@ -540,6 +541,16 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+bool RSBackgroundFilterDrawable::FuzePixelStretch(const RSRenderNode& node)
+{
+    return RSPropertyDrawableUtils::RSFilterSetPixelStretch(node.GetRenderProperties(), stagingFilter_);
+}
+
+void RSBackgroundFilterDrawable::RemovePixelStretch()
+{
+    RSPropertyDrawableUtils::RSFilterRemovePixelStretch(stagingFilter_);
+}
+
 bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 {
     stagingNodeId_ = node.GetId();
@@ -562,16 +573,16 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
 {
     auto ptr = std::static_pointer_cast<const RSBackgroundEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas == nullptr || rect == nullptr) {
-            RS_LOGE("RSBackgroundEffectDrawable::DrawBackgroundEffect data error");
-            return;
-        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         Drawing::AutoCanvasRestore acr(*canvas, true);
         paintFilterCanvas->ClipRect(*rect);
+        Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
+        canvas->GetTotalMatrix().MapRect(absRect, *rect);
+        Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetRight()),
+            std::ceil(absRect.GetBottom()));
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
-            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_);
+            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_, bounds);
     };
 }
 

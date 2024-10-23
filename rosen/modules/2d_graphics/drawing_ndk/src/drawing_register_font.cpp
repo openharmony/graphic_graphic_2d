@@ -70,6 +70,9 @@ static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection
     if (fontCollection == nullptr) {
         return ERROR_NULL_FONT_COLLECTION;
     }
+    if ((data == nullptr) || (dataLength == 0)) {
+        return ERROR_BUFFER_SIZE_ZERO;
+    }
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
 #ifndef USE_GRAPHIC_TEXT_GINE
     auto face = fc->LoadFontFromList(data, dataLength, familyName);
@@ -85,59 +88,67 @@ static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection
     return 0;
 }
 
-uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection* fontCollection, const char* fontFamily,
-    const char* familySrc)
+uint32_t LoadFontDataFromFile(const std::string& path, std::unique_ptr<char[]>& buffer, std::streamsize& size)
 {
-    const std::string path = familySrc;
 #ifdef BUILD_NON_SDK_VER
     std::error_code ec;
-    auto ret = StdFilesystemExists(path, ec);
+    bool ret = StdFilesystemExists(path, ec);
     if (ec) {
         return ERROR_OPEN_FILE_FAILED;
     }
 #else
-    auto ret = StdFilesystemExists(path);
+    bool ret = StdFilesystemExists(path);
 #endif
-    if (!ret) {
+    char tmpPath[PATH_MAX] = { 0 };
+    if (ret == false || realpath(path.c_str(), tmpPath) == nullptr) {
         return ERROR_FILE_NOT_EXISTS;
     }
-
-    char tmpPath[PATH_MAX] = {0};
-    if (realpath(path.c_str(), tmpPath) == nullptr) {
-        return ERROR_FILE_NOT_EXISTS;
-    }
-
     std::ifstream ifs(tmpPath, std::ios_base::in);
     if (!ifs.is_open()) {
         return ERROR_OPEN_FILE_FAILED;
     }
-
     ifs.seekg(0, ifs.end);
     if (!ifs.good()) {
         ifs.close();
         return ERROR_SEEK_FAILED;
     }
-
-    auto size = ifs.tellg();
+    size = ifs.tellg();
     if (ifs.fail()) {
         ifs.close();
         return ERROR_GET_SIZE_FAILED;
     }
-
+    if (size <= 0) {
+        ifs.close();
+        return ERROR_GET_SIZE_FAILED;
+    }
     ifs.seekg(ifs.beg);
     if (!ifs.good()) {
         ifs.close();
         return ERROR_SEEK_FAILED;
     }
-
-    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(size);
+    buffer = std::make_unique<char[]>(size);
     ifs.read(buffer.get(), size);
     if (!ifs.good()) {
         ifs.close();
         return ERROR_READ_FILE_FAILED;
     }
-
     ifs.close();
+    return 0;
+}
+
+uint32_t OH_Drawing_RegisterFont(
+    OH_Drawing_FontCollection* fontCollection, const char* fontFamily, const char* familySrc)
+{
+    if (fontCollection == nullptr || familySrc == nullptr) {
+        return ERROR_NULL_FONT_COLLECTION;
+    }
+    const std::string path = familySrc;
+    std::unique_ptr<char[]> buffer;
+    std::streamsize size = 0;
+    uint32_t result = LoadFontDataFromFile(path, buffer, size);
+    if (result != 0) {
+        return result;
+    }
     const std::string familyName = fontFamily;
     const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
     return LoadFromFontCollection(fontCollection, familyName, data, size);
@@ -146,6 +157,9 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection* fontCollection, cons
 uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection, const char* fontFamily,
     uint8_t* fontBuffer, size_t length)
 {
+    if (fontCollection == nullptr) {
+        return ERROR_NULL_FONT_COLLECTION;
+    }
     if (fontBuffer == nullptr) {
         return ERROR_NULL_FONT_BUFFER;
     }

@@ -20,6 +20,7 @@
 #include "sys_binder.h"
 
 #include "command/rs_command_factory.h"
+#include "common/rs_xcollie.h"
 #include "hgm_frame_rate_manager.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
@@ -62,12 +63,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_POINTER_LUMINANCE_CALLBACK),
-#endif
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE),
@@ -123,10 +118,12 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),
@@ -145,6 +142,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -547,51 +545,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG): {
-            float darkBuffer = data.ReadFloat();
-            float brightBuffer = data.ReadFloat();
-            int64_t interval = data.ReadInt64();
-            int32_t rangeSize = data.ReadInt32();
-            int32_t status = SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-            if (!reply.WriteInt32(status)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED): {
-            bool enable = data.ReadBool();
-            int32_t status = SetPointerColorInversionEnabled(enable);
-            if (!reply.WriteInt32(status)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK): {
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            sptr<RSIPointerLuminanceChangeCallback> cb = iface_cast<RSIPointerLuminanceChangeCallback>(remoteObject);
-            if (cb == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            int32_t status = RegisterPointerLuminanceChangeCallback(cb);
-            if (!reply.WriteInt32(status)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_POINTER_LUMINANCE_CALLBACK): {
-            int32_t status = UnRegisterPointerLuminanceChangeCallback();
-            if (!reply.WriteInt32(status)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-#endif
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE): {
             ScreenId id = data.ReadUint64();
             uint32_t modeId = data.ReadUint32();
@@ -1303,6 +1256,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
+            // timer: 3s
+            OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + std::to_string(callingPid), 3);
             bool result = false;
             uint64_t uniqueId = data.ReadUint64();
             uint32_t hash = data.ReadUint32();
@@ -1508,6 +1463,31 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetHardwareEnabled(id, isEnabled, selfDrawingType);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT) : {
+            auto id = data.ReadUint64();
+            auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+                "::SET_HIDE_PRIVACY_CONTENT");
+            if (!isSystemCalling) {
+                if (!reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NONSYSTEM_CALLING))) {
+                    ret = ERR_INVALID_REPLY;
+                }
+                break;
+            }
+            if (ExtractPid(id) != callingPid) {
+                RS_LOGW("The SetHidePrivacyContent isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
+                    id, callingPid);
+                if (!reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NOT_SELF_CALLING))) {
+                    ret = ERR_INVALID_REPLY;
+                }
+                break;
+            }
+            auto needHidePrivacyContent = data.ReadBool();
+            if (!reply.WriteUint32(SetHidePrivacyContent(id, needHidePrivacyContent))) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {
             auto isSafe = data.ReadBool();
             NotifyLightFactorStatus(isSafe);
@@ -1582,7 +1562,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK) : {
             sptr<RSIHgmConfigChangeCallback> callback = nullptr;
-            auto remoteObject = data.ReadRemoteObject();
+            sptr<IRemoteObject> remoteObject = nullptr;
+            if (data.ReadBool()) {
+                remoteObject = data.ReadRemoteObject();
+            }
             if (remoteObject != nullptr) {
                 callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
             }
@@ -1603,6 +1586,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetCacheEnabledForRotation(isEnabled);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET) : {
+            uint32_t offset = data.ReadUint32();
+            SetDefaultDeviceRotationOffset(offset);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {
@@ -1626,7 +1614,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             const auto& globalDirtyRegionInfo = GetGlobalDirtyRegionInfo();
             if (!reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber) ||
-                !reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber)) {
+                !reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.mostSendingPidWhenDisplayNodeSkip)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1744,6 +1733,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto pid = data.ReadInt32();
             auto uid = data.ReadUint64();
             UnregisterSurfaceBufferCallback(pid, uid);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {
+            auto id = data.ReadUint64();
+            auto mirrorId = data.ReadUint64();
+            auto screenId = data.ReadUint64();
+            auto isMirrored = data.ReadBool();
+            RSDisplayNodeConfig config = {
+                .screenId = screenId,
+                .isMirrored = isMirrored,
+                .mirrorNodeId = mirrorId,
+                .isSync = true,
+            };
+            reply.WriteBool(CreateNode(config, id));
             break;
         }
         default: {

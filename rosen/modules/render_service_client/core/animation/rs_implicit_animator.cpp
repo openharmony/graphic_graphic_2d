@@ -183,6 +183,25 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     return resultAnimations;
 }
 
+bool RSImplicitAnimator::CloseImplicitCancelAnimation()
+{
+    if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
+        ROSEN_LOGD("Failed to close cancel implicit animation, need to open implicit animation firstly!");
+        return false;
+    }
+    if (implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::CANCEL) {
+        ROSEN_LOGE("Failed to close cancel implicit animation, need to use the right fun 'CloseImplicitAnimation'!");
+        return false;
+    }
+
+    bool ret =
+        std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->SyncProperties();
+    const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());
+    ProcessEmptyAnimations(finishCallback);
+    CloseImplicitAnimationInner();
+    return ret;
+}
+
 int RSImplicitAnimator::OpenInterActiveImplicitAnimation(bool isAddImplictAnimation,
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
     std::shared_ptr<AnimationFinishCallback>&& finishCallback)
@@ -275,7 +294,7 @@ void RSImplicitAnimator::EndImplicitKeyFrameAnimation()
 void RSImplicitAnimator::BeginImplicitDurationKeyFrameAnimation(int duration, const RSAnimationTimingCurve& timingCurve)
 {
     if (globalImplicitParams_.empty()) {
-        ROSEN_LOGD("Failed to begin keyframe implicit animation, need to open implicit animation firstly!");
+        ROSEN_LOGE("Failed to begin keyframe implicit animation, need to open implicit animation firstly!");
         return;
     }
 
@@ -286,7 +305,7 @@ void RSImplicitAnimator::BeginImplicitDurationKeyFrameAnimation(int duration, co
 
     [[maybe_unused]] const auto& [protocol, unused_curve, unused, unused_repeatCallback] = globalImplicitParams_.top();
     if (protocol.GetDuration() <= 0) {
-        ROSEN_LOGE("Failed to begin duration keyframe implicit animation, total duration is 0!");
+        ROSEN_LOGD("Failed to begin duration keyframe implicit animation, total duration is 0!");
         return;
     }
     [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();

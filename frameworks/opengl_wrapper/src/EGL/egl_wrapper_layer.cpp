@@ -20,9 +20,9 @@
 #include <parameters.h>
 #include <sstream>
 
+#include "wrapper_log.h"
 #include "directory_ex.h"
 #include "egl_bundle_mgr_helper.h"
-#include "wrapper_log.h"
 
 namespace OHOS {
 namespace {
@@ -168,6 +168,10 @@ EglWrapperLayer& EglWrapperLayer::GetInstance()
 EglWrapperLayer::~EglWrapperLayer()
 {
     WLOGD("");
+    if (dlhandle_) {
+        dlclose(dlhandle_);
+        dlhandle_ = nullptr;
+    }
 }
 
 bool EglWrapperLayer::Init(EglWrapperDispatchTable *table)
@@ -308,22 +312,26 @@ bool EglWrapperLayer::LoadLayers()
 
 bool EglWrapperLayer::LoadLayerFuncs(std::string realLayerPath)
 {
-    void *dlhandle = dlopen(realLayerPath.c_str(), RTLD_NOW | RTLD_LOCAL);
-    if (dlhandle == nullptr) {
+    dlhandle_ = dlopen(realLayerPath.c_str(), RTLD_NOW | RTLD_LOCAL);
+    if (dlhandle_ == nullptr) {
         WLOGE("dlopen failed. error: %{public}s.", dlerror());
         return false;
     }
 
-    LayerInitFunc initFunc = (LayerInitFunc)dlsym(dlhandle, DEBUG_LAYER_INIT_FUNC);
+    LayerInitFunc initFunc = (LayerInitFunc)dlsym(dlhandle_, DEBUG_LAYER_INIT_FUNC);
     if (initFunc == nullptr) {
         WLOGE("can't find %{public}s in debug layer library.", DEBUG_LAYER_INIT_FUNC);
+        dlclose(dlhandle_);
+        dlhandle_ = nullptr;
         return false;
     }
     layerInit_.push_back(initFunc);
 
-    LayerSetupFunc setupFunc = (LayerSetupFunc)dlsym(dlhandle, DEBUG_LAYER_GET_PROC_ADDR_FUNC);
+    LayerSetupFunc setupFunc = (LayerSetupFunc)dlsym(dlhandle_, DEBUG_LAYER_GET_PROC_ADDR_FUNC);
     if (setupFunc == nullptr) {
         WLOGE("can't find %{public}s in debug layer library.", DEBUG_LAYER_GET_PROC_ADDR_FUNC);
+        dlclose(dlhandle_);
+        dlhandle_ = nullptr;
         return false;
     }
     layerSetup_.push_back(setupFunc);

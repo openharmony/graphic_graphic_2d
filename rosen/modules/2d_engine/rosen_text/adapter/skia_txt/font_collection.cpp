@@ -45,6 +45,11 @@ FontCollection::FontCollection(std::shared_ptr<txt::FontCollection> fontCollecti
     fontCollection_->SetDynamicFontManager(dfmanager_);
 }
 
+std::shared_ptr<txt::FontCollection> FontCollection::Get()
+{
+    return fontCollection_;
+}
+
 FontCollection::~FontCollection()
 {
     if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr) {
@@ -56,11 +61,6 @@ FontCollection::~FontCollection()
         Drawing::Typeface::GetTypefaceUnRegisterCallBack()(typeface);
     }
     typefaces_.clear();
-}
-
-std::shared_ptr<txt::FontCollection> FontCollection::Get()
-{
-    return fontCollection_;
 }
 
 void FontCollection::DisableFallback()
@@ -102,6 +102,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     if (!RegisterTypeface(typeface)) {
         LOGE("register typeface failed.");
+        return nullptr;
     }
     fontCollection_->ClearFontFamilyCache();
     return typeface;

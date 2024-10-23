@@ -47,10 +47,10 @@ float ParticleNoiseField::CalculateDistanceToRectangleEdge(
     float top = center.y_ - size.y_ * HALF;
     float bottom = center.y_ + size.y_ * HALF;
     // Calculate the time required for reaching each boundary.
-    float tLeft = (left - position.x_) / direction.x_;
-    float tRight = (right - position.x_) / direction.x_;
-    float tTop = (top - position.y_) / direction.y_;
-    float tBottom = (bottom - position.y_) / direction.y_;
+    float tLeft = ROSEN_EQ(direction.x_, 0.f) ? -1.f : (left - position.x_) / direction.x_;
+    float tRight = ROSEN_EQ(direction.x_, 0.f) ? -1.f : (right - position.x_) / direction.x_;
+    float tTop = ROSEN_EQ(direction.y_, 0.f) ? -1.f : (top - position.y_) / direction.y_;
+    float tBottom = ROSEN_EQ(direction.y_, 0.f) ? -1.f : (bottom - position.y_) / direction.y_;
 
     // Particles advance to the boundary only if t is a positive number.
     std::vector<float> times;
@@ -125,6 +125,30 @@ Vector2f ParticleNoiseField::ApplyCurlNoise(const Vector2f& position)
     return Vector2f { 0.f, 0.f };
 }
 
+void ParticleNoiseFields::Dump(std::string& out) const
+{
+    out += '[';
+    bool found = false;
+    for (auto& field : fields_) {
+        if (field != nullptr) {
+            found = true;
+            out += "field[fieldStrength:" + std::to_string(field->fieldStrength_);
+            out += " fieldShape:"  + std::to_string(static_cast<int>(field->fieldShape_));
+            out += " fieldSize[x:" + std::to_string(field->fieldSize_.x_) + " y:";
+            out += std::to_string(field->fieldSize_.y_) + "]";
+            out += " fieldCenter[x:" + std::to_string(field->fieldCenter_.x_) + " y:";
+            out += std::to_string(field->fieldCenter_.y_) + "] fieldFeather:" + std::to_string(field->fieldFeather_);
+            out += " noiseScale:" + std::to_string(field->noiseScale_);
+            out += " noiseFrequency:" + std::to_string(field->noiseFrequency_);
+            out += " noiseAmplitude:" + std::to_string(field->noiseAmplitude_) + "] ";
+        }
+    }
+    if (found) {
+        out.pop_back();
+    }
+    out += ']';
+}
+
 float PerlinNoise2D::Fade(float t)
 {
     // Fade function as defined by Ken Perlin: 6t^5 - 15t^4 + 10t^3
@@ -140,7 +164,7 @@ float PerlinNoise2D::Lerp(float t, float a, float b)
 float PerlinNoise2D::Grad(int hash, float x, float y)
 {
     // Convert low 4 bits of hash code into 12 gradient directions.
-    // Use a bitwise AND operation (&) to get the lowest 4 bits of the hash value.
+    // 15 mins use a bitwise AND operation (&) to get the lowest 4 bits of the hash value.
     uint32_t h = static_cast<uint32_t>(hash) & 15;
     // The value of h determines whether the first component of the gradient vector is x or y.
     // If the value of h is less than 8, u is assigned the value x, otherwise y

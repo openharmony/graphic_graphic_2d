@@ -28,8 +28,8 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 enum class Clamp {
-    NO,
-    YES,
+    NO_CLAMP,
+    YES_CLAMP,
 };
 
 enum ColorType {

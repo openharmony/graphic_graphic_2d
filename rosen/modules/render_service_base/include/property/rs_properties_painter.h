@@ -24,6 +24,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int MAX_LIGHT_SOURCES = 12;
+}
 class RSPaintFilterCanvas;
 class RSDrawingFilter;
 class RSDrawingFilterOriginal;
@@ -108,14 +111,13 @@ private:
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawLightInner(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
-        const std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>>& lightSourcesAndPosMap,
-        const std::shared_ptr<RSObjAbsGeometry>& geoPtr);
+        const std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>>& lightSourcesAndPosVec);
     static void DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
-        const float lightIntensityArray[]);
+        const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);
     static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
-        const float lightIntensityArray[]);
+        const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);
     static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpEffectShader(
         float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(

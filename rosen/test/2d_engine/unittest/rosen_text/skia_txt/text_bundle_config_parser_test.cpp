@@ -54,16 +54,6 @@ HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
 
 #ifdef OHOS_TEXT_ENABLE
 /*
- * @tc.name: GetSystemAbilityManagerTest001
- * @tc.desc: test for GetSystemAbilityManager
- * @tc.type: FUNC
- */
-HWTEST_F(TextBundleConfigParserTest, GetSystemAbilityManagerTest001, TestSize.Level1)
-{
-    EXPECT_EQ(TextBundleConfigParser::GetSystemAbilityManager(), nullptr);
-}
-
-/*
  * @tc.name: IsMetaDataExistInEntryModuleTest001
  * @tc.desc: test for IsMetaDataExistInEntryModule
  * @tc.type: FUNC

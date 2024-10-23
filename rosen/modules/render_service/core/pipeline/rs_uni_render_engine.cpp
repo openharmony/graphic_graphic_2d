@@ -83,6 +83,23 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
         auto dstRect = layer->GetLayerSize();
+        // draw background color for DRM buffer and then draw layer size image when surface has scaling mode
+        if (layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
+            const auto& boundsRect = layer->GetBoundSize();
+            const auto& layerMatrix = layer->GetMatrix();
+            auto skMatrix = Drawing::Matrix();
+            skMatrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
+                layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+            Drawing::AutoCanvasRestore acr(canvas, true);
+            canvas.ConcatMatrix(skMatrix);
+            Drawing::Rect drawRect = Drawing::Rect(0.f, 0.f,
+                static_cast<float>(boundsRect.w), static_cast<float>(boundsRect.h));
+            Drawing::Brush rectBrush;
+            rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
+            canvas.AttachBrush(rectBrush);
+            canvas.DrawRect(drawRect);
+            canvas.DetachBrush();
+        }
         Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
             static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
             static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));

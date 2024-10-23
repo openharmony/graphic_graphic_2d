@@ -129,6 +129,8 @@ public:
     {
         return fields_ == rhs.fields_;
     }
+
+    void Dump(std::string& out) const;
 };
 
 } // namespace Rosen
