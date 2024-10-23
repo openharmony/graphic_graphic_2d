@@ -1573,7 +1573,7 @@ HWTEST_F(RSMainThreadTest, GetRealTimeOffsetOfDvsync, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     int64_t time = 1000;
     int64_t offset = mainThread->GetRealTimeOffsetOfDvsync(time);
-    ASSERT_EQ( offset, 0 );    
+    ASSERT_EQ(offset, 0);    
 }
 
 /**
