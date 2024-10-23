@@ -558,7 +558,7 @@ sk_sp<GrDirectContext> SkiaImage::GetGrContext() const
 std::shared_ptr<Data> SkiaImage::Serialize() const
 {
     if (skiaImage_ == nullptr) {
-        LOGE("SkiaImage::Serialize, SkImage is nullptr!");
+        LOGD("SkiaImage::Serialize, SkImage is nullptr!");
         return nullptr;
     }
 
@@ -577,21 +577,18 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
 
         auto context = as_IB(skiaImage_.get())->directContext();
         if (!as_IB(skiaImage_.get())->getROPixels(context, &bitmap)) {
-            LOGE("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
+            LOGD("SkiaImage::SerializeNoLazyImage SkImage getROPixels failed");
             return nullptr;
         }
         SkPixmap pixmap;
         if (!bitmap.peekPixels(&pixmap)) {
-            LOGE("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
+            LOGD("SkiaImage::SerializeNoLazyImage SkImage peekPixels failed");
             return nullptr;
         }
         size_t rb = pixmap.rowBytes();
         int32_t width = pixmap.width();
         int32_t height = pixmap.height();
         const void* addr = pixmap.addr();
-        if (addr == nullptr) {
-            return nullptr;
-        }
         size_t size = pixmap.computeByteSize();
 
         writer.writeUInt(size);
@@ -621,7 +618,7 @@ std::shared_ptr<Data> SkiaImage::Serialize() const
 bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
 {
     if (data == nullptr) {
-        LOGE("SkiaImage::Deserialize, data is invalid!");
+        LOGD("SkiaImage::Deserialize, data is invalid!");
         return false;
     }
 

@@ -111,8 +111,8 @@ void SkiaData::SetSkData(const sk_sp<SkData>& data)
 std::shared_ptr<Data> SkiaData::Serialize() const
 {
 #ifdef ROSEN_OHOS
-    if (skData_ == nullptr || skData_->isEmpty()) {
-        LOGE("SkiaData::Serialize, skData_ is invalid!");
+    if (skData_ == nullptr) {
+        LOGD("SkiaData::Serialize, skData_ is nullptr!");
         return nullptr;
     }
 
