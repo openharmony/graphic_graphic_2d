@@ -173,6 +173,9 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
     RSSurfaceRenderParams& params)
 {
     auto surfaceHandler = drawable.GetMutableRSSurfaceHandlerUiFirstOnDraw();
+    if (!surfaceHandler) {
+        return;
+    }
     auto buffer = surfaceHandler->GetBuffer();
     if (buffer == nullptr && surfaceHandler->GetAvailableBufferCount() <= 0) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", params.GetId());

@@ -924,7 +924,6 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
     // process for uifirst node
     UpdateChildrenDirtyRect(*node);
     node->SetHwcChildrenDisabledStateByUifirst();
-    node->SetLeashWindowVisibleRegionEmptyParam();
     node->AddToPendingSyncList();
 
     if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW ||
