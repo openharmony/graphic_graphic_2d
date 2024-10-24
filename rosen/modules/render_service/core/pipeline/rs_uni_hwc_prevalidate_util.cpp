@@ -73,7 +73,7 @@ bool RSUniHwcPrevalidateUtil::PreValidate(
     ScreenId id, std::vector<RequestLayerInfo> infos, std::map<uint64_t, RequestCompositionType> &strategy)
 {
     if (!preValidateFunc_) {
-        RS_LOGD("RSUniHwcPrevalidateUtil::PreValidate preValidateFunc is null");
+        RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::PreValidate preValidateFunc is null");
         return false;
     }
     int32_t ret = preValidateFunc_(id, infos, strategy);
@@ -107,6 +107,12 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
         node->SetArsrTag(true);
     }
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo %{public}s,"
+        " %{public}" PRIu64 ", src: %{public}s, dst: %{public}s, z: %{public}" PRIu32 ","
+        " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
+        node->GetName().c_str(), node->GetId(),
+        node->GetSrcRect().ToString().c_str(), node->GetDstRect().ToString().c_str(),
+        zorder, info.usage, info.format, info.transform, fps);
     return true;
 }
 
@@ -147,6 +153,13 @@ bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
     info.format = buffer->GetFormat();
     info.fps = fps;
     LayerRotate(info, surfaceHandler->GetConsumer(), screenInfo);
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo %{public}" PRIu64 ","
+        " src: %{public}d,%{public}d,%{public}d,%{public}d"
+        " dst: %{public}d,%{public}d,%{public}d,%{public}d, z: %{public}" PRIu32 ","
+        " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
+        node->GetId(), info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        zorder, info.usage, info.format, info.transform, fps);
     return true;
 }
 
@@ -161,11 +174,17 @@ bool RSUniHwcPrevalidateUtil::CreateUIFirstLayerInfo(
     info.srcRect = {src.left_, src.top_, src.width_, src.height_};
     auto dst = node->GetDstRect();
     info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
-    info.zOrder = node->GetRSSurfaceHandler()->GetGlobalZOrder();
+    info.zOrder = static_cast<uint32_t>(node->GetRSSurfaceHandler()->GetGlobalZOrder());
     info.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     info.usage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA;
     info.fps = fps;
     info.transform = static_cast<int>(transform);
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateUIFirstLayerInfo %{public}s, %{public}" PRIu64 ","
+        " src: %{public}s, dst: %{public}s, z: %{public}" PRIu32 ","
+        " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
+        node->GetName().c_str(), node->GetId(),
+        node->GetSrcRect().ToString().c_str(), node->GetDstRect().ToString().c_str(),
+        info.zOrder, info.usage, info.format, info.transform, fps);
     return true;
 }
 
@@ -184,12 +203,20 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     info.dstRect.y = static_cast<uint32_t>(static_cast<float>(dst.top_) * screenInfo.GetRogHeightRatio());
     info.dstRect.w = static_cast<uint32_t>(static_cast<float>(dst.width_) * screenInfo.GetRogWidthRatio());
     info.dstRect.h = static_cast<uint32_t>(static_cast<float>(dst.height_) * screenInfo.GetRogHeightRatio());
-    info.zOrder = node->GetGlobalZOrder();
+    info.zOrder = static_cast<uint32_t>(node->GetGlobalZOrder());
     info.usage = node->GetBuffer()->GetUsage();
     info.format = node->GetBuffer()->GetFormat();
     info.fps = fps;
     CopyCldInfo(node->GetCldInfo(), info);
     LayerRotate(info, node->GetConsumer(), screenInfo);
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateRCDLayerInfo %{public}" PRIu64 ","
+        " src: %{public}d,%{public}d,%{public}d,%{public}d"
+        " dst: %{public}d,%{public}d,%{public}d,%{public}d, z: %{public}" PRIu32 ","
+        " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
+        node->GetId(),
+        info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
+        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h,
+        info.zOrder, info.usage, info.format, info.transform, fps);
     return true;
 }
 
