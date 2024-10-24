@@ -15,8 +15,8 @@
 
 #include "transaction/rs_marshalling_helper.h"
 #include "rs_profiler.h"
-#include <cstddef>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <message_parcel.h>
@@ -39,6 +39,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "image/image.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
@@ -56,6 +57,7 @@
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
+#include "text/hm_symbol.h"
 #include "transaction/rs_ashmem_helper.h"
 
 #ifdef ROSEN_OHOS
@@ -72,12 +74,12 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-    bool g_useSharedMem = true;
-    std::thread::id g_tid = std::thread::id();
-    constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
+bool g_useSharedMem = true;
+std::thread::id g_tid = std::thread::id();
+constexpr size_t LARGE_MALLOC = 200000000;
+constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
 }
 
- 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const TYPE& val) \
     {                                                                      \
@@ -1447,8 +1449,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         if (readPosition > PIXELMAP_UNMARSHALLING_DEBUG_OFFSET &&
             parcel.RewindRead(readPosition - PIXELMAP_UNMARSHALLING_DEBUG_OFFSET)) {
-            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling PixelMap before "
-                       " [%{public}d, %{public}d, %{public}d] [w, h, format]: [%{public}d, %{public}d, %{public}d]",
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling PixelMap before"
+                " [%{public}d, %{public}d, %{public}d] [w, h, format]:[%{public}d, %{public}d, %{public}d]",
                 parcel.ReadInt32(), parcel.ReadInt32(), parcel.ReadInt32(), parcel.ReadInt32(), parcel.ReadInt32(),
                 parcel.ReadInt32());
         } else {
@@ -1515,6 +1517,9 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     }
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);
+    if (cmdListData.second > LARGE_MALLOC) {
+        ROSEN_LOGW("RSMarshallingHelper::Marshalling this time malloc memory, size:%{public}zu", cmdListData.second);
+    }
     parcel.WriteInt32(val->GetWidth());
     parcel.WriteInt32(val->GetHeight());
 
@@ -1775,7 +1780,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
             uint32_t sequence = 0U;
             GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer);
             if (retCode != GSERROR_OK) {
-                ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
+                ROSEN_LOGE(
+                    "RSMarshallingHelper::Unmarshalling failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
                 return false;
             }
             surfaceBufferVec.emplace_back(surfaceBuffer);
@@ -1886,7 +1892,6 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     }
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);
-
     if (cmdListData.second == 0 || !ret) {
         ROSEN_LOGW("unirender: RSMarshallingHelper::Marshalling Drawing::MaskCmdList, size is 0");
         return ret;
@@ -1928,7 +1933,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 
     return ret;
 }
-
+ 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::MaskCmdList>& val)
 {
     int32_t size = parcel.ReadInt32();
@@ -1985,6 +1990,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     return true;
 }
 
+
 #define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
     {                                                                                       \
@@ -2002,9 +2008,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
 #define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE>& val) \
     {                                                                                           \
-        if (val == nullptr) {                                                                   \
-            RS_LOGW("MarshallingHelper::Marshalling nullptr");                                  \
-        }                                                                                       \
         return parcel.WriteParcelable(val.get());                                               \
     }                                                                                           \
     bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<TEMPLATE>& val)     \

@@ -512,11 +512,6 @@ std::string RSSystemProperties::GetVersionType()
     return "";
 }
 
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 {
     return false;

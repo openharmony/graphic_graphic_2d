@@ -41,9 +41,9 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::MATERIAL, "RSMaterialFilterBlur" },
     { RSFilter::AIBAR, "RSAIBarFilterBlur" },
     { RSFilter::LINEAR_GRADIENT_BLUR, "RSLinearGradientBlurFilterBlur" },
+    { RSFilter::MAGNIFIER, "RSMagnifierFilter" },
     { RSFilter::WATER_RIPPLE, "RSWaterRippleFilter" },
     { RSFilter::COMPOUND_EFFECT, "CompoundEffect" },
-    { RSFilter::MAGNIFIER, "RSMagnifierFilter" },
     { RSFilter::FLY_OUT, "FlyOut" },
 };
 }
@@ -272,7 +272,7 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
     const Drawing::Rect& src, const Drawing::Rect& dst)
 {
     if (image == nullptr) {
-        ROSEN_LOGE("RSDrawingFilter::ApplyColorFilter image is nullptr");
+        ROSEN_LOGE("RSDrawingFilter::ApplyColorFilter image is null");
         return;
     }
 
@@ -319,13 +319,13 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     if (kawaseShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
         auto radius = tmpFilter->GetRadius();
+
         static constexpr float epsilon = 0.999f;
         if (ROSEN_LE(radius, epsilon)) {
             ApplyColorFilter(canvas, outImage, src, dst);
             return;
         }
-        Drawing::HpsBlurParameter hpsParam = Drawing::HpsBlurParameter(src, dst, radius,
-            saturationForHPS_, brightnessForHPS_);
+        auto hpsParam = Drawing::HpsBlurParameter(src, dst, radius, saturationForHPS_, brightnessForHPS_);
         if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
             HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam, brush.GetColor().GetAlphaF())) {
             RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
@@ -341,6 +341,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
             canvas.AttachBrush(brush);
             canvas.DrawImageRect(*blurImage, src, dst, Drawing::SamplingOptions());
             canvas.DetachBrush();
+            RS_OPTIONAL_TRACE_NAME("ApplyKawaseBlur " + std::to_string(radius));
         }
         return;
     }

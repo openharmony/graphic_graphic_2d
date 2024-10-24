@@ -1468,11 +1468,6 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
     layer.arsrTag = GetArsrTag();
-    if (IsHardwareEnabledTopSurface() && RSSystemProperties::GetLayerCursorEnable()) {
-        layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
-    } else {
-        layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
-    }
     isHardwareForcedDisabled_ = isProtectedLayer_ ? false : isHardwareForcedDisabled_;
 #ifndef ROSEN_CROSS_PLATFORM
     auto buffer = surfaceHandler_->GetBuffer();
