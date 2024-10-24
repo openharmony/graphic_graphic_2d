@@ -54,6 +54,7 @@ namespace {
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
         "VOTER_VIRTUALDISPLAY",
+        "VOTER_MUTIPHYSICALSCREEN",
         "VOTER_POWER_MODE",
         "VOTER_DISPLAY_ENGIN",
         "VOTER_GAMES",
