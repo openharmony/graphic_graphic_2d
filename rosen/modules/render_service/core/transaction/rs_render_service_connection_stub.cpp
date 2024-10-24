@@ -141,10 +141,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
-<<<<<<< HEAD
-=======
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE),
->>>>>>> 94072dc15992309b97dc07689c1f6cebe4e67e64
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
