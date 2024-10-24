@@ -161,12 +161,20 @@ public:
     {
         return filterInfoVec_;
     }
-    const std::unordered_map<NodeId, Drawing::Matrix>& GetAllCachedNodeMatrixMap() const
+    const std::unordered_map<NodeId, Drawing::Matrix>& GetWithoutFilterMatrixMap() const
     {
-        return allCachedNodeMatrixMap_;
+        return withoutFilterMatrixMap_;
     }
 
-    NodeId lastDrawnFilterNodeId_ = 0;
+    void SetLastDrawnFilterNodeId(NodeId nodeId)
+    {
+        lastDrawnFilterNodeId_ = nodeId;
+    }
+
+    NodeId GetLastDrawnFilterNodeId() const
+    {
+        return lastDrawnFilterNodeId_;
+    }
 
     virtual void Purge()
     {
@@ -201,7 +209,7 @@ protected:
     void DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-    void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
+    void CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas);
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
@@ -230,7 +238,7 @@ protected:
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
     std::vector<FilterNodeInfo> filterInfoVec_;
-    std::unordered_map<NodeId, Drawing::Matrix> allCachedNodeMatrixMap_;
+    std::unordered_map<NodeId, Drawing::Matrix> withoutFilterMatrixMap_;
     size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> compositingFilterDrawable_ = nullptr;
@@ -252,6 +260,8 @@ private:
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
     static void RemoveDrawableFromCache(const NodeId nodeId);
+    void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
+    NodeId lastDrawnFilterNodeId_ = 0;
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSDisplayRenderNode;
