@@ -2889,5 +2889,24 @@ void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
     }
     AddToPendingSyncList();
 }
+
+void RSSurfaceRenderNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)
+{
+    if (abilityState_ == abilityState) {
+        ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], "
+            "ability state same with before: %{public}s",
+            GetId(), abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
+        return;
+    }
+
+    abilityState_ = abilityState;
+    ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s",
+        GetId(), abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
+}
+
+RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
+{
+    return abilityState_;
+}
 } // namespace Rosen
 } // namespace OHOS

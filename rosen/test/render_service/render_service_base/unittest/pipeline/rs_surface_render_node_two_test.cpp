@@ -973,5 +973,38 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsSpecialLayerChanged001, TestSize.Level1)
     EXPECT_FALSE(node->IsSpecialLayerChanged());
 }
 
+/**
+ * @tc.name: SetAbilityState
+ * @tc.desc: test results of SetAbilityState
+ * @tc.type:FUNC SetAbilityState
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SetAbilityState, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
+    ASSERT_TRUE(node->abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    ASSERT_FALSE(node->abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+}
+
+/**
+ * @tc.name: GetAbilityState
+ * @tc.desc: test results of GetAbilityState
+ * @tc.type:FUNC GetAbilityState
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, GetAbilityState, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto abilityState = node->GetAbilityState();
+    ASSERT_TRUE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->abilityState_ = RSSurfaceNodeAbilityState::BACKGROUND;
+    abilityState = node->GetAbilityState();
+    ASSERT_FALSE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
+}
 } // namespace Rosen
 } // namespace OHOS
