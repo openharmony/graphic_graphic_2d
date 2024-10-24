@@ -2707,7 +2707,8 @@ void RSRenderServiceConnectionProxy::ReportGameStateData(GameStateData info)
     }
 }
 
-void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2722,6 +2723,9 @@ void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnable
         return;
     }
     if (!data.WriteUint8(static_cast<uint8_t>(selfDrawingType))) {
+        return;
+    }
+    if (!data.WriteBool(dynamicHardwareEnable)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

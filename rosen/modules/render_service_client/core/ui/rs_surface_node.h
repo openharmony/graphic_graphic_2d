@@ -102,7 +102,8 @@ public:
 
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT);
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+        bool dynamicHardwareEnable = true);
     void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;

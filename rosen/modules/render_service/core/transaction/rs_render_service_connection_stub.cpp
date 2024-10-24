@@ -1553,7 +1553,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             auto isEnabled = data.ReadBool();
             auto selfDrawingType = static_cast<SelfDrawingNodeType>(data.ReadUint8());
-            SetHardwareEnabled(id, isEnabled, selfDrawingType);
+            auto dynamicHardwareEnable = data.ReadBool();
+            SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT) : {
