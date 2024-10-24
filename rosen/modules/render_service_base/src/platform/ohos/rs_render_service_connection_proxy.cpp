@@ -2732,27 +2732,5 @@ bool RSRenderServiceConnectionProxy::SetAncoForceDoDirect(bool direct)
     }
 }
 
-bool RSRenderServiceConnectionProxy::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return false;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    data.WriteUint64(id);
-    if (!data.WriteUint8(static_cast<uint8_t>(screenStatus))) {
-        return false;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        return false;
-    }
-    bool result = reply.ReadBool();
-    return result;
-}
-
 } // namespace Rosen
 } // namespace OHOS

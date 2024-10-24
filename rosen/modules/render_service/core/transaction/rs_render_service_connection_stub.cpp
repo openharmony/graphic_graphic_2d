@@ -138,7 +138,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE),
 };
@@ -1693,15 +1692,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool direct = data.ReadBool();
             bool result = SetAncoForceDoDirect(direct);
             reply.WriteBool(result);
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS) : {
-            ScreenId id = data.ReadUint64();
-            VirtualScreenStatus screenStatus = static_cast<VirtualScreenStatus>(data.ReadUint8());
-            bool result = SetVirtualScreenStatus(id, screenStatus);
-            if (!reply.WriteBool(result)) {
-                ret = ERR_INVALID_REPLY;
-            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {

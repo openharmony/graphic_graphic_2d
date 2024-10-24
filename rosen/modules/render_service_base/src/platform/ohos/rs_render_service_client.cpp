@@ -1447,14 +1447,5 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
     ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is null");
     return false;
 }
-
-bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        return renderService->SetVirtualScreenStatus(id, screenStatus);
-    }
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS

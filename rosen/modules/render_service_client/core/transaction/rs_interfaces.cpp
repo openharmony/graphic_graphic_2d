@@ -680,10 +680,5 @@ bool RSInterfaces::SetAncoForceDoDirect(bool direct)
     return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
 
-bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    return renderServiceClient_->SetVirtualScreenStatus(id, screenStatus);
-}
-
 } // namespace Rosen
 } // namespace OHOS

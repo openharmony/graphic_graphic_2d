@@ -1974,12 +1974,5 @@ bool RSRenderServiceConnection::SetAncoForceDoDirect(bool direct)
     mainThread_->SetAncoForceDoDirect(direct);
     return true;
 }
-
-bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    RS_LOGD("RSRenderServiceConnection::SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",
-        id, screenStatus);
-    return screenManager_->SetVirtualScreenStatus(id, screenStatus);
-}
 } // namespace Rosen
 } // namespace OHOS
