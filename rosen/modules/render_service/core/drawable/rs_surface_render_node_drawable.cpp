@@ -794,7 +794,7 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
         RS_LOGE("DrawBufferForRotationFixed failed to get invert matrix");
     }
     canvas.ConcatMatrix(inverse);
-    auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams);
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, surfaceParams);
     RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, *this, params);
     canvas.Restore();
 }

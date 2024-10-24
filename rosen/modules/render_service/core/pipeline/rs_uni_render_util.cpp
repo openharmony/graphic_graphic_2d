@@ -53,6 +53,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr int32_t FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN = -90;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
 }
@@ -551,7 +552,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     return params;
 }
 
-BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams)
 {
     BufferDrawParam params;
@@ -581,6 +582,11 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
     auto dstRect = renderParams.GetLayerInfo().dstRect;
     params.matrix = Drawing::Matrix();
     params.matrix.PreTranslate(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y));
+
+    auto consumer = surfaceDrawable.GetConsumerOnDraw();
+    if (consumer == nullptr) {
+        return params;
+    }
 
     auto layerTransform = renderParams.GetLayerInfo().transformType;
     int realRotation = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(layerTransform));
@@ -1332,10 +1338,14 @@ GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfa
     auto transformType = RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(
         node.GetRSSurfaceHandler()->GetConsumer(), node.GetRSSurfaceHandler()->GetBuffer()));
     int extraRotation = 0;
-    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
-    int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
-        node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-    extraRotation = degree - rotationDegree;
+    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
+        (system::GetParameter("const.build.product", "") == "ICL") ?
+        FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
+    if (node.GetFixRotationByUser()) {
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
+            node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
+        extraRotation = degree - rotationDegree;
+    }
     transformType = static_cast<GraphicTransformType>(
         (transformType + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
     return transformType;
@@ -1388,12 +1398,7 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
     if (!consumer || !buffer) {
         return;
     }
-    auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    if (node.GetFixRotationByUser()) {
-        transformType = RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer);
-    } else {
-        transformType = RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
-    }
+    auto transformType = RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer);
     auto srcRect = SrcRectRotateTransform(node, transformType);
     const auto& property = node.GetRenderProperties();
     const auto bufferWidth = buffer->GetSurfaceBufferWidth();
@@ -1549,7 +1554,9 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
         return GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
     auto consumer = surfaceHandler->GetConsumer();
-    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
+    static int32_t rotationDegree = (system::GetParameter("const.build.product", "") == "ALT") ||
+        (system::GetParameter("const.build.product", "") == "ICL") ?
+        FIX_ROTATION_DEGREE_FOR_FOLD_SCREEN : 0;
     int surfaceNodeRotation = node.GetFixRotationByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;

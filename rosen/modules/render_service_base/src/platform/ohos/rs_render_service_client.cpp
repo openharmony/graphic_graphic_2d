@@ -1322,14 +1322,6 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
-void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->SetDefaultDeviceRotationOffset(offset);
-    }
-}
-
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

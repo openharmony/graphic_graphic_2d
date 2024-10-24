@@ -219,10 +219,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemApp();
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DEFAULT_DEVICE_ROTATION_OFFSET): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_DEFAULT_DEVICE_ROTATION_OFFSET");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_REFRESH_RATE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_REFRESH_RATE");
             break;
