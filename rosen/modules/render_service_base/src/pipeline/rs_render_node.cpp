@@ -4074,6 +4074,14 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
     }
 }
 
+bool RSRenderNode::GetUifirstSupportFlag()
+{
+    if (sharedTransitionParam_ && !sharedTransitionParam_->IsInAppTranSition()) {
+        return false;
+    }
+    return isChildSupportUifirst_ && isUifirstNode_;
+}
+
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
     UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);

@@ -150,6 +150,17 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 }
 } // un-named
 #endif // RS_ENABLE_VK
+
+namespace {
+static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
+    OHOS::Rosen::Drawing::Matrix matrix;
+    matrix.SetMatrix(1.0f, 0.0f, 0.0f,
+                     0.0f, 1.0f, 0.0f,
+                     0.0f, 0.0f, 1.0f);
+    return matrix;
+}();
+}
+
 namespace OHOS::Rosen::DrawableV2 {
 CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus() const
 {
@@ -550,7 +561,7 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
-    RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
+    RSRenderParams::SetParentSurfaceMatrix(IDENTITY_MATRIX);
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
