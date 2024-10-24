@@ -444,12 +444,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t width = data.ReadUint32();
             uint32_t height = data.ReadUint32();
             sptr<Surface> surface = nullptr;
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject != nullptr) {
-                auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-                surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+            if (data.ReadBool()) {
+                auto remoteObject = data.ReadRemoteObject();
+                if (remoteObject != nullptr) {
+                    auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+                    surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+                }
             }
-
             ScreenId mirrorId = data.ReadUint64();
             int32_t flags = data.ReadInt32();
             std::vector<NodeId> whiteList;
