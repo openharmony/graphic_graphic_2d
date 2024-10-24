@@ -110,16 +110,18 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
     int64_t deltaTime = time - lastFrameTime_;
-    lastFrameTime_ = time;
     bool isInStartDelay = false;
     bool isRepeatFinished = false;
     bool isFinished = true;
 
-    if (deltaTime < 0) {
+    // When the UI animation and spring animation are inherited, time will be passed the default value of -1 for
+    // lastFrameTime_, which is a normal situation.
+    if (deltaTime < 0 && time != -1) {
         ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, "
             "current time: %{public}lld is earlier than last frame time: %{public}lld",
             static_cast<long long>(time), static_cast<long long>(lastFrameTime_));
     }
+    lastFrameTime_ = time;
 
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
         isFinished = true;
