@@ -21,6 +21,7 @@
 #include "src/core/SkLRUCache.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include <sstream>
 #include <algorithm>
 
 // after 5 vsync count, destory it
