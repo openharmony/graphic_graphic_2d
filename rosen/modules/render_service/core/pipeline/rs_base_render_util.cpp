@@ -1210,6 +1210,35 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     return gravityMatrix;
 }
 
+bool RSBaseRenderUtil::InitPreScalingMode(RSSurfaceRenderNode& node)
+{
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::InitPreScalingMode surfaceHandler is nullptr");
+        return false;
+    }
+    auto consumer = surfaceHandler->GetConsumer();
+    auto buffer = surfaceHandler->GetBuffer();
+    if (consumer == nullptr || buffer == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::InitPreScalingMode consumer or buffer is nullptr");
+        return false;
+    }
+    auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (nodeParams == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::InitPreScalingMode nodeParams is nullptr");
+        return false;
+    }
+    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+    auto ret = consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode);
+    if (ret == GSERROR_OK) {
+        nodeParams->SetPreScalingMode(scalingMode);
+    } else {
+        RS_LOGE("RSBaseRenderUtil::InitPreScalingMode GetScalingMode Error: %{public}d", ret);
+        return false;
+    }
+    return true;
+}
+
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
     RectF &localBounds, BufferDrawParam &params, RSSurfaceRenderParams *nodeParams)
 {
