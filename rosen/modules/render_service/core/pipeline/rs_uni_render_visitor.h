@@ -193,7 +193,6 @@ private:
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
-    void MergeDirtySurfaceToDssOrDirty(RSSurfaceRenderNode& surfaceNode, const RectI& dirtyRect) const;
     void PartialRenderOptionInit();
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
         const Occlusion::Region& selfDrawRegion);
@@ -305,7 +304,6 @@ private:
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty);
-    void CheckMergeTopSurfaceForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
 
     bool IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentFilter(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
@@ -694,6 +692,8 @@ private:
     // use for curtain screen
     void DrawCurtainScreen();
     bool isCurtainScreenOn_ = false;
+
+    RSPointerWindowManager pointerWindowManager_;
 
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
