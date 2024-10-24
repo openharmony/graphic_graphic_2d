@@ -12,15 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string>
+#include <cstdint>
 
 #include "utils/string_util.h"
 
 namespace OHOS {
 namespace Rosen {
-bool IsUtf8(const char* text)
+bool IsUtf8(const char* text, int len)
 {
-    int len = strlen(text);
     int n;
     int i = 0;
     while (i < len) {

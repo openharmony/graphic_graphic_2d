@@ -169,7 +169,7 @@ napi_value JsParagraphBuilder::OnAddText(napi_env env, napi_callback_info info)
     }
     std::string text = "";
     if (ConvertFromJsValue(env, argv[0], text)) {
-        if (!IsUtf8(text.c_str())) {
+        if (!IsUtf8(text.c_str(), text.size())) {
             TEXT_LOGE("Invalid utf-8 text");
             return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         }

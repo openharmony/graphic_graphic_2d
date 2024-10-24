@@ -19,7 +19,7 @@
 namespace OHOS {
 namespace Rosen {
 
-bool IsUtf8(const char* text);
+bool IsUtf8(const char* text, int len);
 
 }
 } // namespace OHOS

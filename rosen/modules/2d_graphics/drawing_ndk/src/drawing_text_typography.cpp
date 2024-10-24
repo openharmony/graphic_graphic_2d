@@ -432,7 +432,7 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
     if (!text || !handler) {
         LOGE("null text");
         return;
-    } else if (!IsUtf8(text)) {
+    } else if (!IsUtf8(text, strlen(text))) {
         LOGE("text is not utf-8");
         return;
     }
