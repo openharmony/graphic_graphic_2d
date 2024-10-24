@@ -329,20 +329,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
-    // when surfacenode named "CapsuleWindow", cache the current canvas as SkImage for screen recording
-    auto ancestorDrawableTmp =
-        std::static_pointer_cast<RSDisplayRenderNodeDrawable>(surfaceParams->GetAncestorDisplayDrawable().lock());
-    if (UNLIKELY(ancestorDrawableTmp == nullptr || ancestorDrawableTmp->GetRenderParams() == nullptr)) {
-        RS_LOGE("ancestorDrawable/renderParams is nullptr");
-        return;
-    }
-    // To be deleted after captureWindow being deleted
-    if (surfaceParams->GetName().find("CapsuleWindow") != std::string::npos &&
-        !ancestorDrawableTmp->GetRenderParams()->IsRotationChanged()) {
-        CacheImgForCapture(*rscanvas, *ancestorDrawableTmp);
-        uniParam->SetRootIdOfCaptureWindow(surfaceParams->GetRootIdOfCaptureWindow());
-    }
-
     if (!isUiFirstNode) {
         MergeDirtyRegionBelowCurSurface(*uniParam, curSurfaceDrawRegion);
     }
@@ -527,6 +513,18 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    // HidePrivacyContent is only for UICapture or NoneSystemCalling-WindowCapture
+    bool isHiddenScene = canvas.GetUICapture() ||
+        (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+        !RSUniRenderThread::GetCaptureParam().isSystemCalling_);
+    if ((surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
+        surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) &&
+        isHiddenScene && surfaceParams->GetHidePrivacyContent()) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfacenode nodeId:[%{public}" PRIu64
+                "] is not allowed to be captured", nodeId_);
+        return;
+    }
+
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
@@ -543,12 +541,12 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture, rscanvas us nullptr");
         return;
     }
-
+    rscanvas->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     // process white list
-    auto whiteList = uniParam->GetWhiteList();
+    auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
     SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetId());
 
-    if (CheckIfSurfaceSkipInMirror(*uniParam, *surfaceParams)) {
+    if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
         return;
     }
 
@@ -578,21 +576,20 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     ResetVirtualScreenWhiteListRootId(surfaceParams->GetId());
 }
 
-bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(
-    const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParams)
+bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
 {
     if (!RSUniRenderThread::GetCaptureParam().isMirror_) {
         return false;
     }
     // Check black list.
-    const auto& blackList = uniParam.GetBlackList();
+    const auto& blackList = RSUniRenderThread::Instance().GetBlackList();
     if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
             (id:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
         return true;
     }
     // Check white list.
-    const auto& whiteList = uniParam.GetWhiteList();
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     if (!whiteList.empty() && RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == INVALID_NODEID) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
             (id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());
@@ -688,8 +685,11 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool hwcEnable = surfaceParams.GetHardwareEnabled();
     surfaceParams.SetHardwareEnabled(false);
     RS_LOGD("HDR hasHdrPresent_:%{public}d", canvas.IsCapture());
+    bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
+        RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+        !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer() ||
-        hasHdrPresent_) && DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
+        hasHdrPresent_ || hasHidePrivacyContent) && DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
         return;
     }
@@ -769,7 +769,7 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
         RS_LOGE("DrawBufferForRotationFixed failed to get invert matrix");
     }
     canvas.ConcatMatrix(inverse);
-    auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, surfaceParams);
+    auto params = RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(*this, surfaceParams);
     RSUniRenderThread::Instance().GetRenderEngine()->DrawSurfaceNodeWithParams(canvas, *this, params);
     canvas.Restore();
 }

@@ -101,7 +101,6 @@ void BlobCache::Init(EglWrapperDisplay* display)
     if (table->isLoad && table->egl.eglSetBlobCacheFuncsANDROID) {
         table->egl.eglSetBlobCacheFuncsANDROID(display->GetEglDisplay(),
                                                BlobCache::SetBlobFunc, BlobCache::GetBlobFunc);
-        ReadFromDisk();
     } else {
         WLOGE("eglSetBlobCacheFuncsANDROID not found.");
     }
@@ -314,8 +313,18 @@ void BlobCache::WriteToDisk()
         size_t valuesize = item->second->dataSize;
         eheader->keySize = keysize;
         eheader->valueSize = valuesize;
-        memcpy_s(eheader->mData, keysize, item->first->data, keysize);
-        memcpy_s(eheader->mData + keysize, valuesize, item->second->data, valuesize);
+        if (memcpy_s(eheader->mData, bufsize - offset - headsize, item->first->data, keysize) != 0) {
+            delete[] buf;
+            close(fd);
+            return;
+        }
+
+        if (memcpy_s(eheader->mData + keysize, bufsize - offset - headsize - keysize,
+                     item->second->data, valuesize) !=0) {
+            delete[] buf;
+            close(fd);
+            return;
+        }
         size_t innerSize = headsize + keysize + valuesize;
         offset += Formatfile(innerSize);
     }

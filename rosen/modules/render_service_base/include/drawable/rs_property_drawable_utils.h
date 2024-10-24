@@ -44,7 +44,8 @@ public:
         const std::unique_ptr<RSFilterCacheManager>& cacheManager, const bool isForegroundFilter,
         bool shouldClearFilteredCache);
     static void DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-        const std::unique_ptr<RSFilterCacheManager>& cacheManager, bool shouldClearFilteredCache);
+        const std::unique_ptr<RSFilterCacheManager>& cacheManager, bool shouldClearFilteredCache,
+        Drawing::RectI& bounds);
     static void DrawColorFilter(Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter);
     static void DrawLightUpEffect(Drawing::Canvas* canvas, const float lightUpEffectDegree);
     static void DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree);
@@ -77,6 +78,8 @@ public:
     RSB_EXPORT static int GetAndResetBlurCnt();
     static bool GetGravityMatrix(const Gravity& gravity, const Drawing::Rect& rect, const float& w, const float& h,
         Drawing::Matrix& mat);
+    static bool RSFilterSetPixelStretch(const RSProperties& property, const std::shared_ptr<RSFilter>& filter);
+    static void RSFilterRemovePixelStretch(const std::shared_ptr<RSFilter>& filter);
     static void DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark);
 
 private:

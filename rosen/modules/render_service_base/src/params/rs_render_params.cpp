@@ -14,6 +14,7 @@
  */
 
 #include "params/rs_render_params.h"
+
 #include <string>
 
 #include "params/rs_surface_render_params.h"
@@ -289,7 +290,7 @@ bool RSRenderParams::OpincGetRootFlag() const
     return isOpincRootFlag_;
 }
 
-void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
+void RSRenderParams::OpincSetCacheChangeFlag(bool state,  bool lastFrameSynced)
 {
     if (lastFrameSynced) {
         isOpincStateChanged_ = state;
@@ -358,6 +359,51 @@ void RSRenderParams::SetNeedFilter(bool needFilter)
     needSync_ = true;
 }
 
+void RSRenderParams::SetNodeType(RSRenderNodeType type)
+{
+    if (renderNodeType_ == type) {
+        return;
+    }
+    renderNodeType_ = type;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetEffectNodeShouldPaint(bool effectNodeShouldPaint)
+{
+    if (effectNodeShouldPaint_ == effectNodeShouldPaint) {
+        return;
+    }
+    effectNodeShouldPaint_ = effectNodeShouldPaint;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetHasGlobalCorner(bool hasGlobalCorner)
+{
+    if (hasGlobalCorner_ == hasGlobalCorner) {
+        return;
+    }
+    hasGlobalCorner_ = hasGlobalCorner;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetHasBlurFilter(bool hasBlurFilter)
+{
+    if (hasBlurFilter_ == hasBlurFilter) {
+        return;
+    }
+    hasBlurFilter_ = hasBlurFilter;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetGlobalAlpha(float alpha)
+{
+    if (ROSEN_EQ(globalAlpha_, alpha)) {
+        return;
+    }
+    globalAlpha_ = alpha;
+    needSync_ = true;
+}
+
 bool RSRenderParams::NeedSync() const
 {
     return needSync_;
@@ -387,17 +433,6 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
 }
 
-RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
-{
-    return surfaceParams_;
-}
-
-void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
-{
-    surfaceParams_.width = width;
-    surfaceParams_.height = height;
-}
-
 const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
 {
     return foregroundFilterCache_;
@@ -410,6 +445,17 @@ void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& f
     }
     foregroundFilterCache_ = foregroundFilterCache;
     needSync_ = true;
+}
+
+RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
+{
+    return surfaceParams_;
+}
+
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+{
+    surfaceParams_.width = width;
+    surfaceParams_.height = height;
 }
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -442,12 +488,18 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->alphaOffScreen_ = alphaOffScreen_;
     target->needFilter_ = needFilter_;
+    target->renderNodeType_ = renderNodeType_;
+    target->globalAlpha_ = globalAlpha_;
+    target->effectNodeShouldPaint_ = effectNodeShouldPaint_;
+    target->hasGlobalCorner_ = hasGlobalCorner_;
+    target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = OpincGetCacheChangeState();
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
+    target->absDrawRect_ = absDrawRect_;
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;
     needSync_ = false;

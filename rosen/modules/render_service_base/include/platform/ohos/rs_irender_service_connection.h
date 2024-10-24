@@ -60,6 +60,7 @@ public:
     virtual bool GetUniRenderEnabled() = 0;
 
     virtual bool CreateNode(const RSSurfaceRenderNodeConfig& config) = 0;
+    virtual bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId) = 0;
     virtual sptr<Surface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config) = 0;
 
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
@@ -100,17 +101,6 @@ public:
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    virtual int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
-        int64_t interval, int32_t rangeSize) = 0;
- 
-    virtual int32_t SetPointerColorInversionEnabled(bool enable) = 0;
- 
-    virtual int32_t RegisterPointerLuminanceChangeCallback(sptr<RSIPointerLuminanceChangeCallback> callback) = 0;
- 
-    virtual int32_t UnRegisterPointerLuminanceChangeCallback() = 0;
-#endif
 
     virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
@@ -270,7 +260,11 @@ public:
 
     virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) = 0;
 
+    virtual uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) = 0;
+
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
+
+    virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

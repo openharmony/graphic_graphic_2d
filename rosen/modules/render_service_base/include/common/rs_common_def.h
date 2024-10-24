@@ -312,6 +312,7 @@ struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
     bool isMirrored = false;
     NodeId mirrorNodeId = 0;
+    bool isSync = false;
 };
 
 constexpr int64_t NS_TO_S = 1000000000;
@@ -410,6 +411,15 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
 
 enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001
+};
+
+enum class RSInterfaceErrorCode : uint32_t {
+#undef NO_ERROR
+    NO_ERROR = 0,
+    NONSYSTEM_CALLING,
+    NOT_SELF_CALLING,
+    WRITE_PARCEL_ERROR,
+    UNKNOWN_ERROR,
 };
 
 } // namespace Rosen

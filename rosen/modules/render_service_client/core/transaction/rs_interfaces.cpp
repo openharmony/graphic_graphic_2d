@@ -109,41 +109,6 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
-    int64_t interval, int32_t rangeSize)
-{
-    if (renderServiceClient_ == nullptr) {
-        return StatusCode::RENDER_SERVICE_NULL;
-    }
-    return renderServiceClient_->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-}
- 
-int32_t RSInterfaces::SetPointerColorInversionEnabled(bool enable)
-{
-    if (renderServiceClient_ == nullptr) {
-        return StatusCode::RENDER_SERVICE_NULL;
-    }
-    return renderServiceClient_->SetPointerColorInversionEnabled(enable);
-}
- 
-int32_t RSInterfaces::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
-{
-    if (renderServiceClient_ == nullptr) {
-        return StatusCode::RENDER_SERVICE_NULL;
-    }
-    return renderServiceClient_->RegisterPointerLuminanceChangeCallback(callback);
-}
- 
-int32_t RSInterfaces::UnRegisterPointerLuminanceChangeCallback()
-{
-    if (renderServiceClient_ == nullptr) {
-        return StatusCode::RENDER_SERVICE_NULL;
-    }
-    return renderServiceClient_->UnRegisterPointerLuminanceChangeCallback();
-}
-#endif
-
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
     return renderServiceClient_->SetScreenChangeCallback(callback);
@@ -617,6 +582,11 @@ void RSInterfaces::ReportGameStateData(GameStateData info)
 void RSInterfaces::EnableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(true);
+}
+
+void RSInterfaces::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    renderServiceClient_->SetDefaultDeviceRotationOffset(offset);
 }
 
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)

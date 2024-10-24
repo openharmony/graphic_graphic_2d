@@ -53,6 +53,11 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
     return {};
 }
 
+bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
     return {};
@@ -146,29 +151,6 @@ std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
 }
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
-    int64_t interval, int32_t rangeSize)
-{
-    return 0;
-}
- 
-int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
-{
-    return 0;
-}
- 
-int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
-{
-    return 0;
-}
- 
-int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
-{
-    return 0;
-}
-#endif
 
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
@@ -532,7 +514,16 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
 {
 }
 
+uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    return {};
+}
+
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
+{
+}
+
+void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
 }
 

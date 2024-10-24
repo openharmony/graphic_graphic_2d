@@ -34,7 +34,6 @@
 #include "ipc_security/rs_ipc_interface_permission_type.h"
 
 #include "nocopyable.h"
-#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -70,6 +69,7 @@ protected:
     bool IsAncoCalling(const std::string& callingCode) const;
     bool IsFoundationCalling(const std::string& callingCode) const;
     bool CheckPermission(CodeUnderlyingType code) const;
+    bool IsStylusServiceCalling(const std::string& callingCode) const;
 
 private:
     DISALLOW_COPY_AND_MOVE(RSInterfaceCodeAccessVerifierBase);

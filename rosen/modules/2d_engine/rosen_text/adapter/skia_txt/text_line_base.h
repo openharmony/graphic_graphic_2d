@@ -16,12 +16,13 @@
 #ifndef ROSEN_TEXT_ADAPTER_TXT_TEXT_LINE_BASE_H
 #define ROSEN_TEXT_ADAPTER_TXT_TEXT_LINE_BASE_H
 
-#include "rosen_text/text_line_base.h"
-#include "txt/text_line_base.h"
-#include "draw/canvas.h" // Drawing
-#include "rosen_text/typography.h"
 #include <memory>
 #include <utility>
+
+#include "draw/canvas.h" // Drawing
+#include "rosen_text/text_line_base.h"
+#include "rosen_text/typography.h"
+#include "txt/text_line_base.h"
 
 namespace OHOS {
 namespace Rosen {

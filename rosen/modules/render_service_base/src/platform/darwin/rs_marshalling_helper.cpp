@@ -41,8 +41,6 @@
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
-#include "render/rs_image_base.h"
-#include "render/rs_light_up_effect_filter.h"
 #include "render/rs_magnifier_para.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"

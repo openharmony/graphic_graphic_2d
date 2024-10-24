@@ -32,7 +32,7 @@ public:
 
     /* specify constructor and destructor here */
     RSIUIExtensionCallbackInterfaceCodeAccessVerifier();
-    ~RSIUIExtensionCallbackInterfaceCodeAccessVerifier() noexcept override = default;
+    virtual ~RSIUIExtensionCallbackInterfaceCodeAccessVerifier() noexcept override = default;
 
 protected:
     /* specify exclusive verification rules here */

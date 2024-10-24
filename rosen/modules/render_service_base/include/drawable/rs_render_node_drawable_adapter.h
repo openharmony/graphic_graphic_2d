@@ -136,21 +136,47 @@ public:
     SkipType GetSkipType() { return skipType_; }
 
     void SetSkipCacheLayer(bool hasSkipCacheLayer);
-    void SetFilterRectSize(int size)
-    {
-        filterRectSize_ = size;
-    }
-    int GetFilterRectSize() const
-    {
-        return filterRectSize_;
-    }
-    void ReduceFilterRectSize(int size)
-    {
-        filterRectSize_ -= size;
-    }
 
     bool IsFilterCacheValidForOcclusion() const;
     const RectI GetFilterCachedRegion() const;
+
+    size_t GetFilterNodeSize() const
+    {
+        return filterNodeSize_;
+    }
+    void ReduceFilterNodeSize()
+    {
+        if (filterNodeSize_ > 0) {
+            --filterNodeSize_;
+        }
+    }
+    struct FilterNodeInfo {
+        FilterNodeInfo(NodeId nodeId, Drawing::Matrix matrix, std::vector<Drawing::RectI> rectVec)
+            : nodeId_(nodeId), matrix_(matrix), rectVec_(rectVec) {};
+        NodeId nodeId_ = 0;
+        // Here, matrix_ and rectVec_ represent the transformation and FilterRect of the node relative to the off-screen
+        Drawing::Matrix matrix_;
+        std::vector<Drawing::RectI> rectVec_;
+    };
+
+    const std::vector<FilterNodeInfo>& GetfilterInfoVec() const
+    {
+        return filterInfoVec_;
+    }
+    const std::unordered_map<NodeId, Drawing::Matrix>& GetWithoutFilterMatrixMap() const
+    {
+        return withoutFilterMatrixMap_;
+    }
+
+    void SetLastDrawnFilterNodeId(NodeId nodeId)
+    {
+        lastDrawnFilterNodeId_ = nodeId;
+    }
+
+    NodeId GetLastDrawnFilterNodeId() const
+    {
+        return lastDrawnFilterNodeId_;
+    }
 
 protected:
     // Util functions
@@ -179,7 +205,7 @@ protected:
     void DrawCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBeforeCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-
+    void CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas);
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
     void DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const;
@@ -206,7 +232,9 @@ protected:
     std::unique_ptr<RSRenderParams> uifirstRenderParams_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
-    std::vector<Drawing::RectI> filterRects_;
+    std::vector<FilterNodeInfo> filterInfoVec_;
+    std::unordered_map<NodeId, Drawing::Matrix> withoutFilterMatrixMap_;
+    size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> compositingFilterDrawable_ = nullptr;
 #ifdef ROSEN_OHOS
@@ -214,12 +242,14 @@ protected:
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #endif
+
     // if the node needs to avoid drawing cache because of some layers, such as the security layer...
     bool hasSkipCacheLayer_ = false;
+    
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
-                            std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
+                        std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
     static inline std::mutex cacheMapMutex_;
@@ -229,7 +259,8 @@ private:
     int8_t GetSkipIndex() const;
     int filterRectSize_ = 0;
     static void RemoveDrawableFromCache(const NodeId nodeId);
-
+    void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
+    NodeId lastDrawnFilterNodeId_ = 0;
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSDisplayRenderNode;
     friend class OHOS::Rosen::RSSurfaceRenderNode;

@@ -172,11 +172,11 @@ public:
      */
     void GenerateCache(Canvas* canvas = nullptr, const Rect* rect = nullptr);
 
-    bool GetIsCache();
+    bool GetIsCache() const;
 
     void SetIsCache(bool isCached);
 
-    bool GetCachedHighContrast();
+    bool GetCachedHighContrast() const;
 
     void SetCachedHighContrast(bool cachedHighContrast);
 

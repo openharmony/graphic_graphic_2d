@@ -73,16 +73,6 @@ public:
 
     void RemoveVirtualScreen(ScreenId id);
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
- 
-    int32_t SetPointerColorInversionEnabled(bool enable);
- 
-    int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
- 
-    int32_t UnRegisterPointerLuminanceChangeCallback();
-#endif
-
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
@@ -257,6 +247,8 @@ public:
     void ReportEventJankFrame(DataBaseRs info);
 
     void ReportGameStateData(GameStateData info);
+
+    void SetDefaultDeviceRotationOffset(uint32_t offset);
 
     void EnableCacheForRotation();
 

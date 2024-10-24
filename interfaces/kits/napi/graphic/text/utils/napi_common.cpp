@@ -111,6 +111,7 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& s
 
     SetColorFromJS(env, tempValue, "color", textStyle.decorationColor);
 
+    tempValueChild = nullptr;
     napi_get_named_property(env, tempValue, "decorationStyle", &tempValueChild);
     uint32_t decorationStyle = 0;
     if (tempValueChild != nullptr && napi_get_value_uint32(env, tempValueChild, &decorationStyle) == napi_ok) {
@@ -118,52 +119,6 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& s
     }
     SetDoubleValueFromJS(env, tempValue, "decorationThicknessScale", textStyle.decorationThicknessScale);
     return true;
-}
-
-void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
-{
-    napi_value tempValue = nullptr;
-    napi_get_named_property(env, argValue, "fontWeight", &tempValue);
-    uint32_t fontWeight = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
-        textStyle.fontWeight = FontWeight(fontWeight);
-    }
-    napi_get_named_property(env, argValue, "fontStyle", &tempValue);
-    uint32_t fontStyle = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
-        textStyle.fontStyle = FontStyle(fontStyle);
-    }
-    napi_get_named_property(env, argValue, "baseline", &tempValue);
-    uint32_t baseline = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {
-        textStyle.baseline = TextBaseline(baseline);
-    }
-    SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
-
-    std::vector<std::string> fontFamilies;
-    napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
-    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
-        textStyle.fontFamilies = fontFamilies;
-    }
-    GetDecorationFromJS(env, argValue, "decoration", textStyle);
-    SetTextStyleBaseType(env, argValue, textStyle);
-    ReceiveFontFeature(env, argValue, textStyle);
-    ReceiveFontVariation(env, argValue, textStyle);
-    napi_get_named_property(env, argValue, "ellipsis", &tempValue);
-    std::string text = "";
-    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
-        textStyle.ellipsis = Str8ToStr16(text);
-    }
-    napi_get_named_property(env, argValue, "ellipsisMode", &tempValue);
-    uint32_t ellipsisModal = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &ellipsisModal)== napi_ok) {
-        textStyle.ellipsisModal = EllipsisModal(ellipsisModal);
-    }
-    napi_get_named_property(env, argValue, "locale", &tempValue);
-    std::string textLocale = "";
-    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textLocale)) {
-        textStyle.locale = textLocale;
-    }
 }
 
 bool GetNamePropertyFromJS(napi_env env, napi_value argValue, const std::string& str, napi_value& propertyValue)
@@ -260,6 +215,8 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
     SetDoubleValueFromJS(env, argValue, "heightScale", textStyle.heightScale);
     SetBoolValueFromJS(env, argValue, "halfLeading", textStyle.halfLeading);
     SetBoolValueFromJS(env, argValue, "heightOnly", textStyle.heightOnly);
+
+    textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
 }
 
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
@@ -278,14 +235,16 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
 
         napi_value pointValue = nullptr;
         if (napi_get_named_property(env, element, "point", &pointValue) != napi_ok) {
-            TEXT_LOGD("The parameter of as private point is unvaild");
+            TEXT_LOGE("The parameter of as private point is unvaild");
+            return;
         }
         GetPointFromJsValue(env, pointValue, offset);
 
         napi_value radius = nullptr;
         if (napi_get_named_property(env, element, "blurRadius", &radius) != napi_ok ||
             napi_get_value_double(env, radius, &runTimeRadius) != napi_ok) {
-            TEXT_LOGD("The parameter of as private blur radius is unvaild");
+            TEXT_LOGE("The parameter of as private blur radius is unvaild");
+            return;
         }
         textStyle.shadows.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
     }
@@ -306,6 +265,57 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
     }
     ScanShadowValue(env, allShadowValue, arrayLength, textStyle);
     return;
+}
+
+void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, "fontWeight", &tempValue);
+    uint32_t fontWeight = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
+        textStyle.fontWeight = FontWeight(fontWeight);
+    }
+    napi_get_named_property(env, argValue, "fontStyle", &tempValue);
+    uint32_t fontStyle = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
+        textStyle.fontStyle = FontStyle(fontStyle);
+
+        // Let OBLIQUE be equal to ITALIC, it's a temp modify.
+        if (textStyle.fontStyle == FontStyle::OBLIQUE) {
+            textStyle.fontStyle = FontStyle::ITALIC;
+        }
+    }
+    napi_get_named_property(env, argValue, "baseline", &tempValue);
+    uint32_t baseline = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {
+        textStyle.baseline = TextBaseline(baseline);
+    }
+    SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
+
+    std::vector<std::string> fontFamilies;
+    napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
+    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
+        textStyle.fontFamilies = fontFamilies;
+    }
+    GetDecorationFromJS(env, argValue, "decoration", textStyle);
+    SetTextStyleBaseType(env, argValue, textStyle);
+    ReceiveFontFeature(env, argValue, textStyle);
+    ReceiveFontVariation(env, argValue, textStyle);
+    napi_get_named_property(env, argValue, "ellipsis", &tempValue);
+    std::string text = "";
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, text)) {
+        textStyle.ellipsis = Str8ToStr16(text);
+    }
+    napi_get_named_property(env, argValue, "ellipsisMode", &tempValue);
+    uint32_t ellipsisModal = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &ellipsisModal)== napi_ok) {
+        textStyle.ellipsisModal = EllipsisModal(ellipsisModal);
+    }
+    napi_get_named_property(env, argValue, "locale", &tempValue);
+    std::string textLocale = "";
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textLocale)) {
+        textStyle.locale = textLocale;
+    }
 }
 
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
@@ -331,31 +341,31 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     if (tempValue != nullptr && GetTextStyleFromJS(env, tempValue, textStyle)) {
         pographyStyle.SetTextStyle(textStyle);
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "textDirection", &tempValue);
     uint32_t textDirection = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &textDirection) == napi_ok) {
         pographyStyle.textDirection = TextDirection(textDirection);
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "align", &tempValue);
     uint32_t align = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &align) == napi_ok) {
         pographyStyle.textAlign = TextAlign(align);
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "wordBreak", &tempValue);
     uint32_t wordBreak = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &wordBreak) == napi_ok) {
         pographyStyle.wordBreakType = WordBreakType(wordBreak);
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "maxLines", &tempValue);
-    uint32_t maxLines = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &maxLines) == napi_ok) {
-        pographyStyle.maxLines = maxLines;
+    int64_t maxLines = 0;
+    if (tempValue != nullptr && napi_get_value_int64(env, tempValue, &maxLines) == napi_ok) {
+        pographyStyle.maxLines = maxLines < 0 ? 0 : maxLines;
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "breakStrategy", &tempValue);
     uint32_t breakStrategy = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &breakStrategy) == napi_ok) {
@@ -385,30 +395,40 @@ bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan
     double width = 0;
     if (tempValue != nullptr && napi_get_value_double(env, tempValue, &width) == napi_ok) {
         placeholderSpan.width = width;
+    } else {
+        return false;
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "height", &tempValue);
     double height = 0;
     if (tempValue != nullptr && napi_get_value_double(env, tempValue, &height) == napi_ok) {
         placeholderSpan.height = height;
+    } else {
+        return false;
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "align", &tempValue);
     uint32_t align = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &align) == napi_ok) {
         placeholderSpan.alignment = PlaceholderVerticalAlignment(align);
+    } else {
+        return false;
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {
         placeholderSpan.baseline = TextBaseline(baseline);
+    } else {
+        return false;
     }
-
+    tempValue = nullptr;
     napi_get_named_property(env, argValue, "baselineOffset", &tempValue);
     double baselineOffset = 0;
     if (tempValue != nullptr && napi_get_value_double(env, tempValue, &baselineOffset) == napi_ok) {
         placeholderSpan.baselineOffset = baselineOffset;
+    } else {
+        return false;
     }
     return true;
 }

@@ -83,22 +83,6 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
 }
 
 /**
- * @tc.name: CalCulateAbilityComponentNumsInProcess
- * @tc.desc: test results of CalCulateAbilityComponentNumsInProcess
- * @tc.type:FUNC
- * @tc.require: issueI9VAI2
- */
-HWTEST_F(RSRenderNodeMapTest, CalCulateAbilityComponentNumsInProcess, TestSize.Level1)
-{
-    RSRenderNodeMap rsRenderNodeMap;
-    NodeId newId = 1; // 提供一个新的NodeId
-    rsRenderNodeMap.CalCulateAbilityComponentNumsInProcess(newId);
-    rsRenderNodeMap.abilityComponentNumsInProcess_[0] = 101;
-    rsRenderNodeMap.CalCulateAbilityComponentNumsInProcess(newId);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: GetVisibleLeashWindowCountTest
  * @tc.desc: test results of GetVisibleLeashWindowCount
  * @tc.type:FUNC
@@ -149,24 +133,6 @@ HWTEST_F(RSRenderNodeMapTest, RegisterDisplayRenderNode, TestSize.Level1)
     EXPECT_TRUE(result);
     result = rsRenderNodeMap.RegisterDisplayRenderNode(node);
     EXPECT_FALSE(result);
-}
-
-/**
- * @tc.name: EraseAbilityComponentNumsInProcess
- * @tc.desc: test results of EraseAbilityComponentNumsInProcess
- * @tc.type:FUNC
- * @tc.require: issueI9VAI2
- */
-HWTEST_F(RSRenderNodeMapTest, EraseAbilityComponentNumsInProcess, TestSize.Level1)
-{
-    NodeId id = 1;
-    auto node = std::make_shared<OHOS::Rosen::RSSurfaceRenderNode>(id);
-    RSRenderNodeMap rsRenderNodeMap;
-    rsRenderNodeMap.EraseAbilityComponentNumsInProcess(id);
-    auto rssurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
-    rsRenderNodeMap.surfaceNodeMap_[id] = rssurfaceRenderNode;
-    rsRenderNodeMap.EraseAbilityComponentNumsInProcess(id);
-    EXPECT_FALSE(rsRenderNodeMap.surfaceNodeMap_.empty());
 }
 
 /**

@@ -45,6 +45,7 @@ enum class DirtyRegionDebugType {
     RENDER_PROPERTIES_RECT,
     CANVAS_NODE_SKIP_RECT,
     OUTLINE_RECT,
+    SUBTREE_SKIP_OUT_OF_PARENT_RECT, // dirty region of the subtree when subtree is out of parent
 };
 
 enum class SurfaceRegionDebugType {
@@ -54,11 +55,12 @@ enum class SurfaceRegionDebugType {
 };
 
 enum class PartialRenderType {
-    DISABLED = 0,                               // 0, disable partial render
+    DISABLED = 0,                               // 0, disable partial render, including set damage region
     SET_DAMAGE,                                 // 1, set damageregion, without draw_op dropping
     SET_DAMAGE_AND_DROP_OP,                     // 2, drop draw_op if node is not in dirty region
     SET_DAMAGE_AND_DROP_OP_OCCLUSION,           // 3, drop draw_op if node is not in visible region (unirender)
-    SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY     // 4, drop draw_op if node is not in visible dirty region (unirender)
+    SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY,    // 4, drop draw_op if node is not in visible dirty region (unirender)
+    SET_DAMAGE_BUT_COMPLETE_RENDER,             // 5, set full screen dirty region and set damage
 };
 
 enum class DumpSurfaceType {
@@ -167,6 +169,8 @@ public:
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
+    static void SetDefaultDeviceRotationOffset(uint32_t offset);
+    static uint32_t GetDefaultDeviceRotationOffset();
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
@@ -185,6 +189,7 @@ public:
     static bool GetKawaseEnabled();
     static void SetForceHpsBlurDisabled(bool flag);
     static bool GetHpsBlurEnabled();
+    static bool GetMESABlurFuzedEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
     static bool GetImageReleaseUsingPostTask();
@@ -235,8 +240,6 @@ public:
     static bool GetHDRImageEnable();
     static bool GetLayerCursorEnable();
     static bool IsForceClient();
-    static bool GetUnmarshParallelFlag();
-    static uint32_t GetUnMarshParallelSize();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
 
     static bool GetDrmMarkedFilterEnabled();
@@ -247,7 +250,7 @@ public:
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
     static bool GetSkipDisplayIfScreenOffEnabled();
-
+    static bool GetBatchRemovingOnRemoteDiedEnabled();
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();
 #endif
@@ -271,7 +274,8 @@ public:
     }
 
     static int GetRSNodeLimit();
-    static bool GetMemoryOverTreminateEnabled();
+    static std::string GetVersionType();
+    static bool GetHwcDirtyRegionEnabled();
 
 private:
     RSSystemProperties() = default;
@@ -279,6 +283,7 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
+    inline static std::atomic<uint32_t> defaultDeviceRotationOffset_ = 0;
     static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;

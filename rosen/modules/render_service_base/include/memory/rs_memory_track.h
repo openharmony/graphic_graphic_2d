@@ -24,6 +24,7 @@
 #include "common/rs_rect.h"
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_graphic.h"
+#include "pixel_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,7 +39,10 @@ struct MemoryInfo {
     size_t size = 0;
     int pid = 0;
     uint64_t nid = 0;
-    MEMORY_TYPE type;
+    uint64_t uid = 0;
+    MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
+    OHOS::Media::AllocatorType allocType;
+    std::weak_ptr<OHOS::Media::PixelMap> pixelMap;
 };
 
 class MemoryNodeOfPid {
@@ -73,6 +77,7 @@ private:
     MemoryTrack& operator=(const MemoryTrack&) = delete;
     MemoryTrack& operator=(const MemoryTrack&&) = delete;
     const char* MemoryType2String(MEMORY_TYPE type);
+    const std::string AllocatorType2String(OHOS::Media::AllocatorType);
     std::string GenerateDumpTitle();
     std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
     void DumpMemoryNodeStatistics(DfxString& log);

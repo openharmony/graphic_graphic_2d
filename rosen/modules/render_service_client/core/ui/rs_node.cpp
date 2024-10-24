@@ -163,6 +163,17 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation()
     return implicitAnimator->CloseImplicitAnimation();
 }
 
+bool RSNode::CloseImplicitCancelAnimation()
+{
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to close implicit animation for cancel, implicit animator is null!");
+        return false;
+    }
+
+    return implicitAnimator->CloseImplicitCancelAnimation();
+}
+
 void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;
@@ -2092,8 +2103,6 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
                 std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
         }
-        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
-            GetId(), modifier->GetModifierTypeString().c_str());
     }
 }
 
@@ -2112,8 +2121,6 @@ void RSNode::DoFlushModifier()
     for (const auto& [_, modifier] : modifiers_) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
         transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::flush modifier, node id: %{public}" PRIu64 ", type: %{public}s",
-            GetId(), modifier->GetModifierTypeString().c_str());
     }
 }
 
@@ -2152,8 +2159,6 @@ void RSNode::RemoveModifier(const std::shared_ptr<RSModifier> modifier)
                 std::make_unique<RSRemoveModifier>(GetId(), modifier->GetPropertyId());
             transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
         }
-        ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
-            GetId(), modifier->GetModifierTypeString().c_str());
     }
 }
 

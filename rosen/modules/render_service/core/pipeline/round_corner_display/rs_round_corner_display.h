@@ -84,7 +84,6 @@ public:
 
     void RunHardwareTask(const std::function<void()>& task)
     {
-        std::lock_guard<std::mutex> lock(resourceMut_);
         if (!supportHardware_) {
             return;
         }
@@ -100,6 +99,14 @@ public:
     bool GetRcdEnable() const
     {
         return isRcdEnable_;
+    }
+
+    bool IsNotchNeedUpdate(bool notchStatus)
+    {
+        std::lock_guard<std::mutex> lock(resourceMut_);
+        bool result = notchStatus != lastNotchStatus_;
+        lastNotchStatus_ = notchStatus;
+        return result;
     }
 
 private:
@@ -133,6 +140,7 @@ private:
     int notchStatus_ = WINDOW_NOTCH_DEFAULT;
 
     int showResourceType_ = (notchStatus_ == WINDOW_NOTCH_DEFAULT) ? TOP_PORTRAIT : TOP_HIDDEN;
+    bool lastNotchStatus_ = false;
 
     // status of the rotation
     ScreenRotation curOrientation_ = ScreenRotation::ROTATION_0;
@@ -162,7 +170,6 @@ private:
 
     // load single image as Drawingimage
     static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
-
     static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
     bool SetHardwareLayerSize();
 

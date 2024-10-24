@@ -85,8 +85,7 @@ constexpr size_t GetParcelMaxCapacity()
 
 bool RSProfiler::IsEnabled()
 {
-    static const bool ENABLED = RSSystemProperties::GetProfilerEnabled();
-    return ENABLED || testing_;
+    return false || testing_; // temporarily disable profiler
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -733,6 +732,9 @@ void RSProfiler::UnmarshalTree(RSContext& context, std::stringstream& data, uint
     data.read(reinterpret_cast<char*>(&count), sizeof(count));
 
     auto node = map.GetRenderNode(nodeId);
+    if (!node) {
+        return;
+    }
     for (uint32_t i = 0; i < count; i++) {
         NodeId nodeId = 0;
         data.read(reinterpret_cast<char*>(&nodeId), sizeof(nodeId));
@@ -950,7 +952,7 @@ void RSProfiler::EnableBetaRecord()
 
 bool RSProfiler::IsBetaRecordEnabled()
 {
-    return RSSystemProperties::GetBetaRecordingMode() != 0;
+    return false; // temporarily disable profiler beta record
 }
 
 bool RSProfiler::IsBetaRecordSavingTriggered()

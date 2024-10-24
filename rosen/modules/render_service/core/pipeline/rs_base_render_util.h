@@ -127,14 +127,14 @@ public:
 
     static GraphicTransformType GetSurfaceBufferTransformType(
         const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer);
-    static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF& bounds);
+    static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bounds,
+        const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
     static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
     static GSError DropFrameProcess(RSSurfaceHandler& node);
-    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool ConsumeAndUpdateBuffer(
         RSSurfaceHandler& surfaceHandler, bool isDisplaySurface, uint64_t vsyncTimestamp = 0);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
@@ -148,8 +148,10 @@ public:
      *
      * @param colorFilterMode SkBlendMode applied to SKPaint
      * @param paint color matrix applied to SKPaint
+     * @param brightnessRatio hdr brightness ratio
      */
-    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint);
+    static void SetColorFilterModeToPaint(ColorFilterMode colorFilterMode, Drawing::Brush& paint,
+        float hdrBrightnessRatio = 1.f);
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
@@ -158,7 +160,7 @@ public:
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
-        RectF localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
+        RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
     static void FlipMatrix(GraphicTransformType transform, BufferDrawParam& params);
 
     // GraphicTransformType has two attributes: rotation and flip, it take out one of the attributes separately
@@ -172,12 +174,14 @@ public:
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
 
     static int GetAccumulatedBufferCount();
     static void IncAcquiredBufferCount();
     static void DecAcquiredBufferCount();
+    static pid_t GetLastSendingPid();
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);
@@ -190,6 +194,7 @@ private:
     static bool enableClient;
 
     static inline std::atomic<int> acquiredBufferCount_ = 0;
+    static pid_t lastSendingPid_;
 };
 } // namespace Rosen
 } // namespace OHOS

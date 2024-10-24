@@ -82,4 +82,9 @@ void RSContext::Initialize()
     nodeMap.Initialize(weak_from_this());
     globalRootRenderNode_->OnRegister(weak_from_this());
 }
+
+void RSContext::AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId)
+{
+    needSyncFinishAnimationList_.push_back({nodeId, animationId});
+}
 } // namespace OHOS::Rosen

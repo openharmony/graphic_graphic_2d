@@ -441,7 +441,6 @@ public:
     void SetSecurityLayer(bool isSecurityLayer);
     void SetSkipLayer(bool isSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
-    void SetForceClientForDRMOnly(bool forceClient);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
@@ -452,6 +451,7 @@ public:
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
     bool GetHasProtectedLayer() const;
+    bool GetHasPrivacyContentLayer() const;
 
     void ResetSpecialLayerChangedFlag()
     {
@@ -466,6 +466,7 @@ public:
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
+    void SyncPrivacyContentInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -1162,6 +1163,7 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(int32_t sdrNit);
     void SetDisplayNit(int32_t displayNit);
@@ -1248,10 +1250,10 @@ private:
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
-    bool forceClientForDRMOnly_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     bool specialLayerChanged_ = false;
 
     bool hasFingerprint_ = false;
@@ -1474,6 +1476,7 @@ private:
 
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
+    bool needHidePrivacyContent_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
 

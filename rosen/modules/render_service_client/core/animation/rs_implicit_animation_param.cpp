@@ -62,10 +62,10 @@ void RSImplicitCancelAnimationParam::AddPropertyToPendingSyncList(const std::sha
     pendingSyncList_.emplace_back(property);
 }
 
-void RSImplicitCancelAnimationParam::SyncProperties()
+bool RSImplicitCancelAnimationParam::SyncProperties()
 {
     if (pendingSyncList_.empty()) {
-        return;
+        return false;
     }
 
     // Create sync map
@@ -86,15 +86,17 @@ void RSImplicitCancelAnimationParam::SyncProperties()
     }
     pendingSyncList_.clear();
 
+    bool ret = true;
     if (!renderServicePropertiesMap.empty()) {
-        ExecuteSyncPropertiesTask(std::move(renderServicePropertiesMap), true);
+        ret = ret && ExecuteSyncPropertiesTask(std::move(renderServicePropertiesMap), true);
     }
     if (!renderThreadPropertiesMap.empty()) {
-        ExecuteSyncPropertiesTask(std::move(renderThreadPropertiesMap), false);
+        ret = ret && ExecuteSyncPropertiesTask(std::move(renderThreadPropertiesMap), false);
     }
+    return ret;
 }
 
-void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
+bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
     RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService)
 {
     // create task and execute it in RS (timeout is 400ms)
@@ -104,7 +106,7 @@ void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
     // Test if the task is executed successfully
     if (!task || !task->IsSuccess()) {
         ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to execute task.");
-        return;
+        return false;
     }
 
     // Apply task result
@@ -135,6 +137,7 @@ void RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
             property->UpdateOnAllAnimationFinish();
         }
     }
+    return true;
 }
 
 std::shared_ptr<RSAnimation> RSImplicitCancelAnimationParam::CreateEmptyAnimation(

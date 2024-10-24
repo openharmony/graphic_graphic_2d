@@ -55,6 +55,8 @@ public:
 
     // close implicit animation and return all animations
     std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
+    // close implicit cancel animation and return whether the synchronization was successful
+    bool CloseImplicitCancelAnimation();
 
     // open implicit animation with given animation options and finish callback
     int OpenInterActiveImplicitAnimation(bool isAddImplictAnimation, const RSAnimationTimingProtocol& timingProtocol,

@@ -440,6 +440,16 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
+void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    defaultDeviceRotationOffset_ = offset;
+}
+
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+{
+    return defaultDeviceRotationOffset_;
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
@@ -586,6 +596,13 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     static bool hpsBlurEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.HpsBlurEnable", "1")).c_str()) != 0;
     return hpsBlurEnabled && !forceHpsBlurDisabled_;
+}
+
+bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    static bool blurPixelStretchEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.mesaBlurFuzedEnable", "1")).c_str()) != 0;
+    return blurPixelStretchEnabled;
 }
 
 float RSSystemProperties::GetKawaseRandomColorFactor()
@@ -1042,20 +1059,6 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     return pixelMapEnabled;
 }
 
-bool RSSystemProperties::GetUnmarshParallelFlag()
-{
-    static bool flag = system::GetParameter("rosen.graphic.UnmashParallelEnabled", "0") != "0";
-    return flag;
-}
-
-uint32_t RSSystemProperties::GetUnMarshParallelSize()
-{
-    static uint32_t size =
-        static_cast<uint32_t>(std::atoi(
-            (system::GetParameter("rosen.graphic.UnmashParallelSize", "102400")).c_str())); // 100K
-    return size;
-}
-
 int RSSystemProperties::GetRSNodeLimit()
 {
     static int rsNodeLimit =
@@ -1077,11 +1080,18 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
     return ConvertToInt(num, 1) != 0;
 }
 
-bool RSSystemProperties::GetMemoryOverTreminateEnabled()
+bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
 {
-    static bool flag =
-        std::atoi((system::GetParameter("persist.sys.graphic.memoryOverTreminateEnabled", "0")).c_str()) != 0;
-    return flag;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.batchRemovingOnRemoteDied.enabled", "1");
+    int changed = 0;
+    const char *num = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(num, 1) != 0;
+}
+
+std::string RSSystemProperties::GetVersionType()
+{
+    static std::string versionType = system::GetParameter("const.logsystem.versiontype", "");
+    return versionType;
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
@@ -1090,6 +1100,13 @@ bool RSSystemProperties::GetDrmMarkedFilterEnabled()
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
+}
+
+bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    static bool hwcDirtyRegionEnabled =
+        std::atoi((system::GetParameter("persist.rosen.graphic.hwcdirtyregion.enabled", "1")).c_str()) != 0;
+    return hwcDirtyRegionEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

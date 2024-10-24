@@ -152,10 +152,6 @@ public:
     {
         return animateState_;
     }
-    bool GetForceClientForDRMOnly() const
-    {
-        return forceClientForDRMOnly_;
-    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
@@ -175,6 +171,10 @@ public:
     bool HasProtectedLayer()
     {
         return protectedLayerIds_.size() != 0;
+    }
+    bool HasPrivacyContentLayer()
+    {
+        return privacyContentLayerIds_.size() != 0;
     }
 
     std::string GetName() const
@@ -309,6 +309,14 @@ public:
     void SetOccludedByFilterCache(bool val);
     bool GetOccludedByFilterCache() const;
 
+    void SetFilterCacheFullyCovered(bool val);
+    bool GetFilterCacheFullyCovered() const;
+
+    const std::vector<NodeId>& GetVisibleFilterChild() const;
+    bool IsTransparent() const;
+    void CheckValidFilterCacheFullyCoverTarget(
+        bool isFilterCacheValidForOcclusion, const RectI& filterCachedRect, const RectI& targetRect);
+
     void SetLayerInfo(const RSLayerInfo& layerInfo);
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
@@ -336,6 +344,9 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
+    bool GetHidePrivacyContent() const;
 
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
 
@@ -405,18 +416,6 @@ public:
     {
         return totalMatrix_;
     }
-    void SetGlobalAlpha(float alpha) override
-    {
-        if (globalAlpha_ == alpha) {
-            return;
-        }
-        globalAlpha_ = alpha;
-        needSync_ = true;
-    }
-    float GetGlobalAlpha() override
-    {
-        return globalAlpha_;
-    }
     void SetFingerprint(bool hasFingerprint) override
     {
         if (hasFingerprint_ == hasFingerprint) {
@@ -471,8 +470,6 @@ public:
         return brightnessRatio_;
     }
 
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow) override;
-    NodeId GetRootIdOfCaptureWindow() const override;
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -487,6 +484,7 @@ private:
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
+    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Color backgroundColor_ = RgbPalette::Transparent();
 
     RectI dstRect_;
@@ -494,7 +492,6 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
-    NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region opaqueRegion_;
 
@@ -507,12 +504,14 @@ private:
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     bool isOccludedByFilterCache_ = false;
+    // if current surfaceNode has filter cache to occlude the back surfaceNode
+    bool isFilterCacheFullyCovered_ = false;
+    std::vector<NodeId> visibleFilterChild_;
     RSLayerInfo layerInfo_;
     RSWindowInfo windowInfo_;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
-    sptr<SurfaceBuffer> preBufferFence_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
 #endif
@@ -525,19 +524,20 @@ private:
     bool isSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     bool animateState_ = false;
-    bool forceClientForDRMOnly_ = false;
     bool isSubSurfaceNode_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
     std::set<NodeId> skipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
@@ -549,7 +549,6 @@ private:
     int32_t sdrNit_ = 500; // default sdrNit
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

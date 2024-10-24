@@ -184,11 +184,11 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
         info_.postVSyncCount_++;
+        if (gcNotifyTask_ != nullptr) {
+            gcNotifyTask_(false);
+        }
     } else {
         ScopedBytrace failed("failed");
-    }
-    if (gcNotifyTask_ != nullptr) {
-        gcNotifyTask_(false);
     }
     return ret;
 }
@@ -574,6 +574,7 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
         return;
     }
 
+    SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
     // When vsync switches to dvsync, need to handle pending RNVs during vsync
     if (!IsDVsyncOn() || pendingRNVInVsync_) {
         event_.timestamp = now;
@@ -587,7 +588,6 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
 
     ChangeConnsRateLocked();
     RS_TRACE_NAME_FMT("pendingRNVInVsync: %d DVSyncOn: %d isRS:%d", pendingRNVInVsync_, IsDVsyncOn(), isRs_);
-    SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
     if (dvsync_->WaitCond() || pendingRNVInVsync_) {
         con_.notify_all();
     } else {
@@ -672,7 +672,7 @@ void VSyncDistributor::SendConnectionsToVSyncWindow(int64_t now, int64_t period,
 {
     std::vector<sptr<VSyncConnection>> conns;
     bool waitForVSync = false;
-    if (isRs_ || !IsDVsyncOn()) {
+    if (isRs_ || GetUIDVsyncPid() == 0) {
         return;
     }
     CollectConns(waitForVSync, now, conns, false);
@@ -684,7 +684,7 @@ void VSyncDistributor::SendConnectionsToVSyncWindow(int64_t now, int64_t period,
 int32_t VSyncDistributor::GetUIDVsyncPid()
 {
     int32_t pid = 0;
-    if (!isRs_ && IsDVsyncOn()) {
+    if (!isRs_) {
         pid = dvsync_->GetProxyPid();
     }
     return pid;

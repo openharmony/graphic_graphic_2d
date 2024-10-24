@@ -143,6 +143,7 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_thread_handler_generic.cpp",
     "src/common/rs_thread_looper_generic.cpp",
     "src/common/rs_thread_looper_impl.cpp",
+    "src/common/rs_xcollie.cpp",
 
     #delegate
     "src/delegate/rs_functional_delegate.cpp",
@@ -272,6 +273,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_mask.cpp",
     "src/render/rs_maskcolor_shader_filter.cpp",
     "src/render/rs_material_filter.cpp",
+    "src/render/rs_mesa_blur_shader_filter.cpp",
     "src/render/rs_motion_blur_filter.cpp",
     "src/render/rs_particles_drawable.cpp",
     "src/render/rs_path.cpp",
@@ -480,7 +482,10 @@ ohos_source_set("render_service_base_src") {
   ]
 
   if (rosen_is_ohos) {
-    external_deps += [ "image_framework:image_native" ]
+    external_deps += [
+      "hicollie:libhicollie",
+      "image_framework:image_native",
+    ]
   }
 
   if (!is_mingw && !is_mac && !is_cross_platform) {

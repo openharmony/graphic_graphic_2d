@@ -5005,6 +5005,11 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentFilter001, T
     uint32_t height = 600;
     RectI rect{left, top, width, height};
     Occlusion::Region region{rect};
+    NodeId displayNodeId = 2;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
+    rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
     rsUniRenderVisitor->CheckMergeDisplayDirtyByTransparentFilter(surfaceNode, region);
 }
 
@@ -5247,42 +5252,6 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
     node->GetMutableRenderProperties().useEffect_ = true;
     rsUniRenderVisitor->CollectEffectInfo(*node);
     ASSERT_TRUE(parent->ChildHasVisibleEffect());
-}
-
-/**
- * @tc.name: CheckFilterCacheFullyCovered001
- * @tc.desc: Test RSUnitRenderVisitorTest.CheckFilterCacheFullyCovered with mutiple nodes.
- * @tc.type: FUNC
- * @tc.require: issueIAG8BF
- */
-HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheFullyCovered001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    RSSurfaceRenderNodeConfig surfaceConfig;
-    surfaceConfig.id = 1;
-    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
-    ASSERT_NE(surfaceNode1, nullptr);
-
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    constexpr NodeId id0 = 0;
-    nodeMap.renderNodeMap_[id0] = nullptr;
-    constexpr NodeId id1 = 1;
-    auto node1 = std::make_shared<RSRenderNode>(id1);
-    nodeMap.renderNodeMap_[id1] = node1;
-    ASSERT_NE(node1, nullptr);
-    constexpr NodeId id2 = 2;
-    auto node2 = std::make_shared<RSRenderNode>(id2);
-    nodeMap.renderNodeMap_[id2] = node2;
-    ASSERT_NE(node2, nullptr);
-
-    ASSERT_NE(node2->renderContent_, nullptr);
-    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
-    node2->renderContent_->renderProperties_.SetBackgroundFilter(filter);
-
-    surfaceNode1->visibleFilterChild_.emplace_back(node1->GetId());
-    surfaceNode1->visibleFilterChild_.emplace_back(node2->GetId());
-    rsUniRenderVisitor->CheckFilterCacheFullyCovered(surfaceNode1);
 }
 
 /*

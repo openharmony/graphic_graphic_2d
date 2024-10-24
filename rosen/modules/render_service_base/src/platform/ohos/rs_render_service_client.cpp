@@ -25,7 +25,6 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
-#include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
@@ -107,6 +106,15 @@ bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemS
         return false;
     }
     return renderService->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+}
+
+bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return false;
+    }
+    return renderService->CreateNode(displayNodeConfig, nodeId);
 }
 
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
@@ -379,66 +387,6 @@ void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 
     renderService->RemoveVirtualScreen(id);
 }
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
-    int64_t interval, int32_t rangeSize)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
- 
-    return renderService->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-}
- 
-int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
- 
-    return renderService->SetPointerColorInversionEnabled(enable);
-}
- 
-class CustomPointerLuminanceChangeCallback : public RSPointerLuminanceChangeCallbackStub
-{
-public:
-    explicit CustomPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback) : cb_(callback) {}
-    ~CustomPointerLuminanceChangeCallback() override {};
- 
-    void OnPointerLuminanceChanged(int32_t brightness) override
-    {
-        if (cb_ != nullptr) {
-            cb_(brightness);
-        }
-    }
- 
-private:
-    PointerLuminanceChangeCallback cb_;
-};
- 
-int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
- 
-    sptr<RSIPointerLuminanceChangeCallback> cb = new CustomPointerLuminanceChangeCallback(callback);
-    return renderService->RegisterPointerLuminanceChangeCallback(cb);
-}
- 
-int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
-    return renderService->UnRegisterPointerLuminanceChangeCallback();
-}
-#endif
 
 class CustomScreenChangeCallback : public RSScreenChangeCallbackStub
 {
@@ -1318,6 +1266,15 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
     }
 }
 
+uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->SetHidePrivacyContent(id, needHidePrivacyContent);
+    }
+    return static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+}
+
 void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1363,6 +1320,14 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetCacheEnabledForRotation(isEnabled);
+    }
+}
+
+void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetDefaultDeviceRotationOffset(offset);
     }
 }
 

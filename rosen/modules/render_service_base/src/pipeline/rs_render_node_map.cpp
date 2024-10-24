@@ -18,6 +18,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_display_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -29,9 +30,6 @@ constexpr const char* WALLPAPER_VIEW = "SCBWallpaper";
 constexpr const char* SCREENLOCK_WINDOW = "SCBScreenLock";
 constexpr const char* SYSUI_DROPDOWN = "SCBDropdownPanel";
 constexpr const char* NEGATIVE_SCREEN = "SCBNegativeScreen";
-constexpr const char* ARKTS_CARD_NODE = "ArkTSCardNode";
-constexpr const char* SYSTEM_APP = "";
-constexpr const int ABILITY_COMPONENT_LIMIT = 100;
 };
 
 using ResidentSurfaceNodeMap = std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>;
@@ -99,20 +97,6 @@ static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surface
            surfaceNode->GetName().find(SYSUI_DROPDOWN) != std::string::npos ||
            surfaceNode->GetName().find(SCREENLOCK_WINDOW) != std::string::npos ||
            surfaceNode->GetName().find(WALLPAPER_VIEW) != std::string::npos;
-}
-
-void RSRenderNodeMap::CalCulateAbilityComponentNumsInProcess(NodeId id)
-{
-    if (abilityComponentNumsInProcess_[ExtractPid(id)] > ABILITY_COMPONENT_LIMIT) {
-        renderNodeMap_.erase(id);
-        auto it = surfaceNodeMap_.find(id);
-        if (it != surfaceNodeMap_.end()) {
-            RemoveUIExtensionSurfaceNode(it->second);
-            surfaceNodeMap_.erase(it);
-        }
-        return;
-    }
-    abilityComponentNumsInProcess_[ExtractPid(id)]++;
 }
 
 uint32_t RSRenderNodeMap::GetVisibleLeashWindowCount() const
@@ -192,27 +176,8 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
     return true;
 }
 
-void RSRenderNodeMap::EraseAbilityComponentNumsInProcess(NodeId id)
-{
-    auto surfaceNodeIter = surfaceNodeMap_.find(id);
-    if (surfaceNodeIter != surfaceNodeMap_.end()) {
-        auto surfaceNode = GetRenderNode<RSSurfaceRenderNode>(id);
-        if (surfaceNode && (surfaceNode->IsAbilityComponent()) && (surfaceNode->GetName() != ARKTS_CARD_NODE) &&
-            (surfaceNode->GetName().find(SYSTEM_APP) == std::string::npos)) {
-            auto pid = ExtractPid(id);
-            auto iter = abilityComponentNumsInProcess_.find(pid);
-            if (iter != abilityComponentNumsInProcess_.end()) {
-                if (--abilityComponentNumsInProcess_[pid] == 0) {
-                    abilityComponentNumsInProcess_.erase(pid);
-                }
-            }
-        }
-    }
-}
-
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
-    EraseAbilityComponentNumsInProcess(id);
     // temp solution to address the dma leak
     auto it = surfaceNodeMap_.find(id);
     if (it != surfaceNodeMap_.end()) {
@@ -250,28 +215,38 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
+    bool useBatchRemoving =
+        RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(renderNodeMap_, [pid](const auto& pair) -> bool {
+    EraseIf(renderNodeMap_, [pid, useBatchRemoving](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {
             return false;
         }
         if (pair.second == nullptr) {
             return true;
         }
-        auto parent = pair.second->GetParent().lock();
-        if (parent) {
-            parent->RemoveChildFromFulllist(pair.second->GetId());
+        if (useBatchRemoving) {
+            RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(pair.second);
+        } else {
+            if (auto parent = pair.second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(pair.second->GetId());
+            }
+            pair.second->RemoveFromTree(false);
         }
-        // remove node from tree
-        pair.second->RemoveFromTree(false);
         pair.second->GetAnimationManager().FilterAnimationByPid(pid);
         return true;
     });
 
-    EraseIf(surfaceNodeMap_, [pid, this](const auto& pair) -> bool {
+    EraseIf(surfaceNodeMap_, [pid, useBatchRemoving, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid);
         if (shouldErase) {
             RemoveUIExtensionSurfaceNode(pair.second);
+        }
+        if (shouldErase && pair.second && useBatchRemoving) {
+            if (auto parent = pair.second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(pair.second->GetId());
+            }
+            pair.second->RemoveFromTree(false);
         }
         return shouldErase;
     });
@@ -282,10 +257,6 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 
     EraseIf(canvasDrawingNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
-    });
-
-    EraseIf(abilityComponentNumsInProcess_, [pid](const auto& pair) -> bool {
-        return pair.first == pid;
     });
 
     EraseIf(displayNodeMap_, [pid](const auto& pair) -> bool {

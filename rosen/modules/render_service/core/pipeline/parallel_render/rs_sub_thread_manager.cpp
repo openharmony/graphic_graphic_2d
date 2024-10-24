@@ -333,24 +333,6 @@ void RSSubThreadManager::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& s
     threadList_[threadIndex]->AddToReleaseQueue(std::move(surface));
 }
 
-std::vector<MemoryGraphic> RSSubThreadManager::CountSubMem(int pid)
-{
-    std::vector<MemoryGraphic> memsContainer;
-    if (threadList_.empty()) {
-        return memsContainer;
-    }
-
-    for (auto& subThread : threadList_) {
-        if (!subThread) {
-            MemoryGraphic memoryGraphic;
-            memsContainer.push_back(memoryGraphic);
-            continue;
-        }
-        memsContainer.push_back(subThread->CountSubMem(pid));
-    }
-    return memsContainer;
-}
-
 std::unordered_map<uint32_t, pid_t> RSSubThreadManager::GetReThreadIndexMap() const
 {
     return reThreadIndexMap_;
@@ -394,7 +376,15 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     auto submittedFrameCount = RSUniRenderThread::Instance().GetFrameCount();
     subThread->DoingCacheProcessNumInc();
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
-    subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount]() {
+
+    auto& rtUniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount,
+                            uniParam = new RSRenderThreadParams(*rtUniParam)]() mutable {
+        if (!uniParam) {
+            return;
+        }
+        std::unique_ptr<RSRenderThreadParams> uniParamUnique(uniParam);
+        RSUniRenderThread::Instance().Sync(std::move(uniParamUnique));
         nodeDrawable->SetLastFrameUsedThreadIndex(tid);
         nodeDrawable->SetTaskFrameCount(submittedFrameCount);
         subThread->DrawableCache(nodeDrawable);

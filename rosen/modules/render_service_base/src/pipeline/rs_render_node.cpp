@@ -683,6 +683,26 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (IsPureContainer()) {
         out += ", IsPureContainer: true";
     }
+    if (!oldDirty_.IsEmpty()) {
+        out += ", oldDirty: " + oldDirty_.ToString();
+    }
+    if (!localShadowRect_.IsEmpty()) {
+        out += ", localShadowRect: " + localShadowRect_.ToString();
+    }
+    if (!localOutlineRect_.IsEmpty()) {
+        out += ", localOutlineRect: " + localOutlineRect_.ToString();
+    }
+    if (!localPixelStretchRect_.IsEmpty()) {
+        out += ", localPixelStretchRect: " + localPixelStretchRect_.ToString();
+    }
+    if (!localForegroundEffectRect_.IsEmpty()) {
+        out += ", localForegroundEffectRect: " + localForegroundEffectRect_.ToString();
+    }
+    if (auto drawRegion = GetRenderProperties().GetDrawRegion()) {
+        if (!drawRegion->IsEmpty()) {
+            out += ", drawRegion: " + drawRegion->ToString();
+        }
+    }
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
@@ -791,11 +811,8 @@ void RSRenderNode::DumpDrawCmdModifiers(std::string& out) const
     std::string splitStr = ", ";
     std::string modifierDesc = ", DrawCmdModifiers:[";
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
-        std::string typeName = "UNKNOWN";
-        auto iter = RS_MODIFIER_TYPE_TO_STRING.find(type);
-        if (iter != RS_MODIFIER_TYPE_TO_STRING.end()) {
-            typeName = iter->second;
-        }
+        auto modifierTypeString = std::make_shared<RSModifierTypeString>();
+        std::string typeName = modifierTypeString->GetModifierTypeString(type);
         modifierDesc += typeName + ":[";
         std::string propertyDesc = "";
         for (auto& modifier : modifiers) {
@@ -839,7 +856,8 @@ void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManag
     if (geoUpdateDelay_) {
         if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             auto absChildrenRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
-            dirtyManager.MergeDirtyRect(absChildrenRect.IntersectRect(oldClipRect_));
+            subTreeDirtyRegion_ = absChildrenRect.IntersectRect(oldClipRect_);
+            dirtyManager.MergeDirtyRect(subTreeDirtyRegion_);
         }
     }
     lastFrameSubTreeSkipped_ = false;
@@ -858,8 +876,9 @@ void RSRenderNode::SubTreeSkipPrepare(
         auto oldDirtyRectClip = oldDirtyRect.IntersectRect(oldClipRect_);
         auto dirtyRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
         auto dirtyRectClip = dirtyRect.IntersectRect(clipRect);
-        dirtyRectClip = dirtyRect.JoinRect(oldDirtyRectClip);
+        dirtyRectClip = dirtyRectClip.JoinRect(oldDirtyRectClip);
         dirtyManager.MergeDirtyRect(dirtyRectClip);
+        UpdateSubTreeSkipDirtyForDFX(dirtyManager, dirtyRectClip);
     }
     SetGeoUpdateDelay(accumGeoDirty);
     UpdateSubTreeInfo(clipRect);
@@ -1440,6 +1459,15 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
     dirtyRegionInfo.oldDirty = oldDirty_;
     dirtyRegionInfo.oldDirtyInSurface = oldDirtyInSurface_;
     stagingRenderParams_->SetDirtyRegionInfoForDFX(dirtyRegionInfo);
+}
+
+void RSRenderNode::UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect)
+{
+    if (RSSystemProperties::GetDirtyRegionDebugType() == DirtyRegionDebugType::DISABLED) {
+        return;
+    }
+    dirtyManager.UpdateDirtyRegionInfoForDfx(
+        GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_OUT_OF_PARENT_RECT, rect);
 }
 
 bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent,
@@ -2091,7 +2119,8 @@ void RSRenderNode::SetOccludedStatus(bool occluded)
 void RSRenderNode::RenderTraceDebug() const
 {
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
-        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(), GetRenderProperties());
+        RSPropertyTrace::GetInstance().PropertiesDisplayByTrace(GetId(),
+            std::static_pointer_cast<RSObjAbsGeometry>(GetRenderProperties().GetBoundsGeometry()));
         RSPropertyTrace::GetInstance().TracePropertiesByNodeName(GetId(), GetNodeName(), GetRenderProperties());
     }
 }
@@ -2423,6 +2452,8 @@ void RSRenderNode::UpdateDrawableVecV2()
     }
     // Step 2: Update or regenerate drawable if needed
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
+    // Step 2.1 (optional): fuze some drawables
+    RSDrawable::FuzeDrawableSlots(*this, drawableVec_);
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
@@ -3586,7 +3617,7 @@ void RSRenderNode::SetStaticCached(bool isStaticCached)
 }
 bool RSRenderNode::IsStaticCached() const
 {
-    return false;
+    return isStaticCached_;
 }
 void RSRenderNode::SetNodeName(const std::string& nodeName)
 {
@@ -3931,6 +3962,10 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
     stagingRenderParams_->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
     stagingRenderParams_->SetNeedFilter(GetRenderProperties().NeedFilter());
+    stagingRenderParams_->SetHasBlurFilter(HasBlurFilter());
+    stagingRenderParams_->SetNodeType(GetType());
+    stagingRenderParams_->SetEffectNodeShouldPaint(EffectNodeShouldPaint());
+    stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()
@@ -3939,11 +3974,16 @@ bool RSRenderNode::UpdateLocalDrawRect()
     return stagingRenderParams_->SetLocalDrawRect(drawRect);
 }
 
-void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius, bool isSubNodeInSurface)
+void RSRenderNode::UpdateAbsDrawRect()
 {
-    if (!isSubNodeInSurface) {
-        Vector4f::Max(GetRenderProperties().GetCornerRadius(), curCornerRadius, curCornerRadius);
-    }
+    auto absRect = GetAbsDrawRect();
+    stagingRenderParams_->SetAbsDrawRect(absRect);
+}
+
+void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)
+{
+    Vector4f::Max(GetRenderProperties().GetCornerRadius(), curCornerRadius, curCornerRadius);
+    globalCornerRadius_ = curCornerRadius;
 }
 
 void RSRenderNode::ResetChangeState()
