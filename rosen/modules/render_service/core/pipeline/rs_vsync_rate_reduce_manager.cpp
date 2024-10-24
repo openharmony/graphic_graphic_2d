@@ -93,7 +93,7 @@ void RSVsyncRateReduceManager::ClearLastVisMapForVsyncRate()
 
 void RSVsyncRateReduceManager::FrameDurationBegin()
 {
-    if (!vRateReduceEnabled_) {
+    if (!vRateConditionQualified_) {
         return;
     }
     curTime_ = Now();
@@ -101,7 +101,7 @@ void RSVsyncRateReduceManager::FrameDurationBegin()
 
 void RSVsyncRateReduceManager::FrameDurationEnd()
 {
-    if (!vRateReduceEnabled_) {
+    if (!vRateConditionQualified_) {
         return;
     }
     if (oneFramePeriod_ > 0) {
