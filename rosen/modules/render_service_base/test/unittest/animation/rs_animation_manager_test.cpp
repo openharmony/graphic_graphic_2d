@@ -201,22 +201,80 @@ HWTEST_F(RSAnimationManagerTest, Animate001, TestSize.Level1)
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
     
+    bool hasRunningAnimation;
+    bool needRequestNextVsync;
+    bool isCalculateAnimationValue;
+
     RSAnimationManager animationManager;
     animationManager.AddAnimation(renderCurveAnimation);
     EXPECT_TRUE(animationManager.GetFrameRateRange().preferred_ == 0);
     renderCurveAnimation->SetRepeatCount(-1);
-    animationManager.Animate(0, false);
+
+    std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
+        animationManager.Animate(0, false, RSSurfaceNodeAbilityState::FOREGROUND);
+    EXPECT_FALSE(hasRunningAnimation);
+    EXPECT_FALSE(needRequestNextVsync);
+    EXPECT_FALSE(isCalculateAnimationValue);
+
+    std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
+        animationManager.Animate(0, true, RSSurfaceNodeAbilityState::BACKGROUND);
+    EXPECT_FALSE(hasRunningAnimation);
+    EXPECT_FALSE(needRequestNextVsync);
+    EXPECT_FALSE(isCalculateAnimationValue);
+    EXPECT_TRUE(renderCurveAnimation != nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest Animate001 end";
+}
+
+/**
+ * @tc.name: Animate002
+ * @tc.desc: Verify the Animate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationManagerTest, Animate002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest Animate002 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    
+    bool hasRunningAnimation;
+    bool needRequestNextVsync;
+    bool isCalculateAnimationValue;
+
+    RSAnimationManager animationManager;
+    animationManager.AddAnimation(renderCurveAnimation);
 
     renderCurveAnimation->SetRepeatCount(1);
     renderCurveAnimation->Start();
+    std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
+        animationManager.Animate(0, true, RSSurfaceNodeAbilityState::BACKGROUND);
+    EXPECT_FALSE(hasRunningAnimation);
+    EXPECT_FALSE(needRequestNextVsync);
+    EXPECT_TRUE(isCalculateAnimationValue);
+
+    renderCurveAnimation->Start();
     renderCurveAnimation->Pause();
-    animationManager.Animate(0, true);
+    std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
+        animationManager.Animate(0, true, RSSurfaceNodeAbilityState::FOREGROUND);
+    EXPECT_FALSE(hasRunningAnimation);
+    EXPECT_FALSE(needRequestNextVsync);
+    EXPECT_FALSE(isCalculateAnimationValue);
 
     renderCurveAnimation->Resume();
     renderCurveAnimation->Finish();
-    animationManager.Animate(0, true);
+    std::tie(hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue) =
+        animationManager.Animate(0, false, RSSurfaceNodeAbilityState::BACKGROUND);
+    EXPECT_FALSE(hasRunningAnimation);
+    EXPECT_FALSE(needRequestNextVsync);
+    EXPECT_FALSE(isCalculateAnimationValue);
     EXPECT_TRUE(renderCurveAnimation != nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest Animate001 end";
+    GTEST_LOG_(INFO) << "RSAnimationManagerTest Animate002 end";
 }
 
 /**

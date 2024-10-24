@@ -292,5 +292,16 @@ void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bo
         node->SetSkipDraw(skip);
     }
 }
+
+void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId,
+    RSSurfaceNodeAbilityState abilityState)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (!node) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::SetAbilityState node is null!");
+        return;
+    }
+    node->SetAbilityState(abilityState);
+}
 } // namespace Rosen
 } // namespace OHOS

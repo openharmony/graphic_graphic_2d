@@ -179,7 +179,7 @@ void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
 }
 
-uint32_t RSSystemProperties::SetDefaultDeviceRotationOffset()
+uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
 {
     return {};
 }
@@ -510,11 +510,6 @@ bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
 std::string RSSystemProperties::GetVersionType()
 {
     return "";
-}
-
-bool RSSystemProperties::GetLayerCursorEnable()
-{
-    return false;
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()

@@ -141,7 +141,8 @@ pid_t RSAnimationManager::GetAnimationPid() const
     return 0;
 }
 
-std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnTheTree)
+std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool nodeIsOnTheTree,
+    RSSurfaceNodeAbilityState abilityState)
 {
     // process animation
     bool hasRunningAnimation = false;
@@ -152,11 +153,17 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(int64_t time, bool node
     rateDecider_.Reset();
     // iterate and execute all animations, remove finished animations
     EraseIf(animations_, [this, &hasRunningAnimation, time,
-        &needRequestNextVsync, nodeIsOnTheTree, &isCalculateAnimationValue](auto& iter) -> bool {
+        &needRequestNextVsync, nodeIsOnTheTree, &isCalculateAnimationValue, abilityState](auto& iter) -> bool {
         auto& animation = iter.second;
-        if (!nodeIsOnTheTree && animation->GetRepeatCount() == -1) {
+        // infinite iteration animation out of the tree or in the background does not request vsync
+        if ((!nodeIsOnTheTree || abilityState == RSSurfaceNodeAbilityState::BACKGROUND) &&
+            animation->GetRepeatCount() == -1) {
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
             return false;
+        }
+        // finite iteration animation in the background finished immediately
+        if (abilityState == RSSurfaceNodeAbilityState::BACKGROUND) {
+            animation->Finish();
         }
         bool isFinished = animation->Animate(time);
         if (isFinished) {

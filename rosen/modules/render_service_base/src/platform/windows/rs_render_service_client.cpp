@@ -579,11 +579,6 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
     return false;
 }
 
-bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    return false;
-}
-
 bool RSRenderServiceClient::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     std::shared_ptr<SurfaceBufferCallback> callback)
 {

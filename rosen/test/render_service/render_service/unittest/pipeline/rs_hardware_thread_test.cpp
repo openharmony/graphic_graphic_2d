@@ -225,6 +225,18 @@ HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Start005
+ * @tc.desc: Test RSHardwareThreadTest.AddRefreshRateCount
+ * @tc.type: FUNC
+ * @tc.require: issueI8K4HE
+ */
+HWTEST_F(RSHardwareThreadTest, Start005, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.AddRefreshRateCount();
+}
+
+/**
  * @tc.name: ClearFrameBuffers002
  * @tc.desc: Test RSHardwareThreadTest.ClearFrameBuffers
  * @tc.type: FUNC

@@ -1977,13 +1977,6 @@ bool RSRenderServiceConnection::SetAncoForceDoDirect(bool direct)
     return true;
 }
 
-bool RSRenderServiceConnection::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    RS_LOGD("RSRenderServiceConnection::SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",
-        id, screenStatus);
-    return screenManager_->SetVirtualScreenStatus(id, screenStatus);
-}
-
 void RSRenderServiceConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     sptr<RSISurfaceBufferCallback> callback)
 {

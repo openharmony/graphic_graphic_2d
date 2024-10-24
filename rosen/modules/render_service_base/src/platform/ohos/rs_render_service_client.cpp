@@ -1449,15 +1449,6 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
     return false;
 }
 
-bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        return renderService->SetVirtualScreenStatus(id, screenStatus);
-    }
-    return false;
-}
-
 class SurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
 public:
     explicit SurfaceBufferCallbackDirector(RSRenderServiceClient* client) : client_(client) {}

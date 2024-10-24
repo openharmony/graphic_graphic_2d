@@ -277,8 +277,6 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
-    bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
-
     bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         std::shared_ptr<SurfaceBufferCallback> callback);
 

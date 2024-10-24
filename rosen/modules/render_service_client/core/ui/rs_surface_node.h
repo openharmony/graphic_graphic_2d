@@ -150,6 +150,8 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+    void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
+    RSSurfaceNodeAbilityState GetAbilityState() const;
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
@@ -189,6 +191,7 @@ private:
     bool isChildOperationDisallowed_ { false };
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
+    RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

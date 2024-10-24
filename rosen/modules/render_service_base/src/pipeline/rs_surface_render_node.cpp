@@ -1468,11 +1468,6 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
     layer.arsrTag = GetArsrTag();
-    if (IsHardwareEnabledTopSurface() && RSSystemProperties::GetLayerCursorEnable()) {
-        layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
-    } else {
-        layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
-    }
     isHardwareForcedDisabled_ = isProtectedLayer_ ? false : isHardwareForcedDisabled_;
 #ifndef ROSEN_CROSS_PLATFORM
     auto buffer = surfaceHandler_->GetBuffer();
@@ -2888,6 +2883,25 @@ void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
         surfaceParams->SetBrightnessRatio(brightnessRatio);
     }
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)
+{
+    if (abilityState_ == abilityState) {
+        ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], "
+            "ability state same with before: %{public}s",
+            GetId(), abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
+        return;
+    }
+
+    abilityState_ = abilityState;
+    ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s",
+        GetId(), abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
+}
+
+RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
+{
+    return abilityState_;
 }
 } // namespace Rosen
 } // namespace OHOS

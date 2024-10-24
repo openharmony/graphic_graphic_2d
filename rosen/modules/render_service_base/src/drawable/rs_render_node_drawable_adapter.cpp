@@ -410,7 +410,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
 
 void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas)
 {
-    if (curDrawingCacheRoot_ != nullptr) {
+    if (curDrawingCacheRoot_ != nullptr && curCanvas != nullptr) {
         auto iter = std::find_if(curDrawingCacheRoot_->filterInfoVec_.begin(),
             curDrawingCacheRoot_->filterInfoVec_.end(),
             [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });

@@ -137,7 +137,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetSpherize(0.f); },                  // SPHERIZE
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT
     [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH
-    [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
+    [](RSProperties* prop) { prop->SetPixelStretch({});
+                             prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
     [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
     [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE

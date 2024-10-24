@@ -60,6 +60,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ANCO_FLAGS,
     SURFACE_NODE_SET_HDR_PRESENT,
     SURFACE_NODE_SET_SKIP_DRAW,
+    SURFACE_NODE_SET_ABILITY_STATE,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -102,6 +103,7 @@ public:
     static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
+    static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -177,6 +179,9 @@ ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT, SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW, SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetAbilityState,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_ABILITY_STATE, SurfaceNodeCommandHelper::SetAbilityState,
+    NodeId, RSSurfaceNodeAbilityState))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H
