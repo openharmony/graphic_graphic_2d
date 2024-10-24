@@ -488,7 +488,7 @@ OpDataHandle CmdListHelper::AddPathToCmdList(CmdList& cmdList, const Path& path)
 {
     auto data = path.Serialize();
     if (data == nullptr || data->GetSize() == 0) {
-        LOGD("path is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGE("path is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return { 0 };
     }
 
@@ -500,12 +500,13 @@ std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
     const OpDataHandle& pathHandle)
 {
     if (pathHandle.size == 0) {
+        LOGE("pathHandle is invalid!");
         return nullptr;
     }
 
     const void* ptr = cmdList.GetImageData(pathHandle.offset);
     if (ptr == nullptr) {
-        LOGD("get path data failed!");
+        LOGE("get path data failed!");
         return nullptr;
     }
 
@@ -513,7 +514,7 @@ std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
     pathData->BuildWithoutCopy(ptr, pathHandle.size);
     auto path = std::make_shared<Path>();
     if (path->Deserialize(pathData) == false) {
-        LOGD("path deserialize failed!");
+        LOGE("path deserialize failed!");
         return nullptr;
     }
 
