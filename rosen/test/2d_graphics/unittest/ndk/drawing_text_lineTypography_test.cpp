@@ -34,104 +34,159 @@ using namespace testing::ext;
 namespace OHOS {
 
 class LineTypographyTest : public testing::Test {
+public:
+    void SetUp() override;
+    void TearDown() override;
+    void PrepareTypographyCreate(const char* text);
+
+protected:
+    OH_Drawing_TypographyCreate* handler_ = nullptr;
+    OH_Drawing_FontCollection* fontCollection_ = nullptr;
+    OH_Drawing_TextStyle* txtStyle_ = nullptr;
+    OH_Drawing_TypographyStyle* typoStyle_ = nullptr;
 };
 
-OH_Drawing_TypographyCreate *CreateTypographyCreateHandler(const char* text)
+void LineTypographyTest::SetUp()
 {
-    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_TypographyCreate* typographyCreateHandler = OH_Drawing_CreateTypographyHandler(typoStyle,
-        OH_Drawing_CreateFontCollection());
-    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
-    double fontSize = 30;
-    OH_Drawing_SetTextStyleFontSize(txtStyle, fontSize);
-    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
-    OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
-    const char* fontFamilies[] = {"Roboto"};
-    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
-    OH_Drawing_TypographyHandlerPushTextStyle(typographyCreateHandler, txtStyle);
-    if (text != nullptr) {
-        OH_Drawing_TypographyHandlerAddText(typographyCreateHandler, text);
+    handler_ = nullptr;
+    fontCollection_ = nullptr;
+    txtStyle_ = nullptr;
+    typoStyle_ = nullptr;
+}
+
+void LineTypographyTest::TearDown()
+{
+    if (handler_ != nullptr) {
+        OH_Drawing_DestroyTypographyHandler(handler_);
+        handler_ = nullptr;
     }
-    return typographyCreateHandler;
+    if (txtStyle_ != nullptr) {
+        OH_Drawing_DestroyTextStyle(txtStyle_);
+        txtStyle_ = nullptr;
+    }
+    if (fontCollection_ != nullptr) {
+        OH_Drawing_DestroyFontCollection(fontCollection_);
+        fontCollection_ = nullptr;
+    }
+    if (typoStyle_ != nullptr) {
+        OH_Drawing_DestroyTypographyStyle(typoStyle_);
+        typoStyle_ = nullptr;
+    }
+}
+
+void LineTypographyTest::PrepareTypographyCreate(const char* text)
+{
+    fontCollection_ = OH_Drawing_CreateFontCollection();
+    EXPECT_TRUE(fontCollection_ != nullptr);
+    typoStyle_ = OH_Drawing_CreateTypographyStyle();
+    EXPECT_TRUE(typoStyle_ != nullptr);
+    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
+    EXPECT_TRUE(handler_ != nullptr);
+    txtStyle_ = OH_Drawing_CreateTextStyle();
+    EXPECT_TRUE(txtStyle_ != nullptr);
+    OH_Drawing_SetTextStyleColor(txtStyle_, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
+    double fontSize = 30;
+    OH_Drawing_SetTextStyleFontSize(txtStyle_, fontSize);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle_, FONT_WEIGHT_400);
+    OH_Drawing_SetTextStyleBaseLine(txtStyle_, TEXT_BASELINE_ALPHABETIC);
+    const char* fontFamilies[] = {"Roboto"};
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle_, 1, fontFamilies);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
+    if (text != nullptr) {
+        OH_Drawing_TypographyHandlerAddText(handler_, text);
+    }
 }
 
 /*
  * @tc.name: OH_Drawing_CreateLineTypographyTest001
- * @tc.desc: testing for the OH_Drawing_CreateTypographyCreateHandler and OH_Drawing_DestroyLineTypography
+ * @tc.desc: testing for the OH_Drawing_CreateLineTypography and OH_Drawing_DestroyLineTypography
  * @tc.type: FUNC
  */
 HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTypographyTest001, TestSize.Level1)
 {
-    const char* text = "OpenHarmony\n";
-    OH_Drawing_TypographyCreate *handler1 = CreateTypographyCreateHandler(text);
-    OH_Drawing_LineTypography *lineTypography1 = OH_Drawing_CreateLineTypography(handler1);
+    PrepareTypographyCreate("OpenHarmony\n");
+    OH_Drawing_LineTypography *lineTypography1 = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_NE(lineTypography1, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography1);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 12);
 
-    OH_Drawing_LineTypography *lineTypography2 = OH_Drawing_CreateLineTypography(handler1);
+    OH_Drawing_LineTypography *lineTypography2 = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_EQ(lineTypography2, nullptr);
     OH_Drawing_DestroyLineTypography(lineTypography1);
 
     OH_Drawing_LineTypography *nullLineTypograph = OH_Drawing_CreateLineTypography(nullptr);
     EXPECT_EQ(nullLineTypograph, nullptr);
-    OH_Drawing_DestroyTypographyHandler(handler1);
-
-    OH_Drawing_TypographyCreate *handler2 = CreateTypographyCreateHandler(nullptr);
-    OH_Drawing_LineTypography *lineTypography3 = OH_Drawing_CreateLineTypography(handler2);
-    EXPECT_EQ(lineTypography3, nullptr);
-    OH_Drawing_DestroyTypographyHandler(handler2);
 }
 
 /*
- * @tc.name: OH_Drawing_GetLineBreakTest002
- * @tc.desc: normal testing for the OH_Drawing_LineTypographyGetLineBreak
+ * @tc.name: OH_Drawing_CreateLineTypographyTest002
+ * @tc.desc: testing for the OH_Drawing_TypographyCreate does not contain text
  * @tc.type: FUNC
  */
-HWTEST_F(LineTypographyTest, OH_Drawing_GetLineBreakTest002, TestSize.Level1)
+HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTypographyTest002, TestSize.Level1)
 {
-    const char* text = "OpenHarmony\n";
-    OH_Drawing_TypographyCreate *handler = CreateTypographyCreateHandler(text);
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler);
-    EXPECT_NE(lineTypography, nullptr);
-    double maxWidth = 800.0;
-    size_t startIndex = 0;
-    auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
-    EXPECT_EQ(count, strlen(text));
-    OH_Drawing_DestroyTypographyHandler(handler);
-    OH_Drawing_DestroyLineTypography(lineTypography);
+    PrepareTypographyCreate(nullptr);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
+    EXPECT_EQ(lineTypography, nullptr);
 }
 
 /*
  * @tc.name: OH_Drawing_GetLineBreakTest003
- * @tc.desc: testing for the OH_Drawing_LineTypographyGetLineBreak.
+ * @tc.desc: normal testing for the OH_Drawing_LineTypographyGetLineBreak
  * @tc.type: FUNC
  */
 HWTEST_F(LineTypographyTest, OH_Drawing_GetLineBreakTest003, TestSize.Level1)
 {
-    const char* text1 = "hello\n world";
-    const char* text2 = "hello\n";
-    OH_Drawing_TypographyCreate *handler = CreateTypographyCreateHandler(text1);
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler);
+    const char* text = "OpenHarmony\n";
+    PrepareTypographyCreate(text);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_NE(lineTypography, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 12);
+
     double maxWidth = 800.0;
     size_t startIndex = 0;
     auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
-    EXPECT_EQ(count, strlen(text2));
-    OH_Drawing_DestroyTypographyHandler(handler);
+    EXPECT_EQ(count, strlen(text));
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 
 /*
  * @tc.name: OH_Drawing_GetLineBreakTest004
- * @tc.desc: boundary testing for the OH_Drawing_LineTypographyGetLineBreak.
+ * @tc.desc: testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
 HWTEST_F(LineTypographyTest, OH_Drawing_GetLineBreakTest004, TestSize.Level1)
 {
-    const char* text = "OpenHarmoney\n";
-    OH_Drawing_TypographyCreate *handler = CreateTypographyCreateHandler(text);
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler);
+    const char* text1 = "hello\n world";
+    const char* text2 = "hello\n";
+    PrepareTypographyCreate(text1);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_NE(lineTypography, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 12);
+
+    double maxWidth = 800.0;
+    size_t startIndex = 0;
+    auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
+    EXPECT_EQ(count, strlen(text2));
+    OH_Drawing_DestroyLineTypography(lineTypography);
+}
+
+/*
+ * @tc.name: OH_Drawing_GetLineBreakTest005
+ * @tc.desc: boundary testing for the OH_Drawing_LineTypographyGetLineBreak.
+ * @tc.type: FUNC
+ */
+HWTEST_F(LineTypographyTest, OH_Drawing_GetLineBreakTest005, TestSize.Level1)
+{
+    const char* text = "OpenHarmoney\n";
+    PrepareTypographyCreate(text);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
+    EXPECT_NE(lineTypography, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 13);
+
     double maxWidth = 800.0;
     size_t startIndex = strlen(text) - 1;
     auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
@@ -140,21 +195,23 @@ HWTEST_F(LineTypographyTest, OH_Drawing_GetLineBreakTest004, TestSize.Level1)
     startIndex = 0;
     count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
     EXPECT_EQ(count, 0);
-    OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 
 /*
- * @tc.name: OH_Drawing_GetLineBreakTest005
+ * @tc.name: OH_Drawing_GetLineBreakTest006
  * @tc.desc: abnormal testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(LineTypographyTest, OH_Drawing_GetLineBreakTest005, TestSize.Level1)
+HWTEST_F(LineTypographyTest, OH_Drawing_GetLineBreakTest006, TestSize.Level1)
 {
     const char* text = "OpenHarmoney\n";
-    OH_Drawing_TypographyCreate *handler = CreateTypographyCreateHandler(text);
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler);
+    PrepareTypographyCreate(text);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_NE(lineTypography, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 13);
+
     double maxWidth = 800.0;
     size_t startIndex = strlen(text);
     auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
@@ -163,27 +220,6 @@ HWTEST_F(LineTypographyTest, OH_Drawing_GetLineBreakTest005, TestSize.Level1)
     startIndex = 0;
     count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
     EXPECT_EQ(count, 1);
-    OH_Drawing_DestroyTypographyHandler(handler);
-    OH_Drawing_DestroyLineTypography(lineTypography);
-}
-
-/*
- * @tc.name: OH_Drawing_CreateLineTest006
- * @tc.desc: testing for the OH_Drawing_LineTypographyGetLineBreak.
- * @tc.type: FUNC
- */
-HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTest006, TestSize.Level1)
-{
-    const char* text = "OpenHarmoney\n";
-    OH_Drawing_TypographyCreate *handler = CreateTypographyCreateHandler(text);
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler);
-    EXPECT_NE(lineTypography, nullptr);
-    size_t startIndex = 0;
-    size_t count = strlen(text);
-    auto line = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
-    EXPECT_NE(line, nullptr);
-    OH_Drawing_DestroyTextLine(line);
-    OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 
@@ -194,59 +230,93 @@ HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTest006, TestSize.Level1)
  */
 HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTest007, TestSize.Level1)
 {
-    const char* text = "Hello\n world!";
-    OH_Drawing_TypographyCreate *handler = CreateTypographyCreateHandler(text);
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler);
+    const char* text = "OpenHarmoney\n";
+    PrepareTypographyCreate(text);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_NE(lineTypography, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 13);
+
     size_t startIndex = 0;
     size_t count = strlen(text);
     auto line = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
     EXPECT_NE(line, nullptr);
+    EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line), 12L);
     OH_Drawing_DestroyTextLine(line);
-    OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 
 /*
  * @tc.name: OH_Drawing_CreateLineTest008
- * @tc.desc: boundary testing for the OH_Drawing_LineTypographyGetLineBreak.
+ * @tc.desc: testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
 HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTest008, TestSize.Level1)
 {
-    const char* text = "OpenHarmoney\n";
-    OH_Drawing_TypographyCreate *handler = CreateTypographyCreateHandler(text);
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler);
+    const char* text = "Hello\n world!";
+    PrepareTypographyCreate(text);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_NE(lineTypography, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 13);
+
+    size_t startIndex = 0;
+    size_t count = strlen(text);
+    auto line = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
+    EXPECT_NE(line, nullptr);
+    EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line), 5L);
+    OH_Drawing_DestroyTextLine(line);
+    OH_Drawing_DestroyLineTypography(lineTypography);
+}
+
+/*
+ * @tc.name: OH_Drawing_CreateLineTest009
+ * @tc.desc: boundary testing for the OH_Drawing_LineTypographyGetLineBreak.
+ * @tc.type: FUNC
+ */
+HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTest009, TestSize.Level1)
+{
+    const char* text = "OpenHarmoney\n";
+    PrepareTypographyCreate(text);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
+    EXPECT_NE(lineTypography, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 13);
+
     size_t startIndex = strlen(text) - 1;
     size_t count = 1;
     auto line1 = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
     EXPECT_NE(line1, nullptr);
+    EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line1), 0L);
     OH_Drawing_DestroyTextLine(line1);
 
     startIndex = 0;
     count = 0;
     auto line2 = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
     EXPECT_NE(line2, nullptr);
+    EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line2), 12L);
     OH_Drawing_DestroyTextLine(line2);
-    OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 
 /*
- * @tc.name: OH_Drawing_CreateLineTest009
+ * @tc.name: OH_Drawing_CreateLineTest010
  * @tc.desc: abnormal testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTest009, TestSize.Level1)
+HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTest010, TestSize.Level1)
 {
     const char* text = "OpenHarmoney\n";
-    OH_Drawing_TypographyCreate *handler = CreateTypographyCreateHandler(text);
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler);
+    PrepareTypographyCreate(text);
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_NE(lineTypography, nullptr);
+    LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypography);
+    EXPECT_EQ(innerlineTypography->GetUnicodeSize(), 13);
+
     size_t startIndex = strlen(text);
     size_t count = 1;
     auto line1 = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
+    EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line1), 0L);
     EXPECT_EQ(line1, nullptr);
     OH_Drawing_DestroyTextLine(line1);
 
@@ -254,26 +324,26 @@ HWTEST_F(LineTypographyTest, OH_Drawing_CreateLineTest009, TestSize.Level1)
     count = strlen(text) + 1;
     auto line2 = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
     EXPECT_EQ(line2, nullptr);
+    EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line2), 0L);
     OH_Drawing_DestroyTextLine(line2);
-    OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyLineTypography(lineTypography);
 }
 
 /*
- * @tc.name: OH_Drawing_LineTypographyTest010
+ * @tc.name: OH_Drawing_LineTypographyTest011
  * @tc.desc: complex scenes test for the LineTypography
  * @tc.type: FUNC
  */
-HWTEST_F(LineTypographyTest, OH_Drawing_LineTypographyTest010, TestSize.Level1)
+HWTEST_F(LineTypographyTest, OH_Drawing_LineTypographyTest011, TestSize.Level1)
 {
     std::string text = "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 ";
     text += "Drawing \n\n   \u231A \u513B \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本";
-    OH_Drawing_TypographyCreate *createHandler = CreateTypographyCreateHandler(text.c_str());
-    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(createHandler);
+    PrepareTypographyCreate(text.c_str());
+    OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
     EXPECT_NE(lineTypography, nullptr);
     double maxWidth = 800.0;
-
     size_t startIndex = 0;
+    int yPosition = 0;
     do {
         auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
         if (count == 0) {
@@ -281,10 +351,10 @@ HWTEST_F(LineTypographyTest, OH_Drawing_LineTypographyTest010, TestSize.Level1)
         }
         OH_Drawing_TextLine *line = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
         EXPECT_NE(line, nullptr);
+        yPosition += 30;
         OH_Drawing_DestroyTextLine(line);
         startIndex += count;
     } while (true);
     OH_Drawing_DestroyLineTypography(lineTypography);
-    OH_Drawing_DestroyTypographyHandler(createHandler);
 }
 } // namespace OHOS
