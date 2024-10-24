@@ -694,8 +694,6 @@ private:
     void DrawCurtainScreen();
     bool isCurtainScreenOn_ = false;
 
-    RSPointerWindowManager pointerWindowManager_;
-
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
 
