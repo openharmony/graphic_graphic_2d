@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1194,7 +1194,7 @@ HWTEST_F(RsUniRenderComposerTest, SrcRectRotateTransform05, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    //let the left value of node's rect not equal to zero and the result of the founction isn't empty
+    // Let the left value of node's rect not equal to zero and the result of the founction isn't empty
     RectI rect{DEFAULT_CANVAS_WIDTH * 0.5, DEFAULT_CANVAS_HEIGHT * 0.5, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(rect);
     surfaceNode->SetDstRect(rect);
