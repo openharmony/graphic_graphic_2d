@@ -1970,7 +1970,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
-    rsVsyncRateReduceManager_.ResetFrameValues(rsVSyncDistributor_->GetRefreshRate());
+    int64_t rsPeriod = 0;
+    if (receiver_) {
+        receiver_->GetVSyncPeriod(rsPeriod);
+    }
+    rsVsyncRateReduceManager_.ResetFrameValues(impl::CalculateRefreshRate(rsPeriod));
 
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
