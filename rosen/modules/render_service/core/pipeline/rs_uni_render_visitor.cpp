@@ -1532,7 +1532,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
             return;
         }
     }
-    if (!shouldDisable || 
+    if (!shouldDisable ||
         (RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() && hwcNode->IsRosenWeb())) {
         hasSkeppedSpecialLayer = true;
     }
