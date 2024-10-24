@@ -1148,4 +1148,18 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrame, TestSize.Level1)
     res = displayDrawable_->SkipFrame(1, 2);
     ASSERT_FALSE(res);
 }
+
+/**
+ * @tc.name: EnablescRGBForP3AndUiFirstTest
+ * @tc.desc: Test ScRGB For P3 Controller
+ * @tc.type: FUNC
+ * @tc.require: issueIAWIC7
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, EnablescRGBForP3AndUiFirstTest, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto currentGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    auto result = displayDrawable_->EnablescRGBForP3AndUiFirst(currentGamut);
+    EXPECT_FALSE(result);
+}
 }
