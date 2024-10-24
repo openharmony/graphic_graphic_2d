@@ -30,6 +30,7 @@
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_processor.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_uni_hwc_prevalidate_util.h"
