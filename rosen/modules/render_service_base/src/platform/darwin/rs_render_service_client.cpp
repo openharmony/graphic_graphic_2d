@@ -578,5 +578,9 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 {
     return false;
 }
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+}
 } // namespace Rosen
 } // namespace OHOS
