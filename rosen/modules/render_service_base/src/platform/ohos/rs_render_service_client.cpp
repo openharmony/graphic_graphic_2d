@@ -1447,5 +1447,13 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
     ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is null");
     return false;
 }
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetLayerTop(nodeIdStr, isTop);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

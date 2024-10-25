@@ -2463,12 +2463,17 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         return;
     }
     std::shared_ptr<RSSurfaceRenderNode> pointWindow;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
     for (auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
             continue;
         }
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
+        if (hwcNodePtr->IsLayerTop()) {
+            topLayers.emplace_back(hwcNodePtr);
+            continue;
+        }
         if (node->IsHardwareEnabledTopSurface()) {
             pointWindow = hwcNodePtr;
             continue;
@@ -2485,6 +2490,9 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
     }
     curDisplayNode_->SetDisplayGlobalZOrder(globalZOrder_);
+    if (!topLayers.empty()) {
+        UpdateTopLayersDirtyStatus(topLayers);
+    }
     if (pointWindow) {
         UpdatePointWindowDirtyStatus(pointWindow);
     }
@@ -2510,6 +2518,21 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
             } else {
                 stagingDisplayParams->SetIsMouseDirty(false);
             }
+        }
+    }
+}
+
+void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers)
+{
+    for (const auto& topLayer : topLayers) {
+        std::shared_ptr<RSSurfaceHandler> topLayerSurfaceHandler = topLayer->GetMutableRSSurfaceHandler();
+        if (topLayerSurfaceHandler) {
+            topLayerSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 1);
+            topLayer->SetCalcRectInPrepare(false);
+            topLayer->SetHardwareForcedDisabledState(!IsHardwareComposerEnabled() || !topLayer->ShouldPaint() ||
+                hasUniRenderHdrSurface_);
+            auto transform = RSUniRenderUtil::GetLayerTransform(*topLayer, screenInfo_);
+            topLayer->UpdateHwcNodeLayerInfo(transform);
         }
     }
 }

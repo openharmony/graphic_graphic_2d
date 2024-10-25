@@ -680,5 +680,9 @@ bool RSInterfaces::SetAncoForceDoDirect(bool direct)
     return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
 
+void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
 } // namespace Rosen
 } // namespace OHOS

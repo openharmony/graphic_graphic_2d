@@ -2732,5 +2732,24 @@ bool RSRenderServiceConnectionProxy::SetAncoForceDoDirect(bool direct)
     }
 }
 
+void RSRenderServiceConnectionProxy::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetLayerTop: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (data.WriteString(nodeIdStr) && data.WriteBool(isTop)) {
+        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP);
+        int32_t err = Remote()->SendRequest(code, data, reply, option);
+        if (err != NO_ERROR) {
+            ROSEN_LOGE("RSRenderServiceConnectionProxy::SetLayerTop: Send Request err.");
+            return;
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
